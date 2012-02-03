@@ -1,0 +1,233 @@
+From a27be52e1841fca908fd9aa6ef45707813762ecf Mon Sep 17 00:00:00 2001
+From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+Date: Thu, 17 Nov 2011 21:58:09 +0100
+Subject: [PATCH 3/3] macb: adaptations for cpufreq support
+
+Work initially done by Albin Tonnerre
+<albin.tonnerre@free-electrons.com>.
+
+Signed-off-by: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+---
+ drivers/net/macb.c |  138 ++++++++++++++++++++++++++++++++++++++--------------
+ drivers/net/macb.h |    3 +
+ 2 files changed, 105 insertions(+), 36 deletions(-)
+
+diff --git a/drivers/net/macb.c b/drivers/net/macb.c
+index dc4e305..31c28b1 100644
+--- a/drivers/net/macb.c
++++ b/drivers/net/macb.c
+@@ -21,6 +21,7 @@
+ #include <linux/dma-mapping.h>
+ #include <linux/platform_device.h>
+ #include <linux/phy.h>
++#include <linux/cpufreq.h>
+ 
+ #include <mach/board.h>
+ #include <mach/cpu.h>
+@@ -222,7 +223,6 @@ static int macb_mii_probe(struct net_device *dev)
+ 	bp->speed = 0;
+ 	bp->duplex = -1;
+ 	bp->phy_dev = phydev;
+-
+ 	return 0;
+ }
+ 
+@@ -1117,6 +1117,100 @@ static const struct net_device_ops macb_netdev_ops = {
+ #endif
+ };
+ 
++/* Set MII management clock divider */
++static void macb_set_mii_clkdiv(struct macb *bp)
++{
++	unsigned long pclk_hz;
++	u32 config, ncfgr;
++
++	ncfgr = macb_readl(bp, NCFGR);
++	pclk_hz = clk_get_rate(bp->pclk);
++
++	if (pclk_hz <= 20000000)
++		config = MACB_BF(CLK, MACB_CLK_DIV8);
++	else if (pclk_hz <= 40000000)
++		config = MACB_BF(CLK, MACB_CLK_DIV16);
++	else if (pclk_hz <= 80000000)
++		config = MACB_BF(CLK, MACB_CLK_DIV32);
++	else
++		config = MACB_BF(CLK, MACB_CLK_DIV64);
++
++	ncfgr = MACB_BFINS(CLK, config, ncfgr);
++	macb_writel(bp, NCFGR, ncfgr);
++}
++
++#if defined(CONFIG_PM) || defined(CONFIG_CPU_FREQ)
++static int _macb_suspend(struct platform_device *pdev)
++{
++	struct net_device *netdev = platform_get_drvdata(pdev);
++	struct macb *bp = netdev_priv(netdev);
++
++	netif_device_detach(netdev);
++
++#ifndef CONFIG_ARCH_AT91
++	clk_disable(bp->hclk);
++#endif
++	clk_disable(bp->pclk);
++
++	return 0;
++}
++
++static int _macb_resume(struct platform_device *pdev)
++{
++	struct net_device *netdev = platform_get_drvdata(pdev);
++	struct macb *bp = netdev_priv(netdev);
++
++	clk_enable(bp->pclk);
++#ifndef CONFIG_ARCH_AT91
++	clk_enable(bp->hclk);
++#endif
++
++	netif_device_attach(netdev);
++
++	return 0;
++}
++#endif
++
++#ifdef CONFIG_CPU_FREQ
++static int macb_cpufreq_transition(struct notifier_block *nb,
++					     unsigned long val, void *data)
++{
++	struct macb *bp = container_of(nb, struct macb, freq_transition);
++
++	/* Ugly, but necessary if we don't want to loose the connexion */
++	if (val == CPUFREQ_PRECHANGE) {
++		_macb_suspend(bp->pdev);
++	} else if (val == CPUFREQ_POSTCHANGE) {
++		macb_set_mii_clkdiv(bp);
++		_macb_resume(bp->pdev);
++	}
++	return NOTIFY_OK;
++}
++
++static inline int macb_cpufreq_register(struct macb *bp)
++{
++	bp->freq_transition.notifier_call = macb_cpufreq_transition;
++
++	return cpufreq_register_notifier(&bp->freq_transition,
++	                                 CPUFREQ_TRANSITION_NOTIFIER);
++}
++
++static inline void macb_cpufreq_deregister(struct macb *bp)
++{
++	cpufreq_unregister_notifier(&bp->freq_transition,
++	                            CPUFREQ_TRANSITION_NOTIFIER);
++}
++#else
++static inline int macb_cpufreq_register(struct macb *bp)
++{
++	return 0;
++}
++
++static inline void macb_cpufreq_deregister(struct macb *bp)
++{
++}
++#endif
++
+ static int __init macb_probe(struct platform_device *pdev)
+ {
+ 	struct eth_platform_data *pdata;
+@@ -1124,8 +1218,6 @@ static int __init macb_probe(struct platform_device *pdev)
+ 	struct net_device *dev;
+ 	struct macb *bp;
+ 	struct phy_device *phydev;
+-	unsigned long pclk_hz;
+-	u32 config;
+ 	int err = -ENXIO;
+ 
+ 	regs = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+@@ -1197,17 +1289,7 @@ static int __init macb_probe(struct platform_device *pdev)
+ 
+ 	dev->base_addr = regs->start;
+ 
+-	/* Set MII management clock divider */
+-	pclk_hz = clk_get_rate(bp->pclk);
+-	if (pclk_hz <= 20000000)
+-		config = MACB_BF(CLK, MACB_CLK_DIV8);
+-	else if (pclk_hz <= 40000000)
+-		config = MACB_BF(CLK, MACB_CLK_DIV16);
+-	else if (pclk_hz <= 80000000)
+-		config = MACB_BF(CLK, MACB_CLK_DIV32);
+-	else
+-		config = MACB_BF(CLK, MACB_CLK_DIV64);
+-	macb_writel(bp, NCFGR, config);
++	macb_set_mii_clkdiv(bp);
+ 
+ 	macb_get_hwaddr(bp);
+ 	pdata = pdev->dev.platform_data;
+@@ -1247,6 +1329,9 @@ static int __init macb_probe(struct platform_device *pdev)
+ 		"(mii_bus:phy_addr=%s, irq=%d)\n", dev->name,
+ 		phydev->drv->name, dev_name(&phydev->dev), phydev->irq);
+ 
++	if(macb_cpufreq_register(bp) < 0)
++		dev_err(&pdev->dev, "failed to add cpufreq notifier\n");
++
+ 	return 0;
+ 
+ err_out_unregister_netdev:
+@@ -1281,6 +1366,7 @@ static int __exit macb_remove(struct platform_device *pdev)
+ 
+ 	if (dev) {
+ 		bp = netdev_priv(dev);
++		macb_cpufreq_deregister(bp);
+ 		if (bp->phy_dev)
+ 			phy_disconnect(bp->phy_dev);
+ 		mdiobus_unregister(bp->mii_bus);
+@@ -1305,32 +1391,12 @@ static int __exit macb_remove(struct platform_device *pdev)
+ #ifdef CONFIG_PM
+ static int macb_suspend(struct platform_device *pdev, pm_message_t state)
+ {
+-	struct net_device *netdev = platform_get_drvdata(pdev);
+-	struct macb *bp = netdev_priv(netdev);
+-
+-	netif_device_detach(netdev);
+-
+-#ifndef CONFIG_ARCH_AT91
+-	clk_disable(bp->hclk);
+-#endif
+-	clk_disable(bp->pclk);
+-
+-	return 0;
++	return _macb_suspend(pdev);
+ }
+ 
+ static int macb_resume(struct platform_device *pdev)
+ {
+-	struct net_device *netdev = platform_get_drvdata(pdev);
+-	struct macb *bp = netdev_priv(netdev);
+-
+-	clk_enable(bp->pclk);
+-#ifndef CONFIG_ARCH_AT91
+-	clk_enable(bp->hclk);
+-#endif
+-
+-	netif_device_attach(netdev);
+-
+-	return 0;
++	return _macb_resume(pdev);
+ }
+ #else
+ #define macb_suspend	NULL
+diff --git a/drivers/net/macb.h b/drivers/net/macb.h
+index d3212f6..c6b00cb 100644
+--- a/drivers/net/macb.h
++++ b/drivers/net/macb.h
+@@ -389,6 +389,9 @@ struct macb {
+ 	unsigned int 		link;
+ 	unsigned int 		speed;
+ 	unsigned int 		duplex;
++#ifdef CONFIG_CPU_FREQ
++	struct notifier_block		freq_transition;
++#endif
+ };
+ 
+ #endif /* _MACB_H */
+-- 
+1.7.4.1
+

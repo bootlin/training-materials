@@ -1,0 +1,274 @@
+From adfd4aa31226e56b9cbdca145243619a7e685b7e Mon Sep 17 00:00:00 2001
+From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+Date: Thu, 17 Nov 2011 11:18:30 +0100
+Subject: [PATCH 1/3] at91: add cpufreq support
+
+Work initially done by Albin Tonnerre
+<albin.tonnerre@free-electrons.com>.
+
+Signed-off-by: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+---
+ arch/arm/Kconfig                  |    9 ++
+ arch/arm/mach-at91/Makefile       |    1 +
+ arch/arm/mach-at91/cpufreq-at91.c |  210 +++++++++++++++++++++++++++++++++++++
+ 3 files changed, 220 insertions(+), 0 deletions(-)
+ create mode 100644 arch/arm/mach-at91/cpufreq-at91.c
+
+diff --git a/arch/arm/Kconfig b/arch/arm/Kconfig
+index 3146ed3..2675fca 100644
+--- a/arch/arm/Kconfig
++++ b/arch/arm/Kconfig
+@@ -302,6 +302,7 @@ config ARCH_AT91
+ 	select HAVE_CLK
+ 	select CLKDEV_LOOKUP
+ 	select ARM_PATCH_PHYS_VIRT if MMU
++	select ARCH_HAS_CPUFREQ
+ 	help
+ 	  This enables support for systems based on the Atmel AT91RM9200,
+ 	  AT91SAM9 and AT91CAP9 processors.
+@@ -2001,6 +2002,14 @@ config CPU_FREQ_S3C24XX_DEBUGFS
+ 	help
+ 	  Export status information via debugfs.
+ 
++config CPU_FREQ_AT91
++	bool "CPUfreq driver from ATMEL AT91 ARM CPUs (EXPERIMENTAL)"
++	depends on CPU_FREQ && ARCH_AT91 && EXPERIMENTAL
++	help
++	  This enables the CPUfreq driver for ARM AT91 CPUs.
++
++	  If in doubt, say N.
++
+ endif
+ 
+ source "drivers/cpuidle/Kconfig"
+diff --git a/arch/arm/mach-at91/Makefile b/arch/arm/mach-at91/Makefile
+index bf57e8b..5c89f67 100644
+--- a/arch/arm/mach-at91/Makefile
++++ b/arch/arm/mach-at91/Makefile
+@@ -87,6 +87,7 @@ obj-y				+= leds.o
+ obj-$(CONFIG_PM)		+= pm.o
+ obj-$(CONFIG_AT91_SLOW_CLOCK)	+= pm_slowclock.o
+ obj-$(CONFIG_CPU_IDLE)	+= cpuidle.o
++obj-$(CONFIG_CPU_FREQ_AT91) += cpufreq-at91.o
+ 
+ ifeq ($(CONFIG_PM_DEBUG),y)
+ CFLAGS_pm.o += -DDEBUG
+diff --git a/arch/arm/mach-at91/cpufreq-at91.c b/arch/arm/mach-at91/cpufreq-at91.c
+new file mode 100644
+index 0000000..8c41f3b
+--- /dev/null
++++ b/arch/arm/mach-at91/cpufreq-at91.c
+@@ -0,0 +1,210 @@
++/*
++ * Copyright (C) 2009
++ * Albin Tonnerre, Free Electrons <albin.tonnerre@free-electrons.com>
++ *
++ * Based on linux/arch/arm/mach-pxa/cpufreq-pxa3xx.c
++ * Copyright (C) 2008 Marvell International Ltd.
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License as published by
++ * the Free Software Foundation; either version 2 of the License, or
++ * (at your option) any later version.
++ */
++
++#include <linux/module.h>
++#include <linux/kernel.h>
++#include <linux/init.h>
++#include <linux/errno.h>
++#include <linux/io.h>
++#include <linux/cpufreq.h>
++#include <linux/clk.h>
++
++#include <mach/hardware.h>
++#include <mach/at91_pmc.h>
++#include <mach/cpu.h>
++#include <linux/delay.h>
++#include "clock.h"
++
++struct at91_freq_info {
++	unsigned int cpufreq_khz;
++	u32          mckr_pres;
++};
++
++static struct at91_freq_info *at91_freqs;
++static struct cpufreq_frequency_table *at91_freqs_table;
++
++static int setup_freqs_table(struct cpufreq_policy *policy,
++			     struct at91_freq_info *freqs, int num)
++{
++	struct cpufreq_frequency_table *table;
++	int i;
++
++	table = kzalloc((num + 1) * sizeof(*table), GFP_KERNEL);
++	if (table == NULL)
++		return -ENOMEM;
++
++	for (i = 0; i < num; i++) {
++		table[i].index = i;
++		table[i].frequency = freqs[i].cpufreq_khz;
++	}
++	table[num].frequency = i;
++	table[num].frequency = CPUFREQ_TABLE_END;
++
++	at91_freqs = freqs;
++	at91_freqs_table = table;
++
++	return cpufreq_frequency_table_cpuinfo(policy, table);
++}
++
++static void __update_core_freq(struct clk *clk, struct at91_freq_info *info)
++{
++	u32 mckr, cur_mdiv;
++
++	cur_mdiv = at91_sys_read(AT91_PMC_MCKR) & AT91_PMC_MDIV;
++	mckr = info->mckr_pres | cur_mdiv | AT91_PMC_CSS_PLLA;
++
++	at91_sys_write(AT91_PMC_MCKR, mckr);
++	while(!(at91_sys_read(AT91_PMC_SR) & AT91_PMC_MCKRDY))
++		cpu_relax();
++
++	clk->rate_hz = (info->cpufreq_khz * 1000) >> (cur_mdiv >> 8);
++}
++
++static int at91_cpufreq_verify(struct cpufreq_policy *policy)
++{
++	return cpufreq_frequency_table_verify(policy, at91_freqs_table);
++}
++
++static unsigned int at91_cpufreq_get(unsigned int cpu)
++{
++	u32 mdiv;
++
++	mdiv = 1 << ((at91_sys_read(AT91_PMC_MCKR) & AT91_PMC_MDIV) >> 8);
++	return mdiv * clk_get_rate(clk_get(NULL, "mck")) / 1000;
++}
++
++static int at91_cpufreq_set(struct cpufreq_policy *policy,
++			      unsigned int target_freq,
++			      unsigned int relation)
++{
++	struct at91_freq_info *next;
++	struct cpufreq_freqs freqs;
++	unsigned long flags;
++	int idx;
++	struct clk *clk;
++
++	if (policy->cpu != 0)
++		return -EINVAL;
++
++	/* don't do anything if the master clock source is not PLLA */
++	clk = clk_get(NULL, "mck");
++	if (strcmp(clk->parent->name, "plla"))
++		return -EINVAL;
++
++	/* Lookup the next frequency */
++	if (cpufreq_frequency_table_target(policy, at91_freqs_table,
++				target_freq, relation, &idx))
++		return -EINVAL;
++
++	next = &at91_freqs[idx];
++
++	freqs.old = policy->cur;
++	freqs.new = next->cpufreq_khz;
++	freqs.cpu = policy->cpu;
++
++	printk("CPU frequency from %d MHz to %d MHz%s\n",
++			freqs.old / 1000, freqs.new / 1000,
++			(freqs.old == freqs.new) ? " (skipped)" : "");
++
++	if (freqs.old == target_freq)
++		return 0;
++
++	cpufreq_notify_transition(&freqs, CPUFREQ_PRECHANGE);
++
++	local_irq_save(flags);
++	__update_core_freq(clk, next);
++	local_irq_restore(flags);
++
++	cpufreq_notify_transition(&freqs, CPUFREQ_POSTCHANGE);
++
++	return 0;
++}
++
++static __init int at91_cpufreq_init(struct cpufreq_policy *policy)
++{
++	int ret = -EINVAL, nfreqs, i;
++	u32 pres, max_div = -1, mdiv;
++	struct clk *clk;
++	struct at91_freq_info *at91_freqs;
++
++	/* don't do anything if the master clock source is not PLLA */
++	clk = clk_get(NULL, "mck");
++	if (strcmp(clk->parent->name, "plla"))
++		return -EINVAL;
++
++	pres = at91_sys_read(AT91_PMC_MCKR) & AT91_PMC_PRES;
++	mdiv = (at91_sys_read(AT91_PMC_MCKR) & AT91_PMC_MDIV) >> 8;
++
++	for (i = AT91_PMC_PRES_64; i > AT91_PMC_PRES_1; i -= 1 << 2)
++	{
++		u32 speed = (clk->rate_hz >> (i >> 2)) / mdiv;
++		if (speed > 25000000) {
++			max_div = i;
++			break;
++		}
++	}
++	if (max_div == -1)
++		max_div = AT91_PMC_PRES_1;
++
++	/* set default policy and cpuinfo */
++	policy->cpuinfo.min_freq = (clk->rate_hz / 1000) >> (max_div >> 2);
++	policy->cpuinfo.max_freq = clk->rate_hz / 1000;
++	policy->cpuinfo.transition_latency = 1000000; /* FIXME: 1 ms, assumed */
++	policy->cur = policy->min = policy->max = at91_cpufreq_get(policy->cpu);
++
++	nfreqs = (max_div - pres) >> 2;
++	nfreqs = (nfreqs > 0) ? nfreqs + 1 : 1;
++	at91_freqs = kmalloc(sizeof(struct at91_freq_info) * nfreqs, GFP_KERNEL);
++
++	for(i = 0; i < nfreqs; i++)
++	{
++		at91_freqs[i].cpufreq_khz = policy->cur >> (pres >> 2);
++		at91_freqs[i].mckr_pres = pres;
++		pres += 1 << 2;
++	}
++
++	ret = setup_freqs_table(policy, at91_freqs, nfreqs);
++
++	if (ret) {
++		pr_err("failed to setup frequency table\n");
++		kfree(at91_freqs);
++		return ret;
++	}
++
++	pr_info("CPUFREQ support for AT91 initialized\n");
++	return 0;
++}
++
++static struct cpufreq_driver at91_cpufreq_driver = {
++	.verify		= at91_cpufreq_verify,
++	.target		= at91_cpufreq_set,
++	.init		= at91_cpufreq_init,
++	.get		= at91_cpufreq_get,
++	.name		= "at91-cpufreq",
++};
++
++static int __init cpufreq_init(void)
++{
++	return cpufreq_register_driver(&at91_cpufreq_driver);
++}
++module_init(cpufreq_init);
++
++static void __exit cpufreq_exit(void)
++{
++	kfree(at91_freqs);
++	cpufreq_unregister_driver(&at91_cpufreq_driver);
++}
++module_exit(cpufreq_exit);
++
++MODULE_DESCRIPTION("CPU frequency scaling driver for AT91");
++MODULE_LICENSE("GPL");
+-- 
+1.7.4.1
+

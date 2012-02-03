@@ -1,0 +1,51 @@
+#!/bin/sh
+
+# Produces the lab archive that is published on
+# http://free-electrons.com/labs/labs.tar.bz2
+
+ECHO=/bin/echo
+GIT=/usr/bin/git
+RM=/bin/rm
+FIND=/usr/bin/find
+TAR=/bin/tar
+UNLZMA=/usr/bin/unlzma
+DIRNAME=/usr/bin/dirname
+RSYNC=/usr/bin/rsync
+SUDO=/usr/bin/sudo
+CHOWN=/bin/chown
+
+if [ ! -d lab-data ]; then
+   $ECHO "ERROR: this script need to be run in the training-materials git repository" 
+   $ECHO "in the toplevel directory" 
+   exit 1
+fi
+
+# Updating repo
+
+$ECHO "Git repository update..."
+$GIT pull
+
+# Copy lab data
+
+$ECHO "Copying data from Subversion..."
+$RSYNC --exclude=.git -a --delete lab-data/ felabs/
+
+# Uncompress compressed files
+
+$ECHO "Extracting tar.lzma archives (root permissions needed for device files)"
+
+for f in `$FIND felabs -name "*.tar.lzma"`; do
+	$SUDO $TAR -C `dirname $f` --lzma -xf $f
+	$RM $f
+done
+
+$SUDO $CHOWN -R $USER.$USER felabs
+
+$ECHO "Uncompressing other .lzma files"
+$FIND felabs -name "*.lzma" -exec $UNLZMA {} ';' 
+
+# Create the final archive
+
+$ECHO "Creating the final archive..."
+$TAR jcf labs.tar.bz2 felabs 
+
