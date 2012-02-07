@@ -1,0 +1,103 @@
+\subchapter{Filesystems - Flash file systems}{Objective: Understand flash file systems usage and their integration on the target}
+
+After this lab, you will be able to:
+\begin{itemize}
+\item Prepare filesystem images and flash them.
+\item Define partitions in embedded flash storage.
+\end{itemize}
+
+\section{Setup}
+
+Stay in \code{/home/<user>/felabs/sysdev/fs}. Install the
+\code{mtd-utils} package, which will be useful to create JFFS2
+filesystem images.
+
+\section{Goals}
+
+Instead of using an external MMC card as in the previous lab, we will
+make our system use its internal flash storage.
+
+The root filesystem will still be in a read-only filesystem, put on an
+MTD partition.  Read/write data will be stored in a JFFS2 filesystem
+in another MTD partition. The layout of the internal OneNAND flash
+will be :
+
+\begin{itemize}
+\item From 0 to 0x80000, X-Loader (512 KB)
+\item From 0x80000 to 0x200000, U-Boot (1536 KB)
+\item From 0x200000 to 0x280000, U-Boot environment (512 KB)
+\item From 0x280000 to 0x680000, Linux kernel (4 MB)
+\item From 0x680000 to 0x880000, the JFFS2 root filesystem (2 MB) as read-only
+\item From 0x880000 to the end, the JFFS2 data filesystem
+\end{itemize}
+
+\section{Filesystem image preparation}
+
+Find the erase block size of the NAND flash device in your board.
+
+Prepare a JFFS2 filesystem image from the \code{/www/uploads/files}
+directory from the previous lab.
+
+Modify the \code{/etc/init.d/rcS} file to mount a JFFS2 filesystem on
+the sixth flash partition, instead of an ext3 filesystem on the third
+MMC disk partition.
+
+Create a JFFS2 image for your root filesystem. with the same options
+as the data filesystem.
+
+\section{Enabling NAND flash and filesystems}
+
+Recompile your kernel with support for JFFS2 and for support for MTD
+partitions specified in the kernel command line
+(\code{CONFIG_MTD_CMDLINE_PARTS}).
+
+Also enable support for the flash chips on the board
+(\code{CONFIG_MTD_ONENAND_OMAP2}).
+
+Because checking subpages writes of 2KiB-pages NANDs isn't working
+yet, you will need to make sure that
+\code{CONFIG_MTD_ONENAND_VERIFY_WRITE} isn't enabled.
+
+In the rest of the lab, we also assume that
+\code{CONFIG_MTD_ONENAND_2X_PROGRAM} is enabled.
+
+Update your kernel image on flash.
+
+\section{MTD partitioning and flashing}
+
+Memory layout and partitioning can be defined inside kernel sources,
+naturally in the \code{arch/<arch>/<march>/<board>.c} since it is
+board dependent. Nevertheless, during device development, it can be
+useful to define partitions at boot time, on the kernel command line.
+
+Enter the U-Boot shell and erase the NAND flash, from offset
+0x00280000, up to the end of the NAND flash (Erase size : 0x1FD80000
+bytes)
+
+Using the \code{tftp} command, download and flash the kernel image at
+the correct location.
+
+Using the \code{tftp} command, download and flash the JFFS2-ro image
+the correct location.
+
+Using the \code{tftp} command, download and flash the JFFS2 image at
+the correction location.
+
+Don't forget that you can write U-Boot scripts to automate those
+procedures. This is very handy to avoid mistakes when typing commands!
+
+Look at the way MTD partitions are defined in the kernel sources
+(\code{arch/arm/mach-omap2/board-igep-0020.c})
+
+Set the \code{bootargs} variable so that :
+
+\begin{itemize}
+\item you define the 6 MTD partitions, as detailed previously
+\item the root filesystem is mounted from the 5\textsuperscript{th}
+  partition, and is mounted read-only (kernel parameter \code{ro})
+\end{itemize}
+
+Boot the target, check that MTD partitions are well configured, and
+that your system still works as expected. Your root filesystem should
+be mounted read-only, while the data filesystem should be mounted
+read-write, allowing you to upload data using the web server.

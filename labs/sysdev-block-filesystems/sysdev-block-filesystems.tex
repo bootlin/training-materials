@@ -1,0 +1,140 @@
+\subchapter{Filesystems - Block file systems}{Objective: configure and
+  boot an embedded Linux system relying on block storage}
+
+After this lab, you will be able to:
+\begin{itemize}
+\item Manage partitions on block storage.
+\item Produce file system images.
+\item Configure the kernel to use these file systems
+\item Use the tmpfs file system to store temporary files
+\end{itemize}
+
+\section{Goals}
+
+After doing the {\em A tiny embedded system} lab, we are going to copy
+the filesystem contents to the MMC flash drive. The filesystem will be
+split into several partitions, and your IGEP board will be booted with
+this MMC card, without using NFS anymore.
+
+\section{Setup}
+
+Go to \code{/home/<user>/felabs/sysdev/fs}. Reuse the kernel that you
+used in \code{/home/<user>/felabs/sysdev/tinysystem}.
+
+Recompile it with support for SquashFS and ext3.
+
+Boot your board with this new kernel and on the NFS filesystem you
+used in this previous lab.\footnote{If you didn't do or complete the
+  tinysystem lab, you can use the data/rootfs directory instead.}
+
+\section{Add partitions to the MMC card}
+
+Using fdisk, add two additional partitions to the MMC card (in
+addition to the existing \code{boot} partition created in the
+bootloaders lab) :
+
+\begin{itemize}
+
+\item One partition, of at least 1 MB, that will be used for the root
+  filesystem. Due to the geometry of the device, the partition might
+  be larger than 1 MB, but it does not matter. Keep the \code{Linux}
+  type for the partition.
+
+\item One partition, that fills the rest of the MMC card, that will be
+  used for the data filesystem. Here also, keep the \code{Linux} type
+  for the partition.
+
+\end{itemize}
+
+At the end, you should have three partitions: one for the boot, one
+for the root filesystem and one for the data filesystem.
+
+\section{Data partition on the MMC disk}
+
+\fbox{\begin{minipage}{\textwidth}
+{\bfseries
+Caution: read this carefully before proceeding. You could destroy
+existing partitions on your PC!
+
+Do not make the confusion between the device that is used by your
+board to represent your MMC disk (probably \code{/dev/sda1}), and the
+device that your workstation uses (probably \code{/dev/sdb1}).
+
+So, don't use the \code{/dev/sdaX} device to reflash your MMC disk from your
+workstation. People have already destroyed their Windows partition by
+making this mistake.}
+\end{minipage}}
+
+Using the \code{mkfs.ext3} create a journaled file system on the third
+partition of the MMC disk. Remember that you can use the \code{-L}
+option to set a volume name for the partition. Move the contents of
+the \code{www/upload/files} directory (in your target root filesystem)
+into this new partition. The goal is to use the third partition of the
+MMC card as the storage for the uploaded images.
+
+Connect the MMC disk to your board. On the board command line,
+have a look at \code{/proc/partitions} to see which device names
+the kernel gives to your partitions, and which major and minor numbers
+their device files should have.
+  
+Create the device file for your third partition and mount this partition
+on \code{/www/upload/files}.
+
+Once this works, modify the startup scripts in your root filesystem
+to do it automatically at boot time.
+
+Reboot your target system and with the mount command, check that
+\code{/www/upload/files} is now a mount point for the third MMC disk
+partition. Also make sure that you can still upload new images, and
+that these images are listed in the web interface.
+
+\section{Adding a tmpfs partition for log files}
+
+For the moment, the upload script was storing its log file in
+\code{/www/upload/files/upload.log}. To avoid seeing this log file in
+the directory containing uploaded files, let's store it in
+\code{/var/log} instead.
+
+Add the \code{/var/log/} directory to your root filesystem and modify
+the startup scripts to mount a \code{tmpfs} filesystem on this
+directory. You can test your \code{tmpfs} mount command line on the
+system before adding it to the startup script, in order to be sure
+that it works properly.
+
+Modify the \code{www/cgi-bin/upload.cfg} configuration file to store
+the log file in \code{/var/log/upload.log}. You will loose your log
+file each time you reboot your system, but that's OK in our
+system. That's what \code{tmpfs} is for: temporary data that you don't need
+to keep across system reboots.
+
+Reboot your system and check that it works as expected.
+
+\section{Making a SquashFS image}
+
+We are going to store the root filesystem in a SquashFS filesystem in
+the second partition of the MMC disk.
+
+In order to create SquashFS images on your host, you need to install
+the \code{squashfs-tools} package. Now create a SquashFS image of your
+NFS root directory.
+
+Finally, using the \code{dd} command, copy the file system image to
+the second partition of the MMC disk.
+
+\section{Booting on the SquashFS partition}
+
+In the U-boot shell, configure the kernel command line to use the
+second partition of the MMC disk as the root file system. Also add the
+\code{rootwait} boot argument, to wait for the MMC disk to be properly
+initialized before trying to mount the root filesystem. Since the MMC
+cards are detected asynchronously by the kernel, the kernel might try
+to mount the root filesystem too early without \code{rootwait}.
+
+Check that your system still works. Congratulations if it does!
+
+\section{Store the kernel image on the MMC card}
+
+Finally, copy the \code{uImage} kernel image to the first partition of
+the MMC card (the partition called \code{boot}), and adjust the
+\code{bootcmd} of U-Boot so that it loads the kernel from the MMC card
+instead of loading the kernel through the network.

@@ -1,0 +1,129 @@
+\subchapter{Kernel debugging mechanisms and kernel crash
+  analysis}{Objective: Use kernel debugging mechanisms and analyze a
+  kernel crash}
+
+\section{{\tt pr\_debug()} and dynamic debugging}
+
+Add a \code{pr_debug()} call in the \code{write()} operation that shows
+each character being written (or its hexadecimal representation) and
+add a similar \code{pr_debug()} call in your interrupt handler to show
+each character being received.
+
+Check what happens with your module. Do you see the debugging messages
+that you added ? Your kernel probably has neither \code{CONFIG_DEBUG} nor
+\code{CONFIG_DYNAMIC_DEBUG} set, so you shouldn't see any message.
+
+Now, recompile your kernel with \code{CONFIG_DYNAMIC_DEBUG} and reboot. The
+dynamic debug feature can be configured using debugfs, so you'll have
+to mount the debugfs filesystem first. Then, after reading the dynamic
+debug documentation in the kernel sources, do the following things :
+
+\begin{itemize}
+
+\item List all available debug messages in the kernel
+
+\item Enable all debugging messages of your serial module, and check
+  that you indeed see those messages.
+
+\item Enable just one single debug message in your serial module, and
+  check that you see just this message and not the other debug
+  messages of your module.
+
+\end{itemize}
+
+Now, you have a good mechanism to keep many debug messages in your
+drivers and be able to selectively enable only some of them.
+
+\section{debugfs}
+
+Since you have enabled debugfs to control the dynamic debug feature,
+we will also use it to add a new debugfs entry. Modify your driver to
+add :
+
+\begin{itemize}
+
+\item A directory called \code{serial} in the {\em debugfs} filesystem
+
+\item And file called \code{counter} inside the \code{serial}
+  directory of the debugfs filesystem. This file should allow to see
+  the contents of the \code{counter} variable of your module.
+
+\end{itemize}
+
+Recompile and reload your driver, and check that in
+\code{/sys/kernel/debug/serial/counter} you can see the amount of characters
+that have been transmitted by your driver.
+
+\section{Kernel crash analysis}
+
+\subsection{Setup}
+
+Go to the \code{/home/<user>/felabs/linux/debugging} directory.
+
+Make sure that your kernel has the following options enabled:
+
+\begin{itemize}
+
+\item Support for root filesystem over NFS support
+
+\item The \code{CONFIG_DEBUG_INFO} configuration option, (Kernel
+  Hacking section) which makes it possible to see source code in the
+  disassembled kernel
+
+\item Disable the \code{CONFIG_ARM_UNWIND} configuration option
+  (Kernel Hacking section). This option enables a new mechanism to
+  handle stack backtraces, but this new mechanism is not yet as
+  functional and reliable as the old mechanism based on frame
+  pointers. In our case, with our board, you get a backtrace only if
+  this option is disabled.
+
+\end{itemize}
+
+The \code{nfsroot/} directory is the root filesystem.
+
+Compile the \code{drvbroken} module provided
+  in \code{nfsroot/root/drvbroken}, after modifying the Makefile so
+  that \code{KDIR} properly points to your kernel source tree.
+
+Run the target system on the Calao board, and load the \code{drvbroken}
+kernel module. See it crashing in a nice way.
+
+\section{Analyzing the crash message}
+
+Analyze the crash message carefully. Knowing that on ARM, the pc
+register contains the location of the instruction being executed, find
+in which function does the crash happens, and what the function call
+stack is.
+
+Using LXR (for example \url{http://lxr.free-electrons.com}) or the
+kernel source code, have a look at the definition of this
+function. This, with a careful review of the driver source code should
+probably be enough to help you understand and fix the issue.
+
+\section{Further analysis of the problem}
+
+If the function source code is not enough, then you can look at the
+disassembled version of the function, either using:
+
+\begin{verbatim}
+arm-linux-gnueabi-objdump -S linux-3.0.x/vmlinux > vmlinux.disasm
+\end{verbatim}
+
+or, using \code{gdb-multiarch}\footnote{gdb-multiarch is a new package
+  supporting multiple architectures at once. If you have a cross
+  toolchain including gdb, you can also run arm-linux-gdb directly.}
+
+\begin{verbatim}
+sudo apt-get install gdb-multiarch
+gdb-multiarch linux-3.0.x/vmlinux
+(gdb) set arch arm
+(gdb) set gnutarget elf32-littlearm
+(gdb) disassemble function_name
+\end{verbatim}
+
+Then find at which exact instruction the crash occurs. The offset is
+provided by the crash output, as well as a dump of the code around the
+crashing instruction.
+
+Of course, analyzing the disassembled version of the function requires
+some assembly skills on the architecture you are working on.

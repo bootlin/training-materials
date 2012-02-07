@@ -1,0 +1,189 @@
+\subchapter{Kernel - Cross-compiling}{Objective: Learn how to cross-compile a kernel for an OMAP target platform.}
+
+After this lab, you will be able to:
+\begin{itemize}
+\item Set up a cross-compiling environment
+\item Configure the kernel Makefile accordingly
+\item Cross compile the kernel for the IGEPv2 arm board
+\item Use U-Boot to download the kernel
+\item Check that the kernel you compiled starts the system
+\end{itemize}
+
+\section{Setup}
+
+Go to the \code{/home/<user>/felabs/sysdev/kernel} directory.
+
+Install the following packages: \code{libqt4-dev} and
+\code{u-boot-tools}. \code{libqt4-dev} is needed for the
+\code{xconfig} kernel configuration interface, and \code{u-boot-tools}
+is needed to build the \code{uImage} kernel image file for U-Boot.
+
+\section{Target system}
+
+We are going to cross-compile and boot a Linux kernel for the IGEPv2
+board.
+
+\section{Kernel sources}
+
+We will re-use the kernel sources downloaded and patched in the
+previous lab.
+
+\section{Cross-compiling environment setup}
+
+To cross-compile Linux, you need to install the cross-compiling
+toolchain. We will use the cross-compiling toolchain that we
+previously produced, so we just need to make it available in the PATH:
+
+\begin{verbatim}
+export PATH=/usr/local/xtools/arm-unknown-linux-uclibcgnueabi/bin:$PATH
+\end{verbatim}
+
+\section{Makefile setup}
+
+Modify the toplevel Makefile file to cross-compile for the arm
+platform using the above toolchain.
+
+\section{Linux kernel configuration}
+
+By running \code{make help}, find the proper Makefile target to
+configure the kernel for the IGEPv2 board (hint: the default
+configuration is not named after the board, but after the CPU
+name). Once found, use this target to configure the kernel with the
+ready-made configuration.
+
+Don't hesitate to visualize the new settings by running
+\code{make xconfig} afterwards!
+
+For later use, we need to edit a bit the configuration. Change the
+kernel compression from Gzip to LZMA. This compression algorithm is
+far more efficient than Gzip, in terms of compression ratio, at the
+expense of an higher decompression time.
+
+\section{Cross compiling}
+
+You're now ready to cross-compile your kernel. Simply run:
+
+\begin{verbatim}
+make
+\end{verbatim}
+
+and wait a while for the kernel to compile.
+
+Look at the end of the kernel build output to see which file contains
+the kernel image.
+
+However, the default image produced by the kernel build process is not
+suitable to be booted from U-Boot. A post-processing operation must be
+performed using the mkimage tool provided by U-Boot developers. This
+tool has already been installed in your system as part of the
+\code{u-boot-tools} package. To run the post-processing operation on
+the kernel image, simply run:
+
+\begin{verbatim}
+make uImage
+\end{verbatim}
+
+\section{Setting up serial communication with the board}
+
+Plug the IGEP board on your computer. Start Picocom on
+\code{/dev/ttyS0}, or on \code{/dev/ttyUSB0} if you are using a serial
+to USB adapter.
+
+You should now see the U-Boot prompt:
+
+\begin{verbatim}
+U-Boot #
+\end{verbatim}
+
+Make sure that the bootargs U-Boot environment variable is not set (it
+could remain from a previous training session, and this could disturb
+the next lab):
+
+\begin{verbatim}
+setenv bootargs
+saveenv
+\end{verbatim}
+
+\section{Load and boot the kernel using U-Boot}
+
+We will use TFTP to load the kernel image to the IGEP board :
+
+\begin{itemize}
+
+\item On your workstation, make sure your \code{uImage} file is in the
+  directory exposed by the TFP server.
+
+\item On the target, load \code{uImage} from TFTP into RAM at address
+  0x80000000:\\
+  \code{tftp 0x80000000 uImage}
+
+\item Boot the kernel:\\
+  \code{bootm 0x80000000}
+
+\end{itemize}
+
+You should see Linux boot and finally hang with the following message :
+
+\begin{verbatim}
+Waiting for root device /dev/mmcblk0p2...
+\end{verbatim}
+
+This is expected: we haven't provided a working root filesystem for
+our device yet.
+
+You can automate now all this every time the board is booted or
+reset. Reset the board, and specify a different \code{bootcmd} :
+
+\begin{verbatim}
+setenv bootcmd 'tftp 80000000 uImage;bootm 80000000'
+saveenv
+\end{verbatim}
+
+\section{Flashing the kernel in NAND flash}
+
+In order to let the kernel boot on the board autonomously, we can
+flash it in the NAND flash available on the IGEP. The NAND flash can
+be manipulated in U-Boot using the \code{onenand} command, which
+features several subcommands. Run \code{help onenand} to see the
+available subcommands and their options.
+
+After storing the X-loader, U-boot and its environment variables, we
+will keep a special area in NAND flash for the Linux kernel image.
+This 4th partition will be 4 MiB big, from NAND address
+0x280000 to 0x680000.
+
+So, let's start by erasing the corresponding 4 MiB of NAND flash:
+
+\begin{verbatim}
+onenand erase 0x280000 0x400000
+             (NAND addr) (size)
+\end{verbatim}
+
+Then, copy the kernel from TFTP into memory, using the same address as
+before.
+
+Then, flash the kernel image:
+
+\begin{verbatim}
+onenand write 0x80000000 0x280000 0x400000
+              (RAM addr)   (NAND addr) (size)
+\end{verbatim}
+
+Then, we should be able to boot the kernel from the NAND using:
+
+\begin{verbatim}
+onenand read 0x80000000  0x280000    0x400000
+            (RAM addr)   (NAND addr) (size)
+bootm 0x80000000
+\end{verbatim}
+
+\code{onenand read} copies the kernel to RAM and then, \code{bootm}
+executes it.
+
+Write an U-Boot script that automates the kernel download and flashing
+procedure. Finally, adjust the \code{bootcmd} so that the IGEP board
+boots using the kernel in Flash.
+
+Now, power off the board and power it on again to check that it boots
+fine from NAND flash. Check that this is really your own version of
+the kernel that's running.

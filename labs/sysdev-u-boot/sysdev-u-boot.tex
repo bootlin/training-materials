@@ -1,0 +1,522 @@
+\subchapter{Bootloader - U-Boot}{Objectives: Set up serial
+  communication, compile and install the X-Loader and U-Boot
+  bootloaders, use basic U-Boot commands, set up TFTP communication
+  with the development workstation.}
+
+As the bootloader is the first piece of software executed by a
+hardware platform, the installation procedure of the bootloader is
+very specific to the hardware platform. There are usually two cases:
+
+\begin{itemize}
+
+\item The processor offers nothing to ease the installation of the
+  bootloader, in which case the JTAG has to be used to initialize
+  flash storage and write the bootloader code to flash. Detailed
+  knowledge of the hardware is of course required to perform these
+  operations.
+
+\item The processor offers a monitor, implemented in ROM, and through
+  which access to the memories is made easier.
+
+\end{itemize}
+
+The IGEPv2 board, which uses the DM3730 or the OMAP3530, falls into
+the second category. The monitor integrated in the ROM reads the SD
+card to search for a valid bootloader before looking at the internal
+NAND flash for a bootloader. Therefore, by using a SD card, we can
+start up a OMAP3-based without having anything installed on it.
+
+\section{Setup}
+
+Go to the \code{/home/<user>/felabs/sysdev/u-boot/} directory.
+
+\section{MMC/SD card setup}
+
+The ROM monitor can read files from a FAT filesystem on the SD
+card. However, the SD card must be carefully partitionned, and the
+filesystem carefully created in order to be recognized by the ROM
+monitor. Here are the special instructions to format an MMC/SD card
+for the OMAP-based platforms.
+
+First, connect your card reader to your workstation, with the MMC/SD
+card inside. Type the \code{dmesg} command to see which device is used
+by your workstation. Let's assume that this device is \code{/dev/sdb}.
+
+\begin{verbatim}
+sd 3:0:0:0: [sdb] 3842048 512-byte hardware sectors: (1.96 GB/1.83 GiB)
+\end{verbatim}
+
+\fbox{\begin{minipage}{\textwidth}
+{\bfseries
+Caution: read this carefully before proceeding. You could destroy
+existing partitions on your PC!
+
+Do not make the confusion between the device that is used by your
+board to represent your MMC disk (probably \code{/dev/sda}), and the device
+that your workstation uses when the card reader is inserted (probably
+\code{/dev/sdb}).
+
+So, don't use the \code{/dev/sda} device to reflash your MMC disk from
+your workstation. People have already destroyed their Windows
+partition by making this mistake.}
+\end{minipage}}
+
+
+You can also run \code{cat /proc/partitions} to list all block devices
+in your system. Again, make sure to distinguish the SD card from the
+hard drive of your development workstation!
+
+Type the \code{mount} command to check your currently mounted
+partitions. If MMC/SD partitions are mounted, unmount them:
+
+\begin{verbatim}
+$ sudo umount /dev/sdb1
+$ sudo umount /dev/sdb2
+...
+\end{verbatim}
+
+Now, clear possible SD card contents remaining from previous training 
+sessions:
+
+\begin{verbatim}
+$ sudo dd if=/dev/zero of=/dev/sdb bs=1M count=256
+\end{verbatim}
+
+In a terminal open the block device with \code{fdisk}:
+
+\begin{verbatim}
+$ sudo fdisk /dev/sdb
+\end{verbatim}
+
+Display the on-line help by pressing the \code{m} key:
+
+\begin{verbatim}
+Command (m for help): m 
+Command action 
+   a   toggle a bootable flag 
+   b   edit bsd disklabel 
+   c   toggle the dos compatibility flag 
+   d   delete a partition 
+   l   list known partition types 
+   m   print this menu 
+   n   add a new partition 
+   o   create a new empty DOS partition table 
+   p   print the partition table 
+   q   quit without saving changes 
+   s   create a new empty Sun disklabel 
+   t   change a partition's system id 
+   u   change display/entry units 
+   v   verify the partition table 
+   w   write table to disk and exit 
+   x   extra functionality (experts only)
+Print the current partition table typing p:
+Command (m for help): p 
+
+Disk /dev/sdb: 1967 MB, 1967128576 bytes
+\end{verbatim}
+
+Write down the total size.
+
+Let's enter the expert mode for geometry settings:
+
+\begin{verbatim}
+Command (m for help): x
+\end{verbatim}
+
+We must set the geometry to 255 heads, 63 sectors and calculate the
+number of cylinders corresponding to your MMC card.
+
+\begin{verbatim}
+Expert command (m for help) : h
+Number of heads (1-256, default 4): 255 
+
+Expert command (m for help) : s 
+Number of sectors (1-63, default 62): 63
+Warning : setting sector offset for DOS compatibility
+\end{verbatim}
+
+Now for the number of cylinders, we consider the global size
+(1967128576 bytes in our example, the size is reported
+at the top of the \code{fdisk} output)
+then divide it by (255*63*512) which gives around
+239.16 cylinders. We must round it down to 239.
+
+\begin{verbatim}
+Expert command (m for help) : c
+Number of cylinders (1-1048576, default 4): 239 
+\end{verbatim}
+
+After these geometry settings, exit expert mode ('r' command) then
+print the partition table again to check geometry:
+
+\begin{verbatim}
+Command (m for help): p 
+
+Disk /dev/sdb: 1967 MB, 1967128576 bytes
+\end{verbatim}
+
+If any partition exists, delete it ('d' command).
+
+Now, let's create the boot partition:
+
+\begin{verbatim}
+Command (m for help): n 
+Command action 
+   e   extended 
+   p   primary partition (1-4) 
+p 
+Partition number (1-4): 1 
+First cylinder (1-239, default 1): 1 
+Last cylinder, +cylinders or +size{K,M,G} (1-239, default 239): +64M
+\end{verbatim}
+
+Mark it bootable: 
+
+\begin{verbatim}
+Command (m for help): a
+Partition number (1-4): 1
+\end{verbatim}
+
+Then we change its type to FAT32
+
+\begin{verbatim}
+Command (m for help): t
+Selected partition 1
+Hex code (type L to list codes): c
+Changed system type of partition 1 to c (W95 FAT32 (LBA))
+\end{verbatim}
+
+Now write your changes and exit: 
+
+\begin{verbatim}
+Command (m for help): w 
+The partition table has been altered! 
+\end{verbatim}
+
+Format this new partition:
+
+\begin{verbatim}
+sudo mkfs.vfat -n boot -F 32 /dev/sdb1
+\end{verbatim}
+
+Then, remove and insert your card again.
+
+Your MMC/SD card is ready to use.
+
+\section{X-loader setup}
+
+Download the X-loader source code from the IGEP support website:
+
+\begin{verbatim}
+wget http://downloads.igep.es/sources/x-loader-1.4.4-2.tar.gz
+tar xvf x-loader-1.4.4-2.tar.gz
+cd x-loader-1.4.4-2
+\end{verbatim}
+
+We need to compile two versions of the bootloader:
+\begin{itemize}
+\item one that will be loaded by processor from the MMC card
+\item one that we will flash in the internal NAND flash (so that the IGEP can boot without an MMC card).
+\end{itemize}
+
+In order to compile the X-loader, you need to:
+
+\begin{itemize}
+
+\item set the \code{CROSS_COMPILE} environment variable:\\
+\code{export CROSS_COMPILE=arm-linux-}
+
+\item specify the \code{PATH} to the toolchain that you made:\\
+\code{export PATH=/usr/local/xtools/arm-unknown-linux-uclibcgnueabi/bin:$PATH}
+
+\item run \code{make igep0020-sdcard_config} to set the configuration
+  for the target board. This one is intended to be loaded by the
+  processor from the MMC card.
+
+\item run \code{make} to build the image
+
+\end{itemize}
+
+The resulting file is stored in the x-loader main directory as
+\code{x-load.bin}. This file must be {\em signed}\footnote{In fact,
+  for a General Purpose (GP) device, the signature only consists of
+  adding a “Table of Contents” at the beginning of the image,
+  explaining which program to execute.} in order to be executed by the
+processor. Using the \code{signGP} tool in the \code{contrib/}
+subdirectory, sign the \code{x-load.bin} file:
+
+\begin{verbatim}
+./contrib/signGP x-load.bin
+\end{verbatim}
+
+This produces an \code{x-load.bin.ift} file. You can copy it to the
+MMC card, renaming it as \code{MLO}.
+
+Now, we need the X-loader that will be flashed:
+
+\begin{itemize}
+
+\item run \code{make distclean} to remove compiled files
+\item run \code{make igep0020-flash_config}
+\item run \code{make} to build it
+\item sign it the same way as before, using \code{signGP}
+
+\end{itemize}
+
+The Flash chip on the IGEP has a specific feature that may makes it
+impossible for the first stage bootloader to load data from the flash:
+the chip has 2 planes of data and 2 consecutive blocks of data won't
+be on the same plane. But the monitor in ROM will only load data from
+one plane, so we need to replicate every block of the bootloader
+twice.
+
+Now, from the X-Loader source directory, run the \code{genddp.sh}
+script that is available in the \code{tools/} subdirectory of the lab
+directory. This results in a file named \code{x-load-ddp.bin.ift} ;
+copy it to the MMC card.
+
+\section{U-Boot setup}
+
+Download U-Boot from the mainline igep download site:
+
+\begin{verbatim}
+wget http://downloads.igep.es/sources/u-boot-arm-2010.06-2.tar.gz
+tar xvf u-boot-arm-2010.06-2.tar.gz
+cd u-boot-arm-2010.06-2
+\end{verbatim}
+
+Get an understanding of its configuration and compilation steps by
+reading the README file, and specifically the {\em Building the
+  software} section.
+
+Basically, you need to:
+
+\begin{itemize}
+
+\item set the \code{CROSS_COMPILE} environment variable (you should
+  have already done it when you compiled X-loader);
+
+\item run \code{make <NAME>_config}, where \code{<NAME>} is the name
+  of a configuration file in \code{include/configs/}. For our
+  platform, the configuration file is
+  \code{include/configs/igep0020.h}. Read this file to get an idea of
+  how a U-Boot configuration file is written;
+
+\item Finally, run \code{make}\footnote{You can speed up the compiling
+  by using the -jX option with make. Where X is the number of parallel
+  jobs used for compiling. Twice the number of CPU cores is a good
+  value.}, which should build U-Boot.
+
+\end{itemize}
+
+You can now copy the generated \code{u-boot.bin} file to the MMC card.
+
+Unmount the MMC card partition.
+
+\section{Setting up serial communication with the board}
+
+Plug the IGEPv2 board on your computer using the provided
+USB-to-serial cable. When plugged-in, a serial port should appear,
+\code{/dev/ttyUSB0}.
+
+You can also see this device appear by looking at the output of
+\code{dmesg}.
+
+To communicate with the board through the serial port, install a
+serial communication program, such as \code{picocom}:
+
+\begin{verbatim}
+sudo apt-get install picocom
+\end{verbatim}
+
+Run \code{picocom -b 115200 /dev/ttyUSB0}, to start serial
+communication on \code{/dev/ttyUSB0}, with a baudrate of 115200. If
+you wish to exit picocom, press \code{[Ctrl][a]} followed by
+\code{[Ctrl][x]}.
+
+\section{Testing U-Boot on the MMC card}
+
+Insert the MMC card into the IGEP board, reset the board and check
+that it now boots from the MMC card:
+
+\begin{verbatim}
+Texas Instruments X-Loader 1.4.4-2 (Mar  7 2011 - 12:24:42) 
+Reading boot sector 
+Loading u-boot.bin from mmc 
+
+U-Boot 2010.06-2 (May 13 2011 - 12:13:22) 
+
+OMAP3630/3730-GP ES2.0, CPU-OPP2, L3-165MHz 
+IGEP v2 board + LPDDR/ONENAND 
+I2C:   ready 
+DRAM:  512 MiB 
+Muxed OneNAND(DDP) 512MB 1.8V 16-bit (0x58) 
+OneNAND version = 0x0031 
+Chip support all block unlock 
+Chip has 2 plane 
+block = 2048, wp status = 0x2 
+Scanning device for bad blocks 
+OneNAND: 512 MiB 
+OneNAND: Read environment from 0x00200000 
+In:    serial 
+Out:   serial 
+Err:   serial 
+Die ID #4d5400011ff0000001592f350202c01d 
+Net:   smc911x-0 
+Hit any key to stop autoboot:  3
+\end{verbatim}
+
+Interrupt the countdown to enter the U-Boot shell:
+\begin{verbatim}
+U-Boot # 
+\end{verbatim}
+
+In U-Boot, type the \code{help} command, and explore the few commands available.
+
+\section{Reflashing from U-boot}
+
+We will first reflash the X-Loader in NAND. To do so, type the following commands:
+
+\begin{verbatim}
+mmc init 0
+\end{verbatim}
+
+This initializes the MMC interface
+
+\begin{verbatim}
+fatload mmc 0 81000000 x-load-ddp.bin.ift
+\end{verbatim}
+This loads the file from MMC 0 partition 0 to memory at address 0x81000000
+
+\begin{verbatim}
+onenand erase 0 80000
+\end{verbatim}
+
+This command erases a 0x80000 byte long space of the NAND flash from offset 0
+
+\begin{verbatim}
+onenand write 81000000 0 80000
+\end{verbatim}
+
+This command writes data to the NAND flash. The source is 0x81000000
+(where we've loaded the file to store in the flash) and the
+destination is offset 0 of the NAND flash. The length of the copy is
+0x80000 bytes, which corresponds to the space we've just erased
+before. It is important to erase the flash space before trying to
+write on it.
+
+X-Loader has been transfered to NAND flash. You can now do the same
+with U-Boot.  The storage offset in the NAND is 0x80000 (just after
+the space reserved for X-Loader) and the length is 0x180000.
+
+After flashing the U-Boot image, also erase the U-boot environment
+variables defined by the manufacturer or by previous users of your
+board:
+
+\begin{verbatim}
+onenand erase 200000 80000
+\end{verbatim}
+
+You can remove MMC card, then reset the IGEP board. You should see the
+freshly flashed X-Loader and U-Boot starting.
+
+You should now see the U-Boot prompt:
+
+\begin{verbatim}
+U-Boot #
+\end{verbatim}
+
+\section{Setting up Ethernet communication}
+
+Later on, we will transfer files from the development workstation to
+the board using the TFTP protocol, which works on top of an Ethernet
+connection.
+
+To start with, install and configure a TFTP server on your development
+workstation, as detailed in the bootloader slides.
+
+With a network cable, connect the Ethernet port of your board to the
+one of your computer. If your computer already has a wired connection
+to the network, your instructor will provide you with a USB Ethernet
+adapter. A new network interface, probably \code{eth1} or \code{eth2},
+should appear on your Linux system.
+
+To configure this network interface on the workstation side, click on
+the {\em Network Manager} tasklet on your desktop, and select {\em
+  Edit Connections}.
+
+\begin{center}
+\includegraphics[width=8cm]{labs/sysdev-u-boot/network-config-1.png}
+\end{center}
+
+Select the new {\em wired network connection}:
+
+\begin{center}
+\includegraphics[width=8cm]{labs/sysdev-u-boot/network-config-2.png}
+\end{center}
+
+In the {\em IPv4 Settings} tab, make the interface use a static IP
+address, like \code{192.168.0.1} (of course, make sure that this
+address belongs to a separate network segment from the one of the main
+company network).
+
+\begin{center}
+\includegraphics[width=8cm]{labs/sysdev-u-boot/network-config-3.png}
+\end{center}
+
+You can use 255.255.255.0 as the {\em Netmask}, and leave the {\em
+  Gateway} field untouched (if you click on the {\em Gateway} box, you
+will have to type a valid IP address, otherwise you won't be apply to
+click on the Apply button).
+
+Now, configure the network on the board in U-Boot by setting the ipaddr and serverip environment variables:
+
+\begin{verbatim}
+setenv ipaddr 192.168.0.100
+setenv serverip 192.168.0.1
+\end{verbatim}
+
+In case the board was previously configured in a different way, we
+also turn off automatic booting after commands that can be used to
+copy a kernel to RAM:
+
+\begin{verbatim}
+setenv autostart no
+\end{verbatim}
+
+In case it is not set yet, you may also need to configure the MAC address for the board:
+
+\begin{verbatim}
+setenv ethaddr 01:02:03:04:05:06
+\end{verbatim}
+
+To make these settings permanent, save the environment:
+
+\begin{verbatim}
+saveenv
+\end{verbatim}
+
+Now switch your board off and on again\footnote{Power cycling your
+  board is needed to make your ethaddr permanent, for obscure
+  reasons. If you don't, U-boot will complain that ethaddr is not
+  set.}.
+
+You can then test the TFTP connection. First, put a small text file in
+the directory exported through TFTP on your development
+workstation. Then, from U-Boot, do:
+
+\begin{verbatim}
+tftp 0x80000000 textfile.txt
+\end{verbatim}
+
+This should download the file \code{textfile.txt} from your development
+workstation into the board's memory at location 0x80000000 (this
+location is part of the board DRAM). You can verify that the download
+was successful by dumping the contents of the memory:
+
+\begin{verbatim}
+md 0x80000000
+\end{verbatim}
+
+We will see in the next labs how to use U-Boot to download, flash and
+boot a kernel.

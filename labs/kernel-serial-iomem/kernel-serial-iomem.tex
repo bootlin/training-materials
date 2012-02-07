@@ -1,0 +1,158 @@
+\subchapter{Accessing I/O memory and ports}{Objective: read /
+  write data from / to a hardware device}
+
+Throughout the upcoming labs, we will implement a character driver
+allowing to write data to the serial port of the CALAO board, and to
+read data from it.
+
+After this lab, you will be able to:
+
+\begin{itemize}
+
+\item Use \code{ssh} to get a remote terminal to an embedded Linux
+  system
+
+\item Access a console through the network, typically when a serial or
+  graphical console cannot be used.
+
+\item Practice with I/O ports and I/O memory to control the device and
+  exchange data with it.
+
+\end{itemize}
+
+\section{Setup}
+
+Go to the \code{/home/<user>/felabs/linux/character} directory.
+
+As in the {\em Module development environment} lab, we will use a the
+CALAO board booted from NFS.
+
+As in the previous labs, the target IP address will be \code{192.168.0.100},
+and the host address will be \code{192.168.0.1}.
+
+Extract the latest Linux 3.0.x kernel sources in the current
+directory, and configure them with the default configuration for
+{\em at91sam9263} boards.
+
+In this lab, we will develop our own driver for the board's serial
+port. The consequence is that we will have to disable the standard
+AT91 serial port driver and will thus loose the serial console.
+
+Instead of running commands through a shell on the serial line, we
+will access our target through SSH, a secure shell over the network.
+
+To replace the serial console and still get kernel messages (in
+particular kernel fault messages) we will use a netconsole, a
+mechanism that allows to get console messages over the network.
+
+So, configure your kernel with:
+\begin{itemize}
+\item Root over NFS support
+\item Loadable module support
+\item Netconsole support (\code{CONFIG_NETCONSOLE})
+\end{itemize}
+
+You will also have to update the kernel command line so that Linux
+loads the root filesystem over NFS from
+\code{/home/<user>/felabs/linux/character/nfsroot}.
+
+The Dropbear SSH server is already installed on your target, and is
+started automatically.
+
+\section{Boot tests}
+
+We are first going to make sure that your new kernel boots fine and
+that the SSH connection works well, before disabling the serial driver
+and the serial console. NFS configuration issues are frequent, and
+they would be more difficult to fix if we have no console left.
+
+So, boot your new kernel and try to connect to your board with ssh:
+
+\begin{verbatim}
+ssh root@192.168.0.100
+\end{verbatim}
+
+The \code{root} password is empty, just press \code{Enter}. Good job!
+
+\section{Disabling the serial driver and console}
+
+Now that everything works, rebuild your kernel without the serial port
+driver (in \code{Device Drivers} $\rightarrow$ \code{Character Drivers}
+$\rightarrow$ \code{Serial drivers} $\rightarrow$ \code{AT91 / AT32
+on-chip serial port support}). Update your kernel.
+
+You also need to add the following option to the kernel command line,
+to enable the network console:
+
+\begin{verbatim}
+netconsole=4444@192.168.0.100/eth0,5555@192.168.0.1/
+\end{verbatim}
+
+To get the console output, we will use the \code{netcat} command on the host
+to listen for UDP packets on port 5555:
+
+\begin{verbatim}
+netcat -u -l 192.168.0.1 5555
+\end{verbatim}
+
+Now, boot your new kernel. You should see kernel messages only in the
+\code{netcat} output (after a little while).
+
+\section{Driver source code}
+
+Now go to the \code{nfsroot/root} directory, which will contain the
+kernel module source code.
+
+You have a ready-made \code{Makefile} to compile your module, and a
+template \code{serial.c} module which you will fill with your own
+code. Modify the \code{Makefile} so that it points to your kernel sources.
+
+\section{Device initialization}
+
+In the module initialization function, start by reserving the I/O
+memory region starting at address (\code{AT91_BASE_SYS + AT91_DBGU}), for a
+size of \code{SZ_512} (512 bytes). The \code{AT91_*} constants are already defined
+in Linux kernel headers.
+
+Compile your module, load it and make sure that this memory region
+appears in \code{/proc/iomem}.
+
+Now, obtain a virtual address corresponding to the start of this
+memory area.
+
+Don't forget to undo all the above in the module exit function!
+
+\section{Standalone write routine}
+
+Implement a C routine taking one character as a parameter and writing
+it to the serial port, using the following steps:
+
+\begin{enumerate}
+
+ \item Wait until the \code{ATMEL_US_TXRDY} bit gets set in
+ the \code{ATMEL_US_CSR} register (\code{ATMEL_US_CSR} is an
+ offset in the I/O memory region previously remapped). You can
+ busy-wait for this condition to happen. In the busy-wait loop, you
+ can call the \code{cpu_relax()} kernel function to relax the CPU
+ during the wait.
+
+ \item Write the character to the \code{ATMEL_US_THR} register.
+
+\end{enumerate}
+
+Note that all the I/O registers of the AT91 processor are 32 bits
+wide.
+
+Add a call to this routine from your module init function. Recompile
+your module and load it on the target. You should see the
+corresponding character in Minicom, still showing what was written to
+the serial line by the board.
+
+\section{Driver sanity check}
+
+Remove your module and try to load it again. If the second attempt to
+load the module fails, it is probably because your driver doesn't
+properly free the resources it allocated or register, either at module
+exit time, or after a failing during the module init function.  Check
+and fix your module init and exit functions if you have such a
+problem.

@@ -1,0 +1,154 @@
+\NeedsTeXFormat{LaTeX2e}
+
+%% Remove indentation on the first line of each paragraph, and add
+%% some space between each paragraph.
+\usepackage{parskip}
+
+%% Use a more modern, and less LaTeX-old-style-looking font.
+\usepackage{palatino}
+
+%% Use more reasonable margins. We keep a different outer margin than
+%% the inner margin so that the holes needed for the binders are
+%% properly taken into account.
+\usepackage[vmargin=3cm, inner=4cm, outer=3cm]{geometry}
+
+%% Package used to adjust the vertical space before and
+%% after \chapter, \section
+\usepackage[pagestyles]{titlesec}
+
+%% We want hyphenation to be allowed after spaces and hyphens, and we
+%% want the URL package to retain spaces in the URLS.
+\usepackage[obeyspaces,spaces,hyphens]{url}
+
+\ProvidesPackage{labs}[28/03/2011 - First rework of labs training templates]
+
+% Extensions
+\RequirePackageWithOptions{inputenc}
+
+\RequirePackage{fancyhdr}
+\RequirePackage{hyperref}
+\RequirePackage{wrapfig}
+\RequirePackage{graphicx}
+
+%%
+%% Modify Latex constant and environments to fit our needs
+%%
+
+%% Adjust style of \chapter, using the titlesec package
+\titleformat{\chapter}[display]
+  {\normalfont\huge\bfseries}{}{0pt}{\Huge}
+\titlespacing*{\chapter} {0pt}{0pt}{3pt}
+
+%% Adjust style of \section, using the titlesec package
+\titlespacing{\section}{0pt}{4pt}{4pt}
+
+%% Set the font of the marginpar env to footnote size (some kind of hack.)
+\let\oldmarginpar\marginpar
+\renewcommand\marginpar[1]{\-\oldmarginpar[\raggedleft\footnotesize #1]%
+{\raggedright\footnotesize #1}}
+
+%% Add a \chapter{}{} command so that we can add a subtitle to the chapter
+\newcommand{\subchapter}[2]
+{
+  \chapter{#1}
+  {\Large \it #2}
+  \vspace{\headsep}
+}
+
+%% Set up the constants
+\newcommand{\@laburl}{}
+\newcommand{\@docurl}{}
+\newcommand{\@trainingurl}{}
+
+\newcommand{\@feurl}{http://free-electrons.com}
+\newcommand{\@cchref}
+{
+  \href{http://creativecommons.org/licenses/by-sa/3.0/}{Creative Commons CC BY-SA 3.0 licence}
+}
+
+\author{Free Electrons \\\url{\@feurl}}
+
+\newcommand{\@ccimg}{common/logo-cc.pdf}
+
+\newcommand{\trainingurl}[1]
+{
+  \renewcommand{\@trainingurl}{#1}
+}
+
+\newcommand{\ccimg}[1]
+{
+  \renewcommand{\@ccimg}{#1}
+}
+
+%% Define the url style
+\hypersetup{colorlinks=true, urlcolor=blue, linkcolor=blue}
+
+%% Disable chapter, section and subsection numbering
+\setcounter{secnumdepth}{-1} 
+
+%% Reset headers and footer
+\fancyhead{}
+\fancyfoot{}
+
+%% And now set them back
+\setlength{\headheight}{15pt}
+\pagestyle{fancy}
+
+%% Set the default layout
+\renewcommand{\headrulewidth}{0.5pt}
+\renewcommand{\footrulewidth}{0.5pt}
+
+\fancyhead[LE,LO]{Free Electrons}
+\fancyhead[RE,RO]{\labbooktitle}
+\fancyfoot[RE,LO]{\copyright~2004-\the\year~\href{http://free-electrons.com}{Free Electrons}, CC BY-SA license}
+\fancyfoot[LE,RO]{\thepage}
+
+\fancypagestyle{plain}{%
+\renewcommand{\headrulewidth}{0.5pt}
+\renewcommand{\footrulewidth}{0.5pt}
+}
+
+\setlength{\textheight}{630px}
+
+\let\cleardoublepage\clearpage
+
+%% Defining our customs commands
+
+%% Define a \code command to be used for file paths, function names
+%% and other pieces of texts that must be typeset with a fixed-size
+%% font, and that are present in a paragraph with other text. We use
+%% the \path{} command of the 'url' package because it provides
+%% correct hyphenation on slashes, and also avoids the need to escape
+%% characters such as _ $ or &.
+\newcommand{\code}[1]
+{\path{#1}}
+
+\newcommand{\makeabout}
+{
+  \section{About this document}
+
+  This document can be found on \url{\@trainingurl}.\\
+
+  It is composed of several source documents that we aggregate for each training
+  session. These individual source documents can be found on \url{http://free-electrons.com/docs}.\\
+
+  More details about our training sessions can be found on \url{http://free-electrons.com/training}.\\
+
+  \section{Copying this document}
+
+  \copyright~2004-\the\year, Free Electrons, \url{\@feurl}.\\
+
+  \begin{wrapfigure}{l}{0.1\textwidth}
+    \vspace{-15pt}
+    \begin{center}
+      \includegraphics[width=0.08\textwidth]{\@ccimg}
+    \end{center}
+  \end{wrapfigure}
+
+  This document is released under the terms of the \@cchref. This means that you
+  are free to download, distribute and even modify it, under certain conditions.
+  \\
+
+  Corrections, suggestions, contributions and translations are welcome!
+\newpage
+}

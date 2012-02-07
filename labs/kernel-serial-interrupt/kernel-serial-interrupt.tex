@@ -1,0 +1,155 @@
+\subchapter{Sleeping and handling interrupts}{Objective: learn how to register and implement a simple interrupt handler, and how to put a process to sleep and wake it up at a later point}
+
+During this lab, you will:
+
+\begin{itemize}
+\item Register an interrupt handler for the serial controller of the
+  Calao board
+\item See how Linux handles shared interrupt lines
+\item Implement the read() operation of the serial port driver to put
+  the process to sleep when no data is available
+\item Implement the interrupt handler to wake-up the sleeping process
+  waiting for received characters
+\item Handle communication between the interrupt handler and the
+  read() operation.
+\end{itemize}
+
+\section{Setup}
+
+This lab is a continuation of the {\em Output-only character driver
+  lab}, so we'll re-use the code in
+\code{/home/<user>/felabs/linux/character}. Your Calao board should boot over
+NFS and mount \code{/home/<user>/felabs/linux/character/nfsroot/} as the root
+filesystem.
+
+For demonstration purpose we need to ensure that the tick system will
+use the shared IRQ. So configure your kernel and {\em disable} TC
+Block Clocksource (\code{CONFIG_ATMEL_TCB_CLKSRC_BLOCK}). Then compile
+and boot your new kernel.
+
+\section{Register the handler}
+
+First, declare an interrupt handler function. Then, in the module
+initialization function, register this handler to IRQ number
+\code{AT91_ID_SYS}. Note that this IRQ is shared, so the appropriate flags
+must be passed at registration time.
+
+Then, in the interrupt handler, just print a message and
+return \code{IRQ_NONE} (to tell the kernel that we haven't handled
+the interrupt).
+
+Compile and load your module. Look at the kernel logs: they are full
+of our message indicating that interrupts are occurring, even if we
+are not receiving from the serial port! It shows you that interrupt
+handlers on shared IRQ lines are all called every time an interrupt
+occurs.
+
+\section{Enable and filter the interrupts}
+
+In fact, at the moment, reception and interrupts are not enabled at
+the level of the serial port controller. So in the initialization
+function of the module:
+\begin{itemize}
+\item Write \code{ATMEL_US_RSTSTA | ATMEL_US_RSTRX} to the
+  \code{ATMEL_US_CR} register
+\item Write \code{ATMEL_US_TXEN | ATMEL_US_RXEN} to the
+  \code{ATMEL_US_CR} register
+\item Write \code{ATMEL_US_RXRDY} to the \code{ATMEL_US_IER}
+  register (IER stands for Interrupt Enable Register).
+\end{itemize}
+
+Now, in our interrupt handler we want to filter out the interrupts
+that come from the serial controller. To do so, read the value of the
+\code{ATMEL_US_CSR} register and the value of the
+\code{ATMEL_US_IMR} register. If the result of a {\em binary and}
+operation between these two values is different from zero, then it
+means that the interrupt is coming from our serial controller.
+
+If the interrupt comes from our serial port controller, print a
+message and return \code{IRQ_HANDLED}. If the interrupt doesn't come from
+our serial port controller, just return \code{IRQ_NONE} without printing a
+message.
+
+Compile and load your driver. Have a look at the kernel messages. You
+should no longer be flooded with interrupt messages.
+
+Start \code{picocom} on \code{/dev/ttyUSB1}. Press one character (nothing will
+appear since the target system is not echoing back what we're
+typing). Then, in the kernel log, you should see the message of our
+interrupt handler. If not, check your code once again and ask your
+instructor for clarification!
+
+\section{Read the received characters}
+
+You can read the received characters by reading the \code{ATMEL_US_RHR}
+register using \code{readl()}. It must be done in code that loops until the
+\code{ATMEL_US_RXRDY} bit of the \code{ATMEL_US_CSR} register goes back to
+zero. This method of operation allows to read several characters in a
+single interrupt.
+
+Note that our hardware doesn't give us any special register to
+acknowledge interrupts. What happens is that interrupts are
+acknowledged (allowing more interrupts to be sent in the future), when
+the driver accesses the \code{ATMEL_US_RHR} register to read each
+character.
+
+For each received character, print a message containing the character.
+Compile and load your driver.
+
+From \code{picocom} on \code{/dev/ttyUSB1} on the host, send characters
+to the target. The kernel messages on the target should properly tell
+you which characters are being received.
+
+\section{Sleeping, waking up and communication}
+
+Now, we would like to implement the \code{read()} operation of our
+driver so that a userspace application reading from our device can
+receive the characters from the serial port.
+
+First, we need a communication mechanism between the interrupt handler
+and the \code{read()} operation. We will implement a very simple
+circular buffer. So let's declare a global buffer in our driver:
+
+\begin{verbatim}
+#define SERIAL_BUFSIZE 16
+static char serial_buf[SERIAL_BUFSIZE];
+\end{verbatim}
+
+Two integers that will contain the next location in the circular
+buffer that we can write to, and the next location we can read from:
+
+\begin{verbatim}
+static int serial_buf_rd, serial_buf_wr;
+\end{verbatim}
+
+In the interrupt handler, store the received character at location
+\code{serial_buf_wr} in the circular buffer, and increment the value
+of \code{serial_buf_wr}. If this value reaches \code{SERIAL_BUFSIZE},
+reset it to zero.
+
+In the \code{read()} operation, if the \code{serial_buf_rd} value is
+different from the \code{serial_buf_wr} value, it means that one
+character can be read from the circular buffer. So, read this
+character, store it in the userspace buffer, update the
+\code{serial_buf_rd} variable, and return to userspace (we will only
+read one character at a time, even if the userspace application
+requested more than one).
+
+Now, what happens in our \code{read()} function if no character is available
+for reading (i.e, if \code{serial_buf_wr} is equal to \code{serial_buf_rd})? We
+should put the process to sleep!
+
+To do so, declare a global wait queue in our driver, named for example
+\code{serial_wait}. In the \code{read()} function, use \code{wait_event_interruptible()}
+to wait until \code{serial_buf_wr} is different from \code{serial_buf_rd}. And
+in the interrupt handler, after storing the received characters in the
+circular buffer, use \code{wake_up()} to wake up all processes waiting on
+the wait queue.
+
+Compile and load your driver. Run \code{cat /dev/serial} on the target,
+and then in Picocom on the development workstation side, type some
+characters. They should appear on the remote side if everything works
+correctly!
+
+Don't be surprised if the keys you type in Picocom don't appear on the
+screen. This happens because they are not echoed back by the target.

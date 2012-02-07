@@ -1,0 +1,188 @@
+\subchapter{Remote application debugging}{Objective: Use strace and
+  ltrace to diagnose program issues. Use gdbserver and a
+  cross-debugger to remotely debug an embedded application}
+
+\section{Setup}
+
+Go to the \code{/home/<user>/felabs/sysdev/debugging} directory.
+
+\section{Debugging setup}
+
+Boot your ARM board over NFS on the filesystem produced in the {\em
+  Tiny embedded system} lab, with the same kernel.
+
+\section{Setting up gdbserver, strace and ltrace}
+
+\code{gdbserver}, \code{strace} and \code{ltrace} have already been
+compiled for your target architecture as part of the cross-compiling
+toolchain. Find them in the installation directory of your
+toolchain. Copy these binaries to the \code{/usr/bin/} directory in
+the root filesystem of your target system.
+
+\section{Enabling job control}
+
+In this lab, we are going to run a buggy program that keeps hanging
+and crashing.  Because of this, we are going to need job control, in
+particular \code{[Ctrl] [C]} allowing to interrupt a running program.
+
+At boot time, you probably noticed that warning that job control was
+turned off:
+
+\begin{verbatim}
+/bin/sh: can't access tty; job control turned off
+\end{verbatim}
+
+This happens when the shell is started in the console. The system
+console cannot be used as a controlling terminal.
+
+The fix is to start this shell in ttyO2 (the 3rd OMAP serial port on
+the IGEPv2 board) by modifying the \code{/etc/inittab} file:
+
+Replace
+\begin{verbatim}
+::askfirst:/bin/sh
+\end{verbatim}
+which implied using \code{/dev/console} by
+by
+\begin{verbatim}
+ttyO2::askfirst:/bin/sh
+\end{verbatim}
+to tell the \code{init} program to start the shell on \code{/dev/ttyO2}
+
+Also create \code{/dev/ttyO2} (find the major number in
+\code{/proc/devices}, minor 2) and reboot. You should no longer see
+the \code{Job control turned off} warning, and should be able to use
+\code{[Ctrl] [C]}.
+
+\section{Using strace}
+
+\code{strace} allows to trace all the system calls made by a process:
+opening, reading and writing files, starting other processes,
+accessing time, etc. When something goes wrong in your application,
+strace is an invaluable tool to see what it actually does, even when
+you don't have the source code.
+
+With your cross-compiling toolchain, compile the
+\code{data/vista-emulator.c} program, and copy the resulting binary to
+the /root directory of the root filesystem (you might need to create
+this directory if it doesn't exist yet).
+
+\begin{verbatim}
+arm-linux-gcc -o vista-emulator data/vista-emulator.c
+cp vista-emulator path/to/root/filesystem/root
+\end{verbatim}
+
+Back to target system, try to run the \code{/root/vista-emulator}
+program. It should hang indefinitely!
+
+Interrupt this program by hitting \code{[Ctrl] [C]}.
+
+Now, running this program again through the strace command and
+understand why it hangs. You can guess it without reading the source
+code!
+
+Now add what the program was waiting for, and now see your program
+proceed to another bug, failing with a segmentation fault.
+
+\section{Using ltrace}
+
+Try to run the program through \code{ltrace}. You will see that
+another library is required to run this utility. Find this library in
+the toolchain and add it to your root filesystem again.
+
+Now, ltrace should run fine and you should see what the program does:
+it tries to consume as much system memory as it can!
+
+\section{Using gdbserver}
+
+We are now going to use \code{gdbserver} to understand why the program
+segfaults.
+
+Compile \code{vista-emulator.c} again with the \code{-g} option to
+include debugging symbols. Keep this binary on your workstation, and
+make a copy in the \code{/root} directory of the target root
+filesystem. Then, strip the binary on the target to remove the
+debugging symbols. They are only needed on your host, where the
+cross-debugger will run:
+
+\begin{verbatim}
+arm-linux-strip path/to/root/filesystem/root/vista-emulator
+\end{verbatim}
+
+Then, on the target side, run \code{vista-emulator} under
+\code{gdbserver}. gdbserver will listen on a TCP port for a connection
+from GDB, and will control the execution of vista-emulator according
+to the GDB commands:
+
+\begin{verbatim}
+gdbserver localhost:2345 vista-emulator
+\end{verbatim}
+
+On the host side, run \code{arm-linux-gdb} (also found in your toolchain):
+\begin{verbatim}
+arm-linux-gdb vista-emulator
+\end{verbatim}
+
+You can also start the debugger through the \code{ddd} interface:
+\begin{verbatim}
+ddd --debugger arm-linux-gdb vista-emulator
+\end{verbatim}
+
+GDB starts and loads the debugging information from the
+\code{vista-emulator} binary that has been compiled with \code{-g}.
+
+Then, we need to tell where to find our libraries, since they are not
+present in the default \code{/lib} and \code{/usr/lib} directories on
+your workstation. This is done by setting GDB \code{sysroot} variable
+(on one line):
+
+\begin{verbatim}
+(gdb) set sysroot /usr/local/xtools/arm-unknown-linux-uclibcgnueabi/
+arm-unknown-linux-uclibcgnueabi/sys-root/
+\end{verbatim}
+
+And tell gdb to connect to the remote system:
+\begin{verbatim}
+(gdb) target remote <target-ip-address>:2345
+\end{verbatim}
+
+Then, use \code{gdb} as usual to set breakpoints, look at the source
+code, run the application step by step, etc. Graphical versions of
+gdb, such as \code{ddd} can also be used in the same way. In our case,
+we'll just start the program and wait for it to hit the segmentation
+fault:
+\begin{verbatim}
+(gdb) continue
+\end{verbatim}
+
+You could then ask for a backtrace to see where this happened:
+\begin{verbatim}
+(gdb) backtrace
+\end{verbatim}
+
+This will tell you that the segmentation fault occurred in a function
+of the C library, called by our program. This should help you in
+finding the bug in our application.
+
+\section{What to remember}
+
+During this lab, we learned that...
+\begin{itemize}
+\item Compiling an application for the target system is very similar
+  to compiling an application for the host, except that the
+  cross-compilation introduces a few complexities when libraries are
+  used.
+
+\item It's easy to study the behavior of programs and diagnose issues
+  without even having the source code, thanks to strace and ltrace.
+
+\item You can leave a small \code{gdbserver} program (300 KB) on your target
+  that allows to debug target applications, using a standard GDB
+  debugger on the development host.
+
+\item It is fine to strip applications and binaries on the target
+  machine, as long as the programs and libraries with debugging
+  symbols are available on the development host.
+
+\end{itemize}
+

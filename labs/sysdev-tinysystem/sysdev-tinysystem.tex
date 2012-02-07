@@ -1,0 +1,226 @@
+\subchapter{Tiny embedded system with BusyBox}{Objective: making a tiny yet full featured embedded system}
+
+After this lab, you will:
+\begin{itemize}
+\item be able to configure and build a Linux kernel that boots on a
+  directory on your workstation, shared through the network by NFS.
+\item be able to create and configure a minimalistic root filesystem
+  from scratch (ex nihilo, out of nothing, entirely hand made...) for
+  the IGEP board
+\item understand how small and simple an embedded Linux system can be.
+\item be able to install BusyBox on this filesystem.
+\item be able to create a simple startup script based on /sbin/init.
+\item be able to set up a simple web interface for the target.
+\item have an idea of how much RAM a Linux kernel smaller than 1 MB needs.
+\end{itemize}
+
+\section{Lab implementation}
+
+While (s)he develops a root filesystem for a device, a developer needs
+to make frequent changes to the filesystem contents, like modifying
+scripts or adding newly compiled programs.
+
+It isn't practical at all to reflash the root filesystem on the target
+every time a change is made. Fortunately, it is possible to set up
+networking between the development workstation and the target. Then,
+workstation files can be accessed by the target through the network,
+using NFS.
+
+Unless you test a boot sequence, you no longer need to reboot the
+target to test the impact of script or application updates.
+
+\begin{center}
+\includegraphics[width=\textwidth]{labs/sysdev-tinysystem/host-vs-target.pdf}
+\end{center}
+
+\section{Setup}
+
+Go to the \code{/home/<user>/felabs/sysdev/tinysystem/} directory.
+
+Reuse kernel sources from the previous labs, copying them to the
+current directory.
+
+\section{Kernel configuration}
+
+In the kernel configuration built in the previous lab, verify that you
+have all options needed for booting the system using a root filesystem
+mounted over NFS.
+
+\section{Setting up the NFS server}
+
+Create a \code{nfsroot} directory in the current lab directory. This
+\code{nfsroot} directory will be used to store the contents of our new
+root filesystem.
+
+Install the NFS server by installing the \code{nfs-kernel-server}
+package if you don't have it yet. Once installed, create the
+\code{/etc/exports} file as root to add the following line, assuming that the
+IP address of your board will be \code{192.168.0.100} (the path and the
+options must be on the same line!)
+
+\footnotesize
+\begin{verbatim}
+/home/<user>/felabs/sysdev/tinysystem/nfsroot 192.168.0.100(rw,no_root_squash,no_subtree_check)
+\end{verbatim}
+\normalsize
+
+Then, restart the NFS server:
+
+\begin{verbatim}
+sudo /etc/init.d/nfs-kernel-server restart
+\end{verbatim}
+
+\section{Booting the system}
+
+First, boot the board to the U-Boot prompt. Before booting the kernel,
+we need to tell it that the root filesystem should be mounted over
+NFS, by setting some kernel parameters.
+
+Use the following U-Boot command to do so (in just 1 line):
+
+\footnotesize
+\begin{verbatim}
+setenv bootargs console=ttyO2,115200 root=/dev/nfs ip=192.168.0.100 \
+   nfsroot=192.168.0.1:/home/<user>/felabs/sysdev/tinysystem/nfsroot
+\end{verbatim}
+\normalsize
+
+Caution: in \code{ttyO2} it's the capital letter \code{O} (like in
+{\bf O}MAP) and not the number zero.
+
+Of course, you need to adapt the IP addresses to your exact network
+setup. Save the environment variables (with \code{saveenv}).
+
+Now, boot your system. The kernel should be able to mount the root
+filesystem over NFS.
+
+If the kernel fails to mount the NFS filesystem, look carefully at the
+error messages in the console. If this doesn't give any clue, you can
+also have a look at the NFS server logs in \code{/var/log/syslog}.
+
+However, the kernel will complain that it can't find an init
+application:
+
+\footnotesize
+\begin{verbatim}
+Kernel panic - not syncing: No init found.  Try passing init= option to kernel.
+  See Linux Documentation/init.txt for guidance.
+\end{verbatim}
+\normalsize
+
+Obviously, our root filesystem being empty, there isn't such an
+application. Follow on to add Busybox to our root filesystem and
+finally make it useful.
+
+\section{Root filesystem with Busybox}
+
+Download the latest BusyBox 1.19.x release and configure it with the
+configuration file provided in the \code{data/} directory.
+
+At least, make sure you build BusyBox statically! Compiling Busybox
+statically in the first place makes it easy to set up the system,
+because there are no dependencies on libraries. Later on, we will set
+up shared libraries and recompile Busybox.
+
+Build BusyBox using the toolchain that you used to build the kernel.
+
+Install BusyBox in the root filesystem by running \code{make install}.
+
+Try to boot your new system on the board. If everything goes right,
+the kernel should again confirm that it managed to mount the NFS root
+filesystem. Then, you should get errors about missing \code{/dev/ttyX}
+files. Create them with the \code{mknod} command (using the same major
+and minor number as in your GNU/Linux workstation). Try again.
+
+At the end, you will access a console and will be able to issue
+commands through the default shell.
+
+\section{Virtual filesystems}
+
+Run the \code{ps} command. You can see that it complains that the
+\code{/proc} directory does not exist. The ps command and other
+process-related commands use the \code{proc} virtual filesystem to get
+their information from the kernel.
+
+From the Linux command line in the target, create the \code{proc}, \code{sys} and
+\code{etc} directories in your root filesystem.
+
+Now mount the \code{proc} virtual filesystem. Now that \code{/proc} is
+available, test again the \code{ps} command.
+
+Note that you can also halt your target in a clean way with the \code{halt}
+command, thanks to \code{proc} being mounted.
+
+\section{System configuration and startup}
+
+The first userspace program that gets executed by the kernel is
+\code{/sbin/init} and its configuration file is \code{/etc/inittab}.
+
+In the BusyBox sources, read details about \code{/etc/inittab} in the
+\code{examples/inittab} file.
+
+Then, create a \code{/etc/inittab} file and a \code{/etc/init.d/rcS}
+startup script declared in \code{/etc/inittab}. In this startup
+script, mount the \code{/proc} and \code{/sys} filesystems.
+
+Any issue after doing this?
+
+\section{Switching to shared libraries}
+
+Take the \code{hello.c} program supplied in the lab \code{data}
+directory. Cross-compile it for ARM, dynamically-linked with the
+libraries, and run it on the target.
+
+You will first encounter a not found error caused by the absence of
+the \code{ld-uClibc.so.0} executable, which is the dynamic linker
+required to execute any program compiled with shared libraries. Using
+the find command (see examples in your command memento sheet), look
+for this file in the toolchain install directory, and copy it to the
+\code{lib/} directory on the target.
+
+Then, running the executable again and see that the loader executes
+and finds out which shared libraries are missing. Similarly, find
+these libraries in the toolchain and copy them to \code{lib/} on the
+target.
+
+Once the small test program works, we are going to recompile Busybox
+without the static compilation option, so that Busybox takes advantages of the
+shared libraries that are now present on the target.
+
+Before doing that, measure the size of the \code{busybox} executable.
+
+Then, build Busybox with shared libraries, and install it again on the
+target filesystem. Make sure that the system still boots and see
+how much smaller the \code{busybox} executable got.
+
+
+\section{Implement a web interface for your device}
+
+Replicate \code{data/www/} to the \code{/www} directory in your target root filesystem.
+
+Now, run the BusyBox http server from the target command line:
+
+\begin{verbatim}
+/usr/sbin/httpd -h /www/
+\end{verbatim}
+
+It will automatically background itself.
+
+If you use a proxy, configure your host browser so that it doesn't go
+through the proxy to connect to the target IP address, or simply
+disable proxy usage.  Now, test that your web interface works well by
+opening \url{http://192.168.0.100} on the host.
+
+See how the dynamic pages are implemented. Very simple, isn't it?
+
+\section{How much RAM does your system need?}
+
+Check the \code{/proc/meminfo} file and see how much RAM is used by your
+system.
+
+You can try to boot your system with less memory, and see whether it
+still works properly or not. For example, to test whether 20 MB are
+enough, boot the kernel with the mem=20M parameter. Linux will then
+use just 20 MB of RAM, and ignore the rest.
+
+Try to use even less RAM, and see what happens.

@@ -1,0 +1,134 @@
+\subchapter{Writing modules}{Objective: create a simple kernel module}
+
+After this lab, you will be able to:
+
+\begin{itemize}
+\item Compile and test standalone kernel modules, which code is outside of the main Linux sources.
+\item Write a kernel module with several capabilities, including module parameters.
+\item Access kernel internals from your module.
+\item Setup the environment to compile it
+\item Create a kernel patch
+\end{itemize}
+
+\section{Setup}
+
+Stay inside the \code{/home/<user>/felabs/linux/modules} directory.
+Boot your board again, as you did in the previous lab.
+
+\section{Writing a module}
+
+Go to the \code{nfsroot/root} directory. All the files you generate
+there will also be visible from the target. That's great to load
+modules!
+
+Create a \code{hello_version.c} file implementing a module which
+displays this kind of message when loaded:
+
+\begin{verbatim}
+Hello Master. You are currently using Linux <version>.
+\end{verbatim}
+
+... and displays a goodbye message when unloaded.
+
+You may just start with a module that displays a hello message, and
+add version information later.
+
+Caution: you must use a kernel variable or function to get version
+information, and not just the value of a C macro. Otherwise, you will
+only get the version of the kernel you used to build the
+module. Suggestion: you can look for files in kernel sources which
+contain version in their name, and see what they do.
+
+\section{Building your module}
+
+The current directory contains a \code{Makefile} file, which lets you
+build modules outside a kernel source tree.  Compile your module.
+
+\section{Testing your module}
+
+Load your new module file. Check that it works as
+expected. Until this, unload it, modify its code, compile and load it
+again as many times as needed.
+
+Run a command to check that your module is on the list of loaded
+modules. Now, try to get the list of loaded modules with only the cat
+command.
+
+\section{Adding a parameter to your module}
+
+Add a who parameter to your module. Your module will say \code{Hello
+<who>} instead of \code{Hello Master}.
+
+ Compile and test your module by checking that it takes the who
+parameter into account when you load it.
+
+\section{Adding time information}
+
+Improve your module, so that when you unload it, it tells you how many
+seconds elapsed since you loaded it.  You can use the
+\code{do_gettimeofday()} function to achieve this.
+
+You may search for other drivers in the kernel sources using the
+\code{do_gettimeofday()} function. Looking for other examples always helps!
+
+\section{Following Linux coding standards}
+
+Your code should adhere to strict coding standards, if you want to
+have it one day merged in the mainline sources. One of the main
+reasons is code readability. If anyone used one's own style, given the
+number of contributors, reading kernel code would be very unpleasant.
+
+Fortunately, the Linux kernel community provides you with a utility to
+find coding standards violations.
+
+Run the \code{scripts/checkpatch.pl -h} command in the kernel sources,
+to find which options are available.  Now, run:
+
+\begin{verbatim}
+scripts/checkpatch.pl --file --no-tree <path>/hello_version.c
+\end{verbatim}
+
+See how many violations are reported on your code. If there are
+indenting errors, you can first run your code through the \code{indent}
+command:
+
+\begin{verbatim}
+sudo apt-get install indent
+indent -linux hello_version.c
+\end{verbatim}
+
+You can now compare the indented file with the original:
+
+\begin{verbatim}
+sudo apt-get install meld
+meld hello_version.c~ hello_version.c
+\end{verbatim}
+
+Now, get back to \code{checkpatch.pl} and fix your code until there are
+no errors left.
+
+\section{Adding the {\tt hello\_version} module to the kernel sources}
+
+Add your module sources to the \code{drivers/misc/} directory in your
+kernel sources. Of course, also modify kernel configuration and
+building files accordingly, so that you can select your module in
+\code{make xconfig} and have it compiled by the \code{make} command.
+
+Configure your kernel with the config file corresponding to your
+running kernel. Now check that the configuration interface shows your
+new driver and lets you configure it as a module.
+
+Run the \code{make} command and make sure that the code of your new
+driver is getting compiled. Then, install your kernel module using
+\code{make modules_install}. Beware, the modules should be installed
+in the root filesystem of the target, not in the root filesystem of
+your development workstation!
+
+\section{Create a kernel patch}
+
+You can be proud of your new module! To be able to share it with
+others, create a patch which adds your new files to the mainstream
+kernel.
+
+Test that your patch file is compatible with the patch command by
+applying it to unmodified kernel sources.

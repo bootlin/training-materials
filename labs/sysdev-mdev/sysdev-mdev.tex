@@ -1,0 +1,69 @@
+\subchapter{Using mdev}{Objective: Practicing with BusyBox mdev}
+
+After this lab, you will be able to
+\begin{itemize}
+\item Use \code{mdev} to populate the \code{/dev} directory with
+  device files corresponding to devices present on the system.
+\item Use \code{mdev} to automount external disk partitions.
+\end{itemize}
+
+\section{Root filesystem}
+
+We will reuse the root filesystem from the {\em Tiny system} lab.
+
+\section{Kernel settings}
+
+Reuse the Linux kernel from the {\em Tiny system} lab. If you prefer
+to start from fresh sources, use the configuration supplied in the
+data directory.
+
+Now add or modify the below settings to your kernel:
+\begin{itemize}
+\item Enable loadable module support: \code{CONFIG_MODULES=y}
+\item Module unloading: \code{CONFIG_MODULE_UNLOAD=y}
+\item Support for Host-side USB: \code{CONFIG_USB=m}. Make sure this is set as a module!
+\item OHCI HCD support: \code{CONFIG_USB_OHCI_HCD=m}
+\item USB Mass Storage support: \code{CONFIG_USB_STORAGE=m}
+\item And any other feature that could be needed on your hardware to access your hot-pluggable device.
+\end{itemize}
+
+Compile your kernel. Install the modules in your root filesystem using:
+\begin{verbatim}
+make INSTALL_MOD_PATH=<root-dir-path> modules_install
+\end{verbatim}
+
+\section{Booting the system}
+
+Boot your system through NFS with the given root filesystem.
+
+To make sure that module loading works, try to load the
+\code{usb-storage} module:
+\begin{verbatim}
+modprobe usb-storage
+\end{verbatim}
+
+\section{First mdev tests}
+
+We are first going to use \code{mdev} to populate the \code{/dev}
+directory with all devices present at boot time.
+
+Modify the \code{/etc/init.d/rcS} script to mount a \code{tmpfs}
+filesystem on \code{/dev/}, and run \code{mdev -s} to populate this
+directory with all minimum device files. Very nice, isn't it?
+
+\section{Using mdev as a hotplug agent}
+
+Using the guidelines in the lectures, and BusyBox documentation, use
+\code{mdev} to automatically create all the \code{/dev/sd[a-z][1-9]*}
+device files when a USB disk is inserted, corresponding to the disk
+itself and its partitions.
+
+Also make sure these device files are also removed automatically when
+the flash drive is removed.
+
+\section{Automatic mounting}
+
+Refine your configuration to also mount each partition automatically
+when a USB disk is inserted, and to do the opposite after the disk is
+removed. You could use \code{/media/<devname>} as the mount point for
+each partition.

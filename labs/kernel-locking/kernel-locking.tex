@@ -1,0 +1,39 @@
+\subchapter{Locking}{Objective: practice with basic locking primitives}
+
+During this lab, you will:
+
+\begin{itemize}
+\item Practice with locking primitives to implement exclusive access
+  to the device.
+\end{itemize}
+
+\section{Setup}
+
+Stay in the \code{/home/<user>/felabs/linux/character} directory.
+
+You need to have completed the previous two labs to perform this one.
+
+Boot your board with the same NFS environment as before, and load your
+serial module.
+
+\section{Adding appropriate locking}
+
+We have two shared resources in our driver:
+\begin{itemize}
+
+\item The buffer that allows to transfer the read data from the
+  interrupt handler to the read() operation.
+
+\item The device itself. It might not be a good idea to mess with the
+  device registers at the same time and in two different contexts.
+
+\end{itemize}
+
+Therefore, your job is to add a spinlock to the driver, and use it in
+the appropriate locations to prevent concurrent accesses to the shared
+buffer and to the device.
+
+Please note that you don't have to prevent two processes from writing
+at the same time: this can happen and is a valid behavior. However, if
+two processes write data at the same time to the serial port, the
+serial controller should not get confused.

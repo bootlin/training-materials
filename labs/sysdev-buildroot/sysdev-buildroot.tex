@@ -1,0 +1,266 @@
+\subchapter{Using a build system, example with Buildroot}{Objectives:
+  discover how a build system is used and how it works, with the
+  example of the Buildroot build system. Build a Linux system with
+  libraries and make it work inside Qemu.}
+
+\section{Setup}
+
+Go into the \code{/home/<user>/felabs/sysdev/buildroot/} directory,
+which already contains some data needed for this lab, including a
+kernel image.
+
+\section{Get Buildroot and explore the source code}
+
+The official Buildroot website is available at
+\url{http://buildroot.org/}. Download the stable 2011.11 version which
+we have tested for this lab. Uncompress the tarball and go inside the
+buildroot directory.
+
+Several subdirectories or files are visible, the most important ones
+are:
+
+\begin{itemize}
+\item \code{boot} contains the Makefiles and configuration items
+  related to the compilation of common bootloaders (Grub, U-Boot,
+  Barebox, etc.)
+\item \code{configs} contains a set of predefined configurations,
+  similar to the concept of defconfig in the kernel.
+\item \code{docs} contains the documentation for Buildroot. You can
+  start reading buildroot.html which is the main Buildroot
+  documentation;
+\item \code{fs} contains the code used to generate the various root
+  filesystem image formats, as well as the default root filesystem
+  {\em skeleton};
+\item \code{linux} contains the Makefile and configuration items
+  related to the compilation of the Linux kernel
+\item \code{Makefile} is the main Makefile that we will use to use
+  Buildroot: everything works through Makefiles in Buildroot;
+\item \code{package} is a directory that contains all the Makefiles,
+  patches and configuration items to compile the userspace
+  applications and libraries of your embedded Linux system. Have a
+  look at various subdirectories and see what they contain;
+\item \code{target} contains misc files, most of them being legacy,
+  except the {\em device table} in \code{target/device/generic}
+\item \code{toolchain} contains the Makefiles, patches and
+  configuration items to generate the cross-compiling toolchain.
+\end{itemize}
+
+\section{Configure Buildroot}
+
+In our case, we would like to:
+
+\begin{itemize}
+\item Generate an embedded Linux system for ARM;
+\item Use an already existing external toolchain instead of having
+  Buildroot generating one for us;
+\item Integrate Busybox, DirectFB and DirectFB sample applications in
+  our embedded Linux system;
+\item Integrate the target filesystem into both an ext2 filesystem
+  image and a tarball
+\end{itemize}
+
+To run the configuration utility of Buildroot, simply run:
+
+\begin{verbatim}
+make menuconfig
+\end{verbatim}
+
+Set the following options:
+
+\begin{itemize}
+\item Target Architecture: \code{arm}
+\item Target Architecture Variant: \code{arm926t}.
+\item Target ABI: \code{EABI}
+\item Build options
+  \begin{itemize}
+  \item Number of jobs to run simultaneously: choose 2 or 4, for
+    example, to speed up compiling, especially if you have a dual-core
+    system.
+  \end{itemize}
+\item Toolchain
+  \begin{itemize}
+  \item Toolchain type: \code{External toolchain}
+  \item Toolchain: \code{Custom toolchain}
+  \item Toolchain path: use the toolchain you built:
+    \code{/usr/local/xtools/arm-unknown-linux-uclibcgnueabi}
+  \item External toolchain C library: \code{uClibc}
+  \item We must tell Buildroot about our toolchain configuration, so:
+    enable Toolchain has large file support and Toolchain has RPC
+    support. Buildroot will check these parameters anyway.
+  \end{itemize}
+\item System configuration
+  \begin{itemize}
+  \item Port to run a getty (login prompt) on, change \code{ttyS0} to \code{tty1}
+  \end{itemize}
+\item Package selection for the target
+  \begin{itemize}
+  \item Keep Busybox (default version) and keep the Busybox
+    configuration proposed by Buildroot;
+  \item In Graphics libraries and applications (graphic/text)
+    \begin{itemize}
+    \item Select directfb. Buildroot will automatically select the
+      necessary dependencies.
+    \item Remove touchscreen support from DirectFB
+    \item Select directfb examples
+    \item Select all the DirectFB examples
+    \end{itemize}
+  \end{itemize}
+\item Filesystem images
+  \begin{itemize}
+  \item Select ext2 root filesystem
+  \item Select tar the root filesystem
+  \end{itemize}
+\end{itemize}
+
+Exit the menuconfig interface. Your configuration has now been saved
+to the \code{.config} file.
+
+\section{Generate the embedded Linux system}
+
+Just run:
+
+\begin{verbatim}
+make
+\end{verbatim}
+
+Buildroot will first create a small environment with the external
+toolchain, then download, extract, configure, compile and install each
+component of the embedded system.
+
+All the compilation has taken place in the \code{output/} subdirectory. Let's
+explore its contents :
+
+\begin{itemize}
+
+\item \code{build}, is the directory in which each component built by
+  Buildroot is extract, and where the build actually takes place
+
+\item \code{host}, is the directory where Buildroot installs some
+  components for the host. As Buildroot doesn't want to depend on too
+  many things installed in the developer machines, it installs some
+  tools needed to compile the packages for the target. In our case it
+  installed pkg-config (since the version of the host may be ancient)
+  and tools to generate the root filesystem image (genext2fs,
+  makedevs, fakeroot)
+
+\item \code{images}, which contains the final images produced by
+  Buildroot. In our case it's just an ext2 filesystem image and a
+  tarball of the filesystem, but depending on the Buildroot
+  configuration, there could also be a kernel image or a bootloader
+  image. This is where we find \code{rootfs.tar} and
+  \code{rootfs.ext2}, which are respectively the tarball and an ext2
+  image of the generated root filesystem.
+
+\item \code{staging}, which contains the “build” space of the target
+  system. All the target libraries, with headers, documentation. It
+  also contains the system headers and the C library, which in our
+  case have been copied from the cross-compiling toolchain.
+
+\item \code{target}, is the target root filesystem. All applications
+  and libraries, usually stripped, are installed in this
+  directory. However, it cannot be used directly as the root
+  filesystem, as all the device files are missing: it is not possible
+  to create them without being root, and Buildroot has a policy of not
+  running anything as root.
+
+\item \code{toolchain}, is the location where the toolchain is
+  built. However, in our configuration, we re-used an existing
+  toolchain, so this directory contains almost nothing.
+
+\end{itemize}
+
+At the end of the run, get back to the main lab directory and create a
+symbolic link to the \code{output} directory:
+
+\begin{verbatim}
+ln -s buildroot-<version>/output .
+\end{verbatim}
+
+This will make our life simpler in the next lab.
+
+\section{Run the generated system}
+
+If you didn't do it in the previous lab, install QEMU emulator for non
+x86 targets:
+
+\begin{verbatim}
+sudo apt-get install qemu-kvm-extras
+\end{verbatim}
+
+We will use the kernel image in \code{data} and the filesystem image
+generated by Buildroot in the ext2 format to boot the generated system
+in QEMU. We start by using a QEMU emulated ARM board with display
+support, allowing to test graphical applications relying on the
+DirectFB library. Later, we will be able move to a real board if your
+hardware also has a graphical display.
+
+The \code{run_qemu} script contains what's needed to boot the system
+in QEMU.
+
+Log in (\code{root} account, no password), run demo programs:
+
+\begin{verbatim}
+df_andi
+df_dok
+df_fire
+...
+\end{verbatim}
+
+\section{Tests on the IGEPv2 board}
+
+If you have graphical displays to connect your IGEPv2 board to (LCD
+display with DVI-D or HDMI input, TI Pico Projector...), and the
+corresponding cables (HDMI to DVI-D or HDMI to HDMI), you can test
+your root filesystem on the board.
+
+You can skip to the next section if you don't have a display.
+
+Here's what you can do:
+
+\begin{itemize}
+\item Edit \code{etc/inittab}, uncomment the line with \code{ttyS0}
+  and replace all the occurrences of \code{ttyS0} by \code{ttyO2}
+\item Either copy the ext2 image to a block device that can be
+  accessed by your hardware (flash card reader, USB drive...)
+\item Or mount the ext2 image and copy its contents to a flash
+  partition on your board.
+\item Connect your board to an DVI-D or HDMI display
+\item Get the latest Linux 2.6.39.x sources, take the default
+  configuration of OMAP2 and build this Linux kernel with the
+  following settings:
+\begin{verbatim}
+CONFIG_OMAP2_DSS=y
+FB_OMAP2=y
+CONFIG_PANEL_GENERIC_DPI=y
+LOGO=y (optional)
+\end{verbatim}
+\item Add the following settings to the boot arguments:
+  \begin{itemize}
+  \item \code{console=tty0}\\(allows you to have both a framebuffer
+    and serial console)
+  \item \code{vram=12M}\\(video RAM)
+  \item \code{omapfb.mode=dvi:640x480MR-16@60}\\(example for the
+    Pico Projector. You may first try to do without this parameter,
+    and then specify a mode that your monitor supports).
+  \item \code{omapdss.def_disp=dvi}\\(default output for the Omap
+    Display SubSystem driver)
+  \end{itemize}
+\end{itemize}
+
+\section{Going further}
+
+\begin{itemize}
+
+\item Add dropbear (SSH server and client) to the list of packages
+  built by Buildroot, add the network emulation in QEMU (see the
+  \code{../thirdparty/run_qemu} script for an example), and log to
+  your target system in QEMU using a ssh client on your development
+  workstation. Hint: you will have to set a non-empty password for the
+  root account on your target for this to work.
+
+\item Add a new package in Buildroot for the GNU Gtypist game. Read
+  the Buildroot documentation to see how to add a new
+  package. Finally, add this package to your target system, compile it
+  and run it in QEMU.
+
+\end{itemize}

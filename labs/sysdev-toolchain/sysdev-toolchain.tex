@@ -1,0 +1,138 @@
+\subchapter{Building a cross-compiling toolchain}{Objective: Learn how
+  to compile your own cross-compiling toolchain for the uClibc C
+  library}
+
+After this lab, you will be able to:
+
+\begin{itemize}
+\item Configure the {\em crosstool-ng} tool
+\item Execute {\em crosstool-ng} and build up your own cross-compiling toolchain
+\end{itemize}
+
+\section{Setup}
+
+Go to the \code{/home/<user>/felabs/sysdev/toolchain} directory.
+
+Make sure you have at least 2 GB of free disk space.
+
+\section{Install needed packages}
+
+Install the packages needed for this lab:
+
+\begin{verbatim}
+sudo apt-get install autoconf automake libtool libexpat1-dev
+sudo apt-get install libncurses5-dev bison flex patch curl
+sudo apt-get install cvs texinfo build-essential
+sudo apt-get install subversion gawk python-dev
+sudo apt-get clean
+\end{verbatim}
+
+\section{Getting Crosstool-ng}
+
+Get the latest 1.13.x release of Crosstool-ng at
+\url{http://crosstool-ng.org}. Expand the archive right in the current
+directory, and enter the Crosstool-ng source directory.
+
+\section{Installing Crosstool-ng}
+
+We can either install Crosstool-ng globally on the system, or keep it
+locally in its download directory. We'll choose the latter
+solution. As documented in
+\code{docs/2\ -\ Installing\ crosstool-NG.txt}, do:
+
+\begin{verbatim}
+./configure --local
+make
+make install
+\end{verbatim}
+
+Then you can get Crosstool-ng help by running
+
+\begin{verbatim}
+./ct-ng help
+\end{verbatim}
+
+\section{Configure the toolchain to produce}
+
+A single installation of Crosstool-ng allows to produce as many
+toolchains as you want, for different architectures, with different C
+libraries and different versions of the various components.
+
+Crosstool-ng comes with a set of ready-made configuration files for
+various typical setups: Crosstool-ng calls them {\em samples}. They can be
+listed by using \code{./ct-ng list-samples}.
+
+We will use the arm-unknown-linux-uclibcgnueabi sample. It can be loaded by issuing:
+
+\begin{verbatim}
+./ct-ng arm-unknown-linux-uclibcgnueabi
+\end{verbatim}
+
+Then, to refine the configuration, let's run the menuconfig interface:
+
+\begin{verbatim}
+./ct-ng menuconfig
+\end{verbatim}
+
+In Path and misc options:
+
+\begin{itemize}
+\item Change Prefix directory to
+  \code{/usr/local/xtools/${CT_TARGET}}. This is the place where
+  the toolchain will be installed.
+\item Set Number of parallel jobs to 2 times the number of CPU cores
+  in your workstation. Building your toolchain will be faster.
+\end{itemize}
+
+In Toolchain options:
+\begin{itemize}
+\item Set Tuple's alias to \code{arm-linux}. This way, we will be able
+  to use the compiler as \code{arm-linux-gcc} instead of
+  \code{arm-unknown-linux-uclibcgnueabi-gcc}, which is much longer.
+\end{itemize}
+
+In Debug facilities:
+\begin{itemize}
+\item Enable \code{gdb}, \code{strace} and \code{ltrace}. Remove the
+  other options (\code{dmalloc} and \code{duma}). In gdb options, make
+  sure that the Cross gdb and Build a static gdbserver options are
+  enabled; the other options are not needed.
+\end{itemize}
+
+Explore the different other available options by traveling through the
+menus and looking at the help for some of the options. Don't hesitate
+to ask your trainer for details on the available options. However,
+remember that we tested the labs with the configuration described
+above.
+
+\section{Produce the toolchain}
+
+First, create the directory \code{/usr/local/xtools/} and change its
+owner to your user, so that Crosstool-ng can write to it.
+
+Then, create the directory \code{$HOME/src} in which Crosstool-NG
+will save the tarballs it will download.
+
+Nothing is simpler:
+
+\begin{verbatim}
+./ct-ng build
+\end{verbatim}
+
+And wait!
+
+\section{Testing the toolchain}
+
+You can now test your toolchain by adding
+\code{/usr/local/xtools/arm-unknown-linux-uclibcgnueabi/bin/} to your
+\code{PATH} environment variable and compiling the simple
+\code{hello.c} program in your main lab directory with
+\code{arm-linux-gcc}.
+
+You can use the \code{file} command on your binary to make sure it has
+correctly been compiled for the ARM architecture.
+
+\section{Cleaning up}
+
+To save almost 2 GB of storage space, remove the \code{.build/}
+subdirectory in the Crosstool-ng directory.

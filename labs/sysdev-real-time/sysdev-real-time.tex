@@ -1,0 +1,161 @@
+\subchapter{Real-time - Timers and scheduling latency}{Objective:
+  Learn how to handle real-time processes and practice with the
+  different real-time modes. Measure scheduling latency.}
+
+After this lab, you will:
+\begin{itemize}
+\item Be able to check clock accuracy.
+\item Be able to start processes with real-time priority.
+\item Have compared scheduling latency on your system, between a standard kernel and a kernel with Xenomai.
+\end{itemize}
+
+\section{Setup}
+
+Go to the \code{/home/<user>/felabs/realtime/rttest} directory.
+
+For this lab, you must have compiled a 2.6.35.9 kernel for the IGEP
+board, with the default configuration (named
+\code{igep0020_defconfig}, the generic \code{omap2plus_defconfig}
+didn't exist in 2.6.35.9), except that you will have to remove the
+libertas wireless modules. Remove the \code{CONFIG_HIGH_RES_TIMERS}
+option, to first test the kernel without high-resolution timers.
+
+Boot the IGEP board by mounting the root filesystem available at
+\code{/home/<user>/felabs/realtime/rttest/nfsroot/} with NFS. Note
+that in 2.6.35.9, the OMAP serial port were named \code{ttyS}, not
+\code{ttyO}, so you must adjust your \code{console=} argument to use
+\code{ttyS2}. As usual, login as \code{root}, there is no password.
+
+Please stay with a 2.6.35.9 version, as this is the most recent
+version with Xenomai support.
+
+Install netcat on your host, by running:
+\begin{verbatim}
+apt-get install netcat
+\end{verbatim}
+
+Download CodeSourcery's 2009q1 toolchain at:
+\url{http://www.codesourcery.com/sgpp/lite/arm/portal/release858}
+
+Choose the {\em IA32 GNU/Linux TAR} version and untar it after the
+download.
+
+Add \code{/home/<user>/felabs/realtime/rttest/arm-2009q1/bin} to your
+\code{PATH}.
+
+We are using a CodeSourcery toolchain because it uses the {\em glibc}
+as its C library, and {\em glibc} has better support for the POSIX RT
+API than {\em uClibc}. In our case, when we created this lab, uClibc
+didn't support the \code{clock_nanosleep} function used in our
+rttest.c program. {\em uClibc} also does not support priority
+inheritance on mutexes.
+
+\section{Using high-resolution timers}
+
+Have a look at the \code{rttest.c} source file available in root/ in
+the \code{nfsroot/} directory. See how it shows the resolution of the
+\code{CLOCK_MONOTONIC} clock.
+
+Now compile this program:
+\begin{verbatim}
+arm-none-linux-gnueabi-gcc -o rttest rttest.c -lrt
+\end{verbatim}
+
+Execute the program on the board. Is the clock resolution good or bad?
+Compare it to the timer tick of your system, as defined by \code{CONFIG_HZ}.
+
+Obviously, this resolution will not provide accurate sleep times, and
+this is because our kernel doesn't use high-resolution timers. So
+let's enable the following options in the kernel configuration:
+\code{CONFIG_HIGH_RES_TIMERS}.
+
+Recompile your kernel, boot your IGEP board with the new version, and
+check the new resolution. Better, isn't it ?
+
+\section{Testing the non-preemptible kernel}
+
+Now, do the following tests:
+\begin{itemize}
+\item Test the program with nothing special and write down the
+  results.
+\item Test your program and at the same time, add some workload to the
+  board, by running \code{doload 300 > /dev/null 2>&1 &} on the board,
+  and using \code{netcat 192.168.0.100 5566} on your workstation when
+  you see the message \code{Listening on any address 5566} in order to
+  flood the network interface of the IGEP board (where 192.168.0.100
+  is the IP address of the IGEP board)
+\item Test your program again with the workload, but by running the
+  program in the \code{SCHED_FIFO} scheduling class at priority 99,
+  using the chrt command.
+\end{itemize}
+
+\section{Testing the preemptible kernel}
+
+Recompile your kernel with \code{CONFIG_PREEMPT} enabled, which
+enables kernel preemption (except for critical sections protected by
+spinlocks).
+
+Re-do the simple tests with this new preemptible kernel and compare
+the results.
+
+\section{Testing Xenomai scheduling latency}
+
+Get Xenomai from its download area at
+\url{http://download.gna.org/xenomai/stable/} and untar Xenomai.
+
+Prepare the kernel for Xenomai compilation :
+\begin{verbatim}
+./scripts/prepare-kernel.sh --arch=arm --linux=/path/to/linux-2.6.35.9
+\end{verbatim}
+
+You can reuse the kernel configuration from a previous compile job,
+then launch kernel configuration tool again and enable the options:
+\begin{itemize}
+\item \code{CONFIG_XENOMAI}
+\item \code{CONFIG_XENO_DRIVERS_TIMERBENCH}
+\end{itemize}
+
+Other options of interest (ARM specific) are:
+\begin{itemize}
+\item \code{CONFIG_XENO_HW_UNLOCKED_SWITCH}
+\end{itemize}
+
+Read the help associated with these options, decide whether you want
+to enable them.
+
+Compile \code{rttest} for the Xenomai POSIX skin:
+
+\begin{verbatim}
+DESTDIR=/home/<user>/felabs/realtime/rttest/nfsroot/
+export DESTDIR
+CFL=`$DESTDIR/usr/bin/xeno-config --skin=posix --cflags`
+LDF=`$DESTDIR/usr/bin/xeno-config --skin=posix --ldflags`
+arm-none-linux-gnueabi-gcc $CFL -o rttest rttest.c $LDF
+\end{verbatim}
+
+Now boot the board with the new kernel.
+
+Run the following commands on the board :
+
+\begin{verbatim}
+echo 0 > /proc/xenomai/latency
+\end{verbatim}
+
+This will disable the timer compensation feature of Xenomai. This
+feature allows Xenomai to adjust the timer programming to take into
+account the time the system needs to schedule a task after being woken
+up by a timer. However, this feature needs to be calibrated
+specifically for each system. By disabling this feature, we will have
+raw Xenomai results, that could be further improved by doing proper
+calibration of this compensation mechanism.
+
+Re-run the tests, compare the results.
+
+\section{Testing Xenomai interrupt latency}
+
+Measure the interrupt latency with and without load, running the
+following command:
+
+\begin{verbatim}
+latency -t 2
+\end{verbatim}
