@@ -1,3 +1,5 @@
+# Required packages (tested on Ubuntu 11.10):
+# inkscape texlive-latex-base texlive-font-utils dia python-pygments
 
 # Needed tools
 INKSCAPE = inkscape
