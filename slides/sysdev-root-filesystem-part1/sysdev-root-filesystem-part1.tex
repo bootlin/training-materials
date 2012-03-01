@@ -1,0 +1,340 @@
+\chapterframe
+{Linux root filesystem}
+
+\subchapterframe
+{Linux root filesystem}
+{Principle and solutions}
+
+\begin{frame}
+  \frametitle{Filesystems}
+  \begin{itemize}
+  \item Filesystems are used to organize data in directories and files
+    on storage devices or on the network. The directories and files
+    are organized as a hierarchy
+  \item In Unix systems, applications and users see a {\bf single
+      global hierarchy} of files and directories, which can be
+    composed of several filesystems.
+  \item Filesystems are {\bf mounted} in a specific location in this
+    hierarchy of directories
+    \begin{itemize}
+    \item When a filesystem is mounted in a directory (called {\em
+        mount point}), the contents of this directory reflects the
+      contents of the storage device
+    \item When the filesystem is unmounted, the {\em mount point} is
+      empty again.
+    \end{itemize}
+  \item This allows applications to access files and directories easily,
+    regardless of their exact storage location
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Filesystems (2)}
+  \begin{itemize}
+  \item Create a mount point, which is just a directory\\
+    \code{$ mkdir /mnt/usbkey}
+  \item It is empty\\
+    \code{$ ls /mnt/usbkey}\\
+    \code{$}
+  \item Mount a storage device in this mount point\\
+    \code{$ mount -t vfat /dev/sda1 /mnt/usbkey}\\
+    \code{$}
+  \item You can access the contents of the USB key\\
+    \code{$ ls /mnt/usbkey}\\
+    \code{docs prog.c picture.png movie.avi}\\
+    \code{$}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{mount / umount}
+  \begin{itemize}
+  \item \code{mount} allows to mount filesystems
+    \begin{itemize}
+    \item \code{mount -t type device mountpoint}
+    \item \code{type} is the type of filesystem
+    \item \code{device} is the storage device, or network location to
+      mount
+    \item \code{mountpoint} is the directory where files of the
+      storage device or network location will be accessible
+    \item \code{mount} with no arguments shows the currently mounted
+      filesystems
+    \end{itemize}
+  \item \code{umount} allows to unmount filesystems
+    \begin{itemize}
+    \item This is needed before rebooting, or before unplugging a USB
+      key, because the Linux kernel caches writes in memory to
+      increase performances. umount makes sure that those writes are
+      committed to the storage.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Root filesystem}
+  \begin{itemize}
+  \item A particular filesystem is mounted at the root of the hierarchy,
+    identified by \code{/}
+  \item This filesystem is called the {\bf root filesystem}
+  \item As \code{mount} and \code{umount} are programs, they are files
+    inside a filesystem.
+    \begin{itemize}
+    \item They are not accessible before mounting at least one filesystem.
+    \end{itemize}
+  \item As the root filesystem is the first mounted filesystem, it
+    cannot be mounted with the normal mount command
+  \item It is mounted directly by the kernel, according to the
+    \code{root=} kernel option
+  \item When no root filesystem is available, the kernel panics\\
+    \tiny
+\begin{verbatim}
+Please append a correct "root=" boot option
+Kernel panic - not syncing: VFS: Unable to mount root fs on unknown block(0,0)
+\end{verbatim}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Location of the root filesystem}
+  \begin{itemize}
+  \item It can be mounted from different locations
+    \begin{itemize}
+    \item From the partition of a hard disk
+    \item From the partition of a USB key
+    \item From the partition of an SD card
+    \item From the partition of a NAND Flash or similar type of
+      storage device
+    \item From the network, using the NFS protocol
+    \item From memory, using a pre-loaded filesystem (by the
+      bootloader)
+    \item etc.
+    \end{itemize}
+  \item It is up to the system designer to choose the configuration
+    for the system, and configure the kernel behaviour with
+    \code{root=}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Mounting rootfs from storage devices}
+  \begin{itemize}
+  \item Partitions of a hard disk or USB key
+    \begin{itemize}
+    \item \code{root=/dev/sdXY}, where \code{X} is a letter indicating
+      the device, and \code{Y} a number indicating the partition
+    \item \code{/dev/sdb2} is the second partition of the second disk
+      drive (either USB key or ATA hard drive)
+    \end{itemize}
+  \item Partitions of a SD card
+    \begin{itemize}
+    \item \code{root=/dev/mmcblkXpY}, where \code{X} is a number
+      indicating the device and \code{Y} a number indicating the
+      partition
+    \item \code{/dev/mmcblk0p2} is the second partition of the first
+      device
+    \end{itemize}
+  \item Partitions of a NAND Flash
+    \begin{itemize}
+    \item \code{root=/dev/mtdblockX}, where \code{X} is the partition number
+    \item \code{/dev/mtdblock3} is the fourth partition of the NAND
+      flash (if only one NAND flash is present)
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Mounting rootfs over the network (1)}
+
+  Once networking works, your root filesystem could be a directory on
+  your GNU/Linux development host, exported by NFS (Network File
+  System). This is very convenient for system development:
+
+  \begin{itemize}
+  \item Makes it very easy to update files on the root filesystem,
+    without rebooting. Much faster than through the serial port.
+  \item Can have a big root filesystem even if you don't have support
+    for internal or external storage yet.
+  \item The root filesystem can be huge. You can even build native
+    compiler tools and build all the tools you need on the target
+    itself (better to cross-compile though).
+  \end{itemize}
+
+  \begin{center}
+    \includegraphics[width=0.7\textwidth]{slides/sysdev-root-filesystem-part1/nfs-principle.pdf}
+  \end{center}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Mounting rootfs over the network (2)}
+
+  On the development workstation side, a NFS server is needed
+
+  \begin{itemize}
+  \item Install an NFS server (example: Debian, Ubuntu)\\
+    \code{sudo apt-get install nfs-kernel-server}
+  \item Add the exported directory to your /etc/exports file:\\
+    \code{/home/tux/rootfs 192.168.1.111(rw,no_root_squash,no_subtree_check)}
+    \begin{itemize}
+    \item \code{192.168.1.111} is the client IP address
+    \item \code{rw,no_root_squash,no_subtree_check} are the NFS server
+      options for this directory export.
+    \end{itemize}
+  \item Start or restart your NFS server (example: Debian, Ubuntu)\\
+    \code{sudo /etc/init.d/nfs-kernel-server restart}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Mounting rootfs over the network (3)}
+  \begin{itemize}
+  \item On the target system
+  \item The kernel must be compiled with
+    \begin{itemize}
+    \item \code{CONFIG_NFS_FS=y} (NFS support)
+    \item \code{CONFIG_IP_PNP=y} (configure IP at boot time)
+    \item \code{CONFIG_ROOT_NFS=y} (support for NFS as rootfs)
+    \end{itemize}
+  \item The kernel must be booted with the following parameters:
+    \begin{itemize}
+    \item \code{root=/dev/nfs} (we want rootfs over NFS)
+    \item \code{ip=192.168.1.111} (target IP address)
+    \item \code{nfsroot=192.168.1.110:/home/tux/rootfs/} (NFS server details)
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Mounting rootfs over the network (4)}
+  \begin{center}
+    \includegraphics[width=0.9\textwidth]{slides/sysdev-root-filesystem-part1/nfs-principle-with-details.pdf}
+  \end{center}
+\end{frame}
+
+\begin{frame}
+  \frametitle{rootfs in memory: initramfs (1)}
+  \begin{itemize}
+  \item It is also possible to have the root filesystem integrated
+    into the kernel image
+  \item It is therefore loaded into memory together with the kernel
+  \item This mechanism is called {\bf initramfs}
+    \begin{itemize}
+    \item It integrates a compressed archive of the filesystem into
+      the kernel image
+    \end{itemize}
+  \item It is useful for two cases
+    \begin{itemize}
+    \item Fast booting of very small root filesystems. As the
+      filesystem is completely loaded at boot time, application
+      startup is very fast.
+    \item As an intermediate step before switching to a real root
+      filesystem, located on devices for which drivers not part of the
+      kernel image are needed (storage drivers, filesystem drivers,
+      network drivers). This is always used on the kernel of
+      desktop/server distributions to keep the kernel image size
+      reasonable.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{rootfs in memory: initramfs (2)}
+  \begin{center}
+    \includegraphics[width=0.9\textwidth]{slides/sysdev-root-filesystem-part1/initramfs.pdf}
+  \end{center}
+\end{frame}
+
+\begin{frame}
+  \frametitle{rootfs in memory: initramfs (3)}
+  \begin{itemize}
+  \item The contents of an initramfs are defined at the kernel
+    configuration level, with the \code{CONFIG_INITRAMFS_SOURCE}
+    option
+    \begin{itemize}
+    \item Can be the path to a directory containing the root
+      filesystem contents
+    \item Can be the path to a cpio archive
+    \item Can be a text file describing the contents of the initramfs
+      (see documentation for details)
+    \end{itemize}
+  \item The kernel build process will automatically take the contents
+    of the \code{CONFIG_INITRAMFS_SOURCE} option and integrate the
+    root filesystem into the kernel image
+  \item \code{Documentation/filesystems/ramfs-rootfs-initramfs.txt}\\
+    \code{Documentation/early-userspace/README}
+  \end{itemize}
+\end{frame}
+
+\subchapterframe
+{Linux root filesystem}
+{Contents}
+
+\begin{frame}
+  \frametitle{Root filesystem organization}
+  \begin{itemize}
+  \item The organization of a Linux root filesystem in terms of
+    directories is well-defined by the {\bf Filesystem Hierarchy
+      Standard}
+  \item \url{http://www.linuxfoundation.org/collaborate/workgroups/lsb/fhs}
+  \item Most Linux systems conform to this specification
+    \begin{itemize}
+    \item Applications expect this organization
+    \item It makes it easier for developers and users as the
+      filesystem organization is similar in all systems
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Important directories (1)}
+  \begin{description}
+  \item[/bin] Basic programs
+  \item[/boot] Kernel image (only when the kernel is loaded from a
+    filesystem, not common on non-x86 architectures)
+  \item[/dev] Device files (covered later)
+  \item[/etc] System-wide configuration
+  \item[/home] Directory for the users home directories
+  \item[/lib] Basic libraries
+  \item[/media] Mount points for removable media
+  \item[/mnt] Mount points for static media
+  \item[/proc] Mount point for the proc virtual filesystem
+  \end{description}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Important directories (2)}
+  \begin{description}
+  \item[/root]Home directory of the root user
+  \item[/sbin]Basic system programs
+  \item[/sys]Mount point of the sysfs virtual filesystem
+  \item[/tmp]Temporary files
+  \item[/usr]
+    \begin{description}
+    \item[/usr/bin]Non-basic programs
+    \item[/usr/lib]Non-basic libraries
+    \item[/usr/sbin]Non-basic system programs
+    \end{description}
+  \item[/var] Variable data files. This includes spool directories and
+    files, administrative and logging data, and transient and
+    temporary files
+  \end{description}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Separation of programs and libraries}
+  \begin{itemize}
+  \item Basic programs are installed in \code{/bin} and \code{/sbin}
+    and basic libraries in \code{/lib}
+  \item All other programs are installed in \code{/usr/bin} and
+    \code{/usr/sbin} and all other libraries in \code{/usr/lib}
+  \item In the past, on Unix systems, \code{/usr} was very often
+    mounted over the network, through NFS
+  \item In order to allow the system to boot when the network was
+    down, some binaries and libraries are stored in \code{/bin},
+    \code{/sbin} and \code{/lib}
+  \item \code{/bin} and \code{/sbin} contain programs like \code{ls},
+    \code{ifconfig}, \code{cp}, \code{bash}, etc.
+  \item \code{/lib} contains the C library and sometimes a few other
+    basic libraries
+  \item All other programs and libraries are in \code{/usr}
+  \end{itemize}
+\end{frame}

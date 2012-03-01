@@ -1,0 +1,102 @@
+\begin{frame}
+  \frametitle{proc virtual filesystem}
+  \begin{itemize}
+  \item The \code{proc} virtual filesystem exists since the beginning of
+    Linux
+  \item It allows
+    \begin{itemize}
+    \item The kernel to expose statistics about running processes in
+      the system
+    \item The user to adjust at runtime various system parameters
+      about process management, memory management, etc.
+    \end{itemize}
+  \item The \code{proc} filesystem is used by many standard userspace
+    applications, and they expect it to be mounted in /proc
+  \item Applications such as \code{ps} or \code{top} would not work
+    without the \code{proc} filesystem
+  \item Command to mount \code{/proc}:\\
+    \code{mount -t proc nodev /proc}
+  \item \code{Documentation/filesystems/proc.txt} in the kernel
+    sources
+  \item \code{man proc}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{proc contents}
+  \begin{itemize}
+  \item One directory for each running process in the system
+    \begin{itemize}
+    \item \code{/proc/<pid>}
+    \item \code{cat /proc/3840/cmdline}
+    \item It contains details about the files opened by the process,
+      the CPU and memory usage, etc.
+    \end{itemize}
+  \item \code{/proc/interrupts}, \code{/proc/devices},
+    \code{/proc/iomem}, \code{/proc/ioports} contain general
+    device-related information
+  \item \code{/proc/cmdline} contains the kernel command line
+  \item \code{/proc/sys} contains many files that can be written to to
+    adjust kernel parameters
+    \begin{itemize}
+    \item They are called {\em sysctl}. See
+      \code{Documentation/sysctl/} in kernel sources.
+    \item Example\\
+      \code{echo 3 > /proc/sys/vm/drop_caches}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{sysfs filesystem}
+  \begin{itemize}
+  \item The \code{sysfs} filesystem is a feature integrated in the 2.6
+    Linux kernel
+  \item It allows to represent in userspace the vision that the kernel
+    has of the buses, devices and drivers in the system
+  \item It is useful for various userspace applications that need to
+    list and query the available hardware, for example udev or mdev
+  \item All applications using sysfs expect it to be mounted in the
+    \code{/sys} directory
+  \item Command to mount \code{/sys}:\\
+    \code{mount -t sysfs nodev /sys}
+  \item
+\begin{verbatim}
+$ ls /sys/
+block bus class dev devices firmware
+fs kernel modulepower
+\end{verbatim}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Basic applications}
+  \begin{itemize}
+  \item In order to work, a Linux system needs at least a few
+    applications
+  \item An \code{init} application, which is the first userspace
+    application started by the kernel after mounting the root
+    filesystem
+    \begin{itemize}
+    \item The kernel tries to run \code{/sbin/init}, \code{/bin/init},
+      \code{/etc/init} and \code{/bin/sh}.
+    \item If none of them are found, the kernel panics and the boot
+      process is stopped.
+    \item The init application is responsible for starting all other
+      userspace applications and services
+    \end{itemize}
+  \item Usually a shell, to allow a user to interact with the system
+  \item Basic Unix applications, to copy files, move files, list files
+    (commands like \code{mv}, \code{cp}, \code{mkdir}, \code{cat},
+    etc.)
+  \item Those basic components have to be integrated into the root
+    filesystem to make it usable
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Overall booting process}
+  \begin{center}
+    \includegraphics[width=0.7\textwidth]{slides/sysdev-root-filesystem-part2/overall-boot-sequence.pdf}
+  \end{center}
+\end{frame}

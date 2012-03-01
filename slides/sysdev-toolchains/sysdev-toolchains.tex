@@ -1,0 +1,601 @@
+\chapterframe{Cross-compiling toolchains}
+
+\begin{frame}
+  \frametitle{Definition (1)}
+  \begin{itemize}
+  \item The usual development tools available on a GNU/Linux
+    workstation is a {\bf native toolchain}
+  \item This toolchain runs on your workstation and generates code for
+    your workstation, usually x86
+  \item For embedded system development, it is usually impossible or not
+    interesting to use a native toolchain
+    \begin{itemize}
+    \item The target is too restricted in terms of storage and/or memory
+    \item The target is very slow compared to your workstation
+    \item You may not want to install all development tools on your target.
+    \end{itemize}
+  \item Therefore, {\bf cross-compiling toolchains} are generally
+    used. They run on your workstation but generate code for your
+    target.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Definition (2)}
+  \begin{center}
+    \includegraphics[width=0.8\textwidth]{slides/sysdev-toolchains/cross-toolchain.pdf}
+  \end{center}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Components}
+  \begin{center}
+    \includegraphics[width=0.8\textwidth]{slides/sysdev-toolchains/components.pdf}
+  \end{center}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Binutils}
+  \begin{itemize}
+  \item {\bf Binutils} is a set of tools to generate and manipulate
+    binaries for a given CPU architecture
+    \begin{itemize}
+    \item \code{as}, the assembler, that generates binary code from
+      assembler source code
+    \item \code{ld}, the linker
+    \item \code{ar}, \code{ranlib}, to generate \code{.a} archives,
+      used for libraries
+    \item \code{objdump}, \code{readelf}, \code{size}, \code{nm},
+      \code{strings}, to inspect binaries. Very useful analysis tools
+      !
+    \item \code{strip}, to strip useless parts of binaries in order to
+      reduce their size
+    \end{itemize}
+  \item \url{http://www.gnu.org/software/binutils/}
+  \item GPL license
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Kernel headers (1)}
+  \begin{columns}
+    \column{0.6\textwidth}
+    \begin{itemize}
+    \item The C library and compiled programs needs to interact with the kernel
+      \begin{itemize}
+      \item Available system calls and their numbers
+      \item Constant definitions
+      \item Data structures, etc.
+      \end{itemize}
+    \item Therefore, compiling the C library requires kernel headers, and many
+      applications also require them.
+    \item Available in \code{<linux/...>} and \code{<asm/...>} and a few
+      other directories corresponding to the ones visible in
+      \code{include/} in the kernel sources
+    \end{itemize}
+    \column[c]{0.4\textwidth}
+    \includegraphics[width=\textwidth]{slides/sysdev-toolchains/kernel-headers.pdf}
+  \end{columns}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Kernel headers (2)}
+  \begin{itemize}
+  \item System call numbers, in \code{<asm/unistd.h>}
+\begin{verbatim}
+#define __NR_ext          1
+#define __NR_fork         2
+#define __NR_read         3
+\end{verbatim}
+  \item Constant definitions, here in \code{<asm-generic/fcntl.h>},
+    included from \code{<asm/fcntl.h>}, included from
+    \code{<linux/fcntl.h>}
+\begin{verbatim}
+#define O_RDWR 00000002
+\end{verbatim}
+\item Data structures, here in \code{<asm/stat.h>}
+\begin{verbatim}
+struct stat {
+    unsigned long st_dev;
+    unsigned long st_ino;
+    [...]
+};
+\end{verbatim}
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Kernel headers (3)}
+  \begin{itemize}
+  \item The kernel-to-userspace ABI is {\bf backward compatible}
+    \begin{itemize}
+    \item Binaries generated with a toolchain using kernel headers
+      older than the running kernel will work without problem, but
+      won't be able to use the new system calls, data structures, etc.
+    \item Binaries generated with a toolchain using kernel headers
+      newer than the running kernel might work on if they don't use
+      the recent features, otherwise they will break
+    \item Using the latest kernel headers is not necessary, unless
+      access to the new kernel features is needed
+    \end{itemize}
+  \item The kernel headers are extracted from the kernel sources using
+    the \code{headers_install} kernel Makefile target.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{GCC compiler}
+  \begin{columns}
+    \column{0.8\textwidth}
+    \begin{itemize}
+    \item GNU C Compiler, the famous free software compiler
+    \item Can compile C, C++, Ada, Fortran, Java, Objective-C,
+      Objective-C++, and generate code for a large number of CPU
+      architectures, including ARM, AVR, Blackfin, CRIS, FRV, M32, MIPS,
+      MN10300, PowerPC, SH, v850, i386, x86\_64, IA64, Xtensa, etc.
+    \item \url{http://gcc.gnu.org/}
+    \item Available under the GPL license, libraries under the LGPL.
+    \end{itemize}
+    \column{0.2\textwidth}
+    \includegraphics[width=0.7\textwidth]{slides/sysdev-toolchains/gcc.png}
+  \end{columns}
+\end{frame}
+
+\begin{frame}
+  \frametitle{C library}
+  \begin{columns}
+    \column{0.7\textwidth}
+    \begin{itemize}
+    \item The C library is an essential component of a Linux system
+      \begin{itemize}
+      \item Interface between the applications and the kernel
+      \item Provides the well-known standard C API to ease application
+        development
+      \end{itemize}
+    \item Several C libraries are available:\\
+      {\em glibc}, {\em uClibc}, {\em eglibc}, {\em dietlibc}, {\em
+        newlib}, etc.
+    \item The choice of the C library must be made at the time of the
+      cross-compiling toolchain generation, as the GCC compiler is
+      compiled against a specific C library.
+    \end{itemize}
+    \column{0.3\textwidth}
+    \includegraphics[width=\textwidth]{slides/sysdev-toolchains/c-library.pdf}
+  \end{columns}
+\end{frame}
+
+\begin{frame}
+  \frametitle{glibc}
+  \begin{columns}
+    \column{0.7\textwidth}
+    \begin{itemize}
+    \item License: LGPL
+    \item C library from the GNU project
+    \item Designed for performance, standards compliance and portability
+    \item Found on all GNU / Linux host systems
+    \item Of course, actively maintained
+    \item Quite big for small embedded systems: approx 2.5 MB on ARM
+      (version 2.9 - \code{libc}: 1.5 MB, \code{libm}: 750 KB)
+    \item \url{http://www.gnu.org/software/libc/}
+    \end{itemize}
+    \column{0.3\textwidth}
+    \includegraphics[width=\textwidth]{slides/sysdev-toolchains/glibc.png}
+  \end{columns}
+\end{frame}
+
+\begin{frame}
+  \frametitle{uClibc}
+  \begin{itemize}
+  \item License: LGPL
+  \item Lightweight C library for small embedded systems
+    \begin{itemize}
+    \item High configurability: many features can be enabled or
+      disabled through a menuconfig interface
+    \item Works only with Linux/uClinux, works on most embedded
+      architectures
+    \item No stable ABI, different ABI depending on the library
+      configuration
+    \item Focus on size rather than performance
+    \item Small compile time
+    \end{itemize}
+  \item \url{http://www.uclibc.org/}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{uClibc (2)}
+  \begin{itemize}
+  \item Most of the applications compile with uClibc. This applies to
+    all applications used in embedded systems.
+  \item Size (arm): 4 times smaller than glibc!
+    \begin{itemize}
+    \item uClibc 0.9.30.1: approx. 600 KB (libuClibc: 460 KB, libm:
+      96KB)
+    \item glibc 2.9: approx 2.5 MB
+    \end{itemize}
+  \item Some features not available or limited: priority-inheritance
+    mutexes, NPTL support is very new, fixed Name Service Switch
+    functionality, etc.
+  \item Used on a large number of production embedded products,
+    including consumer electronic devices
+  \item Actively maintained, large developer and user base
+  \item Supported and used by MontaVista, TimeSys and Wind River.
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Honey, I shrunk the programs!}
+  \begin{itemize}
+  \item Executable size comparison on ARM, tested with {\em glibc}
+    2.9 and {\em uClibc} 0.9.30.1
+  \item Plain ``hello world'' program (stripped)
+    \begin{itemize}
+    \item With shared libraries: 5.6 KB with {\em glibc}, 5.4 KB with
+      {\em uClibc}
+    \item With static libraries: 472 KB with {\em glibc}, 18 KB with
+      {\em uClibc}
+    \end{itemize}
+  \item Busybox (stripped)
+    \begin{itemize}
+    \item With shared libraries: 245 KB with {\em glibc}, 231 KB with
+      {\em uClibc}
+    \item With static libraries: 843 KB with {\em glibc}, 311 KB with
+      {\em uClibc}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{eglibc}
+  \begin{columns}
+    \column{0.8\textwidth}
+    \begin{itemize}
+    \item {\em Embedded glibc}, under the LGPL
+    \item Variant of the GNU C Library (GLIBC) designed to work well on
+      embedded systems
+    \item Strives to be source and binary compatible with GLIBC
+    \item eglibc's goals include reduced footprint, configurable
+      components, better support for cross-compilation and
+      cross-testing.
+    \item Can be built without support for NIS, locales, IPv6, and many
+      other features.
+    \item Supported by a consortium, with Freescale, MIPS, MontaVista
+      and Wind River as members.
+    \item The Debian distribution has switched to eglibc too,
+      \url{http://blog.aurel32.net/?p=47}
+    \item \url{http://www.eglibc.org}
+    \end{itemize}
+    \column{0.2\textwidth}
+    \includegraphics[width=\textwidth]{slides/sysdev-toolchains/eglibc.png}
+  \end{columns}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Other smaller C libraries}
+  \begin{itemize}
+  \item Several other smaller C libraries have been developed, but
+    none of them have the goal of allowing the compilation of large
+    existing applications
+  \item They need specially written programs and applications
+  \item Choices:
+    \begin{itemize}
+    \item Dietlibc, \url{http://www.fefe.de/dietlibc/}. Approximately
+      70 KB.
+    \item Newlib, \url{http://sourceware.org/newlib/}
+    \item Klibc, \url{http://www.kernel.org/pub/linux/libs/klibc/},
+      designed for use in an {\em initramfs} or {\em initrd} at boot
+      time.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Machines in build procedures}
+  \begin{itemize}
+  \item Three machines must be distinguished when discussing toolchain creation
+    \begin{itemize}
+    \item The {\bf build} machine, where the toolchain is built.
+    \item The {\bf host} machine, where the toolchain will be executed.
+    \item The {\bf target} machine, where the binaries created by the
+      toolchain are executed.
+    \end{itemize}
+  \item Four common build types are possible for toolchains
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Different toolchain build procedures}
+  \begin{center}
+    \includegraphics[width=\textwidth]{slides/sysdev-toolchains/toolchain-build-types.pdf}
+  \end{center}
+\end{frame}
+
+\begin{frame}
+  \frametitle{ABI}
+  \begin{itemize}
+  \item When building a toolchain, the ABI used to generate binaries
+    needs to be defined
+  \item ABI, for {\em Application Binary Interface}, defines the
+    calling conventions (how function arguments are passed, how the
+    return value is passed, how system calls are made) and the
+    organization of structures (alignment, etc.)
+  \item All binaries in a system must be compiled with the same ABI,
+    and the kernel must understand this ABI.
+  \item On ARM, two main ABIs: {\em OABI} and {\em EABI}
+    \begin{itemize}
+    \item Nowadays everybody uses {\em EABI}
+    \end{itemize}
+  \item On MIPS, several ABI: {\em o32, o64, n32, n64}
+  \item \url{http://en.wikipedia.org/wiki/Application_Binary_Interface}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Floating point support}
+  \begin{itemize}
+  \item Some processors have a floating point unit, some others do not.
+    \begin{itemize}
+    \item For example, many ARMv4 and ARMv5 CPUs do not have a
+      floating point unit.  Since ARMv7, a VFP unit is mandatory.
+    \end{itemize}
+  \item For processors having a floating point unit, the toolchain
+    should generate {\em hard float} code, in order to use the
+    floating point instructions directly
+  \item For processors without a floating point unit, two solutions
+    \begin{itemize}
+    \item Generate {\em hard float code} and rely on the kernel to
+      emulate the floating point instructions. This is very slow.
+    \item Generate {\em soft float code}, so that instead of
+      generating floating point instructions, calls to a userspace
+      library are generated
+    \end{itemize}
+  \item Decision taken at toolchain configuration time
+  \item Also possible to configure which floating point unit should be used
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{CPU optimization flags}
+  \begin{itemize}
+  \item A set of cross-compiling tools is specific to a CPU architecture (ARM,
+    x86, MIPS, PowerPC)
+  \item However, with the \code{-march=}, \code{-mcpu=},
+    \code{-mtune=} options, one can select more precisely the
+    target CPU type
+    \begin{itemize}
+    \item For example, \code{-march=armv7 -mcpu=cortex-a8}
+    \end{itemize}
+  \item At the toolchain compilation time, values can be chosen. They are used:
+    \begin{itemize}
+    \item As the default values for the cross-compiling tools, when no
+      other \code{-march}, \code{-mcpu}, \code{-mtune} options are
+      passed
+    \item To compile the C library
+    \end{itemize}
+  \item Even if the C library has been compiled for armv5t, it doesn't
+    prevent from compiling other programs for armv7
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Building a toolchain manually} Building a
+  cross-compiling toolchain by yourself is a difficult and painful
+  task! Can take days or weeks!
+  \begin{itemize}
+  \item Lots of details to learn: many components to build, complicated
+    configuration
+  \item Lots of decisions to make (such as C library version, ABI, floating point
+    mechanisms, component versions)
+  \item Need kernel headers and C library sources
+  \item Need to be familiar with current \code{gcc} issues and patches
+    on your platform
+  \item Useful to be familiar with building and configuring tools
+  \item See the {\em Crosstool-NG} \code{docs/} directory for details
+    on how toolchains are built.
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Get a pre-compiled toolchain}
+  \begin{itemize}
+  \item Solution that many people choose
+    \begin{itemize}
+    \item Advantage: it is the simplest and most convenient solution
+    \item Drawback: you can't fine tune the toolchain to your needs
+    \end{itemize}
+  \item Determine what toolchain you need: CPU, endianism, C library, component
+    versions, ABI, soft float or hard float, etc.
+  \item Check whether the available toolchains match your requirements.
+  \item Possible choices
+    \begin{itemize}
+    \item Sourcery CodeBench toolchains
+    \item Linaro toolchains
+    \item More references at \url{http://elinux.org/Toolchains}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Sourcery CodeBench}
+  \begin{itemize}
+  \item {\em CodeSourcery} was a a company with an extended expertise
+    on free software toolchains: gcc, gdb, binutils and glibc. It has
+    been bought by {\em Mentor Graphics}, which continues to provide
+    similar services and products
+  \item They sell toolchains with support, but they also provide a
+    ”{\em Lite}” version, which is free and usable for commercial
+    products
+  \item They have toolchains available for
+    \begin{itemize}
+    \item ARM
+    \item MIPS
+    \item PowerPC
+    \item SuperH
+    \item x86
+    \end{itemize}
+  \item Be sure to use the GNU/Linux versions. The EABI versions are
+    for bare-metal development (no operating system)
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Linaro toolchains}
+  \begin{columns}
+    \column{0.9\textwidth}
+    \begin{itemize}
+    \item Linaro contributes to improving mainline gcc on ARM, in
+      particular by hiring CodeSourcery developers.
+    \item For people who can't wait for the next releases of gcc, Linaro
+      releases modified sources of stable releases of gcc, with these
+      optimizations for ARM (mainly for recent Cortex A CPUs).
+    \item As any gcc release, these sources can be used by build tools
+      to build their own binary toolchains (Buildroot, OpenEmbedded...)
+      This allows to support glibc, uClibc and eglibc.
+    \item \small\url{https://wiki.linaro.org/WorkingGroups/ToolChain}\normalsize
+    \item Binary packages are available for Ubuntu users,
+      \url{https://launchpad.net/~linaro-maintainers/+archive/toolchain}
+    \end{itemize}
+    \column{0.1\textwidth}
+    \includegraphics[width=\textwidth]{slides/sysdev-toolchains/linaro.png}
+  \end{columns}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Installing and using a pre-compiled toolchain}
+  \begin{itemize}
+  \item Follow the installation procedure proposed by the vendor
+  \item Usually, it is simply a matter of extracting a tarball
+        wherever you want.
+  \item Then, add the path to toolchain binaries in your \code{PATH}:\\
+    \code{export PATH=/path/to/toolchain/bin/:$PATH}
+  \item Finally, compile your applications\\
+    \code{PREFIX-gcc -o foobar foobar.c}
+  \item The \code{PREFIX} depends on the toolchain configuration, and
+    allows to distinguish cross-compilation tools from native
+    compilation utilities
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Toolchain building utilities}
+  Another solution is to use utilities that {\bf automate the process of
+  building the toolchain}
+  \begin{itemize}
+  \item Same advantage as the pre-compiled toolchains: you don't need
+    to mess up with all the details of the build process
+  \item But also offers more flexibility in terms of toolchain
+    configuration, component version selection, etc.
+  \item They also usually contain several patches that fix known
+    issues with the different components on some architectures
+  \item Multiple tools with identical principle: shell scripts or
+    Makefile that automatically fetch, extract, configure, compile and
+    install the different components
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Toolchain building utilities (2)}
+  \begin{itemize}
+  \item {\bf Crosstool-ng}
+    \begin{itemize}
+    \item Rewrite of the older Crosstool, with a menuconfig-like configuration
+      system
+    \item Feature-full: supports uClibc, glibc, eglibc, hard and soft
+      float, many architectures
+    \item Actively maintained
+    \item \url{http://crosstool-ng.org/}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Toolchain building utilities (3)}
+Many root filesystem building systems also allow the construction of
+a cross-compiling toolchain
+\begin{itemize}
+\item {\bf Buildroot}
+  \begin{itemize}
+  \item Makefile-based, has a Crosstool-NG back-end, maintained by the
+    community
+  \item \url{http://www.buildroot.net}
+  \end{itemize}
+\item {\bf PTXdist}
+  \begin{itemize}
+  \item Makefile-based, uClibc or glibc, maintained mainly by {\em Pengutronix}
+  \item \url{http://www.pengutronix.de/software/ptxdist/index_en.html}
+  \end{itemize}
+\item {\bf OpenEmbedded}
+  \begin{itemize}
+  \item The feature-full, but more complicated building system
+  \item \url{http://www.openembedded.org/}
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Crosstool-NG: installation and usage}
+  \begin{itemize}
+  \item Installation of Crosstool-NG can be done system-wide, or just locally in
+    the source directory. For local installation:
+\begin{verbatim}
+./configure --local
+make
+make install
+\end{verbatim}
+  \item Some sample configurations for various architectures are
+    available in
+    samples, they can be listed using
+\begin{verbatim}
+./ct-ng list-samples
+\end{verbatim}
+  \item To load a sample configuration
+\begin{verbatim}
+./ct-ng <sample-name>
+\end{verbatim}
+  \item To adjust the configuration
+\begin{verbatim}
+./ct-ng menuconfig
+\end{verbatim}
+  \item To build the toolchain
+\begin{verbatim}
+./ct-ng build
+\end{verbatim}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Toolchain contents}
+  \begin{itemize}
+  \item The cross compilation tool binaries, in \code{bin/}
+    \begin{itemize}
+    \item This directory can be added to your \code{PATH} to ease
+      usage of the toolchain
+    \end{itemize}
+  \item One or several {\em sysroot}, each containing
+    \begin{itemize}
+    \item The C library and related libraries, compiled for the target
+    \item The C library headers and kernel headers
+    \end{itemize}
+  \item There is one {\em sysroot} for each variant: toolchains can be
+    {\em multilib} if they have several copies of the C library for
+    different configurations (for example: ARMv4T, ARMv5T, etc.)
+    \begin{itemize}
+    \item CodeSourcery ARM toolchain are multilib, the sysroots are in
+      \code{arm-none-linux-gnueabi/libc/},
+      \code{arm-none-linux-gnueabi/libc/armv4t/},
+      \code{arm-none-linux-gnueabi/libc/thumb2}
+    \item Crosstool-NG toolchains are never multilib, the sysroot is
+      in \code{arm-unknown-linux-uclibcgnueabi/sysroot}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\setuplabframe
+{Using Crosstool-NG}
+{
+  Time to build your toolchain
+  \begin{itemize}
+  \item Configure Crosstool-NG
+  \item Run it to build your own cross-compiling toolchain
+  \end{itemize}
+}

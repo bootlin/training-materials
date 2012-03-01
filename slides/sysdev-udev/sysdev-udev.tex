@@ -1,0 +1,421 @@
+\chapterframe{Hotplugging with udev}
+
+\begin{frame}
+  \frametitle{/dev issues and limitations}
+  \begin{itemize}
+  \item On Red Hat 9, 18000 entries in \code{/dev}!\\
+    All entries for all possible devices had to be created at system
+    installation.
+  \item Needed an authority to assign major numbers\\
+    \url{http://lanana.org/}: Linux Assigned Names and Numbers
+    Authority
+  \item Not enough numbers in 2.4, limits extended in 2.6.
+  \item Userspace neither knew what devices were present in the
+    system, nor which real device corresponded to each \code{/dev}
+    entry.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{The udev solution}
+  Takes advantage of {\bf sysfs} introduced by Linux 2.6.
+  \begin{itemize}
+  \item Created by Greg Kroah Hartman, a huge contributor.\\
+    Other key contributors: Kay Sievers, Dan Stekloff.
+  \item {\em Entirely} in user space.
+  \item Automatically creates and removes device entries in
+    \code{/dev/} according to inserted and removed devices.
+  \item Major and minor device transmitted by the kernel.
+  \item Requires no change to driver code.
+  \item Fast: written in C\\
+    Relatively small size: \code{udevd} version 167: 127 KB
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Starting udev (1)}
+  \begin{itemize}
+  \item At the very beginning of user-space startup,
+    mount the \code{/dev/} directory as a \code{tmpfs} filesystem:\\
+    \code{sudo mount -t tmpfs udev /dev}
+  \item \code{/dev/} is populated with static devices available in
+    \code{/lib/udev/devices/}:
+  \end{itemize}
+  \begin{block}{}
+\begin{verbatim}
+$ ls -l /lib/udev/devices/
+total 12
+brw------- 1 root root   7, 0 2011-06-04 10:25 loop0
+drwxr-xr-x 2 root root   4096 2011-06-04 10:25 net
+crw------- 1 root root 108, 0 2011-06-04 10:25 ppp
+drwxr-xr-x 2 root root   4096 2011-04-07 14:43 pts
+drwxr-xr-x 2 root root   4096 2011-04-07 14:43 shm
+\end{verbatim}
+  \end{block}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Starting udev (2)}
+  \begin{itemize}
+  \item The \code{udevd} daemon is started.  It listens to {\em uevents}
+    from the driver core, which are sent whenever devices are inserted
+    or removed.
+  \item The \code{udevd} daemon reads and parses all the rules found
+    in \code{/etc/udev/rules.d/} and keeps them in memory.
+  \item Whenever rules are added, removed or modified, \code{udevd}
+    receives an {\em inotify} event and updates its rule-set in memory.
+    \begin{itemize}
+    \item The {\em inotify} mechanism lets userspace programs
+      subscribe to notifications of filesystem changes.
+    \item When an event is received, \code{udevd} starts a process to:
+      \begin{itemize}
+      \item try to match the event against udev rules,
+      \item create / remove device files,
+      \item and run programs (to load / remove a driver, to notify user
+        space...)
+      \end{itemize}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{uevent message example}
+  Example inserting a USB mouse
+  \begin{block}{}
+\tiny
+\begin{verbatim}
+recv(4,
+     "add@/class/input/input9/mouse2\0
+     ACTION=add\0
+     DEVPATH=/class/input/input9/mouse2\0
+     SUBSYSTEM=input\0
+     SEQNUM=1064\0
+     PHYSDEVPATH=/devices/pci0000:00/0000:00:1d.1/usb2/2-2/2-2:1.0\0
+     PHYSDEVBUS=usb\0
+     PHYSDEVDRIVER=usbhid\0
+     MAJOR=13\0
+     MINOR=34\0",
+     2048,
+     0)
+= 221
+\end{verbatim}
+  \end{block}
+\end{frame}
+
+\begin{frame}
+  \frametitle{udev rules}
+  When a udev rule matching event information is found, it can be
+  used:
+  \begin{itemize}
+  \item To define the name and path of a device file.
+  \item To define the owner, group and permissions of a device file.
+  \item To execute a specified program.
+  \end{itemize}
+  Rule files are processed in lexical order.
+\end{frame}
+
+\begin{frame}
+  \frametitle{udev naming capabilities}
+  Device names can be defined
+  \begin{itemize}
+  \item from a label or serial number,
+  \item from a bus device number,
+  \item from a location on the bus topology,
+  \item from a kernel name,
+  \item from the output of a program.
+  \end{itemize}
+See \url{http://www.reactivated.net/writing_udev_rules.html}
+for a very complete description. See also \code{man udev}.
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{udev naming rule examples}
+  \begin{block}{}
+\tiny
+\begin{verbatim}
+# Naming testing the output of a program
+BUS=="scsi", PROGRAM="/sbin/scsi_id", RESULT=="OEM 0815", NAME="disk1"
+
+# USB printer to be called lp_color
+BUS=="usb", SYSFS{serial}=="W09090207101241330", NAME="lp_color"
+
+# SCSI disk with a specific vendor and model number will be called boot
+BUS=="scsi", SYSFS{vendor}=="IBM", SYSFS{model}=="ST336", NAME="boot%n"
+
+# sound card with PCI bus id 00:0b.0 to be called dsp
+BUS=="pci", ID=="00:0b.0", NAME="dsp"
+
+# USB mouse at third port of the second hub to be called mouse1
+BUS=="usb", PLACE=="2.3", NAME="mouse1"
+
+# ttyUSB1 should always be called pda with two additional symlinks
+KERNEL=="ttyUSB1", NAME="pda", SYMLINK="palmtop handheld"
+
+# multiple USB webcams with symlinks to be called webcam0, webcam1, ...
+BUS=="usb", SYSFS{model}=="XV3", NAME="video%n", SYMLINK="webcam%n"
+\end{verbatim}
+  \end{block}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{udev permission rule examples}
+  Excerpts from \code{/etc/udev/rules.d/40-permissions.rules}
+\begin{block}{}
+\begin{verbatim}
+# Block devices
+SUBSYSTEM!="block", GOTO="block_end"
+SYSFS{removable}!="1", GROUP="disk"
+SYSFS{removable}=="1", GROUP="floppy"
+BUS=="usb", GROUP="plugdev"
+BUS=="ieee1394", GROUP="plugdev"
+LABEL="block_end"
+
+# Other devices, by name
+KERNEL=="null", MODE="0666"
+KERNEL=="zero", MODE="0666"
+KERNEL=="full", MODE="0666"
+\end{verbatim}
+  \end{block}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Identifying device driver modules}
+  \begin{center}
+    \includegraphics[width=\textwidth]{slides/sysdev-udev/module-autoloading.pdf}
+  \end{center}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Module aliases}
+  \begin{itemize}
+  \item \code{MODALIAS} environment variable example (USB mouse):\\
+    \code{MODALIAS=usb:v046DpC03Ed2000dc00dsc00dp00ic03isc01ip02}
+  \item Matching line in \code{/lib/modules/<version>/modules.alias}:\\
+    \code{alias usb:v*p*d*dc*dsc*dp*ic03isc01ip02* usbmouse}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{udev modprobe rule examples}
+  Even module loading is done with \code{udev}!\\
+  Excerpts from \code{/etc/udev/rules.d/90-modprobe.rules}
+  \begin{block}{}
+\footnotesize
+\begin{verbatim}
+ACTION!="add", GOTO="modprobe_end"
+
+SUBSYSTEM!="ide", GOTO="ide_end"
+IMPORT{program}="ide_media --export $devpath"
+ENV{IDE_MEDIA}=="cdrom",RUN+="/sbin/modprobe -Qba ide-cd"
+ENV{IDE_MEDIA}=="disk",RUN+="/sbin/modprobe -Qba ide-disk"
+ENV{IDE_MEDIA}=="floppy", RUN+="/sbin/modprobe -Qba ide-floppy"
+ENV{IDE_MEDIA}=="tape", RUN+="/sbin/modprobe -Qba ide-tape"
+LABEL="ide_end"
+SUBSYSTEM=="input", PROGRAM="/sbin/grepmap --udev", \
+   RUN+="/sbin/modprobe -Qba $result"
+# Load drivers that match kernel-supplied alias
+ENV{MODALIAS}=="?*", RUN+="/sbin/modprobe -Q $env{MODALIAS}"
+\end{verbatim}
+  \end{block}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Cold-plugging}
+  \begin{itemize}
+  \item Issue: loosing all device events happening during kernel
+    initialization, because udev is not ready yet.
+  \item Solution: after starting \code{udevd}, have the kernel emit
+    uevents for all devices present in \code{/sys}.
+  \item This can be done by the \code{udevtrigger} utility.
+  \item Strong benefit: completely transparent for userspace. Legacy
+    and removable devices handled and named in exactly the same way.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Debugging events - udevmonitor (1)}
+  \code{udevadm monitor} visualizes the driver core events and the \code{udev} event processes.\\
+  Example event sequence connecting a USB mouse:
+  \begin{block}{}
+\tiny
+\begin{verbatim}
+UEVENT[1170452995.094476] add@/devices/pci0000:00/0000:00:1d.7/usb4/4-3/4-3.2
+UEVENT[1170452995.094569] add@/devices/pci0000:00/0000:00:1d.7/usb4/4-3/4-3.2/4-3.2:1.0
+UEVENT[1170452995.098337] add@/class/input/input28
+UEVENT[1170452995.098618] add@/class/input/input28/mouse2
+UEVENT[1170452995.098868] add@/class/input/input28/event4
+UEVENT[1170452995.099110] add@/class/input/input28/ts2
+UEVENT[1170452995.099353] add@/class/usb_device/usbdev4.30
+UDEV  [1170452995.165185] add@/devices/pci0000:00/0000:00:1d.7/usb4/4-3/4-3.2
+UDEV  [1170452995.274128] add@/devices/pci0000:00/0000:00:1d.7/usb4/4-3/4-3.2/4-3.2:1.0
+UDEV  [1170452995.375726] add@/class/usb_device/usbdev4.30
+UDEV  [1170452995.415638] add@/class/input/input28
+UDEV  [1170452995.504164] add@/class/input/input28/mouse2
+UDEV  [1170452995.525087] add@/class/input/input28/event4
+UDEV  [1170452995.568758] add@/class/input/input28/ts2
+\end{verbatim}
+\end{block}
+It gives time information measured in microseconds. You can measure
+time elapsed between the uevent (\code{UEVENT} line), and the completion of
+the corresponding udev process (matching \code{UDEV} line).
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Debugging events - udevmonitor (2)}
+\code{udevadm monitor --env} shows the complete event environment for each line.
+\begin{block}{}
+\tiny
+\begin{verbatim}
+UDEV [1170453642.595297] add@/devices/pci0000:00/0000:00:1d.7/usb4/4-3/4-3.2/4-3.2:1.0
+UDEV_LOG=3
+ACTION=add
+DEVPATH=/devices/pci0000:00/0000:00:1d.7/usb4/4-3/4-3.2/4-3.2:1.0
+SUBSYSTEM=usb
+SEQNUM=3417
+PHYSDEVBUS=usb
+DEVICE=/proc/bus/usb/004/031
+PRODUCT=46d/c03d/2000
+TYPE=0/0/0
+INTERFACE=3/1/2
+MODALIAS=usb:v046DpC03Dd2000dc00dsc00dp00ic03isc01ip02
+UDEVD_EVENT=1
+\end{verbatim}
+\end{block}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Misc udev utilities}
+  \begin{itemize}
+  \item \code{udevinfo}\\
+    Lets users query the \code{udev} database.
+  \item \code{udevtest <sysfs_device_path>} \\
+    Simulates a \code{udev} run to test the configured rules.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Firmware hotplugging}
+  Also implemented with \code{udev}!
+  \begin{itemize}
+  \item Firmware data are kept outside device drivers
+    \begin{itemize}
+    \item May not be legal or free enough to distribute
+    \item Firmware in kernel code would occupy memory permanently,
+      even if just used once.
+    \end{itemize}
+  \item Kernel configuration: needs to be set in \code{CONFIG_FW_LOADER}\\
+    ({\em Device Drivers} $\rightarrow$ {\em Generic Driver Options}
+    $\rightarrow$ {\em hotplug firmware loading support})
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Firmware hotplugging implementation}
+  \begin{center}
+    \includegraphics[width=\textwidth]{slides/sysdev-udev/firmware-hotplugging.pdf}
+  \end{center}
+  See \code{Documentation/firmware_class/} in the kernel sources for a
+  nice overview
+\end{frame}
+
+\begin{frame}
+  \frametitle{udev files}
+  \begin{itemize}
+  \item \code{/etc/udev/udev.conf}\\
+    udev configuration file.\\
+    Mainly used to configure syslog reporting priorities.\\
+    Example setting: \code{udev_log="err"}
+  \item \code{/lib/udev/rules.d/}\\
+    Standard udev event matching rules, installed by the distribution.
+  \item \code{/etc/udev/rules.d/*.rules}\\
+    Local (custom) udev event matching rules. Best to modify these.
+  \item \code{/lib/udev/devices/*}\\
+    static \code{/dev} content (such as \code{/dev/console},
+    \code{/dev/null}...).
+  \item \code{/lib/udev/*}\\
+    helper programs called from udev rules.
+  \item \code{/dev/*}\\
+    Created device files.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Kernel configuration for udev}
+  \begin{itemize}
+  \item Created for 2.6.19
+  \item Caution: no documentation found, and not tested yet on a minimalistic system. Some settings may still be missing.
+  \item Subsystems and device drivers (USB, PCI, PCMCIA...) should be added too!
+  \end{itemize}
+  \begin{block}{}
+\tiny
+\begin{verbatim}
+# General setup
+CONFIG_HOTPLUG=y
+# Networking, networking options
+CONFIG_NET=y
+# Unix domain sockets
+CONFIG_UNIX=y
+CONFIG_NETFILTER_NETLINK=y
+CONFIG_NETFILTER_NETLINK_QUEUE=y
+# Pseudo filesystems
+CONFIG_PROC_FS=y
+CONFIG_SYSFS=y
+# Needed to manage /dev
+CONFIG_TMPFS=y
+CONFIG_RAMFS=y
+\end{verbatim}
+  \end{block}
+\end{frame}
+
+\begin{frame}
+  \frametitle{udev summary - typical operation}
+  \begin{center}
+    \includegraphics[width=0.8\textwidth]{slides/sysdev-udev/udev-overall-architecture.pdf}
+  \end{center}
+\end{frame}
+
+\begin{frame}
+  \frametitle{udev resources}
+  \begin{itemize}
+  \item Home page\\
+    \url{http://kernel.org/pub/linux/utils/kernel/hotplug/udev.html}
+  \item Sources\\
+    \url{http://kernel.org/pub/linux/utils/kernel/hotplug/}
+  \item The udev manual page:\\
+    \code{man udev}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{mdev, the udev for embedded systems}
+  \begin{itemize}
+  \item {\em udev} might be too heavy-weight for some embedded
+    systems, the udevd daemon staying in the background waiting for
+    events.
+  \item BusyBox provides a simpler alternative called {\bf mdev},
+    available by enabling the MDEV configuration option.
+  \item mdev's usage is documented in \code{doc/mdev.txt} in the BusyBox source code.
+  \item mdev is also able to load firmware to the kernel like udev
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{mdev usage}
+  \begin{itemize}
+  \item To use \code{mdev}, the \code{proc} and \code{sysfs} filesystems must be mounted
+  \item mdev must be enabled as the hotplug event manager\\
+    \code{echo /sbin/mdev > /proc/sys/kernel/hotplug}
+  \item Need to mount \code{/dev} as a \code{tmpfs}:\\
+    \code{mount -t tmpfs mdev /dev}
+  \item Tell \code{mdev} to create the \code{/dev} entries
+    corresponding to the devices detected
+    during boot when mdev was not running:\\
+    \code{mdev -s}
+  \item The behavior is specified by the \code{/etc/mdev.conf} configuration
+    file, with the following format\\
+    \code{<device regex> <uid>:<gid> <octal permissions> [=path] [@|$|*<command>]}
+  \item Example\\
+    \code{hd[a-z][0-9]* 0:3 660}
+  \end{itemize}
+\end{frame}
+

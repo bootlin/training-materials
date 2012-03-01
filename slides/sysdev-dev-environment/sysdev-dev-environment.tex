@@ -1,0 +1,218 @@
+\chapterframe{Embedded Linux development environment}
+
+\begin{frame}
+  \frametitle{Embedded Linux solutions}
+  \begin{itemize}
+  \item Two ways to switch to embedded Linux
+    \begin{itemize}
+    \item Use {\bf solutions provided and supported by vendors} like
+      MontaVista, Wind River or TimeSys. These solutions come with
+      their own development tools and environment. They use a mix of
+      open-source components and proprietary tools.
+    \item Use {\bf community solutions}. They are completely open,
+      supported by the community.
+    \end{itemize}
+  \item In Free Electrons training sessions, we do not promote a particular
+    vendor, and therefore use community solutions
+    \begin{itemize}
+    \item However, knowing the concepts, switching to vendor solutions will be easy
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{OS for Linux development}
+  \begin{itemize}
+  \item We strongly recommend to use Linux as the desktop operating
+    system to embedded Linux developers, for multiple reasons.
+  \item All community tools are developed and designed to run on
+    Linux. Trying to use them on other operating systems (Windows, Mac
+    OS X) will lead to trouble, and their usage on those systems is
+    generally not supported by community developers.
+  \item As Linux also runs on the embedded device, all the knowledge
+    gained from using Linux on the desktop will apply similarly to the
+    embedded device.
+  \end{itemize}
+  \begin{center}
+    \includegraphics[width=0.5\textwidth]{slides/sysdev-dev-environment/linux-as-development-os.pdf}
+  \end{center}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Desktop Linux distribution}
+  \begin{columns}
+    \begin{column}{0.7\textwidth}
+    \begin{itemize}
+    \item {\bf Any good and sufficiently recent Linux desktop
+        distribution} can be used for the development workstation
+      \begin{itemize}
+      \item Ubuntu, Debian, Fedora, openSUSE, Red Hat, etc.
+      \end{itemize}
+    \item We have chosen Ubuntu, as it is a {\bf widely used and easy to
+        use} desktop Linux distribution
+    \item The Ubuntu setup on the training laptops has intentionally
+      been left untouched after the normal installation
+      process. Learning embedded Linux is also about learning the tools
+      needed on the development workstation!
+    \end{itemize}
+    \end{column}
+    \begin{column}[t]{0.3\textwidth}
+      \includegraphics[width=0.9\textwidth]{slides/sysdev-dev-environment/ubuntu.png}
+    \end{column}
+  \end{columns}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Linux root and non-root users}
+  \begin{itemize}
+  \item Linux is a multi-user operating system
+    \begin{itemize}
+    \item The {\bf root user is the administrator}, and it can do
+      privileged operations such as: mounting filesystems, configuring
+      the network, creating device files, changing the system
+      configuration, installing or removing software
+    \item All {\bf other users are unprivileged}, and cannot perform
+      those administrator- level operations
+    \end{itemize}
+  \item On an Ubuntu system, it is not possible to log in as
+    \code{root}, only as a normal user.
+  \item The system has been configured so that the user account
+    created first is allowed to run privileged operations through a
+    program called \code{sudo}.\\
+    \begin{itemize}
+    \item Example: \code{sudo mount /dev/sda2 /mnt/disk}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Software packages}
+  \begin{itemize}
+  \item The distribution mechanism for software in GNU/Linux is
+    different from the one in Windows
+  \item Linux distributions provides a central and coherent way of
+    installing, updating and removing applications and libraries:
+    {\bf packages}
+  \item Packages contains the application or library files, and
+    associated meta- information, such as the version and the
+    dependencies
+    \begin{itemize}
+    \item \code{.deb} on Debian and Ubuntu, \code{.rpm} on Red Hat,
+      Fedora, openSUSE
+    \end{itemize}
+  \item Packages are stored in {\bf repositories}, usually on HTTP or
+    FTP servers
+  \item One should only use packages from official repositories of its
+    distribution, unless strictly required.
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Managing software packages (1)}
+  Instructions for Debian based GNU/Linux systems\\
+  (Debian, Ubuntu...)
+  \begin{itemize}
+  \item Package repositories are specified in \code{/etc/apt/sources.list}
+  \item To update package repository lists:\\
+    \code{sudo apt-get update}
+  \item To find the name of a package to install, the best is to use
+    the search engine on \url{http://packages.debian.org} or on
+    \url{http://packages.ubuntu.com}. You may
+    also use:\\
+    \code{apt-cache search <keyword>}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Managing software packages (2)}
+  \begin{itemize}
+  \item To install a given package:\\
+    \code{sudo apt-get install <package>}
+  \item To remove a given package:\\
+    \code{sudo apt-get remove <package>}
+  \item To install all available package updates:\\
+    \code{sudo apt-get dist-upgrade}
+  \item Get information about a package:\\
+    \code{apt-cache show <package>}
+  \item Graphical interfaces
+    \begin{itemize}
+    \item Synaptic for GNOME
+    \item KPackageKit for KDE
+    \end{itemize}
+  \end{itemize}
+  Further details on package management:\\
+  \url{http://www.debian.org/doc/manuals/apt-howto/}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Host vs. target}
+  \begin{itemize}
+  \item When doing embedded development, there is always a split between
+    \begin{itemize}
+    \item The {\em host}, the development workstation, which is
+      typically a powerful PC
+    \item The {\em target}, which is the embedded system under
+      development
+    \end{itemize}
+  \item They are connected by various means: almost always a serial
+    line for debugging purposes, frequently an Ethernet connection,
+    sometimes a JTAG for low- level debugging
+  \end{itemize}
+  \begin{center}
+    \includegraphics[width=0.7\textwidth]{slides/sysdev-dev-environment/host-vs-target.pdf}
+  \end{center}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Serial line communication program}
+  \begin{itemize}
+  \item An essential tool for embedded development is a serial line
+    communication program, like HyperTerminal in Windows.
+  \item There are multiple options available in Linux: Minicom,
+    Picocom, Gtkterm, Putty, etc.
+  \item In this training session, we recommend using the simplest of
+    them: \code{picocom}
+    \begin{itemize}
+    \item Installation with \code{sudo apt-get install picocom}
+    \item Run with \code{picocom -b BAUD_RATE /dev/SERIAL_DEVICE}
+    \item Exit with \code{Control-A Control-X}
+    \end{itemize}
+  \item \code{SERIAL_DEVICE} is typically
+    \begin{itemize}
+    \item \code{ttyUSBx} for USB to serial converters
+    \item \code{ttySx} for real serial ports
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Command line tips}
+  \begin{itemize}
+  \item Using the command line is mandatory for many operations needed
+    for embedded Linux development
+  \item It is a very powerful way of interacting with the system, with
+    which you can save a lot of time.
+  \item Some useful tips
+    \begin{itemize}
+    \item You can use several tabs in the Gnome Terminal
+    \item Remember that you can use relative paths (for example:
+      \code{../../linux}) in addition to absolute paths (for example:
+      \code{/home/user})
+    \item In a shell, hit \code{[Control] [r]}, then a keyword, will
+      search through the command history. Hit \code{[Control] [r]}
+      again to search backwards in the history
+    \item You can copy/paste paths directly from the file manager to
+      the terminal by drag-and-drop.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\setuplabframe
+{Training setup}
+{
+  Prepare your lab environment:\\
+  \begin{itemize}
+  \item Download the lab archive
+  \item Enforce correct permissions
+  \end{itemize}
+}

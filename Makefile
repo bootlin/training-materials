@@ -7,6 +7,27 @@ PDFLATEX = pdflatex
 DIA      = dia
 EPSTOPDF = epstopdf
 
+# List of slides for the different courses
+SYSDEV_SLIDES = sysdev-intro \
+		sysdev-dev-environment \
+		sysdev-toolchains \
+		sysdev-bootloaders \
+		sysdev-u-boot \
+		sysdev-linux-kernel-intro \
+		sysdev-kernel-fetch-and-patch \
+		sysdev-kernel-configuration-and-compiling \
+		sysdev-using-kernel-modules \
+		sysdev-root-filesystem-part1 \
+		sysdev-root-filesystem-device-files \
+		sysdev-root-filesystem-part2 \
+		sysdev-busybox \
+		sysdev-block-filesystems \
+		sysdev-flash-filesystems \
+		sysdev-embedded-linux \
+		sysdev-application-development \
+		sysdev-realtime \
+		last-slides
+
 # List of labs for the different courses
 SYSDEV_LABS   = setup \
 		sysdev-toolchain \
@@ -39,6 +60,9 @@ KERNEL_LABS   = setup \
 
 # Output directory
 OUTDIR   = $(PWD)/out
+
+# Latex variable definitions
+VARS = $(OUTDIR)/vars
 
 # Environment for pdflatex, which allows it to find the stylesheet in the
 # common/ directory.
@@ -80,6 +104,73 @@ PICTURES = \
 COMMON_PICTURES   = $(call PICTURES,common)
 
 default: help
+
+#
+# === Compilation of slides ===
+#
+
+# This rule allows to build slides of the training. It is done in two
+# parts with make calling itself because it is not possible to compute
+# a list of prerequisites depending on the target name. See
+# http://stackoverflow.com/questions/3381497/dynamic-targets-in-makefiles
+# for details.
+#
+# The value of slide can be "full-kernel", "full-sysdev" (for the
+# complete trainings) or the name of an individual chapter.
+ifdef SLIDES
+# Compute the set of chapters to build depending on the name of the
+# PDF file that was requested.
+ifeq ($(SLIDES),full-kernel)
+SLIDES_COMMON_BEFORE = common/slide-header.tex common/kernel-title.tex
+SLIDES_CHAPTERS      = $(KERNEL_SLIDES)
+SLIDES_COMMON_AFTER  = common/slide-footer.tex
+else ifeq ($(SLIDES),full-sysdev)
+SLIDES_COMMON_BEFORE = common/slide-header.tex common/sysdev-title.tex
+SLIDES_CHAPTERS      = $(SYSDEV_SLIDES)
+SLIDES_COMMON_AFTER  = common/slide-footer.tex
+else ifeq ($(SLIDES),full-android)
+SLIDES_COMMON_BEFORE = common/slide-header.tex common/android-title.tex
+SLIDES_CHAPTERS      = $(ANDROID_SLIDES)
+SLIDES_COMMON_AFTER  = common/slide-footer.tex
+else
+SLIDES_COMMON_BEFORE = common/slide-header.tex common/single-slide-title.tex
+SLIDES_CHAPTERS      = $(SLIDES)
+SLIDES_COMMON_AFTER  = common/slide-footer.tex
+endif
+
+# Compute the set of corresponding .tex files and pictures
+SLIDES_TEX      = \
+	$(SLIDES_COMMON_BEFORE) \
+	$(foreach s,$(SLIDES_CHAPTERS),$(wildcard slides/$(s)/$(s).tex)) \
+	$(SLIDES_COMMON_AFTER)
+SLIDES_PICTURES = $(call PICTURES,$(foreach s,$(SLIDES_CHAPTERS),slides/$(s))) $(COMMON_PICTURES)
+
+%-slides.pdf: $(VARS) $(SLIDES_TEX) $(SLIDES_PICTURES) common/beamerthemeFreeElectrons.sty
+	@mkdir -p $(OUTDIR)
+# We generate a .tex file with \input{} directives (instead of just
+# concatenating all files) so that when there is an error, we are
+# pointed at the right original file and the right line in that file.
+	rm -f $(OUTDIR)/$(basename $@).tex
+	echo "\input{$(VARS)}" >> $(OUTDIR)/$(basename $@).tex
+	for f in $(filter %.tex,$^) ; do \
+		echo -n "\input{../"          >> $(OUTDIR)/$(basename $@).tex ; \
+		echo -n $$f | sed 's%\.tex%%' >> $(OUTDIR)/$(basename $@).tex ; \
+		echo "}"                      >> $(OUTDIR)/$(basename $@).tex ; \
+	done
+	(cd $(OUTDIR); $(PDFLATEX_ENV) $(PDFLATEX) $(PDFLATEX_OPT) $(basename $@).tex)
+# The second call to pdflatex is to be sure that we have a correct table of
+# content and index
+	(cd $(OUTDIR); $(PDFLATEX_ENV) $(PDFLATEX) $(PDFLATEX_OPT) $(basename $@).tex > /dev/null 2>&1)
+# We use cat to overwrite the final destination file instead of mv, so
+# that evince notices that the file has changed and automatically
+# reloads it (which doesn't happen if we use mv here). This is called
+# 'Maxime's feature'.
+	cat out/$@ > $@
+else
+FORCE:
+%-slides.pdf: FORCE
+	@$(MAKE) $@ SLIDES=$*
+endif
 
 #
 # === Compilation of labs ===
@@ -176,13 +267,21 @@ $(OUTDIR)/%.jpg: %.jpg
 # === Misc targets ===
 #
 
+$(VARS): FORCE
+	@mkdir -p $(dir $@)
+	echo "\def \sessionurl {$(SESSION_URL)}" > $@
+	echo "\def \evaluationformurl {$(EVALUATION_FORM)}" >> $@
+
 clean:
 	$(RM) -rf $(OUTDIR) *.pdf
 
 help:
 	@echo "Available targets:"
 	@echo
-	@echo " full-sysdev-labs.pdf		Complete labs for the 'sysdev' training"
-	@echo " full-kernel-labs.pdf		Complete labs for the 'kernel' training"
+	@echo " full-sysdev-labs.pdf		Complete labs for the 'sysdev' course"
+	@echo " full-kernel-labs.pdf		Complete labs for the 'kernel' course"
+	@echo " full-sysdev-slides.pdf		Complete slides for the 'sysdev' coeurs"
+	@echo " <some-chapter>-slides.pdf	Slides for a particular chapter in slides/"
+	@echo
 	@echo " <some-chapter>-labs.pdf		Labs for a particular chapter in labs/"
 	@echo

@@ -1,0 +1,109 @@
+\begin{frame}
+  \frametitle{Devices}
+  \begin{itemize}
+  \item One of the kernel important role is to {\bf allow applications
+      to access hardware devices}
+  \item In the Linux kernel, most devices are presented to userspace
+    applications through two different abstractions
+    \begin{itemize}
+    \item {\bf Character} device
+    \item {\bf Block} device
+    \end{itemize}
+  \item Internally, the kernel identifies each device by a triplet of
+    information
+    \begin{itemize}
+    \item {\bf Type} (character or block)
+    \item {\bf Major} (typically the category of device)
+    \item {\bf Minor} (typically the identifier of the device)
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Types of devices}
+  \begin{itemize}
+  \item Block devices
+    \begin{itemize}
+    \item A device composed of fixed-sized blocks, that can be read
+      and written to store data
+    \item Used for hard disks, USB keys, SD cards, etc.
+    \end{itemize}
+  \item Character devices
+    \begin{itemize}
+    \item Originally, an infinite stream of bytes, with no beginning,
+      no end, no size. The pure example: a serial port.
+    \item Used for serial ports, terminals, but also sound cards,
+      video acquisition devices, frame buffers
+    \item Most of the devices that are not block devices are
+      represented as character devices by the Linux kernel
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Devices: everything is a file}
+  \begin{itemize}
+  \item A very important Unix design decision was to represent most of
+    the ``system objects'' as files
+  \item It allows applications to manipulate all “system objects” with
+    the normal file API (\code{open}, \code{read}, \code{write},
+    \code{close}, etc.)
+  \item So, devices had to be represented as files to the applications
+  \item This is done through a special artifact called a {\bf device
+      file}
+  \item It a special type of file, that associates a file name visible
+    to userspace applications to the triplet {\em (type, major,
+      minor)} that the kernel understands
+  \item All {\em device files} are by convention stored in the
+    \code{/dev} directory
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Device files examples}
+
+Example of device files in a Linux system
+
+\small
+\begin{verbatim}
+$ ls -l /dev/ttyS0 /dev/tty1 /dev/sda1 /dev/sda2 /dev/zero
+brw-rw---- 1 root disk    8,  1 2011-05-27 08:56 /dev/sda1
+brw-rw---- 1 root disk    8,  2 2011-05-27 08:56 /dev/sda2
+crw------- 1 root root    4,  1 2011-05-27 08:57 /dev/tty1
+crw-rw---- 1 root dialout 4, 64 2011-05-27 08:56 /dev/ttyS0
+crw-rw-rw- 1 root root    1,  5 2011-05-27 08:56 /dev/zero
+\end{verbatim}
+\normalsize
+
+Example C code that uses the usual file API to write data to a serial port
+
+\small
+\begin{verbatim}
+int fd;
+fd = open("/dev/ttyS0", O_RDWR);
+write(fd, "Hello", 5);
+close(fd);
+\end{verbatim}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Creating device files}
+  \begin{itemize}
+    \item On a basic Linux system, the device files have to be created
+    manually using the mknod command
+    \begin{itemize}
+    \item \code{mknod /dev/<device> [c|b] major minor}
+    \item Needs root privileges
+    \item Coherency between device files and devices handled by the
+      kernel is left to the system developer
+    \end{itemize}
+  \item On more elaborate Linux systems, mechanisms can be added to
+    create/remove them automatically when devices appear and disappear
+    \begin{itemize}
+    \item \code{devtmpfs} virtual filesystem, since kernel 2.6.32
+    \item \code{udev} daemon, solution used by desktop and server Linux
+      systems
+    \item \code{mdev} program, a lighter solution than \code{udev}
+    \end{itemize}
+  \end{itemize}
+\end{frame}

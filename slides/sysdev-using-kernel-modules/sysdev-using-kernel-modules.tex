@@ -1,0 +1,151 @@
+\subchapterframe
+{Embedded Linux kernel usage}
+{Using kernel modules}
+
+\begin{frame}
+  \frametitle{Advantages of modules}
+  \begin{itemize}
+  \item Modules make it easy to develop drivers without rebooting:
+    load, test, unload, rebuild, load...
+  \item Useful to keep the kernel image size to the minimum (essential
+    in GNU/Linux distributions for PCs).
+  \item Also useful to reduce boot time: you don't spend time
+    initializing devices and kernel features that you only need later.
+  \item Caution: once loaded, have full control and privileges in the
+    system. No particular protection. That's why only the root user
+    can load and unload modules.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Module dependencies}
+  \begin{itemize}
+  \item Some kernel modules can depend on other modules,
+    which need to be loaded first.
+  \item Example: the \code{usb-storage} module depends on the
+    \code{scsi_mod}, \code{libusual} and \code{usbcore} modules.
+  \item Dependencies are described
+    in \code{/lib/modules/<kernel-version>/modules.dep}\\
+    This file is generated when you run \code{make modules_install}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Kernel log}
+
+  When a new module is loaded, related information is available in the
+  kernel log.
+  \begin{itemize}
+  \item The kernel keeps its messages in a circular buffer (so that it
+    doesn't consume more memory with many messages)
+  \item Kernel log messages are available through the \code{dmesg}
+    command ({\bf d}iagnostic {\bf mes}sa{\bf g}e)
+  \item Kernel log messages are also displayed in the system console
+    (console messages can be filtered by level using the
+    \code{loglevel} kernel parameter, or completely disabled with the
+    \code{quiet} parameter).
+  \item Note that you can write to the kernel log from userspace too:\\
+    \code{echo "Debug info" > /dev/kmsg}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Module utilities (1)}
+  \begin{itemize}
+  \item \code{modinfo <module_name>}\\
+    \code{modinfo <module_path>.ko}\\
+    Gets information about a module: parameters, license, description
+    and dependencies.\\
+    Very useful before deciding to load a module or not.
+  \item \code{sudo insmod <module_path>.ko}\\
+    Tries to load the given module. The full path to the module object
+    file must be given.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Understanding module loading issues}
+  \begin{itemize}
+  \item When loading a module fails, \code{insmod} often doesn't give
+    you enough details!
+  \item Details are often available in the kernel log.
+  \item Example:\\
+\scriptsize
+\begin{verbatim}
+$ sudo insmod ./intr_monitor.ko
+insmod: error inserting './intr_monitor.ko': -1 Device or resource busy
+$ dmesg
+[17549774.552000] Failed to register handler for irq channel 2
+\end{verbatim}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Module utilities (2)}
+  \begin{itemize}
+  \item \code{sudo modprobe <module_name>}\\
+    Most common usage of \code{modprobe}: tries to load all the
+    modules the given module depends on, and then this module. Lots of
+    other options are available. Modprobe automatically looks in
+    \code{/lib/modules/<version>/} for the object file corresponding
+    to the given module name.
+  \item \code{lsmod}\\
+    Displays the list of loaded modules\\
+    Compare its output with the contents of \code{/proc/modules}!
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Module utilities (3)}
+  \begin{itemize}
+  \item \code{sudo rmmod <module_name>}\\
+    Tries to remove the given module.\\
+    Will only be allowed if the module is no longer in use (for
+    example, no more processes opening a device file)
+  \item \code{sudo modprobe -r <module_name>}\\
+    Tries to remove the given module and all dependent modules (which
+    are no longer needed after the module removal)
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Passing parameters to modules}
+  \begin{itemize}
+  \item Find available parameters:\\
+    \code{modinfo snd-intel8x0m}
+  \item Through insmod:\\
+    \code{sudo insmod ./snd-intel8x0m.ko index=-2}
+  \item Through modprobe:\\
+    Set parameters in \code{/etc/modprobe.conf} or in any file in \code{/etc/modprobe.d/}:\\
+    \code{options snd-intel8x0m index=-2}
+  \item Through the kernel command line, when the driver is built statically into the kernel:\\
+    \code{snd-intel8x0m.index=-2}
+    \begin{itemize}
+    \item \code{snd-intel8x0m} is the {\em driver name}
+    \item \code{index} is the {\em driver parameter name}
+    \item \code{-2} is the {\em driver parameter value}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Useful reading}
+  \begin{columns}
+    \column{0.7\textwidth}
+    Linux Kernel in a Nutshell, Dec 2006
+    \begin{itemize}
+    \item By Greg Kroah-Hartman, O'Reilly\\
+      \url{http://www.kroah.com/lkn/}
+    \item A good reference book and guide on configuring, compiling
+      and managing the Linux kernel sources.
+    \item Freely available on-line!\\
+      Great companion to the printed book for easy electronic searches!\\
+      Available as single PDF file on
+      \url{http://free-electrons.com/community/kernel/lkn/}
+    \item Our rating: 2 stars
+    \end{itemize}
+    \column{0.3\textwidth}
+    \includegraphics[width=\textwidth]{slides/sysdev-using-kernel-modules/linux-kernel-in-a-nutshell.jpg}
+  \end{columns}
+\end{frame}
+
