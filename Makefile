@@ -145,7 +145,7 @@ SLIDES_TEX      = \
 	$(SLIDES_COMMON_AFTER)
 SLIDES_PICTURES = $(call PICTURES,$(foreach s,$(SLIDES_CHAPTERS),slides/$(s))) $(COMMON_PICTURES)
 
-%-slides.pdf: $(VARS) $(SLIDES_TEX) $(SLIDES_PICTURES) common/beamerthemeFreeElectrons.sty
+%-slides.pdf: $(VARS) $(SLIDES_TEX) $(SLIDES_PICTURES) $(STYLESHEET)
 	@mkdir -p $(OUTDIR)
 # We generate a .tex file with \input{} directives (instead of just
 # concatenating all files) so that when there is an error, we are
