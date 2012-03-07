@@ -280,7 +280,7 @@ help:
 	@echo
 	@echo " full-sysdev-labs.pdf		Complete labs for the 'sysdev' course"
 	@echo " full-kernel-labs.pdf		Complete labs for the 'kernel' course"
-	@echo " full-sysdev-slides.pdf		Complete slides for the 'sysdev' coeurs"
+	@echo " full-sysdev-slides.pdf		Complete slides for the 'sysdev' course"
 	@echo " <some-chapter>-slides.pdf	Slides for a particular chapter in slides/"
 	@echo
 	@echo " <some-chapter>-labs.pdf		Labs for a particular chapter in labs/"
