@@ -17,9 +17,12 @@ SYSDEV_SLIDES = sysdev-intro \
 		sysdev-kernel-fetch-and-patch \
 		sysdev-kernel-configuration-and-compiling \
 		sysdev-using-kernel-modules \
-		sysdev-root-filesystem-part1 \
+		sysdev-root-filesystem-title \
+		sysdev-root-filesystem-principles \
+		sysdev-root-filesystem-contents \
 		sysdev-root-filesystem-device-files \
-		sysdev-root-filesystem-part2 \
+		sysdev-root-filesystem-virtual-fs \
+		sysdev-root-filesystem-minimal \
 		sysdev-busybox \
 		sysdev-block-filesystems \
 		sysdev-flash-filesystems \
