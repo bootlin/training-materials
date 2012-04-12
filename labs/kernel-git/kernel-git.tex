@@ -1,12 +1,14 @@
-\subchapter{Git}{Objective: use the basic Git features}
+\subchapter{Git}{Objective: Get familiar with git by contributing to the Linux kernel}
 
 After this lab, you will be able to:
 
 \begin{itemize}
 \item Clone a Git repository
 \item Explore the history of a Git repository
-\item Make changes in your own branch
-\item Generate the patches corresponding to your own branch
+\item Create a branch and use it to make improvements to the Linux kernel sources
+\item Make your first contribution to the official Linux kernel sources
+\item Rework and reorganize the commits done in your branch
+\item Work with a remote tree 
 \end{itemize}
 
 \section{Setup}
@@ -23,7 +25,7 @@ Configure your name and email address in git with \code{git config}.
 
 \section{Clone a repository}
 
-We already cloned Linus Torvalds' git tree, but it is useful to know
+We already cloned Linus Torvalds' git tree, but it is useful to remember
 how to do it again. Go to \url{http://git.kernel.org} and make sure you know
 how to find the \code{git://} URL of his Linux tree.
 
@@ -34,7 +36,8 @@ this history offline.
 
 \section{Exploring the history}
 
-With \code{git log}, look at the list of changes that have been made on the scheduler.
+With \code{git log}, look at the list of changes that have been made on the scheduler
+(in \code{kernel/sched/}).
 
 With \code{git log}, look at the list of changes and their associated
 patches, that have been made on the ATMEL serial driver
@@ -52,32 +55,69 @@ On the {\em gitweb} interface of Linus Torvalds tree, available at
 search all commits that have been done by Free Electrons (hint: use
 the search engine by author).
 
-\section{Make your changes}
+\section{Modify the Linux kernel sources}
 
-Create your own branch with \code{git branch} and then move to it with
-\code{git checkout}.
+Find something to modify in the Linux kernel sources. Here are ideas:
 
-Make a dummy change to the \code{MAINTAINERS} file, and commit your
-change. Look at the difference between the master branch and your
-branch (with \code{git log}, \code{git diff} and \code{gitk}).
+\begin{itemize}
+\item Choose an ARM defconfig file, apply it, run \code{make} and fix compile warnings
+\item Implement changes recommended in the Kernel Janitors page: \url{http://kernelnewbies.org/KernelJanitors/Todo}
+\item Run the \code{scripts/check_patch.pl} command on a subdirectory of the Linux tree.
+      You can do that with \url{http://free-electrons.com/labs/run-checkpatch}
+\item Remove deprecated features. For example, \code{IRQF_DISABLED} no longer does anything,
+      but is still in use in many drivers. Find drivers that use this symbol, and fix them.
+\item Look for spelling mistakes in documentation, or classical mistakes like "the the", "a a"...
+\end{itemize}
 
-Then, edit \code{init/main.c}. In the function \code{start_kernel()},
-after the call to \code{printk()} to print the \code{linux_banner}
-variable, add a call to \code{printk()} to print your own
-message. Commit your change.
+Before making changes, create a new branch and move into it.
+
+Now, implement your changes, and commit them, following instructions 
+in the slides for contributing to the Linux kernel.
 
 \section{Share your changes}
 
 Generate the patch series corresponding to your two changes using
 \code{git format-patch}.
 
-Configure your SMTP server using:
+Then, to send your patches, you will need to use your own SMTP server, either your company's
+if it is accessible from where you are, or the SMTP server available for a personal e-mail 
+accounts (Google Mail for example, which has the advantage that your e-mail can be read
+from anywhere). 
 
-\begin{verbatim}
-git config --global sendemail.smtpserver smtp.company.com
-\end{verbatim}
+Configure git to tell it about your SMTP settings (user, password, port...).
 
-And then send the patches to yourself using \code{git send-email}.
+Once this is done, send the patches to yourself using \code{git send-email}.
+
+\section{Check your changes}
+
+Before a final submission to the Linux kernel maintainers and community, you 
+should run the below checks:
+
+\begin{itemize}
+\item Run \code{scripts/check_patch.pl} on each of your patches.
+      Fix the errors and warnings that you get, and commit them.
+\item Make sure that your modified code compiles with no warning,
+      and if possible, that it also executes well.
+\item Make sure that the commit titles and messages are appropriate
+      (see our guidelines in the slides)
+\end{itemize}
+
+If you made any change, use \code{git rebase --interactive master} to
+reorder, group, and edit your changes when needed. 
+
+Don't hesitate to ask your instructor for help. The instructor will also 
+be happy to have a final look at your changes before you send them for real.
+
+\section{Send your patches to the community}
+
+Find who to send the patches to, and send them for real.
+
+Don't be afraid to do this. The Linux kernel already includes changes
+performed during previous Free Electrons kernel sessions!
+
+Unless you have done this before, you made your first contribution 
+to the Linux kernel sources! We hope that our explanations and the power 
+of git will incite you to make more contributions by yourself.
 
 \section{Tracking another tree}
 
@@ -87,7 +127,7 @@ tree to the trees you're tracking:
 \small
 \begin{verbatim}
 git remote add realtime \
-  git://git.kernel.org/pub/scm/linux/kernel/git/rostedt/linux-2.6-rt.git
+  git://git.kernel.org/pub/scm/linux/kernel/git/rt/linux-stable-rt.git
 \end{verbatim}
 \normalsize
 
@@ -107,6 +147,6 @@ Or look at the difference between the scheduler code in the official
 tree and in the realtime tree:
 
 \begin{verbatim}
-git diff master..realtime/master kernel/sched.c
+git diff master..realtime/master kernel/sched/
 \end{verbatim}
 
