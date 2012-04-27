@@ -9,7 +9,7 @@
 #define ML_ACTION_FIRE			0x10
 #define ML_ACTION_MOVE_DOWN		0x1
 #define ML_ACTION_MOVE_LEFT		0x8
-#define ML_ACTION_MOVE_RIGHT	0x4
+#define ML_ACTION_MOVE_RIGHT		0x4
 #define ML_ACTION_MOVE_UP		0x2
 #define ML_ACTION_STOP			0x0
 
@@ -63,23 +63,23 @@ int mlbin_stop(void)
 
 int main(void)
 {
-  mlbin_init_usb();
-  mlbin_move_down();
-  sleep(5);
-  mlbin_stop();
-  mlbin_move_left();
-  sleep(5);
-  mlbin_stop();
-  mlbin_fire();
-  sleep(5);
-  mlbin_stop();
-  mlbin_move_up();
-  sleep(5);
-  mlbin_stop();
-  mlbin_move_right();
-  sleep(5);
-  mlbin_stop();
-  mlbin_free_usb();
+	mlbin_init_usb();
+	mlbin_move_down();
+	sleep(5);
+	mlbin_stop();
+	mlbin_move_left();
+	sleep(5);
+	mlbin_stop();
+	mlbin_fire();
+	sleep(5);
+	mlbin_stop();
+	mlbin_move_up();
+	sleep(5);
+	mlbin_stop();
+	mlbin_move_right();
+	sleep(5);
+	mlbin_stop();
+	mlbin_free_usb();
 
-  return 0;
+	return 0;
 }
