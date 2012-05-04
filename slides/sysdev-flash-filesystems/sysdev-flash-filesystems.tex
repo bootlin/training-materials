@@ -64,7 +64,7 @@
   \code{arch/arm/mach-omap2/board-igep0020.c} example:
 \scriptsize
 \begin{verbatim}
-static struct mtd_partition igep2_onenand_partitions[] = {
+static struct mtd_partition igep2_flash_partitions[] = {
     {
         .name   = "X-Loader",
         .offset = 0,
@@ -92,15 +92,11 @@ static struct mtd_partition igep2_onenand_partitions[] = {
     command line.
   \item First need to find the name of the MTD device. Look at the
     kernel log at boot time. In our case, the MTD device name is
-    \code{omap2-onenand}:
+    \code{omap2-nand.0}:
 \small
 \begin{verbatim}
-Muxed OneNAND(DDP) 512MB 1.8V 16-bit (0x58)
-OneNAND version = 0x0031
-Scanning device for bad blocks
-OneNAND eraseblock 1812 is an initial bad block
-[...]
-Creating 5 MTD partitions on "omap2-onenand":
+NAND device: Manufacturer ID: 0x2c, Chip ID: 0xbc (Micron NAND 512MiB 1,8V 16-bit)
+Creating 5 MTD partitions on "omap2-nand.0":
 0x000000000000-0x000000080000 : "X-Loader"
 0x000000080000-0x000000200000 : "U-Boot"
 0x000000200000-0x000000280000 : "Environment"
@@ -115,8 +111,8 @@ Creating 5 MTD partitions on "omap2-onenand":
   \begin{itemize}
   \item You can now use the \code{mtdparts} kernel boot parameter
   \item Example:\\
-    \code{mtdparts=omap2-onenand:512k(X-Loader)ro,1536k(U-Boot)ro,512k(Environment),3m(Kernel),-(RootFS)}
-  \item We've just defined 5 partitions in the omap2-onenand device:
+    \code{mtdparts=omap2-nand.0:512k(X-Loader)ro,1536k(U-Boot)ro,512k(Environment),3m(Kernel),-(RootFS)}
+  \item We've just defined 5 partitions in the omap2-nand.0 device:
     \begin{itemize}
     \item \code{1st stage bootloader} (512KiB)
     \item \code{U-Boot} (1536KiB)
@@ -407,8 +403,7 @@ Creating 5 MTD partitions on "omap2-onenand":
   \item Images of a full UBI space, containing several volumes can be
     created using the ubinize utility
     \begin{itemize}
-    \item Can be written to a raw MTD using \code{nand write} in U-boot.\\
-      (\code{onenand write} for the IGEPv2 board)
+    \item Can be written to a raw MTD using \code{nand write} in U-boot.
     \item Caution: \code{nand erase} will also erase the Erase
       Counters
     \end{itemize}
