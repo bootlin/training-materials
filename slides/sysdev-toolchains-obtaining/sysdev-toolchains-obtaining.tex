@@ -1,0 +1,215 @@
+\subsection{Obtaining a Toolchain}
+
+\begin{frame}
+  \frametitle{Building a toolchain manually}
+
+  Building a cross-compiling toolchain by yourself is a difficult and painful
+  task! Can take days or weeks!
+  \begin{itemize}
+  \item Lots of details to learn: many components to build, complicated
+    configuration
+  \item Lots of decisions to make (such as C library version, ABI, floating point
+    mechanisms, component versions)
+  \item Need kernel headers and C library sources
+  \item Need to be familiar with current \code{gcc} issues and patches
+    on your platform
+  \item Useful to be familiar with building and configuring tools
+  \item See the {\em Crosstool-NG} \code{docs/} directory for details
+    on how toolchains are built.
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Get a pre-compiled toolchain}
+  \begin{itemize}
+  \item Solution that many people choose
+    \begin{itemize}
+    \item Advantage: it is the simplest and most convenient solution
+    \item Drawback: you can't fine tune the toolchain to your needs
+    \end{itemize}
+  \item Determine what toolchain you need: CPU, endianism, C library, component
+    versions, ABI, soft float or hard float, etc.
+  \item Check whether the available toolchains match your requirements.
+  \item Possible choices
+    \begin{itemize}
+    \item Sourcery CodeBench toolchains
+    \item Linaro toolchains
+    \item More references at \url{http://elinux.org/Toolchains}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Sourcery CodeBench}
+  \begin{itemize}
+  \item {\em CodeSourcery} was a a company with an extended expertise
+    on free software toolchains: gcc, gdb, binutils and glibc. It has
+    been bought by {\em Mentor Graphics}, which continues to provide
+    similar services and products
+  \item They sell toolchains with support, but they also provide a
+    ”{\em Lite}” version, which is free and usable for commercial
+    products
+  \item They have toolchains available for
+    \begin{itemize}
+    \item ARM
+    \item MIPS
+    \item PowerPC
+    \item SuperH
+    \item x86
+    \end{itemize}
+  \item Be sure to use the GNU/Linux versions. The EABI versions are
+    for bare-metal development (no operating system)
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Linaro toolchains}
+  \begin{columns}
+    \column{0.9\textwidth}
+    \begin{itemize}
+    \item Linaro contributes to improving mainline gcc on ARM, in
+      particular by hiring CodeSourcery developers.
+    \item For people who can't wait for the next releases of gcc, Linaro
+      releases modified sources of stable releases of gcc, with these
+      optimizations for ARM (mainly for recent Cortex A CPUs).
+    \item As any gcc release, these sources can be used by build tools
+      to build their own binary toolchains (Buildroot, OpenEmbedded...)
+      This allows to support glibc, uClibc and eglibc.
+    \item \small\url{https://wiki.linaro.org/WorkingGroups/ToolChain}\normalsize
+    \item Binary packages are available for Ubuntu users,
+      \url{https://launchpad.net/~linaro-maintainers/+archive/toolchain}
+    \end{itemize}
+    \column{0.1\textwidth}
+    \includegraphics[width=\textwidth]{slides/sysdev-toolchains-obtaining/linaro.png}
+  \end{columns}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Installing and using a pre-compiled toolchain}
+  \begin{itemize}
+  \item Follow the installation procedure proposed by the vendor
+  \item Usually, it is simply a matter of extracting a tarball
+        wherever you want.
+  \item Then, add the path to toolchain binaries in your \code{PATH}:\\
+    \code{export PATH=/path/to/toolchain/bin/:$PATH}
+  \item Finally, compile your applications\\
+    \code{PREFIX-gcc -o foobar foobar.c}
+  \item The \code{PREFIX} depends on the toolchain configuration, and
+    allows to distinguish cross-compilation tools from native
+    compilation utilities
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Toolchain building utilities}
+  Another solution is to use utilities that {\bf automate the process of
+  building the toolchain}
+  \begin{itemize}
+  \item Same advantage as the pre-compiled toolchains: you don't need
+    to mess up with all the details of the build process
+  \item But also offers more flexibility in terms of toolchain
+    configuration, component version selection, etc.
+  \item They also usually contain several patches that fix known
+    issues with the different components on some architectures
+  \item Multiple tools with identical principle: shell scripts or
+    Makefile that automatically fetch, extract, configure, compile and
+    install the different components
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Toolchain building utilities (2)}
+  \begin{itemize}
+  \item {\bf Crosstool-ng}
+    \begin{itemize}
+    \item Rewrite of the older Crosstool, with a menuconfig-like configuration
+      system
+    \item Feature-full: supports uClibc, glibc, eglibc, hard and soft
+      float, many architectures
+    \item Actively maintained
+    \item \url{http://crosstool-ng.org/}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Toolchain building utilities (3)}
+Many root filesystem building systems also allow the construction of
+a cross-compiling toolchain
+\begin{itemize}
+\item {\bf Buildroot}
+  \begin{itemize}
+  \item Makefile-based, has a Crosstool-NG back-end, maintained by the
+    community
+  \item \url{http://www.buildroot.net}
+  \end{itemize}
+\item {\bf PTXdist}
+  \begin{itemize}
+  \item Makefile-based, uClibc or glibc, maintained mainly by {\em Pengutronix}
+  \item \url{http://www.pengutronix.de/software/ptxdist/index_en.html}
+  \end{itemize}
+\item {\bf OpenEmbedded}
+  \begin{itemize}
+  \item The feature-full, but more complicated building system
+  \item \url{http://www.openembedded.org/}
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Crosstool-NG: installation and usage}
+  \begin{itemize}
+  \item Installation of Crosstool-NG can be done system-wide, or just locally in
+    the source directory. For local installation:
+\begin{verbatim}
+./configure --local
+make
+make install
+\end{verbatim}
+  \item Some sample configurations for various architectures are
+    available in
+    samples, they can be listed using
+\begin{verbatim}
+./ct-ng list-samples
+\end{verbatim}
+  \item To load a sample configuration
+\begin{verbatim}
+./ct-ng <sample-name>
+\end{verbatim}
+  \item To adjust the configuration
+\begin{verbatim}
+./ct-ng menuconfig
+\end{verbatim}
+  \item To build the toolchain
+\begin{verbatim}
+./ct-ng build
+\end{verbatim}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Toolchain contents}
+  \begin{itemize}
+  \item The cross compilation tool binaries, in \code{bin/}
+    \begin{itemize}
+    \item This directory can be added to your \code{PATH} to ease
+      usage of the toolchain
+    \end{itemize}
+  \item One or several {\em sysroot}, each containing
+    \begin{itemize}
+    \item The C library and related libraries, compiled for the target
+    \item The C library headers and kernel headers
+    \end{itemize}
+  \item There is one {\em sysroot} for each variant: toolchains can be
+    {\em multilib} if they have several copies of the C library for
+    different configurations (for example: ARMv4T, ARMv5T, etc.)
+    \begin{itemize}
+    \item CodeSourcery ARM toolchain are multilib, the sysroots are in
+      \code{arm-none-linux-gnueabi/libc/},
+      \code{arm-none-linux-gnueabi/libc/armv4t/},
+      \code{arm-none-linux-gnueabi/libc/thumb2}
+    \item Crosstool-NG toolchains are never multilib, the sysroot is
+      in \code{arm-unknown-linux-uclibcgnueabi/sysroot}
+    \end{itemize}
+  \end{itemize}
+\end{frame}

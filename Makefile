@@ -10,7 +10,12 @@ EPSTOPDF = epstopdf
 # List of slides for the different courses
 SYSDEV_SLIDES = sysdev-intro \
 		sysdev-dev-environment \
-		sysdev-toolchains \
+		sysdev-toolchains-title \
+		sysdev-toolchains-definition \
+		sysdev-toolchains-c-libraries \
+		sysdev-toolchains-options \
+		sysdev-toolchains-obtaining \
+		sysdev-toolchains-lab \
 		sysdev-bootloaders-title \
 		sysdev-bootloaders-sequence \
 		sysdev-bootloaders-u-boot \
