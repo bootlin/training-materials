@@ -11,8 +11,10 @@ EPSTOPDF = epstopdf
 SYSDEV_SLIDES = sysdev-intro \
 		sysdev-dev-environment \
 		sysdev-toolchains \
-		sysdev-bootloaders \
-		sysdev-u-boot \
+		sysdev-bootloaders-title \
+		sysdev-bootloaders-sequence \
+		sysdev-bootloaders-u-boot \
+		sysdev-bootloaders-lab \
 		sysdev-linux-kernel-intro \
 		sysdev-kernel-fetch-and-patch \
 		sysdev-kernel-configuration-and-compiling \
