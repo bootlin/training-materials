@@ -23,10 +23,16 @@ SYSDEV_SLIDES = sysdev-intro \
 		sysdev-bootloaders-sequence \
 		sysdev-bootloaders-u-boot \
 		sysdev-bootloaders-lab \
-		sysdev-linux-kernel-intro \
-		sysdev-kernel-fetch-and-patch \
-		sysdev-kernel-configuration-and-compiling \
-		sysdev-using-kernel-modules \
+		sysdev-linux-intro-title \
+		sysdev-linux-intro-features \
+		sysdev-linux-intro-versioning \
+		sysdev-linux-intro-sources \
+		sysdev-linux-intro-lab-sources \
+		sysdev-linux-intro-configuration \
+		sysdev-linux-intro-compilation \
+		sysdev-linux-intro-cross-compilation \
+		sysdev-linux-intro-lab-cross-compilation \
+		sysdev-linux-intro-modules \
 		sysdev-root-filesystem-title \
 		sysdev-root-filesystem-principles \
 		sysdev-root-filesystem-contents \
