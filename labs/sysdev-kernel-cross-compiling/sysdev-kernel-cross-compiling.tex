@@ -26,7 +26,14 @@ board.
 \section{Kernel sources}
 
 We will re-use the kernel sources downloaded and patched in the
-previous lab.
+previous lab. However, we will have to apply two additional patches
+that add NAND support for the IGEPv2 revision 6 board that we are
+using in this training:
+
+\begin{verbatim}
+cat ../linux-3.2-arm-omap2-make-board-onenand-init-visible-to-board-code.patch | patch -p1
+cat ../linux-3.2-arm-omap3-igep0020-add-support-for-micron-nand-flash.patch | patch -p1
+\end{verbatim}
 
 \section{Cross-compiling environment setup}
 
@@ -143,8 +150,8 @@ saveenv
 
 In order to let the kernel boot on the board autonomously, we can
 flash it in the NAND flash available on the IGEP. The NAND flash can
-be manipulated in U-Boot using the \code{onenand} command, which
-features several subcommands. Run \code{help onenand} to see the
+be manipulated in U-Boot using the \code{nand} command, which
+features several subcommands. Run \code{help nand} to see the
 available subcommands and their options.
 
 After storing the X-loader, U-boot and its environment variables, we
@@ -155,8 +162,8 @@ This 4th partition will be 4 MiB big, from NAND address
 So, let's start by erasing the corresponding 4 MiB of NAND flash:
 
 \begin{verbatim}
-onenand erase 0x280000 0x400000
-             (NAND addr) (size)
+nand erase 0x280000 0x400000
+         (NAND addr) (size)
 \end{verbatim}
 
 Then, copy the kernel from TFTP into memory, using the same address as
@@ -165,19 +172,19 @@ before.
 Then, flash the kernel image:
 
 \begin{verbatim}
-onenand write 0x80000000 0x280000 0x400000
-              (RAM addr)   (NAND addr) (size)
+nand write 0x80000000 0x280000 0x400000
+           (RAM addr)   (NAND addr) (size)
 \end{verbatim}
 
 Then, we should be able to boot the kernel from the NAND using:
 
 \begin{verbatim}
-onenand read 0x80000000  0x280000    0x400000
-            (RAM addr)   (NAND addr) (size)
+nand read 0x80000000  0x280000    0x400000
+          (RAM addr)   (NAND addr) (size)
 bootm 0x80000000
 \end{verbatim}
 
-\code{onenand read} copies the kernel to RAM and then, \code{bootm}
+\code{nand read} copies the kernel to RAM and then, \code{bootm}
 executes it.
 
 Write an U-Boot script that automates the kernel download and flashing

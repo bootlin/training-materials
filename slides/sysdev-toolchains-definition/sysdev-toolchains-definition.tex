@@ -1,0 +1,185 @@
+\subsection{Definition and Components}
+\begin{frame}
+  \frametitle{Definition (1)}
+  \begin{itemize}
+  \item The usual development tools available on a GNU/Linux
+    workstation is a {\bf native toolchain}
+  \item This toolchain runs on your workstation and generates code for
+    your workstation, usually x86
+  \item For embedded system development, it is usually impossible or not
+    interesting to use a native toolchain
+    \begin{itemize}
+    \item The target is too restricted in terms of storage and/or memory
+    \item The target is very slow compared to your workstation
+    \item You may not want to install all development tools on your target.
+    \end{itemize}
+  \item Therefore, {\bf cross-compiling toolchains} are generally
+    used. They run on your workstation but generate code for your
+    target.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Definition (2)}
+  \begin{center}
+    \includegraphics[width=0.8\textwidth]{slides/sysdev-toolchains-definition/cross-toolchain.pdf}
+  \end{center}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Machines in build procedures}
+  \begin{itemize}
+  \item Three machines must be distinguished when discussing toolchain creation
+    \begin{itemize}
+    \item The {\bf build} machine, where the toolchain is built.
+    \item The {\bf host} machine, where the toolchain will be executed.
+    \item The {\bf target} machine, where the binaries created by the
+      toolchain are executed.
+    \end{itemize}
+  \item Four common build types are possible for toolchains
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Different toolchain build procedures}
+  \begin{center}
+    \includegraphics[width=\textwidth]{slides/sysdev-toolchains-definition/toolchain-build-types.pdf}
+  \end{center}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Components}
+  \begin{center}
+    \includegraphics[width=0.8\textwidth]{slides/sysdev-toolchains-definition/components.pdf}
+  \end{center}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Binutils}
+  \begin{itemize}
+  \item {\bf Binutils} is a set of tools to generate and manipulate
+    binaries for a given CPU architecture
+    \begin{itemize}
+    \item \code{as}, the assembler, that generates binary code from
+      assembler source code
+    \item \code{ld}, the linker
+    \item \code{ar}, \code{ranlib}, to generate \code{.a} archives,
+      used for libraries
+    \item \code{objdump}, \code{readelf}, \code{size}, \code{nm},
+      \code{strings}, to inspect binaries. Very useful analysis tools
+      !
+    \item \code{strip}, to strip useless parts of binaries in order to
+      reduce their size
+    \end{itemize}
+  \item \url{http://www.gnu.org/software/binutils/}
+  \item GPL license
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Kernel headers (1)}
+  \begin{columns}
+    \column{0.6\textwidth}
+    \begin{itemize}
+    \item The C library and compiled programs needs to interact with the kernel
+      \begin{itemize}
+      \item Available system calls and their numbers
+      \item Constant definitions
+      \item Data structures, etc.
+      \end{itemize}
+    \item Therefore, compiling the C library requires kernel headers, and many
+      applications also require them.
+    \item Available in \code{<linux/...>} and \code{<asm/...>} and a few
+      other directories corresponding to the ones visible in
+      \code{include/} in the kernel sources
+    \end{itemize}
+    \column[c]{0.4\textwidth}
+    \includegraphics[width=\textwidth]{slides/sysdev-toolchains-definition/kernel-headers.pdf}
+  \end{columns}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Kernel headers (2)}
+  \begin{itemize}
+  \item System call numbers, in \code{<asm/unistd.h>}
+\begin{verbatim}
+#define __NR_ext          1
+#define __NR_fork         2
+#define __NR_read         3
+\end{verbatim}
+  \item Constant definitions, here in \code{<asm-generic/fcntl.h>},
+    included from \code{<asm/fcntl.h>}, included from
+    \code{<linux/fcntl.h>}
+\begin{verbatim}
+#define O_RDWR 00000002
+\end{verbatim}
+\item Data structures, here in \code{<asm/stat.h>}
+\begin{verbatim}
+struct stat {
+    unsigned long st_dev;
+    unsigned long st_ino;
+    [...]
+};
+\end{verbatim}
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Kernel headers (3)}
+  \begin{itemize}
+  \item The kernel-to-userspace ABI is {\bf backward compatible}
+    \begin{itemize}
+    \item Binaries generated with a toolchain using kernel headers
+      older than the running kernel will work without problem, but
+      won't be able to use the new system calls, data structures, etc.
+    \item Binaries generated with a toolchain using kernel headers
+      newer than the running kernel might work on if they don't use
+      the recent features, otherwise they will break
+    \item Using the latest kernel headers is not necessary, unless
+      access to the new kernel features is needed
+    \end{itemize}
+  \item The kernel headers are extracted from the kernel sources using
+    the \code{headers_install} kernel Makefile target.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{GCC compiler}
+  \begin{columns}
+    \column{0.8\textwidth}
+    \begin{itemize}
+    \item GNU C Compiler, the famous free software compiler
+    \item Can compile C, C++, Ada, Fortran, Java, Objective-C,
+      Objective-C++, and generate code for a large number of CPU
+      architectures, including ARM, AVR, Blackfin, CRIS, FRV, M32, MIPS,
+      MN10300, PowerPC, SH, v850, i386, x86\_64, IA64, Xtensa, etc.
+    \item \url{http://gcc.gnu.org/}
+    \item Available under the GPL license, libraries under the LGPL.
+    \end{itemize}
+    \column{0.2\textwidth}
+    \includegraphics[width=0.7\textwidth]{slides/sysdev-toolchains-definition/gcc.png}
+  \end{columns}
+\end{frame}
+
+\begin{frame}
+  \frametitle{C library}
+  \begin{columns}
+    \column{0.7\textwidth}
+    \begin{itemize}
+    \item The C library is an essential component of a Linux system
+      \begin{itemize}
+      \item Interface between the applications and the kernel
+      \item Provides the well-known standard C API to ease application
+        development
+      \end{itemize}
+    \item Several C libraries are available:\\
+      {\em glibc}, {\em uClibc}, {\em eglibc}, {\em dietlibc}, {\em
+        newlib}, etc.
+    \item The choice of the C library must be made at the time of the
+      cross-compiling toolchain generation, as the GCC compiler is
+      compiled against a specific C library.
+    \end{itemize}
+    \column{0.3\textwidth}
+    \includegraphics[width=\textwidth]{slides/sysdev-toolchains-definition/c-library.pdf}
+  \end{columns}
+\end{frame}

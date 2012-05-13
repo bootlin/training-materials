@@ -1,0 +1,151 @@
+\subsection{Cross-compiling the kernel}
+
+\begin{frame}
+  \frametitle{Cross-compiling the kernel}
+  When you compile a Linux kernel for another CPU architecture
+  \begin{itemize}
+  \item Much faster than compiling natively, when the target system is
+    much slower than your GNU/Linux workstation.
+  \item Much easier as development tools for your GNU/Linux
+    workstation are much easier to find.
+  \item To make the difference with a native compiler, cross-compiler
+    executables are prefixed by the name of the target system,
+    architecture and sometimes
+    library. Examples:\\
+    \small
+    \code{mips-linux-gcc}, the prefix is \code{mips-linux-}\\
+    \code{arm-linux-gnueabi-gcc}, the prefix is \code{arm-linux-gnueabi-}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Specifying cross-compilation}
+
+  The CPU architecture and cross-compiler prefix are defined through
+  the \code{ARCH} and \code{CROSS_COMPILE} variables in the toplevel
+  Makefile.
+
+  \begin{itemize}
+  \item \code{ARCH} is the name of the architecture. It is defined by
+    the name of the subdirectory in \code{arch/} in the kernel sources
+  \item \code{CROSS_COMPILE} is the prefix of the cross compilation
+    tools
+    \begin{itemize}
+    \item Example: \code{arm-linux-} if your compiler is \code{arm-linux-gcc}
+    \end{itemize}
+  \item Three solutions
+    \begin{itemize}
+    \item Force these two variables in the main kernel \code{Makefile}
+\begin{verbatim}
+ARCH?= arm
+CROSS_COMPILE?= arm-linux-
+\end{verbatim}
+    \item Pass \code{ARCH} and \code{CROSS_COMPILE} on the \code{make}
+      command line
+    \item Define \code{ARCH} and \code{CROSS_COMPILE} as environment
+      variables
+    \item Don't forget to have the values properly set at all steps,
+      otherwise the kernel configuration and build system gets
+      confused
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Predefined configuration files}
+  \begin{itemize}
+  \item Default configuration files available, per board or per-CPU
+    family
+    \begin{itemize}
+    \item They are stored in \code{arch/<arch>/configs/}, and are
+      just minimal \code{.config} files
+    \item This is the most common way of configuring a kernel for
+      embedded platforms
+    \end{itemize}
+  \item Run \code{make help} to find if one is available for your
+    platform
+  \item To load a default configuration file, just run\\
+    \code{make acme_defconfig}
+    \begin{itemize}
+    \item This will overwrite your existing \code{.config} !
+    \end{itemize}
+  \item To create your own default configuration file
+    \begin{itemize}
+    \item \code{make savedefconfig}, to create a minimal
+      configuration file
+    \item \code{mv defconfig arch/<arch>/configs/myown_defconfig}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Configuring the kernel}
+  \begin{itemize}
+  \item After loading a default configuration file, you can adjust the
+    configuration to your needs with the normal \code{xconfig},
+    \code{gconfig} or \code{menuconfig} interfaces
+  \item You can also start the configuration from scratch without
+    loading a default configuration file
+  \item As the architecture is different than your host architecture
+    \begin{itemize}
+    \item Some options will be different from the native configuration
+      (processor and architecture specific options, specific drivers,
+      etc.)
+    \item Many options will be identical (filesystems, network
+      protocol, architecture-independent drivers, etc.)
+    \end{itemize}
+  \item Make sure you have the support for the right CPU, the right
+    board and the right device drivers.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Building and installing the kernel}
+  \begin{itemize}
+  \item Run \code{make}
+  \item Copy the final kernel image to the target storage
+    \begin{itemize}
+    \item can be \code{uImage}, \code{zImage}, \code{vmlinux},
+      \code{bzImage} in \code{arch/<arch>/boot}
+    \end{itemize}
+  \item make install is rarely used in embedded development, as the
+    kernel image is a single file, easy to handle
+    \begin{itemize}
+    \item It is however possible to customize the make install
+      behaviour in \code{arch/<arch>/boot/install.sh}
+    \end{itemize}
+  \item \code{make modules_install} is used even in embedded
+    development, as it installs many modules and description files
+    \begin{itemize}
+    \item \code{make INSTALL_MOD_PATH=<dir>/ modules_install}
+    \item The \code{INSTALL_MOD_PATH} variable is needed to install
+      the modules in the target root filesystem instead of your host
+      root filesystem.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Kernel command line}
+  \begin{itemize}
+  \item In addition to the compile time configuration, the kernel
+    behaviour can be adjusted with no recompilation using the {\bf
+      kernel command line}
+  \item The kernel command line is a string that defines various
+    arguments to the kernel
+    \begin{itemize}
+    \item It is very important for system configuration
+    \item \code{root=} for the root filesystem (covered later)
+    \item \code{console=} for the destination of kernel messages
+    \item and many more, documented in
+      \code{Documentation/kernel-parameters.txt} in the kernel sources
+    \end{itemize}
+  \item This kernel command line is either
+    \begin{itemize}
+    \item Passed by the bootloader. In U-Boot, the contents of the
+      \code{bootargs} environment variable is automatically passed to the
+      kernel
+    \item Built into the kernel, using the \code{CONFIG_CMDLINE} option.
+    \end{itemize}
+  \end{itemize}
+\end{frame}

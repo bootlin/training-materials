@@ -7,16 +7,32 @@ PDFLATEX = pdflatex
 DIA      = dia
 EPSTOPDF = epstopdf
 
+# Needed macros
+UPPERCASE = $(shell echo $1 | tr "[:lower:]" "[:upper:]")
+
 # List of slides for the different courses
 SYSDEV_SLIDES = sysdev-intro \
 		sysdev-dev-environment \
-		sysdev-toolchains \
-		sysdev-bootloaders \
-		sysdev-u-boot \
-		sysdev-linux-kernel-intro \
-		sysdev-kernel-fetch-and-patch \
-		sysdev-kernel-configuration-and-compiling \
-		sysdev-using-kernel-modules \
+		sysdev-toolchains-title \
+		sysdev-toolchains-definition \
+		sysdev-toolchains-c-libraries \
+		sysdev-toolchains-options \
+		sysdev-toolchains-obtaining \
+		sysdev-toolchains-lab \
+		sysdev-bootloaders-title \
+		sysdev-bootloaders-sequence \
+		sysdev-bootloaders-u-boot \
+		sysdev-bootloaders-lab \
+		sysdev-linux-intro-title \
+		sysdev-linux-intro-features \
+		sysdev-linux-intro-versioning \
+		sysdev-linux-intro-sources \
+		sysdev-linux-intro-lab-sources \
+		sysdev-linux-intro-configuration \
+		sysdev-linux-intro-compilation \
+		sysdev-linux-intro-cross-compilation \
+		sysdev-linux-intro-lab-cross-compilation \
+		sysdev-linux-intro-modules \
 		sysdev-root-filesystem-title \
 		sysdev-root-filesystem-principles \
 		sysdev-root-filesystem-contents \
@@ -123,21 +139,16 @@ default: help
 ifdef SLIDES
 # Compute the set of chapters to build depending on the name of the
 # PDF file that was requested.
-ifeq ($(SLIDES),full-kernel)
-SLIDES_COMMON_BEFORE = common/slide-header.tex common/kernel-title.tex
-SLIDES_CHAPTERS      = $(KERNEL_SLIDES)
-SLIDES_COMMON_AFTER  = common/slide-footer.tex
-else ifeq ($(SLIDES),full-sysdev)
-SLIDES_COMMON_BEFORE = common/slide-header.tex common/sysdev-title.tex
-SLIDES_CHAPTERS      = $(SYSDEV_SLIDES)
-SLIDES_COMMON_AFTER  = common/slide-footer.tex
-else ifeq ($(SLIDES),full-android)
-SLIDES_COMMON_BEFORE = common/slide-header.tex common/android-title.tex
-SLIDES_CHAPTERS      = $(ANDROID_SLIDES)
+ifeq ($(firstword $(subst -, , $(SLIDES))),full)
+SLIDES_TRAINING      = $(lastword $(subst -, , $(SLIDES)))
+SLIDES_COMMON_BEFORE = common/slide-header.tex \
+		       common/$(SLIDES_TRAINING)-title.tex
+SLIDES_CHAPTERS      = $($(call UPPERCASE, $(SLIDES_TRAINING))_SLIDES)
 SLIDES_COMMON_AFTER  = common/slide-footer.tex
 else
+SLIDES_TRAINING      = $(firstword $(subst -, ,  $(SLIDES)))
 SLIDES_COMMON_BEFORE = common/slide-header.tex common/single-slide-title.tex
-SLIDES_CHAPTERS      = $(SLIDES)
+SLIDES_CHAPTERS      = $(filter $(SLIDES)%, $($(call UPPERCASE, $(SLIDES_TRAINING))_SLIDES))
 SLIDES_COMMON_AFTER  = common/slide-footer.tex
 endif
 
