@@ -1,0 +1,289 @@
+\begin{frame}
+  \frametitle{From Bootloader to Userspace}
+  \begin{center}
+    \includegraphics[width=\textwidth]{slides/kernel-init-content/bootloader-userspace.pdf}
+  \end{center}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Kernel Bootstrap (1)}
+  How the kernel bootstraps itself appears in kernel building.
+  Example on ARM (pxa cpu) in Linux 2.6.36:
+{\footnotesize
+\begin{verbatim}
+...
+  LD      vmlinux
+  SYSMAP  System.map
+  SYSMAP  .tmp_System.map
+  OBJCOPY arch/arm/boot/Image
+  Kernel: arch/arm/boot/Image is ready
+  AS      arch/arm/boot/compressed/head.o
+  GZIP    arch/arm/boot/compressed/piggy.gzip
+  AS      arch/arm/boot/compressed/piggy.gzip.o
+  CC      arch/arm/boot/compressed/misc.o
+  CC      arch/arm/boot/compressed/decompress.o
+  AS      arch/arm/boot/compressed/head-xscale.o
+  SHIPPED arch/arm/boot/compressed/lib1funcs.S
+  AS      arch/arm/boot/compressed/lib1funcs.o
+  LD      arch/arm/boot/compressed/vmlinux
+  OBJCOPY arch/arm/boot/zImage
+  Kernel: arch/arm/boot/zImage is ready
+...
+\end{verbatim}
+}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Kernel Bootstrap (2)}
+  \begin{center}
+    \includegraphics[width=\textwidth]{slides/kernel-init-content/kernel-bootstrap.pdf}
+  \end{center}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Bootstrap Code for Compressed Kernels}
+  \begin{itemize}
+  \item Located in \code{arch/<arch>/boot/compressed}
+    \begin{itemize}
+    \item \code{head.o}
+      \begin{itemize}
+      \item Architecture specific initialization code.
+      \item This is what is executed by the bootloader
+      \end{itemize}
+    \item \code{head-cpu.o} (here \code{head-xscale.o})
+      \begin{itemize}
+      \item CPU specific initialization code
+      \end{itemize}
+    \item \code{decompress.o}, \code{misc.o}
+      \begin{itemize}
+      \item Decompression code
+      \end{itemize}
+    \item \code{piggy.<compressionformat>.o}
+      \begin{itemize}
+      \item The kernel itself
+      \end{itemize}
+    \end{itemize}
+  \item Responsible for uncompressing the kernel itself and jumping to
+    its entry point.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Architecture-specific Initialization Code}
+  \begin{itemize}
+  \item The uncompression code jumps into the main kernel entry point,
+    typically located in \code{arch/<arch>/kernel/head.S}, whose job
+    is to:
+    \begin{itemize}
+    \item Check the architecture, processor and machine type.
+    \item Configure the MMU, create page table entries and enable
+      virtual memory.
+    \item Calls the \code{start_kernel} function in
+      \code{init/main.c}.
+    \item Same code for all architectures.
+    \item Anybody interested in kernel startup should study this file!
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{start\_kernel Main Actions}
+  \begin{itemize}
+  \item Calls \code{setup_arch(&command_line)}
+    \begin{itemize}
+    \item Function defined in \code{arch/<arch>/kernel/setup.c}
+    \item Copying the command line from where the bootloader left it.
+    \item On arm, this function calls \code{setup_processor} (in which
+      CPU information is displayed) and \code{setup_machine}(locating
+      the machine in the list of supported machines).
+    \end{itemize}
+  \item Initializes the console as early as possible (to get error
+    messages)
+  \item Initializes many subsystems (see the code)
+  \item Eventually calls \code{rest_init}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{rest\_init: Starting the Init Process}
+\begin{minted}[fontsize=\tiny]{c}
+static noinline void __init_refok rest_init(void)
+        __releases(kernel_lock)
+{
+        int pid;
+
+        rcu_scheduler_starting();
+        /*
+         * We need to spawn init first so that it obtains pid 1, however
+         * the init task will end up wanting to create kthreads, which, if
+         * we schedule it before we create kthreadd, will OOPS.
+         */
+        kernel_thread(kernel_init, NULL, CLONE_FS | CLONE_SIGHAND);
+        numa_default_policy();
+        pid = kernel_thread(kthreadd, NULL, CLONE_FS | CLONE_FILES);
+        rcu_read_lock();
+        kthreadd_task = find_task_by_pid_ns(pid, &init_pid_ns);
+        rcu_read_unlock();
+        complete(&kthreadd_done);
+
+        /*
+         * The boot idle thread must execute schedule()
+         * at least once to get things moving:
+         */
+        init_idle_bootup_task(current);
+        preempt_enable_no_resched();
+        schedule();
+        preempt_disable();
+
+        /* Call into cpu_idle with preempt disabled */
+        cpu_idle();
+}
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{kernel\_init}
+  \begin{itemize}
+  \item \code{kernel_init} does two main things:
+    \begin{itemize}
+    \item Call \code{do_basic_setup}
+    \item Once kernel services are ready, start device initialization
+      (Linux 2.6.36 code excerpt):
+\begin{minted}{c}
+static void __init do_basic_setup(void)
+{
+    cpuset_init_smp();
+    usermodehelper_init();
+    init_tmpfs();
+    driver_init();
+    init_irq_proc();
+    do_ctors();
+    do_initcalls();
+}
+\end{minted}
+    \item Call \code{init_post}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{do\_initcalls}
+Calls pluggable hooks registered with the macros below.
+Advantage: the generic code doesn't have to know about them.
+\begin{minted}[fontsize=\tiny]{c}
+/*
+ * A "pure" initcall has no dependencies on anything else, and purely
+ * initializes variables that couldn't be statically initialized.
+ *
+ * This only exists for built-in code, not for modules.
+ */
+#define pure_initcall(fn)               __define_initcall("0",fn,1)
+
+#define core_initcall(fn)               __define_initcall("1",fn,1)
+#define core_initcall_sync(fn)          __define_initcall("1s",fn,1s)
+#define postcore_initcall(fn)           __define_initcall("2",fn,2)
+#define postcore_initcall_sync(fn)      __define_initcall("2s",fn,2s)
+#define arch_initcall(fn)               __define_initcall("3",fn,3)
+#define arch_initcall_sync(fn)          __define_initcall("3s",fn,3s)
+#define subsys_initcall(fn)             __define_initcall("4",fn,4)
+#define subsys_initcall_sync(fn)        __define_initcall("4s",fn,4s)
+#define fs_initcall(fn)                 __define_initcall("5",fn,5)
+#define fs_initcall_sync(fn)            __define_initcall("5s",fn,5s)
+#define rootfs_initcall(fn)             __define_initcall("rootfs",fn,rootfs)
+#define device_initcall(fn)             __define_initcall("6",fn,6)
+#define device_initcall_sync(fn)        __define_initcall("6s",fn,6s)
+#define late_initcall(fn)               __define_initcall("7",fn,7)
+#define late_initcall_sync(fn)          __define_initcall("7s",fn,7s)
+\end{minted}
+Defined in \code{include/linux/init.h}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{initcall example}
+From \code{arch/arm/mach-pxa/lpd270.c} (Linux 2.6.36)
+\begin{minted}[fontsize=\scriptsize]{c}
+static int __init lpd270_irq_device_init(void)
+{
+    int ret = -ENODEV;
+    if (machine_is_logicpd_pxa270()) {
+        ret = sysdev_class_register(&lpd270_irq_sysclass);
+        if (ret == 0)
+            ret = sysdev_register(&lpd270_irq_device);
+    }
+    return ret;
+}
+
+device_initcall(lpd270_irq_device_init);
+\end{minted}
+\end{frame}
+
+\begin{frame}
+  \frametitle{init\_post}
+  \begin{itemize}
+  \item The last step of Linux booting
+    \begin{itemize}
+    \item First tries to open a console
+    \item Then tries to run the init process, effectively turning the
+      current kernel thread into the userspace init process.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{init\_post Code: init/main.c}
+\begin{minted}[fontsize=\tiny]{c}
+static noinline int init_post(void) __releases(kernel_lock) {
+    /* need to finish all async __init code before freeing the memory */
+    async_synchronize_full();
+    free_initmem();
+    mark_rodata_ro();
+    system_state = SYSTEM_RUNNING;
+    numa_default_policy();
+
+    current->signal->flags |= SIGNAL_UNKILLABLE;
+    if (ramdisk_execute_command) {
+        run_init_process(ramdisk_execute_command);
+        printk(KERN_WARNING "Failed to execute %s\n", ramdisk_execute_command);
+    }
+
+    /* We try each of these until one succeeds.
+     * The Bourne shell can be used instead of init if we are
+     * trying to recover a really broken machine. */
+    if (execute_command) {
+        run_init_process(execute_command);
+        printk(KERN_WARNING "Failed to execute %s.  Attempting defaults...\n", execute_command);
+    }
+    run_init_process("/sbin/init");
+    run_init_process("/etc/init");
+    run_init_process("/bin/init");
+    run_init_process("/bin/sh");
+
+    panic("No init found. Try passing init= option to kernel. See Linux Documentation/init.txt");
+}
+\end{minted}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Kernel Initialization Graph}
+  \begin{center}
+    \includegraphics[width=\textwidth]{slides/kernel-init-content/kernel-initialization.pdf}
+  \end{center}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Kernel Initialization - Summary}
+  \begin{itemize}
+  \item The bootloader executes bootstrap code.
+  \item Bootstrap code initializes the processor and board, and
+    uncompresses the kernel code to RAM, and calls the kernel's
+    \code{start_kernel} function.
+  \item Copies the command line from the bootloader.
+  \item Identifies the processor and machine.
+  \item Initializes the console.
+  \item Initializes kernel services (memory allocation, scheduling,
+    file cache...)
+  \item Creates a new kernel thread (future init process) and
+    continues in the idle loop.
+  \item Initializes devices and execute initcalls.
+  \end{itemize}
+\end{frame}

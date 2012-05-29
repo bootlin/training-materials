@@ -1,4 +1,4 @@
-# Required packages (tested on Ubuntu 11.10):
+# Required packages (tested on Ubuntu 12.04):
 # inkscape texlive-latex-base texlive-font-utils dia python-pygments
 
 # Needed tools
@@ -11,6 +11,63 @@ EPSTOPDF = epstopdf
 UPPERCASE = $(shell echo $1 | tr "[:lower:]" "[:upper:]")
 
 # List of slides for the different courses
+
+KERNEL_SLIDES = \
+		kernel-introduction-title \
+		sysdev-linux-intro-features \
+		sysdev-linux-intro-versioning \
+		kernel-introduction-lab \
+		kernel-embedded-linux-usage-title \
+		sysdev-linux-intro-sources \
+		kernel-source-code-title \
+		kernel-source-code-drivers \
+		kernel-source-code-layout \
+		kernel-source-code-management \
+		kernel-source-code-lab-source-code \
+		sysdev-linux-intro-configuration \
+		sysdev-linux-intro-compilation \
+		sysdev-linux-intro-cross-compilation \
+		kernel-source-code-lab-module \
+		sysdev-linux-intro-modules \
+		kernel-driver-development-title \
+		kernel-driver-development-modules \
+		kernel-driver-development-lab-modules \
+		kernel-driver-development-memory \
+		kernel-driver-development-general-apis \
+		kernel-driver-development-io-memory \
+		kernel-driver-development-lab-io-memory \
+		sysdev-root-filesystem-device-files \
+		kernel-driver-development-character-drivers \
+		kernel-driver-development-lab-character-drivers \
+		kernel-driver-development-processes \
+		kernel-driver-development-sleeping \
+		kernel-driver-development-interrupts \
+		kernel-driver-development-lab-interrupts \
+		kernel-driver-development-concurrency \
+		kernel-driver-development-lab-locking \
+		kernel-driver-development-debugging \
+		kernel-driver-development-lab-debugging \
+		kernel-driver-development-mmap \
+		kernel-driver-development-dma \
+		kernel-driver-development-architecture-drivers \
+		kernel-serial-drivers-title \
+		kernel-serial-drivers-content \
+		kernel-serial-drivers-lab \
+		kernel-init-title \
+		kernel-init-content \
+		kernel-porting-title \
+		kernel-porting-content \
+		kernel-power-management-title \
+		kernel-power-management-content \
+		kernel-power-management-lab \
+		kernel-resources-title \
+		kernel-resources-advice \
+		kernel-resources-references \
+		kernel-git-title \
+		kernel-git-content \
+		kernel-git-lab \
+		last-slides
+
 SYSDEV_SLIDES = sysdev-intro \
 		sysdev-dev-environment \
 		sysdev-toolchains-title \
@@ -295,6 +352,7 @@ help:
 	@echo " full-sysdev-labs.pdf		Complete labs for the 'sysdev' course"
 	@echo " full-kernel-labs.pdf		Complete labs for the 'kernel' course"
 	@echo " full-sysdev-slides.pdf		Complete slides for the 'sysdev' course"
+	@echo " full-kernel-slides.pdf		Complete slides for the 'kernel' course"
 	@echo " <some-chapter>-slides.pdf	Slides for a particular chapter in slides/"
 	@echo
 	@echo " <some-chapter>-labs.pdf		Labs for a particular chapter in labs/"

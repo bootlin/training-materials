@@ -1,0 +1,351 @@
+\subsection{Loadable Kernel Modules}
+
+\begin{frame}[fragile]
+  \frametitle{Hello Module 1/2}
+\begin{minted}[fontsize=\small]{c}
+/* hello.c */
+#include <linux/init.h>
+#include <linux/module.h>
+#include <linux/kernel.h>
+
+static int __init hello_init(void)
+{
+  pr_alert("Good morrow");
+  pr_alert("to this fair assembly.\n");
+  return 0;
+}
+
+static void __exit hello_exit(void)
+{
+  pr_alert("Alas, poor world, what treasure");
+  pr_alert("hast thou lost!\n");
+}
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Hello Module 2/2}
+\begin{minted}[fontsize=\small]{c}
+module_init(hello_init);
+module_exit(hello_exit);
+MODULE_LICENSE("GPL");
+MODULE_DESCRIPTION("Greeting module");
+MODULE_AUTHOR("William Shakespeare");  
+\end{minted}
+
+\begin{itemize}
+\item \code{__init}
+  \begin{itemize}
+  \item removed after initialization (static kernel or module.)
+  \end{itemize}
+\item \code{__exit}
+  \begin{itemize}
+  \item discarded when module compiled statically into the kernel.
+  \end{itemize}
+\item Example available on
+  \url{http://free-electrons.com/doc/c/hello.c}
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Hello Module Explanations}
+  \begin{itemize}
+  \item Headers specific to the Linux kernel: \code{linux/xxx.h}
+    \begin{itemize}
+    \item No access to the usual C library, we're doing kernel
+      programming
+    \end{itemize}
+  \item An initialization function
+    \begin{itemize}
+    \item Called when the module is loaded, returns an error code (0
+      on success, negative value on failure)
+    \item Declared by the \code{module_init()} macro: the name of the
+      function doesn't matter, even though \code{<modulename>_init()}
+      is a convention.
+    \end{itemize}
+  \item A cleanup function
+    \begin{itemize}
+    \item Called when the module is unloaded
+    \item Declared by the \code{module_exit()} macro.
+    \end{itemize}
+  \item Metadata information declared using \code{MODULE_LICENSE()},
+    \code{MODULE_DESCRIPTION()} and \code{MODULE_AUTHOR()}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Symbols Exported to Modules 1/2}
+  \begin{itemize}
+  \item From a kernel module, only a limited number of kernel
+    functions can be called
+  \item Functions and variables have to be explicitly exported by the
+    kernel to be visible from a kernel module
+  \item Two macros are used in the kernel to export functions and
+    variables:
+    \begin{itemize}
+    \item \code{EXPORT_SYMBOL(symbolname)}, which exports a function
+      or variable to all modules
+    \item \code{EXPORT_SYMBOL_GPL(symbolname)}, which exports a
+      function or variable only to GPL modules
+    \end{itemize}
+  \item A normal driver should not need any non-exported function.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Symbols exported to modules 2/2}
+  \begin{center}
+    \includegraphics[height=0.85\textheight]{slides/kernel-driver-development-modules/exported-symbols.pdf}
+  \end{center}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Module License}
+  \begin{itemize}
+  \item Several usages
+    \begin{itemize}
+    \item Used to restrict the kernel functions that the module can
+      use if it isn't a GPL licensed module
+      \begin{itemize}
+      \item Difference between \code{EXPORT_SYMBOL()} and
+        \code{EXPORT_SYMBOL_GPL()}
+      \end{itemize}
+    \item Used by kernel developers to identify issues coming from
+      proprietary drivers, which they can't do anything about
+      (“Tainted” kernel notice in kernel crashes and oopses).
+    \item Useful for users to check that their system is 100\% free
+      (check /proc/sys/kernel/tainted)
+    \end{itemize}
+  \item Values
+    \begin{itemize}
+    \item GPL, GPL v2, GPL and additional rights, Dual MIT/GPL, Dual
+      BSD/GPL, Dual MPL/GPL, Proprietary
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Compiling a Module}
+  \begin{itemize}
+  \item Two solutions
+    \begin{itemize}
+    \item \emph{Out of tree}
+      \begin{itemize}
+      \item When the code is outside of the kernel source tree, in a
+        different directory
+      \item Advantage: Might be easier to handle than modifications to
+        the kernel itself
+      \item Drawbacks: Not integrated to the kernel
+        configuration/compilation process, needs to be built
+        separately, the driver cannot be built statically
+      \end{itemize}
+    \item Inside the kernel tree
+      \begin{itemize}
+      \item Well integrated into the kernel configuration/compilation
+        process
+      \item Driver can be built statically if needed
+      \end{itemize}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Compiling an out-of-tree Module 1/2}
+  \begin{itemize}
+  \item The below Makefile should be reusable for any single-file
+    out-of-tree Linux module
+  \item The source file is \code{hello.c}
+  \item Just run make to build the hello.ko file
+  \end{itemize}
+\begin{minted}{make}
+ifneq ($(KERNELRELEASE),)
+obj-m := hello.o
+else
+KDIR := /path/to/kernel/sources
+
+all:
+<tab>$(MAKE) -C $(KDIR) M=`pwd` modules
+endif
+\end{minted}
+
+\begin{itemize}
+\item For \code{KDIR}, you can either set
+  \begin{itemize}
+  \item full kernel source directory (configured and compiled)
+  \item or just kernel headers directory (minimum needed)
+  \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Compiling an out-of-tree Module 2/2}
+  \begin{center}
+    \includegraphics[height=0.4\textheight]{slides/kernel-driver-development-modules/out-of-tree.pdf}
+  \end{center}
+  \begin{itemize}
+  \item The module Makefile is interpreted with \code{KERNELRELEASE}
+    undefined, so it calls the kernel Makefile, passing the module
+    directory in the \code{M} variable
+  \item the kernel Makefile knows how to compile a module, and thanks
+    to the \code{M} variable, knows where the Makefile for our module
+    is. The module Makefile is interpreted with \code{KERNELRELEASE}
+    defined, so the kernel sees the \code{obj-m} definition.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Modules and Kernel Version}
+  \begin{itemize}
+  \item To be compiled, a kernel module needs access to the kernel
+    headers, containing the functions, types and constants definitions
+  \item Two solutions
+    \begin{itemize}
+    \item Full kernel sources
+    \item Only kernel headers (\code{linux-headers-*} packages in
+      Debian/Ubuntu distributions)
+    \end{itemize}
+  \item The sources or headers must be configured
+    \begin{itemize}
+    \item Many macros or functions depend on the configuration
+    \end{itemize}
+  \item A kernel module compiled against version X of kernel headers
+    will not load in kernel version Y
+    \begin{itemize}
+    \item modprobe/insmod will say \emph{Invalid module format}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{New Driver in Kernel Sources 1/2}
+  \begin{itemize}
+  \item To add a new driver to the kernel sources:
+    \begin{itemize}
+    \item Add your new source file to the appropriate source
+      directory. Example: \code{drivers/usb/serial/navman.c}
+    \item Single file drivers in the common case, even if the file is
+      several thousand lines of code. Only really big drivers are
+      split in several files or have their own directory.
+    \item Describe the configuration interface for your new driver by
+      adding the following lines to the Kconfig file in this
+      directory:
+    \end{itemize}
+  \end{itemize}
+
+\begin{verbatim}
+  config USB_SERIAL_NAVMAN
+  tristate "USB Navman GPS device"
+  depends on USB_SERIAL
+  help
+   To compile this driver as a module, choose M here: the
+   module will be called navman.
+\end{verbatim}
+\end{frame}
+
+\begin{frame}
+  \frametitle{New Driver in Kernel Sources 2/2}
+  \begin{itemize}
+  \item Add a line in the Makefile file based on the Kconfig setting:
+    \code{obj-$(CONFIG_USB_SERIAL_NAVMAN) += navman.o}
+  \item It tells the kernel build system to build navman.c when the
+    \code{USB_SERIAL_NAVMAN} option is enabled. It works both if
+    compiled statically or as a module.
+    \begin{itemize}
+    \item Run \code{make xconfig} and see your new options!
+    \item Run \code{make} and your new files are compiled!
+    \item See \code{Documentation/kbuild/} for details and more
+      elaborate examples like drivers with several source files, or
+      drivers in their own subdirectory, etc.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{How To Create Linux Patches}
+  \begin{itemize}
+  \item The old school way
+    \begin{itemize}
+    \item Before making your changes, make sure you have two kernel
+      trees: \code{cp -a linux-2.6.37/ linux-2.6.37-patch/}
+    \item Make your changes in \code{linux-2.6.37-patch/}
+    \item Run \code{make distclean} to keep only source files.
+    \item Create a patch file:
+      \code{diff -Nur linux-2.6.37/ linux-2.6.37-patch/ > patchfile}
+    \item Not practical, does not scale to multiple patches
+    \end{itemize}
+  \item The new school ways
+    \begin{itemize}
+    \item Use quilt (tool to manage a stack of patches)
+    \item Use Git (revision control system used by the Linux kernel
+      developers)
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Hello Module with Parameters 1/2}
+\begin{minted}[fontsize=\small]{c}
+/* hello_param.c */
+#include <linux/init.h>
+#include <linux/module.h>
+#include <linux/moduleparam.h>
+
+MODULE_LICENSE("GPL");
+
+/* A couple of parameters that can be passed in: how many
+   times we say hello, and to whom */
+
+static char *whom = "world";
+module_param(whom, charp, 0);
+
+static int howmany = 1;
+module_param(howmany, int, 0);
+
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Hello Module with Parameters 2/2}
+\begin{minted}[fontsize=\small]{c}
+static int __init hello_init(void)
+{
+  int i;
+  for (i = 0; i < howmany; i++)
+    pr_alert("(%d) Hello, %s\n", i, whom);
+  return 0;
+}
+
+static void __exit hello_exit(void)
+{
+  pr_alert("Goodbye, cruel %s\n", whom);
+}
+
+module_init(hello_init);
+module_exit(hello_exit);
+\end{minted}
+Thanks to Jonathan Corbet for the example!
+
+Example available on \url{http://free-electrons.com/doc/c/hello_param.c}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Declaring a module parameter}
+
+\begin{minted}[fontsize=\small]{c}
+#include <linux/moduleparam.h>
+
+module_param(
+    name, /* name of an already defined variable */
+    type, /* either byte, short, ushort, int, uint, long, ulong,
+             charp, or bool.(checked at compile time!) */ 
+    perm  /* for /sys/module/<module_name>/parameters/<param>,
+             0: no such module parameter value file */
+);
+
+/* Example */
+int irq=5;
+module_param(irq, int, S_IRUGO);
+\end{minted}
+Modules parameter arrays are also possible with
+\code{module_param_array()}, but they are less common.
+\end{frame}

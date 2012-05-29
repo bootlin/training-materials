@@ -1,0 +1,171 @@
+\subsection{Sleeping}
+
+\begin{frame}
+  \frametitle{Sleeping}
+  \begin{center}
+    \includegraphics[width=\textwidth]{slides/kernel-driver-development-sleeping/sleeping.pdf}\\
+    Sleeping is needed when a process (user space or kernel space) is
+    waiting for data.
+  \end{center}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{How to sleep 1/3}
+  \begin{itemize}
+  \item Must declare a wait queue A wait queue will be used to store
+  \item the list of threads waiting for an event
+    \begin{itemize}
+    \item Static queue declaration
+      \begin{itemize}
+      \item useful to declare as a global variable
+      \item \mint{c}+DECLARE_WAIT_QUEUE_HEAD(module_queue);+
+      \end{itemize}
+    \item Or dynamic queue declaration
+      \begin{itemize}
+      \item Useful to embed the wait queue inside another data
+        structure
+\begin{minted}{c}
+wait_queue_head_t queue;
+init_waitqueue_head(&queue);
+\end{minted}
+      \end{itemize}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{How to sleep 2/3}
+  \begin{itemize}
+  \item Several ways to make a kernel process sleep
+    \begin{itemize}
+    \item \mint{c}+void wait_event(queue, condition);+
+      \begin{itemize}
+      \item Sleeps until the task is woken up and the given C
+        expression is true. Caution: can't be interrupted (can't kill
+        the user-space process!)
+      \end{itemize}
+    \item \mint{c}+int wait_event_killable(queue, condition);+
+      \begin{itemize}
+      \item Can be interrupted, but only by a \emph{fatal} signal
+        (\code{SIGKILL}). Returns \code{-ERESTARSYS} if interrupted.
+      \end{itemize}
+    \item \mint{c}+int wait_event_interruptible(queue, condition);+
+      \begin{itemize}
+      \item Can be interrupted by any signal. Returns
+        \code{-ERESTARTSYS} if interrupted.
+      \end{itemize}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{How to sleep 3/3}
+  \begin{itemize}
+  \item \mint{c}+int wait_event_timeout(queue, condition, timeout);+
+    \begin{itemize}
+    \item Also stops sleeping when the task is woken up and the
+      timeout expired. Returns 0 if the timeout elapsed, non-zero if
+      the condition was met.
+    \end{itemize}
+  \item \mint{c}+int wait_event_interruptible_timeout(queue,+
+    \mint{c}+condition, timeout);+
+    \begin{itemize}
+    \item Same as above, interruptible. Returns 0 if the timeout
+      elapsed, \code{-ERESTARTSYS} if interrupted, positive value if
+      the condition was met.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{How to Sleep - Example}
+\begin{minted}{c}
+ret = wait_event_interruptible
+        (sonypi_device.fifo_proc_list,
+         kfifo_len(sonypi_device.fifo) != 0);
+
+if (ret)
+        return ret;
+\end{minted}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Waking up!}
+  \begin{itemize}
+  \item Typically done by interrupt handlers when data sleeping
+    processes are waiting for becomes available.
+    \begin{itemize}
+    \item \code{wake_up(&queue);}
+      \begin{itemize}
+      \item Wakes up all processes in the wait queue
+      \end{itemize}
+    \item \code{wake_up_interruptible(&queue);}
+      \begin{itemize}
+      \item Wakes up all processes waiting in an interruptible sleep
+        on the given queue
+      \end{itemize}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Exclusive vs. non-exclusive}
+  \begin{itemize}
+  \item \code{wait_event_interruptible()} puts a task in a
+    non-exclusive wait.
+    \begin{itemize}
+    \item All non-exclusive tasks are woken up by \code{wake_up()} /
+      \code{wake_up_interruptible()}
+    \end{itemize}
+  \item \code{wait_event_interruptible_exclusive()} puts a task in an
+    exclusive wait.
+    \begin{itemize}
+    \item \code{wake_up()} / \code{wake_up_interruptible()} wakes up
+      all non-exclusive tasks and only one exclusive task
+    \item \code{wake_up_all()} / \code{wake_up_interruptible_all()}
+      wakes up all non-exclusive and all exclusive tasks
+    \end{itemize}
+  \item Exclusive sleeps are useful to avoid waking up multiple tasks
+    when only one will be able to ``consume'' the event.
+  \item Non-exclusive sleeps are useful when the event can ``benefit''
+    to multiple tasks.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Sleeping and Waking up - Implementation 1/2}
+  \begin{itemize}
+  \item The scheduler doesn't keep evaluating the sleeping condition!
+\begin{minted}{c}
+#define __wait_event(wq, condition)     \
+  do {                                  \
+    DEFINE_WAIT(__wait);                \
+                                        \
+    for (;;) {                          \
+      prepare_to_wait(&wq, &__wait,     \
+        TASK_UNINTERRUPTIBLE);          \
+      if (condition)                    \
+        break;                          \
+      schedule();                       \
+    }                                   \
+    finish_wait(&wq, &__wait);          \
+} while (0)
+\end{minted}
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Sleeping and Waking up - Implementation 2/2}
+  \begin{itemize}
+  \item \mint{c}+wait_event_interruptible(queue, condition);+
+    \begin{itemize}
+    \item The process is put in the \code{TASK_INTERRUPTIBLE} state.
+    \end{itemize}
+  \item \mint{c}+wake_up_interruptible(&queue);+
+    \begin{itemize}
+    \item All processes waiting in queue are woken up, so they get
+      scheduled later and have the opportunity to reevaluate the
+      condition.
+    \end{itemize}
+  \end{itemize}
+\end{frame}

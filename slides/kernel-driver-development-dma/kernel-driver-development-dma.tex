@@ -1,0 +1,227 @@
+\subsection{DMA}
+
+\begin{frame}
+  \frametitle{DMA Integration}
+  \begin{center}
+    \includegraphics[width=\textwidth]{slides/kernel-driver-development-dma/dma-integration.pdf}
+  \end{center}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Constraints with a DMA}
+  \begin{itemize}
+  \item A DMA deals with physical addresses, so:
+    \begin{itemize}
+    \item Programming a DMA requires retrieving a physical address at
+      some point (virtual addresses are usually used)
+    \item The memory accessed by the DMA shall be physically
+      contiguous
+    \end{itemize}
+  \item The CPU can access memory through a data cache
+    \begin{itemize}
+    \item Using the cache can be more efficient (faster accesses to
+      the cache than the bus)
+    \item But the DMA does not access to the CPU cache, so one need to
+      take care of cache coherency (cache content vs memory content)
+    \item Either flush or invalidate the cache lines corresponding to
+      the buffer accessed by DMA and processor at strategic times
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{DMA Memory Constraints}
+  \begin{itemize}
+  \item Need to use contiguous memory in physical space.
+  \item Can use any memory allocated by \code{kmalloc} (up to 128 KB)
+    or \code{__get_free_pages} (up to 8MB).
+  \item Can use block I/O and networking buffers, designed to support
+    DMA.
+  \item Can not use vmalloc memory (would have to setup DMA on each
+    individual physical page).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Reserving Memory for DMA}
+  \begin{itemize}
+  \item To make sure you've got enough RAM for big DMA transfers...
+  \item Example assuming you have 32 MB of RAM, and need 2 MB for DMA:
+    \begin{itemize}
+    \item Boot your kernel with \code{mem=30}
+    \item The kernel will just use the first 30 MB of RAM.
+    \item Driver code can now reclaim the 2 MB left:
+      \begin{minted}{c}
+dmabuf = ioremap (
+    0x1e00000, /* Start: 30 MB */
+    0x200000   /* Size: 2 MB */
+);
+      \end{minted}
+    \item You can also use \code{mem=} to reserve specific RAM areas
+      for specific devices
+      (DSP, video device...).
+    \item Panda board example:
+      \begin{itemize}
+      \item \code{mem=456M@0x80000000}, \code{mem=512M@0xA0000000}
+      \end{itemize}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Memory Synchronization Issues}
+  \begin{itemize}
+  \item Memory caching could interfere with DMA
+    \begin{itemize}
+    \item Before DMA to device
+      \begin{itemize}
+      \item Need to make sure that all writes to DMA buffer are
+        committed.
+      \end{itemize}
+    \item After DMA from device
+      \begin{itemize}
+      \item Before drivers read from DMA buffer, need to make sure
+        that memory caches are flushed.
+      \end{itemize}
+    \item Bidirectional DMA
+      \begin{itemize}
+      \item Need to flush caches before and after the DMA transfer.
+      \end{itemize}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Linux DMA API}
+  \begin{itemize}
+  \item The kernel DMA utilities can take care of:
+    \begin{itemize}
+    \item Either allocating a buffer in a cache coherent area,
+    \item Or making sure caches are flushed when required,
+    \item Managing the DMA mappings and IOMMU (if any).
+    \item See \code{Documentation/DMA-API.txt} for details about the
+      Linux DMA generic API.
+    \item Most subsystems (such as PCI or USB) supply their own DMA
+      API, derived from the generic one. May be sufficient for most
+      needs.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Coherent or Streaming DMA Mappings}
+  \begin{itemize}
+  \item Coherent mappings
+    \begin{itemize}
+    \item The kernel allocates a suitable buffer and sets the mapping
+      for the driver.
+    \item Can simultaneously be accessed by the CPU and device.
+    \item So, has to be in a cache coherent memory area.
+    \item Usually allocated for the whole time the module is loaded.
+    \item Can be expensive to setup and use on some platforms.
+    \end{itemize}
+  \item Streaming mappings
+    \begin{itemize}
+    \item The kernel just sets the mapping for a buffer provided by
+      the driver.
+    \item Use a buffer already allocated by the driver.
+    \item Mapping set up for each transfer. Keeps DMA registers free
+      on the hardware.
+    \item Some optimizations also available.
+    \item The recommended solution.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Allocating Coherent Mappings}
+  \begin{itemize}
+  \item The kernel takes care of both buffer allocation and mapping
+  \end{itemize}
+\begin{minted}[fontsize=\small]{c}
+#include <asm/dma-mapping.h>
+
+void *                       /* Output: buffer address */
+    dma_alloc_coherent(
+         struct device *dev, /* device structure */
+         size_t size,        /* Needed buffer size in bytes */
+         dma_addr_t *handle, /* Output: DMA bus address */
+         gfp_t gfp           /* Standard GFP flags */
+);
+
+void dma_free_coherent(struct device *dev,
+    size_t size, void *cpu_addr, dma_addr_t handle);
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Setting up streaming mappings}
+  \begin{itemize}
+  \item Works on buffers already allocated by the driver
+  \end{itemize}
+\begin{minted}[fontsize=\small]{c}
+#include <linux/dmapool.h>
+
+dma_addr_t dma_map_single(
+      struct device *,        /* device structure */
+      void *,                 /* input: buffer to use */
+      size_t,                 /* buffer size */
+      enum dma_data_direction /* Either DMA_BIDIRECTIONAL,
+                               * DMA_TO_DEVICE or
+                               * DMA_FROM_DEVICE */
+);
+
+void dma_unmap_single(struct device *dev, dma_addr_t handdle,
+    size_t size, enum dma_data_direction dir);
+\end{minted}
+\end{frame}
+
+\begin{frame}
+  \frametitle{DMA Streaming Mapping Notes}
+  \begin{itemize}
+  \item When the mapping is active: only the device should access the
+    buffer (potential cache issues otherwise).
+  \item The CPU can access the buffer only after unmapping! Use
+    locking to prevent CPU access to the buffer.
+  \item Another reason: if required, this API can create an
+    intermediate bounce buffer (used if the given buffer is not usable
+    for DMA).
+  \item The Linux API also supports scatter / gather DMA streaming
+    mappings.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{DMA summary}
+  \begin{itemize}
+  \item Most drivers can use the specific API provided by their
+    subsystem: USB, PCI, SCSI... Otherwise they can use the Linux
+    generic API:
+  \item Coherent mappings
+    \begin{itemize}
+    \item DMA buffer allocated by the kernel
+    \item Set up for the whole module life
+    \item Can be expensive. Not recommended.
+    \item Let both the CPU and device access the buffer at the same
+      time.
+    \item Main functions:
+      \begin{itemize}
+      \item \code{dma_alloc_coherent}
+      \item \code{dma_free_coherent}
+      \end{itemize}
+    \end{itemize}
+  \item Streaming mappings
+    \begin{itemize}
+    \item DMA buffer allocated by the driver
+    \item Set up for each transfer
+    \item Cheaper. Saves DMA registers.
+    \item Only the device can access the buffer when the mapping is
+      active.
+    \item Main functions:
+      \begin{itemize}
+      \item \code{dma_map_single}
+      \item \code{dma_unmap_single}
+      \end{itemize}
+    \end{itemize}
+  \end{itemize}
+\end{frame}

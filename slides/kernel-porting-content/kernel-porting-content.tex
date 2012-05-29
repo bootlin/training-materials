@@ -1,0 +1,491 @@
+\begin{frame}
+  \frametitle{Porting the Linux kernel}
+  \begin{itemize}
+  \item The Linux kernel supports a lot of different CPU architectures
+  \item Each of them is maintained by a different group of
+    contributors
+    \begin{itemize}
+    \item See the \code{MAINTAINERS} file for details
+    \end{itemize}
+  \item The organization of the source code and the methods to port
+    the Linux kernel to a new board are therefore very
+    architecture-dependent
+  \item For example, PowerPC and ARM are very different
+    \begin{itemize}
+    \item PowerPC relies on device trees to describe hardware details
+    \item ARM relies on source code only, but the migration to device
+      tree is in progress
+    \end{itemize}
+  \item This presentation is focused on the ARM architecture only
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Architecture, CPU and Machine}
+  \begin{itemize}
+  \item In the source tree, each architecture has its own directory
+    \begin{itemize}
+    \item \code{arch/arm} for the ARM architecture
+    \end{itemize}
+  \item This directory contains generic ARM code
+    \begin{itemize}
+    \item \code{boot}, \code{common}, \code{configs}, \code{kernel},
+      \code{lib}, \code{mm}, \code{nwfpe}, \code{vfp},
+      \code{oprofile}, \code{tools}
+    \end{itemize}
+  \item And many directories for different SoC families
+    \begin{itemize}
+    \item \code{mach-*} directories : \code{mach-pxa} for PXA CPUs,
+      \code{mach-imx} for Freescale iMX CPUs, etc.
+    \item Each of these directories contain
+      \begin{itemize}
+      \item Support for the SoC family (GPIO, clocks, pinmux, power
+        management, interrupt controller, etc.)
+      \item Support for several boards using this SoC
+      \end{itemize}
+    \end{itemize}
+  \item Some CPU types share some code, in directories named
+    \code{plat-*}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Source Code for Calao USB A9263}
+  \begin{itemize}
+  \item Taking the case of the Calao USB A9263 board, which uses a
+    AT91SAM9263 CPU.
+  \item \code{arch/arm/mach-at91}
+    \begin{itemize}
+    \item AT91 generic code
+      \begin{itemize}
+      \item \code{clock.c}
+      \item \code{leds.c}
+      \item \code{irq.c}
+      \item \code{pm.c}
+      \end{itemize}
+    \item CPU-specific code for the AT91SAM9263
+      \begin{itemize}
+      \item \code{at91sam9263.c}
+      \item \code{at91sam926x_time.c}
+      \item \code{at91sam9263_devices.c}
+      \end{itemize}
+    \item Board specific code
+      \begin{itemize}
+      \item \code{board-usb-a9263.c}
+      \end{itemize}
+    \end{itemize}
+  \item For the rest of this presentation, we will focus on board
+    support only
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Configuration}
+  \begin{itemize}
+  \item A configuration option must be defined for the board, in
+    \code{arch/arm/mach-at91/Kconfig}
+{\scriptsize
+\begin{verbatim}
+config MACH_USB_A9263
+        bool "CALAO USB-A9263"
+        depends on ARCH_AT91SAM9263
+        help
+          Select this if you are using a Calao Systems USB-A9263.
+          <http://www.calao-systems.com>
+\end{verbatim}
+}
+  \item This option must depend on the CPU type option corresponding
+    to the CPU used in the board
+    \begin{itemize}
+    \item Here the option is \code{ARCH_AT91SAM9263}, defined in the
+      same file
+    \end{itemize}
+  \item A default configuration file for the board can optionally be
+    stored in \code{arch/arm/configs/}. For our board, it's
+    \code{at91sam9263_defconfig}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Compilation}
+  \begin{itemize}
+  \item The source files corresponding to the board support must be
+    associated with the configuration option of the board
+\begin{verbatim}
+obj-$(CONFIG_MACH_USB_A9263) += board-usb-a9263.o
+\end{verbatim}
+  \item This is done in \code{arch/arm/mach-at91/Makefile}
+\begin{verbatim}
+obj-y           := irq.o gpio.o
+obj-$(CONFIG_AT91_PMC_UNIT)   += clock.o
+obj-y                         += leds.o
+obj-$(CONFIG_PM)              += pm.o
+obj-$(CONFIG_AT91_SLOW_CLOCK) += pm_slowclock.o
+\end{verbatim}
+  \item The Makefile also tells which files are compiled for every AT91 CPU
+  \item And which files for our particular CPU, the AT91SAM9263
+{\footnotesize
+\begin{verbatim}
+obj-$(CONFIG_ARCH_AT91SAM9263) += at91sam9263.o
+at91sam926x_time.o at91sam9263_devices.o sam9_smc.o
+\end{verbatim}
+}
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Machine Structure}
+  \begin{itemize}
+  \item Each board is defined by a machine structure
+    \begin{itemize}
+    \item The word \emph{machine} is quite confusing since every
+      \code{mach-*} directory contains several machine definitions, one for
+      each board using a given CPU type
+    \end{itemize}
+  \item For the Calao board, at the end of
+    \code{arch/arm/mach-at91/board-usb-a926x.c}
+\begin{minted}[fontsize=\footnotesize]{c}
+MACHINE_START(USB_A9263, "CALAO USB_A9263")
+    /* Maintainer: calao-systems */
+    .phys_io = AT91_BASE_SYS,
+    .io_pg_offst = (AT91_VA_BASE_SYS >> 18) & 0xfffc,
+    .boot_params = AT91_SDRAM_BASE + 0x100,
+    .timer = &at91sam926x_timer,
+    .map_io = ek_map_io,
+    .init_irq = ek_init_irq,
+    .init_machine = ek_board_init,
+MACHINE_END
+\end{minted}
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Machine Structure Macros}
+  \begin{itemize}
+  \item \code{MACHINE_START} and \code{MACHINE_END}
+    \begin{itemize}
+    \item Macros defined in \code{arch/arm/include/asm/mach/arch.h}
+    \item They are helpers to define a \code{struct machine_desc}
+      structure stored in a specific ELF section
+    \item Several \code{machine_desc} structures can be defined in a
+      kernel, which means that the kernel can support several boards.
+    \item The right structure is chosen at boot time
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Machine Type Number}
+  \begin{itemize}
+  \item In the ARM architecture, each board type is identified by a
+    machine type number
+  \item The latest machine type numbers list can be found at
+    \url{http://www.arm.linux.org.uk/developer/machines/download.php}
+  \item A copy of it exists in the kernel tree in
+    \code{arch/arm/tools/mach-types}
+    \begin{itemize}
+    \item For the Calao board
+      \begin{itemize}
+      \item \code{usb_a9263 MACH_USB_A9263 USB_A9263 1710}
+      \end{itemize}
+    \end{itemize}
+  \item At compile time, this file is processed to generate a header
+    file, \code{include/asm-arm/mach-types.h}
+    \begin{itemize}
+    \item For the Calao board
+      \begin{itemize}
+      \item \mint{c}+#define MACH_TYPE_USB_A9263 1710+
+      \end{itemize}
+    \item And a few other macros in the same file
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Machine Type Number}
+  \begin{itemize}
+  \item The machine type number is set in the \code{MACHINE_START()}
+    definition
+    \begin{itemize}
+    \item \mint{c}+MACHINE_START(USB_A9263, "CALAO USB_A9263")+
+    \end{itemize}
+  \item At run time, the machine type number of the board on which the
+    kernel is running is passed by the bootloader in register r1
+  \item Very early in the boot process
+    (\code{arch/arm/kernel/head.S}), the kernel calls
+    \code{__lookup_machine_type} in
+    \code{arch/arm/kernel/head-common.S}
+  \item \code{__lookup_machine_type} looks at all the
+    \code{machine_desc} structures of the special ELF section
+    \begin{itemize}
+    \item If it doesn't find the requested number, prints a message
+      and stops
+    \item If found, it knows the machine descriptions and continues
+      the boot process
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Early Debugging and Boot Parameters}
+  \begin{itemize}
+  \item Early debugging
+    \begin{itemize}
+    \item \code{phys_io} is the physical address of the I/O space
+    \item \code{io_pg_offset} is the offset in the page table to remap
+      the I/O space
+    \item These are used when \code{CONFIG_DEBUG_LL} is enabled to
+      provide very early debugging messages on the serial port
+    \end{itemize}
+  \item Boot parameters
+    \begin{itemize}
+    \item \code{boot_params} is the location where the bootloader has
+      left the boot parameters (the kernel command line)
+    \item The bootloader can override this address in register
+      \code{r2}
+    \item See also \code{Documentation/arm/Booting} for the details of
+      the environment expected by the kernel when booted
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{System Timer}
+  \begin{itemize}
+  \item The timer field points to a \code{struct sys_timer} structure,
+    that describes the system timer
+    \begin{itemize}
+    \item Used to generate the periodic tick at HZ frequency to call
+      the scheduler periodically
+    \end{itemize}
+  \item On the Calao board, the system timer is defined by the
+    \code{at91sam926x_timer} structure in \code{at91sam926x_time.c}
+  \item It contains the interrupt handler called at HZ frequency
+  \item It is integrated with the \code{clockevents} and the
+    \code{clocksource} infrastructures
+    \begin{itemize}
+    \item See \code{include/linux/clocksource.h} and
+      \code{include/linux/clockchips.h} for details
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{map\_io()}
+  \begin{itemize}
+  \item The \code{map_io()} function points to \code{ek_map_io()},
+    which
+    \begin{itemize}
+    \item Initializes the CPU using \code{at91sam9263_initialize()}
+      \begin{itemize}
+      \item Map I/O space
+      \item Register and initialize the clocks
+      \end{itemize}
+    \item Configures the debug serial port and set the console to be
+      on this serial port
+    \item Called at the very beginning of the C code execution
+      \begin{itemize}
+      \item \code{init/main.c}: \code{start_kernel()}
+      \item \code{arch/arm/kernel/setup.c}: \code{setup_arch()}
+      \item \code{arch/arm/mm/mmu.c}: \code{paging_init()}
+      \item \code{arch/arm/mm/mmu.c}: \code{devicemaps_init()}
+      \item \code{mdesc->map_io()}
+      \end{itemize}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{init\_irq()}
+  \begin{itemize}
+  \item \code{init_irq()} to initialize the IRQ hardware specific
+    details
+  \item Implemented by \code{ek_init_irq()}, which calls
+    \code{at91sam9263_init_interrupts()} in \code{at91sam9263.c},
+    which mainly calls \code{at91_aic_init()} in \code{irq.c}
+    \begin{itemize}
+    \item Initialize the interrupt controller, assign the priorities
+    \item Register the IRQ chip (\code{irq_chip} structure) to the
+      kernel generic IRQ infrastructure, so that the kernel knows how
+      to ack, mask, unmask the IRQs
+    \end{itemize}
+  \item Called a little bit later than \code{map_io()}
+    \begin{itemize}
+    \item \code{init/main.c}: \code{start_kernel()}
+    \item \code{arch/arm/kernel/irq.c}: \code{init_IRQ()}
+    \item \code{init_arch_irq()} (equal to \code{mdesc->init_irq})
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{init\_machine()}
+  \begin{itemize}
+  \item \code{init_machine()} completes the initialization of the
+    board by registering all platform devices
+  \item Called by \code{customize_machines()} in
+    \code{arch/arm/kernel/setup.c}
+  \item This function is an \code{arch_initcall} (list of functions
+    whose address is stored in a specific ELF section, by levels)
+  \item At the end of kernel initialization, just before running the
+    first userspace program init:
+    \begin{itemize}
+    \item \code{init/main.c}: \code{kernel_init()}
+    \item \code{init/main.c}: \code{do_basic_setup()}
+    \item \code{init/main.c}: \code{do_initcalls()}
+    \item Calls all initcalls, level by level
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{init\_machine() for Calao}
+  \begin{itemize}
+  \item For the Calao board, implemented in \code{ek_board_init()}
+    \begin{itemize}
+    \item Registers serial ports, USB host, USB device, SPI, Ethernet,
+      NAND flash, 2IC, buttons and LEDs
+    \item Uses \code{at91_add_device_*()} helpers, defined in
+      \code{at91sam9263_devices.c}
+    \item These helpers call \code{platform_device_register()} to
+      register the different \code{platform_device} structures defined
+      in the same file
+    \item For some devices, the board specific code does the
+      registration itself (buttons) or passes board-specific data to
+      the registration helper (USB host and device, NAND, Ethernet,
+      etc.)
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Drivers}
+  \begin{itemize}
+  \item The \code{at91sam9263_devices.c} file doesn't implement the
+    drivers for the platform devices
+  \item The drivers are implemented at different places of the kernel
+    tree
+  \item For the Calao board
+    \begin{itemize}
+    \item USB host, driver \code{at91_ohci},
+      \code{drivers/usb/host/ohci-at91.c}
+    \item USB device, driver \code{at91_udc},
+      \code{drivers/usb/gadget/at91_udc.c}
+    \item Ethernet, driver \code{macb}, \code{drivers/net/macb.c}
+    \item NAND, driver \code{atmel_nand},
+      \code{drivers/mtd/nand/atmel_nand.c}
+    \item I2C on GPIO, driver \code{i2c-gpio},
+      \code{drivers/i2c/busses/i2c-gpio.c}
+    \item SPI, driver \code{atmel_spi}, \code{drivers/spi/atmel_spi.c}
+    \item Buttons, driver \code{gpio-keys},
+      \code{drivers/input/keyboard/gpio_keys.c}
+    \end{itemize}
+  \item All these drivers are selected by the ready-made configuration
+    file
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{New Directions in the ARM Architecture}
+  \begin{itemize}
+  \item The ARM architecture is migrating to the device tree
+    \begin{itemize}
+    \item \emph{The Device Tree is a data structure for describing
+        hardware}
+    \item Instead of describing the hardware in C, a special data
+      structure, external to the kernel is used
+    \item Allows to more easily port the kernel to newer platforms and
+      to make a single kernel image support multiple platforms
+    \end{itemize}
+  \item The ARM architecture is being consolidated
+    \begin{itemize}
+    \item The \emph{clock} API is being converted to a proper
+      framework, with drivers in \code{drivers/clk}
+    \item The GPIO support is being converted as proper GPIO drivers
+      in \code{drivers/gpio}
+    \item The pin muxing support is being converted as drivers in
+      \code{drivers/pinctrl}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Board Device Tree Example: tegra-harmony.dts}
+{\tiny
+\begin{verbatim}
+/dts-v1/;
+/memreserve/ 0x1c000000 0x04000000;
+/include/ "tegra20.dtsi"
+/ {
+    model = "NVIDIA Tegra2 Harmony evaluation board";
+    compatible = "nvidia,harmony", "nvidia,tegra20";
+    chosen {
+        bootargs = "vmalloc=192M video=tegrafb console=ttyS0,115200n8";
+    };
+
+    memory@0 {
+        reg = < 0x00000000 0x40000000 >;
+    };
+
+    i2c@7000c000 {
+        clock-frequency = <400000>;
+
+        codec: wm8903@1a {
+            compatible = "wlf,wm8903";
+            reg = <0x1a>;
+            interrupts = < 347 >;
+
+            gpio-controller;
+            #gpio-cells = <2>;
+
+            /* 0x8000 = Not configured */
+            gpio-cfg = < 0x8000 0x8000 0 0x8000 0x8000 >;
+        };
+    };
+    [...]
+};
+\end{verbatim}
+}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Device Tree Usage}
+  \begin{itemize}
+  \item The \emph{device tree source} (\code{.dts}) is compiled into a
+    \emph{device tree blob} (\code{.dtb}) using a \emph{device tree
+      compiler} (\code{.dtc})
+    \begin{itemize}
+    \item The \code{dtb} is an efficient binary data structure
+    \item The \code{dtb} is either appended to the kernel image, or
+      better, passed by the bootloader to the kernel
+    \end{itemize}
+  \item At runtime, the kernel parses the device tree to find out
+    \begin{itemize}
+    \item which devices are present
+    \item what drivers are needed
+    \item which parameters should be used to initialize the devices
+    \end{itemize}
+  \item On ARM, device tree support is only beginning
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Porting to a New Board: Advise}
+  \begin{itemize}
+  \item Porting Linux to a new board is easy, when Linux already
+    supports the evaluation kit / development board for your CPU.
+  \item Most work has already been done and it is just a matter of
+    customizing devices instantiated on your boards and their
+    settings.
+  \item Therefore, look for how the development board is supported, or
+    at least for a similar board with the same CPU.
+  \item For example, review the (few) differences between the Calao
+    \code{qil-a9260} board and Atmel's \code{sam9260} Evaluation Kit:
+    \begin{itemize}
+    \item \code{meld board-sam9260ek.c board-qil-a9260.c}
+    \end{itemize}
+  \item Similarly, you will find very few differences in U-boot
+    between code for a board and for the corresponding evaluation
+    board.
+  \end{itemize}
+\end{frame}

@@ -1,0 +1,174 @@
+\subsection{mmap}
+
+\begin{frame}
+  \frametitle{mmap}
+  \begin{itemize}
+  \item Possibility to have parts of the virtual address space of a
+    program mapped to the contents of a file
+  \item Particularly useful when the file is a device file
+  \item Allows to access device I/O memory and ports without having to
+    go through (expensive) read, write or ioctl calls
+  \item One can access to current mapped files by two means:
+    \begin{itemize}
+    \item \code{/proc/<pid>/maps}
+    \item \code{pmap <pid>}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{/proc/pid/maps}
+{\footnotesize
+\begin{verbatim}
+   start-end      perm offset major:minor inode mapped file name
+00771000-0077f000 r-xp 00000000 03:05 1165839 /lib/libselinux.so.1
+0077f000-00781000 rw-p 0000d000 03:05 1165839 /lib/libselinux.so.1
+0097d000-00992000 r-xp 00000000 03:05 1158767 /lib/ld-2.3.3.so
+00992000-00993000 r--p 00014000 03:05 1158767 /lib/ld-2.3.3.so
+00993000-00994000 rw-p 00015000 03:05 1158767 /lib/ld-2.3.3.so
+00996000-00aac000 r-xp 00000000 03:05 1158770 /lib/tls/libc-2.3.3.so
+00aac000-00aad000 r--p 00116000 03:05 1158770 /lib/tls/libc-2.3.3.so
+00aad000-00ab0000 rw-p 00117000 03:05 1158770 /lib/tls/libc-2.3.3.so
+00ab0000-00ab2000 rw-p 00ab0000 00:00 0
+08048000-08050000 r-xp 00000000 03:05 571452 /sbin/init (text)
+08050000-08051000 rw-p 00008000 03:05 571452 /sbin/init (data, stack)
+08b43000-08b64000 rw-p 08b43000 00:00 0
+f6fdf000-f6fe0000 rw-p f6fdf000 00:00 0
+fefd4000-ff000000 rw-p fefd4000 00:00 0
+ffffe000-fffff000 ---p 00000000 00:00 0
+\end{verbatim}
+}
+\end{frame}
+
+\begin{frame}
+  \frametitle{mmap Overview}
+  \begin{center}
+    \todo{Schema}
+%    \includegraphics[width=\textwidth]{slides/kernel-driver-development-mmap/mmap-overview.pdf}
+  \end{center}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{How to Implement mmap - User Space}
+  \begin{itemize}
+  \item Open the device file
+  \item Call the \code{mmap} system call (see \code{man mmap} for
+    details):
+    \begin{minted}[fontsize=\footnotesize]{c}
+void * mmap(
+    void *start,   /* Often 0, preferred starting address */
+    size_t length, /* Length of the mapped area */
+    int prot,      /* Permissions: read, write, execute */
+    int flags,     /* Options: shared mapping, private copy... */
+    int fd,        /* Open file descriptor */
+    off_t offset   /* Offset in the file */
+);
+    \end{minted}
+  \item You get a virtual address you can write to or read from.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{How to Implement mmap - Kernel Space}
+  \begin{itemize}
+  \item Character driver: implement an mmap file operation and add it
+    to the driver file operations:
+    \begin{minted}{c}
+int (*mmap) (
+    struct file *,           /* Open file structure */
+    struct vm_area_struct *  /* Kernel VMA structure */
+);
+    \end{minted}
+  \item Initialize the mapping.
+    \begin{itemize}
+    \item Can be done in most cases with the \code{remap_pfn_range()}
+      function, which takes care of most of the job.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{remap\_pfn\_range()}
+  \begin{itemize}
+  \item pfn: page frame number
+  \item The most significant bits of the page address (without the
+    bits corresponding to the page size).
+  \end{itemize}
+  \begin{minted}[fontsize=\small]{c}
+#include <linux/mm.h>
+
+int remap_pfn_range(
+    struct vm_area_struct *, /* VMA struct */
+    unsigned long virt_addr, /* Starting user
+                              * virtual address */
+    unsigned long pfn,       /* pfn of the starting
+                              * physical address */
+    unsigned long size,      /* Mapping size */
+    pgprot_t                 /* Page permissions */
+);
+  \end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Simple mmap Implementation}
+  \begin{minted}[fontsize=\small]{c}
+static int acme_mmap
+    (struct file * file, struct vm_area_struct *vma)
+{
+      size = vma->vm_end - vma->vm_start;
+
+      if (size > ACME_SIZE)
+          return -EINVAL;
+
+      if (remap_pfn_range(vma,
+                    vma->vm_start,
+                    ACME_PHYS >> PAGE_SHIFT,
+                    size,
+                    vma->vm_page_prot))
+          return -EAGAIN;
+
+      return 0;
+    }
+  \end{minted}
+\end{frame}
+
+\begin{frame}
+  \frametitle{devmem2}
+  \begin{itemize}
+  \item \url{http://free-electrons.com/pub/mirror/devmem2.c}, by Jan-Derk
+    Bakker
+  \item Very useful tool to directly \code{peek} (read) or \code{poke}
+    (write) I/O addresses mapped in physical address space from a
+    shell command line!
+    \begin{itemize}
+    \item Very useful for early interaction experiments with a device,
+      without having to code and compile a driver.
+    \item Uses \code{mmap} to \code{/dev/mem}.
+    \item Examples (\code{b}: byte, \code{h}: half, \code{w}: word)
+      \begin{itemize}
+      \item \code{devmem2 0x000c0004 h} (reading)
+      \item \code{devmem2 0x000c0008 w 0xffffffff} (writing)
+      \end{itemize}
+    \item devmem is now available in BusyBox, making it even easier to
+      use.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{mmap Summary}
+  \begin{itemize}
+  \item The device driver is loaded. It defines an \code{mmap} file
+    operation.
+  \item A user space process calls the \code{mmap} system call.
+  \item The \code{mmap} file operation is called.
+  \item It initializes the mapping using the device physical address.
+  \item The process gets a starting address to read from and write to
+    (depending on permissions).
+  \item The MMU automatically takes care of converting the process
+    virtual addresses into physical ones.
+  \item Direct access to the hardware without any expensive
+    \code{read} or \code{write} system calls
+  \end{itemize}
+\end{frame}
+

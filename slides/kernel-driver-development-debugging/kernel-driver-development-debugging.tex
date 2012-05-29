@@ -1,0 +1,415 @@
+\subsection{Debugging and tracing}
+
+\begin{frame}
+  \frametitle{Debugging Using Messages}
+  \begin{itemize}
+  \item Three APIs are available
+    \begin{itemize}
+    \item The old \code{printk()}, no longer recommended for new debugging
+      messages
+    \item The \code{pr_*()} family of functions : \code{pr_emerg()},
+      \code{pr_alert()}, \code{pr_crit()}, \code{pr_err()},
+      \code{pr_warning()}, \code{pr_notice()}, \code{pr_info()},
+      \code{pr_cont()} and the special \code{pr_debug()}
+      \begin{itemize}
+      \item They take a classic format string with arguments
+      \item defined in \code{include/linux/printk.h}
+      \end{itemize}
+    \item The \code{dev_*()} family of functions : \code{dev_emerg()},
+      \code{dev_alert()}, \code{dev_crit()}, \code{dev_err()},
+      \code{dev_warning()}, \code{dev_notice()}, \code{dev_info()} and
+      the special \code{dev_dbg()}
+      \begin{itemize}
+      \item They take a pointer to \code{struct device} as first
+        argument (covered later), and then a format string with
+        arguments
+      \item defined in \code{include/linux/device.h}
+      \item To be used in drivers integrated with the Linux device
+        model
+      \end{itemize}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{pr\_debug() and dev\_dbg()}
+  \begin{itemize}
+  \item When the kernel is compiled with \code{CONFIG_DEBUG}, all
+    those messages are compiled and printed at the debug level with
+    \code{printk}
+  \item When the kernel is compiled with \code{CONFIG_DYNAMIC_DEBUG},
+    then those messages can dynamically be enabled on a per-file,
+    per-module or per-message basis
+    \begin{itemize}
+    \item See \code{Documentation/dynamic-debug-howto.txt} for details
+    \item Very powerful feature to only get the debug messages you're
+      interested in.
+    \end{itemize}
+  \item When neither \code{CONFIG_DEBUG} nor
+    \code{CONFIG_DYNAMIC_DEBUG} are enabled, those messages are not
+    compiled in.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Configuring The Priority}
+  \begin{itemize}
+  \item Each message is associated to a priority, ranging from 0 for
+    emergency to 7 for debug.
+  \item All the messages, regardless of their priority, are stored in
+    the kernel log ring buffer
+    \begin{itemize}
+    \item Typically accessed using the \code{dmesg} command
+    \end{itemize}
+  \item Some of the messages may appear on the console, depending on
+    their priority and the configuration of
+    \begin{itemize}
+    \item The \code{loglevel} kernel parameter, which defines the
+      priority above which messages are displayed on the console. See
+      \code{Documentation/kernel-parameters.txt} for details.
+    \item The value of \code{/proc/sys/kernel/printk}, which allows to
+      change at runtime the priority above which messages are
+      displayed on the console. See
+      \code{Documentation/sysctl/kernel.txt} for details.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{DebugFS}
+  \begin{itemize}
+  \item A virtual filesystem to export debugging information to
+    user-space.
+    \begin{itemize}
+    \item Kernel configuration: \code{DEBUG_FS}
+      \begin{itemize}
+      \item \code{Kernel hacking -> Debug Filesystem}
+      \end{itemize}
+    \item The debugging interface disappears when Debugfs is
+      configured out.
+    \item You can mount it as follows:
+      \begin{itemize}
+      \item \code{sudo mount -t debugfs none /sys/kernel/debug}
+      \end{itemize}
+    \item First described on \url{http://lwn.net/Articles/115405/}
+    \item API documented in the Linux Kernel Filesystem API:
+      \begin{itemize}
+      \item \url{http://free-electrons.com/kerneldoc/latest/DocBook/filesystems/index.html}
+      \end{itemize}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{DebugFS API}
+  \begin{itemize}
+  \item Create a sub-directory for your driver:
+    \begin{itemize}
+    \item \mint{c}+struct dentry *debugfs_create_dir(const char *name,+
+      \mint{c}+struct dentry *parent);+
+      \begin{itemize}
+      \item \code{u} for decimal representation
+      \item \code{x} for hexadecimal representation
+      \end{itemize}
+    \end{itemize}
+  \item Expose an integer as a file in debugfs:
+    \begin{itemize}
+    \item \mint{c}+struct dentry *debugfs_create_{u,x}{8,16,32}+
+      \mint{c}+(const char *name, mode_t mode, struct dentry *parent,+
+      \mint{c}+u8 *value);+
+    \end{itemize}
+  \item Expose a binary blob as a file in debugfs:
+    \begin{itemize}
+    \item \mint{c}+struct dentry *debugfs_create_blob(const char *name,+
+      \mint{c}+mode_t mode, struct dentry *parent,+
+      \mint{c}+struct debugfs_blob_wrapper *blob);+
+    \end{itemize}
+  \item Also possible to support writable debugfs file or customize
+    the output using the more generic \code{debugfs_create_file()}
+    function.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Deprecated Debugging Mechanisms}
+  \begin{itemize}
+  \item Some additional debugging mechanisms, whose usage is now
+    considered deprecated
+    \begin{itemize}
+    \item Adding special \code{ioctl()} commands for debugging
+      purposes. debugfs is preferred.
+    \item Adding special entries in the proc filesystem. debugfs is
+      preferred.
+    \item Adding special entries in the sysfs filesystem. debugfs is
+      preferred.
+    \item Using \code{printk()}. The \code{pr_*()} and \code{dev_*()}
+      functions are preferred.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Using Magic SysRq}
+  \begin{itemize}
+  \item Allows to run multiple debug / rescue commands even when the
+    kernel seems to be in deep trouble
+    \begin{itemize}
+    \item On PC: \code{[Alt]} + \code{[SysRq]} + \code{<character>}
+    \item On embedded: break character on the serial line +
+      \code{<character>}
+    \end{itemize}
+  \item Example commands:
+    \begin{itemize}
+    \item \code{n}: makes RT processes nice-able.
+    \item \code{t}: shows the kernel stack of all sleeping processes
+    \item \code{w}: shows the kernel stack of all running processes
+    \item \code{b}: reboot the system
+    \item You can even register your own!
+    \end{itemize}
+  \item Detailed in \code{Documentation/sysrq.txt}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{kgdb - A Kernel Debugger}
+  \begin{itemize}
+  \item The execution of the kernel is fully controlled by \code{gdb}
+    from another machine, connected through a serial line.
+  \item Can do almost everything, including inserting breakpoints in
+    interrupt handlers.
+  \item Feature included in standard Linux since 2.6.26 (x86 and
+    sparc). arm, mips and ppc support merged in 2.6.27.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Using kgdb 1/2}
+  \begin{itemize}
+  \item Details available in the kernel documentation:
+    \url{http://free-electrons.com/kerneldoc/latest/DocBook/kgdb/}
+  \item Recommended to turn on \code{CONFIG_FRAME_POINTER} to aid in
+    producing more reliable stack backtraces in gdb.
+  \item You must include a kgdb I/O driver. One of them is kgdb over
+    serial console (\code{kgdboc}: kgdb over console, enabled by
+    \code{CONFIG_KGDB_SERIAL_CONSOLE})
+  \item Configure \code{kgdboc} at boot time by passing to the kernel:
+    \begin{itemize}
+    \item \code{kgdboc=<tty-device>,<bauds>}.
+    \item For example: \code{kgdboc=ttyS0,115200}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Using kgdb 2/2}
+  \begin{itemize}
+  \item Then also pass \code{kgdbwait} to the kernel: it makes kgdb
+    wait for a debugger connection.
+  \item Boot your kernel, and when the console is initialized,
+    interrupt the kernel with \code{Alt} + \code{SyrRq} + \code{g}.
+  \item On your workstation, start gdb as follows:
+    \begin{itemize}
+    \item \code{gdb ./vmlinux}
+    \item \code{(gdb) set remotebaud 115200}
+    \item \code{(gdb) target remote /dev/ttyS0}
+    \end{itemize}
+  \item Once connected, you can debug a kernel the way you would debug
+    an application program.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Debugging with a JTAG Interface}
+  \begin{itemize}
+  \item Two types of JTAG dongles
+    \begin{itemize}
+    \item Those offering a gdb compatible interface, over a serial
+      port or an Ethernet connexion. Gdb can directly connect to them.
+    \item Those not offering a gdb compatible interface are generally
+      supported by OpenOCD (Open On Chip Debugger):
+      \url{http://openocd.sourceforge.net/}
+      \begin{itemize}
+      \item OpenOCD is the bridge between the gdb debugging language
+        and the JTAG-dongle specific language
+      \item See the very complete documentation:
+        \url{http://openocd.sourceforge.net/documentation/online-docs/}
+      \item For each board, you'll need an OpenOCD configuration file
+        (ask your supplier)
+      \end{itemize}
+    \end{itemize}
+  \item See very useful details on using Eclipse / gcc / gdb / OpenOCD
+    on Windows:
+    \begin{itemize}
+    \item \url{http://www2.amontec.com/sdk4arm/ext/jlynch-tutorial-20061124.pdf}
+    \item \url{http://www.yagarto.de/howto/yagarto2/}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{More Kernel Debugging Tips}
+  \begin{itemize}
+  \item Enable \code{CONFIG_KALLSYMS_ALL}
+    \begin{itemize}
+    \item \code{General Setup -> Configure standard kernel features}
+    \item To get oops messages with symbol names instead of raw addresses
+    \item This obsoletes the \code{ksymoops} tool
+    \end{itemize}
+  \item If your kernel doesn't boot yet or hangs without any message,
+    you can activate the low-level debugging option
+    (\code{Kernel Hacking} section, only available on \code{arm} and
+    \code{unicore32}): \code{CONFIG_DEBUG_LL=y}
+  \item Techniques to locate the C instruction which caused an oops
+    \begin{itemize}
+    \item \url{http://kerneltrap.org/node/3648}
+    \end{itemize}
+  \item More about kernel debugging in the free Linux Device Drivers book
+    \begin{itemize}
+    \item \url{http://lwn.net/images/pdf/LDD3/ch04.pdf}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Kernel Crash Analysis with kexec/kdump}
+  \begin{columns}
+    \column{0.6\textwidth}
+    \begin{itemize}
+    \item \code{kexec} system call: makes it possible to call a new
+      kernel, without rebooting and going through the BIOS / firmware.
+    \item Idea: after a kernel panic, make the kernel automatically
+      execute a new, clean kernel from a reserved location in RAM, to
+      perform post-mortem analysis of the memory of the crashed
+      kernel.
+    \item See \code{Documentation/kdump/kdump.txt} in the kernel
+      sources for details.
+    \end{itemize}
+    \column{0.4\textwidth}
+    \includegraphics[width=\textwidth]{slides/kernel-driver-development-debugging/kexec.pdf}
+  \end{columns}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Tracing with SystemTap}
+  \begin{itemize}
+  \item \url{http://sourceware.org/systemtap/}
+    \begin{itemize}
+    \item Infrastructure to add instrumentation to a running kernel:
+      trace functions, read and write variables, follow pointers,
+      gather statistics...
+    \item Eliminates the need to modify the kernel sources to add
+      one's own instrumentation to investigated a functional or
+      performance problem.
+    \item Uses a simple scripting language.
+    \item Several example scripts and probe points are available.
+    \item Based on the \code{Kprobes} instrumentation infrastructure.
+    \item See \code{Documentation/kprobes.txt} in kernel sources.
+    \item Now supported on most popular CPUs.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+
+
+\begin{frame}[fragile]
+  \frametitle{SystemTap Script Example 1/3}
+\begin{verbatim}
+#! /usr/bin/env stap
+# Using statistics and maps to examine kernel memory
+# allocations
+
+global kmalloc
+
+probe kernel.function("__kmalloc") {
+    kmalloc[execname()] <<< $size
+}
+
+# Exit after 10 seconds
+probe timer.ms(10000) {
+    exit()
+}
+\end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{SystemTap Script Example 2/3}
+{\footnotesize
+\begin{verbatim}
+probe end {
+    foreach ([name] in kmalloc) {
+        printf("Allocations for %s\n", name)
+        printf("Count:     %d allocations\n", @count(kmalloc[name]))
+        printf("Sum:       %d Kbytes\n", @sum(kmalloc[name])/1024)
+        printf("Average:   %d bytes\n", @avg(kmalloc[name]))
+        printf("Min:       %d bytes\n", @min(kmalloc[name]))
+        printf("Max:       %d bytes\n", @max(kmalloc[name]))
+        print("\nAllocations by size in bytes\n")
+        print(@hist_log(kmalloc[name]))
+        printf("-------------------------------------------\n\n")
+    }
+}
+\end{verbatim}
+}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{SystemTap Script Example 3/3}
+{\small
+\begin{verbatim}
+#! /usr/bin/env stap
+# Logs each file read performed by each process
+
+probe kernel.function ("vfs_read")
+{
+    dev_nr = $file->f_dentry->d_inode->i_sb->s_dev
+    inode_nr = $file->f_dentry->d_inode->i_ino
+    printf ("%s(%d) %s 0x%x/%d\n",
+         execname(), pid(), probefunc(), dev_nr, inode_nr)
+}
+\end{verbatim}
+}
+Nice tutorial on \url{http://sources.redhat.com/systemtap/tutorial.pdf}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Kernel Markers}
+  \begin{itemize}
+  \item Capability to add static markers to kernel code.
+  \item Almost no impact on performance, until the marker is
+    dynamically enabled, by inserting a probe kernel module.
+  \item Useful to insert trace points that won't be impacted by
+    changes in the Linux kernel sources.
+  \item See marker and probe example in \code{samples/markers} in the
+    kernel sources.
+  \item See \url{http://en.wikipedia.org/wiki/Kernel_marker}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{LTTng}
+  \begin{itemize}
+  \item \url{http://lttng.org}
+    \begin{itemize}
+    \item The successor of the Linux Trace Toolkit (LTT)
+    \item Toolkit allowing to collect and analyze tracing information
+      from the kernel, based on kernel markers and kernel tracepoints.
+    \item So far, based on kernel patches, but doing its best to use
+      in-tree solutions, and to be merged in the future.
+    \item Very precise timestamps, very little overhead.
+    \item Useful documentation on \url{http://lttng.org/documentation}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{LTTV}
+  \begin{itemize}
+  \item Viewer for LTTng traces
+    \begin{itemize}
+    \item Support for huge traces (tested with 15 GB ones)
+    \item Can combine multiple tracefiles in a single view.
+    \item Graphical or text interface
+    \end{itemize}
+    \item See \url{http://lttng.org/files/lttv-doc/user_guide/}
+  \end{itemize}
+\end{frame}

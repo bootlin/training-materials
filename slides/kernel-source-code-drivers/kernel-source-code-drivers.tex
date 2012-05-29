@@ -1,0 +1,282 @@
+\subsection{Linux Code and Device Drivers}
+
+\begin{frame}
+  \frametitle{Supported kernel version}
+  \begin{itemize}
+  \item The APIs covered in these training slides should be compliant
+    with Linux 3.0.
+  \item We may also mention features in more recent kernels.
+  \end{itemize}
+\end{frame}
+
+
+\begin{frame}
+  \frametitle{Programming language}
+  \begin{itemize}
+  \item Implemented in C like all Unix systems. (C was created to
+    implement the first Unix systems)
+  \item A little Assembly is used too:
+    \begin{itemize}
+    \item CPU and machine initialization, exceptions
+    \item Critical library routines.
+    \end{itemize}
+  \item No C++ used, see \url{http://www.tux.org/lkml/\#s15-3}
+  \item All the code compiled with gcc, the GNU C Compiler
+    \begin{itemize}
+    \item Many gcc specific extensions used in the kernel code, any
+      ANSI C compiler will not compile the kernel
+    \item A few alternate compilers are supported (Intel and Marvell)
+    \item See
+      \url{http://gcc.gnu.org/onlinedocs/gcc-4.6.1/gcc/C-Extensions.html}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{No C library}
+  \begin{itemize}
+  \item The kernel has to be standalone and can't use user-space code.
+  \item Userspace is implemented on top of kernel services, not the
+    opposite.
+  \item Kernel code has to supply its own library implementations
+    (string utilities, cryptography, uncompression ...)
+  \item So, you can't use standard C library functions in kernel code.
+    (\code{printf()}, \code{memset()}, \code{malloc()},...).
+  \item Fortunately, the kernel provides similar C functions for your
+    convenience, like \code{printk()}, \code{memset()},
+    \code{kmalloc()}, ...
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Portability}
+  \begin{itemize}
+  \item The Linux kernel code is designed to be portable
+  \item All code outside \code{arch/} should be portable
+  \item To this aim, the kernel provides macros and functions to
+    abstract the architecture specific details
+    \begin{itemize}
+    \item Endianness
+      \begin{itemize}
+      \item \code{cpu_to_be32}
+      \item \code{cpu_to_le32}
+      \item \code{be32_to_cpu}
+      \item \code{le32_to_cpu}
+      \end{itemize}
+    \item I/O memory access
+    \item Memory barriers to provide ordering guarantees if needed
+    \item DMA API to flush and invalidate caches if needed
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{No floating point computation}
+  \begin{itemize}
+  \item Never use floating point numbers in kernel code. Your code may
+    be run on a processor without a floating point unit (like on ARM).
+  \item Don't be confused with floating point related configuration
+    options
+    \begin{itemize}
+    \item They are related to the emulation of floating point
+      operation performed by the user space applications, triggering
+      an exception into the kernel.
+    \item Using soft-float, i.e. emulation in user-space, is however
+      recommended for performance reasons.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{No stable Linux internal API 1/3}
+  \begin{itemize}
+  \item The internal kernel API to implement kernel code can undergo
+    changes between two stable 2.6.x or 3.x releases. A stand-alone
+    driver compiled for a given version may no longer compile or work
+    on a more recent one. See
+    \code{Documentation/stable_api_nonsense.txt} in kernel sources for
+    reasons why.
+  \item Of course, the external API must not change (system calls,
+    \code{/proc}, \code{/sys}), as it could break existing
+    programs. New features can be added, but kernel developers try to
+    keep backward compatibility with earlier versions, at least for 1
+    or several years.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{No stable Linux internal API 2/3}  
+  \begin{itemize}
+  \item Whenever a developer changes an internal API, (s)he also has
+    to update all kernel code which uses it. Nothing broken!
+  \item Works great for code in the mainline kernel tree.
+  \item Difficult to keep in line for out of tree or closed-source
+    drivers!
+  \item Feature removal schedule:
+    \code{Documentation/feature-removal-schedule.txt}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{No stable Linux internal API 3/3}
+  \begin{itemize}
+  \item USB example
+    \begin{itemize}
+    \item Linux has updated its USB internal API at least 3 times
+      (fixes, security issues, support for high-speed devices) and has
+      now the fastest USB bus speeds (compared to other systems)
+    \item Windows XP also had to rewrite its USB stack 3 times. But,
+      because of closed-source, binary drivers that can't be updated,
+      they had to keep backward compatibility with all earlier
+      implementation. This is very costly (development, security,
+      stability, performance).
+    \end{itemize}
+  \item See “Myths, Lies, and Truths about the Linux Kernel”, by Greg
+    K.H., for details about the kernel development process:
+    \code{http://kroah.com/log/linux/ols_2006_keynote.html}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Kernel memory constraints}
+  \begin{itemize}
+  \item No memory protection
+  \item Accessing illegal memory locations result in (often fatal)
+    kernel oopses.
+  \item Fixed size stack (8 or 4 KB). Unlike in userspace, there's no
+    way to make it grow.
+  \item Kernel memory can't be swapped out (for the same reasons).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Linux kernel licensing constraints}
+  \begin{itemize}
+  \item The Linux kernel is licensed under the GNU General Public
+    License version 2
+    \begin{itemize}
+    \item This license gives you the right to use, study, modify and
+      share the software freely
+    \end{itemize}
+  \item However, when the software is redistributed, either modified
+    or unmodified, the GPL requires that you redistribute the software
+    under the same license, with the source code
+    \begin{itemize}
+    \item If modifications are made to the Linux kernel (for example
+      to adapt it to your hardware), it is a derivative work of the
+      kernel, and therefore must be released under GPLv2
+    \item The validity of the GPL on this point has already been
+      verified in courts
+    \end{itemize}
+  \item However, you're only required to do so
+    \begin{itemize}
+    \item At the time the device starts to be distributed
+    \item To your customers, not to the entire world
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Proprietary code and the kernel}
+  \begin{itemize}
+  \item It is illegal to distribute a binary kernel that includes
+    statically compiled proprietary drivers
+  \item The kernel modules are a gray area : are they derived works of
+    the kernel or not?
+    \begin{itemize}
+    \item The general opinion of the kernel community is that
+      proprietary drivers are bad: \url{http://j.mp/fbyuuH}
+    \item From a legal point of view, each driver is probably a
+      different case
+    \item Is it really useful to keep your drivers secret?
+    \end{itemize}
+  \item There are some examples of proprietary drivers, like the
+    Nvidia graphics drivers
+    \begin{itemize}
+    \item They use a wrapper between the driver and the kernel
+    \item Unclear whether it makes it legal or not
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Advantages of GPL drivers 1/2}
+  \begin{itemize}
+  \item You don't have to write your driver from scratch. You can
+    reuse code from similar free software drivers.
+  \item You get free community contributions, support, code review and
+    testing.  Proprietary drivers (even with sources) don't get any.
+  \item Your drivers can be freely shipped by others (mainly by
+    distributions).
+  \item Closed source drivers often support a given kernel version. A
+    system with closed source drivers from 2 different sources is
+    unmanageable.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Advantages of GPL drivers 2/2}
+  \begin{itemize}
+  \item Users and the community get a positive image of your
+    company. Makes it easier to hire talented developers.
+  \item You don't have to supply binary driver releases for each
+    kernel version and patch version (closed source drivers).
+  \item Drivers have all privileges. You need the sources to make sure
+    that a driver is not a security risk.
+  \item Your drivers can be statically compiled into the kernel.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Advantages of in-tree kernel drivers}
+  \begin{itemize}
+  \item Once your sources are accepted in the mainline tree, they are
+    maintained by people making changes.
+  \item Cost-free maintenance, security fixes and improvements.
+  \item Easy access to your sources by users.
+  \item Many more people reviewing your code.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Userspace device drivers 1/2}
+  \begin{itemize}
+  \item Possible to implement device drivers in user-space!
+  \item Such drivers just need access to the devices through minimum,
+    generic kernel drivers.
+  \item Examples
+    \begin{itemize}
+    \item Printer and scanner drivers (on top of generic parallel port
+      or USB drivers)
+    \item X drivers: low level kernel drivers + user space X drivers.
+    \item Userspace drivers based on UIO See
+      \code{Documentation/DocBook/uio-howto} in the kernel
+      documentation for details about UIO and the \emph{Using UIO on
+        an Embedded platform} talk at ELC 2008
+      \code{http://j.mp/tBzayM}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Userspace device drivers 2/2}
+  \begin{itemize}
+  \item Advantages
+    \begin{itemize}
+    \item No need for kernel coding skills. Easier to reuse code
+      between devices.
+    \item Drivers can be written in any language, even Perl!
+    \item Drivers can be kept proprietary.
+    \item Driver code can be killed and debugged. Cannot crash the
+      kernel.
+    \item Can be swapped out (kernel code cannot be).
+    \item Can use floating-point computation.
+    \item Less in-kernel complexity.
+    \end{itemize}
+  \item Drawbacks
+    \begin{itemize}
+    \item Less straightforward to handle interrupts.
+    \item Increased latency vs. kernel code.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
