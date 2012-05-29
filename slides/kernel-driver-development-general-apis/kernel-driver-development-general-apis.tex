@@ -49,7 +49,7 @@
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{Linked Lists Examples 1/3}
+  \frametitle{Linked Lists Examples (1)}
   \begin{itemize}
   \item From \code{include/linux/atmel_tc.h}
 \begin{minted}{c}
@@ -67,16 +67,22 @@ struct atmel_tc
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{Linked Lists Examples 2/3}
+  \frametitle{Linked Lists Examples (2)}
   \begin{itemize}
   \item From \code{drivers/misc/atmel_tclib.c}
   \end{itemize}
-\begin{minted}[fontsize=\small]{c}
+\begin{minted}[fontsize=\footnotesize]{c}
 /* Define the global list */
 static LIST_HEAD(tc_list);
 
-struct atmel_tc *atmel_tc_alloc(unsigned block,
-                                const char *name)
+static int __init tc_probe(struct platform_device *pdev) {
+    struct atmel_tc *tc;
+    tc = kzalloc(sizeof(struct atmel_tc), GFP_KERNEL);
+    /* Add an element to the list */
+    list_add_tail(&tc->node, &tc_list);
+}
+
+struct atmel_tc *atmel_tc_alloc(unsigned block, const char *name)
 {
     struct atmel_tc *tc;
     /* Iterate over the list elements */
@@ -84,18 +90,6 @@ struct atmel_tc *atmel_tc_alloc(unsigned block,
         /* Do something with tc */
     }
     [...]
-}
-\end{minted}
-\end{frame}
-
-\begin{frame}[fragile]
-  \frametitle{Linked Lists Example 3/3}
-\begin{minted}[fontsize=\small]{c}
-static int __init tc_probe(struct platform_device *pdev) {
-    struct atmel_tc *tc;
-    tc = kzalloc(sizeof(struct atmel_tc), GFP_KERNEL);
-    /* Add an element to the list */
-    list_add_tail(&tc->node, &tc_list);
 }
 \end{minted}
 \end{frame}
