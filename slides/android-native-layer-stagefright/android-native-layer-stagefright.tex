@@ -1,0 +1,47 @@
+\subsection{Stagefright}
+\begin{frame}
+  \frametitle{Stagefright}
+  \begin{itemize}
+  \item StageFright is the multimedia playback engine in Android since
+    Eclair
+  \item In its goals, it is quite similar to Gstreamer: Provide an
+    abstraction on top of codecs and libraries to easily play
+    multimedia files
+  \item It uses a plugin system, to easily extend the number of
+    formats supported, either software or hardware decoded
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{StageFright Architecture}
+  \begin{center}
+    \includegraphics[width=0.95\textwidth]{slides/android-native-layer-stagefright/stagefright.pdf}
+  \end{center}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{StageFright plugins}
+  \begin{itemize}
+  \item To add support for a new format, you need to:
+    \begin{itemize}
+    \item Develop a new Extractor class, if the container is not
+      supported yet.
+    \item Develop a new Decoder class, that implements the interface
+      needed by the StageFright core to read the data.
+    \item Associate the mime-type of the files to read to your new
+      Decoder in the \code{OMXCodec.cpp} file, in the
+      \code{kDecoderInfo} array.
+      \begin{itemize}
+      \item $\rightarrow$ No runtime extension of the decoders, this
+        is done at compilation time.
+      \end{itemize}
+    \end{itemize}
+  \end{itemize}
+\begin{minted}{c}
+static const CodecInfo kDecoderInfo[] = {
+    { MEDIA_MIMETYPE_AUDIO_AAC, "OMX.TI.AAC.decode" },
+    { MEDIA_MIMETYPE_AUDIO_AAC, "AACDecoder" },
+};
+\end{minted}
+\end{frame}
+

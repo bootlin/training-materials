@@ -1,0 +1,103 @@
+\subsection{Data Storage}
+
+\begin{frame}
+  \frametitle{Data Storage on Android}
+  \begin{itemize}
+  \item An application might need to write to arbitrary
+    files and read from them, for caching purposes, to make settings persistent, etc.
+  \item But the system can't just let you read and write to any random
+    file on the system, this would be a major security flaw
+  \item Android provides some mechanisms to address the two following concerns:
+    allow an application to write to files, while integrating it
+    into the Android security model
+  \item There are four major mechanisms:
+    \begin{itemize}
+    \item Preferences
+    \item Internal data
+    \item External data
+    \item Databases
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Shared Preferences}
+  \begin{itemize}
+  \item Shared Preferences allows to store and retrieve data in a
+    persistent way
+  \item They are stored using key-value pairs, but can only store
+    basic types: int, float, string, boolean
+  \item They are persistent, so you don't have to worry about them
+    disappearing when the activity is killed
+  \item You can get an instance of the class managing the preferences
+    through the function \code{getPreferences}
+  \item You may also want several set of preferences for your
+    application and the function \code{getSharedPreferences} for that
+  \item You can edit them by calling the method \code{edit} on this
+    instance. Don't forget to call \code{commit} when you're done!
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Internal Storage}
+  \begin{itemize}
+  \item You can also save files directly to the internal storage
+    device
+  \item These files are not accessible by default by other
+    applications
+  \item Such files are deleted when the user removes the application
+  \item You can request a \code{FileOutputStream} class to such a new
+    file by calling the method \code{openFileOutput}
+  \item You can pass extra flags to this method to either change the way the
+    file is opened or its permissions
+  \item These files will be created at runtime. If you want to have
+    files at compile time, use resources instead
+  \item You can also use internal storage for caching purposes. To do
+    so, call \code{getCacheDir} that will return a File object
+    allowing you to manage the cache folder the way you want to. Cache
+    files may be deleted by Android when the system is low on internal
+    storage.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{External Storage}
+  \begin{itemize}
+  \item External storage is either the SD card or an internal storage
+    device
+  \item Each file stored on it is world-readable, and the user has
+    direct access to it, since that is the device exported when USB
+    mass storage is used.
+  \item Since this storage may be removable, your application should
+    check for its presence, and that it behaves correctly
+  \item You can either request a sub-folder created only for your
+    application using the \code{getExternalFilesDir} method, with a
+    tag giving which type of files you want to store in this
+    directory. This folder will be removed at un-installation.
+  \item Or you can request a public storage space, shared by all
+    applications, and never removed by the system, using
+    \code{getExternalStoragePublicDirectory}
+  \item You can also use it for caching, with \code{getExternalCacheDir}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{SQLite Databases}
+  \begin{itemize}
+  \item Databases are often abstracted by Content Providers, that will
+    abstract requests, but Android adds another layer of abstraction
+  \item Databases are managed through subclasses of
+    \code{SQLiteOpenHelper} that will abstract the structure of the
+    database
+  \item It will hold the requests needed to build the
+    tables, views, triggers, etc. from scratch, as well as requests
+    to migrate to a newer version of the same
+    database if its structure has to evolve.
+  \item You can then get an instance of \code{SQLiteDatabase} that
+    allows to query the database
+  \item Databases created that way will be only readable from your
+    application, and will never be automatically removed by the system
+  \item You can also manipulate the database using the \code{sqlite3}
+    command in the shell
+  \end{itemize}
+\end{frame}

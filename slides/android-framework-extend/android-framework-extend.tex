@@ -1,0 +1,90 @@
+\subsection{Extend the framework}
+
+\begin{frame}
+  \frametitle{Why extend it?}
+  \begin{itemize}
+  \item You might want to extend the existing Android framework to add
+    new features or allow other applications to use specific devices
+    available on your hardware
+  \item As you have the code, you could just hack the source to make
+    the framework suit your needs
+  \item This is quite problematic however:
+    \begin{itemize}
+    \item You might break the API, introduce bugs, etc
+    \item Google requires you not to modify the Android public API
+    \item It is painful to track changes across the tree, to port the
+      changes to new versions
+    \item You don't always want to have such extensions for all your
+      products
+    \end{itemize}
+  \item As usual with Android, there's a device-specific way of
+    extending the framework: \code{PlatformLibraries}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{PlatformLibraries}
+  \begin{itemize}
+  \item The modifications are just plain Java libraries
+  \item You can declare any namespace you want, do whatever code you
+    want.
+  \item However, they are bundled as raw Java archives, so you cannot
+    embed resources in the modifications
+  \item If you would still do this, you can add them to
+    \code{frameworks/base/res}, but you have to hide them
+  \item When using the Google Play Store, all the libraries including
+    these ones are submitted to Google, so that it can filter out apps
+    relying on libraries not available on your system
+  \item To avoid any application to link to any jar file, you have to
+    declare both in your application and in your library that you will
+    use and add a custom library
+  \item The library's xml permission file should go into the
+    \code{/system/etc/permissions} folder
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{PlatformLibrary Makefile}
+\begin{minted}[fontsize=\small]{make}
+LOCAL_PATH := $(call my-dir)
+include $(CLEAR_VARS)
+
+LOCAL_SRC_FILES := \
+            $(call all-subdir-java-files)
+
+LOCAL_MODULE_TAGS := optional
+
+LOCAL_MODULE:= com.example.android.platform_library
+
+include $(BUILD_JAVA_LIBRARY)
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{PlatformLibrary permissions file}
+\begin{minted}[fontsize=\small]{xml}
+<?xml version="1.0" encoding="utf-8"?>
+<permissions>
+    <library name="com.example.android.pl"
+         file="/system/framework/com.example.android.pl.jar"/>
+</permissions>
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{PlatformLibrary Client Makefile}
+\begin{minted}[fontsize=\small]{make}
+LOCAL_PATH:= $(call my-dir)
+include $(CLEAR_VARS)
+
+LOCAL_MODULE_TAGS := optional
+
+LOCAL_PACKAGE_NAME := PlatformLibraryClient
+
+LOCAL_SRC_FILES := $(call all-java-files-under, src)
+
+LOCAL_JAVA_LIBRARIES := com.example.android.pl
+
+include $(BUILD_PACKAGE)
+\end{minted}
+\end{frame}

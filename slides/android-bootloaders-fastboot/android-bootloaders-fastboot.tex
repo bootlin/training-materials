@@ -1,0 +1,89 @@
+\subsection{Fastboot}
+\begin{frame}
+  \frametitle{Definition}
+  \begin{itemize}
+  \item Fastboot is a protocol to communicate bootloaders over
+    USB
+  \item It is very simple to implement, making it easy to port on
+    both new devices and on host systems
+  \item Accessible with the \code{fastboot} command
+  \item Part of the Google's Test Suite, making it mandatory to obtain the
+    Android Market
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{The Fastboot protocol}
+  \begin{itemize}
+  \item It is very restricted, only 10 commands and defined in the
+    protocol specifications
+  \item It is synchronous and driven by the host
+  \item Allows to:
+    \begin{itemize}
+      \item Transmit data
+      \item Flash the various partitions of the device
+      \item Get variables from the bootloader
+      \item Control the boot sequence
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Session example}
+  \begin{center}
+    \includegraphics[height=0.8\textheight]{slides/android-bootloaders-fastboot/fastboot.pdf}
+  \end{center}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Commands available 1/2}
+  \begin{itemize}
+  \item Vendor-specific commands must begin with an upper-case
+    character. Commands beginning with a lower-case character are reserved
+    for the Fastboot specifications and their evolution
+  \item Commands defined by the Fastboot specifications are:
+  \end{itemize}
+  \begin{description}
+  \item[getvar:\%s] Reads a variable from the bootloader. It will be
+    returned after the \code{OKAY} command.
+  \item[download:\%08x] Writes data to memory on the device to be used
+    later. The client either replies \code{DATA\%08x} if it succeeded
+    or \code{FAIL}.
+  \item[verify:\%08x] Sends a digital signature to verify the
+    previously downloaded data. Required if the device is secure.
+  \item[flash:\%s] Writes the previously sent data to the given
+    partition.
+  \end{description}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Commands available 2/2}
+  \begin{description}
+  \item[erase:\%s] Erases the given flash partition (sets all the
+    partition to \code{0xFF}
+  \item[boot] Means that what was last downloaded is a root filesystem, 
+    and instructs to boot on it.
+  \item[continue] Orders the device to continue booting as usual
+  \item[reboot] Reboots the device
+  \item[reboot-bootloader] Reboots back in the bootloader mode
+  \item[powerdown] Powers off the device
+  \end{description}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Defined variables}
+  \begin{itemize}
+  \item Vendor-specific variables must also begin with a upper-case
+    letter. Variables beginning with a lower-case letter are reserved
+    for the Fastboot specifications and their evolution.
+  \item They are retrieved through the \code{getvar} command.
+    \begin{description}
+    \item[version] Version of the Fastboot protocol implemented
+    \item[version-bootloader] Version of the bootloader
+    \item[version-baseband] Version of the baseband firmware
+    \item[product] Name of the product
+    \item[serialno] Product serial number
+    \item[secure] Does the bootloader require signed images?
+    \end{description}
+  \end{itemize}
+\end{frame}

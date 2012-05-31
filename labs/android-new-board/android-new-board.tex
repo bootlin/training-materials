@@ -1,0 +1,173 @@
+\subchapter{Supporting a new board}{Learn how to make Android on new
+hardware}
+
+After this lab, you will be able to:
+\begin{itemize}
+  \item Boot Android on a real hardware
+  \item Troubleshoot simple problems on Android
+  \item Generate a working build
+\end{itemize}
+
+\section{Setup}
+
+Go to the \code{/home/<user>/felabs/android/linaro} directory.
+
+Install the packages \code{bzr}, \code{python-argparse},
+\code{python-parted} and \code{picocom}.
+
+\section{Download the source code}
+
+Linaro has been working for some time now on a optimized Android distribution,
+available on at least one chip of most major ARM vendors. At each release,
+Linaro also maintains an Android flavored Linux kernel corresponding to the latest
+upstream Linux release.
+
+One of the platform supported by the Linaro's Android is the BeagleBoard, which
+is very similar to the DevKit8000 we use. Moreover, in the last kernel versions,
+the kernel needed for both of these cards have been unified, so we can boot the
+exact same kernel on both these boards. For these reasons, we will use this
+distribution as a starting point for the rest of the labs.\\
+
+First, we need to download the source code. We will use the 11.11 release, which
+is based on Android 2.3 Gingerbread and Linux 3.1.1.
+
+\begin{verbatim}
+mkdir src
+cd src
+repo init -u git://android.git.linaro.org/platform/manifest.git \
+     -b linaro-android-11.11-release
+repo sync -j4
+\end{verbatim}
+
+You will also need to download the associated Linaro toolchain at
+\url{http://android-build.linaro.org/builds/~linaro-android/toolchain-4.6-2011.11/4/android-toolchain-eabi-linaro-4.6-2011.11-4-2011-11-15_12-22-49-linux-x86.tar.bz2} and then extract it.
+
+\section{Build Android for the BeagleBoard}
+
+As we said earlier, the DevKit8000 is very similar to the BeagleBoard, so we
+will first compile a build for the BeagleBoard. The command to run is:\\
+\code{make TARGET_PRODUCT=beagleboard TARGET_TOOLS_PREFIX=~/android/linaro/android-toolchain-eabi/bin/arm-eabi- boottarball systemtarball userdatatarball -j8}
+
+This will build three tarballs in \code{out/target/product/beagleboard}:
+\code{boot.tar.bz2}, \code{system.tar.bz2}, \code{userdata.tar.bz2}, plus the images of Xloader,
+U-Boot, Linux kernel and its initramfs (which are also contained in
+\code{boot.tar.bz2}).\\
+
+We then need to put these images on SD card so that we can boot on this system.
+Linaro developed a set of scripts that takes the three tarballs and aggregates
+them to produce a ready-to-boot SD card. You can install it with the following
+commands:
+
+\begin{verbatim}
+bzr branch lp:linaro-image-tools
+./linaro-image-tools/linaro-android-media-create --mmc /dev/sdc \
+     --dev beagle --system out/target/product/beagleboard/system.tar.bz2 \
+     --userdata out/target/product/beagleboard/userdata.tar.bz2 \
+     --boot out/target/product/beagleboard/boot.tar.bz2
+\end{verbatim}
+
+Now, we can remove the SD card and insert it into its slot in the DevKit8000,
+and we can boot on it holding the boot key while switching the board on. On the
+serial port, you should see Android going through its booting process, until
+you finally have a shell on the serial link.\\
+
+However, as you may have seen, while the system boots, you have no display at
+all, so we will need to fix this.
+
+\section{Fix the blank screen}
+
+The first problem we see is that the display remains blank the whole time. This
+is because of the generated U-Boot being targeted for the BeagleBoard and not
+for the DevKit8000. In the BeagleBoard product definition, find where the U-boot
+config file to use is set and change this configuration to use the default
+configuration for the DevKit8000 (\code{devkit8000_config}).\\
+
+Compile and test your changes. You should now see the display working, while it
+has a major glitch: it prints only a portion of the screen.
+
+You can avoid doing a full rebuild by removing the
+\code{out/target/product/beagleboard/obj/u-boot} directory.
+
+\section{Fix the resolution}
+
+The actual resolution is set to 640x480 on the screen, while its resolution is
+only 480x272. This kind of adjustments are mostly done through the kernel
+command line. On the SD card's boot partition, you will find a file named
+\code{boot.txt} which is a U-Boot's script setting all the needed parameters for the
+board to boot properly, including the kernel command line. Change the
+\code{omapdss.def_disp} and \code{omapfb.mode} properties so that it uses the LCD instead of
+the DVI output and at the correct resolution.\\
+
+You can find some documentation for these options in the file
+\code{kernel/Documentation/arm/OMAP/DSS}, in the Kernel boot arguments section.
+\\
+
+You'll then have to generate from this \code{boot.txt} file a \code{boot.scr} file
+using the following command:
+\code{mkimage -A arm -O linux -T script -C none -a 0 -e 0 -n 'Execute uImage.bin' -d boot.txt boot.scr}\\
+
+Once this is done, test your changes by booting the board. You should see the
+display working correctly now.
+
+\section{Fix the touchscreen}
+
+If you test the touchscreen with the previous Android build you made, you should
+see that it is almost unusable, while the system receives some inputs. This mean
+that the kernel has the driver for the touchscreen controller, but it returns
+bogus values. If you pay attention however, you will find that the touchscreen
+doesn't have the same orientation as the display.\\
+
+Get back to the documentation of the DSS to find an option that might address
+this problem.
+
+\section{Bring it all together}
+
+These tweaks are not persistent because the \code{boot.scr} file is generated at run
+time by the \code{linaro-android-media-create} tool. To automate this, modify it to add
+a ``devkit8000'' target device with the proper command line for the kernel.\\
+
+To do so, you will need to edit the files
+\code{linaro_image_tools/media_create/boards.py} and
+\code{linaro_image_tools/media_create/android_boards.py} to add \code{class} entries in each
+file to specify the correct boot command for your board. It should not take more than 10 lines to
+add.\\
+
+You can also add \code{no_console_suspend} to the bootargs as Android by
+default suspends the shell on the serial line after a minute or so, making it pretty
+hard to use it properly.
+
+\section{Add the Buttons}
+
+If you happen to launch an application, you will find that you cannot
+get back to the home screen, as no button is mapped to \code{back} or \code{home}
+keys.\\
+
+The button mapping is done in two steps. First, in the kernel, the
+board should define the buttons available. In this case, we will use
+the small black buttons right next to the screen on the
+DevKit8000. These buttons are handled by the \code{gpio-keys} driver,
+and defined in the devkit8000 board file in the kernel.\\
+
+If you look into that file, you will see that only one button is
+defined, the one corresponding to the button labeled \code{user key}
+on the board.\\
+
+We will map this button to the back key in Android. In the
+\code{gpio_keys_button} structure, there is a \code{code} field. The
+value of this field defines the keycode sent to the input
+subsystem when you press that button, and will be later dispatched to
+the userspace. Replace the keycode used by \code{KEY_EXIT} and look up
+its value in the \code{include/linux/input.h} file.\\
+
+The Android input system loads keymaps and keylayouts for each input
+driver loaded. To load it properly, it uses the same name than the
+input driver, with an extension. In our case, the input driver being
+\code{gpio-keys}, we will need to modify the \code{gpio-keys.kl} file.\\
+
+This file consists in a list of entries, corresponding to what actions
+every keycode should trigger in the system. Add a new entry to this file
+for the back button, which should be like:
+\code{key  <keycode>  BACK}
+
+Once you're done, rebuild the system, boot it, and you should be able
+to use the back key now!

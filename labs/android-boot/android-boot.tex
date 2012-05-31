@@ -1,0 +1,75 @@
+\subchapter{Compile and boot an Android Kernel}{Learn how to build an Android
+Kernel and test it}
+
+After this lab, you will be able to:
+\begin{itemize}
+  \item Extract the kernel patchset from Android Kernel
+  \item Apply it on a vanilla kernel
+  \item Compile and boot a kernel for the emulator
+\end{itemize}
+
+\section{Setup}
+
+Go to the \code{/home/<user>/felabs/android/kernel} directory.
+
+\section{Compile a kernel for the goldfish platform}
+
+In the standard Android source code we fetched, the kernel source is not included.
+So the first thing to do is download the Android kernel sources.
+
+\code{git clone https://android.googlesource.com/kernel/goldfish.git kernel}\\
+
+Now that we have kernel sources, we need a toolchain to compile them. Fortunately,
+Android provides one. First, add the toolchain to your path.
+
+\code{export PATH=$(pwd)/prebuilt/linux-x86/toolchain/arm-eabi-4.4.3/bin:$PATH}
+
+The platform for the emulator is called goldfish. Using Git, find the latest
+kernel for this platform and switch to this branch with the command 
+
+\code{git checkout <branch>}.
+
+Now, configure the kernel for the target platform
+
+\code{ARCH=arm make goldfish_defconfig}
+
+Then, configure the kernel using the tool of your choice to add a custom suffix
+to the kernel version and compile the kernel!
+
+\code{ARCH=arm CROSS_COMPILE=arm-eabi- make}
+
+A few minutes later, you can boot the emulator with the image found in
+\code{arch/arm/boot}, and when it's booted, check the kernel version in the
+Android Settings.
+
+\section{Generate a patchset from Android Kernel}
+
+Go to the \code{kernel} directory. That's where the kernel source code is. The
+kernel however is the one from Android, and we need to fetch the source code
+from the official kernel to get a point of reference to know which commits
+differ. Git is great for that and offers everything we need to do so.
+
+First, add the linux-stable repository from Greg Kroah-Hartmann to our
+repository:\\
+
+\code{git remote add stable git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-2.6-stable.git}\\
+
+Now, we need to fetch the changes from this remote repository:
+
+\code{git fetch stable}
+
+A while later, you should have all the changes in your own repository, browsable
+offline!
+
+Now, open the main Makefile with your favorite editor and get the kernel version
+that is in it. Now that we have it, we can generate the whole set of commits that
+differ from the linux kernel by doing:
+
+\code{git log v<kernel-version>..HEAD}
+
+Find in that set of commits the one that adds the wakelocks.\\
+
+Now, extract the set of patches with the \code{git format-patch} command.\\
+
+Congrats! You now have all the patches to apply to a vanilla kernel to obtain a
+full Android kernel.

@@ -1,0 +1,106 @@
+\subsection{Basics}
+\begin{frame}
+  \frametitle{Android applications}
+  \begin{itemize}
+  \item Android applications are written mostly in Java using Google's
+    SDK
+  \item Applications are bundled into an Android PacKage (\code{.apk}
+    files) which are archives containing the compiled code, data and resources for the
+    application, so applications are completely self-contained
+  \item You can install applications either through a market (Google
+    Play Store, Amazon Appstore, F-Droid, etc) or manually (through
+    ADB or a file manager)
+  \item Of course, everything we have seen so far is mostly here to
+    provide a nice and unified environment to application developers
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Applications Security}
+  \begin{itemize}
+  \item Once installed, applications live in their own sandbox,
+    isolated from the rest of the system
+  \item The system assigns a Linux user to every application, so that
+    every application has its own user/group
+  \item It uses this UID and files permissions to allow  the application
+    to access only its own files 
+  \item Each process has its own instance of Dalvik, so code is
+    running isolated from other applications
+  \item By default, each application runs in its own process, which
+    will be started/killed during system life
+  \item Android uses the \emph{principle of least privilege}. Each
+    application by default has only access to what it requires to work.
+  \item However, you can request extra permissions, make several
+    applications run in the same process, or with the same UID, etc.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Applications Components}
+  \begin{itemize}
+  \item Components are the basic blocks of each application
+  \item You can see them as entry points for the system in the application
+  \item There is four types of components:
+    \begin{itemize}
+    \item Activities
+    \item Broadcast Receivers
+    \item Content Providers
+    \item Services
+    \end{itemize}
+  \item Every application can start any component, even located in
+    other applications. This allows to share components easily, and
+    have very little duplication. However, for security reasons, you
+    start it through an Intent and not directly
+  \item When an application requests a component, the system starts
+    the process for this application, instantiates the needed class and
+    runs that component. We can see that there is no single point of
+    entry in an application like \code{main()}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Application Manifest}
+  \begin{itemize}
+  \item To declare the components present in your application, you
+    have to write a XML file, \code{AndroidManifest.xml}
+  \item This file is used to:
+    \begin{itemize}
+    \item Declare available components
+    \item Declare which permissions these components need
+    \item Revision of the API needed
+    \item Declare hardware features needed
+    \item Libraries required by the components
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Manifest HelloWorld}
+\begin{minted}{xml}
+<?xml version="1.0" encoding="utf-8"?>
+<manifest package="com.example.android">
+    <application>
+        <activity android:name=".ExampleActivity"
+                  android:label="@string/example_label">
+        </activity>
+    </application>
+</manifest>
+\end{minted}
+\end{frame}
+
+\begin{frame}
+  \frametitle{NDK}
+  \begin{itemize}
+  \item Google also provides a NDK to allow developers to write native
+    code
+  \item While the code is not run by Dalvik, the security guarantees
+    are still there
+  \item Allows to write faster code or to port existing C code to
+    Android more easily
+  \item Since Gingerbread, you can even code a whole application
+    without writing a single line of Java
+  \item It is still packaged in an apk, with a manifest, etc.
+  \item However, there are some drawbacks, the main one being that you
+    can't access the resources mechanism available from Java
+  \end{itemize}
+\end{frame}

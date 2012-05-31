@@ -1,0 +1,91 @@
+\subsection{Content Providers}
+
+\begin{frame}
+  \frametitle{Content Providers}
+  \begin{itemize}
+  \item They provide access to organized data in a manner quite
+    similar to relational databases
+  \item They allow to share data with both internal and external
+    components and centralize them
+  \item Security is also enforced by permissions like usual, but they
+    also do not allow remote components to issue arbitrary requests
+    like what we can do with relational databases
+  \item Instead, Content Providers rely on URIs to allow for a restricted set of
+    requests with optional parameters, only permitting the user to
+    filter by values and by columns
+  \item You can use any storage back-end you want, while exposing a
+    quite neutral and consistent interface to other applications
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Content URIs}
+  \begin{itemize}
+  \item URIs are often built with the following pattern:
+    \begin{itemize}
+    \item \code{content://<package>.provider/<path>} to access particular tables
+    \item \code{content://<package>.provider/<path>/<id>} to access
+      single rows inside the given table
+    \end{itemize}
+  \item Facilities are provided to deal with these
+    \begin{itemize}
+    \item On the application side:
+      \begin{itemize}
+      \item \code{ContentUri} to append and manage numerical IDs in URIs
+      \item \code{Uri.Builder} and \code{Uri} classes to deal with
+        URIs and strings
+      \end{itemize}
+    \item On the provider side:
+      \begin{itemize}
+      \item \code{UriMatcher} associates a pattern to an ID, so that
+        you can easily match incoming URIs, and use switch over them.
+      \end{itemize}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Implementing a Content Provider}
+\begin{minted}[fontsize=\scriptsize]{java}
+public class ExampleProvider extends ContentProvider {
+    private static final UriMatcher sUriMatcher;
+    
+    static {
+        sUriMatcher.addURI("com.example.android.provider", "table1", 1);
+        sUriMatcher.addURI("com.example.android.provider", "table1/#", 2);
+    }
+    
+    public Cursor query(Uri uri, String[] projection, String selection,
+                        String[] selectionArgs, String sortOrder) {
+        
+        switch (sUriMatcher.match(uri)) {
+        default:
+            System.out.println("Hello World!");
+            break;
+        }
+    }
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Implementing a Content Provider}
+\begin{minted}[fontsize=\scriptsize]{java}
+    public Uri insert(Uri uri, ContentValues values) {
+        return null;
+    }
+    
+    public int update(Uri uri, ContentValues values, String selection,
+                      String[] selectionArgs) {
+        return 0;
+    }
+    
+    public int delete(Uri uri, String selection, String[] selectionArgs) {
+        return 0;
+    }   
+
+    public boolean onCreate() {
+        return true;
+    }
+}
+\end{minted}
+\end{frame}

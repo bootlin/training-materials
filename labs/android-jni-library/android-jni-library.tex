@@ -1,0 +1,58 @@
+\subchapter{Develop a JNI library}{Learn how JNI works and how to integrate it
+in Android}
+
+After this lab, you will be able to
+\begin{itemize}
+  \item Develop bindings from Java to C
+  \item Integrate these bindings into the build system
+  \item Modify the Android framework
+  \item Use JNI bindings
+\end{itemize}
+
+\section{Write the bindings}
+
+The code should be pretty close to the one you wrote in the native
+application lab, so you will find a skeleton of the folder to
+integrate into your product definition in the
+\code{/home/<user>/felabs/android/jni} directory. You will
+mostly have to modify function prototypes from your previous
+application to make it work with JNI.
+
+As a reminder, JNI requires the function prototype to be like:
+\code{JNIEXPORT <jni type> JNICALL Java_<package_class>_function(JNIEnv *env, jobject this)}.\\
+
+Aside from the \code{jni} folder, there is also a \code{java} folder that
+contains a Java Interface, \code{MissileBackendImpl}. In the same folder,
+write the \code{USBBackend} class implementing this interface that uses your
+bindings. You have an example of such a class in the \code{DummyBackend.java}
+file.
+
+\section{Integrate it in the build system}
+
+Now you can integrate it into the build system, so that it generates a .jar
+library that is in our product, with the proper dependencies expressed.\\
+
+You can find documentation about how to integrate device-specific parts of the
+framework in the \code{device/sample/frameworks} folder.
+
+\section{Testing the bindings}
+
+We should now have a system with the files
+\code{/system/framework/com.fe.android.backend.jar}, containing the Java
+classes, \code{/system/lib/liblauncher_jni.so}, containing the JNI bindings and
+\code{/system/lib/libusb.so}.\\
+
+Test what you did using the Main class present in the Java source code
+by directly invoking Dalvik through the \code{dalvikvm} command. You
+will have to provide both the classpath and the class name to make it work.\\
+
+\section{Going further}
+
+You will find that the binary we developed in the previous lab and
+the bindings share a lot of common code. This is not very convenient
+to solve bugs affecting this area of the code, since we have to make
+the fix at two different places.\\
+
+If you have some time left at the end of this lab, use it to make this
+common code part of a shared library used by both the bindings and the
+binary.

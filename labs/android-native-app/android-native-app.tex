@@ -1,0 +1,49 @@
+\subchapter{Add a native application to the build}{Learn how to begin with
+the Android build system}
+
+After this lab, you will be able to:
+\begin{itemize}
+  \item Add an external binary to a system
+  \item Express dependencies on other components of the build system
+\end{itemize}
+
+\section{Develop the application}
+
+Copy the \code{mlbin.c} file from the
+\code{/home/<user>/felabs/android/native-app} directory and put it
+into the \code{external/ml} folder.\\
+
+As you can see, the application is almost empty, so you need to fill
+it with the appropriate code. You will need to implement an
+initialization function, basic functions to control the launcher and
+finally a freeing function.\\
+
+You will need the \code{libusb_init}, \code{libusb_get_device_list},
+\code{libusb_get_device_descriptor}, \code{libusb_open},
+\code{libusb_detach_kernel_driver} and \code{libusb_claim_interface}
+functions to initialize our program, the matching functions to exit
+properly are \code{libusb_exit}, \code{libusb_close}
+and \code{libusb_reclaim_interface}.\\
+
+You can send an instruction by using the code
+\begin{lstlisting}
+unsigned char[] data = {0x5f, ACTION, 0xe0, 0xff, 0xfe};
+libusb_control_transfer(devh, 0x21, 0x09, 0, 0, data, 5, 300};
+\end{lstlisting}
+
+\section{Add the binary to the compiled image}
+
+Just as for \code{libusb}, you now need to make an \code{Android.mk} file
+giving all the details needed by the build system to compile. But
+unlike \code{libusb}, this binary is an executable and depends on another
+piece of software.\\
+
+Make it compile and be integrated in the generated images. Once you
+have the images, boot the board, plug a missile launcher and test the
+application. You should see the launcher move.\\
+
+However, when you start your tests, you will find that \code{libusb} cannot open
+the usb devices because of restricted permissions. This can be fixed
+through \code{ueventd.rc} files. Add a device-specific uevend
+configuration file to your build to make the files under
+\code{/dev/usb/} world readable.\\

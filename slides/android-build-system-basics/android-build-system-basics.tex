@@ -1,0 +1,74 @@
+\subsection{Basics}
+\begin{frame}
+  \frametitle{Build Systems}
+  \begin{itemize}
+  \item Build systems are designed to meet several goals:
+    \begin{itemize}
+    \item Integrate all the software components, both third-party and
+      in-house into a working image
+    \item Be able to easily reproduce a given build
+    \end{itemize}
+  \item Usually, they build software using the existing building system shipped with
+    each component
+  \item Several solutions: \emph{Yocto}, \emph{Buildroot},
+    \emph{ptxdist}.
+  \item Google came up with its own solution for Android, that never relies on
+    other build systems, except for \emph{GNU/Make}
+    \begin{itemize}
+    \item It allows to rely on very few tools, and to
+      control every software component in a consistent way.
+    \item But it also means that when you have to import a new
+      component, you have to rewrite the whole Makefile to build it
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{First compilation}
+\begin{minted}{console}
+$ source build/envsetup.sh
+$ lunch
+You're building on Linux
+
+Lunch menu... pick a combo:
+     1. generic-eng
+     2. simulator
+     3. full_passion-userdebug
+     4. full_crespo-userdebug
+
+Which would you like? [generic-eng]
+$ make
+$ make showcommands
+\end{minted}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Output}
+  \begin{itemize}
+  \item All the output is generated in the
+    \code{out/} directory, outside of the source code directory 
+  \item This directory contains mostly two subdirectories:
+    \code{host/} and \code{target/}
+  \item These directories contain all the objects files compiled
+    during the build process: \code{.o} files for C/C++ code,
+    \code{.jar} files for Java libraries, etc
+  \item It is an interesting feature, since it keeps all the generated
+    stuff separate from the source code, and we can easily clean without
+    side effects
+  \item It also generates the system images in the
+    \code{out/target/product/<product_name>/} directory
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Cleaning}
+  \begin{itemize}
+  \item Cleaning is almost as easy as \code{rm -rf out/}
+  \item \code{make clean} deletes all generated files for the current combo.
+  \item \code{make clobber} deletes all generated files for all combos.
+  \item \code{make installclean} removes only the parts that needs to
+    be rebuilt when doing a configuration change. It is useful when
+    you work with several products to avoid doing a full rebuild each
+    time you change from one to the other
+  \end{itemize}
+\end{frame}

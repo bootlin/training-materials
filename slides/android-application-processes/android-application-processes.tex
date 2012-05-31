@@ -1,0 +1,96 @@
+\subsection{Processes and Threads}
+
+\begin{frame}
+  \frametitle{Process Management in Android}
+  \begin{itemize}
+  \item By default in Android, every component of a single
+    application runs in the same process.
+  \item When the system wants to run a new component:
+    \begin{itemize}
+    \item If the application has no running component yet, the
+      system will start a new process with a single thread of
+      execution in it
+    \item Otherwise, the component is started within that process
+    \end{itemize}
+  \item If you happen to want a component of your application to run
+    in its own process, you can still do it through the
+    \code{android:process} XML attribute in the manifest.
+  \item When the memory constraints are high, the system might decide
+    to kill a process to get some memory back. This is done based on
+    the importance of the process to the user. When a process is
+    killed, all the components running inside are killed.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Processes priority}
+  \begin{itemize}
+  \item \emph{Foreground processes} have the topmost priority. They
+    host either
+    \begin{itemize}
+    \item An activity the user is interacting with
+    \item A service bound to such an activity
+    \item A service running in the foreground (started with
+      \code{startForeground})
+    \item A service running one of its lifecycle callbacks
+    \item A broadcast receiver running its \code{onReceive} method
+    \end{itemize}
+  \item \emph{Visible processes} host
+    \begin{itemize}
+    \item An activity that is no longer in the foreground but still is
+      visible on the screen
+    \item A service that is bound to a visible activity
+    \end{itemize}
+  \item \emph{Service Processes} host a service that has been started
+    by \code{startService}
+  \item \emph{Background Processes} host activities that are no longer
+    visible to the user
+  \item \emph{Empty Processes}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Threads}
+  \begin{itemize}
+  \item As there is only one thread of execution, both the application
+    components and UI interactions are done in sequential order
+  \item So a long computation, I/O, background tasks cannot be run
+    directly into the main thread without blocking the UI
+  \item If your application is blocked for more than 5 seconds, the
+    system will display an ``\emph{Application Not Responding}''
+    dialog, which leads to poor user experience
+  \item Moreover, UI functions are not thread-safe in Android, so you
+    can only manipulate the UI from the main thread.
+  \item So, you should:
+    \begin{itemize}
+    \item Dispatch every long operation either to a service or a
+      worker thread
+    \item Use messages between the main thread and the worker threads
+      to interact with the UI.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Threads in Android}
+  \begin{itemize}
+  \item There are two ways of implementing worker threads in Android:
+    \begin{itemize}
+    \item Use the standard Java threads, with a class extending
+      \code{Runnable}
+      \begin{itemize}
+      \item This works, of course, but you will need to do messaging
+        between your worker thread and the main thread, either through
+        handlers or through the \code{View.post} function
+      \end{itemize}
+    \item Use Android's \code{AsyncTask}
+      \begin{itemize}
+      \item A class that has four callbacks: \code{doInBackground},
+        \code{onPostExecute}, \code{onPreExecute},
+        \code{onProgressUpdate}
+      \item Useful, because only \code{doInBackground} is called from
+        a worker thread, others are called by the UI thread
+      \end{itemize}
+    \end{itemize}
+  \end{itemize}
+\end{frame}

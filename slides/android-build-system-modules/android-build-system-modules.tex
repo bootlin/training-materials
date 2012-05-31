@@ -1,0 +1,250 @@
+\subsection{Add a New Module}
+
+\begin{frame}
+  \frametitle{Modules}
+  \begin{itemize}
+  \item Every component in Android is called a \emph{module}
+  \item Modules are defined across the entire tree through the
+    \code{Android.mk} files
+  \item The build system abstracts many details to make the
+    creation of a module's Makefile as trivial as possible
+  \item Of course, building a module that will be an Android
+    application and building a static library will not require the same
+    instructions, but these builds don't differ that much either.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Hello World}
+\begin{minted}{make}
+LOCAL_PATH = $(call my-dir)
+include $(CLEAR_VARS)
+
+LOCAL_SRC_FILES = hello_world.c
+LOCAL_MODULE = HelloWorld
+
+LOCAL_MODULE_TAGS = optional
+
+include $(BUILD_EXECUTABLE)
+\end{minted}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Hello World}
+  \begin{itemize}
+  \item Every module variable is prefixed by \code{LOCAL_*}
+  \item \code{LOCAL_PATH} tells the build system where the current
+    module is
+  \item \code{include $(CLEAR_VARS)} cleans the previously declared
+    \code{LOCAL_*} variables. This way, we make sure we won't have
+    anything weird coming from other modules. The list of the
+    variables cleared is in \code{build/core/clear_vars.mk}
+  \item \code{LOCAL_SRC_FILES} contains a list of all source
+    files to be compiled
+  \item \code{LOCAL_MODULE} sets the module name
+  \item \code{LOCAL_MODULE_TAGS} defines the set of modules this module
+    should belong to
+  \item \code{include $(BUILD_EXECUTABLE)} tells the build system to
+    build this module as a binary
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Tags}
+  \begin{itemize}
+  \item Tags are used to define several sets of modules to be
+    built through the build variant selected by \code{lunch}
+  \item We have 3 build variants:
+    \begin{itemize}
+    \item \code{user}
+      \begin{itemize}
+      \item Installs modules tagged with \code{user}
+      \item Installs non-packaged modules that have no tags specified
+      \item \code{ro.secure = 1}
+      \item \code{ro.debuggable = 0}
+      \item ADB is disabled by default
+      \end{itemize}
+    \item \code{userdebug} is \code{user} plus
+      \begin{itemize}
+      \item Installs modules tagged with \code{debug}
+      \item \code{ro.debuggable = 1}
+      \item ADB is enabled by default
+      \end{itemize}
+    \item \code{eng} is \code{userdebug}, plus
+      \begin{itemize}
+      \item Installs modules tagged as \code{eng} and
+        \code{development}
+      \item \code{ro.secure = 0}
+      \item \code{ro.kernel.android.checkjni = 1}
+      \end{itemize}
+    \end{itemize}
+  \item Finally, we have a fourth tag, \code{optional}, that will never
+    be directly integrated by a build variant, but deprecates \code{user}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Build Targets 1/3}
+  \begin{itemize}
+  \item \code{BUILD_EXECUTABLE}
+    \begin{itemize}
+    \item Builds a normal ELF binary to be run on the target
+    \end{itemize}
+  \item \code{BUILD_HOST_EXECUTABLE}
+    \begin{itemize}
+    \item Builds an ELF binary to be run on the host
+    \end{itemize}
+  \item \code{BUILD_RAW_EXECUTABLE}
+    \begin{itemize}
+    \item Builds a binary to be run on bare metal
+    \end{itemize}
+  \item \code{BUILD_JAVA_LIBRARY}
+    \begin{itemize}
+    \item Builds a Java library (\code{.jar}) to be used on the target
+    \end{itemize}
+  \item \code{BUILD_STATIC_JAVA_LIBRARY}
+    \begin{itemize}
+    \item Builds a static Java library to be used on the target
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Build Targets 2/3}
+  \begin{itemize}
+  \item \code{BUILD_HOST_JAVA_LIBRARY}
+    \begin{itemize}
+    \item Builds a Java library to be used on the host
+    \end{itemize}
+  \item \code{BUILD_SHARED_LIBRARY}
+    \begin{itemize}
+    \item Builds a shared library for the target
+    \end{itemize}
+  \item \code{BUILD_STATIC_LIBRARY}
+    \begin{itemize}
+    \item Builds a static library for the target
+    \end{itemize}
+  \item \code{BUILD_HOST_SHARED_LIBRARY}
+    \begin{itemize}
+    \item Builds a shared library for the host
+    \end{itemize}
+  \item \code{BUILD_HOST_STATIC_LIBRARY}
+    \begin{itemize}
+    \item Builds a static library for the host
+    \end{itemize}
+  \item \code{BUILD_RAW_STATIC_LIBRARY}
+    \begin{itemize}
+    \item Builds a static library to be used on bare metal
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Build Targets 3/3}
+  \begin{itemize}
+  \item \code{BUILD_PREBUILT}
+    \begin{itemize}
+    \item Used to install prebuilt files on the target (configuration
+      files, kernel)
+    \end{itemize}
+  \item \code{BUILD_HOST_PREBUILT}
+    \begin{itemize}
+    \item Used to install prebuilt files on the host
+    \end{itemize}
+  \item \code{BUILD_MULTI_PREBUILT}
+    \begin{itemize}
+    \item Used to install prebuilt files of multiple modules of known
+      types
+    \end{itemize}
+  \item \code{BUILD_PACKAGE}
+    \begin{itemize}
+    \item Builds a standard Android package (\code{.apk})
+    \end{itemize}
+  \item \code{BUILD_KEY_CHAR_MAP}
+    \begin{itemize}
+    \item Builds a device character map
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Other useful variables}
+  \begin{itemize}
+  \item \code{LOCAL_CFLAGS}
+    \begin{itemize}
+    \item Extra C compiler flags to use to build the module
+    \end{itemize}
+  \item \code{LOCAL_SHARED_LIBRARIES}
+    \begin{itemize}
+    \item List of shared libraries this module depends on
+    \end{itemize}
+  \item \code{LOCAL_PACKAGE_NAME}
+    \begin{itemize}
+    \item Equivalent to \code{LOCAL_MODULE} for Android packages
+    \end{itemize}
+  \item \code{LOCAL_C_INCLUDES}
+    \begin{itemize}
+    \item List of paths to extra headers used by this module
+    \end{itemize}
+  \item \code{LOCAL_PRELINK_MODULES}
+    \begin{itemize}
+    \item Does the module uses library pre-linking? (if you set this
+      to \code{true}, you will have to modify
+      \code{build/core/prelink-linux-arm.map} as well)
+    \end{itemize}
+  \item Many other similar options depending on what you want to
+    do
+  \item You can get a complete list by reading
+    \code{build/core/clear_vars.mk}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Useful Make Macros}
+  \begin{itemize}
+  \item In the \code{build/core/definitions.mk} file, you will find
+    useful macros to use in the \code{Android.mk} file, that mostly
+    allows you to:
+    \begin{itemize}
+    \item Find files
+      \begin{itemize}
+      \item \code{all-makefiles-under}, \code{all-subdir-c-files}, etc
+      \end{itemize}
+    \item Transform them
+      \begin{itemize}
+      \item \code{transform-c-to-o}, ...
+      \end{itemize}
+    \item Copy them
+      \begin{itemize}
+      \item \code{copy-file-to-target}, ...
+      \end{itemize}
+    \item and some utilities
+      \begin{itemize}
+      \item \code{my-dir}, \code{inherit-package}, etc
+      \end{itemize}
+    \end{itemize}
+  \item All these macros should be called through Make's \code{call} command,
+    possibly with arguments
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Make and clean a module}
+  \begin{itemize}
+  \item To build a module from the top directory, just do
+    \code{make ModuleName}
+  \item The files generated will be put in
+    \code{out/target/product/<product_name>/obj/<module_type>/<module_name>_intermediates}
+  \item However, building a simple module won't regenerate a new image.
+    This is just useful to make sure that the module builds.
+    You will have to do a full \code{make} to have an image that contains
+    your module
+  \item Actually, a full \code{make} will build your module at some
+    point, but you won't find it in your generated image if it is
+    tagged as optional
+  \item If you want to enable it for all builds, add its name to the
+    \code{PRODUCT_PACKAGES} variables in the
+    \code{build/target/product/core.mk} file.
+  \item To clean a single module, do \code{make clean-ModuleName}
+  \end{itemize}
+\end{frame}

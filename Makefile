@@ -104,7 +104,80 @@ SYSDEV_SLIDES = sysdev-intro \
 		sysdev-realtime \
 		last-slides
 
+ANDROID_SLIDES = \
+		 android-introduction-title \
+		 android-introduction-features \
+		 android-introduction-history \
+		 android-introduction-architecture \
+		 android-source-title \
+		 android-source-obtaining \
+		 android-source-organization \
+		 android-source-compilation \
+		 android-source-contribute \
+		 sysdev-linux-intro-title \
+		 sysdev-linux-intro-features \
+		 sysdev-linux-intro-versioning \
+		 sysdev-linux-intro-configuration \
+		 sysdev-linux-intro-compilation \
+		 sysdev-linux-intro-cross-compilation \
+		 android-kernel-changes-title \
+		 android-kernel-changes-wakelocks \
+		 android-kernel-changes-binder \
+		 android-kernel-changes-klogger \
+		 android-kernel-changes-ashmem \
+		 android-kernel-changes-timers \
+		 android-kernel-changes-network \
+		 android-kernel-changes-lmk \
+		 android-kernel-changes-misc \
+		 android-bootloaders-title \
+		 sysdev-bootloaders-sequence \
+		 android-bootloaders-fastboot \
+		 android-adb-title \
+		 android-adb-introduction \
+		 android-adb-use \
+		 android-adb-examples \
+		 android-fs-title \
+		 sysdev-root-filesystem-principles \
+		 android-fs-contents \
+		 sysdev-root-filesystem-device-files \
+		 sysdev-root-filesystem-virtual-fs \
+		 sysdev-root-filesystem-minimal \
+		 android-build-system-title \
+		 android-build-system-basics \
+		 android-build-system-envsetup \
+		 android-build-system-configuration \
+		 android-build-system-modules \
+		 android-build-system-product \
+		 android-native-layer-title \
+		 sysdev-toolchains-definition \
+		 android-native-layer-bionic \
+		 android-native-layer-toolbox \
+		 android-native-layer-init \
+		 android-native-layer-daemons \
+		 android-native-layer-flingers \
+		 android-native-layer-stagefright \
+		 android-native-layer-dalvik \
+		 android-native-layer-hal \
+		 android-native-layer-jni \
+		 android-framework-title \
+		 android-framework-native-services \
+		 android-framework-ipc \
+		 android-framework-java-services \
+		 android-framework-extend \
+		 android-application-title \
+		 android-application-basics \
+		 android-application-activities \
+		 android-application-services \
+		 android-application-providers \
+		 android-application-intents \
+		 android-application-processes \
+		 android-application-resources \
+		 android-application-storage \
+		 android-application-apk \
+		 android-resources
+
 # List of labs for the different courses
+
 SYSDEV_LABS   = setup \
 		sysdev-toolchain \
 		sysdev-u-boot \
@@ -120,6 +193,7 @@ SYSDEV_LABS   = setup \
 		sysdev-real-time \
 		sysdev-mdev \
 		backup
+
 KERNEL_LABS   = setup \
 		kernel-sources \
 		kernel-module-environment \
@@ -133,6 +207,18 @@ KERNEL_LABS   = setup \
 		kernel-power-management \
 		kernel-git \
 		backup
+
+ANDROID_LABS  = setup \
+		android-first-compilation \
+		android-boot \
+		android-new-board \
+		android-adb \
+		android-system-customization \
+		android-native-library \
+		android-native-app \
+		android-jni-library \
+		android-application \
+
 
 # Output directory
 OUTDIR   = $(PWD)/out
@@ -256,6 +342,9 @@ LABS_CHAPTERS      = $(KERNEL_LABS)
 else ifeq ($(LABS),full-sysdev)
 LABS_VARSFILE      = common/sysdev-labs-vars.tex
 LABS_CHAPTERS      = $(SYSDEV_LABS)
+else ifeq ($(LABS),full-android)
+LABS_VARSFILE      = common/android-labs-vars.tex
+LABS_CHAPTERS      = $(ANDROID_LABS)
 else
 LABS_VARSFILE      = common/single-labs-vars.tex
 LABS_CHAPTERS      = $(LABS)
@@ -351,8 +440,10 @@ help:
 	@echo
 	@echo " full-sysdev-labs.pdf		Complete labs for the 'sysdev' course"
 	@echo " full-kernel-labs.pdf		Complete labs for the 'kernel' course"
+	@echo " full-android-labs.pdf		Complete labs for the 'android' course"
 	@echo " full-sysdev-slides.pdf		Complete slides for the 'sysdev' course"
 	@echo " full-kernel-slides.pdf		Complete slides for the 'kernel' course"
+	@echo " full-android-slides.pdf		Complete slides for the 'android' course"
 	@echo " <some-chapter>-slides.pdf	Slides for a particular chapter in slides/"
 	@echo
 	@echo " <some-chapter>-labs.pdf		Labs for a particular chapter in labs/"

@@ -1,0 +1,177 @@
+\subsection{Add a New Product}
+
+\begin{frame}
+  \frametitle{Defining new products}
+  \begin{itemize}
+  \item Devices are well supported by the Android build system. It allows
+    to build multiple devices with the same source tree, to have a
+    per-device configuration, etc.
+  \item All the product definitions should be put in
+    \code{device/<company>/<device>}
+  \item The entry point is the \code{AndroidProducts.mk} file, which
+    should define the \code{PRODUCT_MAKEFILES} variable
+  \item This variable defines where the actual product definitions are
+    located.
+  \item It follows such an architecture because you can have several
+    products using the same device
+  \item If you want your product to appear in the \code{lunch} menu, you need
+    to create a \code{vendorsetup.sh} file in the \code{device} directory,
+    with the right calls to \code{add_lunch_combo}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Product, devices and boards}
+  \begin{center}
+    \includegraphics[height=0.8\textheight]{slides/android-build-system-product/product-definition.pdf}
+  \end{center}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Minimal Product Declaration}
+\begin{minted}[fontsize=\small]{make}
+$(call inherit-product, build/target/product/generic.mk)
+
+PRODUCT_NAME := full_MyDevice
+PRODUCT_DEVICE := MyDevice
+PRODUCT_MODEL := Full flavor of My Brand New Device
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Copy files to the target}
+\begin{minted}[fontsize=\small]{make}
+$(call inherit-product, build/target/product/generic.mk)
+
+PRODUCT_COPY_FILES += \
+  device/mybrand/mydevice/vold.fstab:system/etc/vold.fstab
+
+PRODUCT_NAME := full_MyDevice
+PRODUCT_DEVICE := MyDevice
+PRODUCT_MODEL := Full flavor of My Brand New Device
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Add a package to the build for this product}
+\begin{minted}[fontsize=\small]{make}
+$(call inherit-product, build/target/product/generic.mk)
+
+PRODUCT_PACKAGES += FooBar
+
+PRODUCT_COPY_FILES += \
+  device/mybrand/mydevice/vold.fstab:system/etc/vold.fstab
+
+PRODUCT_NAME := full_mydevice
+PRODUCT_DEVICE := mydevice
+PRODUCT_MODEL := Full flavor of My Brand New Device
+\end{minted}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Overlays}
+  \begin{itemize}
+  \item This is a mechanism used by products to override resources
+    already defined in the source tree, without modifying the original
+    code
+  \item This is used for example to change the wallpaper for one
+    particular device
+  \item Use the \code{DEVICE_PACKAGE_OVERLAYS} variable that you set to a
+    path to a directory in your device folder
+  \item This directory should contain a structure similar to the
+    source tree one, with only the files that you want to override
+  \end{itemize}
+\end{frame}
+
+
+\begin{frame}[fragile]
+  \frametitle{Add a package to the build for this product}
+\begin{minted}[fontsize=\small]{make}
+$(call inherit-product, build/target/product/generic.mk)
+
+PRODUCT_PACKAGES += FooBar
+
+PRODUCT_COPY_FILES += \
+  device/mybrand/mydevice/vold.fstab:system/etc/vold.fstab
+
+DEVICE_PRODUCT_OVERLAYS := device/mybrand/mydevice/overlay
+
+PRODUCT_NAME := full_mydevice
+PRODUCT_DEVICE := mydevice
+PRODUCT_MODEL := Full flavor of My Brand New Device
+\end{minted}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Board Definition}
+  \begin{itemize}
+  \item You will also need a \code{BoardConfig.mk} file along with the
+    product definition
+  \item While the product definition was mostly about the build system
+    in itself, the board definition is more about the hardware
+  \item You can have a full working example in
+    \code{device/samsung/crespo/BoardConfigCommon.mk}
+  \item However, this is poorly documented and sometimes ambiguous so
+    you will probably have to dig into the \code{build/core/Makefile}
+    at some point to see what a given variable does
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Minimal Board Definition}
+\begin{minted}{make}
+TARGET_NO_BOOTLOADER := true
+TARGET_NO_KERNEL := true
+TARGET_CPU_ABI := armeabi
+HAVE_HTC_AUDIO_DRIVER := true
+BOARD_USES_GENERIC_AUDIO := true
+
+USE_CAMERA_STUB := true
+\end{minted}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Other Board Variables 1/2}
+  \begin{itemize}
+  \item \code{TARGET_ARCH_VARIANT}
+    \begin{itemize}
+    \item Variant of the selected architecture (for example
+      \code{armv7-a-neon} for Cortex-A9 CPUs)
+    \end{itemize}
+  \item \code{TARGET_EXTRA_CFLAGS}
+    \begin{itemize}
+    \item Extra C compiler flags to use during the whole build
+    \end{itemize}
+  \item \code{TARGET_CPU_SMP}
+    \begin{itemize}
+    \item Does the CPU have multiple cores?
+    \end{itemize}
+  \item \code{TARGET_USERIMAGES_USE_EXT4}
+    \begin{itemize}
+    \item We want to use ext4 as filesystem for our generated
+      partitions
+    \end{itemize}
+  \item \code{BOARD_SYSTEMIMAGE_PARTITION_SIZE}
+    \begin{itemize}
+    \item Size of the system partitions in bytes.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Other Board Variables 2/2}
+  \begin{itemize}
+  \item \code{BOARD_NAND_PAGE_SIZE}
+    \begin{itemize}
+    \item For NAND flash, size of the pages as given by the datasheet
+    \end{itemize}
+  \item \code{TARGET_NO_RECOVERY}
+    \begin{itemize}
+    \item We don't want to build the recovery image
+    \end{itemize}
+  \item \code{BOARD_KERNEL_CMDLINE}
+    \begin{itemize}
+    \item Boot arguments of the kernel
+    \end{itemize}
+  \end{itemize}
+\end{frame}

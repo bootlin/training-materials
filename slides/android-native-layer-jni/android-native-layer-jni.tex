@@ -1,0 +1,142 @@
+\subsection{JNI}
+\begin{frame}
+  \frametitle{What is JNI?}
+  \begin{itemize}
+  \item A Java framework to call and be called by native applications
+    written in other languages
+  \item Mostly used for:
+    \begin{itemize}
+    \item Writing Java bindings to C/C++ libraries
+    \item Accessing platform-specific features
+    \item Writing high-performance sections
+    \end{itemize}
+  \item It is used extensively across the Android userspace to
+    interface between the Java Framework and the native daemons
+  \item Since Gingerbread, you can develop apps in a purely native
+    way, possibly calling Java methods through JNI
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{C Code}
+\begin{minted}[fontsize=\footnotesize]{c}
+#include "jni.h"
+
+JNIEXPORT void JNICALL Java_com_example_Print_print(JNIEnv *env,
+                                                    jobject obj,
+                                                    jstring javaString)
+{
+    const char *nativeString = (*env)->GetStringUTFChars(env,
+                                                         javaString,
+                                                         0);
+    printf("%s", nativeString);
+    (*env)->ReleaseStringUTFChars(env, javaString, nativeString);
+}
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{JNI arguments}
+  \begin{itemize}
+  \item Function prototypes are following the template:
+\begin{minted}[fontsize=\footnotesize]{c}
+JNIEXPORT jstring JNICALL Java_ClassName_MethodName
+          (JNIEnv*, jobject)
+\end{minted}
+  \item \code{JNIEnv} is a pointer to the JNI Environment that we will
+    use to interact with the virtual machine and manipulate Java objects
+    within the native methods
+  \item \code{jobject} contains a pointer to the calling object. It is very
+    similar to \code{this} in C++
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Types}
+  \begin{itemize}
+  \item There is no direct mapping between C Types and JNI types
+  \item You must use the JNI primitives to convert one to his equivalent
+  \item However, there are a few types that are directly mapped, and
+    thus can be used directly without typecasting:
+  \end{itemize}
+  \begin{center}
+    \begin{tabular}{|c|c|}
+      \hline
+      Native Type & JNI Type\\
+      \hline
+      unsigned char & jboolean\\
+      \hline
+      signed char & jbyte\\
+      \hline
+      unsigned short & jchar\\
+      \hline
+      short & jshort\\
+      \hline
+      long & jint\\
+      \hline
+      long long & jlong\\
+      \hline
+      float & jfloat\\
+      \hline
+      double & jdouble\\
+      \hline
+    \end{tabular}
+  \end{center}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Java Code}
+\begin{minted}[fontsize=\footnotesize]{java}
+package com.example;
+
+class Print
+{
+        private static native void print(String str);
+
+        public static void main(String[] args)
+        {
+                Print.print("HelloWorld!");
+        }
+
+        static
+        {
+                System.loadLibrary("print");
+        }
+}
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Calling a method of a Java object from C}
+\begin{minted}[fontsize=\footnotesize]{c}
+JNIEXPORT void JNICALL Java_ClassName_Method(JNIEnv *env,
+                                             jobject obj)
+{
+  jclass cls = (*env)->GetObjectClass(env, obj);
+  jmethodID hello = (*env)->GetMethodID(env,
+                                        cls,
+                                        "hello",
+                                        "(V)V");
+  if (!hello)
+    return;
+  (*env)->CallVoidMethod(env, obj, hello);
+}
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Instantiating a Java object from C}
+\begin{minted}[fontsize=\footnotesize]{c}
+JNIEXPORT jobject JNICALL Java_ClassName_Method(JNIEnv *env,
+                                                jobject obj) 
+{
+    jclass cls = env->FindClass("java/util/ArrayList");
+    jmethodID init = env->GetMethodID(cls,
+                                      "<init>",
+                                      "()V");
+    jobject array = env->NewObject(cls, init);
+
+    return array;
+}
+\end{minted}
+\end{frame}

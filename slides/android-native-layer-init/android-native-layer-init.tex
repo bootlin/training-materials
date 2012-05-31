@@ -1,0 +1,205 @@
+\subsection{Init}
+\begin{frame}
+  \frametitle{Init}
+  \begin{itemize}
+  \item \code{init} is the name of the first userspace program
+  \item It is up to the kernel to start it, with PID 1, and the
+    program should never exit during system life
+  \item The kernel will look for init at \code{/sbin/init},
+    \code{/bin/init}, \code{/etc/init} and \code{/bin/sh}. You can
+    tweak that with the \code{init=} kernel parameter
+  \item The role of init is usually to start other applications at
+    boot time, a shell, mount the various filesystems, etc.
+  \item Init also manages the shutdown of the system by undoing all it
+    has done at boot time
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Android's init}
+  \begin{itemize}
+  \item Once again, Google has developed his own instead of relying on
+    an existing one.
+  \item However, it has some interesting features, as it can also be
+    seen as a daemon on the system
+    \begin{itemize}
+    \item it manages device hotpluggingm, with basic
+      permissions rules for device files, and actions at device plugging
+      and unplugging
+    \item it monitors the services it started, so that if they crash,
+      it can restart them
+    \item it monitors system properties so that you can take
+      actions when a particular one is modified
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Init part}
+  \begin{itemize}
+  \item For the initialization part, init mounts the various
+    filesystems (\code{/proc}, \code{/sys}, \code{data}, etc.)
+  \item This allows to have an already setup environment before taking
+    further actions
+  \item Once this is done, it reads the \code{init.rc} file and
+    executes it
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{init.rc file interpretation}
+  \begin{itemize}
+  \item Uses a unique syntax, based on events
+  \item There usually are several init configuration files,
+    \code{init.rc} itself, and \code{init.<platform_name>.rc}
+  \item While \code{init.rc} is always taken into account,
+    \code{init.<platform_name>.rc} is only interpreted if the platform
+    currently running the system reports the same name
+  \item Most of the customizations should therefore go to the
+    platform-specific configuration file rather than to the generic
+    one
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Syntax}
+  \begin{itemize}
+  \item Unlike most init script systems, the configuration relies on
+    system event and system property changes, allowed by the
+    daemon part of it
+  \item This way, you can trigger actions not only at startup or at
+    run-level changes like with traditional init systems, but also at
+    a given time during system life
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Actions}
+\begin{verbatim}
+on <trigger>
+  command
+  command
+\end{verbatim}
+  \begin{itemize}
+  \item Here are a few trigger types:
+    \begin{itemize}
+    \item \code{boot}
+      \begin{itemize}
+      \item Triggered when init is loaded
+      \end{itemize}
+    \item \code{<property>=<value>}
+      \begin{itemize}
+      \item Triggered when the given property is set to the given
+        value
+      \end{itemize}
+    \item \code{device-added-<path>}
+      \begin{itemize}
+      \item Triggered when the given device node is added or removed
+      \end{itemize}
+    \item \code{service-exited-<name>}
+      \begin{itemize}
+      \item Triggered when the given service exits
+      \end{itemize}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Init triggers}
+  \begin{itemize}
+  \item Commands are also specific to Android, with sometimes a syntax very
+    close to the shell one (just minor differences):
+  \item The complete list of triggers, by execution order is:
+    \begin{itemize}
+    \item \code{early-init}
+    \item \code{init}
+    \item \code{early-fs}
+    \item \code{fs}
+    \item \code{post-fs}
+    \item \code{early-boot}
+    \item \code{boot}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Example}
+\begin{verbatim}
+on boot
+   export PATH /sbin:/system/sbin:/system/bin
+   export LD_LIBRARY_PATH /system/lib
+
+   mkdir /dev
+   mkdir /proc
+   mkdir /sys
+
+   mount tmpfs tmpfs /dev
+   mkdir /dev/pts
+   mkdir /dev/socket
+   mount devpts devpts /dev/pts
+   mount proc proc /proc
+   mount sysfs sysfs /sys
+
+   write /proc/cpu/alignment 4
+\end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Services}
+\begin{verbatim}
+service <name> <pathname> [ <argument> ]*
+   <option>
+   <option>
+\end{verbatim}
+  \begin{itemize}
+  \item Services are like daemons
+  \item They are started by init, managed by it, and can be restarted
+    when they exit
+  \item Many options, ranging from which user to run the service as,
+    rebooting in recovery when the service crashes too frequently, to
+    launching a command at service reboot.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Example}
+\begin{verbatim}
+on device-added-/dev/compass
+  start akmd
+
+on device-removed-/dev/compass
+  stop akmd
+
+service akmd /sbin/akmd
+  disabled
+  user akmd
+  group akmd
+\end{verbatim}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Uevent}
+  \begin{itemize}
+  \item Init also manages the runtime events generated by the kernel
+    when hardware is plugged in or removed, like udev does on a standard
+    Linux distribution
+  \item This way, it dynamically creates the devices nodes under \code{/dev}
+  \item You can also tweak its behavior to add specific permissions to 
+    the files associated to a new event.
+  \item The associated configuration files are \code{ueventd.rc} and
+    \code{ueventd.<platform>.rc}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{ueventd.rc syntax}
+\begin{verbatim}
+<path>   <permission>  <user>  <group>
+\end{verbatim}
+  \begin{itemize}
+  \item Example
+  \end{itemize}
+\begin{verbatim}
+/dev/bus/usb/*            0660   root       usb
+\end{verbatim}
+\end{frame}
