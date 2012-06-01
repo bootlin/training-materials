@@ -1,0 +1,197 @@
+Labs formatting guidelines
+==========================
+
+ * To create a new lab, the chapter must start with a 'subchapter'
+   command, as in:
+
+\subchapter{Bootloader – U-Boot}{Objectives: Set up serial
+  communication, compile and install the X-Loader and U-Boot
+  bootloaders, use basic U-Boot commands, set up TFTP communication
+  with the development workstation.}
+
+ * You can use \section{} and \subsection{} to create sections in your
+   lab document.
+
+ * To add some fixed-sized font text (function names, file or
+   directory paths, commands) inside a paragraph of normal text, use
+   the \code macro as follows:
+
+Blabla. Look in the \code{/usr/bin} directory. Blabla.
+
+   Note that the \code{} macro doesn't require escaping of $ or _
+   signs :
+
+You can look for the \code{platform_device_register()} function in the
+\code{$HOME/linux/blabla.c} file.
+
+   This macro *MUST* be used instead of {\tt }, because \code{}
+   provides proper line wrapping on dashes, slashes and so on, which
+   helps in keeping the line of text within the width of the page.
+
+   Note that this macro cannot be used in section titles or chapter
+   titles. In this case {\tt } needs to be used (and inside {\tt },
+   the _ or $ signs have to be escaped).
+
+ * To add some fixed-size font text as a complete paragraph, use the
+   'verbatim' environment:
+
+In order to build the kernel run:
+
+\begin{verbatim}
+make blabla_defconfig
+make
+\end{verbatim}
+
+   Here as well, it does not require escaping of $ or _ signs.
+
+ * To add URLs, use the \url{http://foobar.com} macro. This will
+   create a clickable link in the resulting PDF file.
+
+ * If needed, you can locally reduce the size of a
+   \begin{verbatim}...\end{verbatim} environment by doing:
+
+\small
+\begin{verbatim}
+...
+\end{verbatim}
+\normalsize
+
+   This must be used parsimoniously because changing the font size all
+   the time is not very pretty. But since the verbatim environment
+   does not do line wrapping, it may sometimes be necessary.
+
+   Note that in addition to \small, you can also use other sizes, see
+   http://en.wikibooks.org/wiki/LaTeX/Useful_Size_Commands.
+
+Slides formatting guidelines
+============================
+
+  * A new training should start with a file containing the setup of the
+    various variables needed such as authors and a slide created using the
+    titleframe macro. This new file should be created in the common/ directory
+    with the name <training-name>-title.tex
+
+  * Every new chapter should be splitted in order to allow its possible use in
+    other trainings as well. Each new file should contain only one subsection
+    and should be named <training-name>-<section-name>-<subsection-name>.tex.
+    New sections should be in a separate file named
+    <training-name>-<section-name>-title.tex. All the aggregation would be done
+    by the Makefile 
+
+Syntax Highlighting
+===================
+
+The LaTeX package minted is included to have a nice syntax
+highlighting and advanced code formatting features. It uses pygments
+as backend, so in order to use it, one needs to install the
+debian/Ubuntu package python-pygments.
+
+A basic example for C code is:
+
+\begin{minted}{c}
+....
+\end{minted}
+
+Of course, it can take a lot of options that you can find in the
+minted's documentation present at:
+http://mirrors.ctan.org/macros/latex/contrib/minted/minted.pdf
+
+Emacs usage in LaTeX
+====================
+
+Install the AUCTex package which contains an improved Emacs
+environment for editing LaTeX documents:
+
+sudo apt-get install auctex
+
+In your ~/.emacs.el file, add the following lines:
+
+(load "auctex.el" nil t t)
+(require 'latex)
+(add-to-list 'LaTeX-verbatim-macros-with-braces "code")
+(add-to-list 'LaTeX-verbatim-macros-with-braces "url")
+
+The important point here is that this tells Emacs to consider the
+\code{} and \url{} macros as a verbatim macro, so that even if special
+characters such as $, _ or % are not escaped inside those macros,
+Emacs text colorization will not go crazy.
+
+Nice keyboard shortcuts with AUCTex:
+
+ * C-c RET to insert a macro, or embed the selected text into a
+   macro. Very useful to quickly place a few words inside a \code{}
+   macro
+
+ * C-c C-e to insert an environment, such as verbatim, or embed the
+   selected text into such an environment.
+
+Diagrams
+========
+
+The recommended program to do diagrams is Dia:
+
+ apt-get install dia
+
+When saving a file, please make sure to unselect the "Compressed saved
+files" option, so that the .dia files are raw XML files, and not
+gzipped compressed files. Having raw XML files is much better for
+version control, and will allow, to some extent, merging .dia diagrams
+after conflicts.
+
+Here are some suggested color couples you can use for the border and
+background of boxes and other elements. Using similar colors for all
+diagrams will make our training documents much more coherent and nice
+to look at.
+
+ * Blue boxes
+    borders:    #5CACFF
+    background: #ADD8E6
+
+ * Yellowish boxes
+    borders:    #D9CB2F
+    background: #FFF8A8
+
+ * Grey boxes
+    borders:    #868686
+    background: #E5E5E5
+
+ * Brownish boxes
+    borders:    #A32804
+    background: #FFD192
+
+ * Purple boxes
+    borders:    #2F004A
+    background: #EFB9FF
+
+ * Green boxes
+    borders:    #6A8954
+    background: #C5E387
+
+ * Red/pink boxes
+    borders:    #CC1F1A
+    background: #FFACAC
+
+If you want to easily add all those colors to Dia, add the following
+fragment to ~/.dia/persistence (or replace the existing
+role="color-menu" XML tag) :
+
+------------------8<-----------------8<-----------------------------
+<dia:list role="color-menu">
+ <dia:attribute name="listvalue">
+  <dia:string>##5CACFF
+#ADD8E6
+#D9CB2F
+#FFF8A8
+#868686
+#E5E5E5
+#A34804
+#FFD192
+#2F004A
+#EFB9FF
+#6A8954
+#C5E387
+#CC1F1A
+#FFACAC#</dia:string>
+ </dia:attribute>
+</dia:list>
+------------------8<-----------------8<-----------------------------
