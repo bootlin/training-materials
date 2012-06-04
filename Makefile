@@ -209,6 +209,7 @@ KERNEL_LABS   = setup \
 		backup
 
 ANDROID_LABS  = setup \
+		android-source-code \
 		android-first-compilation \
 		android-boot \
 		android-new-board \

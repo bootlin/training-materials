@@ -1,0 +1,77 @@
+\subchapter{Android source code}{Download the source code for Android and all its components}
+
+During this labs, you will:
+\begin{itemize}
+  \item Install all the development packages needed to fetch and compile Android
+  \item Download the \code{repo} utility
+  \item Use \code{repo} to download the source code for Android
+        and for all its components 
+\end{itemize}
+
+\section{Setup}
+
+Go to the \code{/home/<user>/felabs/android/aosp} directory.
+
+\section{Install needed packages}
+
+Install the packages needed to fetch Android's source code:
+
+\begin{verbatim}
+sudo apt-get install git-core curl
+\end{verbatim}
+
+\section{Fetch the source code}
+
+Android sources are made of many separate Git repositories, each containing a piece
+of software needed for the whole stack. This organization adds a lot of
+flexibility, allowing to easily add or remove a particular piece from the source
+tree, but also introduces a lot of overhead to manage all these repos.\\
+
+To address this issue, Google created a tool called Repo. As Repo is just a
+python script, it has not made its way in the Ubuntu packages, and we need to
+download it from Google.\\
+
+\begin{verbatim}
+mkdir $HOME/bin
+export PATH=$HOME/bin:$PATH
+curl https://dl-ssl.google.com/dl/googlesource/git-repo/repo > $HOME/bin/repo
+chmod a+x $HOME/bin/repo
+\end{verbatim}
+
+We can now fetch the Android source code:\\
+
+\begin{verbatim}
+mkdir android
+cd android
+repo init -u https://android.googlesource.com/platform/manifest \
+     -b android-2.3.7_r1
+repo sync
+\end{verbatim}
+
+\code{repo sync} will synchronize the files for all the source repositories listed
+in the manifest. If you have a slow connection to the Internet, this could even
+take a few hours to complete. Fortunately, your instructor will take advantage
+of this waiting time to continue with the lectures.
+
+If this really takes too much time, your instructor may distribute a ready-made archive
+containing what \code{repo sync} would have downloaded. 
+
+To save time, do not wait for the \code{repo sync} command to complete. You can
+already jump to the next section.
+
+\section{Install packages needed at compile time}
+
+While \code{repo sync} runs, download the packages that you will need to 
+compile Android and its components from source:  
+
+\begin{verbatim}
+sudo apt-get install xsltproc gnupg flex bison gperf build-essential \
+     zip zlib1g-dev libc6-dev lib32ncurses5-dev ia32-libs \
+     x11proto-core-dev libx11-dev lib32readline5-dev lib32z-dev \
+     libgl1-mesa-dev g++-multilib mingw32 tofrodos python-markdown \
+     libxml2-utils xsltproc openjdk-6-jdk
+sudo apt-get clean
+\end{verbatim}
+
+Again, if you have a slow connection to the Internet, installing these packages
+could take several tens of minutes. Anyway, we are getting back to the lectures.
