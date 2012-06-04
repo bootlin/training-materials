@@ -10,7 +10,7 @@ During this lab, you will:
 
 Stay in the \code{/home/<user>/felabs/android/aosp/android} directory.
 
-\section{Compile a filesystem}
+\section{Build environment}
 
 Now that \code{repo sync} is over, we will compile an Android system for the
 emulator. First, be sure that the emulator is in your path. You can check
@@ -18,15 +18,35 @@ by running the \code{emulator} command in a terminal.\\
 
 Now, run \code{source build/envsetup.sh}.
 
-It contains many useful shell functions and aliases, such as \code{croot} to
+This file contains many useful shell functions and aliases, such as \code{croot} to
 go to the root directory of the Android source code or \code{lunch}, to select
 the build options.\\
 
 The target product for the emulator is {\it generic}, and we want to have an 
 engineering build. To do this, run \code{lunch generic-eng}.\\
 
-The build system will use the proper setup to build this target, so that we
-only have \code{make} to run now.\\
+\section{Compile the root filesystem
+
+The build system will use the proper setup to build this target. Before running
+\code{make}, first check the number of CPUs cores in your workstation, as seen by
+the operating system (hyperthreading could make your OS see 4 cores instead of 2,
+for example).
+
+\begin{verbatim}
+cat /proc/cpuinfo
+\end{verbatim}
+
+You can use \code{make -j} (\code{j} stands for {\it jobs} to instruct \code{make}
+to run multiple compile jobs in parallel, taking advantage of the multiple
+CPU cores, and making sure that I/Os
+and CPU cores are always at 100\%. This will significantly reduce build time.
+
+For example, if Linux sees 4 cores, you will get good performance by specifying  
+the double number of parallel jobs: 
+
+\begin{verbatim}
+make -j 8
+\end{verbatim}
 
 Go grab (several cups of) coffee, and you will have the system compiled in three
 images in the folder \code{out/target/product/generic}.
