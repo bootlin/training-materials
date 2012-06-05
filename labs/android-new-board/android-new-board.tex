@@ -12,8 +12,7 @@ After this lab, you will be able to:
 
 Go to the \code{/home/<user>/felabs/android/linaro} directory.
 
-Install the \code{bzr}, \code{python-argparse},
-\code{python-parted} and \code{picocom} packages.
+Install the \code{bzr}, \code{python-argparse} and code{python-parted} packages.
 
 \section{Download the source code}
 
@@ -44,13 +43,19 @@ repo init -u git://android.git.linaro.org/platform/manifest.git \
 repo sync -j4
 \end{verbatim}
 
-You will also need to download the associated Linaro toolchain at
-\url{http://goo.gl/Wn4dM}
+You will also need to download and extract the associated Linaro toolchain:
 \footnote{The original URL is
 \url{http://android-build.linaro.org/builds/~linaro-android/toolchain-4.6-2011.11/4/android-toolchain-eabi-linaro-4.6-2011.11-4-2011-11-15_12-22-49-linux-x86.tar.bz2}. We wanted to give you something much shorter
-to type.} and extract its contents.
+to type.}
+\begin{verbatim}
+cd ..
+wget http://goo.gl/Wn4dM
+tar jxf Wn4dM
+\end{verbatim}
 
 \section{Build Android for the BeagleBoard}
+
+Get back to the \code{src} directory.
 
 As we said earlier, the DevKit8000 is very similar to the BeagleBoard, so we
 will first compile a build for the BeagleBoard. The command to run is:
@@ -75,13 +80,49 @@ sudo ./linaro-image-tools/linaro-android-media-create --mmc /dev/sdc \
      --boot out/target/product/beagleboard/boot.tar.bz2
 \end{verbatim}
 
-Now, we can remove the SD card and insert it into its slot in the DevKit8000,
-and we can boot on it holding the boot key while switching the board on. On the
-serial port, you should see Android going through its booting process, until
+Once this command is over, you can remove the SD card and insert it
+into the corresponding slot on the Devkit8000 board.
+
+\section{Setting up serial communication with the board}
+
+To see the board boot, we need to read the first boot messages 
+issued on the board's serial port.
+
+Your instructor will provide you with a special serial cable
+\footnote{This should be the same cable as for the Beagle and IGEPv2 boards}
+for the Devkit8000 board, together with a USB-to-serial adaptor for the connection
+with your laptop.
+
+When you plug in this adaptor, a serial port should appear on your workstation:
+\code{/dev/ttyUSB0}.
+
+You can also see this device appear by looking at the output of the \code{dmesg}
+command.
+
+To communicate with the board through the serial port, install a
+serial communication program, such as \code{picocom}:
+\footnote{\code{picocom} is one of the simplest utilities to access
+a serial console. \code{minicom} looks more featureful, but is also
+more complex to configure.}
+
+\begin{verbatim}
+sudo apt-get install picocom
+\end{verbatim}
+
+Run \code{picocom -b 115200 /dev/ttyUSB0}, to start serial
+communication on \code{/dev/ttyUSB0}, with a baudrate of 115200. If
+you wish to exit picocom, press \code{[Ctrl][a]} followed by
+\code{[Ctrl][x]}.
+
+\section{Booting the board}
+
+Once you inserted the SD card, you can boot the board by 
+holding the \code{boot} key while switching the board on. On the
+serial port, you should see Android going through its boot process, until
 you finally have a shell on the serial link.
 
-However, as you may have seen, while the system boots, you have no display at
-all, so we will need to fix this.
+However, as you may have seen, the system boots, but you have no display at
+all. We are going to fix this.
 
 \section{Fix the blank screen}
 
