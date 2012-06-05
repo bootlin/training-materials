@@ -105,7 +105,7 @@ sudo ./linaro-image-tools/linaro-android-media-create --mmc /dev/sdc \
 \end{verbatim}
 
 Once this command is over, you can remove the SD card and insert it
-into the corresponding slot on the Devkit8000 board.
+into the corresponding slot on the DevKit8000 board.
 
 \section{Setting up serial communication with the board}
 
@@ -114,7 +114,7 @@ issued on the board's serial port.
 
 Your instructor will provide you with a special serial cable
 \footnote{This should be the same cable as for the Beagle and IGEPv2 boards}
-for the Devkit8000 board, together with a USB-to-serial adaptor for the connection
+for the DevKit8000 board, together with a USB-to-serial adaptor for the connection
 with your laptop.
 
 When you plug in this adaptor, a serial port should appear on your workstation:
@@ -165,21 +165,24 @@ You can avoid doing a full rebuild by removing the
 \section{Fix the resolution}
 
 The actual resolution is set to 640x480 on the screen, while its resolution is
-only 480x272. This kind of adjustments are mostly done through the kernel
-command line. On the SD card's boot partition, you will find a file named
-\code{boot.txt} which is a U-Boot's script setting all the needed parameters for the
-board to boot properly, including the kernel command line. Change the
+only 480x272. This kind of adjustment is mostly done through the kernel
+command line. On the SD card's \code{boot} partition, you will find a file named
+\code{boot.txt}, which is a U-Boot script setting all the parameters needed
+to boot the board properly, including the kernel command line. Change the
 \code{omapdss.def_disp} and \code{omapfb.mode} properties so that it uses the LCD instead of
-the DVI output and at the correct resolution.
+the DVI output and the correct resolution.
 
-You can find some documentation for these options in the file
-\code{kernel/Documentation/arm/OMAP/DSS}, in the Kernel boot arguments section.
+You can find some documentation for these options in the
+\code{kernel/Documentation/arm/OMAP/DSS} file, in the \code{Kernel boot arguments} section.
 
 You will then have to generate from this \code{boot.txt} file a \code{boot.scr} file
 using the following command:
 
 \code{mkimage -A arm -O linux -T script -C none -a 0 -e 0 -n 'Execute uImage.bin' -d boot.txt boot.scr}
-
+\footnote{This command puts the \code{boot.txt} file contents into a special container,
+allowing U-boot to know that the \code{boot.scr} file is a script, and telling it how to handle
+this file. All the files handled by U-boot should be put in such a container.}
+ 
 Once this is done, test your changes by booting the board. You should see the
 display working correctly now.
 
