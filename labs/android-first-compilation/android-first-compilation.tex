@@ -13,19 +13,27 @@ Stay in the \code{/home/<user>/felabs/android/aosp/android} directory.
 \section{Build environment}
 
 Now that \code{repo sync} is over, we will compile an Android system for the
-emulator. First, be sure that the emulator is in your path. You can check
-by running the \code{emulator} command in a terminal.\\
+emulator. This will include building the emulator itself.
 
-Now, run \code{source build/envsetup.sh}.
+First, run \code{source build/envsetup.sh}.
 
 This file contains many useful shell functions and aliases, such as \code{croot} to
 go to the root directory of the Android source code or \code{lunch}, to select
-the build options.\\
+the build options.
+
+Check your \code{PATH} environment variable:
+
+\begin{verbatim}
+echo $PATH
+\end{verbatim}
+
+You will see that  \code{build/envsetup.sh} hasn't modified your \code{PATH}.
+This will be done during the build job.
 
 The target product for the emulator is {\it generic}, and we want to have an 
-engineering build. To do this, run \code{lunch generic-eng}.\\
+engineering build. To do this, run \code{lunch generic-eng}.
 
-\section{Compile the root filesystem
+\section{Compile the root filesystem}
 
 The build system will use the proper setup to build this target. Before running
 \code{make}, first check the number of CPUs cores in your workstation, as seen by
@@ -49,7 +57,17 @@ make -j 8
 \end{verbatim}
 
 Go grab (several cups of) coffee, and you will have the system compiled in three
-images in the folder \code{out/target/product/generic}.
+images in the \code{out/target/product/generic} folder.
 
-Run the emulator with these newly generated images and check the build version
-in the Settings application in Android.
+\textbf{Known issue}: in rare circumstances, some builds can fail when \code{make}
+is run with multiple jobs in parallel. If this happens, you can run \code{make}
+with no option after the failure, and this is likely to make the issue disappear.
+
+\section{Test your Android build}
+
+Now, look at the \code{PATH} environment variable again. It should now contain
+extra directories with new binaries produced by the build job.
+
+Run the \code{emulator} command. It will run the emulator with the newly generated images.
+Wait a few minutes for the emulator to load the system, and then 
+check the build version in the \code{Settings} application in Android.
