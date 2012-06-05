@@ -194,19 +194,19 @@ that the kernel has the driver for the touchscreen controller, but it returns
 bogus values. If you pay attention however, you will find that the touchscreen
 doesn't have the same orientation as the display.
 
-Get back to the documentation of the DSS to find an option that might address
+Get back to the OMAP DSS documentation to find an option that might address
 this problem.
 
 \section{Bring it all together}
 
 These tweaks are not persistent because the \code{boot.scr} file is generated at run
-time by the \code{linaro-android-media-create} tool. To automate this, modify it to add
-a ``devkit8000'' target device with the proper command line for the kernel.
+time by the \code{linaro-android-media-create} script. To automate this, modify this
+script to add a ``devkit8000'' target device with the right kernel command line.
 
 To do so, you will need to edit the files
 \code{linaro_image_tools/media_create/boards.py} and
 \code{linaro_image_tools/media_create/android_boards.py} to add \code{class} entries in each
-file to specify the correct boot command for your board. It should not take more than 10 lines to
+file to specify the right boot command for your board. It should not take more than 10 lines to
 add.
 
 You can also add \code{no_console_suspend} to the bootargs as Android by
@@ -216,11 +216,11 @@ hard to use it properly.
 \section{Add the Buttons}
 
 If you happen to launch an application, you will find that you cannot
-get back to the home screen, as no button is mapped to \code{back} or \code{home}
+get back to the home screen, as no button is mapped to the \code{back} and \code{home}
 keys.
 
-The button mapping is done in two steps. First, in the kernel, the
-board should define the buttons available. In this case, we will use
+Button mapping is done in two steps. First, in the kernel, the
+board should define the available buttons. In this case, we will use
 the small black buttons right next to the screen on the
 DevKit8000. These buttons are handled by the \code{gpio-keys} driver,
 and defined in the devkit8000 board file in the kernel.
@@ -229,22 +229,22 @@ If you look into that file, you will see that only one button is
 defined, the one corresponding to the button labeled \code{user key}
 on the board.
 
-We will map this button to the back key in Android. In the
+We will map this button to the \code{back} key in Android. In the
 \code{gpio_keys_button} structure, there is a \code{code} field. The
 value of this field defines the keycode sent to the input
 subsystem when you press that button, and will be later dispatched to
 the userspace. Replace the keycode used by \code{KEY_EXIT} and look up
 its value in the \code{include/linux/input.h} file.
 
-The Android input system loads keymaps and keylayouts for each input
-driver loaded. To load it properly, it uses the same name than the
+The Android input system loads keymaps and key layouts for each loaded input
+driver. To load these properly, it uses the same name as the
 input driver, with an extension. In our case, the input driver being
 \code{gpio-keys}, we will need to modify the \code{gpio-keys.kl} file.
 
-This file consists in a list of entries, corresponding to what actions
+This file consists of a list of entries, corresponding to what actions
 every keycode should trigger in the system. Add a new entry to this file
 for the back button, which should be like:
 \code{key  <keycode>  BACK}
 
 Once you're done, rebuild the system, boot it, and you should be able
-to use the back key now!
+to use the \code{back} key now!
