@@ -24,8 +24,11 @@ So the first thing to do is download the Android kernel sources.
 Go to the \code{kernel} directory. That's where the kernel source repository
 was cloned.
 
-Using \code{git branch -a}, find the most recent kernel for the Goldfish platform
-and switch to this branch with the command 
+Using \code{git branch -a}, find the name of the most recent stable kernel version that 
+supports the Goldfish platform. At the time of this writing, Linux 3.0 still doesn't
+seem to work with the emulator, and you will have to choose the 2.6.29 kernel.
+
+Switch to this branch as follows:
 
 \code{git checkout <branch>}.
 
@@ -77,13 +80,13 @@ emulator -kernel ~/felabs/android/kernel/kernel/arch/arm/boot/zImage
 Once again, check the kernel version in the Android settings. Make sure
 that the kernel was built today.
 
-\section{Generate a patchset from Android Kernel}
+\section{Generate a patchset from the Android Kernel}
 
 To compare the Android kernel sources with the official kernel ones,
 we need to fetch the latter sources too, allowing us to see which 
-commits differ.Git is great for that and offers everything we need.
+commits differ. Git is great for that and offers everything we need.
 
-First, add the linux-stable repository from Greg Kroah-Hartmann to our
+First, add the \code{linux-stable} repository from Greg Kroah-Hartmann to our
 repository:
 
 \code{git remote add stable git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux-stable.git}
@@ -101,9 +104,11 @@ differ from the linux kernel by doing:
 
 \code{git log v<kernel-version>..HEAD}
 
-In this set of commits, find the one that adds the wakelocks.
+Now, extract the corresponding set of patches\footnote{Git generates one patch per commit.}:
 
-Now, extract the set of patches with the \code{git format-patch} command.
+\code{git format-patch v<kernel-version>..HEAD}
 
-Congrats! You now have all the patches to apply to a vanilla kernel to obtain a
+In this set of patches, find the one that adds the wakelocks.
+
+Congratuations! You now have all the patches to apply to a vanilla kernel version to obtain a
 full Android kernel.
