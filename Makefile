@@ -109,6 +109,7 @@ ANDROID_SLIDES = \
 		 android-introduction-features \
 		 android-introduction-history \
 		 android-introduction-architecture \
+		 android-introduction-lab \
 		 android-source-title \
 		 android-source-obtaining \
 		 android-source-organization \
