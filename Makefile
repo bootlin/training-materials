@@ -174,7 +174,8 @@ ANDROID_SLIDES = \
 		 android-application-resources \
 		 android-application-storage \
 		 android-application-apk \
-		 android-resources
+		 android-resources \
+		 last-slides
 
 # List of labs for the different courses
 
