@@ -20,11 +20,11 @@ very specific to the hardware platform. There are usually two cases:
 
 \end{itemize}
 
-The IGEPv2 board, which uses the DM3730 or the OMAP3530, falls into
-the second category. The monitor integrated in the ROM reads the SD
+The IGEPv2 board, which uses the DM3730 or the OMAP3530 processors, falls into
+the second category. The monitor integrated in the ROM reads the MMC/SD
 card to search for a valid bootloader before looking at the internal
-NAND flash for a bootloader. Therefore, by using a SD card, we can
-start up a OMAP3-based without having anything installed on it.
+NAND flash for a bootloader. Therefore, by using an MMC/SD card, we can
+start up a OMAP3-based board without having anything installed on it.
 
 \section{Setup}
 
@@ -32,8 +32,8 @@ Go to the \code{/home/<user>/felabs/sysdev/u-boot/} directory.
 
 \section{MMC/SD card setup}
 
-The ROM monitor can read files from a FAT filesystem on the SD
-card. However, the SD card must be carefully partitionned, and the
+The ROM monitor can read files from a FAT filesystem on the MMC/SD
+card. However, the MMC/SD card must be carefully partitionned, and the
 filesystem carefully created in order to be recognized by the ROM
 monitor. Here are the special instructions to format an MMC/SD card
 for the OMAP-based platforms.
@@ -52,7 +52,7 @@ Caution: read this carefully before proceeding. You could destroy
 existing partitions on your PC!
 
 Do not make the confusion between the device that is used by your
-board to represent your MMC disk (probably \code{/dev/sda}), and the device
+board to represent your MMC/SD disk (probably \code{/dev/sda}), and the device
 that your workstation uses when the card reader is inserted (probably
 \code{/dev/sdb}).
 
@@ -61,9 +61,8 @@ your workstation. People have already destroyed their Windows
 partition by making this mistake.}
 \end{minipage}}
 
-
 You can also run \code{cat /proc/partitions} to list all block devices
-in your system. Again, make sure to distinguish the SD card from the
+in your system. Again, make sure to distinguish the SD/MMC card from the
 hard drive of your development workstation!
 
 Type the \code{mount} command to check your currently mounted
@@ -75,14 +74,22 @@ $ sudo umount /dev/sdb2
 ...
 \end{verbatim}
 
-Now, clear possible SD card contents remaining from previous training 
+Now, clear possible MMC/SD card contents remaining from previous training 
 sessions:
 
 \begin{verbatim}
 $ sudo dd if=/dev/zero of=/dev/sdb bs=1M count=256
 \end{verbatim}
 
-In a terminal open the block device with \code{fdisk}:
+As we explained earlier, the TI OMAP rom monitor needs special partition geometry settings
+to read partition contents. The MMC/SD card must have 255 heads, 63 sectors and a number
+of 512 byte cylinders corresponding to the card capacity. As this is very specific 
+to OMAP CPUs, we will just run a command that enforces  these settings:
+
+\code{sudo utils/omap-mmc-geometry /dev/sdb}
+
+We can now create and modify partitions in an ordinary way with \code{fdisk}, 
+which is the standard utility to manipulate partitions in GNU/Linux.
 
 \begin{verbatim}
 $ sudo fdisk /dev/sdb
@@ -109,53 +116,24 @@ Command action
    v   verify the partition table 
    w   write table to disk and exit 
    x   extra functionality (experts only)
-Print the current partition table typing p:
-Command (m for help): p 
-
-Disk /dev/sdb: 1967 MB, 1967128576 bytes
 \end{verbatim}
 
-Write down the total size.
-
-Let's enter the expert mode for geometry settings:
+Print the current partition table typing \code{p}:
 
 \begin{verbatim}
-Command (m for help): x
+Disk /dev/sdb: 3959 MB, 3959422976 bytes
+255 heads, 63 sectors/track, 481 cylinders, total 7733248 sectors
+Units = sectors of 1 * 512 = 512 bytes
+Sector size (logical/physical): 512 bytes / 512 bytes
+I/O size (minimum/optimal): 512 bytes / 512 bytes
+Disk identifier: 0x00000000
+
+   Device Boot      Start         End      Blocks   Id  System
+/dev/sde1              63     7727264     3863601   83  Linux
 \end{verbatim}
 
-We must set the geometry to 255 heads, 63 sectors and calculate the
-number of cylinders corresponding to your MMC card.
-
-\begin{verbatim}
-Expert command (m for help) : h
-Number of heads (1-256, default 4): 255 
-
-Expert command (m for help) : s 
-Number of sectors (1-63, default 62): 63
-Warning : setting sector offset for DOS compatibility
-\end{verbatim}
-
-Now for the number of cylinders, we consider the global size
-(1967128576 bytes in our example, the size is reported
-at the top of the \code{fdisk} output)
-then divide it by (255*63*512) which gives around
-239.16 cylinders. We must round it down to 239.
-
-\begin{verbatim}
-Expert command (m for help) : c
-Number of cylinders (1-1048576, default 4): 239 
-\end{verbatim}
-
-After these geometry settings, exit expert mode ('r' command) then
-print the partition table again to check geometry:
-
-\begin{verbatim}
-Command (m for help): p 
-
-Disk /dev/sdb: 1967 MB, 1967128576 bytes
-\end{verbatim}
-
-If any partition exists, delete it ('d' command).
+Delete the default partition (filling all the MMC/SD card space) with the \code{d} command.
+We will create a small one, which will be our boot partition. 
 
 Now, let's create the boot partition:
 
@@ -166,8 +144,8 @@ Command action
    p   primary partition (1-4) 
 p 
 Partition number (1-4): 1 
-First cylinder (1-239, default 1): 1 
-Last cylinder, +cylinders or +size{K,M,G} (1-239, default 239): +64M
+First sector (2048-7733247, default 2048): 1 
+Last sector, +cylinders or +size{K,M,G} (2048-7733247, default 7733247): +64M
 \end{verbatim}
 
 Mark it bootable: 
@@ -177,7 +155,7 @@ Command (m for help): a
 Partition number (1-4): 1
 \end{verbatim}
 
-Then we change its type to FAT32
+Then we change its type to FAT32:
 
 \begin{verbatim}
 Command (m for help): t
