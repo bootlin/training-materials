@@ -171,7 +171,7 @@ Command (m for help): w
 The partition table has been altered! 
 \end{verbatim}
 
-Format this new partition:
+Format this new partition in FAT32, with the \code{boot} label (name):
 
 \begin{verbatim}
 sudo mkfs.vfat -n boot -F 32 /dev/sdb1
@@ -194,6 +194,7 @@ repository:\footnote{We are using an old version of X-Loader, because
   moment on most embedded platforms.}
 
 \begin{verbatim}
+sudo apt-get install git
 git clone git://git.igep.es/pub/scm/x-loader.git
 cd x-loader
 git checkout v1.4.4-3
@@ -222,12 +223,14 @@ In order to compile the X-loader, you need to:
 
 \end{itemize}
 
-The resulting file is stored in the x-loader main directory as
+The resulting file is stored in the \code{x-loader} main directory as
 \code{x-load.bin}. This file must be {\em signed}\footnote{In fact,
   for a General Purpose (GP) device, the signature only consists of
   adding a “Table of Contents” at the beginning of the image,
-  explaining which program to execute.} in order to be executed by the
-processor. Using the \code{signGP} tool in the \code{contrib/}
+  explaining which program to execute. Signatures are using in variants
+  of the OMAP CPUs that implement some security features, which will refuse
+  to load an X-loader image that wasn't signed with an authorized key.}
+  in order to be executed by the processor. Using the \code{signGP} tool in the \code{contrib/}
 subdirectory, sign the \code{x-load.bin} file:
 
 \begin{verbatim}
@@ -254,7 +257,7 @@ cat ../u-boot-2011.12-igep-nand-support.patch | patch -p1
 \end{verbatim}
 
 Get an understanding of its configuration and compilation steps by
-reading the README file, and specifically the {\em Building the
+reading the \code{README} file, and specifically the {\em Building the
   software} section.
 
 Basically, you need to:
@@ -271,7 +274,7 @@ Basically, you need to:
   how a U-Boot configuration file is written;
 
 \item Finally, run \code{make}\footnote{You can speed up the compiling
-  by using the -jX option with make. Where X is the number of parallel
+  by using the \code{-jX} option with \code{make}, where X is the number of parallel
   jobs used for compiling. Twice the number of CPU cores is a good
   value.}, which should build U-Boot.
 
@@ -297,7 +300,7 @@ serial communication program, such as \code{picocom}:
 sudo apt-get install picocom
 \end{verbatim}
 
-Run \code{picocom -b 115200 /dev/ttyUSB0}, to start serial
+Run \code{sudo picocom -b 115200 /dev/ttyUSB0}, to start serial
 communication on \code{/dev/ttyUSB0}, with a baudrate of 115200. If
 you wish to exit picocom, press \code{[Ctrl][a]} followed by
 \code{[Ctrl][x]}.
