@@ -40,8 +40,10 @@ int mlbin_init_usb(void)
 		struct libusb_device_descriptor desc;
 		device = list[i];
 		libusb_get_device_descriptor(device, &desc);
-		printf("Found a new device : %x:%x\n", desc.idVendor, desc.idProduct);
-		if (desc.idVendor == ML_VENDOR_ID && desc.idProduct == ML_DEVICE_ID)
+		printf("Found a new device : %x:%x\n",
+			desc.idVendor, desc.idProduct);
+		if (desc.idVendor == ML_VENDOR_ID &&
+			desc.idProduct == ML_DEVICE_ID)
 			break;
 		device = NULL;
 	}
@@ -64,7 +66,7 @@ int mlbin_init_usb(void)
 
 	ret = libusb_claim_interface(devh, 0);
 	if(ret < 0) {
-    	printf("Couldn't claim the interface : %d.\n", ret);
+		printf("Couldn't claim the interface : %d.\n", ret);
 		goto if_error;
 	}
 
@@ -96,8 +98,8 @@ int mlbin_free_usb(void)
 
 int mlbin_fire(void)
 {
-  unsigned char data[] = {0x5f, ML_ACTION_FIRE, 0xe0, 0xff, 0xfe};
-  libusb_control_transfer(devh, 0x21, 0x09, 0, 0, data, 5, 300);
+	unsigned char data[] = {0x5f, ML_ACTION_FIRE, 0xe0, 0xff, 0xfe};
+	libusb_control_transfer(devh, 0x21, 0x09, 0, 0, data, 5, 300);
 
 	printf("Fire!\n");
 	return 0;
@@ -105,8 +107,8 @@ int mlbin_fire(void)
 
 int mlbin_move_down(void)
 {
-  unsigned char data[] = {0x5f, ML_ACTION_MOVE_DOWN, 0xe0, 0xff, 0xfe};
-  libusb_control_transfer(devh, 0x21, 0x09, 0, 0, data, 5, 300);
+	unsigned char data[] = {0x5f, ML_ACTION_MOVE_DOWN, 0xe0, 0xff, 0xfe};
+	libusb_control_transfer(devh, 0x21, 0x09, 0, 0, data, 5, 300);
 
 	printf("Move Down!\n");
 	return 0;
@@ -114,8 +116,8 @@ int mlbin_move_down(void)
 
 int mlbin_move_left(void)
 {
-  unsigned char data[] = {0x5f, ML_ACTION_MOVE_LEFT, 0xe0, 0xff, 0xfe};
-  libusb_control_transfer(devh, 0x21, 0x09, 0, 0, data, 5, 300);
+	unsigned char data[] = {0x5f, ML_ACTION_MOVE_LEFT, 0xe0, 0xff, 0xfe};
+	libusb_control_transfer(devh, 0x21, 0x09, 0, 0, data, 5, 300);
 
 	printf("Move Left!\n");
 	return 0;
@@ -123,8 +125,8 @@ int mlbin_move_left(void)
 
 int mlbin_move_right(void)
 {
-  unsigned char data[] = {0x5f, ML_ACTION_MOVE_RIGHT, 0xe0, 0xff, 0xfe};
-  libusb_control_transfer(devh, 0x21, 0x09, 0, 0, data, 5, 300);
+	unsigned char data[] = {0x5f, ML_ACTION_MOVE_RIGHT, 0xe0, 0xff, 0xfe};
+	libusb_control_transfer(devh, 0x21, 0x09, 0, 0, data, 5, 300);
 
 	printf("Move Right!\n");
 	return 0;
@@ -132,8 +134,8 @@ int mlbin_move_right(void)
 
 int mlbin_move_up(void)
 {
-  unsigned char data[] = {0x5f, ML_ACTION_MOVE_UP, 0xe0, 0xff, 0xfe};
-  libusb_control_transfer(devh, 0x21, 0x09, 0, 0, data, 5, 300);
+	unsigned char data[] = {0x5f, ML_ACTION_MOVE_UP, 0xe0, 0xff, 0xfe};
+	libusb_control_transfer(devh, 0x21, 0x09, 0, 0, data, 5, 300);
 
 	printf("Move Up!\n");
 	return 0;
@@ -141,8 +143,8 @@ int mlbin_move_up(void)
 
 int mlbin_stop(void)
 {
-  unsigned char data[] = {0x5f, ML_ACTION_STOP, 0xe0, 0xff, 0xfe};
-  libusb_control_transfer(devh, 0x21, 0x09, 0, 0, data, 5, 300);
+	unsigned char data[] = {0x5f, ML_ACTION_STOP, 0xe0, 0xff, 0xfe};
+	libusb_control_transfer(devh, 0x21, 0x09, 0, 0, data, 5, 300);
 
 	printf("Stop!\n");
 	return 0;
