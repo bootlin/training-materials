@@ -115,12 +115,14 @@ ANDROID_SLIDES = \
 		 android-source-organization \
 		 android-source-compilation \
 		 android-source-contribute \
+		 android-source-lab \
 		 sysdev-linux-intro-title \
 		 sysdev-linux-intro-features \
 		 sysdev-linux-intro-versioning \
 		 sysdev-linux-intro-configuration \
 		 sysdev-linux-intro-compilation \
 		 sysdev-linux-intro-cross-compilation \
+		 android-kernel-lab-compilation \
 		 android-kernel-changes-title \
 		 android-kernel-changes-wakelocks \
 		 android-kernel-changes-binder \
@@ -133,10 +135,12 @@ ANDROID_SLIDES = \
 		 android-bootloaders-title \
 		 sysdev-bootloaders-sequence \
 		 android-bootloaders-fastboot \
+		 android-new-board-lab \
 		 android-adb-title \
 		 android-adb-introduction \
 		 android-adb-use \
 		 android-adb-examples \
+		 android-adb-lab \
 		 android-fs-title \
 		 sysdev-root-filesystem-principles \
 		 android-fs-contents \
@@ -149,6 +153,7 @@ ANDROID_SLIDES = \
 		 android-build-system-configuration \
 		 android-build-system-modules \
 		 android-build-system-product \
+		 android-build-system-lab \
 		 android-native-layer-title \
 		 sysdev-toolchains-definition \
 		 android-native-layer-bionic \
@@ -160,11 +165,14 @@ ANDROID_SLIDES = \
 		 android-native-layer-dalvik \
 		 android-native-layer-hal \
 		 android-native-layer-jni \
+		 android-native-layer-lab-library \
+		 android-native-layer-lab-binary \
 		 android-framework-title \
 		 android-framework-native-services \
 		 android-framework-ipc \
 		 android-framework-java-services \
 		 android-framework-extend \
+		 android-framework-lab \
 		 android-application-title \
 		 android-application-basics \
 		 android-application-activities \
@@ -175,6 +183,7 @@ ANDROID_SLIDES = \
 		 android-application-resources \
 		 android-application-storage \
 		 android-application-apk \
+		 android-application-lab \
 		 android-resources \
 		 last-slides
 
