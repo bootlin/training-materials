@@ -13,16 +13,25 @@ After this lab, you will:
 
 Go to the \code{/home/<user>/felabs/realtime/rttest} directory.
 
-For this lab, you must have compiled a 2.6.35.9 kernel for the IGEP
-board, with the default configuration (named
-\code{igep0020_defconfig}, the generic \code{omap2plus_defconfig}
-didn't exist in 2.6.35.9), except that you will have to remove the
-libertas wireless modules. Remove the \code{CONFIG_HIGH_RES_TIMERS}
-option, to first test the kernel without high-resolution timers.
+For this lab, download the latest 2.6.35.x kernel sources, which 
+are the most recent ones we tested with Xenomai.
+
+Configure your kernel with the default configuration for the IGEPv2
+board, (named \code{igep0020_defconfig}, the generic \code{omap2plus_defconfig}
+didn't exist in 2.6.35).
+
+You can try to run \code{make xconfig}, but you will find that
+it fails because of missing Qt3 headers. To keep things simple, use 
+\code{make menuconfig} instead. 
+
+In the \code{menuconfig} interface, remove support for the 
+\em{Libertas} wireless modules (\code{CONFIG_LIBERTAS}). 
+For the moment, also remove the \code{CONFIG_HIGH_RES_TIMERS}
+option, to test the kernel without high-resolution timers first.
 
 Boot the IGEP board by mounting the root filesystem available at
 \code{/home/<user>/felabs/realtime/rttest/nfsroot/} with NFS. Note
-that in 2.6.35.9, the OMAP serial port were named \code{ttyS}, not
+that in 2.6.35.9, the OMAP serial ports were named \code{ttyS}, not
 \code{ttyO}, so you must adjust your \code{console=} argument to use
 \code{ttyS2}. As usual, login as \code{root}, there is no password.
 
@@ -35,10 +44,10 @@ apt-get install netcat
 \end{verbatim}
 
 Download CodeSourcery's 2009q1 toolchain at:
-\url{http://www.codesourcery.com/sgpp/lite/arm/portal/release858}
+\url{http://sourcery.mentor.com/public/gnu_toolchain/arm-none-linux-gnueabi/}
 
-Choose the {\em IA32 GNU/Linux TAR} version and untar it after the
-download.
+Choose the \code{arm-2009q1-203-arm-none-linux-gnueabi-i686-pc-linux-gnu.tar.bz2}
+version and untar it after the download.
 
 Add \code{/home/<user>/felabs/realtime/rttest/arm-2009q1/bin} to your
 \code{PATH}.
@@ -47,12 +56,12 @@ We are using a CodeSourcery toolchain because it uses the {\em glibc}
 as its C library, and {\em glibc} has better support for the POSIX RT
 API than {\em uClibc}. In our case, when we created this lab, uClibc
 didn't support the \code{clock_nanosleep} function used in our
-rttest.c program. {\em uClibc} also does not support priority
+\code{rttest.c} program. {\em uClibc} also does not support priority
 inheritance on mutexes.
 
 \section{Using high-resolution timers}
 
-Have a look at the \code{rttest.c} source file available in root/ in
+Have a look at the \code{rttest.c} source file available in \code{root/} in
 the \code{nfsroot/} directory. See how it shows the resolution of the
 \code{CLOCK_MONOTONIC} clock.
 
