@@ -62,8 +62,7 @@
   MTD partitions are defined in the kernel, in the board
   definitions. Example from
   \code{arch/arm/mach-omap2/board-igep0020.c}:
-\scriptsize
-\begin{verbatim}
+\begin{minted}[fontsize=\scriptsize]{c}
 static struct mtd_partition igep2_flash_partitions[] = {
     {
         .name   = "X-Loader",
@@ -82,7 +81,7 @@ static struct mtd_partition igep2_flash_partitions[] = {
         .size   = MTDPART_SIZ_FULL,
     },
 };
-\end{verbatim}
+\end{minted}
 \end{frame}
 
 \begin{frame}[fragile]
@@ -93,7 +92,8 @@ static struct mtd_partition igep2_flash_partitions[] = {
   \item First need to find the name of the MTD device. Look at the
     kernel log at boot time. In our case, the MTD device name is
     \code{omap2-nand.0}:
-\small
+\end{itemize}
+\tiny
 \begin{verbatim}
 NAND device: Manufacturer ID: 0x2c, Chip ID: 0xbc (Micron NAND 512MiB 1,8V 16-bit)
 Creating 5 MTD partitions on "omap2-nand.0":
@@ -103,7 +103,6 @@ Creating 5 MTD partitions on "omap2-nand.0":
 0x000000280000-0x000000580000 : "Kernel"
 0x000000580000-0x000020000000 : "File System"
 \end{verbatim}
-  \end{itemize}
 \end{frame}
 
 \begin{frame}
@@ -204,8 +203,8 @@ Creating 5 MTD partitions on "omap2-nand.0":
     Caution: unlike some \code{mkfs} commands, it doesn't create a
     filesystem, but a filesystem image.
   \item First, find the erase block size (on the target running Linux):\\
-    \code{cat /sys/class/mtd/mtdx/erasesize} \\
-    \code{262144} (256 KiB)
+    \code{cat /proc/mtd} \\
+    For example: \code{00040000} (256 KiB)
   \item Then create the image on your workstation:\\
     \code{mkfs.jffs2 --pad --no-cleanmarkers --eraseblock=256 -d rootfs/ -o rootfs.jffs2}
   \item The \code{--pad} option pads the jffs2 image contents\\
@@ -285,7 +284,7 @@ Creating 5 MTD partitions on "omap2-nand.0":
     \code{flash_eraseall /dev/mtd2}
   \item The filesystem is automatically formatted at the first mount:\\
     \code{mount -t yaffs2 /dev/mtdblock2 /mnt/flash}
-  \item Images can be created with the mkyaffs tool, from \code{yaffs-utils}\\
+  \item Images can be created with the \code{mkyaffs} tool, from \code{yaffs-utils}\\
     \url{http://code.google.com/p/yaffs2utils/}
   \end{itemize}
 \end{frame}
@@ -363,7 +362,7 @@ Creating 5 MTD partitions on "omap2-nand.0":
     \item \code{ubimkvol /dev/ubi0 -N test -s 116MiB}
     \item \code{ubimkvol /dev/ubi0 -N test -m} (max available size)
     \item The volume is then identified as \code{ubi0:test} for the
-      mount/umount commands
+      \code{mount}/\code{umount} commands
     \end{itemize}
   \item Volume removal with \code{ubirmvol}
     \begin{itemize}
@@ -402,9 +401,9 @@ Creating 5 MTD partitions on "omap2-nand.0":
   \frametitle{Ubinize}
   \begin{itemize}
   \item Images of a full UBI space, containing several volumes can be
-    created using the ubinize utility
+    created using the \code{ubinize} utility
     \begin{itemize}
-    \item Can be written to a raw MTD using \code{nand write} in U-boot.
+    \item Can be written to a raw MTD partition using \code{nand write} in U-boot.
     \item Caution: \code{nand erase} will also erase the Erase
       Counters
     \end{itemize}

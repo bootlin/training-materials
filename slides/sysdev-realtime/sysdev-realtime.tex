@@ -134,7 +134,7 @@
   \begin{itemize}
   \item In Linux, many interrupt handlers are split in two parts
     \begin{itemize}
-    \item A top-half, started by the CPU as soon as interrupt are
+    \item A top-half, started by the CPU as soon as interrupts are
       enabled. It runs with the interrupt line disabled and is
       supposed to complete as quickly as possible.
     \item A bottom-half, scheduled by the top-half, which starts after
@@ -344,10 +344,10 @@
   process becomes runnable, no more need to wait for kernel code
   (typically a system call) to return before running the scheduler.
   \begin{itemize}
-  \item Exception: kernel critical sections (holding spinlocks), but a
-    rescheduling point occurs when exiting the outer critical section,
-    in case a preemption opportunity would have been signaled while in
-    the critical section.
+  \item Exception: kernel critical sections (holding spinlocks).
+    In a case you hold a spinlock on a uni-processor system, kernel preemption
+    could run another process, which would loop forever if it
+    tried to acquire the same spinlock.
   \item Typically for desktop or embedded systems with latency
     requirements in the milliseconds range.
   \item Still a relatively minor impact on throughput.
@@ -637,7 +637,7 @@ pthread_join(pthread_t *thread, void **value_ptr);
   \frametitle{Scheduling classes (2)}
   \begin{itemize}
   \item An existing program can be started in a specific scheduling
-    class with a specific priority using the chrt command line tool
+    class with a specific priority using the \code{chrt} command line tool
     \begin{itemize}
     \item Example: \code{chrt -f 99 ./myprog}
     \end{itemize}
@@ -698,8 +698,8 @@ pthread_attr_setschedparam(&attr, &parm);
     \item Locks all the memory of the current address space, for
       currently mapped pages and pages mapped in the future
     \end{itemize}
-  \item Other, less useful parts of the API: munlockall, mlock,
-    munlock.
+  \item Other, less useful parts of the API: \code{munlockall}, \code{mlock},
+    \code{munlock}.
   \item Watch out for non-currently mapped pages
     \begin{itemize}
     \item Stack pages
@@ -1176,7 +1176,7 @@ echo 0 > /debug/tracing/tracing_enabled
     \end{itemize}
   \item The \code{xeno-config} script, installed when installing
     Xenomai user-space support helps you to compile your own programs.
-  \item See Xenomai's examples directory.
+  \item See Xenomai's \code{examples} directory.
   \item Installation details may be found in the \code{README.INSTALL}
     guide.
   \item For an introduction on programming with the native API, see:\\
