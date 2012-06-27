@@ -13,30 +13,28 @@ After this lab, you will:
 
 Go to the \code{/home/<user>/felabs/realtime/rttest} directory.
 
-For this lab, download the latest 2.6.35.x kernel sources, which 
-are the most recent ones we tested with Xenomai.
+For this lab, download the latest 2.6.38.8 kernel sources, which 
+are the most recent ones that Xenomai supports, at least on ARM.
+
+Please stay with the exact 2.6.38.8 version. You will have trouble
+applying Xenomai kernel patches otherwise.
 
 Configure your kernel with the default configuration for the IGEPv2
-board, (named \code{igep0020_defconfig}, the generic \code{omap2plus_defconfig}
-didn't exist in 2.6.35).
+board.
 
-You can try to run \code{make xconfig}, but you will find that
-it fails because of missing Qt3 headers. To keep things simple, use 
-\code{make menuconfig} instead. 
-
-In the \code{menuconfig} interface, remove support for the 
-{\em Libertas} wireless modules (\code{CONFIG_LIBERTAS}). 
-For the moment, also remove the \code{CONFIG_HIGH_RES_TIMERS}
-option, to test the kernel without high-resolution timers first.
+In the kernel configuration interface:
+\begin{itemize}
+\item Enable \code{CONFIG_DEVTMPFS} and \code{CONFIG_DEVTMPFS_MOUNT}
+      The root filesystem that we use has an empty \code{/dev}
+      directory, and we let the kernel populate it with the devices
+      present on the system.
+\item For the moment, remove \code{CONFIG_HIGH_RES_TIMERS},
+      to start by testing the kernel without high-resolution timers.
+\end{itemize}
 
 Boot the IGEP board by mounting the root filesystem available at
-\code{/home/<user>/felabs/realtime/rttest/nfsroot/} with NFS. Note
-that in 2.6.35.9, the OMAP serial ports were named \code{ttyS}, not
-\code{ttyO}, so you must adjust your \code{console=} argument to use
-\code{ttyS2}. As usual, login as \code{root}, there is no password.
-
-Please stay with a 2.6.35.x version, as this is the most recent
-version with Xenomai support.
+\code{/home/<user>/felabs/realtime/rttest/nfsroot/} with NFS.
+As usual, login as \code{root}, there is no password.
 
 Install netcat on your host, by running:
 \begin{verbatim}
@@ -92,10 +90,10 @@ Now, do the following tests:
   and using \code{netcat 192.168.0.100 5566} on your workstation when
   you see the message \code{Listening on any address 5566} in order to
   flood the network interface of the IGEP board (where 192.168.0.100
-  is the IP address of the IGEP board)
+  is the IP address of the IGEP board).
 \item Test your program again with the workload, but by running the
   program in the \code{SCHED_FIFO} scheduling class at priority 99,
-  using the chrt command.
+  using the \code{chrt} command.
 \end{itemize}
 
 \section{Testing the preemptible kernel}
@@ -104,7 +102,7 @@ Recompile your kernel with \code{CONFIG_PREEMPT} enabled, which
 enables kernel preemption (except for critical sections protected by
 spinlocks).
 
-Re-do the simple tests with this new preemptible kernel and compare
+Run the simple tests again with this new preemptible kernel and compare
 the results.
 
 \section{Testing Xenomai scheduling latency}
@@ -114,30 +112,30 @@ Get the latest Xenomai 2.6.x release from its download area at
 
 Prepare the kernel for Xenomai compilation:
 \begin{verbatim}
-./scripts/prepare-kernel.sh --arch=arm --linux=/path/to/linux-2.6.35
+./scripts/prepare-kernel.sh --arch=arm --linux=/path/to/linux-2.6.38.8
 \end{verbatim}
 
-You can reuse the kernel configuration from a previous compile job,
-then launch the kernel configuration tool again and enable the following
-options:
+Now, run the kernel configuration interface, and make sure that
+the below options are enabled, taking your time to read their
+description:
+
 \begin{itemize}
 \item \code{CONFIG_XENOMAI}
 \item \code{CONFIG_XENO_DRIVERS_TIMERBENCH}
-\end{itemize}
-
-Other options of interest (ARM specific) are:
-\begin{itemize}
 \item \code{CONFIG_XENO_HW_UNLOCKED_SWITCH}
 \end{itemize}
 
-Read the help message associated with these options, decide whether you want
-to enable them.
+Now, you also have to disable \code{CONFIG_ARCH_OMAP2},
+and \code{CONFIG_ARCH_OMAP4}. Xenomai doesn't seem to support
+the OMAP2 and OMAP4 boards, and the kernel won't build
+if you don't disable the above options. 
 
-Compile \code{rttest} for the Xenomai POSIX skin:
+Compile your kernel, and in the meantime,
+compile \code{rttest} for the Xenomai POSIX skin:
 
 \begin{verbatim}
-DESTDIR=/home/<user>/felabs/realtime/rttest/nfsroot/
-export DESTDIR
+cd $HOME/felabs/realtime/rttest/nfsroot/root
+export DESTDIR=$HOME/felabs/realtime/rttest/nfsroot/
 CFL=`$DESTDIR/usr/bin/xeno-config --skin=posix --cflags`
 LDF=`$DESTDIR/usr/bin/xeno-config --skin=posix --ldflags`
 arm-none-linux-gnueabi-gcc $CFL -o rttest rttest.c $LDF
