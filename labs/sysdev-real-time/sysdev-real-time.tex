@@ -6,6 +6,8 @@ After this lab, you will:
 \begin{itemize}
 \item Be able to check clock accuracy.
 \item Be able to start processes with real-time priority.
+\item Be able to build a real-time application against the standard
+POSIX real-time API, and against Xenomai's POSIX skin.
 \item Have compared scheduling latency on your system, between a standard kernel and a kernel with Xenomai.
 \end{itemize}
 
@@ -13,10 +15,75 @@ After this lab, you will:
 
 Go to the \code{/home/<user>/felabs/realtime/rttest} directory.
 
-For this lab, download the latest 2.6.38.8 kernel sources, which 
-are the most recent ones that Xenomai supports, at least on ARM.
+Install the \code{netcat} package.
 
-Please stay with the exact 2.6.38.8 version. You will have trouble
+\section{Root filesystem}
+
+Create an \code{nfsroot} directory.
+
+To compare real-time latency between standard Linux and Xenomai, we
+are going to need a root filesystem and a build environment that
+supports Xenomai.
+
+Let's build this with Buildroot.
+
+Download and extract the Buildroot 2012.05 sources.
+
+Configure Buildroot with the following settings, using the \code{/}
+command in \code{make menuconfig} to find parameters by their name:
+
+\begin{itemize}
+\item \code{Target architecture}: \code{ARM (little endian)} 
+\item \code{Target Architecture Variant}: \code{generic_arm}
+\item In \code{Build options}:
+   \begin{itemize}
+   \item \code{Number of jobs to run simultaneously}: \code{4}
+   \end{itemize}
+\item In \code{Toolchain}:
+   \begin{itemize}
+   \item \code{Toolchain type}: \code{External toolchain}
+   \item \code{Toolchain}: \code{Sourcery CodeBench ARM 2011.09}
+   \end{itemize}
+\item In \code{System configuration}: 
+   \begin{itemize}
+   \item \code{/dev management}: \code{Dynamic using devtmpfs only}
+   \item \code{Port to run a getty (login prompt) on}: \code{ttyO2}
+   \end{itemize}
+\item In \code{Package Selection for the target}:
+   \begin{itemize}
+   \item Enable \code{Show packages that are also provided by busybox}.
+         We need this to build the standard \code{netcat} command, not
+         provided in the default BusyBox configuration.
+   \item In \code{Debugging, profiling and benchmark}, enable
+         \code{rt-tests}. This will be a few applications to test
+         real-time latency.
+   \item In \code{Networking applications}, enable \code{netcat}
+   \item In \code{Real-Time}, enable \code{Xenomai Userspace}:
+         \begin{itemize}
+         \item \code{Custom Xenomai version}: \code{2.6.0}
+         \item Enable \code{Install testsuite}
+	 \item Make sure that \code{POSIX skin library} is enabled.
+  	 \end{itemize}
+   \end{itemize}
+\end{itemize}
+
+Now, build your root filesystem.
+
+At the end of the build job, extract the
+\code{output/images/rootfs.tar} archive in the \code{nfsroot}
+directory.
+
+The last thing to do is to add a few files that we will need 
+in our tests:
+
+\begin{verbatim}
+cp data/* nfsroot/root
+\end{verbatim}
+
+\section{Compile a standard Linux kernel}
+
+Download the exact Linux 2.6.38.8 version. That's the most recent
+ARM Linux version that Xenomai 2.6.0 supports. You will have trouble
 applying Xenomai kernel patches otherwise.
 
 Configure your kernel with the default configuration for the IGEPv2
@@ -32,32 +99,28 @@ In the kernel configuration interface:
       to start by testing the kernel without high-resolution timers.
 \end{itemize}
 
-Boot the IGEP board by mounting the root filesystem available at
-\code{/home/<user>/felabs/realtime/rttest/nfsroot/} with NFS.
+Boot the IGEP board by mounting the root filesystem that you built.
 As usual, login as \code{root}, there is no password.
 
-Install netcat on your host, by running:
-\begin{verbatim}
-apt-get install netcat
-\end{verbatim}
+\section{Compiling with the POSIX RT library}
 
-Download CodeSourcery's 2009q1 toolchain at:
-\url{http://sourcery.mentor.com/public/gnu_toolchain/arm-none-linux-gnueabi/}
+The root filesystem was built with the GNU C library, because it has
+better support for the POSIX RT API.
 
-Choose the \code{arm-2009q1-203-arm-none-linux-gnueabi-i686-pc-linux-gnu.tar.bz2}
-version and untar it after the download.
-
-Add \code{/home/<user>/felabs/realtime/rttest/arm-2009q1/bin} to your
-\code{PATH}.
-
-We are using a CodeSourcery toolchain because it uses the {\em glibc}
-as its C library, and {\em glibc} has better support for the POSIX RT
-API than {\em uClibc}. In our case, when we created this lab, uClibc
+In our case, when we created this lab, uClibc
 didn't support the \code{clock_nanosleep} function used in our
 \code{rttest.c} program. {\em uClibc} also does not support priority
 inheritance on mutexes.
 
-\section{Using high-resolution timers}
+Therefore, we will need to compile our test application with the
+toolchain that Buildroot used.
+
+Let's configure our \code{PATH} to use this toolchain:
+
+\begin{verbatim}
+export
+PATH=$HOME/felabs/realtime/rttest/buildroot-2012.05/output/host/usr/bin:$PATH
+\end{verbatim}
 
 Have a look at the \code{rttest.c} source file available in \code{root/} in
 the \code{nfsroot/} directory. See how it shows the resolution of the
@@ -86,7 +149,7 @@ Now, do the following tests:
 \item Test the program with nothing special and write down the
   results.
 \item Test your program and at the same time, add some workload to the
-  board, by running \code{doload 300 > /dev/null 2>&1 &} on the board,
+  board, by running \code{/root/doload 300 > /dev/null 2>&1 &} on the board,
   and using \code{netcat 192.168.0.100 5566} on your workstation when
   you see the message \code{Listening on any address 5566} in order to
   flood the network interface of the IGEP board (where 192.168.0.100
@@ -135,7 +198,7 @@ compile \code{rttest} for the Xenomai POSIX skin:
 
 \begin{verbatim}
 cd $HOME/felabs/realtime/rttest/nfsroot/root
-export DESTDIR=$HOME/felabs/realtime/rttest/nfsroot/
+export DESTDIR=$HOME/felabs/realtime/rttest/buildroot-2012.05/output/staging
 CFL=`$DESTDIR/usr/bin/xeno-config --skin=posix --cflags`
 LDF=`$DESTDIR/usr/bin/xeno-config --skin=posix --ldflags`
 arm-none-linux-gnueabi-gcc $CFL -o rttest rttest.c $LDF
@@ -148,6 +211,14 @@ Run the following commands on the board:
 \begin{verbatim}
 echo 0 > /proc/xenomai/latency
 \end{verbatim}
+
+In the current version, you will get the following error:
+
+\begin{verbatim}
+sh: write error: Bad address
+\end{verbatim}
+
+You can check that \code{/proc/xenomai/latency} contains \code{0}
 
 This will disable the timer compensation feature of Xenomai. This
 feature allows Xenomai to adjust the timer programming to take into
