@@ -13,6 +13,9 @@ UPPERCASE = $(shell echo $1 | tr "[:lower:]" "[:upper:]")
 # List of slides for the different courses
 
 KERNEL_SLIDES = \
+		course-information-title \
+		calao-board \
+		course-information \
 		kernel-introduction-title \
 		sysdev-linux-intro-features \
 		sysdev-linux-intro-versioning \
@@ -68,7 +71,11 @@ KERNEL_SLIDES = \
 		kernel-git-lab \
 		last-slides
 
-SYSDEV_SLIDES = sysdev-intro \
+SYSDEV_SLIDES = \
+		course-information-title \
+		igepv2-board \
+		course-information \
+		sysdev-intro \
 		sysdev-dev-environment \
 		sysdev-toolchains-title \
 		sysdev-toolchains-definition \
@@ -105,87 +112,90 @@ SYSDEV_SLIDES = sysdev-intro \
 		last-slides
 
 ANDROID_SLIDES = \
-		 android-introduction-title \
-		 android-introduction-features \
-		 android-introduction-history \
-		 android-introduction-architecture \
-		 android-introduction-lab \
-		 android-source-title \
-		 android-source-obtaining \
-		 android-source-organization \
-		 android-source-compilation \
-		 android-source-contribute \
-		 android-source-lab \
-		 sysdev-linux-intro-title \
-		 sysdev-linux-intro-features \
-		 sysdev-linux-intro-versioning \
-		 sysdev-linux-intro-configuration \
-		 sysdev-linux-intro-compilation \
-		 sysdev-linux-intro-cross-compilation \
-		 android-kernel-lab-compilation \
-		 android-kernel-changes-title \
-		 android-kernel-changes-wakelocks \
-		 android-kernel-changes-binder \
-		 android-kernel-changes-klogger \
-		 android-kernel-changes-ashmem \
-		 android-kernel-changes-timers \
-		 android-kernel-changes-network \
-		 android-kernel-changes-lmk \
-		 android-kernel-changes-misc \
-		 android-bootloaders-title \
-		 sysdev-bootloaders-sequence \
-		 android-bootloaders-fastboot \
-		 android-new-board-lab \
-		 android-adb-title \
-		 android-adb-introduction \
-		 android-adb-use \
-		 android-adb-examples \
-		 android-adb-lab \
-		 android-fs-title \
-		 sysdev-root-filesystem-principles \
-		 android-fs-contents \
-		 sysdev-root-filesystem-device-files \
-		 sysdev-root-filesystem-virtual-fs \
-		 sysdev-root-filesystem-minimal \
-		 android-build-system-title \
-		 android-build-system-basics \
-		 android-build-system-envsetup \
-		 android-build-system-configuration \
-		 android-build-system-modules \
-		 android-build-system-product \
-		 android-build-system-lab \
-		 android-native-layer-title \
-		 sysdev-toolchains-definition \
-		 android-native-layer-bionic \
-		 android-native-layer-toolbox \
-		 android-native-layer-init \
-		 android-native-layer-daemons \
-		 android-native-layer-flingers \
-		 android-native-layer-stagefright \
-		 android-native-layer-dalvik \
-		 android-native-layer-hal \
-		 android-native-layer-jni \
-		 android-native-layer-lab-library \
-		 android-native-layer-lab-binary \
-		 android-framework-title \
-		 android-framework-native-services \
-		 android-framework-ipc \
-		 android-framework-java-services \
-		 android-framework-extend \
-		 android-framework-lab \
-		 android-application-title \
-		 android-application-basics \
-		 android-application-activities \
-		 android-application-services \
-		 android-application-providers \
-		 android-application-intents \
-		 android-application-processes \
-		 android-application-resources \
-		 android-application-storage \
-		 android-application-apk \
-		 android-application-lab \
-		 android-resources \
-		 last-slides
+		course-information-title \
+		devkit8000-board \
+		course-information \
+		android-introduction-title \
+		android-introduction-features \
+		android-introduction-history \
+		android-introduction-architecture \
+		android-introduction-lab \
+		android-source-title \
+		android-source-obtaining \
+		android-source-organization \
+		android-source-compilation \
+		android-source-contribute \
+		android-source-lab \
+		sysdev-linux-intro-title \
+		sysdev-linux-intro-features \
+		sysdev-linux-intro-versioning \
+		sysdev-linux-intro-configuration \
+		sysdev-linux-intro-compilation \
+		sysdev-linux-intro-cross-compilation \
+		android-kernel-lab-compilation \
+		android-kernel-changes-title \
+		android-kernel-changes-wakelocks \
+		android-kernel-changes-binder \
+		android-kernel-changes-klogger \
+		android-kernel-changes-ashmem \
+		android-kernel-changes-timers \
+		android-kernel-changes-network \
+		android-kernel-changes-lmk \
+		android-kernel-changes-misc \
+		android-bootloaders-title \
+		sysdev-bootloaders-sequence \
+		android-bootloaders-fastboot \
+		android-new-board-lab \
+		android-adb-title \
+		android-adb-introduction \
+		android-adb-use \
+		android-adb-examples \
+		android-adb-lab \
+		android-fs-title \
+		sysdev-root-filesystem-principles \
+		android-fs-contents \
+		sysdev-root-filesystem-device-files \
+		sysdev-root-filesystem-virtual-fs \
+		sysdev-root-filesystem-minimal \
+		android-build-system-title \
+		android-build-system-basics \
+		android-build-system-envsetup \
+		android-build-system-configuration \
+		android-build-system-modules \
+		android-build-system-product \
+		android-build-system-lab \
+		android-native-layer-title \
+		sysdev-toolchains-definition \
+		android-native-layer-bionic \
+		android-native-layer-toolbox \
+		android-native-layer-init \
+		android-native-layer-daemons \
+		android-native-layer-flingers \
+		android-native-layer-stagefright \
+		android-native-layer-dalvik \
+		android-native-layer-hal \
+		android-native-layer-jni \
+		android-native-layer-lab-library \
+		android-native-layer-lab-binary \
+		android-framework-title \
+		android-framework-native-services \
+		android-framework-ipc \
+		android-framework-java-services \
+		android-framework-extend \
+		android-framework-lab \
+		android-application-title \
+		android-application-basics \
+		android-application-activities \
+		android-application-services \
+		android-application-providers \
+		android-application-intents \
+		android-application-processes \
+		android-application-resources \
+		android-application-storage \
+		android-application-apk \
+		android-application-lab \
+		android-resources \
+		last-slides
 
 # List of labs for the different courses
 
