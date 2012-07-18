@@ -13,6 +13,8 @@ UPPERCASE = $(shell echo $1 | tr "[:lower:]" "[:upper:]")
 # List of slides for the different courses
 
 KERNEL_SLIDES = \
+		licensing \
+		about-us \
 		course-information-title \
 		calao-board \
 		course-information \
@@ -72,6 +74,8 @@ KERNEL_SLIDES = \
 		last-slides
 
 SYSDEV_SLIDES = \
+		licensing \
+		about-us \
 		course-information-title \
 		igepv2-board \
 		course-information \
@@ -112,6 +116,8 @@ SYSDEV_SLIDES = \
 		last-slides
 
 ANDROID_SLIDES = \
+		licensing \
+		about-us \
 		course-information-title \
 		devkit8000-board \
 		course-information \
