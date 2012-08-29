@@ -318,8 +318,12 @@ SLIDES_CHAPTERS      = $($(call UPPERCASE, $(SLIDES_TRAINING))_SLIDES)
 SLIDES_COMMON_AFTER  = common/slide-footer.tex
 else
 SLIDES_TRAINING      = $(firstword $(subst -, ,  $(SLIDES)))
-SLIDES_COMMON_BEFORE = common/slide-header.tex common/single-slide-title.tex
 SLIDES_CHAPTERS      = $(filter $(SLIDES)%, $($(call UPPERCASE, $(SLIDES_TRAINING))_SLIDES))
+ifeq ($(words $(SLIDES_CHAPTERS)),1)
+SLIDES_COMMON_BEFORE = common/slide-header.tex common/single-subsection-slide-title.tex
+else
+SLIDES_COMMON_BEFORE = common/slide-header.tex common/single-slide-title.tex
+endif
 SLIDES_COMMON_AFTER  = common/slide-footer.tex
 endif
 
@@ -331,6 +335,7 @@ SLIDES_TEX      = \
 SLIDES_PICTURES = $(call PICTURES,$(foreach s,$(SLIDES_CHAPTERS),slides/$(s))) $(COMMON_PICTURES)
 
 %-slides.pdf: $(VARS) $(SLIDES_TEX) $(SLIDES_PICTURES) $(STYLESHEET)
+	@echo $(SLIDES_CHAPTERS_NUM)
 	@mkdir -p $(OUTDIR)
 # We generate a .tex file with \input{} directives (instead of just
 # concatenating all files) so that when there is an error, we are
