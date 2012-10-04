@@ -8,7 +8,7 @@ GIT=/usr/bin/git
 RM=/bin/rm
 FIND=/usr/bin/find
 TAR=/bin/tar
-UNLZMA=/usr/bin/unlzma
+UNLZMA=/usr/bin/unxz
 DIRNAME=/usr/bin/dirname
 RSYNC=/usr/bin/rsync
 SUDO=/usr/bin/sudo
@@ -32,17 +32,17 @@ $RSYNC --exclude=.git -a --delete lab-data/ felabs/
 
 # Uncompress compressed files
 
-$ECHO "Extracting tar.lzma archives (root permissions needed for device files)"
+$ECHO "Extracting tar.xz archives (root permissions needed for device files)"
 
-for f in `$FIND felabs -name "*.tar.lzma"`; do
-	$SUDO $TAR -C `dirname $f` --lzma -xf $f
+for f in `$FIND felabs -name "*.tar.xz"`; do
+	$SUDO $TAR -C `dirname $f` -Jxf $f
 	$RM $f
 done
 
 $SUDO $CHOWN -R $USER.$USER felabs
 
-$ECHO "Uncompressing other .lzma files"
-$FIND felabs -name "*.lzma" -exec $UNLZMA {} ';' 
+$ECHO "Uncompressing other .xz files"
+$FIND felabs -name "*.xz" -exec $UNXZ {} ';' 
 
 # Create the final archive
 
