@@ -31,7 +31,7 @@ To do so:
 \begin{itemize}
 
 \item Create a basic module in \code{drivers/tty/serial/fedrv.c} with
-  just the init and exit functions ;
+  just the \code{init} and \code{exit} functions ;
 
 \item Add a new configuration option in
   \code{drivers/tty/serial/Kconfig}. Don't forget to select
@@ -57,7 +57,7 @@ on the driver itself.
 
 \section{Register the UART driver}
 
-Instantiate an \code{uart_driver} structure with the following values:
+Instantiate a \code{uart_driver} structure with the following values:
 
 \begin{itemize}
 \item \code{owner}, \code{THIS_MODULE}
@@ -70,7 +70,7 @@ Instantiate an \code{uart_driver} structure with the following values:
 \end{itemize}
 
 In the \code{init} function, register the UART driver with
-\code{uart_register_driver()} and in the exit function,
+\code{uart_register_driver()} and in the \code{exit} function,
 unregister it with \code{uart_unregister_driver()}.
 
 \section{Integration in the device model}
@@ -79,13 +79,14 @@ To get notifications of the UART devices that exist on our board, we
 will integrate our driver in the device model.
 
 To do, so, first instantiate a \code{platform_driver} structure, with
-pointers to the \code{probe()} and \code{remove()} methods (they can
-be left empty at the moment). The driver name must be
-\code{``atmel_usart''} to match the device definitions in
+pointers to the \code{probe()} and \code{remove()} methods (for the 
+moment, you can just define these functions as returning a zero value)
+The driver name must be \code{atmel_usart} to match the device definitions in
 \code{arch/arm/mach-at91/}.
 
-You should mark the probe function with \code{__devinit} and the remove
-function with \code{__devexit}. The remove operation should be declared as
+You should mark the \code{probe()} function with \code{__devinit} and
+the \code{remove()}
+function with \code{__devexit}. The \code{remove} operation should be declared as
 follows:
 
 \begin{verbatim}
@@ -94,9 +95,9 @@ follows:
 
 So that if the driver is statically compiled, the
 \code{fedrv_remove()} function is not compiled in and the
-\code{.remove} pointer is NULL.
+\code{.remove} pointer is \code{NULL}.
 
-Then, in the init and exit functions of the module, register and
+Then, in the \code{init} and \code{exit} functions of the module, register and
 unregister the platform driver using
 \code{platform_driver_register()} and
 \code{platform_driver_unregister()}.
@@ -105,7 +106,7 @@ Finally, you need to make a small modification to the
 kernel. Currently, the \code{atmel_usart} platform devices are only added
 if the Atmel serial port driver is compiled in. However, since we
 disabled this driver (because we are re-implementing it), we must
-modify a little the board code. So, in
+modify the board code a little. So, in
 \code{arch/arm/mach-at91/at91sam9263_devices.c}, replace:
 
 \begin{verbatim}
@@ -145,7 +146,7 @@ Then, in the \code{probe()} operation:
 
 \begin{itemize}
 
-\item Make sure \code{pdev->id} is 0 (we only want to handle the first
+\item Make sure \code{pdev->id} is \code{0} (we only want to handle the first
   serial port). If it's not zero, bail out with \code{-ENODEV}
 
 \item Initialize the fields of the \code{uart_port} structures
@@ -167,7 +168,7 @@ Then, in the \code{probe()} operation:
 
 \item Associate the port pointer to the platform device structure
   using \code{platform_set_drvdata()}. This will make it easy to find
-  the port structure from the \code{platform_device} structure in the
+  the \code{port} structure from the \code{platform_device} structure in the
   \code{remove()} operation.
 
 \end{itemize}
@@ -176,7 +177,7 @@ In the \code{remove()} method:
 
 \begin{itemize}
 
-\item Get the port structure from the platform device structure using
+\item Get the \code{port} structure from the \code{platform_device} structure using
   \code{platform_get_drvdata()}
 
 \item Unregister the port with \code{uart_remove_one_port()}
@@ -190,8 +191,8 @@ directory. Similarly, if you go in \code{/sys/class/tty/ttyS0}, you
 should see that the \code{ttyS0} device is handled by
 \code{atmel_usart.0}. Good!
 
-Before going on, we need to disable the getty process that the init
-process is trying to start on \code{/dev/ttyS0}. Edit the
+Before going on, we need to disable the \code{getty} process that the
+\code{init} process is trying to start on \code{/dev/ttyS0}. Edit the
 \code{/etc/inittab} file of your target root filesystem and comment
 the line that starts the \code{getty} program on \code{ttyS0}, and
 reboot your platform.
@@ -201,8 +202,8 @@ reboot your platform.
 To keep our driver simple, we will implement a very simple polled-mode
 transmission model.
 
-In the \code{probe()} operation, let's define a few more things in the port
-structure:
+In the \code{probe()} operation, let's define a few more things in the
+\code{port} structure:
 
 \begin{itemize}
 
@@ -217,8 +218,9 @@ structure:
 \item \code{->mapbase} should be \code{pdev->resource[0].start}, this is
   the address of the memory-mapped registers
 
-\item \code{->membase} should be set to \code{data->regs}, where data is
-  the device-specific platform data associated to the device. In our
+\item \code{->membase} should be set to \code{data->regs}, where
+  \code{data} is the device-specific platform data structure associated
+  to the device. In our
   case, it's a \code{atmel_uart_data} structure, available through
   \code{pdev->dev.platform_data}. In the case of the first serial port
   \code{data->regs} is non-zero and contains the virtual address at
@@ -267,9 +269,9 @@ serial port type:
 Now, for the transmission itself, we will first implement
 \code{tx_empty()}. In this function, read the register \code{ATMEL_US_CSR} from
 the hardware (note: the virtual base address of the registers is in
-port->membase). If bit \code{ATMEL_US_TXEMPTY} is set, it means that the
+\code{port->membase}). If the \code{ATMEL_US_TXEMPTY} bit is set, it means that the
 port is ready to transmit, therefore return \code{TIOCSER_TEMT}, otherwise
-return 0.
+return \code{0}.
 
 Then, the \code{start_tx()} function will do the transmission
 itself. Iterate until the transmission buffer is empty (use
@@ -303,12 +305,14 @@ Then, in the \code{startup()} operation, do the following steps:
 
 \begin{itemize}
 
-\item Disable all interrupts in the serial controller by writing ~0UL
-  to the \code{ATMEL_US_IDR} register
+\item Disable all interrupts in the serial controller by writing
+  \code{~0UL}\footnote{That's \code{0xffffffff} on a 32 bit CPU}
+  to the \code{ATMEL_US_IDR} register.
 
-\item Register the IRQ channel \code{port->irq} to an interrupt handler
-  \code{fedrv_interrupt()}. Pass port as the \code{dev_id} so that we
-  get a pointer to the port in the interrupt handler. Make it a shared
+\item Register the \code{port->irq} IRQ channel with a
+  \code{fedrv_interrupt()} interrupt handler.
+  Pass \code{port} as the \code{dev_id} so that we
+  get a pointer to \code{port} in the interrupt handler. Make it a shared
   interrupt.
 
 \item Reset the serial controller by writing \code{ATMEL_US_RSTSTA |
@@ -326,7 +330,7 @@ Similarly, in the \code{shutdown()} operation, do:
 
 \begin{itemize}
 
-\item Disable all interrupts by writing \verb+~0UL+ to the
+\item Disable all interrupts by writing \code{~0UL} to the
   \code{ATMEL_US_IDR} register
 
 \item Free the IRQ channel using \code{free_irq()}
@@ -340,7 +344,7 @@ Then, in the interrupt handler, do the following:
 \item Read the \code{ATMEL_US_CSR} register to get the controller
   status and perform the logical and of this value with the enabled
   interrupts by reading the \code{ATMEL_US_IMR} register. If the
-  resulting value is 0, then the interrupt was not for us, return
+  resulting value is \code{0}, then the interrupt was not for us, return
   \code{IRQ_NONE}.
 
 \item If the result value has bit \code{ATMEL_US_RXRDY} set, call an
