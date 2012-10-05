@@ -12,7 +12,7 @@ kernel image.
 \section{Get Buildroot and explore the source code}
 
 The official Buildroot website is available at
-\url{http://buildroot.org/}. Download the stable 2011.11 version which
+\url{http://buildroot.org/}. Download the stable 2012.08 version which
 we have tested for this lab. Uncompress the tarball and go inside the
 buildroot directory.
 
@@ -71,12 +71,6 @@ Set the following options:
 \item Target Architecture: \code{arm}
 \item Target Architecture Variant: \code{arm926t}.
 \item Target ABI: \code{EABI}
-\item Build options
-  \begin{itemize}
-  \item Number of jobs to run simultaneously: choose 2 or 4, for
-    example, to speed up compiling, especially if you have a dual-core
-    system.
-  \end{itemize}
 \item Toolchain
   \begin{itemize}
   \item Toolchain type: \code{External toolchain}
@@ -85,8 +79,9 @@ Set the following options:
     \code{/usr/local/xtools/arm-unknown-linux-uclibcgnueabi}
   \item External toolchain C library: \code{uClibc}
   \item We must tell Buildroot about our toolchain configuration, so:
-    enable Toolchain has large file support and Toolchain has RPC
-    support. Buildroot will check these parameters anyway.
+    enable Toolchain has large file support, Toolchain has RPC support
+    and Toolchain has C++ support. Buildroot will check these
+    parameters anyway.
   \end{itemize}
 \item System configuration
   \begin{itemize}
@@ -148,7 +143,7 @@ explore its contents:
   tarball of the filesystem, but depending on the Buildroot
   configuration, there could also be a kernel image or a bootloader
   image. This is where we find \code{rootfs.tar} and
-  \code{rootfs.ext2}, which are respectively the tarball and an ext2
+  \code{rootfs.ext2}, which are respectively the tarball and the ext2
   image of the generated root filesystem.
 
 \item \code{staging}, which contains the “build” space of the target
@@ -168,15 +163,6 @@ explore its contents:
   toolchain, so this directory contains almost nothing.
 
 \end{itemize}
-
-At the end of the run, get back to the main lab directory and create a
-symbolic link to the \code{output} directory:
-
-\begin{verbatim}
-ln -s buildroot-<version>/output .
-\end{verbatim}
-
-This will make our life simpler in the next lab.
 
 \section{Run the generated system}
 
@@ -206,46 +192,53 @@ df_fire
 ...
 \end{verbatim}
 
-\section{Tests on the IGEPv2 board}
+% =================================================================
+% The following section is commented out, because the HDMI/DVI-D
+% output didn't work in various tests, and hasn't been tested on
+% IGEPv2 rev6 with recent kernel versions. Until this has been tested,
+% we shouldn't advertise instructions that simply don't work.
+% =================================================================
 
-If you have graphical displays to connect your IGEPv2 board to (LCD
-display with DVI-D or HDMI input, TI Pico Projector...), and the
-corresponding cables (HDMI to DVI-D or HDMI to HDMI), you can test
-your root filesystem on the board.
+% \section{Tests on the IGEPv2 board}
 
-You can skip to the next section if you don't have a display.
+% If you have graphical displays to connect your IGEPv2 board to (LCD
+% display with DVI-D or HDMI input, TI Pico Projector...), and the
+% corresponding cables (HDMI to DVI-D or HDMI to HDMI), you can test
+% your root filesystem on the board.
 
-Here's what you can do:
+% You can skip to the next section if you don't have a display.
 
-\begin{itemize}
-\item Edit \code{etc/inittab}, uncomment the line with \code{ttyS0}
-  and replace all the occurrences of \code{ttyS0} by \code{ttyO2}
-\item Either copy the ext2 image to a block device that can be
-  accessed by your hardware (flash card reader, USB drive...)
-\item Or mount the ext2 image and copy its contents to a flash
-  partition on your board.
-\item Connect your board to an DVI-D or HDMI display
-\item Get the latest Linux 2.6.39.x sources, take the default
-  configuration of OMAP2 and build this Linux kernel with the
-  following settings:
-\begin{verbatim}
-CONFIG_OMAP2_DSS=y
-FB_OMAP2=y
-CONFIG_PANEL_GENERIC_DPI=y
-LOGO=y (optional)
-\end{verbatim}
-\item Add the following settings to the boot arguments:
-  \begin{itemize}
-  \item \code{console=tty0}\\(allows you to have both a framebuffer
-    and serial console)
-  \item \code{vram=12M}\\(video RAM)
-  \item \code{omapfb.mode=dvi:640x480MR-16@60}\\(example for the
-    Pico Projector. You may first try to do without this parameter,
-    and then specify a mode that your monitor supports).
-  \item \code{omapdss.def_disp=dvi}\\(default output for the Omap
-    Display SubSystem driver)
-  \end{itemize}
-\end{itemize}
+% Here's what you can do:
+
+% \begin{itemize}
+% \item Edit \code{etc/inittab}, uncomment the line with \code{ttyS0}
+%   and replace all the occurrences of \code{ttyS0} by \code{ttyO2}
+% \item Either copy the ext2 image to a block device that can be
+%   accessed by your hardware (flash card reader, USB drive...)
+% \item Or mount the ext2 image and copy its contents to a flash
+%   partition on your board.
+% \item Connect your board to an DVI-D or HDMI display
+% \item Get the latest Linux 2.6.39.x sources, take the default
+%   configuration of OMAP2 and build this Linux kernel with the
+%   following settings:
+% \begin{verbatim}
+% CONFIG_OMAP2_DSS=y
+% FB_OMAP2=y
+% CONFIG_PANEL_GENERIC_DPI=y
+% LOGO=y (optional)
+% \end{verbatim}
+% \item Add the following settings to the boot arguments:
+%   \begin{itemize}
+%   \item \code{console=tty0}\\(allows you to have both a framebuffer
+%     and serial console)
+%   \item \code{vram=12M}\\(video RAM)
+%   \item \code{omapfb.mode=dvi:640x480MR-16@60}\\(example for the
+%     Pico Projector. You may first try to do without this parameter,
+%     and then specify a mode that your monitor supports).
+%   \item \code{omapdss.def_disp=dvi}\\(default output for the Omap
+%     Display SubSystem driver)
+%   \end{itemize}
+% \end{itemize}
 
 \section{Going further}
 
