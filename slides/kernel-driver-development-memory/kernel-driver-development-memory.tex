@@ -88,7 +88,7 @@
   \frametitle{Notes on user-space memory}
   \begin{itemize}
   \item New user-space memory is allocated either from the already
-    allocated process memory, or using the mmap system call
+    allocated process memory, or using the \code{mmap} system call
   \item Note that memory allocated may not be physically allocated:
     \begin{itemize}
     \item Kernel uses demand fault paging to allocate the physical
@@ -116,8 +116,8 @@
   \item Kernel memory low-level allocator manages pages. This is the
     finest granularity (usually 4 KB, architecture dependent).
   \item However, the kernel memory management handles smaller memory
-    allocations through its allocator (see slabs / SLUB allocator –
-    used by kmalloc).
+    allocations through its allocator (see \emph{SLAB allocators}
+    – used by \code{kmalloc}).
   \end{itemize}
 \end{frame}
 
@@ -271,7 +271,7 @@
   \item The kmalloc allocator is the general purpose memory allocator
     in the Linux kernel, for objects from 8 bytes to 128 KB
   \item For small sizes, it relies on generic SLAB caches, named
-    kmalloc-XXX in \code{/proc/slabinfo}
+    \code{kmalloc-XXX} in \code{/proc/slabinfo}
   \item For larger sizes, it relies on the page allocator
   \item The allocated area is guaranteed to be physically contiguous
   \item The allocated area size is rounded up to the next power of two
@@ -290,7 +290,7 @@
   \item \mint{c}+#include <linux/slab.h>+
   \item \mint{c}+void *kmalloc(size_t size, int flags);+
     \begin{itemize}
-    \item Allocate size bytes, and return a pointer to the area
+    \item Allocate \code{size} bytes, and return a pointer to the area
       (virtual address)
     \item \code{size}: number of bytes to allocate
     \item \code{flags}: same flags as the page allocator
@@ -318,15 +318,15 @@ kfree(work);
     \end{itemize}
   \item \mint{c}+void *kcalloc(size_t n, size_t size, gfp_t flags);+
     \begin{itemize}
-    \item Allocates memory for an array of n elements of size size,
-      and zeroes its contents.
+    \item Allocates memory for an array of \code{n} elements of
+      \code{size} size, and zeroes its contents.
     \end{itemize}
   \item \mint{c}+void *krealloc(const void *p, size_t new_size,+
     \mint{c}+gfp_t flags);+
     \begin{itemize}
     \item Changes the size of the buffer pointed by \code{p} to
       \code{new_size}, by reallocating a new buffer and copying the
-      data, unless the \code{new_size} fits within the alignment of
+      data, unless \code{new_size} fits within the alignment of
       the existing buffer.
     \end{itemize}
   \end{itemize}
@@ -335,7 +335,7 @@ kfree(work);
 \begin{frame}[fragile]
   \frametitle{vmalloc Allocator}
   \begin{itemize}
-  \item The vmalloc allocator can be used to obtain virtually
+  \item The \code{vmalloc} allocator can be used to obtain virtually
     contiguous memory zones, but not physically contiguous. The
     requested memory size is rounded up to the next page.
   \item The allocated area is in the kernel space part of the address
@@ -362,7 +362,7 @@ kfree(work);
     \item \code{Kmemcheck}
       \begin{itemize}
       \item Dynamic checker for access to uninitialized memory.
-      \item Only available on x86 so far (Linux 3.3 status), but will
+      \item Only available on \code{x86} so far (Linux 3.6 status), but will
         help to improve architecture independent code anyway.
       \item See \code{Documentation/kmemcheck.txt} for details.
       \end{itemize}

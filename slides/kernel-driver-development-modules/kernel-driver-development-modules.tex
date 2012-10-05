@@ -58,8 +58,8 @@ MODULE_AUTHOR("William Shakespeare");
     \end{itemize}
   \item An initialization function
     \begin{itemize}
-    \item Called when the module is loaded, returns an error code (0
-      on success, negative value on failure)
+    \item Called when the module is loaded, returns an error code
+      (\code{0} on success, negative value on failure)
     \item Declared by the \code{module_init()} macro: the name of the
       function doesn't matter, even though \code{<modulename>_init()}
       is a convention.
@@ -155,7 +155,7 @@ MODULE_AUTHOR("William Shakespeare");
 \begin{frame}[fragile]
   \frametitle{Compiling an out-of-tree Module 1/2}
   \begin{itemize}
-  \item The below Makefile should be reusable for any single-file
+  \item The below \code{Makefile} should be reusable for any single-file
     out-of-tree Linux module
   \item The source file is \code{hello.c}
   \item Just run make to build the hello.ko file
@@ -200,7 +200,8 @@ endif
   \frametitle{Modules and Kernel Version}
   \begin{itemize}
   \item To be compiled, a kernel module needs access to the kernel
-    headers, containing the functions, types and constants definitions
+    headers, containing the definitions of functions, types and
+    constants.
   \item Two solutions
     \begin{itemize}
     \item Full kernel sources
@@ -214,7 +215,7 @@ endif
   \item A kernel module compiled against version X of kernel headers
     will not load in kernel version Y
     \begin{itemize}
-    \item modprobe/insmod will say \emph{Invalid module format}
+    \item \code{modprobe} / \code{insmod} will say \code{Invalid module format}
     \end{itemize}
   \end{itemize}
 \end{frame}
@@ -227,10 +228,10 @@ endif
     \item Add your new source file to the appropriate source
       directory. Example: \code{drivers/usb/serial/navman.c}
     \item Single file drivers in the common case, even if the file is
-      several thousand lines of code. Only really big drivers are
+      several thousand lines of code big. Only really big drivers are
       split in several files or have their own directory.
     \item Describe the configuration interface for your new driver by
-      adding the following lines to the Kconfig file in this
+      adding the following lines to the \code{Kconfig} file in this
       directory:
     \end{itemize}
 {\footnotesize
@@ -249,9 +250,10 @@ config USB_SERIAL_NAVMAN
 \begin{frame}
   \frametitle{New Driver in Kernel Sources 2/2}
   \begin{itemize}
-  \item Add a line in the Makefile file based on the Kconfig setting:
+  \item Add a line in the \code{Makefile} file based on the
+\code{Kconfig} setting:
     \code{obj-$(CONFIG_USB_SERIAL_NAVMAN) += navman.o}
-  \item It tells the kernel build system to build navman.c when the
+  \item It tells the kernel build system to build \code{navman.c} when the
     \code{USB_SERIAL_NAVMAN} option is enabled. It works both if
     compiled statically or as a module.
     \begin{itemize}
@@ -270,17 +272,17 @@ config USB_SERIAL_NAVMAN
   \item The old school way
     \begin{itemize}
     \item Before making your changes, make sure you have two kernel
-      trees: \code{cp -a linux-2.6.37/ linux-2.6.37-patch/}
-    \item Make your changes in \code{linux-2.6.37-patch/}
+      trees: \code{cp -a linux-3.5.5/ linux-3.5.5-patch/}
+    \item Make your changes in \code{linux-3.5.5-patch/}
     \item Run \code{make distclean} to keep only source files.
     \item Create a patch file:
-      \code{diff -Nur linux-2.6.37/ linux-2.6.37-patch/ > patchfile}
-    \item Not practical, does not scale to multiple patches
+      \code{diff -Nur linux-3.5.5/ linux-3.5.5-patch/ > patchfile}
+    \item Not convenient, does not scale to multiple patches
     \end{itemize}
   \item The new school ways
     \begin{itemize}
-    \item Use quilt (tool to manage a stack of patches)
-    \item Use Git (revision control system used by the Linux kernel
+    \item Use \code{quilt} (tool to manage a stack of patches)
+    \item Use \code{git} (revision control system used by the Linux kernel
       developers)
     \end{itemize}
   \end{itemize}
