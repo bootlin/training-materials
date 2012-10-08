@@ -27,18 +27,18 @@ supports Xenomai.
 
 Let's build this with Buildroot.
 
-Download and extract the Buildroot 2012.05 sources.
+Download and extract the Buildroot 2012.08 sources. Apply the
+Buildroot patch \code{buildroot-2012.08-bump-xenomai-to-2.6.1.patch}
+from the lab {\em data} directory to your Buildroot sources. It
+upgrades the Xenomai version to 2.6.1, which allows to use the 3.2
+kernel.
 
 Configure Buildroot with the following settings, using the \code{/}
 command in \code{make menuconfig} to find parameters by their name:
 
 \begin{itemize}
 \item \code{Target architecture}: \code{ARM (little endian)} 
-\item \code{Target Architecture Variant}: \code{generic_arm}
-\item In \code{Build options}:
-   \begin{itemize}
-   \item \code{Number of jobs to run simultaneously}: \code{4}
-   \end{itemize}
+\item \code{Target Architecture Variant}: \code{cortex-a8}
 \item In \code{Toolchain}:
    \begin{itemize}
    \item \code{Toolchain type}: \code{External toolchain}
@@ -60,7 +60,6 @@ command in \code{make menuconfig} to find parameters by their name:
    \item In \code{Networking applications}, enable \code{netcat}
    \item In \code{Real-Time}, enable \code{Xenomai Userspace}:
          \begin{itemize}
-         \item \code{Custom Xenomai version}: \code{2.6.0}
          \item Enable \code{Install testsuite}
 	 \item Make sure that \code{POSIX skin library} is enabled.
   	 \end{itemize}
@@ -73,8 +72,8 @@ At the end of the build job, extract the
 \code{output/images/rootfs.tar} archive in the \code{nfsroot}
 directory.
 
-The last thing to do is to add a few files that we will need 
-in our tests:
+The last thing to do is to add a few files that we will need in our
+tests:
 
 \begin{verbatim}
 cp data/* nfsroot/root
@@ -82,8 +81,8 @@ cp data/* nfsroot/root
 
 \section{Compile a standard Linux kernel}
 
-Download the exact Linux 2.6.38.8 version. That's the most recent
-ARM Linux version that Xenomai 2.6.0 supports. You will have trouble
+Download the exact Linux 3.2.21 version. That's the most recent
+ARM Linux version that Xenomai 2.6.1 supports. You will have trouble
 applying Xenomai kernel patches otherwise.
 
 Configure your kernel with the default configuration for the IGEPv2
@@ -97,6 +96,12 @@ In the kernel configuration interface:
       present on the system.
 \item For the moment, remove \code{CONFIG_HIGH_RES_TIMERS},
       to start by testing the kernel without high-resolution timers.
+\item Disable \code{CONFIG_SMP}, as Xenomai 2.6.1 does not support
+  yet multi-processing on OMAP (and the IGEPv2 is anyway a single
+  core processor).
+\item Disable \code{CONFIG_PROVE_LOCKING},
+  \code{CONFIG_DEBUG_LOCK_ALLOC}, \code{CONFIG_DEBUG_MUTEXES} and
+  \code{CONFIG_DEBUG_SPINLOCK}.
 \end{itemize}
 
 Boot the IGEP board by mounting the root filesystem that you built.
@@ -119,7 +124,7 @@ Let's configure our \code{PATH} to use this toolchain:
 
 \begin{verbatim}
 export
-PATH=$HOME/felabs/realtime/rttest/buildroot-2012.05/output/host/usr/bin:$PATH
+PATH=$HOME/felabs/realtime/rttest/buildroot-2012.08/output/host/usr/bin:$PATH
 \end{verbatim}
 
 Have a look at the \code{rttest.c} source file available in \code{root/} in
@@ -149,11 +154,10 @@ Now, do the following tests:
 \item Test the program with nothing special and write down the
   results.
 \item Test your program and at the same time, add some workload to the
-  board, by running \code{/root/doload 300 > /dev/null 2>&1 &} on the board,
-  and using \code{netcat 192.168.0.100 5566} on your workstation when
-  you see the message \code{Listening on any address 5566} in order to
-  flood the network interface of the IGEP board (where 192.168.0.100
-  is the IP address of the IGEP board).
+  board, by running \code{/root/doload 300 > /dev/null 2>&1 &} on the
+  board, and using \code{netcat 192.168.0.100 5566} on your
+  workstation in order to flood the network interface of the IGEP
+  board (where 192.168.0.100 is the IP address of the IGEP board).
 \item Test your program again with the workload, but by running the
   program in the \code{SCHED_FIFO} scheduling class at priority 99,
   using the \code{chrt} command.
@@ -170,12 +174,11 @@ the results.
 
 \section{Testing Xenomai scheduling latency}
 
-Get the latest Xenomai 2.6.x release from its download area at
-\url{http://download.gna.org/xenomai/stable/} and untar Xenomai.
-
 Prepare the kernel for Xenomai compilation:
 \begin{verbatim}
-./scripts/prepare-kernel.sh --arch=arm --linux=/path/to/linux-2.6.38.8
+cd $HOME/felabs/realtime/rttest/buildroot-2012.08/
+./output/build/xenomai-2.6.1/scripts/prepare-kernel.sh \
+   --arch=arm --linux=/path/to/linux-3.2.21
 \end{verbatim}
 
 Now, run the kernel configuration interface, and make sure that
@@ -188,21 +191,26 @@ description:
 \item \code{CONFIG_XENO_HW_UNLOCKED_SWITCH}
 \end{itemize}
 
-Now, you also have to disable \code{CONFIG_ARCH_OMAP2},
-and \code{CONFIG_ARCH_OMAP4}. Xenomai doesn't seem to support
-the OMAP2 and OMAP4 boards, and the kernel won't build
-if you don't disable the above options. 
+In order to build our application against the Xenomai libraries, we
+will need {\em pkg-config} built by Buildroot. So go in your Buildroot
+source directory, and force Buildroot to build the host variant of
+{\em pkg-config}:
+
+\begin{verbatim}
+cd $HOME/felabs/realtime/rttest/buildroot-2012.08/
+make host-pkg-config
+\end{verbatim}
 
 Compile your kernel, and in the meantime,
 compile \code{rttest} for the Xenomai POSIX skin:
 
+\small
 \begin{verbatim}
 cd $HOME/felabs/realtime/rttest/nfsroot/root
-export DESTDIR=$HOME/felabs/realtime/rttest/buildroot-2012.05/output/staging
-CFL=$($DESTDIR/usr/bin/xeno-config --skin posix --cflags)
-LDF=$($DESTDIR/usr/bin/xeno-config --skin posix --ldflags)
-arm-none-linux-gnueabi-gcc $CFL -o rttest rttest.c $LDF
+export PATH=$HOME/felabs/realtime/rttest/buildroot-2012.08/output/host/usr/bin:$PATH
+arm-none-linux-gnueabi-gcc -o rttest rttest.c $(pkg-config libxenomai_posix)
 \end{verbatim}
+\normalsize
 
 Now boot the board with the new kernel.
 
@@ -211,15 +219,6 @@ Run the following commands on the board:
 \begin{verbatim}
 echo 0 > /proc/xenomai/latency
 \end{verbatim}
-
-In the current version, you will get the following error:
-
-\begin{verbatim}
-sh: write error: Bad address
-\end{verbatim}
-
-You can check that \code{/proc/xenomai/latency} contains \code{0}. It
-should be safe to ignore this error.
 
 This will disable the timer compensation feature of Xenomai. This
 feature allows Xenomai to adjust the timer programming to take into
