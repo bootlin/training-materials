@@ -69,7 +69,7 @@ drwxr-xr-x 2 root root   4096 2011-04-07 14:43 shm
       subscribe to notifications of filesystem changes.
     \item When an event is received, \code{udevd} starts a process to:
       \begin{itemize}
-      \item try to match the event against udev rules,
+      \item try to match the event against \code{udev} rules,
       \item create / remove device files,
       \item and run programs (to load / remove a driver, to notify user
         space...)
@@ -104,7 +104,7 @@ recv(4,
 
 \begin{frame}
   \frametitle{udev rules}
-  When a udev rule matching event information is found, it can be
+  When a \code{udev} rule matching event information is found, it can be
   used:
   \begin{itemize}
   \item To define the name and path of a device file.
@@ -223,7 +223,7 @@ ENV{MODALIAS}=="?*", RUN+="/sbin/modprobe -Q $env{MODALIAS}"
   \frametitle{Cold-plugging}
   \begin{itemize}
   \item Issue: loosing all device events happening during kernel
-    initialization, because udev is not ready yet.
+    initialization, because \code{udev} is not ready yet.
   \item Solution: after starting \code{udevd}, have the kernel emit
     uevents for all devices present in \code{/sys}.
   \item This can be done by the \code{udevtrigger} utility.
@@ -257,7 +257,7 @@ UDEV  [1170452995.568758] add@/class/input/input28/ts2
 \end{block}
 It gives time information measured in microseconds. You can measure
 time elapsed between the uevent (\code{UEVENT} line), and the completion of
-the corresponding udev process (matching \code{UDEV} line).
+the corresponding \code{udev} process (matching \code{UDEV} line).
 \end{frame}
 
 \begin{frame}[fragile]
@@ -322,18 +322,18 @@ UDEVD_EVENT=1
   \frametitle{udev files}
   \begin{itemize}
   \item \code{/etc/udev/udev.conf}\\
-    udev configuration file.\\
+    \code{udev} configuration file.\\
     Mainly used to configure syslog reporting priorities.\\
     Example setting: \code{udev_log="err"}
   \item \code{/lib/udev/rules.d/}\\
-    Standard udev event matching rules, installed by the distribution.
+    Standard \code{udev} event matching rules, installed by the distribution.
   \item \code{/etc/udev/rules.d/*.rules}\\
-    Local (custom) udev event matching rules. Best to modify these.
+    Local (custom) \code{udev} event matching rules. Best to modify these.
   \item \code{/lib/udev/devices/*}\\
     static \code{/dev} content (such as \code{/dev/console},
     \code{/dev/null}...).
   \item \code{/lib/udev/*}\\
-    helper programs called from udev rules.
+    helper programs called from \code{udev} rules.
   \item \code{/dev/*}\\
     Created device files.
   \end{itemize}
@@ -381,7 +381,7 @@ CONFIG_RAMFS=y
     \url{http://kernel.org/pub/linux/utils/kernel/hotplug/udev.html}
   \item Sources\\
     \url{http://kernel.org/pub/linux/utils/kernel/hotplug/}
-  \item The udev manual page:\\
+  \item The \code{udev} manual page:\\
     \code{man udev}
   \end{itemize}
 \end{frame}
@@ -390,12 +390,13 @@ CONFIG_RAMFS=y
   \frametitle{mdev, the udev for embedded systems}
   \begin{itemize}
   \item {\em udev} might be too heavy-weight for some embedded
-    systems, the udevd daemon staying in the background waiting for
+    systems, the \code{udevd} daemon staying in the background waiting for
     events.
-  \item BusyBox provides a simpler alternative called {\bf mdev},
-    available by enabling the MDEV configuration option.
-  \item mdev's usage is documented in \code{doc/mdev.txt} in the BusyBox source code.
-  \item mdev is also able to load firmware to the kernel like udev
+  \item BusyBox provides a simpler alternative called \code{mdev},
+    available by enabling the \code{MDEV} configuration option.
+  \item \code{mdev}'s usage is documented in \code{doc/mdev.txt} in the BusyBox source code.
+  \item\code{mdev}mdev is also able to load firmware to the kernel like
+    \code{udev}
   \end{itemize}
 \end{frame}
 
@@ -403,13 +404,13 @@ CONFIG_RAMFS=y
   \frametitle{mdev usage}
   \begin{itemize}
   \item To use \code{mdev}, the \code{proc} and \code{sysfs} filesystems must be mounted
-  \item mdev must be enabled as the hotplug event manager\\
+  \item \code{mdev} must be enabled as the hotplug event manager\\
     \code{echo /sbin/mdev > /proc/sys/kernel/hotplug}
   \item Need to mount \code{/dev} as a \code{tmpfs}:\\
     \code{mount -t tmpfs mdev /dev}
   \item Tell \code{mdev} to create the \code{/dev} entries
     corresponding to the devices detected
-    during boot when mdev was not running:\\
+    during boot when \code{mdev} was not running:\\
     \code{mdev -s}
   \item The behavior is specified by the \code{/etc/mdev.conf} configuration
     file, with the following format\\

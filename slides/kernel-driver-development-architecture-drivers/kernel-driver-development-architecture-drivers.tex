@@ -168,7 +168,7 @@ static int __devinit xxxfb_probe (struct pci_dev *dev,
     \item Minimization of code duplication
     \item Common facilities (reference counting, event notification,
       power management, etc.)
-    \item Enumerate the devices view their interconnections, link the
+    \item Enumerate the devices, view their interconnections, link the
       devices to their buses and drivers, etc.
     \end{itemize}
   \item Understanding the device model is necessary to understand how
@@ -259,7 +259,7 @@ static int __devinit xxxfb_probe (struct pci_dev *dev,
   \item The \code{MODULE_DEVICE_TABLE} macro allows \code{depmod} to
     extract at compile time the relation between device identifiers
     and drivers, so that drivers can be loaded automatically by
-    udev. See \code{/lib/modules/$(uname -r)/modules.{alias,usbmap}}
+    \code{udev}. See \code{/lib/modules/$(uname -r)/modules.{alias,usbmap}}
   \end{itemize}
   \begin{minted}[fontsize=\footnotesize]{c}
 static struct usb_device_id rtl8150_table[] = {
@@ -281,7 +281,7 @@ MODULE_DEVICE_TABLE(usb, rtl8150_table);
   \item \code{struct usb_driver} is a structure defined by the USB
     core. Each USB device driver must instantiate it, and register
     itself to the USB core using this structure
-  \item This structure inherits from struct driver, which is defined
+  \item This structure inherits from \code{struct driver}, which is defined
     by the device model.
   \begin{minted}{c}
 static struct usb_driver rtl8150_driver = {
@@ -325,12 +325,12 @@ module_exit(usb_rtl8150_exit);
   \begin{itemize}
   \item The USB adapter driver that corresponds to the USB controller
     of the system registers itself to the USB core
-  \item The rtl8150 USB device driver registers itself to the USB core
+  \item The \code{rtl8150} USB device driver registers itself to the USB core
     \begin{center}
       \includegraphics[height=0.4\textheight]{slides/kernel-driver-development-architecture-drivers/usb-registering.pdf}
     \end{center}
   \item The USB core now knows the association between the
-    vendor/product IDs of rtl8150 and the \code{usb_driver} structure
+    vendor/product IDs of \code{rtl8150} and the \code{usb_driver} structure
     of this driver
   \end{itemize}
 \end{frame}
@@ -401,14 +401,15 @@ static int rtl8150_probe(struct usb_interface *intf,
     kernel
   \item The \code{sysfs} virtual filesystem offers a mechanism to
     export such information to userspace
-  \item Used for example by udev to provide automatic module loading,
+  \item Used for example by \code{udev} to provide automatic module loading,
     firmware loading, device file creation, etc.
   \item \code{sysfs} is usually mounted in \code{/sys}
     \begin{itemize}
     \item \code{/sys/bus/} contains the list of buses
     \item \code{/sys/devices/} contains the list of devices
-    \item \code{/sys/class} enumerates devices by class (net, input,
-      block...), whatever the bus they are connected to. Very useful!
+    \item \code{/sys/class} enumerates devices by class (\code{net},
+      \code{input}, \code{block}...), whatever the bus they are connected
+      to. Very useful!
     \end{itemize}
   \item Take your time to explore \code{/sys} on your workstation.
   \end{itemize}
@@ -566,7 +567,7 @@ sport->rxirq = platform_get_irq(pdev, 0);
   \item In addition to the well-defined resources, many drivers
     require driver-specific information for each platform device
   \item Such information can be passed using the \code{platform_data}
-    field of the struct device (from which
+    field of \code{struct device} (from which
     \code{struct platform_device} inherits)
   \item As it is a \code{void *} pointer, it can be used to pass any
     type of information.
