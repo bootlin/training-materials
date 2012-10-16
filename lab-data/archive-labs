@@ -5,11 +5,19 @@
 #
 output=felabs-$USER.tar.xz
 readme=felabs/README.txt
+toolchain=/usr/local/xtools
 
 echo "Archive lab archive..."
 echo "Making all files belong to user (need root permissions)"
-sudo chown -R $USER:$USER felabs /usr/local/xtools
 
+for dir in felabs $toolchain
+do
+	if [ -d $dir ]
+	then
+		sudo chown -R $USER:$USER $dir
+	fi
+done
+		
 rm -rf $readme
 cat << EOF >> $readme
 Free Electrons lab directory archive
@@ -36,8 +44,12 @@ cd felabs
 echo "Cleaning lab directory"
 ./clean-labs
 
-echo "Creating the toolchain archive"
-tar cf toolchain.tar /usr/local/xtools
+
+if [ -d $toolchain ]
+then
+	echo "Creating the toolchain archive"
+	tar cf toolchain.tar $toolchain
+fi
 
 echo "Generating lab directory archive"
 cd ..
