@@ -27,11 +27,12 @@ Then, you would run the \code{tools/android} script, and in the
 \code{adb} installed in \code{./platform-tools/adb}.
 
 However, the Android source code also has an embedded SDK, so you
-already have the \code{adb} binary in the \code{out/host/linux-x86/bin/}.
+already have the \code{adb} binary in the
+\code{out/host/linux-x86/bin/}.
 
-To add this directory to your \code{PATH} after the Linaro build 
-during the previous lab, you can go through the same environment setup steps
-as earlier:
+To add this directory to your \code{PATH} after the Linaro build
+during the previous lab, you can go through the same environment setup
+steps as earlier:
 
 \begin{verbatim}
 source build/envsetup.sh
@@ -46,18 +47,20 @@ The kernel we have built uses USB suspend to save power. This will
 be painful during the next labs, starting with this one.
 
 To do so, go to the \code{kernel} directory. First, use the
-\code{android_omap3_defconfig} file as an initial configuration. Load it using
-\code{ARCH=arm make android_omap3_defconfig} and then modify it using
-\code{ARCH=arm make menuconfig} to disable \code{CONFIG_USB_SUSPEND}
-and enable \code{CONFIG_USB_OTG_WAKELOCK}. We will also need to enable
-OHCI\footnote{USB Open Host Controller Interface, supporting only USB 1.1}
-support (\code{USB_OHCI_HCD_OMAP3}) to use the missile launcher.
+\code{android_omap3_defconfig} file as an initial configuration. Load
+it using \code{ARCH=arm make android_omap3_defconfig} and then modify
+it using \code{ARCH=arm make menuconfig} to disable
+\code{CONFIG_USB_SUSPEND} and enable
+\code{CONFIG_USB_OTG_WAKELOCK}. We will also need to enable
+OHCI\footnote{USB Open Host Controller Interface, supporting only USB
+  1.1} support (\code{USB_OHCI_HCD_OMAP3}) to use the missile
+launcher.
 
 Once you're done, exit and the configuration tool will save the new
 file as \code{.config}. You can save it to a \code{defconfig} file by
-running \code{ARCH=arm make savedefconfig}. Then, copy the newly created
-\code{defconfig} file to the \code{arch/arm/configs} directory with
-the \code{android_devkit8000_defconfig} name.
+running \code{ARCH=arm make savedefconfig}. Then, copy the newly
+created \code{defconfig} file to the \code{arch/arm/configs} directory
+with the \code{android_devkit8000_defconfig} name.
 
 Once this is done, change the BeagleBoard product definition so that
 it uses this new file.
@@ -68,8 +71,8 @@ If you execute any command right now, you are very likely to have a
 permission denied error. This is because the USB device associated to
 the DevKit8000 doesn't have the right permissions to let you open it.
 
-We need to make sure that \code{udev} sets the right permissions so that we can access
-it as a user. To do so, create the file
+We need to make sure that \code{udev} sets the right permissions so
+that we can access it as a user. To do so, create the file
 \code{/etc/udev/rules.d/51-android.rules} and copy the following line:
 
 \code{SUBSYSTEM=="usb", ATTR{idVendor}=="18d1", ATTR{idProduct}=="0001", MODE="0600", OWNER="<username>"}
@@ -79,35 +82,39 @@ Now, plug and unplug the DevKit8000, and you should now be able to use
 
 \section{Get logs from the device}
 
-ADB provides many useful features to work with an existing Android device.
-The first we will see is how to get the system logs from the whole system. To do
-this, just run \code{adb logcat}.
+ADB provides many useful features to work with an existing Android
+device.  The first we will see is how to get the system logs from the
+whole system. To do this, just run \code{adb logcat}.
 
-You will see the device logs on your terminal. This is a huge amount of
-information though, and it is difficult to find your way in all these lines.
+You will see the device logs on your terminal. This is a huge amount
+of information though, and it is difficult to find your way in all
+these lines.
 
-The first thing we can do is download a little wrapper to \code{adb} to provide colored
-logs. You can find it here: \url{http://jsharkey.org/downloads/coloredlogcat.pytxt}. Once downloaded, just run it and you will see the logs colored and
+The first thing we can do is download a little wrapper to \code{adb}
+to provide colored logs. You can find it here:
+\url{http://jsharkey.org/downloads/coloredlogcat.pytxt}. Once
+downloaded, just run it and you will see the logs colored and
 formatted to be easily readable.
 
-ADB also provides filters to have a clearer output. These are formatted by the
-\code{Tag:Priority} syntax. For example, if you want all logs from \code{MyApp},
-just run \code{adb logcat MyApp:*}.
+ADB also provides filters to have a clearer output. These are
+formatted by the \code{Tag:Priority} syntax. For example, if you want
+all logs from \code{MyApp}, just run \code{adb logcat MyApp:*}.
 
 Now try to save all logs from Dalvik to a file using only \code{adb}.
 
 \section{Get a shell on the device}
 
-Having a shell on the device can prove pretty useful. ADB provides such a feature,
-even though this embedded shell is quite minimal. To access this shell,
-just type \code{adb shell}.
+Having a shell on the device can prove pretty useful. ADB provides
+such a feature, even though this embedded shell is quite minimal. To
+access this shell, just type \code{adb shell}.
 
-You can also run a command directly on the device thanks to \code{adb shell}. To do
-this, just append the command to run at the end. Now, try to get all the mounted
-filesystems on the device.
+You can also run a command directly on the device thanks to
+\code{adb shell}. To do this, just append the command to run at the
+end. Now, try to get all the mounted filesystems on the device.
 
 \section{Push/Pull files to a device}
 
-In the same way, ADB allows you to retrieve files from the connected device and send them
-to it, using the \code{push} and \code{pull} commands. 
+In the same way, ADB allows you to retrieve files from the connected
+device and send them to it, using the \code{push} and \code{pull}
+commands.
 
