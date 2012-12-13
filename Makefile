@@ -462,9 +462,9 @@ $(OUTDIR)/%.jpg: %.jpg
 
 $(VARS): FORCE
 	@mkdir -p $(dir $@)
-	echo "\def \sessionurl {$(SESSION_URL)}" > $@
-	echo "\def \evaluationformurl {$(EVALUATION_FORM)}" >> $@
-	echo "\def \\\\training {$(SLIDES_TRAINING)}" >> $@
+	/bin/echo "\def \sessionurl {$(SESSION_URL)}" > $@
+	/bin/echo "\def \evaluationformurl {$(EVALUATION_FORM)}" >> $@
+	/bin/echo "\def \training {$(SLIDES_TRAINING)}" >> $@
 
 clean:
 	$(RM) -rf $(OUTDIR) *.pdf
