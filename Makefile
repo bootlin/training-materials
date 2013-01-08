@@ -120,6 +120,7 @@ ANDROID_SLIDES = \
 		about-us \
 		course-information-title \
 		devkit8000-board \
+		android-course-outline \
 		course-information \
 		android-introduction-title \
 		android-introduction-features \
