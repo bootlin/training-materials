@@ -219,7 +219,6 @@ SYSDEV_LABS   = setup \
 		sysdev-application-development \
 		sysdev-application-debugging \
 		sysdev-real-time \
-		sysdev-mdev \
 		backup
 
 KERNEL_LABS   = setup \
