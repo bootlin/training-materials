@@ -270,7 +270,7 @@
   \frametitle{kmalloc Allocator}
   \begin{itemize}
   \item The kmalloc allocator is the general purpose memory allocator
-    in the Linux kernel, for objects from 8 bytes to 128 KB
+    in the Linux kernel
   \item For small sizes, it relies on generic SLAB caches, named
     \code{kmalloc-XXX} in \code{/proc/slabinfo}
   \item For larger sizes, it relies on the page allocator
@@ -280,6 +280,12 @@
     flexibility)
   \item It uses the same flags as the page allocator (\code{GFP_KERNEL},
     \code{GFP_ATOMIC}, \code{GFP_DMA}, etc.) with the same semantics.
+  \item Maximum sizes, on \code{x86} and \code{arm} (see
+    \url{http://j.mp/YIGq6W}):
+    \begin{itemize}
+	\item Per allocation: 4 MB
+ 	\item Total allocations: 128 MB
+    \end{itemize}
   \item Should be used as the primary allocator unless there is a
     strong reason to use another one.
   \end{itemize}
@@ -341,9 +347,11 @@ kfree(work);
     requested memory size is rounded up to the next page.
   \item The allocated area is in the kernel space part of the address
     space, but outside of the identically-mapped area
-  \item Allocations of fairly large areas is possible, since physical
-    memory fragmentation is not an issue, but areas cannot be used for
-    DMA, as DMA usually requires physically contiguous buffers.
+  \item Allocations of fairly large areas is possible (almost as big
+    as total available memory, see \url{http://j.mp/YIGq6W} again),
+    since physical memory fragmentation is not an issue, but areas
+    cannot be used for DMA, as DMA usually requires physically
+    contiguous buffers.
   \item API in \code{include/linux/vmalloc.h}
     \begin{itemize}
     \item \mint{c}+void *vmalloc(unsigned long size);+
