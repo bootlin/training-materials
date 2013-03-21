@@ -169,8 +169,9 @@ ANDROID_SLIDES = \
 		android-build-system-envsetup \
 		android-build-system-configuration \
 		android-build-system-modules \
+		android-build-system-lab-library \
 		android-build-system-product \
-		android-build-system-lab \
+		android-build-system-lab-product \
 		android-native-layer-title \
 		sysdev-toolchains-definition \
 		android-native-layer-bionic \
@@ -182,7 +183,6 @@ ANDROID_SLIDES = \
 		android-native-layer-dalvik \
 		android-native-layer-hal \
 		android-native-layer-jni \
-		android-native-layer-lab-library \
 		android-native-layer-lab-binary \
 		android-framework-title \
 		android-framework-native-services \
@@ -241,8 +241,8 @@ ANDROID_LABS  = setup \
 		android-boot \
 		android-new-board \
 		android-adb \
-		android-system-customization \
 		android-native-library \
+		android-system-customization \
 		android-native-app \
 		android-jni-library \
 		android-application \
