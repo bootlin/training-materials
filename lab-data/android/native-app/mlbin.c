@@ -59,11 +59,7 @@ int mlbin_init_usb(void)
 		goto open_dev_error;
 	}
 
-	ret = libusb_detach_kernel_driver(devh, 0);
-	if (ret) {
-		printf("Couldn't detach kernel driver: %d\n", ret);
-	}
-
+	libusb_detach_kernel_driver(devh, 0);
 	ret = libusb_claim_interface(devh, 0);
 	if(ret < 0) {
 		printf("Couldn't claim the interface : %d.\n", ret);
