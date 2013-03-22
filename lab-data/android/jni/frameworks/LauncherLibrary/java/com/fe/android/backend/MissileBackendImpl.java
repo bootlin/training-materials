@@ -6,7 +6,7 @@ public interface MissileBackendImpl
 		UP, DOWN, LEFT, RIGHT
 	}
 
-	public void fire();
+	public int fire();
 	public void move(Direction dir);
-	public void stop();
+	public int stop();
 }

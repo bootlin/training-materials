@@ -5,7 +5,7 @@ import android.util.Log;
 public class DummyBackend implements MissileBackendImpl {
 	public final String TAG = getClass().getSimpleName();
 
-	public void fire() {
+	public int fire() {
 		Log.i(TAG, "FIRE!");
 		
 	}
@@ -14,7 +14,7 @@ public class DummyBackend implements MissileBackendImpl {
 		Log.i(TAG, "MOVE to " + dir);
 	}
 
-	public void stop() {
+	public int stop() {
 		Log.i(TAG, "Stop");
 	}
 
