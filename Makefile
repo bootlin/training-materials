@@ -163,7 +163,6 @@ ANDROID_SLIDES = \
 		sysdev-root-filesystem-principles \
 		android-fs-contents \
 		sysdev-root-filesystem-device-files \
-		sysdev-root-filesystem-virtual-fs \
 		sysdev-root-filesystem-minimal \
 		android-build-system-title \
 		android-build-system-basics \
