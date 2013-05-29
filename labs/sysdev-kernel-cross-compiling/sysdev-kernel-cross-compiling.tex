@@ -26,20 +26,11 @@ board.
 \section{Kernel sources}
 
 We will re-use the kernel sources downloaded and patched in the
-previous lab. However, we will have to apply two additional patches
-that add NAND support for the IGEPv2 revision 6 board that we are
-using in this course:
-
-\small
-\begin{verbatim}
-cat ../linux-3.2-omap2-make-board-onenand-init-visible-to-board-code.patch | patch -p1
-cat ../linux-3.2-arm-omap3-igep0020-add-support-for-micron-nand-flash.patch | patch -p1
-\end{verbatim}
-\normalsize
+previous lab.
 
 \section{Cross-compiling environment setup}
 
-To cross-compile Linux, you need to install the cross-compiling
+To cross-compile Linux, you need to have a cross-compiling
 toolchain. We will use the cross-compiling toolchain that we
 previously produced, so we just need to make it available in the PATH:
 
@@ -94,8 +85,11 @@ tool has already been installed in your system as part of the
 the kernel image, simply run:
 
 \begin{verbatim}
-make uImage
+make LOADADDR=0x80008000 uImage
 \end{verbatim}
+
+The \code{LOADADDR} indicates to U-Boot where the kernel image should
+be loaded.
 
 \section{Setting up serial communication with the board}
 
@@ -161,15 +155,19 @@ be manipulated in U-Boot using the \code{nand} command, which
 features several subcommands. Run \code{help nand} to see the
 available subcommands and their options.
 
-After storing the X-loader, U-boot and its environment variables, we
-will keep a special area in NAND flash for the Linux kernel image.
-This 4th partition will be 4 MiB big, from NAND offset
-0x280000 to 0x680000.
+After storing the first stage bootloader, U-boot and its environment
+variables, we will keep a special area in NAND flash for the Linux
+kernel image.  This 4th partition will be 5 MiB big, from NAND offset
+0x2e0000 to 0x7e0000.
 
-So, let's start by erasing the corresponding 4 MiB of NAND flash:
+\begin{center}
+  \includegraphics[width=\textwidth]{labs/sysdev-kernel-cross-compiling/flash-map.pdf}
+\end{center}
+
+So, let's start by erasing the corresponding 5 MiB of NAND flash:
 
 \begin{verbatim}
-nand erase 0x280000 0x400000
+nand erase 0x2e0000 0x500000
         (NAND offset) (size)
 \end{verbatim}
 
@@ -179,21 +177,21 @@ before.
 Then, flash the kernel image:
 
 \begin{verbatim}
-nand write 0x80000000 0x280000 0x400000
+nand write 0x80000000 0x2e0000 0x500000
            (RAM addr) (NAND offset) (size)
 \end{verbatim}
 
-Power your board off and on, to clear RAM contents. We should now be able to load
-the kernel image from NAND and boot it using:
+Power your board off and on, to clear RAM contents. We should now be
+able to load the kernel image from NAND and boot it using:
 
 \begin{verbatim}
-nand read 0x80000000  0x280000    0x400000
-          (RAM addr) (NAND offset) (size)
+nboot 0x80000000 0        0x2e0000
+      (RAM addr) (device) (NAND offset)
 bootm 0x80000000
 \end{verbatim}
 
-\code{nand read} copies the kernel to RAM and then, \code{bootm}
-executes it.
+\code{nboot} copies the kernel to RAM and then, \code{bootm} executes
+it.
 
 Write an U-Boot script that automates the kernel download and flashing
 procedure. Finally, adjust the \code{bootcmd} so that the IGEP board
