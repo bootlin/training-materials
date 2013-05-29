@@ -1,7 +1,7 @@
 \subchapter{Bootloader - U-Boot}{Objectives: Set up serial
-  communication, compile and install the X-Loader and U-Boot
-  bootloaders, use basic U-Boot commands, set up TFTP communication
-  with the development workstation.}
+  communication, compile and install the U-Boot bootloader, use basic
+  U-Boot commands, set up TFTP communication with the development
+  workstation.}
 
 As the bootloader is the first piece of software executed by a
 hardware platform, the installation procedure of the bootloader is
@@ -104,79 +104,14 @@ Then, remove and insert your card again.
 
 Your MMC/SD card is ready to use.
 
-\section{X-loader setup}
-
-Download the X-loader source code from the IGEP support Git
-repository:\footnote{We are using an old version of X-Loader, because
-  the most recent versions provided by ISEE have been modified to use
-  a completely non-standard boot procedure, that we don't think is
-  interesting to present in a training session. The new ISEE boot
-  procedure places the kernel image inside a JFFS2 filesystem, and
-  completely bypasses U-Boot. This is not standard, and the procedure
-  with two bootloaders presented below is much more common at the
-  moment on most embedded platforms.}
-
-\begin{verbatim}
-sudo apt-get install git
-git clone git://git.igep.es/pub/scm/x-loader.git
-cd x-loader
-git checkout v1.4.4-3
-\end{verbatim}
-
-Then, we need to apply a {\em patch} that adds NAND support to
-X-Loader:
-
-\begin{verbatim}
-cat ../x-loader-1.4.4-3-igep-nand-support.patch | patch -p1
-\end{verbatim}
-
-In order to compile the X-loader, you need to:
-\begin{itemize}
-
-\item set the \code{CROSS_COMPILE} environment variable:\\
-\code{export CROSS_COMPILE=arm-linux-}
-
-\item specify the \code{PATH} to the toolchain that you made:\\
-\code{export PATH=/usr/local/xtools/arm-unknown-linux-uclibcgnueabi/bin:$PATH}
-
-\item run \code{make igep0020-sdcard_config} to set the configuration
-  for the target board.
-
-\item run \code{make} to build the image
-
-\end{itemize}
-
-The resulting file is stored in the \code{x-loader} main directory as
-\code{x-load.bin}. This file must be {\em signed}\footnote{In fact,
-  for a General Purpose (GP) device, the signature only consists of
-  adding a “Table of Contents” at the beginning of the image,
-  explaining which program to execute. Signatures are using in variants
-  of the OMAP CPUs that implement some security features, which will refuse
-  to load an X-loader image that wasn't signed with an authorized key.}
-  in order to be executed by the processor. Using the \code{signGP} tool in the \code{contrib/}
-subdirectory, sign the \code{x-load.bin} file:
-
-\begin{verbatim}
-./contrib/signGP x-load.bin
-\end{verbatim}
-
-This produces an \code{x-load.bin.ift} file. You can copy it to the
-MMC card, renaming it as \code{MLO}.
-
 \section{U-Boot setup}
 
 Download U-Boot from the mainline igep download site:
 
 \begin{verbatim}
-wget ftp://ftp.denx.de/pub/u-boot/u-boot-2011.12.tar.bz2
-tar xvf u-boot-2011.12.tar.bz2
-cd u-boot-2011.12
-\end{verbatim}
-
-Now we need to apply a patch to add NAND support for the IGEP board:
-
-\begin{verbatim}
-cat ../u-boot-2011.12-igep-nand-support.patch | patch -p1
+wget ftp://ftp.denx.de/pub/u-boot/u-boot-2013.04.tar.bz2
+tar xvf u-boot-2013.04.tar.bz2
+cd u-boot-2013.04
 \end{verbatim}
 
 Get an understanding of its configuration and compilation steps by
@@ -187,12 +122,11 @@ Basically, you need to:
 
 \begin{itemize}
 
-\item set the \code{CROSS_COMPILE} environment variable (you should
-  have already done it when you compiled X-loader);
+\item set the \code{CROSS_COMPILE} environment variable;
 
 \item run \code{make <NAME>_config}, where \code{<NAME>} is the name
-  of a configuration file in \code{include/configs/}. For our
-  platform, the configuration file is
+  of your board as declared in the \code{boards.cfg} file. Note that
+  for our platform, the configuration file is
   \code{include/configs/igep0020.h}. Read this file to get an idea of
   how a U-Boot configuration file is written;
 
@@ -203,7 +137,9 @@ Basically, you need to:
 
 \end{itemize}
 
-You can now copy the generated \code{u-boot.bin} file to the MMC card.
+You can now copy the generated \code{MLO} and \code{u-boot.img} files
+to the MMC card. \code{MLO} is the first stage bootloader,
+\code{u-boot.img} is the second stage bootloader.
 
 Unmount the MMC card partition.
 
@@ -244,31 +180,30 @@ that it boots your new bootloaders. You can verify this by checking
 the build dates:
 
 \begin{verbatim}
-Texas Instruments X-Loader 1.4.4-3 (May  4 2012 - 10:26:41)
-CPU Release: 0x2b89102f - 0x2
-XLoader: CPU status = 0xe00
-XLoader: Processor DM3730 - ES1.2
-XLoader: Memory Manufacturer: Micron (2c)
-Loading u-boot.bin from mmc
+U-Boot SPL 2013.04 (May 29 2013 - 10:30:21)
+OMAP SD/MMC: 0
+reading u-boot.img
+reading u-boot.img
 
 
-U-Boot 2011.12 (May 04 2012 - 10:31:05)
+U-Boot 2013.04 (May 29 2013 - 10:30:21)
 
 OMAP36XX/37XX-GP ES1.2, CPU-OPP2, L3-165MHz, Max CPU Clock 1 Ghz
-IGEP v2 board + LPDDR/ONENAND
+IGEPv2 + LPDDR/NAND
 I2C:   ready
 DRAM:  512 MiB
 NAND:  512 MiB
 MMC:   OMAP SD/MMC: 0
+*** Warning - bad CRC, using default environment
+
 In:    serial
 Out:   serial
 Err:   serial
-Die ID #1bd600029ff80000016842c80f03400d
+Die ID #255000029ff800000168580212029011
 Net:   smc911x-0
-Hit any key to stop autoboot:  3
 \end{verbatim}
 
-By the message {\em Loading u-boot.bin from mmc} you also get the
+By the message {\em Loading u-boot.img from mmc} you also get the
 confirmation that your U-Boot has correctly been loaded from the MMC
 device.
 
@@ -281,43 +216,65 @@ In U-Boot, type the \code{help} command, and explore the few commands available.
 
 \section{Reflashing from U-boot}
 
-We will flash X-loader, U-boot and later the kernel and filesystem in
-NAND flash. Let's first erase the whole NAND storage to remove its
-existing contents. This way, we are sure that what we find in NAND comes
-from our own manipulations:
+We will flash U-boot and later the kernel and filesystem in NAND
+flash. As far as bootloaders are concerned, the layout of the NAND
+flash will look like:
+
+\begin{center}
+  \includegraphics[width=\textwidth]{labs/sysdev-u-boot/flash-map.pdf}
+\end{center}
+
+\begin{itemize}
+\item Offset \code{0x0} for the first stage bootloader is dictated by
+  the hardware: the ROM code of the OMAP looks for a bootloader at
+  offset \code{0x0} in the NAND flash.
+\item Offset \code{0x80000} for the second stage bootloader is decided
+  by the first stage bootloader. This can be changed by changing the
+  U-Boot configuration.
+\item Offset \code{0x260000} of the U-Boot environment is also decided
+  by the U-Boot configuration.
+\end{itemize}
+
+Let's first erase the whole NAND storage to remove its existing
+contents. This way, we are sure that what we find in NAND comes from
+our own manipulations:
 
 \begin{verbatim}
 nand erase.chip
 \end{verbatim}
 
-We are going to reflash X-Loader in NAND. To do so, type the following commands:
+We are going to flash the first stage bootloader in NAND. To do so,
+type the following commands:
 
 \begin{verbatim}
 mmc rescan
 \end{verbatim}
 
-This initializes the MMC interface
+This initializes the MMC interface.
 
 \begin{verbatim}
 fatload mmc 0 80000000 MLO
 \end{verbatim}
-This loads the file from MMC 0 partition 0 to memory at address 0x80000000
+This loads the file from MMC 0 partition 0 to memory at address
+0x80000000.
 
 \begin{verbatim}
 nandecc hw
 \end{verbatim}
 
 This tells U-Boot to write data to NAND using the hardware ECC
-algorithm, which the ROM code of the OMAP uses to load X-Loader.
+algorithm, which the ROM code of the OMAP uses to load the first stage
+bootloader.
 
 \begin{verbatim}
 nand erase 0 80000
 \end{verbatim}
 
-This command erases a 0x80000 byte long space of NAND flash from offset 0
-\footnote{Of course, this is not needed here if you erased the whole NAND contents
-as instructed earlier. However, we prefer to write it here so that you
-don't forget next time you write anything to NAND.}
+This command erases a 0x80000 byte long space of NAND flash from
+offset 0\footnote{Of course, this is not needed here if you erased the
+  whole NAND contents as instructed earlier. However, we prefer to
+  write it here so that you don't forget next time you write anything
+  to NAND.}.
 
 \begin{verbatim}
 nand write 80000000 0 80000
@@ -330,30 +287,23 @@ destination is offset 0 of NAND flash. The length of the copy is
 before. It is important to erase the flash space before trying to
 write on it.
 
-Now that X-Loader has been transfered to NAND flash, you can now do the same
-with U-Boot. 
+Now that the first stage has been transfered to NAND flash, you can
+now do the same with U-Boot.
 
-You will have to flash U-Boot to NAND with the software ECC algorithm, which
-X-Loader uses to load U-Boot from NAND. This can be achieved by
-running the below command:
-
-\begin{verbatim}
-nandecc sw
-\end{verbatim}
-
-The storage offset in NAND is 0x80000 (just after
-the space reserved for X-Loader) and the length is 0x180000.
+The storage offset of U-Boot in the NAND is 0x80000 (just after the
+space reserved for the first stage bootloader) and the length is
+0x1e0000.
 
 After flashing the U-Boot image, also erase the U-boot environment
 variables defined by the manufacturer or by previous users of your
 board:
 
 \begin{verbatim}
-nand erase 200000 80000
+nand erase 260000 80000
 \end{verbatim}
 
 You can remove MMC card, then reset the IGEP board. You should see the
-freshly flashed X-Loader and U-Boot starting.
+freshly flashed U-Boot starting.
 
 You should now see the U-Boot prompt:
 
