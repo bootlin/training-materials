@@ -27,10 +27,10 @@ supports Xenomai.
 
 Let's build this with Buildroot.
 
-Download and extract the Buildroot 2012.08 sources. Apply the
-Buildroot patch \code{buildroot-2012.08-bump-xenomai-to-2.6.1.patch}
+Download and extract the Buildroot 2013.02 sources. Apply the
+Buildroot patch \code{buildroot-2013.02-bump-xenomai-to-2.6.2.1.patch}
 from the lab {\em data} directory to your Buildroot sources. It
-upgrades the Xenomai version to 2.6.1, which allows to use the 3.2
+upgrades the Xenomai version to 2.6.2.1, which allows to use the 3.5
 kernel.
 
 Configure Buildroot with the following settings, using the \code{/}
@@ -42,7 +42,7 @@ command in \code{make menuconfig} to find parameters by their name:
 \item In \code{Toolchain}:
    \begin{itemize}
    \item \code{Toolchain type}: \code{External toolchain}
-   \item \code{Toolchain}: \code{Sourcery CodeBench ARM 2011.09}
+   \item \code{Toolchain}: \code{Linaro 2013.01}
    \end{itemize}
 \item In \code{System configuration}: 
    \begin{itemize}
@@ -81,9 +81,12 @@ cp data/* nfsroot/root
 
 \section{Compile a standard Linux kernel}
 
-Download the exact Linux 3.2.21 version. That's the most recent
-ARM Linux version that Xenomai 2.6.1 supports. You will have trouble
+Download the exact Linux 3.5.7 version. That's the most recent
+ARM Linux version that Xenomai 2.6.2.1 supports. You will have trouble
 applying Xenomai kernel patches otherwise.
+
+Apply the \code{linux-3.5.7-igepv2-fix-pinmux.patch} patch from this
+lab's \code{data} directory.
 
 Configure your kernel with the default configuration for the IGEPv2
 board.
@@ -124,7 +127,7 @@ Let's configure our \code{PATH} to use this toolchain:
 
 \begin{verbatim}
 export
-PATH=$HOME/felabs/realtime/rttest/buildroot-2012.08/output/host/usr/bin:$PATH
+PATH=$HOME/felabs/realtime/rttest/buildroot-2013.02/output/host/usr/bin:$PATH
 \end{verbatim}
 
 Have a look at the \code{rttest.c} source file available in \code{root/} in
@@ -176,9 +179,9 @@ the results.
 
 Prepare the kernel for Xenomai compilation:
 \begin{verbatim}
-cd $HOME/felabs/realtime/rttest/buildroot-2012.08/
-./output/build/xenomai-2.6.1/scripts/prepare-kernel.sh \
-   --arch=arm --linux=/path/to/linux-3.2.21
+cd $HOME/felabs/realtime/rttest/buildroot-2013.02/
+./output/build/xenomai-2.6.2.1/scripts/prepare-kernel.sh \
+   --arch=arm --linux=/path/to/linux-3.5.7
 \end{verbatim}
 
 Now, run the kernel configuration interface, and make sure that
@@ -197,8 +200,8 @@ source directory, and force Buildroot to build the host variant of
 {\em pkg-config}:
 
 \begin{verbatim}
-cd $HOME/felabs/realtime/rttest/buildroot-2012.08/
-make host-pkg-config
+cd $HOME/felabs/realtime/rttest/buildroot-2013.02/
+make host-pkgconf
 \end{verbatim}
 
 Compile your kernel, and in the meantime,
@@ -207,8 +210,8 @@ compile \code{rttest} for the Xenomai POSIX skin:
 \small
 \begin{verbatim}
 cd $HOME/felabs/realtime/rttest/nfsroot/root
-export PATH=$HOME/felabs/realtime/rttest/buildroot-2012.08/output/host/usr/bin:$PATH
-arm-none-linux-gnueabi-gcc -o rttest rttest.c $(pkg-config libxenomai_posix)
+export PATH=$HOME/felabs/realtime/rttest/buildroot-2013.02/output/host/usr/bin:$PATH
+arm-none-linux-gnueabi-gcc -o rttest rttest.c $(pkg-config --libs --cflags libxenomai_posix)
 \end{verbatim}
 \normalsize
 
