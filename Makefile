@@ -351,7 +351,7 @@ SLIDES_PICTURES = $(call PICTURES,$(foreach s,$(SLIDES_CHAPTERS),slides/$(s))) $
 	(cd $(OUTDIR); $(PDFLATEX_ENV) $(PDFLATEX) $(PDFLATEX_OPT) $(basename $@).tex)
 # The second call to pdflatex is to be sure that we have a correct table of
 # content and index
-#	(cd $(OUTDIR); $(PDFLATEX_ENV) $(PDFLATEX) $(PDFLATEX_OPT) $(basename $@).tex > /dev/null 2>&1)
+	(cd $(OUTDIR); $(PDFLATEX_ENV) $(PDFLATEX) $(PDFLATEX_OPT) $(basename $@).tex > /dev/null 2>&1)
 # We use cat to overwrite the final destination file instead of mv, so
 # that evince notices that the file has changed and automatically
 # reloads it (which doesn't happen if we use mv here). This is called
