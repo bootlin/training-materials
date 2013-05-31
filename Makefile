@@ -113,6 +113,7 @@ SYSDEV_SLIDES = \
 		sysdev-embedded-linux \
 		sysdev-application-development \
 		sysdev-realtime \
+		sysdev-references \
 		last-slides
 
 ANDROID_SLIDES = \
