@@ -148,22 +148,42 @@ int mlbin_stop(void)
 
 int main(void)
 {
+	int ret;
+	char dir;
+	int time;
+
 	mlbin_init_usb();
-	mlbin_move_down();
-	sleep(5);
 	mlbin_stop();
-	mlbin_move_left();
-	sleep(5);
-	mlbin_stop();
-	mlbin_fire();
-	sleep(5);
-	mlbin_stop();
-	mlbin_move_up();
-	sleep(5);
-	mlbin_stop();
-	mlbin_move_right();
-	sleep(5);
-	mlbin_stop();
+
+	do {
+		ret = scanf("%c %d", &dir, &time);
+		if (ret != 2)
+			continue;
+
+		printf("%c for %d\n", dir, time);
+		switch(dir) {
+			case 'L':
+				mlbin_move_left();
+				break;
+			case 'R':
+				mlbin_move_right();
+				break;
+			case 'U':
+				mlbin_move_up();
+				break;
+			case 'D':
+				mlbin_move_down();
+				break;
+			case 'F':
+				mlbin_fire();
+				break;
+			default:
+				break;
+		}
+		sleep(time);
+		mlbin_stop();
+	} while(ret != EOF);
+
 	mlbin_free_usb();
 
 	return 0;
