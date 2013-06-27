@@ -419,6 +419,24 @@ FORCE:
 endif
 
 #
+# === Compilation of agendas ===
+#
+ifdef AGENDA
+AGENDA_TEX = agenda/$(AGENDA)-agenda.tex
+AGENDA_PICTURES = $(COMMON_PICTURES)
+
+%-agenda.pdf: common/agenda.sty $(AGENDA_TEX) $(AGENDA_PICTURES)
+	rm -f $(OUTDIR)/$(basename $@).tex
+	cp $(filter %.tex,$^) $(OUTDIR)/$(basename $@).tex
+	(cd $(OUTDIR); $(PDFLATEX_ENV) $(PDFLATEX) $(basename $@).tex)
+	cat $(OUTDIR)/$@ > $@
+else
+FORCE:
+%-agenda.pdf: FORCE
+	@$(MAKE) $@ AGENDA=$*
+endif
+
+#
 # === Picture generation ===
 #
 
@@ -478,6 +496,7 @@ help:
 	@echo " full-sysdev-slides.pdf		Complete slides for the 'sysdev' course"
 	@echo " full-kernel-slides.pdf		Complete slides for the 'kernel' course"
 	@echo " full-android-slides.pdf		Complete slides for the 'android' course"
+	@echo " kernel-agenda.pdf		Agenda for the 'kernel' course"
 	@echo " <some-chapter>-slides.pdf	Slides for a particular chapter in slides/"
 	@echo
 	@echo " <some-chapter>-labs.pdf		Labs for a particular chapter in labs/"
