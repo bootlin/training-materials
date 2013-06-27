@@ -490,14 +490,14 @@ clean:
 help:
 	@echo "Available targets:"
 	@echo
-	@echo " full-sysdev-labs.pdf		Complete labs for the 'sysdev' course"
-	@echo " full-kernel-labs.pdf		Complete labs for the 'kernel' course"
-	@echo " full-android-labs.pdf		Complete labs for the 'android' course"
-	@echo " full-sysdev-slides.pdf		Complete slides for the 'sysdev' course"
-	@echo " full-kernel-slides.pdf		Complete slides for the 'kernel' course"
-	@echo " full-android-slides.pdf		Complete slides for the 'android' course"
-	@echo " kernel-agenda.pdf		Agenda for the 'kernel' course"
-	@echo " <some-chapter>-slides.pdf	Slides for a particular chapter in slides/"
+	@echo " full-sysdev-labs.pdf            Complete labs for the 'sysdev' course"
+	@echo " full-kernel-labs.pdf            Complete labs for the 'kernel' course"
+	@echo " full-android-labs.pdf           Complete labs for the 'android' course"
+	@echo " full-sysdev-slides.pdf          Complete slides for the 'sysdev' course"
+	@echo " full-kernel-slides.pdf          Complete slides for the 'kernel' course"
+	@echo " full-android-slides.pdf         Complete slides for the 'android' course"
+	@echo " kernel-agenda.pdf               Agenda for the 'kernel' course"
+	@echo " <some-chapter>-slides.pdf       Slides for a particular chapter in slides/"
 	@echo
-	@echo " <some-chapter>-labs.pdf		Labs for a particular chapter in labs/"
+	@echo " <some-chapter>-labs.pdf         Labs for a particular chapter in labs/"
 	@echo
