@@ -1,17 +1,18 @@
-From c649a6de9707eba650f0b92733429f5ae8d88d08 Mon Sep 17 00:00:00 2001
-From: Alexandre Belloni <alexandre.belloni@free-electrons.com>
-Date: Tue, 7 May 2013 13:37:16 +0200
-Subject: [PATCH 2/2] sama5d3x-ek: Fast boot config
+From b6a5591584e190b07a480e58c7f5bfb2d30728f2 Mon Sep 17 00:00:00 2001
+From: tux <tux@tux-Vostro-3550.(none)>
+Date: Tue, 13 Aug 2013 17:45:50 +0200
+Subject: [PATCH] Sama5d3x optimizations
 
-Signed-off-by: Alexandre Belloni <alexandre.belloni@free-electrons.com>
+Signed-off-by: tux <tux@tux-Vostro-3550.(none)>
 ---
- arch/arm/boards/sama5d3xek/env_fast/bin/init      | 14 ++++
- arch/arm/boards/sama5d3xek/env_fast/config        | 14 ++++
- arch/arm/boards/sama5d3xek/env_org/bin/init_board | 15 ++++
- arch/arm/boards/sama5d3xek/env_org/config         | 44 +++++++++++
- arch/arm/configs/sama5d3xek_fast_defconfig        | 54 +++++++++++++
- arch/arm/configs/sama5d3xek_org_defconfig         | 95 +++++++++++++++++++++++
- 6 files changed, 236 insertions(+)
+ arch/arm/boards/sama5d3xek/env/config             |    6 +-
+ arch/arm/boards/sama5d3xek/env_fast/bin/init      |   14 +++
+ arch/arm/boards/sama5d3xek/env_fast/config        |   21 +++++
+ arch/arm/boards/sama5d3xek/env_org/bin/init_board |   15 ++++
+ arch/arm/boards/sama5d3xek/env_org/config         |   44 ++++++++++
+ arch/arm/configs/sama5d3xek_fast_defconfig        |   54 ++++++++++++
+ arch/arm/configs/sama5d3xek_org_defconfig         |   95 +++++++++++++++++++++
+ 7 files changed, 246 insertions(+), 3 deletions(-)
  create mode 100644 arch/arm/boards/sama5d3xek/env_fast/bin/init
  create mode 100644 arch/arm/boards/sama5d3xek/env_fast/config
  create mode 100644 arch/arm/boards/sama5d3xek/env_org/bin/init_board
@@ -19,6 +20,25 @@ Signed-off-by: Alexandre Belloni <alexandre.belloni@free-electrons.com>
  create mode 100644 arch/arm/configs/sama5d3xek_fast_defconfig
  create mode 100644 arch/arm/configs/sama5d3xek_org_defconfig
 
+diff --git a/arch/arm/boards/sama5d3xek/env/config b/arch/arm/boards/sama5d3xek/env/config
+index a7fd930..52118f9 100644
+--- a/arch/arm/boards/sama5d3xek/env/config
++++ b/arch/arm/boards/sama5d3xek/env/config
+@@ -13,11 +13,11 @@ global.dhcp.client_id="${sama5d3xcm.board}-${sama5d3xcm.vendor}"
+ #eth0.serverip=a.b.c.d
+ 
+ # can be either 'nfs', 'tftp', 'nor' or 'nand'
+-kernel_loc=nfs
++kernel_loc=nand
+ # can be either 'net', 'nor', 'nand' or 'initrd'
+-rootfs_loc=net
++rootfs_loc=nand
+ # can be either 'nfs', 'tftp', 'nand' or empty
+-oftree_loc=nfs
++oftree_loc=nand
+ 
+ # can be either 'jffs2' or 'ubifs'
+ rootfs_type=ubifs
 diff --git a/arch/arm/boards/sama5d3xek/env_fast/bin/init b/arch/arm/boards/sama5d3xek/env_fast/bin/init
 new file mode 100644
 index 0000000..2f4bda7
@@ -41,10 +61,10 @@ index 0000000..2f4bda7
 +boot
 diff --git a/arch/arm/boards/sama5d3xek/env_fast/config b/arch/arm/boards/sama5d3xek/env_fast/config
 new file mode 100644
-index 0000000..583eb4a
+index 0000000..266456c
 --- /dev/null
 +++ b/arch/arm/boards/sama5d3xek/env_fast/config
-@@ -0,0 +1,14 @@
+@@ -0,0 +1,21 @@
 +#!/bin/sh
 +
 +ip=none
@@ -53,12 +73,19 @@ index 0000000..583eb4a
 +rootfs_loc=nand
 +oftree_loc=nand
 +
++# can be either 'jffs2' or 'ubifs'
++rootfs_type=ubifs
++rootfsimage=root.$rootfs_type
++ubiroot=rootfs
++
 +kernelimage=zImage
 +
 +nand_device=atmel_nand
 +nand_parts="256k(at91bootstrap),384k(barebox)ro,256k@768k(bareboxenv),256k(bareboxenv2),128k@1536k(oftree),5M@2M(kernel),-@8M(rootfs)"
 +
-+bootargs="console=ttyS0,115200 quiet lpj=1314816"
++rootfs_mtdblock_nand=6
++
++bootargs="console=ttyS0,115200 quiet"
 diff --git a/arch/arm/boards/sama5d3xek/env_org/bin/init_board b/arch/arm/boards/sama5d3xek/env_org/bin/init_board
 new file mode 100644
 index 0000000..f3d417e
@@ -292,5 +319,5 @@ index 0000000..cd1ad58
 +CONFIG_FS_FAT_LFN=y
 +CONFIG_PNG=y
 -- 
-1.8.1.2
+1.7.9.5
 
