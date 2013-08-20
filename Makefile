@@ -152,6 +152,7 @@ ANDROID_SLIDES = \
 		android-kernel-changes-ion \
 		android-kernel-changes-network \
 		android-kernel-changes-misc \
+		android-kernel-changes-mainline \
 		android-bootloaders-title \
 		sysdev-bootloaders-sequence \
 		android-bootloaders-fastboot \
