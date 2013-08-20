@@ -148,8 +148,9 @@ ANDROID_SLIDES = \
 		android-kernel-changes-klogger \
 		android-kernel-changes-ashmem \
 		android-kernel-changes-timers \
-		android-kernel-changes-network \
 		android-kernel-changes-lmk \
+		android-kernel-changes-ion \
+		android-kernel-changes-network \
 		android-kernel-changes-misc \
 		android-bootloaders-title \
 		sysdev-bootloaders-sequence \
