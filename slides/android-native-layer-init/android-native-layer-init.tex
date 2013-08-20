@@ -58,14 +58,15 @@
   \frametitle{init.rc file interpretation}
   \begin{itemize}
   \item Uses a unique syntax, based on events
-  \item There usually are several init configuration files,
-    \code{init.rc} itself, and \code{init.<platform_name>.rc}
-  \item While \code{init.rc} is always taken into account,
-    \code{init.<platform_name>.rc} is only interpreted if the platform
-    currently running the system reports the same name
-  \item This name is either obtained by reading the file
-    \code{/proc/cpuinfo} or from the \code{androidboot.hardware}
-    kernel parameter
+  \item There usually are several init configuration files, the main
+    \code{init.rc} file itself, plus the extra file included from it
+  \item By default, these included files hold either
+    subsystem-specific initialisation (USB, Kernel Tracing), or
+    hardware-specific instructions
+  \item It relies on system properties, evaluated at runtime, that
+    allows to have on the same system, configuration for several
+    different platforms, that will be used only when they are
+    relevant.
   \item Most of the customizations should therefore go to the
     platform-specific configuration file rather than to the generic
     one
@@ -136,6 +137,8 @@ on <trigger>
 \begin{frame}[fragile]
   \frametitle{Example}
 \begin{verbatim}
+import /init.${ro.hardware}.rc
+
 on boot
    export PATH /sbin:/system/sbin:/system/bin
    export LD_LIBRARY_PATH /system/lib
@@ -199,6 +202,12 @@ service akmd /sbin/akmd
     the files associated to a new event.
   \item The associated configuration files are \code{/ueventd.rc} and
     \code{/ueventd.<platform>.rc}
+  \item While \code{ueventd.rc} is always taken into account,
+    \code{ueventd.<platform>.rc} is only interpreted if the platform
+    currently running the system reports the same name
+  \item This name is either obtained by reading the file
+    \code{/proc/cpuinfo} or from the \code{androidboot.hardware}
+    kernel parameter
   \end{itemize}
 \end{frame}
 
