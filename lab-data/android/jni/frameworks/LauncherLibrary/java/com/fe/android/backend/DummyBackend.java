@@ -7,7 +7,8 @@ public class DummyBackend implements MissileBackendImpl {
 
 	public int fire() {
 		Log.i(TAG, "FIRE!");
-		
+
+		return 0;
 	}
 
 	public void move(Direction dir) {
@@ -16,6 +17,8 @@ public class DummyBackend implements MissileBackendImpl {
 
 	public int stop() {
 		Log.i(TAG, "Stop");
+
+		return 0;
 	}
 
 }
