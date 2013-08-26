@@ -423,7 +423,7 @@ endif
 #
 ifdef AGENDA
 AGENDA_TEX = agenda/$(AGENDA)-agenda.tex
-AGENDA_PICTURES = $(COMMON_PICTURES)
+AGENDA_PICTURES = $(COMMON_PICTURES) $(call PICTURES,agenda)
 
 %-agenda.pdf: common/agenda.sty $(AGENDA_TEX) $(AGENDA_PICTURES)
 	rm -f $(OUTDIR)/$(basename $@).tex
