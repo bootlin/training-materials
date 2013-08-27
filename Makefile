@@ -16,7 +16,7 @@ KERNEL_SLIDES = \
 		licensing \
 		about-us \
 		course-information-title \
-		calao-board \
+		kernel-beagleboneblack \
 		course-information \
 		kernel-introduction-title \
 		sysdev-linux-intro-features \
