@@ -39,11 +39,14 @@ KERNEL_SLIDES = \
 		kernel-driver-development-lab-modules \
 		kernel-driver-development-memory \
 		kernel-driver-development-general-apis \
+		kernel-device-model \
+		kernel-i2c \
+		kernel-pinmuxing \
+		kernel-frameworks \
+		kernel-input \
 		kernel-driver-development-io-memory \
 		kernel-driver-development-lab-io-memory \
-		sysdev-root-filesystem-device-files \
-		kernel-driver-development-character-drivers \
-		kernel-driver-development-lab-character-drivers \
+		kernel-misc-subsystem \
 		kernel-driver-development-processes \
 		kernel-driver-development-sleeping \
 		kernel-driver-development-interrupts \
@@ -52,25 +55,15 @@ KERNEL_SLIDES = \
 		kernel-driver-development-lab-locking \
 		kernel-driver-development-debugging \
 		kernel-driver-development-lab-debugging \
-		kernel-driver-development-mmap \
-		kernel-driver-development-dma \
-		kernel-driver-development-architecture-drivers \
-		kernel-serial-drivers-title \
-		kernel-serial-drivers-content \
-		kernel-serial-drivers-lab \
-		kernel-init-title \
-		kernel-init-content \
 		kernel-porting-title \
 		kernel-porting-content \
 		kernel-power-management-title \
 		kernel-power-management-content \
 		kernel-power-management-lab \
+		kernel-development-process \
 		kernel-resources-title \
 		kernel-resources-advice \
 		kernel-resources-references \
-		kernel-git-title \
-		kernel-git-content \
-		kernel-git-lab \
 		last-slides
 
 SYSDEV_SLIDES = \
