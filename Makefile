@@ -328,6 +328,10 @@ endif
 SLIDES_COMMON_AFTER  = common/slide-footer.tex
 endif
 
+ifeq ($(SLIDES_CHAPTERS),)
+$(error "No chapter to build, maybe you're building a single chapter whose name doesn't start with a training session name")
+endif
+
 # Compute the set of corresponding .tex files and pictures
 SLIDES_TEX      = \
 	$(SLIDES_COMMON_BEFORE) \
