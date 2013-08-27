@@ -319,6 +319,11 @@ SLIDES_CHAPTERS      = $($(call UPPERCASE, $(SLIDES_TRAINING))_SLIDES)
 SLIDES_COMMON_AFTER  = common/slide-footer.tex
 else
 SLIDES_TRAINING      = $(firstword $(subst -, ,  $(SLIDES)))
+# We might be building multiple chapters that share a common
+# prefix. In this case, we want to build them in the order they are
+# listed in the <training>_SLIDES variable that corresponds to the
+# current training, as identified by the first component of the
+# chapter name.
 SLIDES_CHAPTERS      = $(filter $(SLIDES)%, $($(call UPPERCASE, $(SLIDES_TRAINING))_SLIDES))
 ifeq ($(words $(SLIDES_CHAPTERS)),1)
 SLIDES_COMMON_BEFORE = common/slide-header.tex common/single-subsection-slide-title.tex
