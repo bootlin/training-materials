@@ -23,7 +23,7 @@ KERNEL_SLIDES = \
 		sysdev-linux-intro-versioning \
 		kernel-introduction-lab \
 		kernel-embedded-linux-usage-title \
-		sysdev-linux-intro-sources \
+		kernel-linux-intro-sources \
 		kernel-source-code-title \
 		kernel-source-code-drivers \
 		kernel-source-code-layout \
