@@ -5,22 +5,26 @@
   \item ION was introduced with Ice Cream Sandwich (4.0) version of
     Android
   \item Its role is to allocate memory in the system, for most of the
-    possible cases
+    possible cases, and to allow different devices to share buffers,
+    without any copy, possibly from an userspace application
+  \item It's for example useful if you want to retrieve an image from
+    a camera, and push it to the JPEG hardware encoder from an
+    userspace application
   \item The usual Linux memory allocators can only allocate a buffer
     that is up to 512 pages wide, with a page usually being 4kiB.
   \item There was previously for Android (and Linux in general) some
     vendor specific mechanism to allocate larger physically contiguous
     memory areas (\code{nvmap} for nVidia, \code{CMEM} for TI, etc.)
-  \item ION is here to unify the interface to allocate memory in the
-    system, no matter on which SoC you're running on.
-  \item It uses a system of heaps, with Linux publishing the heaps
-    available on a given system.
   \end{itemize}
 \end{frame}
 
 \begin{frame}
   \frametitle{ION 2/2}
   \begin{itemize}
+  \item ION is here to unify the interface to allocate memory in the
+    system, no matter on which SoC you're running on.
+  \item It uses a system of heaps, with Linux publishing the heaps
+    available on a given system.
   \item By default, you have three different heaps:
     \begin{description}
     \item[system] Memory virtually contiguous memory, backed by
@@ -33,5 +37,22 @@
   \item It also has a user-space interface so that processes can
     allocate memory to work on.
   \item \url{https://lwn.net/Articles/480055/}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Comparison with mainline equivalents}
+  \begin{itemize}
+  \item There is no direct equivalent to ION in the mainline
+    kernel. However:
+    \begin{itemize}
+    \item The contiguous allocation of the buffers is done through
+      \code{CMA}
+    \item The buffer sharing between devices is made through
+      \code{dma-buf}
+    \item Its userspace API also allows to allocate and share buffers
+      from the userspace, which is not possible right now in mainline
+      kernel
+    \end{itemize}
   \end{itemize}
 \end{frame}
