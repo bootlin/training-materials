@@ -9,9 +9,30 @@ After this lab, you will be able to
 
 \section{Build a shared library}
 
-To get the libusb source code, go to \url{http://libusb.org} and
-download version 1.0.9. Extract the archive in the
-\code{external/libusb} folder.
+The Android team already has put the libusb source code, but for some
+reason isn't actually using it or made a Makefile for it. Since we
+need a more recent version anyway, we will need to edit the manifest
+so that repo grabs a newer version instead.
+
+Edit the file \code{.repo/manifest.xml}. This is the manifest
+currently used by repo. As you can see, it holds the git repositories
+of every pieces assembled to form the Android source code.
+
+The first step will be to add a remote git server to the list of those
+availables to \code{repo}.
+
+\begin{verbatim}
+<remote fetch="git://libusb.org" name="libusb" />
+\end{verbatim}
+
+Then, go to the line that defines the libusb project, and edit it to
+specify that you want to use the remote we just defined (using the
+\code{remote} attribute), that we want to use the version 1.0.9, that
+is in git \code{refs/tags/1.0.9} (using the \code{revision} XML
+attribute), and change the value of the name attribute to
+\code{libusb}.
+
+Then, do a \code{repo sync}, and everything should be downloaded.
 
 For this library, all the needed \code{.c} files are located in the
 \code{libusb} folder and its subfolders. The headers are located in
@@ -29,7 +50,14 @@ systems. You will have to generate it by yourself, by running the
 \code{configure} script \footnote{You can have some hints about the
   available options available by passing the \code{--help} argument to
   \code{configure}} that you can find in the \code{libusb} source
-code.
+code. The git repository doesn't have this \code{configure} script
+however. This script is also usually generated through the
+\code{autogen.sh} script that you'll find in the sources.
+
+To be able to use this script, we will need to install the packages
+\code{libtool} and \code{automake}. Once installed, you can generate
+the configure script using \code{./autogen.sh}. It should also
+generate the needed \code{config.h} header.
 
 Along the building process, you might need to define values in the
 source code. We prefer to avoid modifying directly the source code,
