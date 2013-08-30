@@ -1,2 +1,270 @@
 \subsection{Kernel frameworks for device drivers}
 
+\begin{frame}
+  \frametitle{Kernel Frameworks}
+  \begin{center}
+    \includegraphics[width=\textwidth]{slides/kernel-frameworks/frameworks.pdf}
+  \end{center}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Example: Framebuffer Framework}
+  \begin{itemize}
+  \item Kernel option \code{CONFIG_FB}
+    \begin{itemize}
+    \item \code{menuconfig FB}
+      \begin{itemize}
+      \item \code{tristate "Support for frame buffer devices"}
+      \end{itemize}
+    \end{itemize}
+  \item Implemented in \code{drivers/video/}
+    \begin{itemize}
+    \item \code{fb.c}, \code{fbmem.c}, \code{fbmon.c},
+      \code{fbcmap.c}, \code{fbsysfs.c}, \code{modedb.c},
+      \code{fbcvt.c}
+    \end{itemize}
+  \item Implements a single character driver and defines the
+    user/kernel API
+    \begin{itemize}
+    \item First part of \code{include/linux/fb.h}
+    \end{itemize}
+  \item Defines the set of operations a framebuffer driver must
+    implement and helper functions for the drivers
+    \begin{itemize}
+    \item \code{struct fb_ops}
+    \item Second part of \code{include/linux/fb.h} (in
+      \code{ifdef __KERNEL__})
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Framebuffer Driver Skeleton}
+  \begin{itemize}
+  \item Skeleton driver in \code{drivers/video/skeletonfb.c}
+  \item Implements the set of framebuffer specific operations defined
+    by the \code{struct fb_ops} structure
+  \end{itemize}
+  \begin{columns}
+    \column{0.45\textwidth}
+    \begin{itemize}
+    \item \code{xxxfb_open()}
+    \item \code{xxxfb_read()}
+    \item \code{xxxfb_write()}
+    \item \code{xxxfb_release()}
+    \item \code{xxxfb_checkvar()}
+    \item \code{xxxfb_setpar()}
+    \item \code{xxxfb_setcolreg()}
+    \item \code{xxxfb_blank()}
+    \item \code{xxxfb_pan_display()}
+    \end{itemize}
+    \column{0.45\textwidth}
+    \begin{itemize}
+    \item \code{xxxfb_fillrect()}
+    \item \code{xxxfb_copyarea()}
+    \item \code{xxxfb_imageblit()}
+    \item \code{xxxfb_cursor()}
+    \item \code{xxxfb_rotate()}
+    \item \code{xxxfb_sync()}
+    \item \code{xxxfb_ioctl()}
+    \item \code{xxxfb_mmap()}
+    \end{itemize}
+  \end{columns}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Framebuffer Driver Skeleton}
+  \begin{itemize}
+  \item After the implementation of the operations, definition of a
+    \code{struct fb_ops} structure
+  \begin{minted}[fontsize=\scriptsize]{c}
+static struct fb_ops xxxfb_ops = {
+    .owner = THIS_MODULE,
+    .fb_open = xxxfb_open,
+    .fb_read = xxxfb_read,
+    .fb_write = xxxfb_write,
+    .fb_release = xxxfb_release,
+    .fb_check_var = xxxfb_check_var,
+    .fb_set_par = xxxfb_set_par,
+    .fb_setcolreg = xxxfb_setcolreg,
+    .fb_blank = xxxfb_blank,
+    .fb_pan_display = xxxfb_pan_display,
+    .fb_fillrect = xxxfb_fillrect,   /* Needed !!! */
+    .fb_copyarea = xxxfb_copyarea,   /* Needed !!! */
+    .fb_imageblit = xxxfb_imageblit, /* Needed !!! */
+    .fb_cursor = xxxfb_cursor,       /* Optional !!! */
+    .fb_rotate = xxxfb_rotate,
+    .fb_sync = xxxfb_sync,
+    .fb_ioctl = xxxfb_ioctl,
+    .fb_mmap = xxxfb_mmap,
+};
+  \end{minted}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Framebuffer Driver Skeleton}
+  \begin{itemize}
+  \item In the \code{probe()} function, registration of the
+    framebuffer device and operations
+  \begin{minted}[fontsize=\footnotesize]{c}
+static int __devinit xxxfb_probe (struct pci_dev *dev,
+    const struct pci_device_id *ent)
+{
+    struct fb_info *info;
+    [...]
+    info = framebuffer_alloc(sizeof(struct xxx_par), device);
+    [...]
+    info->fbops = &xxxfb_ops;
+    [...]
+    if (register_framebuffer(info) > 0)
+        return -EINVAL;
+    [...]
+}
+  \end{minted}
+  \item \code{register_framebuffer()} will create the character device
+    that can be used by userspace applications with the generic
+    framebuffer API.
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Driver-specific Data Structure}
+  \begin{itemize}
+  \item Each \emph{framework} defines a structure that a device driver
+    must register to be recognized as a device in this framework
+    \begin{itemize}
+    \item \code{uart_port} for serial port, \code{netdev} for network
+      devices, \code{fb_info} for framebuffers, etc.
+    \end{itemize}
+  \item In addition to this structure, the driver usually needs to
+    store additional information about its device
+  \item This is typically done
+    \begin{itemize}
+    \item By subclassing the appropriate framework structure
+    \item Or by storing a reference to the appropriate framework
+      structure
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Driver-specific Data Structure Examples}
+  \begin{itemize}
+  \item i.MX serial driver: \code{imx_port} is a subclass of
+    \code{uart_port}
+  \begin{minted}[fontsize=\scriptsize]{c}
+struct imx_port {
+    struct uart_port port;
+    struct timer_list timer;
+    unsigned int old_status;
+    int txirq, rxirq, rtsirq;
+    unsigned int have_rtscts:1;
+    [...]
+};
+  \end{minted}
+  \item rtl8150 network driver: \code{rtl8150} has a reference to
+    \code{net_device}
+  \begin{minted}[fontsize=\scriptsize]{c}
+struct rtl8150 {
+    unsigned long flags;
+    struct usb_device *udev;
+    struct tasklet_struct tl;
+    struct net_device *netdev;
+    [...]
+};
+  \end{minted}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Link Between Structures 1/3}
+  \begin{itemize}
+  \item The framework typically contains a \code{struct device *}
+    pointer that the driver must point to the corresponding struct
+    device
+    \begin{itemize}
+    \item It's the relation between the logical device (for example a
+      network interface) and the physical device (for example the USB
+      network adapter)
+    \end{itemize}
+  \item The device structure also contains a \code{void *} pointer
+    that the driver can freely use.
+    \begin{itemize}
+    \item It's often use to link back the device to the higher-level
+      structure from the framework.
+    \item It allows, for example, from the \code{platform_device}
+      structure, to find the structure describing the logical device
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Link Between Structures 2/3}
+  \begin{columns}
+    \column{0.7\textwidth}
+    \begin{minted}[fontsize=\tiny]{c}
+static int serial_imx_probe(struct platform_device *pdev)
+{
+    struct imx_port *sport;
+    [...]
+    /* setup the link between uart_port and the struct
+     * device inside the platform_device */
+    sport->port.dev = &pdev->dev;
+    [...]
+    /* setup the link between the struct device inside
+     * the platform device to the imx_port structure */
+    platform_set_drvdata(pdev, &sport->port);
+    [...]
+    uart_add_one_port(&imx_reg, &sport->port);
+}
+
+static int serial_imx_remove(struct platform_device *pdev)
+{
+    /* retrieve the imx_port from the platform_device */
+    struct imx_port *sport = platform_get_drvdata(pdev);
+    [...]
+    uart_remove_one_port(&imx_reg, &sport->port);
+    [...]
+}
+    \end{minted}
+    \column{0.3\textwidth}
+    \begin{center}
+      \includegraphics[width=\textwidth]{slides/kernel-frameworks/link-structures-imx.pdf}
+    \end{center}
+  \end{columns}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Link Between Structures 3/3}
+  \begin{columns}
+    \column{0.7\textwidth}
+    \begin{minted}[fontsize=\tiny]{c}
+static int rtl8150_probe(struct usb_interface *intf,
+    const struct usb_device_id *id)
+{
+    rtl8150_t *dev;
+    struct net_device *netdev;
+
+    netdev = alloc_etherdev(sizeof(rtl8150_t));
+    dev = netdev_priv(netdev);
+
+    usb_set_intfdata(intf, dev);
+    SET_NETDEV_DEV(netdev, &intf->dev);
+
+    [...]
+}
+
+static void rtl8150_disconnect(struct usb_interface *intf)
+{
+    rtl8150_t *dev = usb_get_intfdata(intf);
+
+    [...]
+}
+    \end{minted}
+    \column{0.3\textwidth}
+    \begin{center}
+      \includegraphics[height=0.8\textheight]{slides/kernel-frameworks/link-structures-netdev.pdf}
+    \end{center}
+  \end{columns}
+\end{frame}
