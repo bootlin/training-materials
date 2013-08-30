@@ -36,54 +36,31 @@ steps as earlier:
 
 \begin{verbatim}
 source build/envsetup.sh
-lunch
+lunch beagleboneblack-eng
 \end{verbatim}
-
-... and choose \code{beagleboard-eng} in the \code{lunch} menu.
-
-\section{Disable USB suspend}
-
-The kernel we have built uses USB suspend to save power. This will
-be painful during the next labs, starting with this one.
-
-To do so, go to the \code{kernel} directory. First, use the
-\code{android_omap3_defconfig} file as an initial configuration. Load
-it using \code{ARCH=arm make android_omap3_defconfig} and then modify
-it using \code{ARCH=arm make menuconfig} to disable
-\code{CONFIG_USB_SUSPEND} and enable
-\code{CONFIG_USB_OTG_WAKELOCK}. We will also need to enable
-OHCI\footnote{USB Open Host Controller Interface, supporting only USB
-  1.1} support (\code{USB_OHCI_HCD_OMAP3}) to use the missile
-launcher.
-
-Once you're done, exit and the configuration tool will save the new
-file as \code{.config}. You can save it to a \code{defconfig} file by
-running \code{ARCH=arm make savedefconfig}. Then, copy the newly
-created \code{defconfig} file to the \code{arch/arm/configs} directory
-with the \code{android_devkit8000_defconfig} name.
-
-Once this is done, change the BeagleBoard product definition so that
-it uses this new file.
-
-Rebuild your system, update the SD card contents and boot your board
-again.
 
 \section{Configure USB access on your machine}
 
-Your instructor will now give you a USB A to USB mini B cable.
-Connect the mini B port to your board, and the A port to your computer.
+Your instructor will now give you a USB to mini-USB cable. Connect
+the mini-USB connector to your board, and the other connector to your
+computer.
 
-We will use this line to access the device through ADB. 
+We will use this connection to access the device through ADB.
 
 If you execute any command right now, you are very likely to have a
 permission denied error. This is because the USB device associated to
-the DevKit8000 doesn't have the right permissions to let you open it.
+the BeagleBone doesn't have the right permissions to let you open it.
 
 We need to make sure that \code{udev} sets the right permissions so
 that we can access it as a user. To do so, create the file
 \code{/etc/udev/rules.d/51-android.rules} and copy the following line:
 
-\code{SUBSYSTEM=="usb", ATTR{idVendor}=="18d1", ATTR{idProduct}=="0001", MODE="0600", OWNER="<username>"}
+\code{SUBSYSTEM=="usb", ATTR{idVendor}=="<VendorId>", ATTR{idProduct}=="<ProductID>", MODE="0600", OWNER="<username>"}
+
+You can retrieve the vendor and product IDs to use when by using the
+\code{lsusb} command, and looking at the line with \code{Google
+  Inc.}. You should see on this line the IDs to use, with the format
+\code{ID <VendorID>:<ProductID>}.
 
 Now, unplug the USB cable and plug it again. You should now be able to
 use \code{adb} from your user account.
