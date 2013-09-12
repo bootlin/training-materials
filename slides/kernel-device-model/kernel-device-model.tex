@@ -1,51 +1,59 @@
-\subsection{Linux device and driver model}
+\section{Linux device and driver model}
 
-\begin{frame}
-  \frametitle{Kernel and Device Drivers}
-  \begin{center}
-    \includegraphics[height=0.8\textheight]{slides/kernel-device-model/driver-architecture.pdf}
-  \end{center}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Kernel and Device Drivers}
+\begin{frame}{The need for a device model?}
   \begin{itemize}
-  \item Many device drivers are not implemented directly as character
-    drivers
-  \item They are implemented under a \emph{framework}, specific to a
-    given device type (framebuffer, V4L, serial, etc.)
-    \begin{itemize}
-    \item The framework allows to factorize the common parts of
-      drivers for the same type of devices
-    \item From userspace, they are still seen as character devices by
-      the applications
-    \item The framework allows to provide a coherent userspace
-      interface (\code{ioctl}, etc.) for every type of device,
-      regardless of the driver
-    \end{itemize}
-  \item The device drivers rely on the \emph{bus infrastructure} to
-    enumerate the devices and communicate with them, this is called
-    the {\em device model}.
+  \item The Linux kernel runs on a wide range of architectures and
+    hardware platforms, and therefore needs to {\bf maximize the
+      reusability} of code between platforms.
+  \item For example, we want the same {\em USB device driver} to be
+    usable on a x86 PC, or an ARM platform, even though the USB
+    controllers used on those platforms are different.
+  \item This requires a clean organization of the code, with the {\em
+      device drivers} separated from the {\em controller drivers}, the
+    hardware description separated from the drivers themselves, etc.
+  \item This is what the Linux kernel {\bf Device Model} allows, in
+    addition to other advantages covered in this section.
   \end{itemize}
 \end{frame}
 
 \begin{frame}
-  \frametitle{Unified Device Model}
-  \begin{itemize}
-  \item The 2.6 kernel included a significant new feature: a unified
-    device model
-  \item Instead of having different ad-hoc mechanisms in the various
-    subsystems, the device model unifies the description of the
-    devices and their topology
+  \frametitle{Kernel and Device Drivers}
+  \begin{columns}
+    \column{0.5\textwidth} In Linux, a driver is always interfacing with:
     \begin{itemize}
-    \item Minimization of code duplication
-    \item Common facilities (reference counting, event notification,
-      power management, etc.)
-    \item Enumerate the devices, view their interconnections, link the
-      devices to their buses and drivers, etc.
+    \item a {\bf framework} that allows the driver to expose the hardware features to userspace applications.
+    \item a {\bf bus infrastructure}, part of the device model, to detect/communicate with the hardware.
     \end{itemize}
-  \item Understanding the device model is necessary to understand how
-    device drivers fit into the Linux kernel architecture.
+    This section focuses on the {\em device model}, while {\em kernel
+      frameworks} are covered later in this training.
+    \column{0.5\textwidth}
+    \includegraphics[height=0.8\textheight]{slides/kernel-device-model/driver-architecture.pdf}
+  \end{columns}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Device Model data structures}
+  \begin{itemize}
+  \item The {\em device model} is organized around three main data
+    structures:
+    \begin{itemize}
+    \item The \code{struct bus_type}, which represent one type of bus
+      (USB, PCI, I2C, etc.)
+    \item The \code{struct device_driver}, which represents one driver
+      capable of handling certain devices on a certain bus.
+    \item The \code{struct device}, which represents one device
+      connected to a bus
+    \end{itemize}
+  \item The kernel uses inheritance to create more specialized
+    versions of \code{struct device_driver} and \code{struct device}
+    for each bus subsystem.
+  \item In order to explore the device model, we will
+    \begin{itemize}
+    \item First look at a popular bus that offers dynamic enumeration,
+      the {\em USB bus}
+    \item Continue by studying how busses that do not offer dynamic
+      enumerations are handled.
+    \end{itemize}
   \end{itemize}
 \end{frame}
 
@@ -69,8 +77,8 @@
     \item Matching the device drivers against the devices detected by
       the adapter drivers.
     \item Provides an API to both adapter drivers and device drivers
-    \item Defining driver and device specific structure, typically
-      \code{xxx_driver} and \code{xxx_device}
+    \item Defining driver and device specific structure, mainly
+      \code{usb_driver} and \code{usb_interface}
     \end{itemize}
   \end{itemize}
 \end{frame}
@@ -191,6 +199,8 @@ module_init(usb_rtl8150_init);
 module_exit(usb_rtl8150_exit);
 \end{minted}
   \end{itemize}
+  Note: this code has now been replaced by a shorter
+  \code{module_usb_driver()} macro call.
 \end{frame}
 
 \begin{frame}
@@ -299,7 +309,12 @@ static int rtl8150_probe(struct usb_interface *intf,
   \item The solution to this is the \emph{platform driver} /
     \emph{platform device} infrastructure.
   \item The platform devices are the devices that are directly
-    connected to the CPU, without any kind of bus.
+    connected to the CPU, without any kind of bus. They are known by
+    the kernel either through:
+    \begin{itemize}
+    \item Manual instantation of \code{platform_device} structures in C code.
+    \item Description in a {\em Device Tree}
+    \end{itemize}
   \end{itemize}
 \end{frame}
 
@@ -332,7 +347,7 @@ static void __exit imx_serial_cleanup(void) {
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{Platform Device Instantiation 1/2}
+  \frametitle{Platform Device Instantiation: old style (1/2)}
   \begin{itemize}
   \item As platform devices cannot be detected dynamically, they are
     defined statically
@@ -361,7 +376,7 @@ static struct platform_device imx_uart1_device = {
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{Platform device instantiation 2/2}
+  \frametitle{Platform device instantiation: old style (2/2)}
   \begin{itemize}
   \item The device is part of a list
   \begin{minted}[fontsize=\footnotesize]{c}
@@ -505,6 +520,71 @@ static int serial_imx_probe(struct platform_device *pdev)
 }
   \end{minted}
 \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Device Tree}
+  \begin{itemize}
+  \item On many embedded architectures, manual instantation of
+    platform devices was considered to be too verbose and not easily
+    maintainable.
+  \item Such architectures are moving, or have moved, to use the {\em
+      Device Tree}.
+  \item It is a {\bf tree of nodes} that models the hierarchy of
+    devices in the system, from the devices inside the processor to
+    the devices on the board.
+  \item Each node can have a number of {\bf properties} describing
+    various properties of the devices: addresses, interrupts, clocks,
+    etc.
+  \item At boot time, the kernel is given a compiled version, the {\bf
+      Device Tree Blob}, which is parsed to instantiate all the
+    devices described in the DT.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Device Tree example}
+  \begin{block}{}
+  \small
+\begin{verbatim}
+uart0: serial@44e09000 {
+        compatible = "ti,omap3-uart";
+        ti,hwmods = "uart1";
+        clock-frequency = <48000000>;
+        reg = <0x44e09000 0x2000>;
+        interrupts = <72>;
+        status = "disabled";
+};
+  \end{verbatim}
+  \end{block}
+  \normalsize
+  \begin{itemize}
+  \item \code{serial@44e09000} is the {\bf node name}
+  \item \code{uart0} is an {\bf alias}, that can be referred to in other
+    parts of the DT as \code{&uart0}
+  \item other lines are {\bf properties}. Their values are usually
+    strings, list of values, or references to other nodes.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Device Tree inheritance (1/2)}
+  \begin{itemize}
+  \item Each particular hardware platform has its own {\em device tree}.
+  \item However, several hardware platforms use the same processor,
+    and often various processors in the same family share a number of
+    similarities.
+  \item To allow this, a {\em device tree} file can include another
+    one. The trees described by the including file overlays the tree
+    described by the included file.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Device Tree inheritance (2/2)}
+  \begin{center}
+    \includegraphics[height=0.8\textheight]{slides/kernel-device-model/dt-inheritance.pdf}
+  \end{center}
 \end{frame}
 
 \begin{frame}
