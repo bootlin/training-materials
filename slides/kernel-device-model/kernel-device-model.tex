@@ -587,6 +587,38 @@ uart0: serial@44e09000 {
   \end{center}
 \end{frame}
 
+\begin{frame}[fragile]
+  \frametitle{Device Tree binding}
+  \begin{itemize}
+  \item With the {\em device tree}, a {\em device} is bound with the
+    corresponding {\em driver} using the {\bf compatible} string.
+  \item The \code{of_match_table} field of \code{struct device_driver}
+    lists the compatible strings supported by the driver.
+  \end{itemize}
+  \begin{minted}[fontsize=\footnotesize]{c}
+\begin{verbatim}
+#if defined(CONFIG_OF)
+static const struct of_device_id omap_serial_of_match[] = {
+        { .compatible = "ti,omap2-uart" },
+        { .compatible = "ti,omap3-uart" },
+        { .compatible = "ti,omap4-uart" },
+        {},
+};
+MODULE_DEVICE_TABLE(of, omap_serial_of_match);
+#endif
+
+static struct platform_driver serial_omap_driver = {
+        .probe          = serial_omap_probe,
+        .remove         = serial_omap_remove,
+        .driver         = {
+                .name   = DRIVER_NAME,
+                .pm     = &serial_omap_dev_pm_ops,
+                .of_match_table = of_match_ptr(omap_serial_of_match),
+        },
+};
+\end{minted}
+\end{frame}
+
 \begin{frame}
   \frametitle{Example of Another Non-Dynamic Bus: SPI}
   \begin{itemize}
