@@ -10,7 +10,7 @@ After this lab, you will be able to:
 
 \section{Setup}
 
-Go to the \code{$HOME/felabs/android/linaro} directory.
+Go to the \code{$HOME/felabs/android/source} directory.
 
 Install packages needed for this lab:
 
@@ -36,7 +36,16 @@ Moreover, the exact same kernel can be used to boot both boards.
 For these reasons, we will use this distribution as a
 starting point for the rest of the labs.
 
-First, we need to download the source code. We will use the Linaro
+\code{repo} allows to download a new Android tree in a smart way,
+downloading only the differences between the new manifest we would
+give him and the current code we have. To do so, we first need to
+revert the patches we applied previously.
+
+\begin{verbatim}
+repo forall build frameworks/base -c "git reset --hard HEAD"
+\end{verbatim}
+
+Then, we need to download the source code. We will use the Linaro
 Android 11.11 release, which is based on Android 2.3 Gingerbread and
 Linux 3.1.1
 \footnote{At the time of this writing, Linaro doesn't support Android
@@ -46,8 +55,6 @@ Linux 3.1.1
   most stable version for our hardware.}.
 
 \begin{verbatim}
-mkdir src
-cd src
 repo init \
  -u git://git.free-electrons.com/android/linaro/platform/manifest.git \
  -b linaro-android-11.11-release
@@ -57,8 +64,7 @@ Note that we're using a Free Electrons mirror of Linaro Android. This
 was needed as some git repositories that the Linaro Android 11.11 manifest
 specified disappeared or were moved. 
 
-Take a look at the \code{.repo/manifest.xml} file and compare it with
-the one in \code{$HOME/felabs/android/aosp/android/}. You can see that
+Take a look at the \code{.repo/manifest.xml} file. You can see that
 Linaro took full advantage of the capabilities of the manifest file,
 using multiple git servers instead of a unique one, and replacing some
 of the components (like Dalvik and Bionic, for example) by its own
@@ -66,12 +72,8 @@ optimized versions.
 
 Now, let's run the big download job:
 \begin{verbatim}
-repo sync -j4
+repo sync -c -j4
 \end{verbatim}
-
-Once again, even with a fast Internet connection, the \code{repo sync}
-command can take more than one hour. Your instructor will keep you
-busy with other things during these downloads.
 
 In the mean time, you should also download and extract the associated
 Linaro toolchain: \footnote{The real URL is
@@ -79,7 +81,7 @@ Linaro toolchain: \footnote{The real URL is
   corresponding to a toolchain no longer available on the Linaro
   website. We wanted to give you something much shorter to type.}
 \begin{verbatim}
-cd ..
+cd ../linaro
 wget --trust-server-names http://j.mp/SJOCH8
 tar axf android-toolchain-*
 \end{verbatim}
@@ -89,7 +91,7 @@ fetch it from \url{http://free-electrons.com/labs/tools/}.
 
 \section{Build Android for the BeagleBoard}
 
-Get back to the \code{src} directory.
+Get back to the \code{source} directory.
 
 As we said earlier, the DevKit8000 is very similar to the BeagleBoard,
 so we will first compile a build for the BeagleBoard. The command to

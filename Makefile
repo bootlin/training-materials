@@ -21,7 +21,7 @@ KERNEL_SLIDES = \
 		kernel-introduction-title \
 		sysdev-linux-intro-features \
 		sysdev-linux-intro-versioning \
-		kernel-introduction-lab \
+		setup-lab \
 		kernel-embedded-linux-usage-title \
 		kernel-linux-intro-sources \
 		kernel-source-code-title \
@@ -74,6 +74,7 @@ SYSDEV_SLIDES = \
 		course-information \
 		sysdev-intro \
 		sysdev-dev-environment \
+		setup-lab \
 		sysdev-toolchains-title \
 		sysdev-toolchains-definition \
 		sysdev-toolchains-c-libraries \
@@ -117,6 +118,7 @@ ANDROID_SLIDES = \
 		android-linaro-introduction \
 		android-course-outline \
 		course-information \
+		setup-lab \
 		android-introduction-title \
 		android-introduction-features \
 		android-introduction-history \
@@ -394,12 +396,13 @@ LABS_TEX      = \
 	common/labs-footer.tex
 LABS_PICTURES = $(call PICTURES,$(foreach s,$(LABS_CHAPTERS),labs/$(s))) $(COMMON_PICTURES)
 
-%-labs.pdf: common/labs.sty $(LABS_TEX) $(LABS_PICTURES)
+%-labs.pdf: common/labs.sty $(VARS) $(LABS_TEX) $(LABS_PICTURES)
 	@mkdir -p $(OUTDIR)
 # We generate a .tex file with \input{} directives (instead of just
 # concatenating all files) so that when there is an error, we are
 # pointed at the right original file and the right line in that file.
 	rm -f $(OUTDIR)/$(basename $@).tex
+	echo "\input{$(VARS)}" >> $(OUTDIR)/$(basename $@).tex
 	for f in $(filter %.tex,$^) ; do \
 		echo -n "\input{../"          >> $(OUTDIR)/$(basename $@).tex ; \
 		echo -n $$f | sed 's%\.tex%%' >> $(OUTDIR)/$(basename $@).tex ; \
