@@ -21,7 +21,7 @@ KERNEL_SLIDES = \
 		kernel-introduction-title \
 		sysdev-linux-intro-features \
 		sysdev-linux-intro-versioning \
-		kernel-introduction-lab \
+		setup-lab \
 		kernel-embedded-linux-usage-title \
 		sysdev-linux-intro-sources \
 		kernel-source-code-title \
@@ -81,6 +81,7 @@ SYSDEV_SLIDES = \
 		course-information \
 		sysdev-intro \
 		sysdev-dev-environment \
+		setup-lab \
 		sysdev-toolchains-title \
 		sysdev-toolchains-definition \
 		sysdev-toolchains-c-libraries \
@@ -124,6 +125,7 @@ ANDROID_SLIDES = \
 		android-linaro-introduction \
 		android-course-outline \
 		course-information \
+		setup-lab \
 		android-introduction-title \
 		android-introduction-features \
 		android-introduction-history \
