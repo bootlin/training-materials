@@ -392,12 +392,13 @@ LABS_TEX      = \
 	common/labs-footer.tex
 LABS_PICTURES = $(call PICTURES,$(foreach s,$(LABS_CHAPTERS),labs/$(s))) $(COMMON_PICTURES)
 
-%-labs.pdf: common/labs.sty $(LABS_TEX) $(LABS_PICTURES)
+%-labs.pdf: common/labs.sty $(VARS) $(LABS_TEX) $(LABS_PICTURES)
 	@mkdir -p $(OUTDIR)
 # We generate a .tex file with \input{} directives (instead of just
 # concatenating all files) so that when there is an error, we are
 # pointed at the right original file and the right line in that file.
 	rm -f $(OUTDIR)/$(basename $@).tex
+	echo "\input{$(VARS)}" >> $(OUTDIR)/$(basename $@).tex
 	for f in $(filter %.tex,$^) ; do \
 		echo -n "\input{../"          >> $(OUTDIR)/$(basename $@).tex ; \
 		echo -n $$f | sed 's%\.tex%%' >> $(OUTDIR)/$(basename $@).tex ; \
