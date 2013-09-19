@@ -38,7 +38,7 @@ accessed through the network by the target, using NFS.
 
 \section{Setup}
 
-Stay in the \code{$HOME/felabs/linux/src} directory.
+Stay in the \code{$HOME/felabs/linux/src/linux} directory.
 
 Install packages needed for configuring, compiling and booting
 a kernel for your board:
@@ -51,13 +51,34 @@ sudo apt-get install libqt4-dev g++ u-boot-tools
 \code{u-boot-tools} is needed to build the \code{uImage} file for
 U-boot (\code{mkimage} utility).
 
+\section{Apply a kernel patch for BeagleBone Black}
+
+At the time of this writing, the mainline Linux 3.11 kernel needs a 
+specific Device Tree Source (DTS) file for the BeagleBone Black.
+Without it, running the mainline kernel will blow up the HDMI
+transceiver after a dozen boots \footnote{See
+\url{http://article.gmane.org/gmane.linux.kernel.stable/63648} for
+details.}. 
+
+We are providing a patch to add such a DTS file. Let's create 
+a branch, starting from our \code{3.11.y} branch, and including this
+patch.
+
+First, make sure you are in the \code{3.11.y} branch:
+\begin{verbatim}
+git branch
+\end{verbatim}
+
+Then, let's create the new branch and apply the patch for BeagleBone
+Black:
+\begin{verbatim}
+git checkout -b 3.11.y-bbb
+git am ../patches/*.patch
+\end{verbatim}
+ 
 \section{Cross-compiling toolchain setup}
 
-We are going to install a cross-compiling toolchain from
-Linaro\footnote{Note that Linaro toolchains by default generate code
-for the \code{armv7} instruction set, while our AT91 CPU only supports
-\code{armv5}. This is not a problem, as the kernel \code{Makefile} will
-invoke the cross-compiler with the right instruction set settings.}, a
+We are going to install a cross-compiling toolchain from Linaro, a
 very popular source for ARM toolchains (amongst other useful resources
 for Linux on ARM).
 
@@ -76,6 +97,21 @@ dpkg -L gcc-arm-linux-gnueabi
 Set the \code{ARCH} and \code{CROSS_COMPILE} definitions for the \code{arm}
 platform and to use your cross-compiler.
 
+To reuse these settings in the future and in different terminals,
+we advise you to create an \code{env.sh} file in the parent directory,
+with the below contents:
+
+\begin{verbatim}
+export ARCH=arm
+export CROSS_COMPILE=<cross-compiler-prefix>
+\end{verbatim}
+
+You can the load these definitions at any time by sourcing this file:
+
+\begin{verbatim}
+source ../env.sh
+\end{verbatim}
+ 
 Configure this kernel with the ready-made configuration for boards in
 the OMAP2 and later family which the AM335x found in the BeagleBone
 belongs to.
@@ -87,15 +123,17 @@ Compile your kernel and generate the \code{uImage} kernel image that
 U-boot needs (the U-boot bootloader needs the kernel \code{zImage}
 file to be encapsulated in a special container and the kernel
 \code{Makefile} can generate this container for you by running the
-mkimage tool found in the \code{uboot-mkimage} package). This file
-will contain, among other things, the load address of the
+\code{mkimage} tool found in the \code{uboot-mkimage} package).
+
+This file will contain, among other things, the load address of the
 kernel. Nowadays, the kernel can boot on several platforms, each with
-different load addresses, that makes the use of the uImage not very
-convenient. You'll need to specify it during the generation of the
-uImage using the \code{LOADADDR} environment variable.
+different load addresses, that makes the use of \code{uImage} not very
+convenient. So, if the default load address doesn't work for you, you'll
+need to specify it during the generation of \code{uImage} using the
+\code{LOADADDR} environment variable.
 
 \begin{verbatim}
-make uImage
+make LOADADDR=0x80008000 uImage
 \end{verbatim}
 
 \section{Setting up the NFS server}
@@ -126,11 +164,15 @@ errors disappear.
 \section{Setting up serial communication with the board}
 
 The Beaglebone serial connector is exported on the 6 pins close to one
-of the 48 pins headers. Using your USB->Serial adaptor, connect the
-ground to the pin closest to the power supply connector (let's call
-this pin the pin 0), and the RX and TX to the pins 3 and 4.
+of the 48 pins headers. Using your special USB to Serial adaptor provided
+by your instructor, connect the ground wire (blue) to the pin closest
+to the power supply connector (let's call it pin 1), and the TX (red)
+and RX (green) wires to the pins 4 and 5.
+\footnote{See
+\url{https://www.olimex.com/Products/Components/Cables/USB-Serial-Cable/USB-Serial-Cable-F/}
+for details about the USB to Serial adaptor that we are using.} 
 
-Once the USB <-> Serial connector plugged in, a new serial ports
+Once the USB to Serial connector plugged in, a new serial ports
 should appear: \code{/dev/ttyUSB0}.  You can also see this device
 appear by looking at the output of \code{dmesg}.
 
@@ -158,13 +200,22 @@ communication on \code{/dev/ttyUSB0}, with a baudrate of \code{115200}. If
 you wish to exit \code{picocom}, press \code{[Ctrl][a]} followed by
 \code{[Ctrl][x]}.
 
-You should now see the U-Boot prompt:
+There should be nothing on the serial line so far, as the board is not
+powered up yet.
+
+It is now time to power up your board by pluging in the mini-USB
+cable supplied by your instructor (with your PC or a USB power supply at the
+other end of the cable).
+
+You should then see early boot messages on the serial line. Press a key
+in the \code{picocom} terminal to stop the U-boot countdown. You should
+then see the U-Boot prompt:
 \begin{verbatim}
 U-Boot>
 \end{verbatim}
 
-You may need to reset the board (using the tiny reset button close to
-the USB host connectors).
+You may need to reset the board if you didn't have time to interrupt the
+timeout (using the tiny reset button close to the USB host connectors).
 
 You can now use U-Boot. Run the \code{help} command to see the available
 commands.
