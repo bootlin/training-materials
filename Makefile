@@ -18,17 +18,18 @@ KERNEL_SLIDES = \
 		course-information-title \
 		kernel-beagleboneblack \
 		course-information \
+		setup-lab \
 		kernel-introduction-title \
 		sysdev-linux-intro-features \
 		sysdev-linux-intro-versioning \
-		setup-lab \
 		kernel-embedded-linux-usage-title \
 		kernel-linux-intro-sources \
+		kernel-source-code-download-lab \
 		kernel-source-code-title \
 		kernel-source-code-drivers \
 		kernel-source-code-layout \
 		kernel-source-code-management \
-		kernel-source-code-lab-source-code \
+		kernel-source-code-exploring-lab \
 		sysdev-linux-intro-configuration \
 		sysdev-linux-intro-compilation \
 		sysdev-linux-intro-cross-compilation \
@@ -218,7 +219,8 @@ SYSDEV_LABS   = setup \
 		backup
 
 KERNEL_LABS   = setup \
-		kernel-sources \
+		kernel-sources-download \
+		kernel-sources-exploring \
 		kernel-module-environment \
 		kernel-module-simple \
 		kernel-serial-iomem \
