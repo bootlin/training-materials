@@ -76,17 +76,23 @@ dpkg -L gcc-arm-linux-gnueabi
 Set the \code{ARCH} and \code{CROSS_COMPILE} definitions for the \code{arm}
 platform and to use your cross-compiler.
 
-Configure this kernel with the ready-made configuration for boards
-with the AT91SAM9263 CPU.
+Configure this kernel with the ready-made configuration for boards in
+the OMAP2 and later family which the AM335x found in the BeagleBone
+belongs to.
 
 Make sure that this configuration has \code{CONFIG_ROOT_NFS=y} (support
 booting on an NFS exported root directory).
 
-Compile your kernel and generate the \code{uImage} kernel image that U-boot
-needs (the U-boot bootloader needs the kernel \code{zImage} file to be
-encapsulated in a special container and the kernel \code{Makefile} can
-generate this container for you by running the mkimage tool found in
-the \code{uboot-mkimage} package):
+Compile your kernel and generate the \code{uImage} kernel image that
+U-boot needs (the U-boot bootloader needs the kernel \code{zImage}
+file to be encapsulated in a special container and the kernel
+\code{Makefile} can generate this container for you by running the
+mkimage tool found in the \code{uboot-mkimage} package). This file
+will contain, among other things, the load address of the
+kernel. Nowadays, the kernel can boot on several platforms, each with
+different load addresses, that makes the use of the uImage not very
+convenient. You'll need to specify it during the generation of the
+uImage using the \code{LOADADDR} environment variable.
 
 \begin{verbatim}
 make uImage
@@ -119,11 +125,17 @@ errors disappear.
 
 \section{Setting up serial communication with the board}
 
-Plug the Calao board on your computer using its USB-A connector. When
-plugged-in, a new serial ports should appear: \code{/dev/ttyUSB0}.
-You can also see this device appear by looking at the output of \code{dmesg}.
+The Beaglebone serial connector is exported on the 6 pins close to one
+of the 48 pins headers. Using your USB->Serial adaptor, connect the
+ground to the pin closest to the power supply connector (let's call
+this pin the pin 0), and the RX and TX to the pins 3 and 4.
 
-To communicate with the board through the serial port, install a serial communication program, such as \code{picocom}:
+Once the USB <-> Serial connector plugged in, a new serial ports
+should appear: \code{/dev/ttyUSB0}.  You can also see this device
+appear by looking at the output of \code{dmesg}.
+
+To communicate with the board through the serial port, install a
+serial communication program, such as \code{picocom}:
 
 \begin{verbatim}
 sudo apt-get install picocom
@@ -236,61 +248,66 @@ saveenv
 If you changed \code{ethaddr}, also power off your board, and power it
 on again (pressing the \code{reset} button is not enough).
 
-You can then test the TFTP connection
-\footnote{Note for Ubuntu 12.04 users: the \code{tftp-hpa}
-server may not work the first time you use it after booting your 
-workstation. You may need to restart it after plugging in your board: 
-\code{sudo /etc/init.d/tftpd-hpa restart}}.
-First, put a small text file in
-the directory exported through TFTP on your development
+You can then test the TFTP connection \footnote{Note for Ubuntu 12.04
+  users: the \code{tftp-hpa} server may not work the first time you
+  use it after booting your workstation. You may need to restart it
+  after plugging in your board:
+  \code{sudo /etc/init.d/tftpd-hpa restart}}.  First, put a small text
+file in the directory exported through TFTP on your development
 workstation. Then, from U-Boot, do:
 
 \begin{verbatim}
-tftp 0x21000000 textfile.txt
+tftp 0x81000000 textfile.txt
 \end{verbatim}
 
-{\bf Caution: known issue in Ubuntu 12.04 and later}:
-if this command doesn't work, you may have you have to stop the server
-and start it again every time you boot your workstation:  
+{\bf Caution: known issue in Ubuntu 12.04 and later}: if this command
+doesn't work, you may have you have to stop the server and start it
+again every time you boot your workstation:
 
 \begin{verbatim}
 /etc/init.d/tftpd-hpa restart
 \end{verbatim}
 
-The \code{tftp} command should command should have downloaded
-the \code{textfile.txt} file from your development
-workstation into the board's memory at location \code{0x21000000} (this
-location is part of the board DRAM). You can verify that the download
-was successful by dumping the contents of the memory:
+The \code{tftp} command should command should have downloaded the
+\code{textfile.txt} file from your development workstation into the
+board's memory at location \code{0x81000000} (this location is part of
+the board DRAM). You can verify that the download was successful by
+dumping the contents of the memory:
 
 \begin{verbatim}
-md 0x21000000
+md 0x81000000
 \end{verbatim}
 
 \section{Boot the system}
 
-First, boot the board to the U-Boot prompt.  Before booting the
-kernel, we need to tell it that the root filesystem should be mounted
-over NFS, by setting some kernel parameters.  Use the following U-Boot
+First, boot the board to the U-Boot prompt. Before booting the kernel,
+we need to tell it that the root filesystem should be mounted over
+NFS, by setting some kernel parameters. Use the following U-Boot
 command to do so (in just 1 line):
 
 \begin{verbatim}
-setenv bootargs root=/dev/nfs ip=192.168.0.100 console=ttyS0
+setenv bootargs root=/dev/nfs ip=192.168.0.100 console=ttyO0
   nfsroot=192.168.0.1:/home/<user>/felabs/linux/modules/nfsroot
 \end{verbatim}
 
 Of course, you need to adapt the IP addresses to your exact network
-setup. Save the environment variables (with \code{saveenv}).  Now, download
-the kernel image through \code{tftp}:
+setup. Save the environment variables (with \code{saveenv}). Now,
+download the kernel image through \code{tftp}:
 
 \begin{verbatim}
-tftp 0x21000000 uImage
+tftp 0x81000000 uImage
+\end{verbatim}
+
+You'll also need to download the device tree blob:
+
+\begin{verbatim}
+tftp 0x82000000 am335x-bone.dtb
 \end{verbatim}
 
 Now, boot your kernel:
 
 \begin{verbatim}
-bootm 0x21000000
+bootm 0x81000000 - 0x82000000
 \end{verbatim}
 
 If everything goes right, you should reach a shell prompt. Otherwise,
@@ -307,15 +324,16 @@ you power on or reset your board, here's a way to automatically call the
 above commands at boot time:
 
 \begin{verbatim}
-setenv bootcmd 'tftp 0x21000000 uImage; bootm 0x21000000'
+setenv bootcmd 'tftp 0x81000000 uImage; tftp 0x82000000 am335x-bone.dtb; bootm 0x81000000 - 0x82000000'
 saveenv
 \end{verbatim}
 
 \code{bootcmd} will automatically be run after the U-boot timeout
 expires. Don't hesitate to change it according to your exact needs.
 
-We could also copy the \code{uImage} file to NAND flash and avoid
-downloading it over and over again. However, handling NAND flash is
-outside of the scope of this course. See our
+We could also copy the \code{uImage} file to the eMMC flash and avoid
+downloading it over and over again. However, handling flash is outside
+of the scope of this course. See our
 \href{http://free-electrons.com/training/embedded-linux/}{Embedded
-Linux system development course} and its on-line materials for details.
+Linux system development course} and its on-line materials for
+details.
