@@ -12,6 +12,9 @@ git clone git://git.denx.de/u-boot.git
 git tag
 git checkout v2013.10-rc3
 
+Apply a configuration-only patch:
+git am patches/*.patch
+
 export ARCH=arm
 export CROSS_COMPILE=arm-linux-gnueabi-
 make distclean
