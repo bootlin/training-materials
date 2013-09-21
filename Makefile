@@ -33,7 +33,7 @@ KERNEL_SLIDES = \
 		sysdev-linux-intro-configuration \
 		sysdev-linux-intro-compilation \
 		sysdev-linux-intro-cross-compilation \
-		kernel-source-code-lab-module \
+		kernel-board-setup-kernel-compiling-and-booting-labs \
 		sysdev-linux-intro-modules \
 		kernel-driver-development-title \
 		kernel-driver-development-modules \
@@ -221,7 +221,8 @@ SYSDEV_LABS   = setup \
 KERNEL_LABS   = setup \
 		kernel-sources-download \
 		kernel-sources-exploring \
-		kernel-module-environment \
+		kernel-board-setup \
+		kernel-compiling-and-nfs-booting \
 		kernel-module-simple \
 		kernel-serial-iomem \
 		kernel-serial-output \

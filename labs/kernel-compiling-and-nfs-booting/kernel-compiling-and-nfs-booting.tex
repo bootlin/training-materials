@@ -38,7 +38,7 @@ accessed through the network by the target, using NFS.
 
 \section{Setup}
 
-Stay in the \code{$HOME/felabs/linux/src/linux} directory.
+Go to the \code{$HOME/felabs/linux/src/linux} directory.
 
 Install packages needed for configuring, compiling and booting
 a kernel for your board:
@@ -53,10 +53,10 @@ U-boot (\code{mkimage} utility).
 
 \section{Apply a kernel patch for BeagleBone Black}
 
-At the time of this writing, the mainline Linux 3.11 kernel needs a 
+At the time of this writing, the mainline Linux 3.11 kernel is missing a 
 specific Device Tree Source (DTS) file for the BeagleBone Black.
-Without it, running the mainline kernel will blow up the HDMI
-transceiver after a dozen boots \footnote{See
+Without it, you could use the DTS for the original Beagle Bone, but it
+would blow up the HDMI transceiver after a dozen boots \footnote{See
 \url{http://article.gmane.org/gmane.linux.kernel.stable/63648} for
 details.}. 
 
@@ -136,6 +136,15 @@ need to specify it during the generation of \code{uImage} using the
 make LOADADDR=0x80008000 uImage
 \end{verbatim}
 
+Now also generate the Device Tree Binaries (DTBs):
+
+\begin{verbatim}
+make dtbs
+\end{verbatim}
+
+Now, copy the \code{uImage} and \code{am335x-boneblack.dtb} files
+to the TFTP server home directory (\code{/var/lib/tftpboot}).
+
 \section{Setting up the NFS server}
 
 Install the NFS server by installing the \code{nfs-kernel-server}
@@ -161,180 +170,14 @@ If there is any error message, this usually means that there was a
 syntax error in the \code{/etc/exports} file. Don't proceed until these
 errors disappear.
 
-\section{Setting up serial communication with the board}
-
-The Beaglebone serial connector is exported on the 6 pins close to one
-of the 48 pins headers. Using your special USB to Serial adaptor provided
-by your instructor, connect the ground wire (blue) to the pin closest
-to the power supply connector (let's call it pin 1), and the TX (red)
-and RX (green) wires to the pins 4 and 5.
-\footnote{See
-\url{https://www.olimex.com/Products/Components/Cables/USB-Serial-Cable/USB-Serial-Cable-F/}
-for details about the USB to Serial adaptor that we are using.} 
-
-Once the USB to Serial connector plugged in, a new serial ports
-should appear: \code{/dev/ttyUSB0}.  You can also see this device
-appear by looking at the output of \code{dmesg}.
-
-To communicate with the board through the serial port, install a
-serial communication program, such as \code{picocom}:
-
-\begin{verbatim}
-sudo apt-get install picocom
-\end{verbatim}
-
-If you run \code{ls -l /dev/ttyUSB0}, you can also see that only
-\code{root} and users belonging to the \code{dialout} group have
-read and write access to this file. Therefore, you need to add your user
-to the \code{dialout} group:
-
-\begin{verbatim}
-sudo adduser $USER dialout
-\end{verbatim}
-
-You now need to log out and log in again to make the new group
-visible everywhere.
-
-Now, you can run \code{picocom -b 115200 /dev/ttyUSB0}, to start serial
-communication on \code{/dev/ttyUSB0}, with a baudrate of \code{115200}. If
-you wish to exit \code{picocom}, press \code{[Ctrl][a]} followed by
-\code{[Ctrl][x]}.
-
-There should be nothing on the serial line so far, as the board is not
-powered up yet.
-
-It is now time to power up your board by pluging in the mini-USB
-cable supplied by your instructor (with your PC or a USB power supply at the
-other end of the cable).
-
-You should then see early boot messages on the serial line. Press a key
-in the \code{picocom} terminal to stop the U-boot countdown. You should
-then see the U-Boot prompt:
-\begin{verbatim}
-U-Boot>
-\end{verbatim}
-
-You may need to reset the board if you didn't have time to interrupt the
-timeout (using the tiny reset button close to the USB host connectors).
-
-You can now use U-Boot. Run the \code{help} command to see the available
-commands.
-
-\section{Setting up Ethernet communication}
-
-The kernel image will be transferred to the board using the TFTP
-protocol, which works on top of an Ethernet connection.
-
-To start with, install a TFTP server on your development workstation:
-
-\begin{verbatim}
-sudo apt-get install tftpd-hpa
-\end{verbatim}
-
-Copy your \code{uImage} file to the \code{/var/lib/tftpboot} directory.
-
-With a network cable, connect the Ethernet port of your board to the
-one of your computer. If your computer already has a wired connection
-to the network, your instructor will provide you with a USB Ethernet
-adapter. A new network interface, probably \code{eth1} or \code{eth2},
-should appear on your Linux system.
-
-To configure your network interface on the workstation side, click on
-the \code{Network Manager} tasklet on your desktop, and select
-\code{Edit Connections}.
-
-\begin{center}
-\includegraphics[width=8cm]{labs/kernel-module-environment/network-config-1.png}
-\end{center}
-
-Select the new wired network connection:
-
-\begin{center}
-\includegraphics[width=8cm]{labs/kernel-module-environment/network-config-2.png}
-\end{center}
-
-In the \code{IPv4 Settings} tab, make the interface use a static IP
-address, like \code{192.168.0.1} (of course, make sure that this address
-belongs to a separate network segment from the one of the main company
-network). You will also need to specify the local network mask
-(\emph{netmask}, often \code{255.255.255.0}). You can keep the
-\code{Gateway} field empty (don't click put the cursor inside the
-corresponding text box, otherwise it will ask for a legal value)
-or set it to \code{0.0.0.0}:
-
-\begin{center}
-\includegraphics[width=8cm]{labs/kernel-module-environment/network-config-3.png}
-\end{center}
-
-Now, configure the network on the board in U-Boot by setting the
-\code{ipaddr} and \code{serverip} environment variables:
-
-\begin{verbatim}
-setenv ipaddr 192.168.0.100
-setenv serverip 192.168.0.1
-\end{verbatim}
-
-In case the board was previously configured in a different way, we
-also turn off automatic booting after commands that can be used to
-copy a kernel to RAM:
-
-\begin{verbatim}
-setenv autostart no
-\end{verbatim}
-
-Also check that the \code{ethaddr} environment variable is
-defined. That's the MAC address that U-boot sees. If it isn't defined,
-set it:
-
-\begin{verbatim}
-set ethaddr 00:00:00:11:22:33
-\end{verbatim}
-
-To make these settings permanent, save the environment:
-
-\begin{verbatim}
-saveenv
-\end{verbatim}
-
-If you changed \code{ethaddr}, also power off your board, and power it
-on again (pressing the \code{reset} button is not enough).
-
-You can then test the TFTP connection \footnote{Note for Ubuntu 12.04
-  users: the \code{tftp-hpa} server may not work the first time you
-  use it after booting your workstation. You may need to restart it
-  after plugging in your board:
-  \code{sudo /etc/init.d/tftpd-hpa restart}}.  First, put a small text
-file in the directory exported through TFTP on your development
-workstation. Then, from U-Boot, do:
-
-\begin{verbatim}
-tftp 0x81000000 textfile.txt
-\end{verbatim}
-
-{\bf Caution: known issue in Ubuntu 12.04 and later}: if this command
-doesn't work, you may have you have to stop the server and start it
-again every time you boot your workstation:
-
-\begin{verbatim}
-/etc/init.d/tftpd-hpa restart
-\end{verbatim}
-
-The \code{tftp} command should command should have downloaded the
-\code{textfile.txt} file from your development workstation into the
-board's memory at location \code{0x81000000} (this location is part of
-the board DRAM). You can verify that the download was successful by
-dumping the contents of the memory:
-
-\begin{verbatim}
-md 0x81000000
-\end{verbatim}
-
 \section{Boot the system}
 
 First, boot the board to the U-Boot prompt. Before booting the kernel,
-we need to tell it that the root filesystem should be mounted over
-NFS, by setting some kernel parameters. Use the following U-Boot
-command to do so (in just 1 line):
+we need to tell it which console to use and that the root filesystem
+should be mounted over NFS, by setting some kernel parameters.
+
+Do this by setting U-boot's \code{bootargs} environment variable:
+Modify the \code{uEnv.txt} file by adding the below line (in just 1 line):
 
 \begin{verbatim}
 setenv bootargs root=/dev/nfs ip=192.168.0.100 console=ttyO0
@@ -342,8 +185,7 @@ setenv bootargs root=/dev/nfs ip=192.168.0.100 console=ttyO0
 \end{verbatim}
 
 Of course, you need to adapt the IP addresses to your exact network
-setup. Save the environment variables (with \code{saveenv}). Now,
-download the kernel image through \code{tftp}:
+setup. Now, download the kernel image through \code{tftp}:
 
 \begin{verbatim}
 tftp 0x81000000 uImage
@@ -352,7 +194,7 @@ tftp 0x81000000 uImage
 You'll also need to download the device tree blob:
 
 \begin{verbatim}
-tftp 0x82000000 am335x-bone.dtb
+tftp 0x82000000 am335x-boneblack.dtb
 \end{verbatim}
 
 Now, boot your kernel:
@@ -374,13 +216,17 @@ To avoid typing the same U-boot commands over and over again each time
 you power on or reset your board, here's a way to automatically call the
 above commands at boot time:
 
+Modify your \code{uEnv.txt} file and add the below lines:
+{\scriptsize
 \begin{verbatim}
-setenv bootcmd 'tftp 0x81000000 uImage; tftp 0x82000000 am335x-bone.dtb; bootm 0x81000000 - 0x82000000'
-saveenv
+bootargs=root=/dev/nfs ip=192.168.0.100 console=ttyO0 nfsroot=192.168.0.1:/home/<user>/felabs/linux/modules/nfsroot
+uenvcmd=tftp 0x81000000 uImage; tftp 0x82000000 am335x-boneblack.dtb; bootm 0x81000000 - 0x82000000
 \end{verbatim}
+}
 
-\code{bootcmd} will automatically be run after the U-boot timeout
-expires. Don't hesitate to change it according to your exact needs.
+\code{uenvcmd} will automatically be run after the U-boot timeout
+expires and the \code{uEnv.txt} settings are loaded.
+Don't hesitate to change it according to your exact needs.
 
 We could also copy the \code{uImage} file to the eMMC flash and avoid
 downloading it over and over again. However, handling flash is outside
@@ -388,3 +234,4 @@ of the scope of this course. See our
 \href{http://free-electrons.com/training/embedded-linux/}{Embedded
 Linux system development course} and its on-line materials for
 details.
+
