@@ -80,33 +80,6 @@ other end of the cable).
 
 See what messages you get on the serial line.
 
-\section{Disable booting from internal flash}
-
-If the board managed to boot to a Linux prompt, it means that 
-it booted from its internal flash storage ({\em eMCC: Embedded MMC}).
-At least, that's want you get on brand new boards.
-
-As we want do boot from the external micro-SD card only,
-and do not want to have to hold the \code{boot switch} button \footnote{That's
-the button that's alone near the micro-SD slot} every time we're booting
-the board, we are going to disable booting from internal flash, by
-removing the \code{MLO} file in the boot partition:  
-
-If you have a Linux prompt, you shoud be able to login in as \code{root}
-with an empty password. If your board didn't reach a Linux prompt, we
-will fix this later, and you can jump to the next section. 
-
-Type the below commands:
-
-\begin{verbatim}
-mount /dev/mmcblk0p1 /mnt
-mv /mnt/MLO /mnt/MLO.orig
-umount /mnt/
-\end{verbatim}
-
-If you reset the board, you should now only see a sequence of \code{C}
-charaters.
-
 \section{Prepare a bootable micro-SD card}
 
 Using a micro-SD card is a convenient way to control the way
@@ -168,20 +141,21 @@ sudo umount /media/boot
 
 \section{Boot the board}
 
-Reset the board (using the tiny reset button close to the Ethernet
-connector). You should then see U-boot 2013.10-rc3 start.
+Force the board to boot on the external card. To do this, you will
+have to remove the power supply, press and hold the \code{boot switch}
+button, insert the power supply, and then release this button.
+
+Note that from now on, the board will always boot on the external 
+MMC, until you remove the power. You only have do this manipulation
+when you power on the board for the first time.
+
+You should then see U-boot 2013.10-rc3 start.
 
 Press a key in the \code{picocom} terminal to stop the U-boot
 countdown. You should then see the U-Boot prompt:
 \begin{verbatim}
 U-Boot>
 \end{verbatim}
-
-If this didn't work, it's probably because there is still a valid
-\code{MLO} on the internal MMC. To force the board to boot on the
-external card, you will then have to remove the power supply, press and
-hold the \code{boot switch} button, insert the power supply, and then
-release this button.
 
 You can now use U-Boot. Run the \code{help} command to see the available
 commands.
