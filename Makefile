@@ -224,7 +224,9 @@ KERNEL_LABS   = setup \
 		kernel-board-setup \
 		kernel-compiling-and-nfs-booting \
 		kernel-module-simple \
-		kernel-device-model-i2c \
+		kernel-i2c-device-model \
+		kernel-i2c-communication \
+		kernel-i2c-input-interface \
 		kernel-serial-iomem \
 		kernel-serial-output \
 		kernel-serial-interrupt \
