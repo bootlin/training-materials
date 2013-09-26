@@ -1,1 +1,242 @@
-\subsection{Introduction to the I2C subsystem}
+\section{Introduction to the I2C subsystem}
+
+\begin{frame}{What is I2C ?}
+  \begin{itemize}
+  \item A very commonly used low-speed devices to connect on-board
+    devices to the processor.
+  \item Uses only two wires: SDA for the data, SCL for the clock.
+  \item It is a master/slave bus: only the master can initiate
+    transactions, and slaves can only reply to transactions initiated
+    by masters.
+  \item In a Linux system, the I2C controller embedded in the
+    processor is typically the master, controlling the bus.
+  \item Each slave device is identified by an unique I2C address. Each
+    transaction initiated by the master contains this address, which
+    allows the relevant slave to recognize that it should reply to
+    this particular transaction.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{An I2C bus example}
+  \begin{center}
+    \includegraphics[width=\textwidth]{slides/kernel-i2c/i2c-bus.pdf}
+  \end{center}
+\end{frame}
+
+\begin{frame}{The I2C subsystem}
+  \begin{itemize}
+  \item Like all bus subsystems, the I2C subsystem is responsible for:
+    \begin{itemize}
+    \item Providing an API to implement I2C controller drivers
+    \item Providing an API to implement I2C device drivers, in kernel space
+    \item Providing an API to implement I2C device drivers, in user space
+    \end{itemize}
+  \item The core of the I2C subsystem is located in
+    \code{drivers/i2c}.
+  \item The I2C controller drivers are located in
+    \code{drivers/i2c/busses}.
+  \item The I2C device drivers are located throughout
+    \code{drivers/}, depending on the type of device (ex:
+    \code{drivers/input} for input devices).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Registering an I2C device driver}
+  \begin{itemize}
+  \item Like all bus subsystems, the I2C subsystem defines a
+    \code{struct i2c_driver} that inherits from
+    \code{struct device_driver}, and which must be instantiated and
+    registered by each I2C device driver.
+    \begin{itemize}
+    \item As usual, this structure points to the \code{->probe()} and
+      \code{->remove()} functions.
+    \item It also contains an \code{id_table} field that must point to a
+      list of {\em device IDs} (which is a list of tuples containing a
+      string and some private driver data). It is used for non-DT based
+      probing of I2C devices.
+    \end{itemize}
+  \item The \code{i2c_add_driver()} and \code{i2c_del_driver()} functions
+    are used to register/unregister the driver.
+  \item If the driver doesn't do anything else in its init/exit
+    function, then it is advised to use the \code{module_i2c_driver()}
+    macro instead.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Registering an I2C device driver: example}
+  \begin{block}{}
+  \begin{minted}[fontsize=\tiny]{c}
+static const struct i2c_device_id <driver>_id[] = {
+        { "<device-name>", 0 },
+        { }
+};
+MODULE_DEVICE_TABLE(i2c, <driver>_id);
+
+#ifdef CONFIG_OF
+static const struct of_device_id <driver>_dt_ids[] = {
+        { .compatible = "<vendor>,<device-name>", },
+        { }
+};
+MODULE_DEVICE_TABLE(of, <driver>_dt_ids);
+#endif
+
+static struct i2c_driver <driver>_driver = {
+        .probe          = <driver>_probe,
+        .remove         = <driver>_remove,
+        .id_table       = <driver>_id,
+        .driver = {
+                .name   = "<driver-name>",
+                .owner  = THIS_MODULE,
+                .of_match_table = of_match_ptr(<driver>_dt_ids),
+        },
+};
+
+module_i2c_driver(<driver>_driver);
+\end{minted}
+\end{block}
+\end{frame}
+
+\begin{frame}{Registering an I2C device: non-DT}
+  \begin{itemize}
+  \item On non-DT platforms, the \code{i2c_board_info} structure
+    allows to describe how an I2C device is connected to a board.
+  \item Such structures are normally defined with the
+    \code{I2C_BOARD_INFO} helper macro.
+    \begin{itemize}
+    \item Takes as argument the device name and the slave address of
+      the device on the bus.
+    \end{itemize}
+  \item An array of such structures is registed on a per-bus basis
+    using \code{i2c_register_board_info()}, when the platform is
+    initialized.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Registering an I2C device, non-DT example}
+  \begin{block}{}
+    \begin{minted}[fontsize=\tiny]{c}
+static struct i2c_board_info <board>_i2c_devices[] __initdata = {
+        {
+                I2C_BOARD_INFO("cs42l51", 0x4a),
+        },
+};
+
+void board_init(void)
+{
+        /*
+         * Here should be the registration of all devices, including
+         * the I2C controller device.
+         */
+
+        i2c_register_board_info(0, <board>_i2c_devices,
+                                ARRAY_SIZE(<board>_i2c_devices));
+
+        /* More devices registered here */
+}
+    \end{minted}
+  \end{block}
+\end{frame}
+
+\begin{frame}{Registering an I2C device, in the DT}
+  \begin{itemize}
+  \item In the Device Tree, the I2C controller device is typically
+    defined in the \code{.dtsi} file that describes the processor.
+    \begin{itemize}
+    \item Normally defined with \code{status = "disabled"}.
+    \end{itemize}
+  \item At the board/platform level:
+    \begin{itemize}
+    \item the I2C controller device is enabled
+      (\code{status = "okay"})
+    \item the I2C bus frequency is defined, using the
+      \code{clock-frequency} property.
+    \item the I2C devices on the bus are described as childs of the
+      I2C controller node, where the \code{reg} property gives the I2C
+      slave address on the bus.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Registering an I2C device, DT example (1/2)}
+  \begin{block}{Definition of the I2C controller, .dtsi file}
+    \begin{minted}[fontsize=\footnotesize]{perl}
+i2c@7000c000 {
+        compatible = "nvidia,tegra20-i2c";
+        reg = <0x7000c000 0x100>;
+        interrupts = <GIC_SPI 38 IRQ_TYPE_LEVEL_HIGH>;
+        #address-cells = <1>;
+        #size-cells = <0>;
+        clocks = <&tegra_car TEGRA20_CLK_I2C1>,
+                 <&tegra_car TEGRA20_CLK_PLL_P_OUT3>;
+        clock-names = "div-clk", "fast-clk";
+        status = "disabled";
+};
+    \end{minted}
+  \end{block}
+\end{frame}
+
+\begin{frame}[fragile]{Registering an I2C device, DT example (2/2)}
+  \begin{block}{Definition of the I2C device, .dts file}
+    \begin{minted}[fontsize=\footnotesize]{perl}
+i2c@7000c000 {
+        status = "okay";
+        clock-frequency = <400000>;
+
+        alc5632: alc5632@1e {
+                compatible = "realtek,alc5632";
+                reg = <0x1e>;
+                gpio-controller;
+                #gpio-cells = <2>;
+        };
+};
+    \end{minted}
+  \end{block}
+\end{frame}
+
+\begin{frame}{\code{probe()} and \code{remove()}}
+
+  \begin{itemize}
+  \item The \code{->probe()} function is responsible for initializing
+    the device and registering it in the appropriate kernel
+    framework. It receives as argument:
+    \begin{itemize}
+    \item A \code{struct i2c_client} pointer, which represents the I2C
+      device itself. This structure inherits from \code{struct
+        device}.
+    \item A \code{struct i2c_device_id} pointer, which points to the
+      I2C device ID entry that matched the device that is being
+      probed.
+    \end{itemize}
+  \item The \code{->remove()} function is responsible for
+    unregistering the device from the kernel framework and shut it
+    down. It receives as argument:
+    \begin{itemize}
+    \item The same \code{struct i2c_client} pointer that was passed as
+      argument to \code{->probe()}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Probe/remove example}
+  \begin{block}{}
+    \begin{minted}[fontsize=\footnotesize]{c}
+static int <driver>_probe(struct i2c_client *client,
+                          const struct i2c_device_id *id)
+{
+        /* initialize device */
+        /* register to a kernel framework */
+
+        i2c_set_clientdata(client, <private data>);
+        return 0;
+}
+
+static int <driver>_remove(struct i2c_client *client)
+{
+        <private data> = i2c_get_clientdata(client);
+        /* unregister device from kernel framework */
+        /* shut down the device */
+        return 0;
+}
+    \end{minted}
+  \end{block}
+\end{frame}
