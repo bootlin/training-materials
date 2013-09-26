@@ -240,3 +240,111 @@ static int <driver>_remove(struct i2c_client *client)
     \end{minted}
   \end{block}
 \end{frame}
+
+\begin{frame}{Communicating with the I2C device: raw API}
+  The most {\bf basic API} to communicate with the I2C device provides
+  function to either send or receive data:
+  \begin{itemize}
+  \item
+    \code{int i2c_master_send(struct i2c_client *client, const char *buf, int count);}\\Sends
+    the contents of \code{buf} to the client.
+  \item
+    \code{int i2c_master_recv(struct i2c_client *client, char *buf, int count);}\\Receives
+    \code{count} bytes from the client, and store them into
+    \code{buf}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Communicating with the I2C device: message transfer}
+  The message transfer API allows to describe {\bf transfers} that
+  consists of several {\bf messages}, with each message being a
+  transaction in one direction:
+  \begin{itemize}
+  \item
+    \code{int i2c_transfer(struct i2c_adapter *adap, struct i2c_msg *msg, int num);}
+  \item The \code{i2c_adapter} pointer can be found by using
+    \code{client->adapter}
+  \item The \code{struct i2c_msg} defines the length, location, and
+    direction of the message.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{I2C: message transfer example}
+\begin{block}{}
+  \begin{minted}[fontsize=\footnotesize]{c}
+struct i2c_msg msg[2];
+int error;
+u8 start_reg;
+u8 buf[10];
+
+msg[0].addr = client->addr;
+msg[0].flags = 0;
+msg[0].len = 1;
+msg[0].buf = &start_reg;
+start_reg = 0x10;
+
+msg[1].addr = client->addr;
+msg[1].flags = I2C_M_RD;
+msg[1].len = sizeof(buf);
+msg[1].buf = buf;
+
+error = i2c_transfer(client->adapter, msg, 2);
+\end{minted}
+\end{block}
+\end{frame}
+
+\begin{frame}{SMBus calls}
+  \begin{itemize}
+  \item SMBus is a subset of the I2C protocol.
+  \item It defines a standard set of transactions, for example to read
+    or write a register into a device.
+  \item Linux provides SMBus functions that {\em should be used} when
+    possible instead of the raw API, if the I2C device uses this
+    standard type of transactions.
+  \item Example: the \code{i2c_smbus_read_byte_data()} function allows
+    to read one byte of data from a device register.
+    \begin{itemize}
+    \item It does the following operations:
+      \code{S Addr Wr [A] Comm [A] S Addr Rd [A] [Data] NA P}
+    \item Wihch means it first writes a one byte data command ({\em
+        Comm}), and then reads back one byte of data ({\em [Data]}).
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{List of SMBus functions}
+  \begin{itemize}
+  \item Read/write one byte
+    \begin{itemize}
+      \tiny
+    \item \code{s32 i2c_smbus_read_byte(const struct i2c_client *client);}
+    \item \code{s32 i2c_smbus_write_byte(const struct i2c_client *client, u8 value);}
+    \end{itemize}
+  \item Write a command byte, and read or write one byte
+    \begin{itemize}
+      \tiny
+    \item \code{s32 i2c_smbus_read_byte_data(const struct i2c_client *client, u8 command);}
+    \item \code{s32 i2c_smbus_write_byte_data(const struct i2c_client *client, u8 command, u8 value);}
+    \end{itemize}
+  \item Write a command byte, and read or write one word
+    \begin{itemize}
+      \tiny
+    \item \code{s32 i2c_smbus_read_word_data(const struct i2c_client *client, u8 command);}
+    \item \code{s32 i2c_smbus_write_word_data(const struct i2c_client *client, u8 command, u16 value);}
+    \end{itemize}
+  \item Write a command byte, and read or write a block of data (max
+    32 bytes)
+    \begin{itemize}
+      \tiny
+    \item \code{s32 i2c_smbus_read_block_data(const struct i2c_client *client, u8 command, u8 *values);}
+    \item \code{s32 i2c_smbus_write_block_data(const struct i2c_client *client, u8 command, u8 length, const u8 *values);}
+    \end{itemize}
+  \item Write a command byte, and read or write a block of data (no
+    limit)
+    \begin{itemize}
+      \tiny
+    \item \code{s32 i2c_smbus_read_i2c_block_data(const struct i2c_client *client, u8 command, u8 length, u8 *values);}
+    \item \code{s32 i2c_smbus_write_i2c_block_data(const struct i2c_client *client, u8 command, u8 length, const u8 *values);}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
