@@ -198,9 +198,9 @@ static void __exit usb_rtl8150_exit(void)
 module_init(usb_rtl8150_init);
 module_exit(usb_rtl8150_exit);
 \end{minted}
-  \end{itemize}
-  Note: this code has now been replaced by a shorter
+\item Note: this code has now been replaced by a shorter
   \code{module_usb_driver()} macro call.
+  \end{itemize}
 \end{frame}
 
 \begin{frame}
@@ -298,28 +298,42 @@ static int rtl8150_probe(struct usb_interface *intf,
   \end{itemize}
 \end{frame}
 
-\begin{frame}
-  \frametitle{Platform Devices}
+\begin{frame}{Non-discoverable busses}
   \begin{itemize}
   \item On embedded systems, devices are often not connected through a
     bus allowing enumeration, hotplugging, and providing unique
     identifiers for devices.
-  \item However, we still want the devices to be part of the device
-    model.
-  \item The solution to this is the \emph{platform driver} /
-    \emph{platform device} infrastructure.
-  \item The platform devices are the devices that are directly
-    connected to the CPU, without any kind of bus. They are known by
-    the kernel either through:
+  \item For example, the devices on I2C busses or SPI busses, or the
+    devices directly part of the system-on-chip.
+  \item However, we still want all of those devices to be part of the
+    device model.
+  \item Such devices, instead of being dynamically detected, must be
+    statically described in either:
     \begin{itemize}
-    \item Manual instantation of \code{platform_device} structures in C code.
-    \item Description in a {\em Device Tree}
+    \item The kernel source code
+    \item The {\em Device Tree}, a hardware description file used on
+      some architectures.
     \end{itemize}
   \end{itemize}
 \end{frame}
 
+\begin{frame}{Platform devices}
+  \begin{itemize}
+  \item Amongst the non-discoverable devices, a huge family are the
+    devices that are directly part of a system-on-chip: UART
+    controllers, Ethernet controllers, SPI or I2C controllers, graphic
+    or audio devices, etc.
+  \item In the Linux kernel, a special bus, called the {\bf platform
+      bus} has been created to handle such devices.
+  \item It supports {\bf platform drivers} that handle {\bf platform
+      devices}.
+  \item It works like any other bus (USB, PCI), except that devices
+    are enumerated statically instead of being discovered dynamically.
+  \end{itemize}
+\end{frame}
+
 \begin{frame}[fragile]
-  \frametitle{Implementation of the Platform Driver}
+  \frametitle{Implementation of a Platform Driver}
   \begin{itemize}
   \item The driver implements a \code{struct platform_driver}
     structure (example taken from \code{drivers/serial/imx.c})
@@ -563,7 +577,7 @@ uart0: serial@44e09000 {
   \item \code{uart0} is an {\bf alias}, that can be referred to in other
     parts of the DT as \code{&uart0}
   \item other lines are {\bf properties}. Their values are usually
-    strings, list of values, or references to other nodes.
+    strings, list of integers, or references to other nodes.
   \end{itemize}
 \end{frame}
 
@@ -588,14 +602,13 @@ uart0: serial@44e09000 {
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{Device Tree binding}
+  \frametitle{Device Tree: {\tt compatible} string}
   \begin{itemize}
   \item With the {\em device tree}, a {\em device} is bound with the
     corresponding {\em driver} using the {\bf compatible} string.
   \item The \code{of_match_table} field of \code{struct device_driver}
     lists the compatible strings supported by the driver.
-  \end{itemize}
-  \begin{minted}[fontsize=\scriptsize]{c}
+  \begin{minted}[fontsize=\tiny]{c}
 #if defined(CONFIG_OF)
 static const struct of_device_id omap_serial_of_match[] = {
         { .compatible = "ti,omap2-uart" },
@@ -615,6 +628,7 @@ static struct platform_driver serial_omap_driver = {
         },
 };
 \end{minted}
+  \end{itemize}
 \end{frame}
 
 \begin{frame}
