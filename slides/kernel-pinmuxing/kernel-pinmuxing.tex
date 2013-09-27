@@ -96,16 +96,22 @@ i2c@11000 {
 \end{frame}
 
 \begin{frame}[fragile]{Example on OMAP/AM33xx}
-  \begin{itemize}
-  \item On OMAP/AM33xx, the \code{pinctrl-single} driver is used. It
-    is common between multiple SoCs and simply allows to configure
-    pins by writing a value to a register.
+  \begin{columns}
+    \column{0.5\textwidth}
     \begin{itemize}
-    \item In each pin configuration, a \code{pinctrl-single,pins} value
-      gives a list of {\em (register, value)} pairs needed to configure
-      the pins.
+      \small
+    \item On OMAP/AM33xx, the \code{pinctrl-single} driver is used. It
+      is common between multiple SoCs and simply allows to configure
+      pins by writing a value to a register.
+      \begin{itemize}
+      \item In each pin configuration, a \code{pinctrl-single,pins} value
+        gives a list of {\em (register, value)} pairs needed to configure
+        the pins.
+      \end{itemize}
+    \item To know the correct values, one must use the SoC and board
+      datasheets.
     \end{itemize}
-  \item Example:
+    \column{0.5\textwidth}
     \begin{minted}[fontsize=\tiny]{perl}
 am33xx_pinmux: pinmux@44e10800 {
     i2c0_pins: pinmux_i2c0_pins {
@@ -117,10 +123,20 @@ am33xx_pinmux: pinmux@44e10800 {
         >;
     };
 };
+
+i2c0: i2c@44e0b000 {
+        pinctrl-names = "default";
+        pinctrl-0 = <&i2c0_pins>;
+
+        status = "okay";
+        clock-frequency = <400000>;
+
+        tps: tps@2d {
+                reg = <0x2d>;
+        };
+};
     \end{minted}
-  \item To know the correct values, one must use the SoC and board
-    datasheets.
-  \end{itemize}
+  \end{columns}
 \end{frame}
 
 \begin{frame}[fragile]{Example on Allwinner SoC}
