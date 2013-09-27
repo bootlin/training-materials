@@ -1,4 +1,79 @@
-\subsection{The misc subsystem}
+\section{The misc subsystem}
+
+\begin{frame}{Why a {\em misc} subsystem?}
+  \begin{itemize}
+  \item The kernel offers a large number of {\bf frameworks} covering
+    a wide range of device types: input, network, video, audio,
+    etc.
+    \begin{itemize}
+    \item Those frameworks allow to factorize common functionality
+      between drivers and offer a consistent API to userspace
+      applications.
+    \end{itemize}
+  \item However, there are some devices that {\bf really do not fit in any
+    of the existing frameworks}.
+    \begin{itemize}
+    \item Highly customized devices implemented in a FPGA, or other
+      weird devices for which implementing a complete framework is not
+      useful.
+    \end{itemize}
+  \item The drivers for such devices could be implemented directly as
+    raw {\em character drivers}.
+  \item But there is a subsystem that makes this work a little bit
+    easier: the {\bf misc subsystem}.
+    \begin{itemize}
+    \item It is really only a {\bf thin layer} above the {\em character
+        driver} API.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Misc subsystem diagram}
+  \begin{center}
+    \includegraphics[width=\textwidth]{slides/kernel-misc-subsystem/misc-subsystem-diagram.pdf}
+  \end{center}
+\end{frame}
+
+\begin{frame}[fragile]{Misc subsystem API (1/2)}
+  \begin{itemize}
+  \item The misc subsystem API mainly provides two functions, to
+    register and unregister one {\em misc device}:
+    \begin{itemize}
+    \item \code{int misc_register(struct miscdevice * misc);}
+    \item \code{int misc_deregister(struct miscdevice *misc);}
+    \end{itemize}
+  \item A {\em misc device} is described by a \code{miscdevice}
+    structure:
+    \begin{minted}[fontsize=\footnotesize]{c}
+struct miscdevice  {
+        int minor;
+        const char *name;
+        const struct file_operations *fops;
+        struct list_head list;
+        struct device *parent;
+        struct device *this_device;
+        const char *nodename;
+        umode_t mode;
+};
+\end{minted}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Misc subsystem API (2/2)}
+  The main fields to be filled in the \code{struct miscdevice} are:
+  \begin{itemize}
+  \item \code{minor}, the minor number for the device, or
+    \code{MISC_DYNAMIC_MINOR} to get a minor number automatically
+    assigned.
+  \item \code{name}, name of the device, which will be used to create
+    the device node if {\em devtmpfs} is used.
+  \item \code{fops}, pointer to the \code{file_operations}, that
+    describe which functions implement the {\em read}, {\em write},
+    {\em ioctl}, etc. operations.
+  \item \code{parent}, the \code{struct device} that represents the
+    hardware device exposed by this driver.
+  \end{itemize}
+\end{frame}
 
 \setuplabframe
 {Output-only serial port driver}
