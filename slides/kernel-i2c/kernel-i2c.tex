@@ -2,7 +2,7 @@
 
 \begin{frame}{What is I2C ?}
   \begin{itemize}
-  \item A very commonly used low-speed devices to connect on-board
+  \item A very commonly used low-speed bus to connect on-board
     devices to the processor.
   \item Uses only two wires: SDA for the data, SCL for the clock.
   \item It is a master/slave bus: only the master can initiate
@@ -10,7 +10,7 @@
     by masters.
   \item In a Linux system, the I2C controller embedded in the
     processor is typically the master, controlling the bus.
-  \item Each slave device is identified by an unique I2C address. Each
+  \item Each slave device is identified by a unique I2C address. Each
     transaction initiated by the master contains this address, which
     allows the relevant slave to recognize that it should reply to
     this particular transaction.
@@ -57,9 +57,9 @@
     \end{itemize}
   \item The \code{i2c_add_driver()} and \code{i2c_del_driver()} functions
     are used to register/unregister the driver.
-  \item If the driver doesn't do anything else in its init/exit
-    function, then it is advised to use the \code{module_i2c_driver()}
-    macro instead.
+  \item If the driver doesn't do anything else in its
+    \code{init()}/\code{exit()} functions, it is advised to use
+    the \code{module_i2c_driver()} macro instead.
   \end{itemize}
 \end{frame}
 
@@ -150,7 +150,7 @@ void board_init(void)
       (\code{status = "okay"})
     \item the I2C bus frequency is defined, using the
       \code{clock-frequency} property.
-    \item the I2C devices on the bus are described as childs of the
+    \item the I2C devices on the bus are described as children of the
       I2C controller node, where the \code{reg} property gives the I2C
       slave address on the bus.
     \end{itemize}
@@ -243,7 +243,7 @@ static int <driver>_remove(struct i2c_client *client)
 
 \begin{frame}{Communicating with the I2C device: raw API}
   The most {\bf basic API} to communicate with the I2C device provides
-  function to either send or receive data:
+  functions to either send or receive data:
   \begin{itemize}
   \item
     \code{int i2c_master_send(struct i2c_client *client, const char *buf, int count);}\\Sends
@@ -306,7 +306,7 @@ error = i2c_transfer(client->adapter, msg, 2);
     \begin{itemize}
     \item It does the following operations:
       \code{S Addr Wr [A] Comm [A] S Addr Rd [A] [Data] NA P}
-    \item Wihch means it first writes a one byte data command ({\em
+    \item Which means it first writes a one byte data command ({\em
         Comm}), and then reads back one byte of data ({\em [Data]}).
     \end{itemize}
   \end{itemize}
@@ -381,7 +381,7 @@ error = i2c_transfer(client->adapter, msg, 2);
     \end{itemize}
   \item
     \url{http://free-electrons.com/pub/video/2012/elce/elce-2012-anders-board-bringup-i2c.webm},
-    excellent talk {\em You, me and I2C} from David Anders at ELCE
+    excellent talk: {\em You, me and I2C} from David Anders at ELCE
     2012.
   \end{itemize}
 \end{frame}
