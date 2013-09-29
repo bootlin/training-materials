@@ -32,20 +32,20 @@
     \item Providing an API to implement I2C device drivers, in user space
     \end{itemize}
   \item The core of the I2C subsystem is located in
-    \code{drivers/i2c}.
+    \kpath{drivers/i2c}.
   \item The I2C controller drivers are located in
-    \code{drivers/i2c/busses}.
+    \kpath{drivers/i2c/busses}.
   \item The I2C device drivers are located throughout
-    \code{drivers/}, depending on the type of device (ex:
-    \code{drivers/input} for input devices).
+    \kpath{drivers/}, depending on the type of device (ex:
+    \kpath{drivers/input} for input devices).
   \end{itemize}
 \end{frame}
 
 \begin{frame}{Registering an I2C device driver}
   \begin{itemize}
   \item Like all bus subsystems, the I2C subsystem defines a
-    \code{struct i2c_driver} that inherits from
-    \code{struct device_driver}, and which must be instantiated and
+    \kstruct{i2c_driver} that inherits from
+    \kstruct{struct device_driver}, and which must be instantiated and
     registered by each I2C device driver.
     \begin{itemize}
     \item As usual, this structure points to the \code{->probe()} and
@@ -55,11 +55,11 @@
       string and some private driver data). It is used for non-DT based
       probing of I2C devices.
     \end{itemize}
-  \item The \code{i2c_add_driver()} and \code{i2c_del_driver()} functions
+  \item The \kfunc{i2c_add_driver} and \kfunc{i2c_del_driver} functions
     are used to register/unregister the driver.
   \item If the driver doesn't do anything else in its
     \code{init()}/\code{exit()} functions, it is advised to use
-    the \code{module_i2c_driver()} macro instead.
+    the \kfunc{module_i2c_driver} macro instead.
   \end{itemize}
 \end{frame}
 
@@ -98,16 +98,16 @@ module_i2c_driver(<driver>_driver);
 
 \begin{frame}{Registering an I2C device: non-DT}
   \begin{itemize}
-  \item On non-DT platforms, the \code{i2c_board_info} structure
+  \item On non-DT platforms, the \ksym{i2c_board_info} structure
     allows to describe how an I2C device is connected to a board.
   \item Such structures are normally defined with the
-    \code{I2C_BOARD_INFO} helper macro.
+    \ksym{I2C_BOARD_INFO} helper macro.
     \begin{itemize}
     \item Takes as argument the device name and the slave address of
       the device on the bus.
     \end{itemize}
   \item An array of such structures is registed on a per-bus basis
-    using \code{i2c_register_board_info()}, when the platform is
+    using \kfunc{i2c_register_board_info}, when the platform is
     initialized.
   \end{itemize}
 \end{frame}
@@ -200,10 +200,9 @@ i2c@7000c000 {
     the device and registering it in the appropriate kernel
     framework. It receives as argument:
     \begin{itemize}
-    \item A \code{struct i2c_client} pointer, which represents the I2C
-      device itself. This structure inherits from \code{struct
-        device}.
-    \item A \code{struct i2c_device_id} pointer, which points to the
+    \item A \kstruct{i2c_client} pointer, which represents the I2C
+      device itself. This structure inherits from \kstruct{device}.
+    \item A \kstruct{i2c_device_id} pointer, which points to the
       I2C device ID entry that matched the device that is being
       probed.
     \end{itemize}
@@ -211,7 +210,7 @@ i2c@7000c000 {
     unregistering the device from the kernel framework and shut it
     down. It receives as argument:
     \begin{itemize}
-    \item The same \code{struct i2c_client} pointer that was passed as
+    \item The same \kstruct{i2c_client} pointer that was passed as
       argument to \code{->probe()}
     \end{itemize}
   \end{itemize}
@@ -277,7 +276,7 @@ static int <driver>_remove(struct i2c_client *client)
     \code{int i2c_transfer(struct i2c_adapter *adap, struct i2c_msg *msg, int num);}
   \item The \code{i2c_adapter} pointer can be found by using
     \code{client->adapter}
-  \item The \code{struct i2c_msg} defines the length, location, and
+  \item The \ksym{i2c_msg} structure defines the length, location, and
     direction of the message.
   \end{itemize}
 \end{frame}
@@ -314,7 +313,7 @@ error = i2c_transfer(client->adapter, msg, 2);
   \item Linux provides SMBus functions that {\em should be used} when
     possible instead of the raw API, if the I2C device uses this
     standard type of transactions.
-  \item Example: the \code{i2c_smbus_read_byte_data()} function allows
+  \item Example: the \kfunc{i2c_smbus_read_byte_data} function allows
     to read one byte of data from a device register.
     \begin{itemize}
     \item It does the following operations:
@@ -369,13 +368,13 @@ error = i2c_transfer(client->adapter, msg, 2);
     functionalities they support.
   \item An I2C device driver must check that the functionalities they
     need are provided by the I2C controller in use on the system.
-  \item The \code{i2c_check_functionality()} function allows to make
+  \item The \kfunc{i2c_check_functionality} function allows to make
     such a check.
-  \item Examples of functionalities: \code{I2C_FUNC_I2C} to be able to
-    use the raw I2C functions, \code{I2C_FUNC_SMBUS_BYTE_DATA} to be
+  \item Examples of functionalities: \ksym{I2C_FUNC_I2C} to be able to
+    use the raw I2C functions, \ksym{I2C_FUNC_SMBUS_BYTE_DATA} to be
     able to use SMBus commands to write a command and read/write one
     byte of data.
-  \item See \code{include/uapi/linux/i2c.h} for the full list of
+  \item See \kpath{include/uapi/linux/i2c.h} for the full list of
     existing functionalities.
   \end{itemize}
 \end{frame}
@@ -384,7 +383,7 @@ error = i2c_transfer(client->adapter, msg, 2);
   \begin{itemize}
   \item \url{http://en.wikipedia.org/wiki/I2C}, general presentation
     of the I2C protocol
-  \item \code{Documentation/i2c/}, details about the Linux support for I2C
+  \item \kerneldoc{i2c/}, details about the Linux support for I2C
     \begin{itemize}
     \item \code{writing-clients}, how to write I2C device drivers
     \item \code{instantiating-devices}, how to instantiate devices
