@@ -12,7 +12,7 @@ After this lab, you will be able to:
 functions and make sure that they are called when such a device is added or removed.
 \end{itemize}
 
-\section{setup}
+\section{Setup}
 
 Go to the \code{~/felabs/linux/src/linux} directory. Check out the
 \code{3.11.y-bbb} branch if needed. 
@@ -25,7 +25,14 @@ driver.
 
 Take the nunchuk device provided by your instructor.
 
-Now let's identify the 4 pins of the nunchuk connector.
+We will connect it to the second I2C port of the CPU (\code{i2c1}),
+which pins are available on the \code{P9} connector.
+
+Download a useful document sharing useful details about the nunchuk
+and its connector: 
+\url{http://web.engr.oregonstate.edu/~sullivae/ece375/pdf/nunchuk.pdf}
+
+Now we can identify the 4 pins of the nunchuk connector.
 
 \begin{itemize}
 \item The \code{ground} pin.
@@ -53,7 +60,75 @@ Now connect the nunchuk pins:
 
 \section{Update the board device tree}
 
-To let the Linux kernel handle a new device, the first thing is....
+To let the Linux kernel handle a new device, the first thing is to add a
+description for it in the board device tree.
 
+Do this by editing the \code{arch/arm/boot/dts/am335x-bone-common.dtsi}
+file describing all the buses and devices. You will need to follow the
+examples given in the lectures.
 
+\begin{enumerate}
+\item Add a node declaring a second I2C bus (\code{i2c1}), functioning
+      at 400 KHz too. As for \code{i2c0}, you will need to declare
+      the base address of its registers. Open the processor datasheet
+      and find this address
+      \footnote{Tip: you can look-up the \code{i2c0} base address which
+      you already know from the existing Device Tree. The base address
+      for \code{i2c1} won't be far away.}.
+\item As a child node to this second bus, declare the \code{nunchuk}
+      device, choosing \code{nintendo,nunchuk} for its \code{compatible}
+      property. You find the I2C slave address of the nunchuk on
+      the nunckuk document that we have used earlier
+      \footnote{This I2C slave addressed is enforced by the device
+      itself. You can't change it.}.
+\end{enumerate}
 
+Once this is done, recompile your DTB and copy the updated version to
+the tftp server home directory.
+
+\section{Implement a basic I2C driver for the nunchuk}
+
+It is now time to start writing the first building blocks of the I2C
+driver for our nunchuk.
+
+In a new terminal, go to \code{~/felabs/linux/modules/nfsroot/nunchuk/}.
+This directory contains a Makefile and an almost empty \code{nunchuk.c}
+file.
+
+Source the same \code{env.sh} file that you using for kernel compiling.
+
+Now, you can compile your out-of-tree module by running \code{make}. As
+the current directory is part of the NFS root that the board boots on,
+the generated \code{.ko} file will immediately be visible on the board
+too.
+
+Relying on explanations given during the lectures, fill the
+\code{nunchuk.c} file to implement:
+
+\begin{itemize}
+\item \code{probe()} and \code{remove()} functions that will
+      be called when a nunchuk is found.
+      For the moment, just put a call to \code{pr_info()} inside
+      to confirm that these function are called.
+\item Initialize an \code{i2c_driver} structure, and register
+      the i2c driver using it. Make sure that you use
+      a \code{compatible} property that matches the one in the
+      Device Tree.
+\end{itemize}
+
+You can now compile your module and reboot your board, to 
+boot with the updated DTB.
+
+\section{Driver tests}
+
+You can now load the \code{/root/nunchuk/nunchuk.ko} file.
+You need to check that the \code{probe()} function gets called
+then, and that the \code{remove()} function gets called too
+when you remove the module.
+
+Once your new Device Tree and module work as expected, commit
+your DT changes in your Linux tree:
+
+\begin{verbatim}
+git commit -sa 
+\end{verbatim}
