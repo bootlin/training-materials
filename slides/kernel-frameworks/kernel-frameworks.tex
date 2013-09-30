@@ -19,7 +19,359 @@
 \end{frame}
 
 \begin{frame}
-  \frametitle{Kernel and Device Drivers}
+  \frametitle{Types of devices} Under Linux, there is essentially
+  three types of devices:
+  \begin{itemize}
+  \item {\bf Network devices}. They are represented as network
+    interfaces, visible in userspace using \code{ifconfig}.
+  \item {\bf Block devices}. They are used to provide userspace
+    applications access to raw storage devices (hard disks, USB
+    keys). They are visible to the applications as {\em device files}
+    in \code{/dev}.
+  \item {\bf Character devices}. They are used to provide userspace
+    applications access to all other types of devices (input, sound,
+    graphics, serial, etc.). They are also visible to the applications
+    as {\em device files} in \code{/dev}.
+  \end{itemize}
+  $\rightarrow$ Most devices are {\em character devices}, so we will
+  study those in more details.
+\end{frame}
+
+\begin{frame}
+  \frametitle{Major and minor numbers}
+  \begin{itemize}
+  \item Within the kernel, all block and character devices are
+    identified using a {\em major} and a {\em minor} number.
+  \item The {\em major number} typically indicates the family of the
+    device.
+  \item The {\em minor number} typically indicates the number of the
+    device (when they are for example several serial ports)
+  \item Major and minor numbers are statically allocated, and
+    identical accross all Linux systems.
+  \item They are defined in \kerneldoc{devices.txt}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Devices: everything is a file}
+  \begin{itemize}
+  \item A very important Unix design decision was to represent most of
+    the ``system objects'' as files
+  \item It allows applications to manipulate all “system objects” with
+    the normal file API (\code{open}, \code{read}, \code{write},
+    \code{close}, etc.)
+  \item So, devices had to be represented as files to the applications
+  \item This is done through a special artifact called a {\bf device
+      file}
+  \item It is a special type of file, that associates a file name
+    visible to userspace applications to the triplet {\em (type,
+      major, minor)} that the kernel understands
+  \item All {\em device files} are by convention stored in the
+    \code{/dev} directory
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Device files examples}
+
+Example of device files in a Linux system
+
+\small
+\begin{verbatim}
+$ ls -l /dev/ttyS0 /dev/tty1 /dev/sda1 /dev/sda2 /dev/zero
+brw-rw---- 1 root disk    8,  1 2011-05-27 08:56 /dev/sda1
+brw-rw---- 1 root disk    8,  2 2011-05-27 08:56 /dev/sda2
+crw------- 1 root root    4,  1 2011-05-27 08:57 /dev/tty1
+crw-rw---- 1 root dialout 4, 64 2011-05-27 08:56 /dev/ttyS0
+crw-rw-rw- 1 root root    1,  5 2011-05-27 08:56 /dev/zero
+\end{verbatim}
+\normalsize
+
+Example C code that uses the usual file API to write data to a serial port
+
+\small
+\begin{minted}{c}
+int fd;
+fd = open("/dev/ttyS0", O_RDWR);
+write(fd, "Hello", 5);
+close(fd);
+\end{minted}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Creating device files}
+  \begin{itemize}
+    \item On a basic Linux system, the device files have to be created
+    manually using the \code{mknod} command
+    \begin{itemize}
+    \item \code{mknod /dev/<device> [c|b] major minor}
+    \item Needs root privileges
+    \item Coherency between device files and devices handled by the
+      kernel is left to the system developer
+    \end{itemize}
+  \item On more elaborate Linux systems, mechanisms can be added to
+    create/remove them automatically when devices appear and disappear
+    \begin{itemize}
+    \item \code{devtmpfs} virtual filesystem, since kernel 2.6.32
+    \item \code{udev} daemon, solution used by desktop and server Linux
+      systems
+    \item \code{mdev} program, a lighter solution than \code{udev}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{A character driver in the kernel}
+  \begin{itemize}
+  \item From the point of view of an application, a {\em character
+      device} is essentially a {\bf file}.
+  \item The driver of a character device must therefore implement {\bf
+      operations} that let applications think the device is a file:
+    \code{open}, \code{close}, \code{read}, \code{write}, etc.
+  \item In order to achieve this, a character driver must implement
+    the operations described in the \kstruct{file_operations}
+    structure and register them.
+  \item The Linux filesystem layer will ensure that the driver's
+    operations are called when an userspace application makes the
+    corresponding system call.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{From userspace to the kernel: character devices}
+  \begin{center}
+    \includegraphics[width=\textwidth]{slides/kernel-frameworks/user-kernel-exchanges.pdf}
+  \end{center}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{File operations}
+  \begin{itemize}
+  \item Here are the most important operations for a character
+    driver. All of them are optional.
+  \end{itemize}
+\begin{minted}[fontsize=\footnotesize]{c}
+struct file_operations {
+    ssize_t (*read) (struct file *, char __user *,
+        size_t, loff_t *);
+    ssize_t (*write) (struct file *, const char __user *,
+        size_t, loff_t *);
+    long (*unlocked_ioctl) (struct file *, unsigned int,
+        unsigned long);
+    int (*mmap) (struct file *, struct vm_area_struct *);
+    int (*open) (struct inode *, struct file *);
+    int (*release) (struct inode *, struct file *);
+};
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{open() and release()}
+  \begin{itemize}
+  \item \mint{c}+int foo_open(struct inode *i, struct file *f)+
+    \begin{itemize}
+    \item Called when user-space opens the device file.
+    \item \code{inode} is a structure that uniquely represent a file
+      in the system (be it a regular file, a directory, a symbolic
+      link, a character or block device)
+    \item \code{file} is a structure created every time a file is
+      opened. Several file structures can point to the same
+      \code{inode} structure.
+      \begin{itemize}
+      \item Contains information like the current position, the
+        opening mode, etc.
+      \item Has a \code{void *private_data} pointer that one can
+        freely use.
+      \item A pointer to the file structure is passed to all other
+        operations
+      \end{itemize}
+    \end{itemize}
+  \item \mint{c}+int foo_release(struct inode *i, struct file *f)+
+    \begin{itemize}
+    \item Called when user-space closes the file.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{read()}
+  \begin{itemize}
+  \item \mint{c}+ssize_t foo_read(struct file *f, __user char *buf,+
+    \mint{c}+size_t sz, loff_t *off)+
+    \begin{itemize}
+    \item Called when user-space uses the \code{read()} system call on
+      the device.
+    \item Must read data from the device, write at most \code{sz}
+      bytes in the user-space buffer \code{buf}, and update the
+      current position in the file \code{off}. \code{f} is a pointer
+      to the same file structure that was passed in the \code{open()}
+      operation
+    \item Must return the number of bytes read.
+    \item On UNIX, \code{read()} operations typically block when there
+      isn't enough data to read from the device
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{write()}
+  \begin{itemize}
+  \item \mint{c}+ssize_t foo_write(struct file *f,+
+    \mint{c}+__user const char *buf, size_t sz, loff_t *off)+
+    \begin{itemize}
+    \item Called when user-space uses the \code{write()} system call
+      on the device
+    \item The opposite of \code{read}, must read at most \code{sz}
+      bytes from \code{buf}, write it to the device, update \code{off}
+      and return the number of bytes written.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Exchanging data with user-space 1/3}
+  \begin{itemize}
+  \item Kernel code isn't allowed to directly access user-space
+    memory, using \code{memcpy} or direct pointer dereferencing
+    \begin{itemize}
+    \item Doing so does not work on some architectures
+    \item If the address passed by the application was invalid, the
+      application would segfault.
+    \end{itemize}
+  \item To keep the kernel code portable and have proper error
+    handling, your driver must use special kernel functions to
+    exchange data with user-space.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Exchanging data with user-space 2/3}
+  \begin{itemize}
+  \item A single value
+    \begin{itemize}
+    \item \code{get_user(v, p);}
+      \begin{itemize}
+      \item The kernel variable \code{v} gets the value pointed by the
+        user-space pointer \code{p}
+      \end{itemize}
+    \item \code{put_user(v, p);}
+      \begin{itemize}
+      \item The value pointed by the user-space pointer \code{p} is
+        set to the contents of the kernel variable \code{v}.
+      \end{itemize}
+    \end{itemize}
+  \item A buffer
+    \begin{itemize}
+    \item \mint{c}+unsigned long copy_to_user(void __user *to,+
+      \mint{c}+const void *from, unsigned long n);+
+    \item \mint{c}+unsigned long copy_from_user(void *to,+
+      \mint{c}+const void __user *from, unsigned long n);+
+    \end{itemize}
+  \item The return value must be checked. Zero on success, non-zero on
+    failure. If non-zero, the convention is to return -\code{EFAULT}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+ \frametitle{Exchanging data with user-space 3/3}
+ \begin{center}
+    \includegraphics[width=\textwidth]{slides/kernel-frameworks/copy-to-from-user.pdf}
+ \end{center}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Zero copy access to user memory}
+  \begin{itemize}
+  \item Having to copy data to our from an intermediate kernel buffer
+    can become expensive when the amount of data to transfer is
+    important (video).
+  \item \emph{Zero copy} options are possible:
+    \begin{itemize}
+    \item \code{mmap()} system call to allow user space to directly
+      access memory mapped I/O space.
+    \item \code{get_user_pages()} to get a mapping to user pages
+      without having to copy them. See \url{http://j.mp/oPW6Fb}
+      (Kernel API doc). This API is more complex to use though.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{unlocked\_ioctl()}
+  \begin{itemize}
+  \item \mint{c}+long unlocked_ioctl(struct file *f,+
+    \mint{c}+unsigned int cmd, unsigned long arg)+
+    \begin{itemize}
+    \item Associated to the \code{ioctl()} system call.
+    \item Called unlocked because it didn't hold the Big Kernel Lock
+      (gone now).
+    \item Allows to extend the driver capabilities beyond the limited
+      read/write API.
+    \item For example: changing the speed of a serial port, setting
+      video output format, querying a device serial number...
+    \item \code{cmd} is a number identifying the operation to perform
+    \item \code{arg} is the optional argument passed as third argument
+      of the \code{ioctl()} system call. Can be an integer, an
+      address, etc.
+    \item The semantic of \code{cmd} and \code{arg} is
+      driver-specific.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{ioctl() example: kernel side}
+\begin{minted}[fontsize=\tiny]{c}
+static long phantom_ioctl(struct file *file, unsigned int cmd,
+    unsigned long arg)
+{
+    struct phm_reg r;
+    void __user *argp = (void __user *)arg;
+
+    switch (cmd) {
+    case PHN_SET_REG:
+        if (copy_from_user(&r, argp, sizeof(r)))
+            return -EFAULT;
+        /* Do something */
+        break;
+    case PHN_GET_REG:
+        if (copy_to_user(argp, &r, sizeof(r)))
+            return -EFAULT;
+        /* Do something */
+        break;
+    default:
+        return -ENOTTY;
+    }
+
+    return 0; }
+\end{minted}
+Selected excerpt from \code{drivers/misc/phantom.c}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Ioctl() Example: Application Side}
+\begin{minted}{c}
+int main(void)
+{
+    int fd, ret;
+    struct phm_reg reg;
+
+    fd = open("/dev/phantom");
+    assert(fd > 0);
+
+    reg.field1 = 42;
+    reg.field2 = 67;
+
+    ret = ioctl(fd, PHN_SET_REG, & reg);
+    assert(ret == 0);
+
+    return 0;
+}
+\end{minted}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Beyond character drivers: kernel frameworks}
   \begin{itemize}
   \item Many device drivers are not implemented directly as character
     drivers
@@ -34,9 +386,6 @@
       interface (\code{ioctl}, etc.) for every type of device,
       regardless of the driver
     \end{itemize}
-  \item The device drivers rely on the \emph{bus infrastructure} to
-    enumerate the devices and communicate with them, this is called
-    the {\em device model}.
   \end{itemize}
 \end{frame}
 
