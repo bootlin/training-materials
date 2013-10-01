@@ -37,13 +37,13 @@ KERNEL_SLIDES = \
 		kernel-driver-development-title \
 		kernel-driver-development-modules \
 		kernel-driver-development-lab-modules \
-		kernel-driver-development-memory \
 		kernel-driver-development-general-apis \
 		kernel-device-model \
 		kernel-i2c \
 		kernel-pinmuxing \
 		kernel-frameworks \
 		kernel-input \
+		kernel-driver-development-memory \
 		kernel-driver-development-io-memory \
 		kernel-driver-development-lab-io-memory \
 		kernel-misc-subsystem \
