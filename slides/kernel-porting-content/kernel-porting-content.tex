@@ -47,7 +47,6 @@
   \item Some CPU types share some code, in directories named
     \code{plat-*}
   \item Device Tree files in \code{arch/arm/boot/dts}.
-  \item Device drivers in \code{drivers/}.
   \end{itemize}
 \end{frame}
 
@@ -149,46 +148,340 @@
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{OpenBlocks AX3-4 Device Tree, 1}
+  \frametitle{OpenBlocks AX3-4 Device Tree, header}
   \begin{itemize}
   \item Mandatory Device Tree language definition\\
-    \mint[fontsize=\footnotesize]{perl}+/dts-v1+
+    \begin{block}{} \mint[fontsize=\tiny]{perl}+/dts-v1/+ \end{block}
   \item Include the \code{.dtsi} file describing the SoC\\
-    \mint[fontsize=\footnotesize]{perl}+#include "armada-xp-mv78260.dtsi"+
+    \begin{block}{} \mint[fontsize=\tiny]{perl}+#include "armada-xp-mv78260.dtsi"+ \end{block}
   \item Start the root of the tree\\
-    \mint[fontsize=\footnotesize]{perl}+/ {+
+    \begin{block}{} \mint[fontsize=\tiny]{perl}+/ {+ \end{block}
   \item A human-readable string to describe the machine\\
-    \mint[fontsize=\footnotesize]{perl}+  model = "PlatHome OpenBlocks AX3-4 board";+
+    \begin{block}{} \mint[fontsize=\tiny]{perl}+  model = "PlatHome OpenBlocks AX3-4 board";+ \end{block}
   \item A list of {\em compatible} strings, from the most specific one
     to the most general one. Can be used by kernel code to do a SoC or
-    board-specific check. Currently only used to find the
-    corresponding SoC support\\
-    \scriptsize
-    \begin{minted}[fontsize=\footnotesize]{perl}
+    board-specific check.\\
+    \begin{block}{}
+    \begin{minted}[fontsize=\tiny]{perl}
     compatible = "plathome,openblocks-ax3-4",
         "marvell,armadaxp-mv78260", "marvell,armadaxp",
         "marvell,armada-370-xp";
       \end{minted}
+    \end{block}
   \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{OpenBlocks AX3-4 Device Tree, 1}
+  \frametitle{OpenBlocks AX3-4 Device Tree, chosen/memory}
   \begin{itemize}
   \item Definition of the default {\em kernel command line}. Some
     additional operating-system specific entries can be added in
     \code{chosen}:
+    \begin{block}{}
     \begin{minted}[fontsize=\footnotesize]{perl}
 chosen {
         bootargs = "console=ttyS0,115200 earlyprintk";
 };
 \end{minted}
+\end{block}
 \item Definition of the size and location of the RAM:
+  \begin{block}{}
     \begin{minted}[fontsize=\footnotesize]{perl}
 memory {
         device_type = "memory";
         reg = <0 0x00000000 0 0xC0000000>; /* 3 GB */
 };
       \end{minted}
+    \end{block}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{OpenBlocks AX3-4 Device Tree, bus/PCIe}
+  \begin{itemize}
+  \item Start of the internal SoC peripherals. The \code{ranges}
+    property has a special meaning for the Marvell platforms: it
+    allows to configure special memory windows dedicated to some
+    peripherals.
+    \begin{block}{}
+    \begin{minted}[fontsize=\tiny]{perl}
+soc {
+        ranges = <MBUS_ID(0xf0, 0x01) 0 0 0xd0000000 0x100000
+                  MBUS_ID(0x01, 0x1d) 0 0 0xfff00000 0x100000
+                  MBUS_ID(0x01, 0x2f) 0 0 0xf0000000 0x8000000>;
+\end{minted}
+\end{block}
+\item The OpenBlocks has one internal mini-PCIe connector, so the
+  corresponding PCIe interface is enabled:
+  \begin{block}{}
+    \begin{minted}[fontsize=\tiny]{perl}
+                pcie-controller {
+                        status = "okay";
+                        /* Internal mini-PCIe connector */
+                        pcie@1,0 {
+                                /* Port 0, Lane 0 */
+                                status = "okay";
+                        };
+                };
+    \end{minted}
+  \end{block}
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{OpenBlocks AX3-4 Device Tree, NOR flash}
+\begin{itemize}
+\item Definition of the {\em device bus} timings, where a NOR flash is
+  connected:
+  \begin{block}{}
+    \begin{minted}[fontsize=\tiny]{perl}
+        devbus-bootcs {
+                status = "okay";
+
+                /* Read parameters */
+                devbus,bus-width    = <8>;
+                devbus,turn-off-ps  = <60000>;
+                [...]
+
+                /* Write parameters */
+                devbus,sync-enable = <0>;
+                devbus,wr-high-ps  = <60000>;
+                [...]
+
+                /* NOR 128 MiB */
+                nor@0 {
+                        compatible = "cfi-flash";
+                        reg = <0 0x8000000>;
+                        bank-width = <2>;
+                };
+        };
+      \end{minted}
+    \end{block}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{OpenBlocks AX3-4 Device Tree, serial/muxing}
+\begin{itemize}
+\item There are two serial ports available:
+  \begin{block}{}
+    \begin{minted}[fontsize=\tiny]{perl}
+                internal-regs {
+                        serial@12000 {
+                                clock-frequency = <250000000>;
+                                status = "okay";
+                        };
+                        serial@12100 {
+                                clock-frequency = <250000000>;
+                                status = "okay";
+                        };
+    \end{minted}
+    \end{block}
+  \item Definition of a few pins that will be muxed as GPIO, for LEDs.
+  \begin{block}{}
+    \begin{minted}[fontsize=\tiny]{perl}
+                        pinctrl {
+                                led_pins: led-pins-0 {
+                                        marvell,pins = "mpp49", "mpp51", "mpp53";
+                                        marvell,function = "gpio";
+                                };
+                        };
+    \end{minted}
+  \end{block}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{OpenBlocks AX3-4 Device Tree, LEDs}
+\begin{itemize}
+\item Three LEDs are connected to this platform. Note the reference to
+  the \code{led_pins} muxing configuration.
+  \begin{block}{}
+    \begin{minted}[fontsize=\tiny]{perl}
+                        leds {
+                                compatible = "gpio-leds";
+                                pinctrl-names = "default";
+                                pinctrl-0 = <&led_pins>;
+
+                                red_led {
+                                        label = "red_led";
+                                        gpios = <&gpio1 17 1>;
+                                        default-state = "off";
+                                };
+
+                                yellow_led {
+                                        label = "yellow_led";
+                                        gpios = <&gpio1 19 1>;
+                                        default-state = "off";
+                                };
+
+                                green_led {
+                                        label = "green_led";
+                                        gpios = <&gpio1 21 1>;
+                                        default-state = "off";
+                                        linux,default-trigger = "heartbeat";
+                                };
+                        };
+    \end{minted}
+    \end{block}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{OpenBlocks AX3-4 Device Tree, button}
+  \begin{itemize}
+  \item The platform has one button connected to a GPIO. The
+    \code{gpio-keys} driver makes the button appear as an {\em input
+      device}.
+    \begin{block}{}
+      \begin{minted}[fontsize=\tiny]{perl}
+                        gpio_keys {
+                                compatible = "gpio-keys";
+                                #address-cells = <1>;
+                                #size-cells = <0>;
+
+                                button@1 {
+                                        label = "Init Button";
+                                        linux,code = <116>;
+                                        gpios = <&gpio1 28 0>;
+                                };
+                        };
+    \end{minted}
+    \end{block}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{OpenBlocks AX3-4 Device Tree, network}
+  \begin{columns}[t]
+    \column{0.5\textwidth} The network PHYs, with their address on the
+    MDIO bus.
+    \begin{block}{}
+      \begin{minted}[fontsize=\tiny]{perl}
+mdio {
+        phy0: ethernet-phy@0 {
+                reg = <0>;
+        };
+
+        phy1: ethernet-phy@1 {
+                reg = <1>;
+        };
+
+        phy2: ethernet-phy@2 {
+                reg = <2>;
+        };
+
+        phy3: ethernet-phy@3 {
+                reg = <3>;
+        };
+};
+    \end{minted}
+    \end{block}
+    \column{0.5\textwidth}
+    The network interfacces themselves.
+    \begin{block}{}
+      \begin{minted}[fontsize=\tiny]{perl}
+ethernet@70000 {
+        status = "okay";
+        phy = <&phy0>;
+        phy-mode = "sgmii";
+};
+ethernet@74000 {
+        status = "okay";
+        phy = <&phy1>;
+        phy-mode = "sgmii";
+};
+ethernet@30000 {
+        status = "okay";
+        phy = <&phy2>;
+        phy-mode = "sgmii";
+};
+ethernet@34000 {
+        status = "okay";
+        phy = <&phy3>;
+        phy-mode = "sgmii";
+};
+    \end{minted}
+    \end{block}
+  \end{columns}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{OpenBlocks AX3-4 Device Tree, I2C busses}
+  \begin{itemize}
+  \item A first I2C bus, with nothing connected on it:
+    \begin{block}{}
+      \begin{minted}[fontsize=\tiny]{perl}
+                        i2c@11000 {
+                                status = "okay";
+                                clock-frequency = <400000>;
+                        };
+      \end{minted}
+    \end{block}
+  \item A second I2C bus, with a S35390A Real Time Clock connected to
+    it:
+    \begin{block}{}
+      \begin{minted}[fontsize=\tiny]{perl}
+                        i2c@11100 {
+                                status = "okay";
+                                clock-frequency = <400000>;
+
+                                s35390a: s35390a@30 {
+                                        compatible = "s35390a";
+                                        reg = <0x30>;
+                                };
+                        };
+      \end{minted}
+    \end{block}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{OpenBlocks AX3-4 Device Tree, SATA/USB}
+  \begin{itemize}
+  \item A SATA unit, with two ports:
+    \begin{block}{}
+      \begin{minted}[fontsize=\tiny]{perl}
+                        sata@a0000 {
+                                nr-ports = <2>;
+                                status = "okay";
+                        };
+      \end{minted}
+    \end{block}
+  \item Two USB interfaces:
+    \begin{block}{}
+      \begin{minted}[fontsize=\tiny]{perl}
+                        /* Front side USB 0 */
+                        usb@50000 {
+                                status = "okay";
+                        };
+
+                        /* Front side USB 1 */
+                        usb@51000 {
+                                status = "okay";
+                        };
+      \end{minted}
+    \end{block}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{OpenBlocks AX3-4: build the DTB}
+  \begin{itemize}
+  \item To ensure that the Device Tree Blob gets built for this board
+    Device Tree Source, one need to ensure it is listed in
+    \code{arch/arm/boot/dts/Makefile}:
+    \begin{block}{}
+      \begin{minted}{make}
+dtb-$(CONFIG_ARCH_MVEBU) += armada-370-db.dtb \
+        armada-370-mirabox.dtb \
+        armada-370-netgear-rn102.dtb \
+        armada-370-rd.dtb \
+        armada-xp-axpwifiap.dtb \
+        armada-xp-db.dtb \
+        armada-xp-gp.dtb \
+        armada-xp-openblocks-ax3-4.dtb
+      \end{minted}
+    \end{block}
   \end{itemize}
 \end{frame}
