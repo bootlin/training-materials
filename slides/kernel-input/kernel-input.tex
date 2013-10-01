@@ -60,6 +60,7 @@
   \begin{itemize}
   \item An {\em input device} is described by a very long
     \code{input_dev} structure, an excerpt is:
+    \begin{block}{}
     \begin{minted}[fontsize=\tiny]{c}
 struct input_dev {
     const char *name;
@@ -77,6 +78,7 @@ struct input_dev {
     [...]
 };
 \end{minted}
+\end{block}
 \item Before being used this struct must be allocated and initialized
   using: \code{struct input *input_allocate_device(void);}
 \item After unregistering \code{input_dev}, the struct must be freed
@@ -91,10 +93,12 @@ struct input_dev {
     using \code{set_bit()}. For example for a button we only generate
     \code{EV_KEY} type events, and from those only \code{BTN_0} event
     code:
+    \begin{block}{}
     \begin{minted}[fontsize=\footnotesize]{c}
       set_bit(EV_KEY, myinput_dev.evbit);
       set_bit(BTN_0, myinput_dev.keybit);
     \end{minted}
+    \end{block}
   \item Once the {\em input device} is allocated and filled, the
     function to register it
     is: \code{int input_register_device(struct input_dev *);}
@@ -130,6 +134,7 @@ struct input_dev {
     state.
   \item A {\em polled input device} is described by a
     \code{input_polled_dev} structure:
+    \begin{block}{}
     \begin{minted}[fontsize=\footnotesize]{c}
 struct input_polled_dev {
         void *private;
@@ -144,27 +149,56 @@ struct input_polled_dev {
         struct delayed_work work;
 }
     \end{minted}
+    \end{block}
   \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]{Polled input subsystem API}
   \begin{itemize}
   \item Allocating/freeing the \code{input_polled_dev} structure is
-    done using \code{input_allocate_polled_device()}/
-    \code{input_free_polled_device()} instead of the generic input
-    functions
-  \item Among the handlers of the \code{input_polled_dev} only
-    the \code{poll()} method is mandatory, this function polls the
-    device and posts input events.
+    done using
+    \begin{itemize}
+    \item \code{input_allocate_polled_device()}
+    \item \code{input_free_polled_device()}
+    \end{itemize}
+  \item Among the handlers of the \code{input_polled_dev} only the
+    \code{poll()} method is mandatory, this function polls the device
+    and posts input events.
   \item The fields \code{id}, \code{name}, \code{phys}, \code{bits} of
     the \code{input} structure must be initialized too.
   \item If none of the \code{poll_interval} fields are filled then the
     default poll interval is 500ms.
-  \item Finally the driver can be registered using
-    \code{input_register_polled_device(struct input_polled_dev *dev)}.
-  \item Before unloading the module, the driver has to be unregistered
-    using:
-    \code{input_unregister_polled_device(struct input_polled_dev *dev)}
+  \item The device registration/unregistration is done with:
+    \begin{itemize}
+    \item \code{input_register_polled_device(struct input_polled_dev *dev)}.
+    \item \code{input_unregister_polled_device(struct input_polled_dev *dev)}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{{\em evdev} userspace interface}
+  \begin{itemize}
+  \item The main userspace interface to {\em input devices} is the
+    {\bf event interface}
+  \item Each {\em input device} is represented as a
+    \code{/dev/input/event<X>} character device
+  \item A userspace application can use blocking and non-blocking
+    reads, but also \code{select()} (to get notified of events) after
+    opening this device.
+  \item Each read will return \code{input_event} structures of the
+    following format:
+    \begin{block}{}
+    \begin{minted}[fontsize=\tiny]{c}
+struct input_event {
+        struct timeval time;
+        unsigned short type;
+        unsigned short code;
+        unsigned int value;
+};
+\end{minted}
+\end{block}
+\item A very useful application for {\em input device} testing is
+  \code{evtest}, from \url{http://cgit.freedesktop.org/evtest/}
   \end{itemize}
 \end{frame}
 
