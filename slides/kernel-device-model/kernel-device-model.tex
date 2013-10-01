@@ -146,18 +146,19 @@
     and drivers, so that drivers can be loaded automatically by
     \code{udev}. See \code{/lib/modules/$(uname -r)/modules.{alias,usbmap}}
   \end{itemize}
+  \begin{block}{}
   \begin{minted}[fontsize=\footnotesize]{c}
 static struct usb_device_id rtl8150_table[] = {
     { USB_DEVICE(VENDOR_ID_REALTEK, PRODUCT_ID_RTL8150) },
     { USB_DEVICE(VENDOR_ID_MELCO, PRODUCT_ID_LUAKTX) },
     { USB_DEVICE(VENDOR_ID_MICRONET, PRODUCT_ID_SP128AR) },
     { USB_DEVICE(VENDOR_ID_LONGSHINE, PRODUCT_ID_LCS8138TX) },
-    { USB_DEVICE(VENDOR_ID_OQO, PRODUCT_ID_RTL8150) },
-    { USB_DEVICE(VENDOR_ID_ZYXEL, PRODUCT_ID_PRESTIGE) },
+    [...]
     {}
 };
 MODULE_DEVICE_TABLE(usb, rtl8150_table);
   \end{minted}
+  \end{block}
 \end{frame}
 
 \begin{frame}[fragile]
@@ -168,6 +169,7 @@ MODULE_DEVICE_TABLE(usb, rtl8150_table);
     itself to the USB core using this structure
   \item This structure inherits from \code{struct driver}, which is defined
     by the device model.
+    \begin{block}{}
   \begin{minted}{c}
 static struct usb_driver rtl8150_driver = {
     .name = "rtl8150",
@@ -178,6 +180,7 @@ static struct usb_driver rtl8150_driver = {
     .resume = rtl8150_resume
 };
   \end{minted}
+  \end{block}
   \end{itemize}
 \end{frame}
 
@@ -188,7 +191,8 @@ static struct usb_driver rtl8150_driver = {
     unregister itself from the USB core
   \item Done using \code{usb_register()} and \code{usb_deregister()},
     provided by the USB core.
-\begin{minted}[fontsize=\footnotesize]{c}
+    \begin{block}{}
+\begin{minted}[fontsize=\scriptsize]{c}
 static int __init usb_rtl8150_init(void)
 {
     return usb_register(&rtl8150_driver);
@@ -202,6 +206,7 @@ static void __exit usb_rtl8150_exit(void)
 module_init(usb_rtl8150_init);
 module_exit(usb_rtl8150_exit);
 \end{minted}
+\end{block}
 \item Note: this code has now been replaced by a shorter
   \code{module_usb_driver()} macro call.
   \end{itemize}
@@ -249,6 +254,7 @@ module_exit(usb_rtl8150_exit);
 
 \begin{frame}[fragile]
 \frametitle{Probe Method Example}
+\begin{block}{}
 \begin{minted}[fontsize=\scriptsize]{c}
 static int rtl8150_probe(struct usb_interface *intf,
     const struct usb_device_id *id)
@@ -272,6 +278,7 @@ static int rtl8150_probe(struct usb_interface *intf,
     return 0;
 }
 \end{minted}
+\end{block}
 \end{frame}
 
 \begin{frame}
@@ -322,7 +329,8 @@ static int rtl8150_probe(struct usb_interface *intf,
   \begin{itemize}
   \item The driver implements a \code{struct platform_driver}
     structure (example taken from \code{drivers/serial/imx.c})
-    \begin{minted}[fontsize=\footnotesize]{c}
+    \begin{block}{}
+    \begin{minted}[fontsize=\scriptsize]{c}
 static struct platform_driver serial_imx_driver = {
     .probe = serial_imx_probe,
     .remove = serial_imx_remove,
@@ -331,9 +339,11 @@ static struct platform_driver serial_imx_driver = {
         .owner = THIS_MODULE,
     },
 };
-    \end{minted}
+\end{minted}
+\end{block}
 \item And registers its driver to the platform driver infrastructure
-  \begin{minted}[fontsize=\footnotesize]{c}
+  \begin{block}{}
+  \begin{minted}[fontsize=\scriptsize]{c}
 static int __init imx_serial_init(void) {
     ret = platform_driver_register(&serial_imx_driver);
 }
@@ -342,6 +352,7 @@ static void __exit imx_serial_cleanup(void) {
     platform_driver_unregister(&serial_imx_driver);
 }
   \end{minted}
+\end{block}
 \end{itemize}
 \end{frame}
 
@@ -360,7 +371,8 @@ static void __exit imx_serial_cleanup(void) {
     \end{itemize}
   \item Example on ARM, where the instantiation is done in
     \code{arch/arm/mach-imx/mx1ads.c}
-\begin{minted}[fontsize=\footnotesize]{c}
+    \begin{block}{}
+\begin{minted}[fontsize=\scriptsize]{c}
 static struct platform_device imx_uart1_device = {
     .name = "imx-uart",
     .id = 0,
@@ -371,6 +383,7 @@ static struct platform_device imx_uart1_device = {
     }
 };
 \end{minted}
+\end{block}
 \end{itemize}
 \end{frame}
 
@@ -378,16 +391,19 @@ static struct platform_device imx_uart1_device = {
   \frametitle{Platform device instantiation: old style (2/2)}
   \begin{itemize}
   \item The device is part of a list
-  \begin{minted}[fontsize=\footnotesize]{c}
+    \begin{block}{}
+  \begin{minted}[fontsize=\scriptsize]{c}
 static struct platform_device *devices[] __initdata = {
     &cs89x0_device,
     &imx_uart1_device,
     &imx_uart2_device,
 };
   \end{minted}
+  \end{block}
   \item And the list of devices is added to the system during
     board initialization
-  \begin{minted}[fontsize=\footnotesize]{c}
+    \begin{block}{}
+  \begin{minted}[fontsize=\scriptsize]{c}
 static void __init mx1ads_init(void)
 {
     [...]
@@ -399,10 +415,11 @@ MACHINE_START(MX1ADS, "Freescale MX1ADS")
     .init_machine = mx1ads_init,
 MACHINE_END
   \end{minted}
+  \end{block}
   \end{itemize}
 \end{frame}
 
-\begin{frame}[fragile]
+\begin{frame}
   \frametitle{The Resource Mechanism}
   \begin{itemize}
   \item Each device managed by a particular driver typically uses
@@ -414,7 +431,12 @@ MACHINE_END
   \item Allows a driver to be instantiated for multiple devices
     functioning similarly, but with different addresses, IRQs, etc.
   \end{itemize}
-  \begin{minted}[fontsize=\scriptsize]{c}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Declaring resources}
+  \begin{block}{}
+  \begin{minted}[fontsize=\footnotesize]{c}
 static struct resource imx_uart1_resources[] = {
     [0] = {
         .start = 0x00206000,
@@ -427,7 +449,8 @@ static struct resource imx_uart1_resources[] = {
         .flags = IORESOURCE_IRQ,
     },
 };
-  \end{minted}
+\end{minted}
+\end{block}
 \end{frame}
 
 \begin{frame}[fragile]
@@ -440,11 +463,13 @@ static struct resource imx_uart1_resources[] = {
     registering the device to the proper framework (in our case, the
     serial driver framework)
   \item The platform driver has access to the I/O resources:
+    \begin{block}{}
   \begin{minted}[fontsize=\footnotesize]{c}
 res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 base = ioremap(res->start, PAGE_SIZE);
 sport->rxirq = platform_get_irq(pdev, 0);
   \end{minted}
+  \end{block}
   \end{itemize}
 \end{frame}
 
@@ -470,7 +495,7 @@ sport->rxirq = platform_get_irq(pdev, 0);
   \begin{itemize}
   \item The i.MX serial port driver defines the following structure to
     be passed through \code{platform_data}
-
+    \begin{block}{}
   \begin{minted}[fontsize=\footnotesize]{c}
 struct imxuart_platform_data {
     int (*init)(struct platform_device *pdev);
@@ -482,12 +507,15 @@ struct imxuart_platform_data {
     unsigned short transceiver_delay;
 };
   \end{minted}
+  \end{block}
   \item The MX1ADS board code instantiates such a structure
+    \begin{block}{}
   \begin{minted}[fontsize=\footnotesize]{c}
 static struct imxuart_platform_data uart1_pdata = {
     .flags = IMXUART_HAVE_RTSCTS,
 };
   \end{minted}
+  \end{block}
   \end{itemize}
 \end{frame}
 
@@ -497,6 +525,7 @@ static struct imxuart_platform_data uart1_pdata = {
   \item The \code{uart_pdata} structure is associated to the
     \code{platform_device} in the MX1ADS board file (the real code is
     slightly more complicated)
+    \begin{block}{}
   \begin{minted}[fontsize=\scriptsize]{c}
 struct platform_device mx1ads_uart1 = {
     .name = "imx-uart",
@@ -507,7 +536,9 @@ struct platform_device mx1ads_uart1 = {
     [...]
 };
   \end{minted}
+  \end{block}
   \item The driver can access the platform data:
+    \begin{block}{}
   \begin{minted}[fontsize=\scriptsize]{c}
 static int serial_imx_probe(struct platform_device *pdev)
 {
@@ -516,8 +547,8 @@ static int serial_imx_probe(struct platform_device *pdev)
     if (pdata && (pdata->flags & IMXUART_HAVE_RTSCTS))
         sport->have_rtscts = 1;
     [...]
-}
   \end{minted}
+  \end{block}
 \end{itemize}
 \end{frame}
 
@@ -545,8 +576,7 @@ static int serial_imx_probe(struct platform_device *pdev)
 \begin{frame}[fragile]
   \frametitle{Device Tree example}
   \begin{block}{}
-  \small
-\begin{verbatim}
+\begin{minted}[fontsize=\small]{perl}
 uart0: serial@44e09000 {
         compatible = "ti,omap3-uart";
         ti,hwmods = "uart1";
@@ -555,7 +585,7 @@ uart0: serial@44e09000 {
         interrupts = <72>;
         status = "disabled";
 };
-  \end{verbatim}
+  \end{minted}
   \end{block}
   \normalsize
   \begin{itemize}
@@ -594,6 +624,7 @@ uart0: serial@44e09000 {
     corresponding {\em driver} using the {\bf compatible} string.
   \item The \code{of_match_table} field of \code{struct device_driver}
     lists the compatible strings supported by the driver.
+    \begin{block}{}
   \begin{minted}[fontsize=\tiny]{c}
 #if defined(CONFIG_OF)
 static const struct of_device_id omap_serial_of_match[] = {
@@ -614,6 +645,7 @@ static struct platform_driver serial_omap_driver = {
         },
 };
 \end{minted}
+\end{block}
   \end{itemize}
 \end{frame}
 
