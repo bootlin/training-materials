@@ -21,7 +21,6 @@ KERNEL_SLIDES = \
 		setup-lab \
 		kernel-introduction-title \
 		sysdev-linux-intro-features \
-		sysdev-linux-intro-versioning \
 		kernel-embedded-linux-usage-title \
 		kernel-linux-intro-sources \
 		kernel-source-code-download-lab \
@@ -63,7 +62,6 @@ KERNEL_SLIDES = \
 		kernel-power-management-lab \
 		kernel-development-process \
 		kernel-resources-title \
-		kernel-resources-advice \
 		kernel-resources-references \
 		last-slides
 
