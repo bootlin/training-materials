@@ -485,3 +485,110 @@ dtb-$(CONFIG_ARCH_MVEBU) += armada-370-db.dtb \
     \end{block}
   \end{itemize}
 \end{frame}
+
+\begin{frame}
+  \frametitle{Understanding the SoC support}
+  \begin{itemize}
+  \item For the Marvell Armada 370/XP platforms, the core of the SoC
+    support is located in \code{arch/arm/mach-mvebu}
+  \item The \code{armada-370-xp.c} (see code on the next slide)
+    contains the "{\em entry point}" of the SoC definition, the
+    \code{DT_MACHINE_START} .. \code{MACHINE_END} definition:
+    \begin{itemize}
+    \item Defines the list of platform compatible strings that will
+      match this platform, in this case
+      \code{marvell,armada-370-xp}. This allows the kernel to know
+      which \code{DT_MACHINE} structure to use depending on the DTB
+      that is passed at boot time.
+    \item Defines various callbacks for the platform initialization,
+      the most important one being the \code{.init_machine} callback,
+      which calls \code{of_platform_populate()}. This function travels
+      through the Device Tree and instantiate all the devices.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{{\tt arch/arm/mach-mvebu/armada-370-xp.c}}
+  \begin{block}{}
+    \begin{minted}[fontsize=\tiny]{c}
+static void __init armada_370_xp_dt_init(void)
+{
+        of_platform_populate(NULL, of_default_bus_match_table, NULL, NULL);
+}
+
+static const char * const armada_370_xp_dt_compat[] = {
+        "marvell,armada-370-xp",
+        NULL,
+};
+
+DT_MACHINE_START(ARMADA_XP_DT, "Marvell Armada 370/XP (Device Tree)")
+        .smp            = smp_ops(armada_xp_smp_ops),
+        .init_machine   = armada_370_xp_dt_init,
+        .map_io         = armada_370_xp_map_io,
+        .init_time      = armada_370_xp_timer_and_clk_init,
+        .restart        = mvebu_restart,
+        .dt_compat      = armada_370_xp_dt_compat,
+MACHINE_END
+  \end{minted}
+ \end{block}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Components of the minimal SoC support}
+  The minimal SoC support consists in
+  \footnotesize
+  \begin{itemize}
+  \item An SoC {\em entry point} file,
+    \code{arch/arm/mach-mvebu/armada-370-xp.c}
+  \item At least one SoC \code{.dtsi} DT and one board \code{.dts} DT,
+    in \code{arch/arm/boot/dts}
+  \item A interrupt controller driver,
+    \code{drivers/irqchip/irq-armada-370-xp.c}
+  \item A timer driver,
+    \code{drivers/clocksource/time-armada-370-xp.c}
+  \item An earlyprintk implementation to get early messages from the
+    console, \code{arch/arm/Kconfig.debug} and
+    \code{arch/arm/include/debug}
+  \item A serial port driver in \code{drivers/tty/serial}. For Armada
+    370/XP, the 8250 driver \code{drivers/tty/serial/8250} is used.
+  \end{itemize}
+  \normalsize
+  This allows to boot a minimal system up to userspace, using a root
+  filesystem in {\em initramfs}.
+\end{frame}
+
+\begin{frame}
+  \frametitle{Extending the minimal SoC support}
+
+  Once the minimal SoC support is in place, the following core
+  components should be added:
+  \begin{itemize}
+  \item Support for the clocks. Usually requires some clock drivers,
+    as well as DT representations of the clocks. See
+    \code{drivers/clk/mvebu} for Armada 370/XP clock drivers.
+  \item Support for pin muxing, through the {\em pinctrl}
+    subsystem. See \code{drivers/pinctrl/mvebu} for the Armada 370/XP
+    drivers.
+  \item Support for GPIOs, through the {\em GPIO} subsystem. See
+    \code{drivers/gpio/gpio-mvebu.c} for the Armada 370/XP GPIO
+    driver.
+  \item Support for SMP, through the \code{smp_operations}. See
+    \code{arch/arm/mach-mvebu/platsmp.c}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Adding device drivers}
+  Once the core pieces of the SoC support have been implemented, the
+  remaining part is to add drivers for the different hardware blocks:
+  \begin{itemize}
+  \item Ethernet driver, in \code{drivers/net/ethernet/mvneta.c}
+  \item SATA driver, in \code{drivers/ata/sata_mv.c}
+  \item I2C driver, in \code{drivers/i2c/busses/i2c-mv64xxx.c}
+  \item SPI driver, in \code{drivers/spi/spi-orion.c}
+  \item PCIe driver, in \code{drivers/pci/host/pci-mvebu.c}
+  \item USB driver, in \code{drivers/usb/host/ehci-orion.c}
+  \item etc.
+  \end{itemize}
+\end{frame}
