@@ -3,18 +3,19 @@
 \begin{frame}{What is input subsystem?}
   \begin{itemize}
   \item The input subsystem takes care of all the input events coming
-    from the user.
-  \item Initially written to support the USB {\em HID}(Human Interface
-    Device) devices, it quickly grew up to handle all kind of inputs
-    (using USB or not): keyboard, mice, joystick, touchscreen, etc.
+    from the human user.
+  \item Initially written to support the USB {\em HID} (Human
+    Interface Device) devices, it quickly grew up to handle all kind
+    of inputs (using USB or not): keyboard, mice, joystick,
+    touchscreen, etc.
   \item The input subsystem is split in two parts:
     \begin{itemize}
     \item {\bf Device drivers}: they talk to the hardware (for example
       via USB), and provide events (keystrokes, mouse movements,
-      touchscreen coordinates) to the input module
-    \item {\bf Event handlers}: they get events from input and pass them
-      where needed via various interfaces (most of the time through
-      \code{evdev})
+      touchscreen coordinates) to the input core
+    \item {\bf Event handlers}: they get events from drivers and pass
+      them where needed via various interfaces (most of the time
+      through \code{evdev})
     \end{itemize}
   \item In userspace it is usually used by the graphic stack such
     as {\em X.Org}, {\em Wayland} or {\em Android}.
@@ -55,11 +56,11 @@
   \end{itemize}
 \end{frame}
 
-\begin{frame}[fragile]{Input subsystem API 1/2}
+\begin{frame}[fragile]{Input subsystem API 1/3}
   \begin{itemize}
-  \item A {\em input device} is described by a very long \code{input_dev}
-    structure, an excerpt is:
-    \begin{minted}[fontsize=\scriptsize]{c}
+  \item An {\em input device} is described by a very long
+    \code{input_dev} structure, an excerpt is:
+    \begin{minted}[fontsize=\tiny]{c}
 struct input_dev {
     const char *name;
     [...]
@@ -67,46 +68,29 @@ struct input_dev {
     unsigned long keybit[BITS_TO_LONGS(KEY_CNT)];
     [...]
     int (*getkeycode)(struct input_dev *dev,
-struct input_keymap_entry *ke);
+                      struct input_keymap_entry *ke);
     [...]
     int (*open)(struct input_dev *dev);
     [...]
     int (*event)(struct input_dev *dev, unsigned int type,
-unsigned int code, int value);
+                 unsigned int code, int value);
     [...]
 };
-    \end{minted}
-  \item Before being used this struct must be initialized using:
-    \code{struct input *input_allocate_device(void);}
-  \item After unregistering \code{input_dev}, the struct must be
-    freed using: \code{void input_free_device(struct input_dev *dev);}
+\end{minted}
+\item Before being used this struct must be allocated and initialized
+  using: \code{struct input *input_allocate_device(void);}
+\item After unregistering \code{input_dev}, the struct must be freed
+  using: \code{void input_free_device(struct input_dev *dev);}
   \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]{Input subsystem API 2/3}
   \begin{itemize}
-  \item The events are sent to the event handler using
-    \code{input_event(struct input_dev *dev, unsigned int type, unsigned int code, int value);}
-    \begin{itemize}
-    \item The event types are documented in \code{Documentation/input/event-codes.txt}
-    \item An event is composed by one or several input data changes
-      (packet of input data changes) such as the button state, the
-      relative or absolute position along an axis, etc..
-    \item Input data change packages are separated 
-      by using a wrapping function for \code{input_event()}:
-      \code{ void input_sync(struct input_dev *dev)}:
-    \item The input subsystem provides other wrappers such as
-      \code{input_report_key()}, \code{input_report_abs()}, ...
-    \end{itemize}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}[fragile]{Input subsystem API 3/3}
-  \begin{itemize}
-  \item Depending on the type of event that will be generated, the input
-    bit fields must be set up using \code{set_bit()}. For example for
-    a button we only generate \code{EV_KEY} type events, and from
-    those only \code{BTN_0} event code:
+  \item Depending on the type of event that will be generated, the
+    input bit fields \code{evbit} and \code{keybit} must be set up
+    using \code{set_bit()}. For example for a button we only generate
+    \code{EV_KEY} type events, and from those only \code{BTN_0} event
+    code:
     \begin{minted}[fontsize=\footnotesize]{c}
       set_bit(EV_KEY, myinput_dev.evbit);
       set_bit(BTN_0, myinput_dev.keybit);
@@ -117,6 +101,24 @@ unsigned int code, int value);
   \item When the driver will be unloaded, the {\em input device} is
     unregistered using:
     \code{void input_unregister_device(struct input_dev *);}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Input subsystem API 3/3}
+  \begin{itemize}
+  \item The events are sent by the driver to the event handler using
+    \code{input_event(struct input_dev *dev, unsigned int type, unsigned int code, int value);}
+    \begin{itemize}
+    \item The event types are documented in \code{Documentation/input/event-codes.txt}
+    \item An event is composed by one or several input data changes
+      (packet of input data changes) such as the button state, the
+      relative or absolute position along an axis, etc..
+    \item After submitting potentially multiple events, the {\em
+        input} core must be notified by calling:
+      \code{ void input_sync(struct input_dev *dev)}:
+    \item The input subsystem provides other wrappers such as
+      \code{input_report_key()}, \code{input_report_abs()}, ...
+    \end{itemize}
   \end{itemize}
 \end{frame}
 
