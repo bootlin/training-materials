@@ -60,7 +60,9 @@ KERNEL_SLIDES = \
 		kernel-power-management-title \
 		kernel-power-management-content \
 		kernel-power-management-lab \
-		kernel-development-process \
+		kernel-development-process-title \
+		sysdev-linux-intro-versioning \
+		kernel-contribution \
 		kernel-resources-title \
 		kernel-resources-references \
 		last-slides
