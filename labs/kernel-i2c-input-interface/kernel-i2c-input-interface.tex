@@ -4,18 +4,73 @@ to userspace using the input subsystem.}
 After this lab, you will be able to:
 
 \begin{itemize}
-\item Expose device events to userspace through an input interface
+\item Expose device events to userspace through an input interface,
+      using the kernel based polling API for input devices
       (kernel space perspective)
+\item Handle registration and allocation failures in a clean
+      way.
 \item Get more familiar with the usage of the input interface
       (user space perspective)
 \end{itemize}
 
 \section{Add polled input device support to the kernel}
 
+The nunchuk doesn't have interrupts to notify the I2C master that 
+its state has changed. Therefore, the only way to access device data
+and detect changes is to regularly poll its registers, using the input
+polling API described in the lectures.
+
 Rebuild your kernel with static support for polled input device support
 (\code{CONFIG_INPUT_POLLDEV=y}). With the default configuration, this
 feature is available as a module, which is less convenient.
 
 Update and reboot your kernel.
+
+\section{Register an input interface}
+
+The first thing to do is to add an input device to the system. Here are
+the steps to do it:
+
+\begin{itemize}
+\item Declare a pointer to an \code{input_polled_dev} structure in the
+      \code{probe} routine. You can call it \code{polled_input}.
+      You can't use a global variable because your driver needs to be
+      able to support multiple devices.
+\item Allocate such a structure in the same function, using the
+      \code{input_allocate_polled_device()} function. 
+\item Also declare a pointer to an \code{input_dev} structure. You can 
+      call it \code{We won't
+      need to allocate it, because it is already part of the
+      \code{input_polled_dev} structure, and allocated at the same time.
+      We will use this as a shortcut to keep the code simple.
+\item Still in the \code{probe()} function, add the input device to
+      the system by calling \code{input_register_polled_device()};
+\end{itemize}
+
+At this stage, first make sure that your module compiles well (add
+missing headers if needed).
+
+\section{Handling probe failures}
+
+In the code that you created, make sure that you handle failure
+situations properly.
+
+\begin{itemize}
+\item Of course, test return values values properly and log 
+      the causes of errors.
+\item If the call to \code{input_register_polled_device()} fails,
+      you must also free the \code{input_polled_dev} structure
+      before returning an error. If you don't do that, you will create
+      memory leaks in the kernel. In the general case, failure to
+      release things that have been allocated or registered before
+      can prevent you from reloading a module.
+\end{itemize}
+
+To implement this correctly without duplicating or creating ugly code,
+it's recommended to use \code{goto} statements.
+
+See {\em Chapter 7: Centralized exiting of functions} in
+\code{Documentation/CodingStyle} for useful guidelines and an example.
+Implement this in your driver. 
 
 
