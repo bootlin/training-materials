@@ -68,21 +68,192 @@
   \end{itemize}
 \end{frame}
 
-
 \begin{frame}
-  \frametitle{How to Submit Patches or Drivers}
+  \frametitle{Contribute to the Linux Kernel (1)}
   \begin{itemize}
-  \item Use git to prepare make your changes
-  \item Don't merge patches addressing different issues
-  \item Make sure that your changes compile well, and if possible, run well.
-  \item Run Linux patch checks: \code{scripts/checkpatch.pl}
-  \item Send the patches to yourself first, as an inline
-    attachment. This is required to let people reply to parts of your
-    patches. Make sure your patches still applies. See
-    \kerneldoc{email-clients.txt} for help configuring e-mail
-    clients. Best to use \code{git send-email}, which never corrupts
-    patches.
-  \item Run \code{scripts/get_maintainer.pl} on your patches, to know
-    who you should send them to.
+  \item Clone Linus Torvalds' tree:
+    \begin{itemize}
+    \item
+      \code{git clone git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git}
+    \end{itemize}
+  \item Keep your tree up to date
+    \begin{itemize}
+    \item \code{git pull}
+    \end{itemize}
+  \item Look at the master branch and check whether your issue /
+    change hasn't been solved / implemented yet. Also check the
+    maintainer's git tree and mailing list (see the \code{MAINTAINERS}
+    file).You may miss submissions that are not in mainline yet.
+  \item If the maintainer has its own git tree, create a remote branch
+    tracking this tree. This is much better than creating another
+    clone (doesn't duplicate common stuff):
+    \begin{itemize}
+    \item
+      \code{git remote add linux-omap git://git.kernel.org/pub/scm/linux/kernel/git/tmlind/linux-omap.git}
+    \item \code{git fetch linux-omap}
+    \end{itemize}
   \end{itemize}
 \end{frame}
+
+\begin{frame}
+  \frametitle{Contribute to the Linux Kernel (2)}
+  \begin{itemize}
+  \item Either create a new branch starting from the current commit in
+    the master branch:
+    \begin{itemize}
+    \item \code{git checkout -b feature}
+    \end{itemize}
+  \item Or, if more appropriate, create a new branch starting from the
+    maintainer's master branch:
+    \begin{itemize}
+    \item \code{git checkout -b feature linux-omap/master} (remote
+      tree / remote branch)
+    \end{itemize}
+  \item In your new branch, implement your changes.
+  \item Test your changes (must at least compile them).
+  \item Run \code{git add} to add any new files to the index.
+  \item Check that each file you modified is ready for submission:
+    \begin{itemize}
+    \item \code{scripts/checkpatch.pl --strict --file <file>}
+    \end{itemize}
+  \item If needed, fix indenting rule violations:
+    \begin{itemize}
+    \item \code{indent -linux <file>}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Configure git send-email}
+  \begin{itemize}
+  \item Make sure you already have configured your name and e-mail
+    address (should be done before the first commit).
+    \begin{itemize}
+    \item \code{git config --global user.name 'My Name'}
+    \item \code{git config --global user.email me@mydomain.net}
+    \end{itemize}
+  \item Configure your SMTP settings. Example for a Google Mail
+    account:
+    \begin{itemize}
+    \item \code{git config --global sendemail.smtpserver smtp.googlemail.com}
+    \item \code{git config --global sendemail.smtpserverport 587}
+    \item \code{git config --global sendemail.smtpencryption tls}
+    \item \code{git config --global sendemail.smtpuser jdoe@gmail.com}
+    \item \code{git config --global sendemail.smtppass xxx}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Contribute to the Linux Kernel (3)}
+  \begin{itemize}
+  \item Group your changes by sets of logical changes, corresponding
+    to the set of patches that you wish to submit.
+  \item Commit and sign these groups of changes (signing required by
+    Linux developers).
+    \begin{itemize}
+    \item \code{git commit -s}
+    \item Make sure your first description line is a useful summary
+      and starts with the name of the modified subsystem. This first
+      description line will appear in your e-mails
+    \end{itemize}
+  \item The easiest way is to look at previous commit summaries on the
+    main file you modify
+      \begin{itemize}
+      \item \code{git log --pretty=oneline <path-to-file>}
+      \end{itemize}
+  \item Examples subject lines (\code{[PATCH]} omitted):
+\begin{verbatim}
+Documentation: prctl/seccomp_filter
+PCI: release busn when removing bus
+ARM: add support for xz kernel decompression
+\end{verbatim}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Contribute to the Linux Kernel (4)}
+  \begin{itemize}
+  \item Remove previously generated patches
+    \begin{itemize}
+    \item \code{rm 00*.patch}
+    \end{itemize}
+  \item Have git generate patches corresponding to your branch
+    \begin{itemize}
+    \item If your branch is based on mainline
+      \begin{itemize}
+      \item \code{git format-patch master..<your branch>}
+      \end{itemize}
+    \item If your branch is based on a remote branch
+      \begin{itemize}
+      \item \code{git format-patch <remote>/<branch>..<your branch>}
+      \end{itemize}
+    \end{itemize}
+  \item You can run a last check on all your patches (easy)
+    \begin{itemize}
+    \item \code{scripts/checkpatch.pl --strict 00*.patch}
+    \end{itemize}
+  \item Now, send your patches to yourself
+    \begin{itemize}
+    \item \code{git send-email --compose --to me@mydomain.com 00*.patch}
+    \end{itemize}
+  \item If you have just one patch, or a trivial patch, you can remove
+    the empty line after \code{In-Reply-To:}. This way, you won't add
+    a summary e-mail introducing your changes (recommended otherwise).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Contribute to the Linux Kernel (5)}
+  \begin{itemize}
+  \item Check that you received your e-mail properly, and that it
+    looks good.
+  \item Now, find the maintainers for your patches
+{\scriptsize
+\begin{verbatim}
+scripts/get_maintainer.pl ~/patches/00*.patch
+Russell King <linux@arm.linux.org.uk> (maintainer:ARM PORT)
+Nicolas Pitre <nicolas.pitre@linaro.org>
+(commit_signer:1/1=100%)
+linux-arm-kernel@lists.infradead.org (open list:ARM PORT)
+linux-kernel@vger.kernel.org (open list)
+\end{verbatim}
+}
+  \item Now, send your patches to each of these people and lists
+    \begin{itemize}
+    \item \code{git send-email --compose --to linux@arm.linux.org.uk --to nicolas.pitre@linaro.org --to linux-arm-kernel@lists.infradead.org --to linux-kernel@vger.kernel.org 00*.patch}
+    \end{itemize}
+  \item Wait for replies about your changes, take the comments into
+    account, and resubmit if needed, until your changes are eventually
+    accepted.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Contribute to the Linux Kernel (6)}
+  \begin{itemize}
+  \item If you use \code{git format-patch} to produce your patches,
+    you will need to update your branch and may need to group your
+    changes in a different way (one patch per commit).
+  \item Here's what we recommend
+    \begin{itemize}
+    \item Update your master branch
+      \begin{itemize}
+      \item \code{git checkout master; git pull}
+      \end{itemize}
+    \item Back to your branch, implement the changes taking community
+      feedback into account. Commit these changes.
+    \item Still in your branch: reorganize your commits and commit messages
+      \begin{itemize}
+      \item \code{git rebase --interactive origin/master}
+      \item \code{git rebase} allows to rebase (replay) your changes
+        starting from the latest commits in master. In interactive
+        mode, it also allows you to merge, edit and even reorder
+        commits, in an interactive way.
+      \end{itemize}
+    \item Third, generate the new patches with \code{git format-patch}.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+
