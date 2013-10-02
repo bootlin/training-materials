@@ -64,7 +64,12 @@ KERNEL_SLIDES = \
 		kernel-contribution \
 		kernel-resources-title \
 		kernel-resources-references \
-		last-slides
+		last-slides \
+		kernel-backup-slides-title \
+		kernel-driver-development-dma \
+		kernel-driver-development-mmap \
+		kernel-git-title \
+		kernel-git-content
 
 SYSDEV_SLIDES = \
 		licensing \
