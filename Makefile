@@ -59,7 +59,6 @@ KERNEL_SLIDES = \
 		kernel-porting-content \
 		kernel-power-management-title \
 		kernel-power-management-content \
-		kernel-power-management-lab \
 		kernel-development-process-title \
 		sysdev-linux-intro-versioning \
 		kernel-contribution \
@@ -233,7 +232,6 @@ KERNEL_LABS   = setup \
 		kernel-locking \
 		kernel-debugging \
 		kernel-serial-driver \
-		kernel-power-management \
 		kernel-git \
 		backup
 
