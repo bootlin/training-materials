@@ -2,7 +2,7 @@
   write data from / to a hardware device}
 
 Throughout the upcoming labs, we will implement a character driver
-allowing to write data to the serial port of the CALAO board, and to
+allowing to write data to the serial port of the BeagleBone, and to
 read data from it.
 
 After this lab, you will be able to:
@@ -25,18 +25,18 @@ After this lab, you will be able to:
 Go to the \code{$HOME/felabs/linux/character} directory.
 
 As in the {\em Module development environment} lab, we will use a the
-CALAO board booted from NFS.
+BeagleBone booted from NFS.
 
 As in the previous labs, the target IP address will be \code{192.168.0.100},
 and the host address will be \code{192.168.0.1}.
 
-Extract the latest Linux 3.6.x kernel sources in the current
+Extract the latest Linux 3.11.x kernel sources in the current
 directory, and configure them with the default configuration for
-{\em at91sam9263} boards.
+the {\em omap2plus} architecture.
 
 In this lab, we will develop our own driver for the board's serial
 port. The consequence is that we will have to disable the standard
-AT91 serial port driver and will thus lose the serial console.
+OMAP serial port driver and will thus lose the serial console.
 
 Instead of running commands through a shell on the serial line, we
 will access our target through SSH, a secure shell over the network.
@@ -51,6 +51,8 @@ So, configure your kernel with:
 \item Loadable module support
 \item Netconsole support (\code{CONFIG_NETCONSOLE})
 \end{itemize}
+
+and disable \code{CONFIG_DEVTMPFS}
 
 You will also have to update the kernel command line so that Linux
 loads the root filesystem over NFS from
@@ -77,11 +79,11 @@ The \code{root} password is empty, just press \code{Enter}. Good job!
 \section{Disabling the serial driver and console}
 
 Now that everything works, rebuild your kernel without the serial port
-driver (in \code{Device Drivers} $\rightarrow$ \code{Character devices}
-$\rightarrow$ \code{Serial drivers} $\rightarrow$ \code{AT91 / AT32
-on-chip serial port support}). Update your kernel.
+driver (in \code{Device Drivers} $\rightarrow$
+\code{Character devices} $\rightarrow$ \code{Serial drivers}
+$\rightarrow$ \code{OMAP serial port support}). Update your kernel.
 
-You also need to replace \code{console=ttyS0} by the following option in
+You also need to replace \code{console=ttyO0} by the following option in
 the kernel command line, to enable the network console:
 
 \begin{verbatim}
@@ -110,9 +112,9 @@ code. Modify the \code{Makefile} so that it points to your kernel sources.
 \section{Device initialization}
 
 In the module initialization function, start by reserving the I/O
-memory region starting at address (\code{AT91_BASE_DBGU1}), for a
-size of \code{SZ_512} (512 bytes). The \code{AT91_*} constants are already defined
-in Linux kernel headers.
+memory region starting at address (\code{0x44e09000}), for a size of
+\code{SZ_512} (512 bytes). The \code{UART} constants are already
+defined in Linux kernel headers (\code{serial_reg.h}).
 
 Compile your module, load it and make sure that this memory region
 appears in \code{/proc/iomem}.
@@ -128,20 +130,19 @@ Implement a C routine taking one character as a parameter and writing
 it to the serial port, using the following steps:
 
 \begin{enumerate}
+\item Wait until the \code{UART_LSR_THRE} bit gets set in the
+  \code{UART_LSR} register (\code{UART_LSR} is an index number for
+  this register. You'll have to multiply it by 4 to get an offset in
+  the I/O memory region previously remapped). You can busy-wait for
+  this condition to happen. In the busy-wait loop, you can call the
+  \code{cpu_relax()} kernel function to ensure the compiler won't
+  optimise away this loop.
 
- \item Wait until the \code{ATMEL_US_TXRDY} bit gets set in
- the \code{ATMEL_US_CSR} register (\code{ATMEL_US_CSR} is an
- offset in the I/O memory region previously remapped). You can
- busy-wait for this condition to happen. In the busy-wait loop, you
- can call the \code{cpu_relax()} kernel function to relax the CPU
- during the wait.
-
- \item Write the character to the \code{ATMEL_US_THR} register.
+\item Write the character to the \code{UART_TX} register.
 
 \end{enumerate}
 
-Note that all the I/O registers of the AT91 processor are 32 bits
-wide.
+Note that all the I/O registers of the AM335x SoC are 32 bits wide.
 
 Add a call to this routine from your module init function. Recompile
 your module and load it on the target. You should see the
@@ -153,6 +154,6 @@ the serial line by the board.
 Remove your module and try to load it again. If the second attempt to
 load the module fails, it is probably because your driver doesn't
 properly free the resources it allocated or register, either at module
-exit time, or after a failing during the module init function.  Check
+exit time, or after a failing during the module init function. Check
 and fix your module init and exit functions if you have such a
 problem.
