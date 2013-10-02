@@ -2,112 +2,21 @@
   write data from / to a hardware device}
 
 Throughout the upcoming labs, we will implement a character driver
-allowing to write data to the serial port of the BeagleBone, and to
-read data from it.
+allowing to write data to additional CPU serial ports available on 
+the BeagleBone, and to read data from them.
 
 After this lab, you will be able to:
 
 \begin{itemize}
-
-\item Use \code{ssh} to get a remote terminal to an embedded Linux
-  system
-
-\item Access a console through the network, typically when a serial or
-  graphical console cannot be used.
-
+\item Add an UART device to the board device tree
 \item Practice with I/O ports and I/O memory to control the device and
   exchange data with it.
-
 \end{itemize}
 
-\section{Setup}
+\section{Add UART devices}
 
-Go to the \code{$HOME/felabs/linux/character} directory.
-
-As in the {\em Module development environment} lab, we will use a the
-BeagleBone booted from NFS.
-
-As in the previous labs, the target IP address will be \code{192.168.0.100},
-and the host address will be \code{192.168.0.1}.
-
-Extract the latest Linux 3.11.x kernel sources in the current
-directory, and configure them with the default configuration for
-the {\em omap2plus} architecture.
-
-In this lab, we will develop our own driver for the board's serial
-port. The consequence is that we will have to disable the standard
-OMAP serial port driver and will thus lose the serial console.
-
-Instead of running commands through a shell on the serial line, we
-will access our target through SSH, a secure shell over the network.
-
-To replace the serial console and still get kernel messages (in
-particular kernel fault messages) we will use a netconsole, a
-mechanism that allows to get console messages over the network.
-
-So, configure your kernel with:
-\begin{itemize}
-\item Root over NFS support
-\item Loadable module support
-\item Netconsole support (\code{CONFIG_NETCONSOLE})
-\end{itemize}
-
-and disable \code{CONFIG_DEVTMPFS}
-
-You will also have to update the kernel command line so that Linux
-loads the root filesystem over NFS from
-\code{/home/<user>/felabs/linux/character/nfsroot}.
-
-The Dropbear SSH server is already installed on your target, and is
-started automatically.
-
-\section{Boot tests}
-
-We are first going to make sure that your new kernel boots fine and
-that the SSH connection works well, before disabling the serial driver
-and the serial console. NFS configuration issues are frequent, and
-they would be more difficult to fix if we have no console left.
-
-So, boot your new kernel and try to connect to your board with ssh:
-
-\begin{verbatim}
-ssh root@192.168.0.100
-\end{verbatim}
-
-The \code{root} password is empty, just press \code{Enter}. Good job!
-
-\section{Disabling the serial driver and console}
-
-Now that everything works, rebuild your kernel without the serial port
-driver (in \code{Device Drivers} $\rightarrow$
-\code{Character devices} $\rightarrow$ \code{Serial drivers}
-$\rightarrow$ \code{OMAP serial port support}). Update your kernel.
-
-You also need to replace \code{console=ttyO0} by the following option in
-the kernel command line, to enable the network console:
-
-\begin{verbatim}
-netconsole=4444@192.168.0.100/eth0,5555@192.168.0.1/
-\end{verbatim}
-
-To get the console output, we will use the \code{netcat} command on the host
-to listen for UDP packets on port 5555:
-
-\begin{verbatim}
-netcat -u -l 192.168.0.1 5555
-\end{verbatim}
-
-Now, boot your new kernel. You should see kernel messages only in the
-\code{netcat} output (after a little while).
-
-\section{Driver source code}
-
-Now go to the \code{nfsroot/root} directory, which will contain the
-kernel module source code.
-
-You have a ready-made \code{Makefile} to compile your module, and a
-template \code{serial.c} module which you will fill with your own
-code. Modify the \code{Makefile} so that it points to your kernel sources.
+Before developing a driver for additional UARTS on the board, we
+need to add the corresponding descritions to the board Device Tree.
 
 \section{Device initialization}
 
