@@ -231,7 +231,6 @@ KERNEL_LABS   = setup \
 		kernel-serial-interrupt \
 		kernel-locking \
 		kernel-debugging \
-		kernel-serial-driver \
 		kernel-git \
 		backup
 
