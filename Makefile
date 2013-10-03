@@ -34,7 +34,6 @@ KERNEL_SLIDES = \
 		sysdev-linux-intro-cross-compilation \
 		kernel-board-setup-kernel-compiling-and-booting-labs \
 		sysdev-linux-intro-modules \
-		kernel-driver-development-title \
 		kernel-driver-development-modules \
 		kernel-driver-development-lab-modules \
 		kernel-driver-development-general-apis \
