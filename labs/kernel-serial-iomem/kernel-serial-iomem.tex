@@ -13,18 +13,115 @@ After this lab, you will be able to:
   exchange data with it.
 \end{itemize}
 
+\section{Setup}
+
+Go to your kernel source directory.
+
+Create a new branch for this new series of labs. Since this new stuff
+is independent from the nunchuk changes, it's best to create a separate
+branch!
+
+\begin{verbatim}
+git checkout 3.11.y-bbb
+git checkout  -b uart
+\end{verbatim}
+
 \section{Add UART devices}
 
 Before developing a driver for additional UARTS on the board, we
-need to add the corresponding descritions to the board Device Tree.
+need to add the corresponding descriptions to the board Device Tree.
+
+First, open the board reference manual and find the connectors
+and pinmux modes for UART2 and UART4.
+
+Using an new USB-serial cable with male connectors, provided by your
+instructor, connect your PC to UART2. The wire colors are the same
+as for the cable that you're using for the console:
+
+\begin{itemize}
+\item The blue wire should be connected \code{GND} 
+\item The red wire should be connected to \code{TX}
+\item The green wire should be connected to \code{RX}
+\end{itemize}
+
+Now, open the \code{arch/arm/boot/dts/am335x-bone-common.dtsi}
+file and create declarations for UART2 and UART4 in the pin muxing
+section:
+
+\begin{verbatim}
+		/* Pins 21 (TX) and 22 (RX) of connector P9 */
+		uart2_pins: uart2_pins {
+			pinctrl-single,pins = <
+				0x154 (PIN_OUTPUT_PULLDOWN | MUX_MODE1) /* spi0_d0.uart2_tx, MODE 1 */
+				0x150 (PIN_INPUT_PULLUP | MUX_MODE1) /* spi0_sclk.uart2_rx, MODE 1 */
+			>;
+		};
+
+		/* Pins 11 (RX) and 13 (TX) of connector P9 */
+		uart4_pins: uart4_pins {
+			pinctrl-single,pins = <
+				0x74 (PIN_OUTPUT_PULLDOWN | MUX_MODE6) /* gpmc_wpn.uart4_tx, MODE 6 */
+				0x70 (PIN_INPUT_PULLUP | MUX_MODE6) /* gpmc_wait0.uart4_rx, MODE 6 */
+			>;
+		};
+\end{verbatim}
+
+Then, declare the corresponding devices:
+
+\begin{verbatim}
+		uartfe2: feserial@48024000 {
+			compatible = "free-electrons,serial";
+			clock-frequency = <48000000>;
+			reg = <0x48024000 0x2000>;
+			interrupts = <74>;
+			status = "okay";
+			pinctrl-names = "default";
+			pinctrl-0 = <&uart2_pins>;
+		};
+
+		uartfe4: feserial@481a8000 {
+			compatible = "free-electrons,serial";
+			clock-frequency = <48000000>;
+			reg = <0x481a8000 0x2000>;
+			interrupts = <45>;
+			status = "okay";
+			pinctrl-names = "default";
+			pinctrl-0 = <&uart4_pins>;
+		};
+
+\end{verbatim}
+
+Note: we are calling these devices with \code{uartfe} instead of
+\code{uart} to avoid conflicts with declarations in
+\code{arch/arm/boot/dts/am33xx.dtsi}. The \code{uart} devices are 
+meant to be used by the regular serial driver.
+
+We will see how to use the device parameters in the driver code.
+
+Rebuild and update your DTB.
+
+\section{Operate a platform device driver}
+
+Go to the \code{~/felabs/linux/modules/nfsroot/root/serial/} directory.
+You will find a \code{feserial.c} file already provides a platform
+driver skeleton.
+
+Add the code needed to match the driver with the devices which you have
+just declared in the device tree.
+
+Compile your module and load it on your target. Check the kernel log
+messages, that should confirm that the \code{probe()} routine was
+called \footnote{Don't be surprised if the \code{probe()} routine is
+actually called twice! That's because we have declared two devices.
+Even if we only connect a serial-to-USB dongle to one of them, both
+of them are ready to be used!}.
 
 \section{Device initialization}
 
 In the module initialization function, start by reserving the I/O
 memory region starting at address (\code{0x44e09000}), for a size of
 \code{SZ_512} (512 bytes). The \code{UART} constants are already
-defined in Linux kernel headers (\code{serial_reg.h}).
-
+defined in Linux kernel headers (\code{serial_reg.h}).  
 Compile your module, load it and make sure that this memory region
 appears in \code{/proc/iomem}.
 
