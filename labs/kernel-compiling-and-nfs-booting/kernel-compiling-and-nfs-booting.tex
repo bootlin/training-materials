@@ -176,12 +176,14 @@ First, boot the board to the U-Boot prompt. Before booting the kernel,
 we need to tell it which console to use and that the root filesystem
 should be mounted over NFS, by setting some kernel parameters.
 
-Do this by setting U-boot's \code{bootargs} environment variable:
-Modify the \code{uEnv.txt} file by adding the below line (in just 1 line):
+Do this by setting U-boot's \code{bootargs} environment variable (all in
+just one line, pay attention to the \code{O} character, like "OMAP", in
+\code{ttyO0}): 
 
 \begin{verbatim}
 setenv bootargs root=/dev/nfs ip=192.168.0.100 console=ttyO0
   nfsroot=192.168.0.1:/home/<user>/felabs/linux/modules/nfsroot
+saveenv
 \end{verbatim}
 
 Of course, you need to adapt the IP addresses to your exact network
@@ -213,19 +215,16 @@ also have a look at the NFS server logs in \code{/var/log/syslog}.
 \section{Automate the boot process}
 
 To avoid typing the same U-boot commands over and over again each time
-you power on or reset your board, here's a way to automatically call the
-above commands at boot time:
+you power on or reset your board, you can use U-Boot's \code{bootcmd}
+environment variable:
 
-Modify your \code{uEnv.txt} file and add the below lines:
 {\scriptsize
 \begin{verbatim}
-bootargs=root=/dev/nfs ip=192.168.0.100 console=ttyO0 nfsroot=192.168.0.1:/home/<user>/felabs/linux/modules/nfsroot
-uenvcmd=tftp 0x81000000 uImage; tftp 0x82000000 am335x-boneblack.dtb; bootm 0x81000000 - 0x82000000
+setenv bootcmd 'tftp 0x81000000 uImage; tftp 0x82000000 am335x-boneblack.dtb; bootm 0x81000000 - 0x82000000'
+saveenv
 \end{verbatim}
 }
 
-\code{uenvcmd} will automatically be run after the U-boot timeout
-expires and the \code{uEnv.txt} settings are loaded.
 Don't hesitate to change it according to your exact needs.
 
 We could also copy the \code{uImage} file to the eMMC flash and avoid
