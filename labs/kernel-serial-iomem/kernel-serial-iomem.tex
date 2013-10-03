@@ -116,44 +116,127 @@ actually called twice! That's because we have declared two devices.
 Even if we only connect a serial-to-USB dongle to one of them, both
 of them are ready to be used!}.
 
-\section{Device initialization}
+\section{Get base addresses from the device tree}
 
-In the module initialization function, start by reserving the I/O
-memory region starting at address (\code{0x44e09000}), for a size of
-\code{SZ_512} (512 bytes). The \code{UART} constants are already
-defined in Linux kernel headers (\code{serial_reg.h}).  
-Compile your module, load it and make sure that this memory region
-appears in \code{/proc/iomem}.
+We are going to read from memory mapped registers and read from them.
+The first thing we need is the base physical address for the each
+device.
 
-Now, obtain a virtual address corresponding to the start of this
-memory area.
+Such information is precisely available in the Device Tree. You can
+extract it with the below code:
 
-Don't forget to undo all the above in the module exit function!
+\begin{verbatim}
+struct resource *res;
+res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+\end{verbatim}
+
+Add such code to your \code{probe()} routine, with proper error
+handling when \code{res == NULL}, and print the start address
+(\code{res->start}) to make sure that the address values that
+you get match the ones in the device tree. 
+
+You can remove the printing instruction as soon as the collected
+addresses are correct.
+
+\section{Create a device private structure}
+
+The next step is to start allocating and registering resources,
+which eventually will have to be freed and unregistered too.
+
+In the same way as in the nunchuk lab, we now need to create a
+structure that that will hold device specific information and help
+keeping pointers between logical and physical devices.
+
+As the first thing to store will be the base virtual address for
+each device (obtained through \code{ioremap()}), let's declare this
+structure as follows:
+
+\begin{verbatim}
+struct feserial_dev {
+        void __iomem *regs;
+};
+\end{verbatim}
+
+The first thing to do is allocate such a structure at the beginning
+of the \code{probe()} routine. Let's do it with a \code{devm_} function.
+The advantage of such routines is that each allocation or registration
+is attached to a device structure. When a device or a module is removed,
+all such allocations or registrations are automatically undone. This
+allows to greatly simplify driver code.
+
+So, add the below line to your code:
+
+\begin{verbatim}
+struct feserial_dev *dev;
+...
+dev = devm_kzalloc(&pdev->dev, sizeof(struct feserial_dev), GFP_KERNEL);
+\end{verbatim}
+
+You can now get a virtual address for your device's base physical
+address, by calling:
+
+\begin{verbatim}
+        dev->regs = devm_ioremap_resource(&pdev->dev, res);
+
+        if (!dev->regs) {
+                dev_err(&pdev->dev, "Cannot remap registers\n");
+                return -ENOMEM;
+        }
+\end{verbatim}
+
+What's nice is that you won't ever have to release this resource,
+neither in the \code{remove()} routine, nor if there are failures
+in subsequent steps of the \code{probe()} routine.
+
+Make sure that your updated driver compiles, loads and unloads well.
+
+\section{Accessing device registers}
+
+As we will have multiple registers to read, create a \code{reg_read()}
+routine, returning an \code{unsigned int} value, and  taking a \code{dev}
+pointer to an \code{feserial_dev} structure and an \code{offset} integer
+offset.
+
+In this function, read a word at the base virtual address
+for the device plus the offset multiplied by 4, and return this value.
+
+Create a similar \code{reg_write()} routine, writing an integer value
+at a given integer offset from the device base virtual address.
+
+All the UART register offsets have standardized values, shared between
+several types of serial drivers (see
+\code{include/uapi/linux/serial_reg.h}). This explains why they are not
+completely ready to use and we have to multiply them by 4 for OMAP SoCs.
 
 \section{Standalone write routine}
 
-Implement a C routine taking one character as a parameter and writing
-it to the serial port, using the following steps:
+Implement a C routine taking a pointer to an \code{feserial_dev}
+structure and one character as parameters, and writing
+this character to the serial port, using the following steps:
 
 \begin{enumerate}
 \item Wait until the \code{UART_LSR_THRE} bit gets set in the
-  \code{UART_LSR} register (\code{UART_LSR} is an index number for
-  this register. You'll have to multiply it by 4 to get an offset in
-  the I/O memory region previously remapped). You can busy-wait for
-  this condition to happen. In the busy-wait loop, you can call the
-  \code{cpu_relax()} kernel function to ensure the compiler won't
-  optimise away this loop.
-
+  \code{UART_LSR} register.  You can busy-wait for this condition to happen.
+  In the busy-wait loop, you can call the \code{cpu_relax()} kernel function
+  to ensure the compiler won't optimise away this loop.
 \item Write the character to the \code{UART_TX} register.
-
 \end{enumerate}
 
 Note that all the I/O registers of the AM335x SoC are 32 bits wide.
 
-Add a call to this routine from your module init function. Recompile
-your module and load it on the target. You should see the
-corresponding character in picocom, still showing what was written to
-the serial line by the board.
+Add a call to this routine from your module \code{probe()} function,
+and recompile your module.
+
+Open a new \code{picocom} instance on your new serial port (not the
+serial console):
+
+\begin{verbatim}
+picocom -b 115200 /dev/ttyUSB1
+\end{verbatim}
+
+Load your module on the target. You should see the
+corresponding character in the new \code{picocom} installed,
+showing what was written to UART2.
 
 \section{Driver sanity check}
 
