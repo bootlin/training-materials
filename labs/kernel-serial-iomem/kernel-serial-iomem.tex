@@ -198,7 +198,13 @@ in subsequent steps of the \code{probe()} routine.
 
 Make sure that your updated driver compiles, loads and unloads well.
 
-\section{Accessing device registers}
+\section{Device initialization}
+
+Now that we have a virtual address to access registers, we are ready to
+configure a few registers which will allow us to enable the UART
+devices. Of course, this will be done in the \code{probe()} routine.
+
+\subsection{Accessing device registers}
 
 As we will have multiple registers to read, create a \code{reg_read()}
 routine, returning an \code{unsigned int} value, and  taking a \code{dev}
@@ -208,6 +214,8 @@ offset.
 In this function, read a word at the base virtual address
 for the device plus the offset multiplied by 4, and return this value.
 
+Note that all the I/O registers of the AM335x SoC are 32 bits wide.
+
 Create a similar \code{reg_write()} routine, writing an integer value
 at a given integer offset from the device base virtual address.
 
@@ -216,6 +224,61 @@ several types of serial drivers (see
 \code{include/uapi/linux/serial_reg.h}). This explains why they are not
 completely ready to use and we have to multiply them by 4 for OMAP SoCs.
 
+We are now ready to read and write registers!
+
+\subsection{Power management initialization}
+
+Add the below lines:
+
+\begin{verbatim}
+	pm_runtime_enable(&pdev->dev);
+	pm_runtime_get_sync(&pdev->dev);
+\end{verbatim}
+
+And add the below line to the \code{remove()} routine:
+
+\begin{verbatim}
+	pm_runtime_disable(&pdev->dev);
+\end{verbatim}
+
+\subsection{Line and baud rate configuration}
+
+After these lines, let's add code to initialize the line
+and configure the baud rate. This shows how to get a special
+property from the device tree, in this case \code{clock-frequency}:
+
+\begin{verbatim}
+        /* Configure the baud rate to 115200 */
+
+        of_property_read_u32(pdev->dev.of_node, "clock-frequency",
+                             &uartclk);
+        baud_divisor = uartclk / 16 / 115200;
+        reg_write(dev, 0x07, UART_OMAP_MDR1);
+        reg_write(dev, 0x00, UART_LCR);
+        reg_write(dev, UART_LCR_DLAB, UART_LCR);
+        reg_write(dev, baud_divisor & 0xff, UART_DLL);
+        reg_write(dev, (baud_divisor >> 8) & 0xff, UART_DLM);
+	reg_write(dev, UART_LCR_WLEN8, UART_LCR);
+\end{verbatim}
+
+Declare \code{baud_divisor} and \code{uartclk} as \code{unsigned int}.
+
+\subsection{Soft reset}
+
+The last thing to do is to request a software reset:
+
+\begin{verbatim}
+        /* Soft reset */
+        reg_write(dev, UART_FCR_CLEAR_RCVR | UART_FCR_CLEAR_XMIT, UART_FCR);
+        reg_write(dev, 0x00, UART_OMAP_MDR1);
+\end{verbatim}
+
+We are now ready to transmit characters over the serial ports!
+
+If you have a bit of spare time, you can look at section 19 of the
+AM335x TRM for details about how to use the UART ports, to understand
+better what we are doing here.
+ 
 \section{Standalone write routine}
 
 Implement a C routine taking a pointer to an \code{feserial_dev}
@@ -229,8 +292,6 @@ this character to the serial port, using the following steps:
   to ensure the compiler won't optimise away this loop.
 \item Write the character to the \code{UART_TX} register.
 \end{enumerate}
-
-Note that all the I/O registers of the AM335x SoC are 32 bits wide.
 
 Add a call to this routine from your module \code{probe()} function,
 and recompile your module.
@@ -246,11 +307,13 @@ Load your module on the target. You should see the
 corresponding character in the new \code{picocom} installed,
 showing what was written to UART2.
 
+You can also check that you also get the same character on UART4
+(just connect to the UART4 pins instead of the UART2 ones).
+
 \section{Driver sanity check}
 
 Remove your module and try to load it again. If the second attempt to
 load the module fails, it is probably because your driver doesn't
-properly free the resources it allocated or register, either at module
-exit time, or after a failing during the module init function. Check
-and fix your module init and exit functions if you have such a
-problem.
+properly free the resources it allocated or registered, either at module
+exit time, or after a failure during the module \code{probe()} function. Check
+and fix your module code if you have such problems.
