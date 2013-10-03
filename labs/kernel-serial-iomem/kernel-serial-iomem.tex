@@ -40,9 +40,12 @@ as for the cable that you're using for the console:
 
 \begin{itemize}
 \item The blue wire should be connected \code{GND} 
-\item The red wire should be connected to \code{TX}
-\item The green wire should be connected to \code{RX}
+\item The red wire (\code{TX}) should be connected to the board's \code{RX} pin
+\item The green wire (\code{RX}) should be connected to the board's \code{TX} pin
 \end{itemize}
+
+You can (or even should) show your connections to the instructor
+to make sure that you haven't swapped the \code{RX} and \code{TX} pins. 
 
 Now, open the \code{arch/arm/boot/dts/am335x-bone-common.dtsi}
 file and create declarations for UART2 and UART4 in the pin muxing
@@ -71,6 +74,10 @@ Then, declare the corresponding devices:
 \begin{verbatim}
 		uartfe2: feserial@48024000 {
 			compatible = "free-electrons,serial";
+                        ti,hwmods = "uart3";
+                        /* Tell the OMAP harware power management that the block
+                           must be enabled, otherwise it's switched off
+                           Caution: starting counting at 1, not 0 */
 			clock-frequency = <48000000>;
 			reg = <0x48024000 0x2000>;
 			interrupts = <74>;
@@ -81,6 +88,7 @@ Then, declare the corresponding devices:
 
 		uartfe4: feserial@481a8000 {
 			compatible = "free-electrons,serial";
+                        ti,hwmods = "uart5";
 			clock-frequency = <48000000>;
 			reg = <0x481a8000 0x2000>;
 			interrupts = <45>;
