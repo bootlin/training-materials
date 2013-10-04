@@ -233,10 +233,10 @@ KERNEL_LABS   = setup \
 		kernel-i2c-input-interface \
 		kernel-serial-iomem \
 		kernel-serial-output \
+		kernel-serial-interrupt \
+		kernel-locking \
 		kernel-debugging \
 		kernel-git \
-#		kernel-serial-interrupt \
-#		kernel-locking \
 #		backup # Currently broken for kernel course
 
 ANDROID_LABS  = setup \

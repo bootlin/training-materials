@@ -18,7 +18,7 @@ During this lab, you will:
 
 \section{Setup}
 
-This lab is a continuation of the {\em Output-only character driver
+This lab is a continuation of the {\em Output-only misc driver
 lab}. Use the same kernel, environment and paths!
 
 \section{Register the handler}
@@ -87,6 +87,15 @@ should no longer be flooded with interrupt messages. In the kernel
 log, you should see the message of our interrupt handler. If not,
 check your code once again and ask your instructor for clarification!
 
+Load and unload your driver multiple times, to make sure that 
+there are no registration / deregistration issues.
+
+Note: pay attention to where you place the call to \code{free_irq()}.
+Think about possible race conditions (typically because of resources
+not unregistered or freed in the right order, and the interference of
+user-space requests or hardware events happening at the same time). 
+Don't hesitate to discuss the question with your instructor.
+
 \section{Sleeping, waking up and communication}
 
 Now, we would like to implement the \code{read()} operation of our
@@ -95,18 +104,24 @@ receive the characters from the serial port.
 
 First, we need a communication mechanism between the interrupt handler
 and the \code{read()} operation. We will implement a very simple
-circular buffer. So let's declare a global buffer in our driver:
+circular buffer. So let's add a device-specific buffer to our 
+\code{feserial_dev} structure.
+
+Let's also add two integers that will contain the next location
+in the circular buffer that we can write to, and the next location
+we can read from:
 
 \begin{verbatim}
 #define SERIAL_BUFSIZE 16
-static char serial_buf[SERIAL_BUFSIZE];
-\end{verbatim}
 
-Two integers that will contain the next location in the circular
-buffer that we can write to, and the next location we can read from:
-
-\begin{verbatim}
-static int serial_buf_rd, serial_buf_wr;
+struct feserial_dev {
+        void __iomem *regs;
+        struct miscdevice miscdev;
+        int irq;
+        char serial_buf[SERIAL_BUFSIZE];
+	int serial_buf_rd;
+	int serial_buf_wr;
+};
 \end{verbatim}
 
 In the interrupt handler, store the received character at location
@@ -126,17 +141,23 @@ Now, what happens in our \code{read()} function if no character is
 available for reading (i.e, if \code{serial_buf_wr} is equal to
 \code{serial_buf_rd})? We should put the process to sleep!
 
-To do so, declare a global wait queue in our driver, named for example
-\code{serial_wait}. In the \code{read()} function, use
-\code{wait_event_interruptible()} to wait until \code{serial_buf_wr}
-is different from \code{serial_buf_rd}. And in the interrupt handler,
+To do so, add a wait queue to our \code{feserial_dev} structure,
+named for example \code{serial_wait}. In the \code{read()} function,
+keep things simple by directly using \code{wait_event_interruptible()}
+right from the start, to wait until \code{serial_buf_wr}
+is different from \code{serial_buf_rd}. \footnote{A single test in the 
+\code{wait_event_interruptible()} function is sufficient. If the
+condition is met, you don't go to sleep and read one character right away.
+Otherwise, when you wake up, you can proceed to the reading part.}.
+
+Last but not least, in the interrupt handler,
 after storing the received characters in the circular buffer, use
 \code{wake_up()} to wake up all processes waiting on the wait queue.
 
-Compile and load your driver. Run \code{cat /dev/serial} on the
-target, and then in Picocom on the development workstation side, type
-some characters. They should appear on the remote side if everything
-works correctly!
+Compile and load your driver. Run \code{cat /dev/feserial-48024000}
+on the target, and then in \code{picocom} on the development
+workstation side, type some characters. They should appear on the
+remote side if everything works correctly!
 
 Don't be surprised if the keys you type in Picocom don't appear on the
 screen. This happens because they are not echoed back by the target.
