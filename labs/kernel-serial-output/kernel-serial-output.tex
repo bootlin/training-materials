@@ -51,6 +51,11 @@ struct feserial_dev {
 };
 \end{verbatim}
 
+To be able to access our private data structure in other parts of the
+driver, you need to attach it to the \code{pdev} structure using the
+\code{platform_set_drvdata()} function. Look for examples in the
+source code to find out how to do it.
+
 Now, at the end of the \code{probe()} routine, when the device is fully ready
 to work, you can now initialize the \code{miscdevice} structure
 for each found device:
@@ -71,10 +76,12 @@ See the lectures for details if needed!
 
 The last things to do (at least to have a {\em misc} driver, even if 
 its file operations are not ready yet), are to add the registration and
-deregistration routines.
+deregistration routines. That's typically the time when you will need
+to access the \code{feserial_dev} structure for each device from the
+\code{pdev} structure passed to the \code{remove()} routine.
 
 Make sure that your driver compiles and loads well, and that you
-now see two new device files in \code{\dev}.
+now see two new device files in \code{/dev}.
 
 At this stage, make sure you can load and unload the driver multiple
 times. This should reveal registration and deregistration issues if
@@ -82,30 +89,74 @@ there are any.
 
 \section{Apply a kernel patch}
 
+The next step is to implement the \code{write()} routine. However, we
+will need to access our \code{feserial_dev} structure from inside that
+routine. 
+
+At the moment, it is necessary to implement an \code{open} file
+operation to attach a private structure to an open device file. This is
+a bit ugly as we would have nothing special to do in such a function.
+
+Let's apply a patch that addresses this issue:
+\footnote{This patch has been submitted but hasn't been accepted yet in
+the mainline kernel, because it breaks the \code{FUSE} code which makes 
+weird assumptions about the {\em misc} framework.}
+
+\begin{itemize}
+\item Go back to the Linux source directory. Make sure you are still in
+      the \code{serial} branch (type \code{git branch}).
+\item Run \code{git status} to check whether you have uncommitted
+      changes. Commit these if they correspond to useful changes (these 
+      should be your Device Tree edits).
+\item Apply the new patch using the following command:
+      \code{git am ~/felabs/linux/src/patches/0001-char-misc*.patch}
+\item Rebuild and update your kernel image and reboot.
+\end{itemize}
+
+\section{Implement the write() routine}
 
 Now, add code to your write function, to copy user data to the serial
 port, writing characters one by one.
 
-Once done, compile and load your module. Test that your \code{write} function
-works properly by using:
+The first thing to do is to retrieve the \code{feserial_dev} structure
+from the \code{miscdevice} structure, itself accessible through the 
+\code{private_data} field of the open file structure (\code{file}).
+
+At the time we registered our {\em misc} device, we didn't keep any
+pointeur to the \code{feserial_dev} structure. However, the
+\code{miscdevice} structure is accessible, and being a member of the
+\code{feserial_dev} structure, we can use a magic macro to compute
+the address of the parent structure:
 
 \begin{verbatim}
-echo "test" > /dev/serial
+struct feserial_dev *dev =
+	container_of(file->private_data, struct feserial_dev, miscdev);
+\end{verbatim}
+
+See \url{http://linuxwell.com/2012/11/10/magical-container_of-macro/}
+for interesting implementation details about this macro.
+
+Now, add code that copies (in a secure way) each character from the
+user space buffer to the UART device. 
+
+Once done, compile and load your module. Test that your \code{write} function
+works properly by using (example for UART2):
+
+\begin{verbatim}
+echo "test" > /dev/feserial-48024000
 \end{verbatim}
 
 The \code{test} string should appear on the remote side (i.e in
-the \code{picocom} process connected to \code{/dev/ttyUSB0}).
+the \code{picocom} process connected to \code{/dev/ttyUSB1}).
+
+If it works, you can triumph and do a victory danse in front of the 
+whole class!
 
 You'll quickly discover than newlines do not work properly. To fix
 this, when the userspace application sends \verb+"\n"+, you must send
 \verb+"\n\r"+ to the serial port.
 
-\section{Driver sanity check}
-
-Once again, make sure that you can load your module again after
-removing it.
-
-\section{Ioctl operation}
+\section{Going further: ioctl operation}
 
 We would like to maintain a counter of the number of characters
 written through the serial port. So we need to implement two
