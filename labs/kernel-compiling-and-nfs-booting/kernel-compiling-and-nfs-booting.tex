@@ -1,0 +1,218 @@
+\subchapter{Kernel compiling and booting}{Objective: compile and boot
+a kernel for your board, booting on a directory on your workstation
+shared by NFS.}
+
+After this lab, you will be able to:
+\begin{itemize}
+
+\item Cross-compile a kernel for the ARM platform
+
+\item Boot this kernel on an NFS root filesystem, which is somewhere
+on your development workstation\footnote{NFS root filesystems are
+particularly useful to compile modules on your host, and make them
+directly visible on the target. You no longer have to update the root
+filesystem by hand and transfer it to the target (requiring a shutdown
+and reboot).}
+
+\end{itemize}
+
+\section{Lab implementation}
+
+While developing a kernel module, the developer wants to change the
+source code, compile and test the new kernel module very
+frequently. While writing and compiling the kernel module is done the
+development workstation, the test of the kernel module usually has to
+be done on the target, since it might interact with hardware specific
+to the target.
+
+However, flashing the root filesystem on the target for every test is
+time-consuming and would use the flash chip needlessly.
+
+Fortunately, it is possible to set up networking between the
+development workstation and the target. Then, workstation files can be
+accessed through the network by the target, using NFS.
+
+\begin{center}
+\includegraphics[width=\textwidth]{labs/kernel-module-environment/host-vs-target.pdf}
+\end{center}
+
+\section{Setup}
+
+Go to the \code{$HOME/felabs/linux/src/linux} directory.
+
+Install packages needed for configuring, compiling and booting
+a kernel for your board:
+
+\begin{verbatim}
+sudo apt-get install libqt4-dev g++ u-boot-tools
+\end{verbatim}
+
+\code{libqt4-dev} and \code{g++} are needed for \code{make xconfig}.
+\code{u-boot-tools} is needed to build the \code{uImage} file for
+U-boot (\code{mkimage} utility).
+
+\section{Apply a kernel patch for BeagleBone Black}
+
+At the time of this writing, the mainline Linux 3.11 kernel is missing a 
+specific Device Tree Source (DTS) file for the BeagleBone Black.
+Without it, you could use the DTS for the original Beagle Bone, but it
+would blow up the HDMI transceiver after a dozen boots \footnote{See
+\url{http://article.gmane.org/gmane.linux.kernel.stable/63648} for
+details.}. 
+
+We are providing a patch to add such a DTS file. Let's create 
+a branch, starting from our \code{3.11.y} branch, and including this
+patch.
+
+First, make sure you are in the \code{3.11.y} branch:
+\begin{verbatim}
+git branch
+\end{verbatim}
+
+Then, let's create the new branch and apply the patch for BeagleBone
+Black:
+\begin{verbatim}
+git checkout -b 3.11.y-bbb
+git am ../patches/*.patch
+\end{verbatim}
+ 
+\section{Cross-compiling toolchain setup}
+
+We are going to install a cross-compiling toolchain from Linaro, a
+very popular source for ARM toolchains (amongst other useful resources
+for Linux on ARM).
+
+\begin{verbatim}
+sudo apt-get install gcc-arm-linux-gnueabi
+\end{verbatim}
+
+Now find out the path and name of the cross-compiler executable by looking at the contents of the package:
+
+\begin{verbatim}
+dpkg -L gcc-arm-linux-gnueabi
+\end{verbatim}
+
+\section{Kernel configuration}
+
+Configure this kernel with the ready-made configuration for boards in
+the OMAP2 and later family which the AM335x found in the BeagleBone
+belongs to. Don't forget to set the \code{ARCH} and
+\code{CROSS_COMPILE} definitions for the \code{arm} platform and to
+use your cross-compiler.
+
+Make sure that this configuration has \code{CONFIG_ROOT_NFS=y} (support
+booting on an NFS exported root directory).
+
+Compile your kernel and generate the \code{uImage} kernel image that
+U-boot needs (the U-boot bootloader needs the kernel \code{zImage}
+file to be encapsulated in a special container and the kernel
+\code{Makefile} can generate this container for you by running the
+\code{mkimage} tool found in the \code{uboot-mkimage} package).
+
+This file will contain, among other things, the load address of the
+kernel. Nowadays, the kernel can boot on several platforms, each with
+different load addresses, that makes the use of \code{uImage} not very
+convenient. So, if the default load address doesn't work for you, you'll
+need to specify it during the generation of \code{uImage} using the
+\code{LOADADDR} environment variable.
+
+\begin{verbatim}
+make LOADADDR=0x80008000 uImage
+\end{verbatim}
+
+Now also generate the Device Tree Binaries (DTBs):
+
+\begin{verbatim}
+make dtbs
+\end{verbatim}
+
+Now, copy the \code{uImage} and \code{am335x-boneblack.dtb} files
+to the TFTP server home directory (\code{/var/lib/tftpboot}).
+
+\section{Setting up the NFS server}
+
+Install the NFS server by installing the \code{nfs-kernel-server}
+package. Once installed, edit the \code{/etc/exports} file as
+\code{root} to add the following lines, assuming that the IP address
+of your board will be \code{192.168.0.100}:
+
+\scriptsize
+\begin{verbatim}
+/home/<user>/felabs/linux/modules/nfsroot 192.168.0.100(rw,no_root_squash,no_subtree_check)
+\end{verbatim}
+\normalsize
+
+Then, restart the NFS server:
+
+\begin{verbatim}
+sudo /etc/init.d/nfs-kernel-server restart
+\end{verbatim}
+
+If there is any error message, this usually means that there was a
+syntax error in the \code{/etc/exports} file. Don't proceed until these
+errors disappear.
+
+\section{Boot the system}
+
+First, boot the board to the U-Boot prompt. Before booting the kernel,
+we need to tell it which console to use and that the root filesystem
+should be mounted over NFS, by setting some kernel parameters.
+
+Do this by setting U-boot's \code{bootargs} environment variable (all in
+just one line, pay attention to the \code{O} character, like "OMAP", in
+\code{ttyO0}): 
+
+\begin{verbatim}
+setenv bootargs root=/dev/nfs ip=192.168.0.100 console=ttyO0
+  nfsroot=192.168.0.1:/home/<user>/felabs/linux/modules/nfsroot
+saveenv
+\end{verbatim}
+
+Of course, you need to adapt the IP addresses to your exact network
+setup. Now, download the kernel image through \code{tftp}:
+
+\begin{verbatim}
+tftp 0x81000000 uImage
+\end{verbatim}
+
+You'll also need to download the device tree blob:
+
+\begin{verbatim}
+tftp 0x82000000 am335x-boneblack.dtb
+\end{verbatim}
+
+Now, boot your kernel:
+
+\begin{verbatim}
+bootm 0x81000000 - 0x82000000
+\end{verbatim}
+
+If everything goes right, you should reach a shell prompt. Otherwise,
+check your setup or ask your instructor for details.
+
+If the kernel fails to mount the NFS filesystem, look carefully at the
+error messages in the console. If this doesn't give any clue, you can
+also have a look at the NFS server logs in \code{/var/log/syslog}.
+
+\section{Automate the boot process}
+
+To avoid typing the same U-boot commands over and over again each time
+you power on or reset your board, you can use U-Boot's \code{bootcmd}
+environment variable:
+
+{\scriptsize
+\begin{verbatim}
+setenv bootcmd 'tftp 0x81000000 uImage; tftp 0x82000000 am335x-boneblack.dtb; bootm 0x81000000 - 0x82000000'
+saveenv
+\end{verbatim}
+}
+
+Don't hesitate to change it according to your exact needs.
+
+We could also copy the \code{uImage} file to the eMMC flash and avoid
+downloading it over and over again. However, handling flash is outside
+of the scope of this course. See our
+\href{http://free-electrons.com/training/embedded-linux/}{Embedded
+Linux system development course} and its on-line materials for
+details.
+

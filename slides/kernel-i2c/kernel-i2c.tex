@@ -1,0 +1,399 @@
+\section{Introduction to the I2C subsystem}
+
+\begin{frame}{What is I2C?}
+  \begin{itemize}
+  \item A very commonly used low-speed bus to connect on-board
+    devices to the processor.
+  \item Uses only two wires: SDA for the data, SCL for the clock.
+  \item It is a master/slave bus: only the master can initiate
+    transactions, and slaves can only reply to transactions initiated
+    by masters.
+  \item In a Linux system, the I2C controller embedded in the
+    processor is typically the master, controlling the bus.
+  \item Each slave device is identified by a unique I2C address. Each
+    transaction initiated by the master contains this address, which
+    allows the relevant slave to recognize that it should reply to
+    this particular transaction.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{An I2C bus example}
+  \begin{center}
+    \includegraphics[width=\textwidth]{slides/kernel-i2c/i2c-bus.pdf}
+  \end{center}
+\end{frame}
+
+\begin{frame}{The I2C subsystem}
+  \begin{itemize}
+  \item Like all bus subsystems, the I2C subsystem is responsible for:
+    \begin{itemize}
+    \item Providing an API to implement I2C controller drivers
+    \item Providing an API to implement I2C device drivers, in kernel space
+    \item Providing an API to implement I2C device drivers, in user space
+    \end{itemize}
+  \item The core of the I2C subsystem is located in
+    \kpath{drivers/i2c}.
+  \item The I2C controller drivers are located in
+    \kpath{drivers/i2c/busses}.
+  \item The I2C device drivers are located throughout
+    \kpath{drivers/}, depending on the type of device (ex:
+    \kpath{drivers/input} for input devices).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Registering an I2C device driver}
+  \begin{itemize}
+  \item Like all bus subsystems, the I2C subsystem defines a
+    \kstruct{i2c_driver} that inherits from
+    \kstruct{struct device_driver}, and which must be instantiated and
+    registered by each I2C device driver.
+    \begin{itemize}
+    \item As usual, this structure points to the \code{->probe()} and
+      \code{->remove()} functions.
+    \item It also contains an \code{id_table} field that must point to a
+      list of {\em device IDs} (which is a list of tuples containing a
+      string and some private driver data). It is used for non-DT based
+      probing of I2C devices.
+    \end{itemize}
+  \item The \kfunc{i2c_add_driver} and \kfunc{i2c_del_driver} functions
+    are used to register/unregister the driver.
+  \item If the driver doesn't do anything else in its
+    \code{init()}/\code{exit()} functions, it is advised to use
+    the \kfunc{module_i2c_driver} macro instead.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Registering an I2C device driver: example}
+  \begin{block}{}
+  \begin{minted}[fontsize=\tiny]{c}
+static const struct i2c_device_id <driver>_id[] = {
+        { "<device-name>", 0 },
+        { }
+};
+MODULE_DEVICE_TABLE(i2c, <driver>_id);
+
+#ifdef CONFIG_OF
+static const struct of_device_id <driver>_dt_ids[] = {
+        { .compatible = "<vendor>,<device-name>", },
+        { }
+};
+MODULE_DEVICE_TABLE(of, <driver>_dt_ids);
+#endif
+
+static struct i2c_driver <driver>_driver = {
+        .probe          = <driver>_probe,
+        .remove         = <driver>_remove,
+        .id_table       = <driver>_id,
+        .driver = {
+                .name   = "<driver-name>",
+                .owner  = THIS_MODULE,
+                .of_match_table = of_match_ptr(<driver>_dt_ids),
+        },
+};
+
+module_i2c_driver(<driver>_driver);
+\end{minted}
+\end{block}
+\end{frame}
+
+\begin{frame}{Registering an I2C device: non-DT}
+  \begin{itemize}
+  \item On non-DT platforms, the \ksym{i2c_board_info} structure
+    allows to describe how an I2C device is connected to a board.
+  \item Such structures are normally defined with the
+    \ksym{I2C_BOARD_INFO} helper macro.
+    \begin{itemize}
+    \item Takes as argument the device name and the slave address of
+      the device on the bus.
+    \end{itemize}
+  \item An array of such structures is registed on a per-bus basis
+    using \kfunc{i2c_register_board_info}, when the platform is
+    initialized.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Registering an I2C device, non-DT example}
+  \begin{block}{}
+    \begin{minted}[fontsize=\tiny]{c}
+static struct i2c_board_info <board>_i2c_devices[] __initdata = {
+        {
+                I2C_BOARD_INFO("cs42l51", 0x4a),
+        },
+};
+
+void board_init(void)
+{
+        /*
+         * Here should be the registration of all devices, including
+         * the I2C controller device.
+         */
+
+        i2c_register_board_info(0, <board>_i2c_devices,
+                                ARRAY_SIZE(<board>_i2c_devices));
+
+        /* More devices registered here */
+}
+    \end{minted}
+  \end{block}
+\end{frame}
+
+\begin{frame}{Registering an I2C device, in the DT}
+  \begin{itemize}
+  \item In the Device Tree, the I2C controller device is typically
+    defined in the \code{.dtsi} file that describes the processor.
+    \begin{itemize}
+    \item Normally defined with \code{status = "disabled"}.
+    \end{itemize}
+  \item At the board/platform level:
+    \begin{itemize}
+    \item the I2C controller device is enabled
+      (\code{status = "okay"})
+    \item the I2C bus frequency is defined, using the
+      \code{clock-frequency} property.
+    \item the I2C devices on the bus are described as children of the
+      I2C controller node, where the \code{reg} property gives the I2C
+      slave address on the bus.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Registering an I2C device, DT example (1/2)}
+  \begin{block}{Definition of the I2C controller, .dtsi file}
+    \begin{minted}[fontsize=\footnotesize]{perl}
+i2c@7000c000 {
+        compatible = "nvidia,tegra20-i2c";
+        reg = <0x7000c000 0x100>;
+        interrupts = <GIC_SPI 38 IRQ_TYPE_LEVEL_HIGH>;
+        #address-cells = <1>;
+        #size-cells = <0>;
+        clocks = <&tegra_car TEGRA20_CLK_I2C1>,
+                 <&tegra_car TEGRA20_CLK_PLL_P_OUT3>;
+        clock-names = "div-clk", "fast-clk";
+        status = "disabled";
+};
+    \end{minted}
+  \end{block}
+\end{frame}
+
+\begin{frame}[fragile]{Registering an I2C device, DT example (2/2)}
+  \begin{block}{Definition of the I2C device, .dts file}
+    \begin{minted}[fontsize=\footnotesize]{perl}
+i2c@7000c000 {
+        status = "okay";
+        clock-frequency = <400000>;
+
+        alc5632: alc5632@1e {
+                compatible = "realtek,alc5632";
+                reg = <0x1e>;
+                gpio-controller;
+                #gpio-cells = <2>;
+        };
+};
+    \end{minted}
+  \end{block}
+\end{frame}
+
+\begin{frame}{\code{probe()} and \code{remove()}}
+
+  \begin{itemize}
+  \item The \code{->probe()} function is responsible for initializing
+    the device and registering it in the appropriate kernel
+    framework. It receives as argument:
+    \begin{itemize}
+    \item A \kstruct{i2c_client} pointer, which represents the I2C
+      device itself. This structure inherits from \kstruct{device}.
+    \item A \kstruct{i2c_device_id} pointer, which points to the
+      I2C device ID entry that matched the device that is being
+      probed.
+    \end{itemize}
+  \item The \code{->remove()} function is responsible for
+    unregistering the device from the kernel framework and shut it
+    down. It receives as argument:
+    \begin{itemize}
+    \item The same \kstruct{i2c_client} pointer that was passed as
+      argument to \code{->probe()}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Probe/remove example}
+  \begin{block}{}
+    \begin{minted}[fontsize=\footnotesize]{c}
+static int <driver>_probe(struct i2c_client *client,
+                          const struct i2c_device_id *id)
+{
+        /* initialize device */
+        /* register to a kernel framework */
+
+        i2c_set_clientdata(client, <private data>);
+        return 0;
+}
+
+static int <driver>_remove(struct i2c_client *client)
+{
+        <private data> = i2c_get_clientdata(client);
+        /* unregister device from kernel framework */
+        /* shut down the device */
+        return 0;
+}
+    \end{minted}
+  \end{block}
+\end{frame}
+
+\setuplabframe
+{Linux device model for an I2C driver}
+{
+  \begin{itemize}
+  \item Modify the Device Tree to instantiate an I2C device.
+  \item Implement a driver that registers as an I2C driver.
+  \item Make sure that the probe/remove functions are called
+        when there is a device/driver match.
+  \item Explore the {\em sysfs} entries related to your driver and
+    device.
+  \end{itemize}
+}
+
+\begin{frame}{Communicating with the I2C device: raw API}
+  The most {\bf basic API} to communicate with the I2C device provides
+  functions to either send or receive data:
+  \begin{itemize}
+  \item
+    \code{int i2c_master_send(struct i2c_client *client, const char *buf, int count);}\\Sends
+    the contents of \code{buf} to the client.
+  \item
+    \code{int i2c_master_recv(struct i2c_client *client, char *buf, int count);}\\Receives
+    \code{count} bytes from the client, and store them into
+    \code{buf}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Communicating with the I2C device: message transfer}
+  The message transfer API allows to describe {\bf transfers} that
+  consists of several {\bf messages}, with each message being a
+  transaction in one direction:
+  \begin{itemize}
+  \item
+    \code{int i2c_transfer(struct i2c_adapter *adap, struct i2c_msg *msg, int num);}
+  \item The \code{i2c_adapter} pointer can be found by using
+    \code{client->adapter}
+  \item The \ksym{i2c_msg} structure defines the length, location, and
+    direction of the message.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{I2C: message transfer example}
+\begin{block}{}
+  \begin{minted}[fontsize=\footnotesize]{c}
+struct i2c_msg msg[2];
+int error;
+u8 start_reg;
+u8 buf[10];
+
+msg[0].addr = client->addr;
+msg[0].flags = 0;
+msg[0].len = 1;
+msg[0].buf = &start_reg;
+start_reg = 0x10;
+
+msg[1].addr = client->addr;
+msg[1].flags = I2C_M_RD;
+msg[1].len = sizeof(buf);
+msg[1].buf = buf;
+
+error = i2c_transfer(client->adapter, msg, 2);
+\end{minted}
+\end{block}
+\end{frame}
+
+\begin{frame}{SMBus calls}
+  \begin{itemize}
+  \item SMBus is a subset of the I2C protocol.
+  \item It defines a standard set of transactions, for example to read
+    or write a register into a device.
+  \item Linux provides SMBus functions that {\em should be used} when
+    possible instead of the raw API, if the I2C device uses this
+    standard type of transactions.
+  \item Example: the \kfunc{i2c_smbus_read_byte_data} function allows
+    to read one byte of data from a device register.
+    \begin{itemize}
+    \item It does the following operations:
+      \code{S Addr Wr [A] Comm [A] S Addr Rd [A] [Data] NA P}
+    \item Which means it first writes a one byte data command ({\em
+        Comm}), and then reads back one byte of data ({\em [Data]}).
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{List of SMBus functions}
+  \begin{itemize}
+  \item Read/write one byte
+    \begin{itemize}
+      \tiny
+    \item \code{s32 i2c_smbus_read_byte(const struct i2c_client *client);}
+    \item \code{s32 i2c_smbus_write_byte(const struct i2c_client *client, u8 value);}
+    \end{itemize}
+  \item Write a command byte, and read or write one byte
+    \begin{itemize}
+      \tiny
+    \item \code{s32 i2c_smbus_read_byte_data(const struct i2c_client *client, u8 command);}
+    \item \code{s32 i2c_smbus_write_byte_data(const struct i2c_client *client, u8 command, u8 value);}
+    \end{itemize}
+  \item Write a command byte, and read or write one word
+    \begin{itemize}
+      \tiny
+    \item \code{s32 i2c_smbus_read_word_data(const struct i2c_client *client, u8 command);}
+    \item \code{s32 i2c_smbus_write_word_data(const struct i2c_client *client, u8 command, u16 value);}
+    \end{itemize}
+  \item Write a command byte, and read or write a block of data (max
+    32 bytes)
+    \begin{itemize}
+      \tiny
+    \item \code{s32 i2c_smbus_read_block_data(const struct i2c_client *client, u8 command, u8 *values);}
+    \item \code{s32 i2c_smbus_write_block_data(const struct i2c_client *client, u8 command, u8 length, const u8 *values);}
+    \end{itemize}
+  \item Write a command byte, and read or write a block of data (no
+    limit)
+    \begin{itemize}
+      \tiny
+    \item \code{s32 i2c_smbus_read_i2c_block_data(const struct i2c_client *client, u8 command, u8 length, u8 *values);}
+    \item \code{s32 i2c_smbus_write_i2c_block_data(const struct i2c_client *client, u8 command, u8 length, const u8 *values);}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{I2C functionality}
+  \begin{itemize}
+  \item Not all I2C controllers support all functionalities.
+  \item The I2C controller drivers therefore tell the I2C core which
+    functionalities they support.
+  \item An I2C device driver must check that the functionalities they
+    need are provided by the I2C controller in use on the system.
+  \item The \kfunc{i2c_check_functionality} function allows to make
+    such a check.
+  \item Examples of functionalities: \ksym{I2C_FUNC_I2C} to be able to
+    use the raw I2C functions, \ksym{I2C_FUNC_SMBUS_BYTE_DATA} to be
+    able to use SMBus commands to write a command and read/write one
+    byte of data.
+  \item See \kpath{include/uapi/linux/i2c.h} for the full list of
+    existing functionalities.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{References}
+  \begin{itemize}
+  \item \url{http://en.wikipedia.org/wiki/I2C}, general presentation
+    of the I2C protocol
+  \item \kerneldoc{i2c/}, details about the Linux support for I2C
+    \begin{itemize}
+    \item \code{writing-clients}, how to write I2C device drivers
+    \item \code{instantiating-devices}, how to instantiate devices
+    \item \code{smbus-protocol}, details on the SMBus functions
+    \item \code{functionality}, how the functionality mechanism works
+    \item and many more documentation files
+    \end{itemize}
+  \item
+    \url{http://free-electrons.com/pub/video/2012/elce/elce-2012-anders-board-bringup-i2c.webm},
+    excellent talk: {\em You, me and I2C} from David Anders at ELCE
+    2012.
+  \end{itemize}
+\end{frame}

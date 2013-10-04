@@ -1,0 +1,188 @@
+\subchapter{Using the I2C bus}{Objective: make the I2C bus work and
+use it to implement communication with the Nunchuk device}
+
+After this lab, you will be able to:
+
+\begin{itemize}
+\item Declare pinctrl settings
+\item Access I2C device registers through the bus
+\end{itemize}
+
+\section{Setup}
+
+Stay in the \code{~/felabs/linux/src/linux} directory for kernel and DTB
+compiling (stay in the \code{nunchuk} branch), and in
+\code{~/felabs/linux/modules/nfsroot/nunchuk} for module compiling
+(use two different terminals).
+
+\section{Add pinctrl properties to the Device Tree}
+
+As you found in the previous lab, we now managed to have our nunchuk
+device enumerated on the \code{i2c1} bus.
+
+However, to access the bus data and clock signals, we need to configure
+the pin muxing of the SoC.
+
+If you go back to the BeagleBone Black System Reference Manual, in the
+{\em Connector P9} section, you can see that the pins \code{17} and
+\code{18} that we are using correspond to pins \code{A16} and \code{B16}
+of the AM335 SoC. You can also see that such pins need to be configured 
+as \code{MODE2} to get the functionality that we need (\code{I2C1_SCL}
+and \code{I2C1_SDA}).
+
+Now look at the Device Tree for the AM335x EVM board
+(\code{arch/arm/boot/dts/am335x-evm.dts}). It's using \code{i2c1} too.
+
+Edit the \code{arch/arm/boot/dts/am335x-bone-common.dtsi} file and 
+add what's needed to enable pin muxing for \code{i2c1}.
+Don't hesitate to go back to the lectures to understand what to do!
+
+Rebuild and update your DTB, and eventually reboot the board.
+
+We will use the \code{i2cdetect} command to make sure that 
+everything works fine for \code{i2c1}:
+
+\begin{verbatim}
+# i2cdetect -l
+i2c-0	i2c       	OMAP I2C adapter                	I2C adapter
+i2c-1	i2c       	OMAP I2C adapter                	I2C adapter
+\end{verbatim}
+
+\begin{verbatim}
+# i2cdetect -F 1
+Functionalities implemented by /dev/i2c-1:
+I2C                              yes
+SMBus Quick Command              no
+SMBus Send Byte                  yes
+SMBus Receive Byte               yes
+SMBus Write Byte                 yes
+SMBus Read Byte                  yes
+SMBus Write Word                 yes
+SMBus Read Word                  yes
+SMBus Process Call               yes
+SMBus Block Write                yes
+SMBus Block Read                 no
+SMBus Block Process Call         no
+SMBus PEC                        yes
+I2C Block Write                  yes
+I2C Block Read                   yes
+\end{verbatim}
+
+You can see that the {\em SMBus Quick Commands} are not available on
+this driver, yet \code{i2cdetect} uses them by default to scan the i2c
+bus. You can use \code{i2cdetect -r} to use the usual set of i2c
+commands, and be able to detect the devices on your bus.
+
+To test if everything works fine, run \code{i2cdetect -r 1}. This will
+scan the \code{i2c1} bus for devices. You should see a device at the
+address \code{0x52}. This is your nunchuk.
+
+If everything works as expected, commit your Device Tree changes. This
+will be required switch to another branch later:
+
+\begin{verbatim}
+git commit -as
+\end{verbatim}
+
+\begin{itemize}
+\item \code{git commit -a} adds all the files already known to
+      \code{git} to the commit.
+\item \code{git commit -s} adds a \code{Signed-off-by} line (required
+      for all contributions to the Linux kernel).
+\end{itemize}
+
+\section{Device initialization}
+
+The next step is to read the state of the nunchuk registers, to find out
+whether buttons are pressed or not, for example.
+
+Before being able to read nunchuk registers, the first thing to do is 
+to send initialization commands to it. That's also a nice way of making
+sure i2c communication works as expected.
+
+In the probe routine (run every time a matching device is found):
+
+\begin{enumerate}
+\item Using the I2C raw API (see the slides), send two bytes to the
+      device: \code{0xf0} and \code{0x55}. Make sure you check the return value of 
+      the function you're using. This could reveal communication issues.
+      Using LXR, find examples of how to handle failures properly using
+      the same function.
+\item Let the CPU wait for 1 ms by using the \code{udelay()} routine.
+      You may need to use LXR again to find the right C headers to
+      include.
+\item In the same way, send the \code{0xfb} and \code{0x00} bytes now. 
+      This completes the nunchuk initialization.
+\end{enumerate}
+
+Recompile and load the driver, and make sure you have no communication
+errors.
+
+\section{Read nunchuk registers}
+
+The nunchuk exhibits a rather weird behaviour: it seems that it update
+the state of its internal registers only when they have been read.
+
+As a consequence, we will need to read the registers twice!
+
+To keep the code simple and readable, let's create a
+\code{nunchuk_read_registers} function to do this. In this function:
+
+\begin{enumerate}
+\item Start by putting a \code{10 ms} delay by calling the
+      \code{mdelay()} routine. That's needed to add time between the
+      previous i2c operation and the next one.
+\item Write \code{0x00} to the bus. That will allow us to read
+      the device registers.
+\item Add another \code{10 ms} delay.
+\item Read 6 bytes from the device, still using the I2C raw API.
+      Check the return value as usual. 
+\end{enumerate}
+
+\section{Reading the state of the nunchuk buttons}
+
+Back to the \code{probe()} function, call your new function twice.
+
+After the second call, compute the states of the \code{Z} and \code{C}
+buttons, which can be found in the sixth byte that you read.
+
+As explained on
+\url{http://web.engr.oregonstate.edu/~sullivae/ece375/pdf/nunchuk.pdf}:
+
+\begin{itemize}
+\item \code{bit 0 == 0} means that \code{Z} is pressed. 
+\item \code{bit 0 == 1} means that \code{Z} is released. 
+\item \code{bit 1 == 0} means that \code{C} is pressed. 
+\item \code{bit 1 == 1} means that \code{C} is released. 
+\end{itemize}
+
+Using boolean operators, write code that initializes a \code{zpressed}
+integer variable, which value is \code{1} when the \code{Z} button is
+pressed, and \code{0} otherwise. Create a similar \code{cpressed}
+variable for the \code{C} button.\footnote{You may use the \code{BIT()}
+macro, which will make your life easier. See LXR for details.}
+
+The last thing is to test the states of these new variables at the end
+of the \code{probe()} function, and log a message to the console
+when one of the buttons is pressed.
+
+\section{Testing}
+
+Compile your module, and reload it. No button presses should be
+detected. Remove your module.
+
+Now hold the \code{Z} and reload and remove your module again:
+\begin{verbatim}
+insmod /root/nunchuk/nunchuk.ko; rmmod nunchuk
+\end{verbatim}
+
+You should now see the message confirming that the driver found
+out that the \code{Z} button was held.
+
+Do the same over and over again with various button states.
+
+At this stage, we just made sure that we could read the state
+of the device registers through the I2C bus. Of course, loading and
+removing the module every time is not an acceptable way of 
+accessing such data. We will give the driver a proper {\em input}
+interface in the next slides.

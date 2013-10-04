@@ -2,6 +2,8 @@
   analysis}{Objective: Use kernel debugging mechanisms and analyze a
   kernel crash}
 
+In this lab, we will continue to work on the code of our serial driver.
+
 \section{pr\_debug() and dynamic debugging}
 
 Add a \code{pr_debug()} call in the \code{write()} operation that shows
@@ -62,37 +64,28 @@ accessing the kernel logs on the serial console.
 
 \subsection{Setup}
 
-Go to the \code{$HOME/felabs/linux/debugging} directory.
+Go to the \code{~/felabs/linux/modules/nfsroot/root/debugging/} directory.
 
-Reuse kernel sources from the previous labs. Configure the kernel
-with the default settings for your board, and then make sure the
-the following options enabled:
+Make sure your kernel is built with the following options:
 
 \begin{itemize}
-
-\item Support for root filesystem over NFS support
 
 \item The \code{CONFIG_DEBUG_INFO} configuration option,
   (\code{Kernel Hacking} section) which makes it possible to see source
   code in the disassembled kernel.
 
-\item Disable the \code{CONFIG_ARM_UNWIND} configuration option
-  (\code{Kernel Hacking} section). This option enables a new mechanism to
-  handle stack backtraces, but this new mechanism is not yet as
-  functional and reliable as the old mechanism based on frame
+\item The \code{CONFIG_ARM_UNWIND} configuration option
+  (\code{Kernel Hacking} section) disabled. This option enables a
+  new mechanism to handle stack backtraces, but this new mechanism is
+  not yet as functional and reliable as the old mechanism based on frame
   pointers. In our case, with our board, you get a backtrace only if
   this option is disabled.
-
 \end{itemize}
 
-The \code{nfsroot/} directory is the root filesystem.
+Compile the \code{drvbroken} module provided in \code{nfsroot/root/debugging}.
 
-Compile the \code{drvbroken} module provided
-  in \code{nfsroot/root/drvbroken}, after modifying the Makefile so
-  that \code{KDIR} properly points to your kernel source tree.
-
-Run the target system on the Calao board, and load the \code{drvbroken}
-kernel module. See it crashing in a nice way.
+On your board, load the \code{drvbroken.ko} module. See it crashing
+in a nice way.
 
 \section{Analyzing the crash message}
 
@@ -112,16 +105,17 @@ If the function source code is not enough, then you can look at the
 disassembled version of the function, either using:
 
 \begin{verbatim}
-arm-linux-gnueabi-objdump -S linux-3.6.x/vmlinux > vmlinux.disasm
+cd ~/felabs/linux/src/linux/
+arm-linux-gnueabi-objdump -S vmlinux > vmlinux.disasm
 \end{verbatim}
 
 or, using \code{gdb-multiarch}\footnote{gdb-multiarch is a new package
-  supporting multiple architectures at once. If you have a cross
-  toolchain including gdb, you can also run arm-linux-gdb directly.}
+supporting multiple architectures at once. If you have a cross
+toolchain including gdb, you can also run arm-linux-gdb directly.}
 
 \begin{verbatim}
 sudo apt-get install gdb-multiarch
-gdb-multiarch linux-3.6.x/vmlinux
+gdb-multiarch vmlinux
 (gdb) set arch arm
 (gdb) set gnutarget elf32-littlearm
 (gdb) disassemble function_name
