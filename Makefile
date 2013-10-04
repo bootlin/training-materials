@@ -68,7 +68,8 @@ KERNEL_SLIDES = \
 		kernel-driver-development-dma \
 		kernel-driver-development-mmap \
 		kernel-git-title \
-		kernel-git-content
+		kernel-git-content \
+		kernel-git-lab 
 
 SYSDEV_SLIDES = \
 		licensing \
@@ -233,10 +234,10 @@ KERNEL_LABS   = setup \
 		kernel-serial-iomem \
 		kernel-serial-output \
 		kernel-debugging \
-		backup
+		kernel-git \
 #		kernel-serial-interrupt \
 #		kernel-locking \
-#		kernel-git \
+#		backup # Currently broken for kernel course
 
 ANDROID_LABS  = setup \
 		android-source-code \
