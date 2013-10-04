@@ -19,24 +19,37 @@ During this lab, you will:
 \section{Setup}
 
 This lab is a continuation of the {\em Output-only character driver
-  lab}, so we'll re-use the code in
-\code{$HOME/felabs/linux/character}. Your Beaglebone should boot over
-NFS and mount \code{/home/<user>/felabs/linux/character/nfsroot/} as
-the root filesystem.
+lab}. Use the same kernel, environment and paths!
 
 \section{Register the handler}
 
-First, declare an interrupt handler function. Then, in the module
-initialization function, we need to register this handler to an IRQ
-number.
+Declare an interrupt handler function stub. Then, in the module
+initialization function, we need to register this handler, binding
+it to the right IRQ number.
 
 Nowadays, Linux is using a virtual IRQ number that it derives from the
 hardware interrupt number. This virtual number is created through the
-\code{irqdomain} mechanism. The hardware IRQ number to use is
-\code{72} for the UART. You can get a virtual IRQ number by using the
-\code{irq_create_mapping} function.
+\code{irqdomain} mechanism. The hardware IRQ number to use is found in
+the device tree.
 
-Then, pass the newly created virtual interrupt to \code{request_irq}
+First, add an \code{irq} fied to your \code{feserial_dev} structure:
+
+\begin{verbatim}
+struct feserial_dev {
+	struct miscdevice miscdev;
+	void __iomem *regs;
+	int irq;
+};
+\end{verbatim}
+
+Now, there is a very convenient shortcut to retrieve the
+hardware IRQ number from the device tree and get a virtual IRQ number.
+
+\begin{verbatim}
+dev->irq = irq_of_parse_and_map(pdev->dev.of_node, 0);
+\end{verbatim}
+
+Then, pass the newly created virtual interrupt to \code{request_irq()}
 along with the interrupt handler to register your interrupt in the
 kernel. Note that this IRQ is shared, so the appropriate flags must be
 passed at registration time.
@@ -45,11 +58,12 @@ Then, in the interrupt handler, just print a message and return
 \code{IRQ_HANDLED} (to tell the kernel that we have handled the
 interrupt).
 
-You'll also need to enable the interrupt when receiving a new
-character. To do so, in the initialization of the module, write the
+You'll also need to enable receive interrupts.
+To do so, in the \code{probe()} function, set the
 \code{UART_IER_RDI} bit in the \code{UART_IER} register.
 
-Compile and load your module. Send a character on the serial link, and
+Compile and load your module. Send a character on the serial link (just
+type something in the corresponding \code{picocom} terminal, and
 look at the kernel logs: they are full of our message indicating that
 interrupts are occurring, even if we only sent one character! It shows
 you that interrupt handlers should do a little bit more when an
@@ -63,8 +77,8 @@ handler, hoping that this handler will acknowledge it. What we
 experienced here is called an \code{interrupt flood}.
 
 Now, in our interrupt handler, we want to acknowledge the
-interrupt. On the UART controller we drive, it's done simply by
-reading the content of the \code{UART_RX} register, which holds the
+interrupt. On the UART controllers that we drive, it's done simply by
+reading the contents of the \code{UART_RX} register, which holds the
 next character received. You can display the value you read to see
 that the driver will receive whatever character you sent.
 
