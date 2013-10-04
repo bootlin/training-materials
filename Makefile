@@ -231,9 +231,9 @@ KERNEL_LABS   = setup \
 		kernel-i2c-communication \
 		kernel-i2c-input-interface \
 		kernel-serial-iomem \
+		kernel-serial-output \
 		kernel-debugging \
 		backup
-#		kernel-serial-output \
 #		kernel-serial-interrupt \
 #		kernel-locking \
 #		kernel-git \
