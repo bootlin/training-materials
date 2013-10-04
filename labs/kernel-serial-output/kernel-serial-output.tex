@@ -13,22 +13,75 @@ After this lab, you will be able to:
 \item You will practice kernel standard error codes a little bit too.
 \end{itemize}
 
-\section{Setup}
+You must have completed the previous lab to work on this one. 
 
-You must have completed the previous lab before.
+\section{Misc driver registration}
 
-\section{Major number registration}
+In the same way we added an input interface to our Nunchuk driver, it is
+now time to give an interface to our serial driver. As our needs are
+simple, we won't use the {\em Serial framework} provided by the Linux
+kernel, but will use the {\em Misc framework} to implement a simple
+character driver.
 
-Find an available character device major number on your virtual
-system. Modify the \code{serial.c} file to register this major number
-in your new driver. Compile your module, load it, and check that it
-effectively registered the major number you chose.
+Let's start by adding the infrastructure to register a {\em misc}
+driver.
 
-\section{Simplistic character driver}
+The first thing to do is to create:
 
-Add the code to register a character driver with your major number, and
-the empty file operation functions which already exist in
-\code{serial.c}. Also create the corresponding \code{/dev/serial} device file.
+\begin{itemize}
+\item An \code{feserial_write()} write file operation stub.
+      See the slides or the code for the prototype to use.
+      Just place a \code{return -EINVAL;} statement in the function
+      body so far, to signal that there something wrong with this
+      function so far.
+\item Similarly, an \code{feserial_read()} read file operation stub.
+\item A \code{file_operations} structure declaring these file
+      operations.
+\end{itemize}
+
+The next step is to create a \code{miscdevice} structure and initialize
+it. However, we are facing the same usual constraint to handle multiple
+devices. Like in the Nunchuk driver, we have to add such a structure
+to our device specific private data structure:
+
+\begin{verbatim}
+struct feserial_dev {
+        struct miscdevice miscdev;
+        void __iomem *regs;
+};
+\end{verbatim}
+
+Now, at the end of the \code{probe()} routine, when the device is fully ready
+to work, you can now initialize the \code{miscdevice} structure
+for each found device:
+
+\begin{itemize}
+\item To get an automatically assigned minor number 
+\item To specify a name for the device file in {\em devtmpfs}. We
+      propose to use
+      \code{kasprintf(GFP_KERNEL, "feserial-\%x", res->start)}.
+      \code{kasprintf()} allocates a buffer and runs \code{ksprintf()}
+      to fill its contents.
+      Don't forget to call \code{kfree()} on this buffer in
+      the \code{remove()} function!
+\item To pass the file operations structure that you defined.
+\end{itemize}
+
+See the lectures for details if needed!
+
+The last things to do (at least to have a {\em misc} driver, even if 
+its file operations are not ready yet), are to add the registration and
+deregistration routines.
+
+Make sure that your driver compiles and loads well, and that you
+now see two new device files in \code{\dev}.
+
+At this stage, make sure you can load and unload the driver multiple
+times. This should reveal registration and deregistration issues if
+there are any.
+
+\section{Apply a kernel patch}
+
 
 Now, add code to your write function, to copy user data to the serial
 port, writing characters one by one.
