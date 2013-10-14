@@ -110,7 +110,7 @@
 \end{frame}
 
 \begin{frame}
-  \frametitle{Example of the Marvell Armada 370/XP SoCs}
+  \frametitle{Example of the Freescale iMX28 SoCs}
   \begin{itemize}
   \item The hardware platform used in this training is based on the
     AM335x processor from Texas Instruments.
@@ -120,59 +120,54 @@
     and OMAP support in the kernel hasn't fully migrated yet to all
     the infrastructures created during the {\em ARM cleanup}.
   \item Therefore, to illustrate this section, we will take the
-    example of the Marvell Armada 370/XP platform, on which Free
-    Electrons has worked specifically.
+    example of the Freescale iMX28 platform, on which Free Electrons
+    has worked specifically.
   \end{itemize}
 \end{frame}
 
 \begin{frame}
-  \frametitle{Studying the OpenBlocks AX3-4 platform}
+  \frametitle{Studying the Crystalfontz CFA-10036 platform}
   \begin{columns}
     \column{0.7\textwidth}
     \begin{itemize}
-    \item OpenBlocks AX3-4
-    \item Uses the dual-core Marvell Armada MV78260, from the Armada
-      XP family.
-    \item 1 GB of RAM
-    \item 4 Gigabit Ethernet ports
-    \item 2 serial ports, one button, 3 LEDS
-    \item Two I2Cs bus, one equipped with a RTC
-    \item Two SATA ports, one internal, one external
-    \item Two USB ports
-    \item One mini-PCIe connector
-    \item One 128 MB NOR flash
+    \item Crystalfontz CFA-10036
+    \item Uses the Freescale iMX28 SoC, from the MXS family.
+    \item 128MB of RAM
+    \item 1 serial port, 1 LED
+    \item 1 I2C bus, equipped with an OLED display
+    \item 1 SD-Card slot
     \end{itemize}
     \column{0.3\textwidth}
-    \includegraphics[width=\textwidth]{slides/kernel-porting-content/openblocks.jpg}
+    \includegraphics[width=\textwidth]{slides/kernel-porting-content/crystalfontz.jpg}
   \end{columns}
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{OpenBlocks AX3-4 Device Tree, header}
+  \frametitle{Crystalfontz CFA-10036 Device Tree, header}
   \begin{itemize}
   \item Mandatory Device Tree language definition\\
     \begin{block}{} \mint[fontsize=\tiny]{perl}+/dts-v1/+ \end{block}
   \item Include the \code{.dtsi} file describing the SoC\\
-    \begin{block}{} \mint[fontsize=\tiny]{perl}+#include "armada-xp-mv78260.dtsi"+ \end{block}
+    \begin{block}{}
+      \mint[fontsize=\tiny]{perl}+/include/ "im28.dtsi"+
+    \end{block}
   \item Start the root of the tree\\
     \begin{block}{} \mint[fontsize=\tiny]{perl}+/ {+ \end{block}
   \item A human-readable string to describe the machine\\
-    \begin{block}{} \mint[fontsize=\tiny]{perl}+  model = "PlatHome OpenBlocks AX3-4 board";+ \end{block}
+    \begin{block}{}
+      \mint[fontsize=\tiny]{perl}+model = "Crystalfontz CFA-10036 Board";+
+    \end{block}
   \item A list of {\em compatible} strings, from the most specific one
     to the most general one. Can be used by kernel code to do a SoC or
     board-specific check.\\
     \begin{block}{}
-    \begin{minted}[fontsize=\tiny]{perl}
-    compatible = "plathome,openblocks-ax3-4",
-        "marvell,armadaxp-mv78260", "marvell,armadaxp",
-        "marvell,armada-370-xp";
-      \end{minted}
+      \mint[fontsize=\tiny]{perl}+compatible = "crystalfontz,cfa10036", "fsl,imx28";+
     \end{block}
   \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{OpenBlocks AX3-4 Device Tree, chosen/memory}
+  \frametitle{Crystalfontz CFA-10036 Device Tree, chosen/memory}
   \begin{itemize}
   \item Definition of the default {\em kernel command line}. Some
     additional operating-system specific entries can be added in
@@ -189,7 +184,7 @@ chosen {
     \begin{minted}[fontsize=\footnotesize]{perl}
 memory {
         device_type = "memory";
-        reg = <0 0x00000000 0 0xC0000000>; /* 3 GB */
+        reg = <0x40000000 0x8000000>; /* 128 MB */
 };
       \end{minted}
     \end{block}
@@ -197,290 +192,173 @@ memory {
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{OpenBlocks AX3-4 Device Tree, bus/PCIe}
+  \frametitle{Crystalfontz CFA-10036, bus/UART}
   \begin{itemize}
-  \item Start of the internal SoC peripherals. The \code{ranges}
-    property has a special meaning for the Marvell platforms: it
-    allows to configure special memory windows dedicated to some
-    peripherals.
+  \item Start of the internal SoC peripherals.
     \begin{block}{}
     \begin{minted}[fontsize=\tiny]{perl}
-soc {
-        ranges = <MBUS_ID(0xf0, 0x01) 0 0 0xd0000000 0x100000
-                  MBUS_ID(0x01, 0x1d) 0 0 0xfff00000 0x100000
-                  MBUS_ID(0x01, 0x2f) 0 0 0xf0000000 0x8000000>;
+apb@80000000 {
+    apbh@80000000 {
+        apbx@80040000 {
 \end{minted}
 \end{block}
-\item The OpenBlocks has one internal mini-PCIe connector, so the
-  corresponding PCIe interface is enabled:
+\item The CFA-10036 has one debug UART, so the corresponding
+  controller is enabled:
   \begin{block}{}
     \begin{minted}[fontsize=\tiny]{perl}
-                pcie-controller {
-                        status = "okay";
-                        /* Internal mini-PCIe connector */
-                        pcie@1,0 {
-                                /* Port 0, Lane 0 */
-                                status = "okay";
-                        };
-                };
+duart: serial@80074000 {
+    pinctrl-names = "default";
+    pinctrl-0 = <&duart_pins_b>;
+    status = "okay";
+};
     \end{minted}
   \end{block}
 \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{OpenBlocks AX3-4 Device Tree, NOR flash}
+  \frametitle{Crystalfontz CFA-10036 Device Tree, Muxing}
 \begin{itemize}
-\item Definition of the {\em device bus} timings, where a NOR flash is
-  connected:
+  \item Definition of a few pins that will be muxed as GPIO, for LEDs and reset.
   \begin{block}{}
     \begin{minted}[fontsize=\tiny]{perl}
-        devbus-bootcs {
-                status = "okay";
+pinctrl@80018000 {
+    ssd1306_cfa10036: ssd1306-10036@0 {
+        reg = <0>;
+        fsl,pinmux-ids = <
+            0x2073 /* MX28_PAD_SSP0_D7__GPIO_2_7 */
+        >;
+        fsl,drive-strength = <0>;
+        fsl,voltage = <1>;
+        fsl,pull-up = <0>;
+    };
 
-                /* Read parameters */
-                devbus,bus-width    = <8>;
-                devbus,turn-off-ps  = <60000>;
-                [...]
-
-                /* Write parameters */
-                devbus,sync-enable = <0>;
-                devbus,wr-high-ps  = <60000>;
-                [...]
-
-                /* NOR 128 MiB */
-                nor@0 {
-                        compatible = "cfi-flash";
-                        reg = <0 0x8000000>;
-                        bank-width = <2>;
-                };
-        };
-      \end{minted}
-    \end{block}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}[fragile]
-  \frametitle{OpenBlocks AX3-4 Device Tree, serial/muxing}
-\begin{itemize}
-\item There are two serial ports available:
-  \begin{block}{}
-    \begin{minted}[fontsize=\tiny]{perl}
-                internal-regs {
-                        serial@12000 {
-                                clock-frequency = <250000000>;
-                                status = "okay";
-                        };
-                        serial@12100 {
-                                clock-frequency = <250000000>;
-                                status = "okay";
-                        };
-    \end{minted}
-    \end{block}
-  \item Definition of a few pins that will be muxed as GPIO, for LEDs.
-  \begin{block}{}
-    \begin{minted}[fontsize=\tiny]{perl}
-                        pinctrl {
-                                led_pins: led-pins-0 {
-                                        marvell,pins = "mpp49", "mpp51", "mpp53";
-                                        marvell,function = "gpio";
-                                };
-                        };
+    led_pins_cfa10036: leds-10036@0 {
+        reg = <0>;
+        fsl,pinmux-ids = <
+            0x3043 /* MX28_PAD_AUART1_RX__GPIO_3_4 */
+        >;
+        fsl,drive-strength = <0>;
+        fsl,voltage = <1>;
+        fsl,pull-up = <0>;
+    };
+};
     \end{minted}
   \end{block}
   \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{OpenBlocks AX3-4 Device Tree, LEDs}
+  \frametitle{Crystalfontz CFA-10036 Device Tree, LED}
 \begin{itemize}
-\item Three LEDs are connected to this platform. Note the reference to
-  the \code{led_pins} muxing configuration.
+\item One LED is connected to this platform. Note the reference to the
+  \code{led_pins_cfa10036} muxing configuration.
   \begin{block}{}
     \begin{minted}[fontsize=\tiny]{perl}
-                        leds {
-                                compatible = "gpio-leds";
-                                pinctrl-names = "default";
-                                pinctrl-0 = <&led_pins>;
+leds {
+    compatible = "gpio-leds";
+    pinctrl-names = "default";
+    pinctrl-0 = <&led_pins_cfa10036>;
 
-                                red_led {
-                                        label = "red_led";
-                                        gpios = <&gpio1 17 1>;
-                                        default-state = "off";
-                                };
-
-                                yellow_led {
-                                        label = "yellow_led";
-                                        gpios = <&gpio1 19 1>;
-                                        default-state = "off";
-                                };
-
-                                green_led {
-                                        label = "green_led";
-                                        gpios = <&gpio1 21 1>;
-                                        default-state = "off";
-                                        linux,default-trigger = "heartbeat";
-                                };
-                        };
+    power {
+        gpios = <&gpio3 4 1>;
+        default-state = "on";
+    };
+};
     \end{minted}
     \end{block}
   \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{OpenBlocks AX3-4 Device Tree, button}
+  \frametitle{Crystalfontz CFA-10036 Device Tree, SD Card/USB}
   \begin{itemize}
-  \item The platform has one button connected to a GPIO. The
-    \code{gpio-keys} driver makes the button appear as an {\em input
-      device}.
+  \item The platform also have a USB port
     \begin{block}{}
       \begin{minted}[fontsize=\tiny]{perl}
-                        gpio_keys {
-                                compatible = "gpio-keys";
-                                #address-cells = <1>;
-                                #size-cells = <0>;
-
-                                button@1 {
-                                        label = "Init Button";
-                                        linux,code = <116>;
-                                        gpios = <&gpio1 28 0>;
-                                };
-                        };
-    \end{minted}
-    \end{block}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}[fragile]
-  \frametitle{OpenBlocks AX3-4 Device Tree, network}
-  \begin{columns}[t]
-    \column{0.5\textwidth} The network PHYs, with their address on the
-    MDIO bus.
-    \begin{block}{}
-      \begin{minted}[fontsize=\tiny]{perl}
-mdio {
-        phy0: ethernet-phy@0 {
-                reg = <0>;
-        };
-
-        phy1: ethernet-phy@1 {
-                reg = <1>;
-        };
-
-        phy2: ethernet-phy@2 {
-                reg = <2>;
-        };
-
-        phy3: ethernet-phy@3 {
-                reg = <3>;
-        };
+usb0: usb@80080000 {
+    pinctrl-names = "default";
+    pinctrl-0 = <&usb0_otg_cfa10036>;
+    status = "okay";
 };
-    \end{minted}
-    \end{block}
-    \column{0.5\textwidth}
-    The network interfacces themselves.
-    \begin{block}{}
-      \begin{minted}[fontsize=\tiny]{perl}
-ethernet@70000 {
-        status = "okay";
-        phy = <&phy0>;
-        phy-mode = "sgmii";
-};
-ethernet@74000 {
-        status = "okay";
-        phy = <&phy1>;
-        phy-mode = "sgmii";
-};
-ethernet@30000 {
-        status = "okay";
-        phy = <&phy2>;
-        phy-mode = "sgmii";
-};
-ethernet@34000 {
-        status = "okay";
-        phy = <&phy3>;
-        phy-mode = "sgmii";
-};
-    \end{minted}
-    \end{block}
-  \end{columns}
-\end{frame}
-
-\begin{frame}[fragile]
-  \frametitle{OpenBlocks AX3-4 Device Tree, I2C busses}
-  \begin{itemize}
-  \item A first I2C bus, with nothing connected on it:
-    \begin{block}{}
-      \begin{minted}[fontsize=\tiny]{perl}
-                        i2c@11000 {
-                                status = "okay";
-                                clock-frequency = <400000>;
-                        };
       \end{minted}
     \end{block}
-  \item A second I2C bus, with a S35390A Real Time Clock connected to
+  \item and a SD Card slot:
+    \begin{block}{}
+      \begin{minted}[fontsize=\tiny]{perl}
+ssp0: ssp@80010000 {
+    compatible = "fsl,imx28-mmc";
+    pinctrl-names = "default";
+    pinctrl-0 = <&mmc0_4bit_pins_a
+                 &mmc0_cd_cfg &mmc0_sck_cfg>;
+    bus-width = <4>;
+    status = "okay";
+};
+    \end{minted}
+    \end{block}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Crystalfontz CFA-10036 Device Tree, I2C bus}
+  \begin{itemize}
+  \item A I2C bus, with a Solomon SSD1306 OLED display connected on
     it:
     \begin{block}{}
       \begin{minted}[fontsize=\tiny]{perl}
-                        i2c@11100 {
-                                status = "okay";
-                                clock-frequency = <400000>;
+i2c0: i2c@80058000 {
+    pinctrl-names = "default";
+    pinctrl-0 = <&i2c0_pins_b>;
+    clock-frequency = <400000>;
+    status = "okay";
 
-                                s35390a: s35390a@30 {
-                                        compatible = "s35390a";
-                                        reg = <0x30>;
-                                };
-                        };
+    ssd1306: oled@3c {
+        compatible = "solomon,ssd1306fb-i2c";
+        pinctrl-names = "default";
+        pinctrl-0 = <&ssd1306_cfa10036>;
+        reg = <0x3c>;
+        reset-gpios = <&gpio2 7 0>;
+        solomon,height = <32>;
+        solomon,width = <128>;
+        solomon,page-offset = <0>;
+    };
+};
       \end{minted}
     \end{block}
   \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{OpenBlocks AX3-4 Device Tree, SATA/USB}
+  \frametitle{Crystalfontz CFA-10036 Device Tree, Breakout Boards}
   \begin{itemize}
-  \item A SATA unit, with two ports:
+  \item The CFA-10036 can be plugged in other breakout boards, and the
+    device tree also allows us to describe this, using includes. For
+    example, the CFA-10057:
     \begin{block}{}
-      \begin{minted}[fontsize=\tiny]{perl}
-                        sata@a0000 {
-                                nr-ports = <2>;
-                                status = "okay";
-                        };
-      \end{minted}
+      \mint[fontsize=\tiny]{perl}+/include/ "imx28-cfa10036.dts"+
     \end{block}
-  \item Two USB interfaces:
-    \begin{block}{}
-      \begin{minted}[fontsize=\tiny]{perl}
-                        /* Front side USB 0 */
-                        usb@50000 {
-                                status = "okay";
-                        };
-
-                        /* Front side USB 1 */
-                        usb@51000 {
-                                status = "okay";
-                        };
-      \end{minted}
-    \end{block}
+  \item This allows to have a layered description. This can also be
+    done for board that have a lot in common, like the BeagleBone and
+    the BeagleBone Black, or the AT91 SAMA5D3-based boards.
   \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{OpenBlocks AX3-4: build the DTB}
+  \frametitle{Crystalfontz CFA-10036: build the DTB}
   \begin{itemize}
   \item To ensure that the Device Tree Blob gets built for this board
     Device Tree Source, one need to ensure it is listed in
     \code{arch/arm/boot/dts/Makefile}:
     \begin{block}{}
       \begin{minted}{make}
-dtb-$(CONFIG_ARCH_MVEBU) += armada-370-db.dtb \
-        armada-370-mirabox.dtb \
-        armada-370-netgear-rn102.dtb \
-        armada-370-rd.dtb \
-        armada-xp-axpwifiap.dtb \
-        armada-xp-db.dtb \
-        armada-xp-gp.dtb \
-        armada-xp-openblocks-ax3-4.dtb
+dtb-$(CONFIG_ARCH_MXS) += imx28-cfa10036.dtb \
+        imx28-cfa10037.dtb \
+        imx28-cfa10049.dtb \
+        imx28-cfa10055.dtb \
+        imx28-cfa10056.dtb \
+        imx28-cfa10057.dtb \
+        imx28-cfa10058.dtb \
+        imx28-evk.dtb
       \end{minted}
     \end{block}
   \end{itemize}
@@ -489,8 +367,10 @@ dtb-$(CONFIG_ARCH_MVEBU) += armada-370-db.dtb \
 \begin{frame}
   \frametitle{Understanding the SoC support}
   \begin{itemize}
-  \item For the Marvell Armada 370/XP platforms, the core of the SoC
-    support is located in \code{arch/arm/mach-mvebu}
+  \item Let's consider another ARM platform here, the Marvell Armada
+    370/XP.
+  \item For this platform, the core of the SoC support is located in
+    \code{arch/arm/mach-mvebu}
   \item The \code{armada-370-xp.c} (see code on the next slide)
     contains the "{\em entry point}" of the SoC definition, the
     \code{DT_MACHINE_START} .. \code{MACHINE_END} definition:
