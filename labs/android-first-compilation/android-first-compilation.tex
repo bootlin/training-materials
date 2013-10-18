@@ -10,6 +10,16 @@ During this lab, you will:
 
 Stay in the \code{$HOME/felabs/android/source} directory.
 
+\section{Set up ccache}
+
+To be able to use \code{ccache} properly, we need to apply a commit
+present in the AOSP master that will bump the version of ccache to a
+more recent and much more adapted version of \code{ccache}.
+
+To do so, go in the \code{prebuilts/misc} directory, and use the
+command \code{git cherry-pick 81012983}. This will apply the given
+commit in our current branch.
+
 \section{Build environment}
 
 Now that \code{repo sync} is over, we will compile an Android system
@@ -32,6 +42,16 @@ You will see that \code{build/envsetup.sh} hasn't modified your
 
 The target product for the emulator is {\it full}, and we want to
 have an engineering build. To do this, run \code{lunch full-eng}
+
+Now, to tell Android to use \code{ccache} whenever possible, we need
+to set a few environment variable.
+
+\begin{verbatim}
+export USE_CCACHE=1
+export CCACHE_DIR=$HOME/felabs/android/ccache
+\end{verbatim}
+
+And that's it!
 
 \section{Compile the root filesystem}
 
@@ -56,6 +76,18 @@ specifying the double number of parallel jobs:
 \begin{verbatim}
 make -j 8
 \end{verbatim}
+
+While this command runs, make sure you are actually using ccache
+properly: in another terminal, set the \code{CCACHE_DIR} environment
+variable like we did, and use the command
+
+\begin{verbatim}
+watch -n1 -d prebuilts/misc/linux-x86/ccache/ccache -s
+\end{verbatim}
+
+After a few minutes, you should see the number of cache hits
+increasing, while the number of cache misses remain very low. If
+that's not the case, call your instructor.
 
 Go grab (several cups of) coffee!
 
