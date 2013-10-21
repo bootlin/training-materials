@@ -394,7 +394,7 @@ else ifeq ($(LABS),full-android)
 LABS_VARSFILE      = common/android-labs-vars.tex
 LABS_CHAPTERS      = $(ANDROID_LABS)
 else
-LABS_VARSFILE      = common/single-lab-vars.tex
+LABS_VARSFILE      = 
 LABS_CHAPTERS      = $(LABS)
 LABS_HEADER        = common/single-lab-header.tex
 LABS_FOOTER        = common/labs-footer.tex
