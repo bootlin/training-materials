@@ -12,16 +12,16 @@ After this lab, you will be able to:
 
 \section{Setup}
 
-Stay inside the \code{$HOME/felabs/linux/modules} directory.
-Boot your board again, as you did in the previous lab.
+Go to the \code{~/felabs/linux/modules/nfsroot/root/hello} directory.
+Boot your board if needed.
 
 \section{Writing a module}
 
-Go to the \code{nfsroot/root} directory. All the files you generate
+Look at the contents of the current directory. All the files you generate
 there will also be visible from the target. That's great to load
 modules!
 
-Create a \code{hello_version.c} file implementing a module which
+Add C code to the \code{hello_version.c} file, to implement a module which
 displays this kind of message when loaded:
 
 \begin{verbatim}
@@ -46,20 +46,20 @@ build modules outside a kernel source tree.  Compile your module.
 
 \section{Testing your module}
 
-Load your new module file. Check that it works as
+Load your new module file on the target. Check that it works as
 expected. Until this, unload it, modify its code, compile and load it
 again as many times as needed.
 
 Run a command to check that your module is on the list of loaded
-modules. Now, try to get the list of loaded modules with only the cat
-command.
+modules. Now, try to get the list of loaded modules with only the
+\code{cat} command.
 
 \section{Adding a parameter to your module}
 
-Add a who parameter to your module. Your module will say \code{Hello
-<who>} instead of \code{Hello Master}.
+Add a \code{who} parameter to your module. Your module will say
+\code{Hello <who>} instead of \code{Hello Master}.
 
- Compile and test your module by checking that it takes the who
+Compile and test your module by checking that it takes the \code{who}
 parameter into account when you load it.
 
 \section{Adding time information}
@@ -85,7 +85,7 @@ Run the \code{scripts/checkpatch.pl -h} command in the kernel sources,
 to find which options are available.  Now, run:
 
 \begin{verbatim}
-scripts/checkpatch.pl --file --no-tree <path>/hello_version.c
+~/felabs/linux/src/linux/scripts/checkpatch.pl --file --no-tree hello_version.c
 \end{verbatim}
 
 See how many violations are reported on your code. If there are
@@ -96,6 +96,10 @@ command:
 sudo apt-get install indent
 indent -linux hello_version.c
 \end{verbatim}
+
+Caution: don't run \code{indent} when you modify source files created
+by other people. Otherwise, people won't be able to distinguish your own
+changes from the ones made by \code{indent}.
 
 You can now compare the indented file with the original:
 
@@ -109,20 +113,48 @@ no errors left.
 
 \section{Adding the {\tt hello\_version} module to the kernel sources}
 
+As we are going to make changes to the kernel sources, first create a
+special branch for such changes:
+
+\begin{verbatim}
+git checkout 3.11.y-bbb
+git checkout -b hello
+\end{verbatim}
+
 Add your module sources to the \code{drivers/misc/} directory in your
 kernel sources. Of course, also modify kernel configuration and
 building files accordingly, so that you can select your module in
 \code{make xconfig} and have it compiled by the \code{make} command.
 
-Configure your kernel with the config file corresponding to your
-running kernel. Now check that the configuration interface shows your
-new driver and lets you configure it as a module.
+Run the one of the kernel configuration interfaces and check that it
+shows your new driver lets you configure it as a module.
 
 Run the \code{make} command and make sure that the code of your new
-driver is getting compiled. Then, install your kernel module using
-\code{make modules_install}. Beware, the modules should be installed
-in the root filesystem of the target, not in the root filesystem of
-your development workstation!
+driver is getting compiled. 
+
+Then, commit your changes in the current branch (try to choose an
+appropriate commit message):
+
+\begin{verbatim}
+cd ~/felabs/linux/src/linux
+git add -A
+git commit -as
+\end{verbatim}
+
+\begin{itemize}
+\item \code{git add -A} adds (or removes) files to the next commit
+      (except for files explicitly ignored, such as generated ones).
+      Another, perhaps safer way to do this without taking the risk
+      to add unwanted files, is to run \code{git status} and explicitly
+      run \code{git add} on each of the files that you want to 
+      add to the next commit.
+\item \code{git commit -a} creates a commit with all modified files
+      (at least the ones tracked by the repository) since the previous
+      commit.
+\item \code{git commit -s} adds a \code{Signed-off-by:} line to the
+      commit message. All contributions to the Linux kernel must have
+      such a line.
+\end{itemize}
 
 \section{Create a kernel patch}
 
@@ -130,5 +162,22 @@ You can be proud of your new module! To be able to share it with
 others, create a patch which adds your new files to the mainline
 kernel.
 
-Test that your patch file is compatible with the patch command by
-applying it to unmodified kernel sources.
+Creating a patch with \code{git} is extremely easy! You just generate it
+from the commits between your branch and another branch, usually the
+one you started from:
+
+\begin{verbatim}
+git format-patch 3.11.y-bbb
+\end{verbatim}
+
+Have a look at the generated file. You can see that its name reused
+the commit message.
+
+If you want to change the last commit message at this stage, you 
+can run:
+
+\begin{verbatim}
+git commit --amend
+\end{verbatim}
+
+And run \code{git format-patch} again.

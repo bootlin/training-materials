@@ -1,4 +1,4 @@
-\subsection{Loadable Kernel Modules}
+\section{Developing Kernel Modules}
 
 \begin{frame}[fragile]
   \frametitle{Hello Module 1/2}
@@ -31,9 +31,6 @@ MODULE_AUTHOR("William Shakespeare");
 
 \begin{frame}[fragile]
   \frametitle{Hello Module 2/2}
-\begin{minted}[fontsize=\small]{c}
-\end{minted}
-
 \begin{itemize}
 \item \code{__init}
   \begin{itemize}
@@ -160,6 +157,7 @@ MODULE_AUTHOR("William Shakespeare");
   \item The source file is \code{hello.c}
   \item Just run make to build the hello.ko file
   \end{itemize}
+\begin{block}{}
 \begin{minted}{make}
 ifneq ($(KERNELRELEASE),)
 obj-m := hello.o
@@ -167,9 +165,10 @@ else
 KDIR := /path/to/kernel/sources
 
 all:
-<tab>$(MAKE) -C $(KDIR) M=`pwd` modules
+<tab>$(MAKE) -C $(KDIR) M=$$PWD
 endif
 \end{minted}
+\end{block}
 
 \begin{itemize}
 \item For \code{KDIR}, you can either set
@@ -235,6 +234,7 @@ endif
       directory:
     \end{itemize}
 {\footnotesize
+\begin{block}{}
 \begin{verbatim}
 config USB_SERIAL_NAVMAN
         tristate "USB Navman GPS device"
@@ -243,6 +243,7 @@ config USB_SERIAL_NAVMAN
           To compile this driver as a module, choose M
           here: the module will be called navman.
 \end{verbatim}
+\end{block}
 }
   \end{itemize}
 \end{frame}
@@ -262,28 +263,6 @@ config USB_SERIAL_NAVMAN
     \item See \kerneldoc{kbuild/} for details and more
       elaborate examples like drivers with several source files, or
       drivers in their own subdirectory, etc.
-    \end{itemize}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{How To Create Linux Patches}
-  \begin{itemize}
-  \item The old school way
-    \begin{itemize}
-    \item Before making your changes, make sure you have two kernel
-      trees: \code{cp -a linux-3.5.5/ linux-3.5.5-patch/}
-    \item Make your changes in \code{linux-3.5.5-patch/}
-    \item Run \code{make distclean} to keep only source files.
-    \item Create a patch file:
-      \code{diff -Nur linux-3.5.5/ linux-3.5.5-patch/ > patchfile}
-    \item Not convenient, does not scale to multiple patches
-    \end{itemize}
-  \item The new school ways
-    \begin{itemize}
-    \item Use \code{quilt} (tool to manage a stack of patches)
-    \item Use \code{git} (revision control system used by the Linux kernel
-      developers)
     \end{itemize}
   \end{itemize}
 \end{frame}

@@ -1,0 +1,159 @@
+\section{Introduction to pin muxing}
+
+\begin{frame}{What is pin muxing?}
+  \begin{itemize}
+  \item Modern SoCs (System on Chip) include more and more hardware
+    blocks, many of which need to interface with the outside world
+    using {\em pins}.
+  \item However, the physical size of the chips remains small, and
+    therefore the number of available pins is limited.
+  \item For this reason, not all of the internal hardware block
+    features can be exposed on the pins simultaneously.
+  \item The pins are {\bf multiplexed}: they expose either the
+    functionality of hardware block A {\bf or} the functionality of
+    hardware block B.
+  \item This {\em multiplexing} is usually software configurable.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Pin muxing diagram}
+  \begin{center}
+    \includegraphics[width=0.8\textwidth]{slides/kernel-pinmuxing/pin-muxing-principle.pdf}
+  \end{center}
+\end{frame}
+
+\begin{frame}{Pin muxing in the Linux kernel}
+  \begin{itemize}
+  \item Since Linux 3.2, a \code{pinctrl} subsystem has been added.
+  \item This subsystem, located in \code{drivers/pinctrl} provides a
+    generic subsystem to handle pin muxing. It offers:
+    \begin{itemize}
+    \item A pin muxing consumer interface, for device drivers.
+    \item A pin muxing driver interface, to write the system-on-chip
+      specific drivers that configure the muxing.
+    \end{itemize}
+  \item Most {\em pinctrl} drivers provide a Device Tree binding, and
+    the pin muxing must be described in the Device Tree.
+    \begin{itemize}
+    \item The exact Device Tree binding depends on each driver. Each
+      binding is documented in
+      \code{Documentation/devicetree/bindings/pinctrl}.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{{\tt pinctrl} subsystem diagram}
+  \begin{center}
+    \includegraphics[width=0.8\textwidth]{slides/kernel-pinmuxing/pinctrl-subsystem.pdf}
+  \end{center}
+\end{frame}
+
+\begin{frame}[fragile]{Device Tree binding for consumer devices}
+  \begin{itemize}
+  \item The devices that require certains pins to be muxed will use
+    the \code{pinctrl-<x>} and \code{pinctrl-names} Device Tree
+    properties.
+  \item The \code{pinctrl-0}, \code{pinctrl-1}, \code{pinctrl-<x>}
+    properties link to a pin configuration for a given state of the
+    device.
+  \item The \code{pinctrl-names} property associates a name to each
+    state. The name \code{default} is special, and is automatically
+    selected by a device driver, without having to make an explicit
+    {\em pinctrl} function call.
+  \item In most cases, the following is sufficient:
+    \begin{minted}[fontsize=\footnotesize]{perl}
+i2c@11000 {
+        pinctrl-0 = <&pmx_twsi0>;
+        pinctrl-names = "default";
+        ...
+};
+\end{minted}
+\item See
+  \code{Documentation/devicetree/bindings/pinctrl/pinctrl-bindings.txt}
+  for details.
+\end{itemize}
+\end{frame}
+
+\begin{frame}{Defining pinctrl configurations}
+  \begin{itemize}
+  \item The different {\em pinctrl configurations} must be defined as
+    child nodes of the main {\em pinctrl device} (which controls the
+    muxing of pins).
+  \item The configurations may be defined at:
+    \begin{itemize}
+    \item the SoC level (\code{.dtsi} file), for pin configurations
+      that are often shared between multiple boards
+    \item at the board level (\code{.dts} file) for configurations
+      that are board specific.
+    \end{itemize}
+  \item The \code{pinctrl-<x>} property of the consumer device points,
+    to the pin configuration it needs through a DT {\em phandle}.
+  \item The description of the configurations is specific to each {\em
+      pinctrl driver}. See
+    \code{Documentation/devicetree/bindings/pinctrl} for the DT
+    bindings documentations.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Example on OMAP/AM33xx}
+  \begin{columns}
+    \column{0.5\textwidth}
+    \begin{itemize}
+      \small
+    \item On OMAP/AM33xx, the \code{pinctrl-single} driver is used. It
+      is common between multiple SoCs and simply allows to configure
+      pins by writing a value to a register.
+      \begin{itemize}
+      \item In each pin configuration, a \code{pinctrl-single,pins} value
+        gives a list of {\em (register, value)} pairs needed to configure
+        the pins.
+      \end{itemize}
+    \item To know the correct values, one must use the SoC and board
+      datasheets.
+    \end{itemize}
+    \column{0.5\textwidth}
+    \begin{minted}[fontsize=\tiny]{perl}
+am33xx_pinmux: pinmux@44e10800 {
+    i2c0_pins: pinmux_i2c0_pins {
+        pinctrl-single,pins = <
+                /* i2c0_sda.i2c0_sda */
+                0x188 (PIN_INPUT_PULLUP | MUX_MODE0)
+                /* i2c0_scl.i2c0_scl */
+                0x18c (PIN_INPUT_PULLUP | MUX_MODE0)
+        >;
+    };
+};
+
+i2c0: i2c@44e0b000 {
+        pinctrl-names = "default";
+        pinctrl-0 = <&i2c0_pins>;
+
+        status = "okay";
+        clock-frequency = <400000>;
+
+        tps: tps@2d {
+                reg = <0x2d>;
+        };
+};
+    \end{minted}
+  \end{columns}
+\end{frame}
+
+\begin{frame}[fragile]{Example on Allwinner SoC}
+  \begin{center}
+    \includegraphics[width=\textwidth]{slides/kernel-pinmuxing/allwinner-example.pdf}
+  \end{center}
+\end{frame}
+
+\setuplabframe
+{Communicate with the Nunchuk}
+{
+  \begin{itemize}
+  \item Configure the pinmuxing for the I2C bus used to communicate
+    with the Nunchuk
+  \item Validate that the I2C communication works with userspace
+    tools.
+  \item Extend the I2C driver started in the previous lab to
+    communicate with the Nunchuk.
+  \end{itemize}
+}

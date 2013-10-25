@@ -28,6 +28,8 @@ start up a OMAP3-based board without having anything installed on it.
 
 \section{Setup}
 
+Go to the \code{~/felabs/sysdev/bootloader} directory. 
+
 \section{MMC/SD card setup}
 
 The ROM monitor can read files from a FAT filesystem on the MMC/SD
@@ -38,7 +40,18 @@ for the OMAP-based platforms.
 
 First, connect your card reader to your workstation, with the MMC/SD
 card inside. Type the \code{dmesg} command to see which device is used
-by your workstation. Let's assume that this device is \code{/dev/sdb}.
+by your workstation.
+
+If your PC has an internal MMC/SD card reader, the device may also been
+seen as \code{/dev/mmcblk0}, and the first partition as
+\code{mmcblk0p1}. \footnote{This is not always the case with internal
+MMC/SD card readers. On some PCs, such devices are behind an internal
+USB bus, and thus are visible in the same way external card readers
+are}. You will see that the MMC/SD card is seen in the same
+way by the IGEPv2 board.
+
+In the following instructions, we will assume that your MMC/SD card
+is seen as \code{/dev/sdb} by your PC workstation.
 
 \begin{verbatim}
 sd 3:0:0:0: [sdb] 3842048 512-byte hardware sectors: (1.96 GB/1.83 GiB)
@@ -107,7 +120,7 @@ Your MMC/SD card is ready to use.
 Download U-Boot from the mainline igep download site:
 
 \begin{verbatim}
-wget ftp://ftp.denx.de/pub/u-boot/u-boot-2013.04.tar.bz2
+wget ftp://ftp.denx.de/pub/u-boot/u-boot-2013.10-rc4.tar.bz2
 tar xvf u-boot-2013.04.tar.bz2
 cd u-boot-2013.04
 \end{verbatim}
@@ -180,15 +193,14 @@ that it boots your new bootloaders. You can verify this by checking
 the build dates:
 
 \begin{verbatim}
-U-Boot SPL 2013.04 (May 29 2013 - 10:30:21)
-OMAP SD/MMC: 0
+U-Boot SPL 2013.10-rc4 (Oct 15 2013 - 14:12:51)
 reading u-boot.img
 reading u-boot.img
 
 
-U-Boot 2013.04 (May 29 2013 - 10:30:21)
+U-Boot 2013.10-rc4 (Oct 15 2013 - 14:12:51)
 
-OMAP36XX/37XX-GP ES1.2, CPU-OPP2, L3-165MHz, Max CPU Clock 1 Ghz
+OMAP36XX/37XX-GP ES1.2, CPU-OPP2, L3-200MHz, Max CPU Clock 1 Ghz
 IGEPv2 + LPDDR/NAND
 I2C:   ready
 DRAM:  512 MiB
@@ -199,14 +211,14 @@ MMC:   OMAP SD/MMC: 0
 In:    serial
 Out:   serial
 Err:   serial
-Die ID #255000029ff800000168580212029011
+Die ID #415c00029ff80000015913d80702502a
 Net:   smc911x-0
+Hit any key to stop autoboot:  0 
 \end{verbatim}
 
-By the message {\em OMAP SD/MMC: 0
-reading u-boot.img} you also get the
-confirmation that your U-Boot has correctly been loaded from the MMC
-device.
+The message \code{reading u-boot.img} also confirms that U-Boot has
+been loaded from the MMC device. You don't get it when you boot from
+NAND flash (there are no files on raw flash anyway).
 
 Interrupt the countdown to enter the U-Boot shell:
 \begin{verbatim}
@@ -341,7 +353,8 @@ Select the new {\em wired network connection}:
 \includegraphics[width=8cm]{labs/sysdev-u-boot/network-config-2.png}
 \end{center}
 
-In the {\em IPv4 Settings} tab, make the interface use a static IP
+In the \code{IPv4 Settings} tab, press the \code{Add} button
+and make the interface use a static IP
 address, like \code{192.168.0.1} (of course, make sure that this
 address belongs to a separate network segment from the one of the main
 company network).
@@ -363,6 +376,13 @@ setenv ipaddr 192.168.0.100
 setenv serverip 192.168.0.1
 \end{verbatim}
 
+The first time you use your board, you also need to send the MAC address
+in U-boot:
+
+\begin{verbatim}
+setenv ethaddr 01:02:03:04:05:06
+\end{verbatim}
+
 In case the board was previously configured in a different way, we
 also turn off automatic booting after commands that can be used to
 copy a kernel to RAM:
@@ -378,8 +398,8 @@ saveenv
 \end{verbatim}
 
 Now switch your board off and on again\footnote{Power cycling your
-  board is needed to make your ethaddr permanent, for obscure
-  reasons. If you don't, U-boot will complain that ethaddr is not
+  board is needed to make your \code{ethaddr} permanent, for obscure
+  reasons. If you don't, U-boot will complain that \code{ethaddr} is not
   set.}.
 
 You can then test the TFTP connection. First, put a small text file in
@@ -410,3 +430,10 @@ md 0x80000000
 
 We will see in the next labs how to use U-Boot to download, flash and
 boot a kernel.
+
+\section{Rescue binaries}
+
+If you have trouble generating binaries that work properly, or later
+make a mistake that causes you to loose your \code{MLO} and
+\code{u-boot.img} files, you will find working versions under
+\code{data/} in the current lab directory.

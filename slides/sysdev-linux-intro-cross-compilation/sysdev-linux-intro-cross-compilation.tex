@@ -115,6 +115,29 @@
 \end{frame}
 
 \begin{frame}
+  \frametitle{Device Tree}
+  \begin{itemize}
+  \item Many embedded architectures have a lot of non-discoverable
+    hardware.
+  \item Depending on the architecture, such hardware is either
+    described using C code directly within the kernel, or using a
+    special hardware description language in a {\em Device Tree}.
+  \item ARM, PowerPC, OpenRISC, ARC, Microblaze are examples of
+    architectures using the Device Tree.
+  \item A {\em Device Tree Source}, written by the kernel developer,
+    is compiled into a binary {\em Device Tree Blob}, passed at boot
+    time to the kernel.
+    \begin{itemize}
+    \item There is one different Device Tree for each board/platform
+      supported by the kernel, available in
+      \code{arch/arm/boot/dts/<board>.dtb}.
+    \end{itemize}
+  \item The bootloader must load both the kernel image and the Device
+    Tree Blob in memory before starting the kernel.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
   \frametitle{Building and installing the kernel}
   \begin{itemize}
   \item Run \code{make}
@@ -122,6 +145,8 @@
     \begin{itemize}
     \item can be \code{uImage}, \code{zImage}, \code{vmlinux},
       \code{bzImage} in \code{arch/<arch>/boot}
+    \item copying the Device Tree Blob might be necessary as well,
+      they are available in \code{arch/<arch>/boot/dts}
     \end{itemize}
   \item \code{make install} is rarely used in embedded development, as the
     kernel image is a single file, easy to handle
@@ -137,6 +162,30 @@
       the modules in the target root filesystem instead of your host
       root filesystem.
     \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Booting with U-Boot}
+  \begin{itemize}
+  \item U-Boot requires a special kernel image format: \code{uImage}
+    \begin{itemize}
+    \item \code{uImage} is generated from \code{zImage} using the
+      \code{mkimage} tool. It is done automatically by the kernel
+      \code{make uImage} target.
+    \item On some ARM platforms, \code{make uImage} requires passing a
+      \code{LOADADDR} environment variable, which indicates at which
+      physical memory address the kernel will be executed.
+    \end{itemize}
+  \item In addition to the kernel image, U-Boot can also pass a
+    {\em Device Tree Blob} to the kernel.
+  \item The typical boot process is therefore:
+    \begin{enumerate}
+    \item Load \code{uImage} at address X in memory
+    \item Load \code{<board>.dtb} at address Y in memory
+    \item Start the kernel with \code{bootm X - Y} (the \code{-} in
+      the middle indicates no {\em initramfs})
+    \end{enumerate}
   \end{itemize}
 \end{frame}
 

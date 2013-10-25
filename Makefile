@@ -16,34 +16,36 @@ KERNEL_SLIDES = \
 		licensing \
 		about-us \
 		course-information-title \
-		calao-board \
+		kernel-beagleboneblack \
 		course-information \
+		setup-lab \
 		kernel-introduction-title \
 		sysdev-linux-intro-features \
-		sysdev-linux-intro-versioning \
-		kernel-introduction-lab \
 		kernel-embedded-linux-usage-title \
-		sysdev-linux-intro-sources \
+		kernel-linux-intro-sources \
+		kernel-source-code-download-lab \
 		kernel-source-code-title \
 		kernel-source-code-drivers \
 		kernel-source-code-layout \
 		kernel-source-code-management \
-		kernel-source-code-lab-source-code \
+		kernel-source-code-exploring-lab \
 		sysdev-linux-intro-configuration \
 		sysdev-linux-intro-compilation \
 		sysdev-linux-intro-cross-compilation \
-		kernel-source-code-lab-module \
+		kernel-board-setup-kernel-compiling-and-booting-labs \
 		sysdev-linux-intro-modules \
-		kernel-driver-development-title \
 		kernel-driver-development-modules \
 		kernel-driver-development-lab-modules \
-		kernel-driver-development-memory \
 		kernel-driver-development-general-apis \
+		kernel-device-model \
+		kernel-i2c \
+		kernel-pinmuxing \
+		kernel-frameworks \
+		kernel-input \
+		kernel-driver-development-memory \
 		kernel-driver-development-io-memory \
 		kernel-driver-development-lab-io-memory \
-		sysdev-root-filesystem-device-files \
-		kernel-driver-development-character-drivers \
-		kernel-driver-development-lab-character-drivers \
+		kernel-misc-subsystem \
 		kernel-driver-development-processes \
 		kernel-driver-development-sleeping \
 		kernel-driver-development-interrupts \
@@ -52,26 +54,22 @@ KERNEL_SLIDES = \
 		kernel-driver-development-lab-locking \
 		kernel-driver-development-debugging \
 		kernel-driver-development-lab-debugging \
-		kernel-driver-development-mmap \
-		kernel-driver-development-dma \
-		kernel-driver-development-architecture-drivers \
-		kernel-serial-drivers-title \
-		kernel-serial-drivers-content \
-		kernel-serial-drivers-lab \
-		kernel-init-title \
-		kernel-init-content \
 		kernel-porting-title \
 		kernel-porting-content \
 		kernel-power-management-title \
 		kernel-power-management-content \
-		kernel-power-management-lab \
+		kernel-development-process-title \
+		sysdev-linux-intro-versioning \
+		kernel-contribution \
 		kernel-resources-title \
-		kernel-resources-advice \
 		kernel-resources-references \
+		last-slides \
+		kernel-backup-slides-title \
+		kernel-driver-development-dma \
+		kernel-driver-development-mmap \
 		kernel-git-title \
 		kernel-git-content \
-		kernel-git-lab \
-		last-slides
+		kernel-git-lab 
 
 SYSDEV_SLIDES = \
 		licensing \
@@ -81,6 +79,7 @@ SYSDEV_SLIDES = \
 		course-information \
 		sysdev-intro \
 		sysdev-dev-environment \
+		setup-lab \
 		sysdev-toolchains-title \
 		sysdev-toolchains-definition \
 		sysdev-toolchains-c-libraries \
@@ -124,6 +123,7 @@ ANDROID_SLIDES = \
 		android-linaro-introduction \
 		android-course-outline \
 		course-information \
+		setup-lab \
 		android-introduction-title \
 		android-introduction-features \
 		android-introduction-history \
@@ -225,18 +225,21 @@ SYSDEV_LABS   = setup \
 		backup
 
 KERNEL_LABS   = setup \
-		kernel-sources \
-		kernel-module-environment \
+		kernel-sources-download \
+		kernel-sources-exploring \
+		kernel-board-setup \
+		kernel-compiling-and-nfs-booting \
 		kernel-module-simple \
+		kernel-i2c-device-model \
+		kernel-i2c-communication \
+		kernel-i2c-input-interface \
 		kernel-serial-iomem \
 		kernel-serial-output \
 		kernel-serial-interrupt \
 		kernel-locking \
 		kernel-debugging \
-		kernel-serial-driver \
-		kernel-power-management \
 		kernel-git \
-		backup
+#		backup # Currently broken for kernel course
 
 ANDROID_LABS  = setup \
 		android-source-code \
@@ -321,6 +324,11 @@ SLIDES_CHAPTERS      = $($(call UPPERCASE, $(SLIDES_TRAINING))_SLIDES)
 SLIDES_COMMON_AFTER  = common/slide-footer.tex
 else
 SLIDES_TRAINING      = $(firstword $(subst -, ,  $(SLIDES)))
+# We might be building multiple chapters that share a common
+# prefix. In this case, we want to build them in the order they are
+# listed in the <training>_SLIDES variable that corresponds to the
+# current training, as identified by the first component of the
+# chapter name.
 SLIDES_CHAPTERS      = $(filter $(SLIDES)%, $($(call UPPERCASE, $(SLIDES_TRAINING))_SLIDES))
 ifeq ($(words $(SLIDES_CHAPTERS)),1)
 SLIDES_COMMON_BEFORE = common/slide-header.tex common/single-subsection-slide-title.tex
@@ -328,6 +336,10 @@ else
 SLIDES_COMMON_BEFORE = common/slide-header.tex common/single-slide-title.tex
 endif
 SLIDES_COMMON_AFTER  = common/slide-footer.tex
+endif
+
+ifeq ($(SLIDES_CHAPTERS),)
+$(error "No chapter to build, maybe you're building a single chapter whose name doesn't start with a training session name")
 endif
 
 # Compute the set of corresponding .tex files and pictures
@@ -394,12 +406,13 @@ LABS_TEX      = \
 	common/labs-footer.tex
 LABS_PICTURES = $(call PICTURES,$(foreach s,$(LABS_CHAPTERS),labs/$(s))) $(COMMON_PICTURES)
 
-%-labs.pdf: common/labs.sty $(LABS_TEX) $(LABS_PICTURES)
+%-labs.pdf: common/labs.sty $(VARS) $(LABS_TEX) $(LABS_PICTURES)
 	@mkdir -p $(OUTDIR)
 # We generate a .tex file with \input{} directives (instead of just
 # concatenating all files) so that when there is an error, we are
 # pointed at the right original file and the right line in that file.
 	rm -f $(OUTDIR)/$(basename $@).tex
+	echo "\input{$(VARS)}" >> $(OUTDIR)/$(basename $@).tex
 	for f in $(filter %.tex,$^) ; do \
 		echo -n "\input{../"          >> $(OUTDIR)/$(basename $@).tex ; \
 		echo -n $$f | sed 's%\.tex%%' >> $(OUTDIR)/$(basename $@).tex ; \
@@ -425,7 +438,7 @@ endif
 #
 ifdef AGENDA
 AGENDA_TEX = agenda/$(AGENDA)-agenda.tex
-AGENDA_PICTURES = $(COMMON_PICTURES)
+AGENDA_PICTURES = $(COMMON_PICTURES) $(call PICTURES,agenda)
 
 %-agenda.pdf: common/agenda.sty $(AGENDA_TEX) $(AGENDA_PICTURES)
 	rm -f $(OUTDIR)/$(basename $@).tex

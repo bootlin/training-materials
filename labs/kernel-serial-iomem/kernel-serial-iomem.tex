@@ -2,157 +2,318 @@
   write data from / to a hardware device}
 
 Throughout the upcoming labs, we will implement a character driver
-allowing to write data to the serial port of the CALAO board, and to
-read data from it.
+allowing to write data to additional CPU serial ports available on 
+the BeagleBone, and to read data from them.
 
 After this lab, you will be able to:
 
 \begin{itemize}
-
-\item Use \code{ssh} to get a remote terminal to an embedded Linux
-  system
-
-\item Access a console through the network, typically when a serial or
-  graphical console cannot be used.
-
-\item Practice with I/O ports and I/O memory to control the device and
-  exchange data with it.
-
+\item Add UART devices to the board device tree
+\item Access I/O registers to control the device and
+      send first characters to it.
 \end{itemize}
 
 \section{Setup}
 
-Go to the \code{$HOME/felabs/linux/character} directory.
+Go to your kernel source directory.
 
-As in the {\em Module development environment} lab, we will use a the
-CALAO board booted from NFS.
+Create a new branch for this new series of labs. Since this new stuff
+is independent from the nunchuk changes, it's best to create a separate
+branch!
 
-As in the previous labs, the target IP address will be \code{192.168.0.100},
-and the host address will be \code{192.168.0.1}.
+\begin{verbatim}
+git checkout 3.11.y-bbb
+git checkout  -b uart
+\end{verbatim}
 
-Extract the latest Linux 3.6.x kernel sources in the current
-directory, and configure them with the default configuration for
-{\em at91sam9263} boards.
+\section{Add UART devices}
 
-In this lab, we will develop our own driver for the board's serial
-port. The consequence is that we will have to disable the standard
-AT91 serial port driver and will thus lose the serial console.
+Before developing a driver for additional UARTS on the board, we
+need to add the corresponding descriptions to the board Device Tree.
 
-Instead of running commands through a shell on the serial line, we
-will access our target through SSH, a secure shell over the network.
+First, open the board reference manual and find the connectors
+and pinmux modes for UART2 and UART4.
 
-To replace the serial console and still get kernel messages (in
-particular kernel fault messages) we will use a netconsole, a
-mechanism that allows to get console messages over the network.
+Using an new USB-serial cable with male connectors, provided by your
+instructor, connect your PC to UART2. The wire colors are the same
+as for the cable that you're using for the console:
 
-So, configure your kernel with:
 \begin{itemize}
-\item Root over NFS support
-\item Loadable module support
-\item Netconsole support (\code{CONFIG_NETCONSOLE})
+\item The blue wire should be connected \code{GND} 
+\item The red wire (\code{TX}) should be connected to the board's \code{RX} pin
+\item The green wire (\code{RX}) should be connected to the board's \code{TX} pin
 \end{itemize}
 
-You will also have to update the kernel command line so that Linux
-loads the root filesystem over NFS from
-\code{/home/<user>/felabs/linux/character/nfsroot}.
+You can (or even should) show your connections to the instructor
+to make sure that you haven't swapped the \code{RX} and \code{TX} pins. 
 
-The Dropbear SSH server is already installed on your target, and is
-started automatically.
-
-\section{Boot tests}
-
-We are first going to make sure that your new kernel boots fine and
-that the SSH connection works well, before disabling the serial driver
-and the serial console. NFS configuration issues are frequent, and
-they would be more difficult to fix if we have no console left.
-
-So, boot your new kernel and try to connect to your board with ssh:
+Now, open the \code{arch/arm/boot/dts/am335x-bone-common.dtsi}
+file and create declarations for UART2 and UART4 in the pin muxing
+section:
 
 \begin{verbatim}
-ssh root@192.168.0.100
+		/* Pins 21 (TX) and 22 (RX) of connector P9 */
+		uart2_pins: uart2_pins {
+			pinctrl-single,pins = <
+				0x154 (PIN_OUTPUT_PULLDOWN | MUX_MODE1) /* spi0_d0.uart2_tx, MODE 1 */
+				0x150 (PIN_INPUT_PULLUP | MUX_MODE1) /* spi0_sclk.uart2_rx, MODE 1 */
+			>;
+		};
+
+		/* Pins 11 (RX) and 13 (TX) of connector P9 */
+		uart4_pins: uart4_pins {
+			pinctrl-single,pins = <
+				0x74 (PIN_OUTPUT_PULLDOWN | MUX_MODE6) /* gpmc_wpn.uart4_tx, MODE 6 */
+				0x70 (PIN_INPUT_PULLUP | MUX_MODE6) /* gpmc_wait0.uart4_rx, MODE 6 */
+			>;
+		};
 \end{verbatim}
 
-The \code{root} password is empty, just press \code{Enter}. Good job!
-
-\section{Disabling the serial driver and console}
-
-Now that everything works, rebuild your kernel without the serial port
-driver (in \code{Device Drivers} $\rightarrow$ \code{Character devices}
-$\rightarrow$ \code{Serial drivers} $\rightarrow$ \code{AT91 / AT32
-on-chip serial port support}). Update your kernel.
-
-You also need to replace \code{console=ttyS0} by the following option in
-the kernel command line, to enable the network console:
+Then, declare the corresponding devices:
 
 \begin{verbatim}
-netconsole=4444@192.168.0.100/eth0,5555@192.168.0.1/
+		uartfe2: feserial@48024000 {
+			compatible = "free-electrons,serial";
+			/* Tell the OMAP harware power management that the block
+			   must be enabled, otherwise it's switched off
+			   Caution: starting counting at 1, not 0 */
+			ti,hwmods = "uart3";
+			clock-frequency = <48000000>;
+			reg = <0x48024000 0x2000>;
+			interrupts = <74>;
+			status = "okay";
+			pinctrl-names = "default";
+			pinctrl-0 = <&uart2_pins>;
+		};
+
+		uartfe4: feserial@481a8000 {
+			compatible = "free-electrons,serial";
+			ti,hwmods = "uart5";
+			clock-frequency = <48000000>;
+			reg = <0x481a8000 0x2000>;
+			interrupts = <45>;
+			status = "okay";
+			pinctrl-names = "default";
+			pinctrl-0 = <&uart4_pins>;
+		};
+
 \end{verbatim}
 
-To get the console output, we will use the \code{netcat} command on the host
-to listen for UDP packets on port 5555:
+Note: we are calling these devices with \code{uartfe} instead of
+\code{uart} to avoid conflicts with declarations in
+\code{arch/arm/boot/dts/am33xx.dtsi}. The \code{uart} devices are 
+meant to be used by the regular serial driver.
+
+We will see how to use the device parameters in the driver code.
+
+Rebuild and update your DTB.
+
+\section{Operate a platform device driver}
+
+Go to the \code{~/felabs/linux/modules/nfsroot/root/serial/} directory.
+You will find a \code{feserial.c} file already provides a platform
+driver skeleton.
+
+Add the code needed to match the driver with the devices which you have
+just declared in the device tree.
+
+Compile your module and load it on your target. Check the kernel log
+messages, that should confirm that the \code{probe()} routine was
+called \footnote{Don't be surprised if the \code{probe()} routine is
+actually called twice! That's because we have declared two devices.
+Even if we only connect a serial-to-USB dongle to one of them, both
+of them are ready to be used!}.
+
+\section{Get base addresses from the device tree}
+
+We are going to read from memory mapped registers and read from them.
+The first thing we need is the base physical address for the each
+device.
+
+Such information is precisely available in the Device Tree. You can
+extract it with the below code:
 
 \begin{verbatim}
-netcat -u -l 192.168.0.1 5555
+struct resource *res;
+res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 \end{verbatim}
 
-Now, boot your new kernel. You should see kernel messages only in the
-\code{netcat} output (after a little while).
+Add such code to your \code{probe()} routine, with proper error
+handling when \code{res == NULL}, and print the start address
+(\code{res->start}) to make sure that the address values that
+you get match the ones in the device tree. 
 
-\section{Driver source code}
+You can remove the printing instruction as soon as the collected
+addresses are correct.
 
-Now go to the \code{nfsroot/root} directory, which will contain the
-kernel module source code.
+\section{Create a device private structure}
 
-You have a ready-made \code{Makefile} to compile your module, and a
-template \code{serial.c} module which you will fill with your own
-code. Modify the \code{Makefile} so that it points to your kernel sources.
+The next step is to start allocating and registering resources,
+which eventually will have to be freed and unregistered too.
+
+In the same way as in the nunchuk lab, we now need to create a
+structure that that will hold device specific information and help
+keeping pointers between logical and physical devices.
+
+As the first thing to store will be the base virtual address for
+each device (obtained through \code{ioremap()}), let's declare this
+structure as follows:
+
+\begin{verbatim}
+struct feserial_dev {
+        void __iomem *regs;
+};
+\end{verbatim}
+
+The first thing to do is allocate such a structure at the beginning
+of the \code{probe()} routine. Let's do it with a \code{devm_} function.
+The advantage of such routines is that each allocation or registration
+is attached to a device structure. When a device or a module is removed,
+all such allocations or registrations are automatically undone. This
+allows to greatly simplify driver code.
+
+So, add the below line to your code:
+
+\begin{verbatim}
+struct feserial_dev *dev;
+...
+dev = devm_kzalloc(&pdev->dev, sizeof(struct feserial_dev), GFP_KERNEL);
+\end{verbatim}
+
+You can now get a virtual address for your device's base physical
+address, by calling:
+
+\begin{verbatim}
+        dev->regs = devm_request_and_ioremap(&pdev->dev, res);
+
+        if (!dev->regs) {
+                dev_err(&pdev->dev, "Cannot remap registers\n");
+                return -ENOMEM;
+        }
+\end{verbatim}
+
+What's nice is that you won't ever have to release this resource,
+neither in the \code{remove()} routine, nor if there are failures
+in subsequent steps of the \code{probe()} routine.
+
+Make sure that your updated driver compiles, loads and unloads well.
 
 \section{Device initialization}
 
-In the module initialization function, start by reserving the I/O
-memory region starting at address (\code{AT91_BASE_DBGU1}), for a
-size of \code{SZ_512} (512 bytes). The \code{AT91_*} constants are already defined
-in Linux kernel headers.
+Now that we have a virtual address to access registers, we are ready to
+configure a few registers which will allow us to enable the UART
+devices. Of course, this will be done in the \code{probe()} routine.
 
-Compile your module, load it and make sure that this memory region
-appears in \code{/proc/iomem}.
+\subsection{Accessing device registers}
 
-Now, obtain a virtual address corresponding to the start of this
-memory area.
+As we will have multiple registers to read, create a \code{reg_read()}
+routine, returning an \code{unsigned int} value, and  taking a \code{dev}
+pointer to an \code{feserial_dev} structure and an \code{offset} integer
+offset.
 
-Don't forget to undo all the above in the module exit function!
+In this function, read from a 32 bits register at the base virtual
+address for the device plus the offset multiplied by 4, and return
+this value.
 
+Create a similar \code{reg_write()} routine, writing an unsigned
+integer value at a given integer offset from the device base virtual
+address.
+
+All the UART register offsets have standardized values, shared between
+several types of serial drivers (see
+\code{include/uapi/linux/serial_reg.h}). This explains why they are not
+completely ready to use and we have to multiply them by 4 for OMAP SoCs.
+
+We are now ready to read and write registers!
+
+\subsection{Power management initialization}
+
+Add the below lines to the probe function:
+
+\begin{verbatim}
+	pm_runtime_enable(&pdev->dev);
+	pm_runtime_get_sync(&pdev->dev);
+\end{verbatim}
+
+And add the below line to the \code{remove()} routine:
+
+\begin{verbatim}
+	pm_runtime_disable(&pdev->dev);
+\end{verbatim}
+
+\subsection{Line and baud rate configuration}
+
+After these lines, let's add code to initialize the line
+and configure the baud rate. This shows how to get a special
+property from the device tree, in this case \code{clock-frequency}:
+
+\begin{verbatim}
+        /* Configure the baud rate to 115200 */
+
+        of_property_read_u32(pdev->dev.of_node, "clock-frequency",
+                             &uartclk);
+        baud_divisor = uartclk / 16 / 115200;
+        reg_write(dev, 0x07, UART_OMAP_MDR1);
+        reg_write(dev, 0x00, UART_LCR);
+        reg_write(dev, UART_LCR_DLAB, UART_LCR);
+        reg_write(dev, baud_divisor & 0xff, UART_DLL);
+        reg_write(dev, (baud_divisor >> 8) & 0xff, UART_DLM);
+	reg_write(dev, UART_LCR_WLEN8, UART_LCR);
+\end{verbatim}
+
+Declare \code{baud_divisor} and \code{uartclk} as \code{unsigned int}.
+
+\subsection{Soft reset}
+
+The last thing to do is to request a software reset:
+
+\begin{verbatim}
+        /* Soft reset */
+        reg_write(dev, UART_FCR_CLEAR_RCVR | UART_FCR_CLEAR_XMIT, UART_FCR);
+        reg_write(dev, 0x00, UART_OMAP_MDR1);
+\end{verbatim}
+
+We are now ready to transmit characters over the serial ports!
+
+If you have a bit of spare time, you can look at section 19 of the
+AM335x TRM for details about how to use the UART ports, to understand
+better what we are doing here.
+ 
 \section{Standalone write routine}
 
-Implement a C routine taking one character as a parameter and writing
-it to the serial port, using the following steps:
+Implement a C routine taking a pointer to an \code{feserial_dev}
+structure and one character as parameters, and writing
+this character to the serial port, using the following steps:
 
 \begin{enumerate}
-
- \item Wait until the \code{ATMEL_US_TXRDY} bit gets set in
- the \code{ATMEL_US_CSR} register (\code{ATMEL_US_CSR} is an
- offset in the I/O memory region previously remapped). You can
- busy-wait for this condition to happen. In the busy-wait loop, you
- can call the \code{cpu_relax()} kernel function to relax the CPU
- during the wait.
-
- \item Write the character to the \code{ATMEL_US_THR} register.
-
+\item Wait until the \code{UART_LSR_THRE} bit gets set in the
+  \code{UART_LSR} register.  You can busy-wait for this condition to happen.
+  In the busy-wait loop, you can call the \code{cpu_relax()} kernel function
+  to ensure the compiler won't optimise away this loop.
+\item Write the character to the \code{UART_TX} register.
 \end{enumerate}
 
-Note that all the I/O registers of the AT91 processor are 32 bits
-wide.
+Add a call to this routine from your module \code{probe()} function,
+and recompile your module.
 
-Add a call to this routine from your module init function. Recompile
-your module and load it on the target. You should see the
-corresponding character in picocom, still showing what was written to
-the serial line by the board.
+Open a new \code{picocom} instance on your new serial port (not the
+serial console):
+
+\begin{verbatim}
+picocom -b 115200 /dev/ttyUSB1
+\end{verbatim}
+
+Load your module on the target. You should see the
+corresponding character in the new \code{picocom} installed,
+showing what was written to UART2.
+
+You can also check that you also get the same character on UART4
+(just connect to the UART4 pins instead of the UART2 ones).
 
 \section{Driver sanity check}
 
 Remove your module and try to load it again. If the second attempt to
 load the module fails, it is probably because your driver doesn't
-properly free the resources it allocated or register, either at module
-exit time, or after a failing during the module init function.  Check
-and fix your module init and exit functions if you have such a
-problem.
+properly free the resources it allocated or registered, either at module
+exit time, or after a failure during the module \code{probe()} function. Check
+and fix your module code if you have such problems.

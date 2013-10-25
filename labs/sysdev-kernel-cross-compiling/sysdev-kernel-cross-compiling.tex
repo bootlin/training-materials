@@ -62,16 +62,22 @@ In the kernel configuration :
 
 \begin{itemize}
 
-\item Make sure to disable \code{CONFIG_PROVE_LOCKING}. This option is
-  currently causing problems with the JFFS2 filesystem. This option is
-  in \code{Kernel Hacking} $\rightarrow$
-  \code{Lock debugging: prove locking correctness}.
+% TODO: check that we don't need this any more
+%\item Make sure to disable \code{CONFIG_PROVE_LOCKING}. This option is
+%  currently causing problems with the JFFS2 filesystem. This option is
+%  in \code{Kernel Hacking} $\rightarrow$
+%  \code{Lock debugging: prove locking correctness}.
 
+\item Disable support for the IGEPv2 board compiled into the kernel
+  (\code{CONFIG_MACH_IGEP0020}). We will boot our kernel with a device
+  tree for our board, and won't compile the board description
+  file (\code{arch/arm/mach-omap2/board-igep0020.c} in the kernel
+  sources.). You will have to review dependencies to be able to disable
+  this kernel configuration setting. 
 \item As an experiment, let's change the kernel compression from Gzip
   to LZMA. This compression algorithm is far more efficient than Gzip,
   in terms of compression ratio, at the expense of a higher
   decompression time.
-
 \end{itemize}
 
 \section{Cross compiling}
@@ -86,11 +92,13 @@ and wait a while for the kernel to compile. Don't forget to use
 \code{make -j<n>} if you have multiple cores on your machine!
 
 Look at the end of the kernel build output to see which file contains
-the kernel image.
+the kernel image. You can also see the Device Tree \code{.dtb} files
+which got compiled. Find which \code{.dtb} file corresponds to your
+board.
 
 However, the default image produced by the kernel build process is not
 suitable to be booted from U-Boot. A post-processing operation must be
-performed using the mkimage tool provided by U-Boot developers. This
+performed using the \code{mkimage} tool provided by U-Boot developers. This
 tool has already been installed in your system as part of the
 \code{u-boot-tools} package. To run the post-processing operation on
 the kernel image, simply run:
@@ -129,15 +137,18 @@ We will use TFTP to load the kernel image to the IGEP board:
 
 \begin{itemize}
 
-\item On your workstation, make sure your \code{uImage} file is in the
+\item On your workstation, copy the \code{uImage} and DTB files to the
   directory exposed by the TFP server.
 
 \item On the target, load \code{uImage} from TFTP into RAM at address
   0x80000000:\\
   \code{tftp 0x80000000 uImage}
 
-\item Boot the kernel:\\
-  \code{bootm 0x80000000}
+\item Now, also load the DTB file into RAM at address 0x81000000:\\
+  \code{tftp 0x81000000 omap3-igep0020.dtb}
+
+\item Boot the kernel with its device tree:\\
+  \code{bootm 0x80000000 - 0x81000000}
 
 \end{itemize}
 
@@ -150,63 +161,75 @@ Waiting for root device /dev/mmcblk0p2...
 This is expected: we haven't provided a working root filesystem for
 our device yet.
 
-You can automate now all this every time the board is booted or
+You can now automate all this every time the board is booted or
 reset. Reset the board, and specify a different \code{bootcmd}:
 
+{\scriptsize
 \begin{verbatim}
-setenv bootcmd 'tftp 80000000 uImage;bootm 80000000'
+setenv bootcmd 'tftp 80000000 uImage; tftp 81000000 omap3-igep0020.dtb; bootm 80000000 - 81000000'
 saveenv
 \end{verbatim}
+}
 
-\section{Flashing the kernel in NAND flash}
+\section{Flashing the kernel and DTB in NAND flash}
 
 In order to let the kernel boot on the board autonomously, we can
-flash it in the NAND flash available on the IGEP. The NAND flash can
-be manipulated in U-Boot using the \code{nand} command, which
-features several subcommands. Run \code{help nand} to see the
-available subcommands and their options.
+flash the kernel image and DTB in the NAND flash available on the IGEP
+board. See the bootloader lab for details about U-boot's \code{nand}
+command.
 
 After storing the first stage bootloader, U-boot and its environment
-variables, we will keep a special area in NAND flash for the Linux
-kernel image.  This 4th partition will be 5 MiB big, from NAND offset
-0x2e0000 to 0x7e0000.
+variables, we will keep special areas in NAND flash for the DTB
+and Linux kernel images:
 
 \begin{center}
   \includegraphics[width=\textwidth]{labs/sysdev-kernel-cross-compiling/flash-map.pdf}
 \end{center}
 
-So, let's start by erasing the corresponding 5 MiB of NAND flash:
+So, let's start by erasing the corresponding 128 MiB of NAND flash
+for the DTB:
 
 \begin{verbatim}
-nand erase 0x2e0000 0x500000
+nand erase 0x2e0000 0x20000
         (NAND offset) (size)
 \end{verbatim}
 
-Then, copy the kernel from TFTP into memory, using the same address as
-before.
-
-Then, flash the kernel image:
+Then, let's errra the 5 MiB of NAND flash for the kernel image:
 
 \begin{verbatim}
-nand write 0x80000000 0x2e0000 0x500000
+nand erase 0x300000 0x500000
+\end{verbatim}
+
+Then, copy the DTB and kernel binaries from TFTP into memory, using the
+same addresses as before.
+
+Then, flash the DTB and kernel binaries:
+
+\begin{verbatim}
+nand write 0x81000000 0x2e0000 0x20000
            (RAM addr) (NAND offset) (size)
+nand write 0x80000000 0x300000 0x500000
 \end{verbatim}
 
 Power your board off and on, to clear RAM contents. We should now be
-able to load the kernel image from NAND and boot it using:
+able to load the DTB and kernel image from NAND and boot with:
 
 \begin{verbatim}
-nboot 0x80000000 0        0x2e0000
+nand read 0x81000000 0x2e0000 0x20000
+nboot 0x80000000 0        0x300000
       (RAM addr) (device) (NAND offset)
-bootm 0x80000000
+bootm 0x80000000 - 0x81000000
 \end{verbatim}
 
-\code{nboot} copies the kernel to RAM and then, \code{bootm} executes
-it.
+\code{nboot} copies the kernel to RAM, using the \code{uImage} headers
+to know how many bytes to copy \footnote{\code{nboot} can save a lot 
+of boot time, as it avoids having to copy a pessimistic number of
+bytes from flash to RAM. Note that U-boot is not always configured
+with \code{nboot} support.}.
 
-Write an U-Boot script that automates the kernel download and flashing
-procedure. Finally, adjust the \code{bootcmd} so that the IGEP board
-boots using the kernel in Flash.
+Write a U-Boot script that automates the DTB + kernel download
+and flashing procedure. Finally, adjust \code{bootcmd} so that
+the IGEP board boots using the kernel in Flash.
 
 Now, power off the board and power it on again to check that it boots
 fine from NAND flash. Check that this is really your own version of
