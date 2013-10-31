@@ -45,7 +45,8 @@
   \item Unlike block devices, which contains their own partition
     table, the partitioning of MTD devices is described externally
     \begin{itemize}
-    \item Hard-coded into the kernel code
+    \item Specified in the board Device Tree
+    \item Hard-coded into the kernel code (if no Device Tree)
     \item Specified through the kernel command line
     \end{itemize}
   \item Each partition becomes a separate MTD device
@@ -59,11 +60,35 @@
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{Definition of MTD partitions}
+  \frametitle{Definition of MTD partitions (1)}
+  The Device Tree is the standard place to device MTD partitions
+  for boards with Device Tree support.\\
+  Example from \code{arch/arm/boot/dts/omap3-igep0020.dts}:
+\begin{minted}[fontsize=\scriptsize]{perl}
+        nand@0,0 {
+                linux,mtd-name= "micron,mt29c4g96maz";
+		[...]
+                partition@0 {
+                        label = "SPL";
+                        reg = <0 0x100000>;
+                };
+                partition@0x80000 {
+                        label = "U-Boot";
+                        reg = <0x100000 0x180000>;
+                };
+		[...]
+                partition@0x780000 {
+                        label = "Filesystem";
+                        reg = <0x680000 0x1f980000>;
+                };
+\end{minted}
+\end{frame}
 
-  MTD partitions are defined in the kernel, in the board
-  definitions. Example from
-  \code{arch/arm/mach-omap2/board-igep0020.c}:
+\begin{frame}[fragile]
+  \frametitle{Definition of MTD partitions (2)}
+  For boards or platforms that do not use the Device Tree,
+  MTD partitions can be defined in the kernel.
+  Legacy example from \code{arch/arm/mach-omap2/board-igep0020.c}:
 \begin{minted}[fontsize=\scriptsize]{c}
 static struct mtd_partition igep2_flash_partitions[] = {
     {
@@ -92,7 +117,7 @@ static struct mtd_partition igep2_flash_partitions[] = {
   \item MTD partitions can fortunately be defined through the kernel
     command line.
   \item First need to find the name of the MTD device. Look at the
-    kernel log at boot time. In our case, the MTD device name is
+    kernel log at boot time. In the below example, the MTD device name is
     \code{omap2-nand.0}:
 \end{itemize}
 \tiny
