@@ -539,14 +539,15 @@ static int xxxfb_probe (struct pci_dev *dev,
   \item This is typically done
     \begin{itemize}
     \item By subclassing the appropriate framework structure
-    \item Or by storing a reference to the appropriate framework
+    \item By storing a reference to the appropriate framework
       structure
+    \item Or by including your information in the framework structure
     \end{itemize}
   \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{Driver-specific Data Structure Examples}
+  \frametitle{Driver-specific Data Structure Examples 1/2}
   \begin{itemize}
   \item i.MX serial driver: \code{imx_port} is a subclass of
     \code{uart_port}
@@ -560,8 +561,23 @@ struct imx_port {
     [...]
 };
   \end{minted}
+  \item ds1305 RTC driver: \code{ds1305} has a reference to
+    \code{rtc_device}
+  \begin{minted}[fontsize=\scriptsize]{c}
+struct ds1305 {
+    struct spi_device       *spi;
+    struct rtc_device       *rtc;
+    [...]
+};
+  \end{minted}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Driver-specific Data Structure Examples 2/2}
+  \begin{itemize}
   \item rtl8150 network driver: \code{rtl8150} has a reference to
-    \code{net_device}
+    \code{net_device} and is allocated within that framework structure.
   \begin{minted}[fontsize=\scriptsize]{c}
 struct rtl8150 {
     unsigned long flags;
@@ -575,7 +591,7 @@ struct rtl8150 {
 \end{frame}
 
 \begin{frame}
-  \frametitle{Link Between Structures 1/3}
+  \frametitle{Link Between Structures 1/4}
   \begin{itemize}
   \item The framework typically contains a \code{struct device *}
     pointer that the driver must point to the corresponding struct
@@ -597,7 +613,7 @@ struct rtl8150 {
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{Link Between Structures 2/3}
+  \frametitle{Link Between Structures 2/4}
   \begin{columns}
     \column{0.7\textwidth}
     \begin{minted}[fontsize=\tiny]{c}
@@ -633,18 +649,67 @@ static int serial_imx_remove(struct platform_device *pdev)
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{Link Between Structures 3/3}
+  \frametitle{Link Between Structures 3/4}
+  \begin{columns}
+    \column{0.7\textwidth}
+    \begin{minted}[fontsize=\tiny]{c}
+static int ds1305_probe(struct spi_device *spi)
+{
+    struct ds1305                   *ds1305;
+
+    [...]
+
+    /* set up driver data */
+    ds1305 = devm_kzalloc(&spi->dev, sizeof(*ds1305), GFP_KERNEL);
+    if (!ds1305)
+            return -ENOMEM;
+    ds1305->spi = spi;
+    spi_set_drvdata(spi, ds1305);
+
+    [...]
+
+    /* register RTC ... from here on, ds1305->ctrl needs locking */
+    ds1305->rtc = devm_rtc_device_register(&spi->dev, "ds1305",
+                    &ds1305_ops, THIS_MODULE);
+
+    [...]
+}
+
+static int ds1305_remove(struct spi_device *spi)
+{
+    struct ds1305 *ds1305 = spi_get_drvdata(spi);
+
+    [...]
+}
+    \end{minted}
+    \column{0.3\textwidth}
+    \begin{center}
+      \includegraphics[height=0.8\textheight]{slides/kernel-frameworks/link-structures-rtc.pdf}
+    \end{center}
+  \end{columns}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Link Between Structures 4/4}
   \begin{columns}
     \column{0.7\textwidth}
     \begin{minted}[fontsize=\tiny]{c}
 static int rtl8150_probe(struct usb_interface *intf,
     const struct usb_device_id *id)
 {
+    struct usb_device *udev = interface_to_usbdev(intf);
     rtl8150_t *dev;
     struct net_device *netdev;
 
     netdev = alloc_etherdev(sizeof(rtl8150_t));
     dev = netdev_priv(netdev);
+
+    [...]
+
+    dev->udev = udev;
+    dev->netdev = netdev;
+
+    [...]
 
     usb_set_intfdata(intf, dev);
     SET_NETDEV_DEV(netdev, &intf->dev);
