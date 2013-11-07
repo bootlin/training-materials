@@ -211,12 +211,19 @@ pointer to an \code{feserial_dev} structure and an \code{offset} integer
 offset.
 
 In this function, read from a 32 bits register at the base virtual
-address for the device plus the offset multiplied by 4, and return
-this value.
+address for the device plus the offset multiplied by 4\footnote{You have
+to multiply by 4 because we are using a void* pointer so pointer
+arithmetic will use the offset as bytes whereas we are using 32 bits
+registers.}, and return this value.
 
-Create a similar \code{reg_write()} routine, writing an unsigned
-integer value at a given integer offset from the device base virtual
-address.
+Create a similar \code{reg_write()} routine, writing an unsigned integer
+value at a given integer offset (don't forget to multiply it by 4) from
+the device base virtual address. The following code samples are using
+the \code{writel()} convention of passing the value first, then the
+offset. Your prototype should look like:
+\begin{verbatim}
+    static void reg_write(struct feserial_dev *dev, int val, int off);
+\end{verbatim}
 
 All the UART register offsets have standardized values, shared between
 several types of serial drivers (see
