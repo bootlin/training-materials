@@ -382,6 +382,8 @@ endif
 #
 
 ifdef LABS
+LABS_HEADER        = common/labs-header.tex
+LABS_FOOTER        = common/labs-footer.tex
 # Compute the set of chapters to build depending on the name of the
 # PDF file that was requested.
 ifeq ($(LABS),full-kernel)
@@ -394,16 +396,18 @@ else ifeq ($(LABS),full-android)
 LABS_VARSFILE      = common/android-labs-vars.tex
 LABS_CHAPTERS      = $(ANDROID_LABS)
 else
-LABS_VARSFILE      = common/single-labs-vars.tex
+LABS_VARSFILE      = common/single-lab-vars.tex
 LABS_CHAPTERS      = $(LABS)
+LABS_HEADER        = common/single-lab-header.tex
+LABS_FOOTER        = common/labs-footer.tex
 endif
 
 # Compute the set of corresponding .tex files and pictures
 LABS_TEX      = \
 	$(LABS_VARSFILE) \
-	common/labs-header.tex \
+	$(LABS_HEADER) \
 	$(foreach s,$(LABS_CHAPTERS),$(wildcard labs/$(s)/$(s).tex)) \
-	common/labs-footer.tex
+	$(LABS_FOOTER)
 LABS_PICTURES = $(call PICTURES,$(foreach s,$(LABS_CHAPTERS),labs/$(s))) $(COMMON_PICTURES)
 
 %-labs.pdf: common/labs.sty $(VARS) $(LABS_TEX) $(LABS_PICTURES)

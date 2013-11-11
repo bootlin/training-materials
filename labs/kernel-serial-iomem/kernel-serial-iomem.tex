@@ -2,7 +2,7 @@
   write data from / to a hardware device}
 
 Throughout the upcoming labs, we will implement a character driver
-allowing to write data to additional CPU serial ports available on 
+allowing to write data to additional CPU serial ports available on
 the BeagleBone, and to read data from them.
 
 After this lab, you will be able to:
@@ -52,51 +52,50 @@ file and create declarations for UART2 and UART4 in the pin muxing
 section:
 
 \begin{verbatim}
-		/* Pins 21 (TX) and 22 (RX) of connector P9 */
-		uart2_pins: uart2_pins {
-			pinctrl-single,pins = <
-				0x154 (PIN_OUTPUT_PULLDOWN | MUX_MODE1) /* spi0_d0.uart2_tx, MODE 1 */
-				0x150 (PIN_INPUT_PULLUP | MUX_MODE1) /* spi0_sclk.uart2_rx, MODE 1 */
-			>;
-		};
+    /* Pins 21 (TX) and 22 (RX) of connector P9 */
+    uart2_pins: uart2_pins {
+        pinctrl-single,pins = <
+            0x154 (PIN_OUTPUT_PULLDOWN | MUX_MODE1) /* spi0_d0.uart2_tx, MODE 1 */
+            0x150 (PIN_INPUT_PULLUP | MUX_MODE1) /* spi0_sclk.uart2_rx, MODE 1 */
+        >;
+    };
 
-		/* Pins 11 (RX) and 13 (TX) of connector P9 */
-		uart4_pins: uart4_pins {
-			pinctrl-single,pins = <
-				0x74 (PIN_OUTPUT_PULLDOWN | MUX_MODE6) /* gpmc_wpn.uart4_tx, MODE 6 */
-				0x70 (PIN_INPUT_PULLUP | MUX_MODE6) /* gpmc_wait0.uart4_rx, MODE 6 */
-			>;
-		};
+    /* Pins 11 (RX) and 13 (TX) of connector P9 */
+    uart4_pins: uart4_pins {
+        pinctrl-single,pins = <
+            0x74 (PIN_OUTPUT_PULLDOWN | MUX_MODE6) /* gpmc_wpn.uart4_tx, MODE 6 */
+            0x70 (PIN_INPUT_PULLUP | MUX_MODE6) /* gpmc_wait0.uart4_rx, MODE 6 */
+        >;
+    };
 \end{verbatim}
 
 Then, declare the corresponding devices:
 
 \begin{verbatim}
-		uartfe2: feserial@48024000 {
-			compatible = "free-electrons,serial";
-			/* Tell the OMAP harware power management that the block
-			   must be enabled, otherwise it's switched off
-			   Caution: starting counting at 1, not 0 */
-			ti,hwmods = "uart3";
-			clock-frequency = <48000000>;
-			reg = <0x48024000 0x2000>;
-			interrupts = <74>;
-			status = "okay";
-			pinctrl-names = "default";
-			pinctrl-0 = <&uart2_pins>;
-		};
+    uartfe2: feserial@48024000 {
+        compatible = "free-electrons,serial";
+        /* Tell the OMAP harware power management that the block
+           must be enabled, otherwise it's switched off
+           Caution: starting counting at 1, not 0 */
+        ti,hwmods = "uart3";
+        clock-frequency = <48000000>;
+        reg = <0x48024000 0x2000>;
+        interrupts = <74>;
+        status = "okay";
+        pinctrl-names = "default";
+        pinctrl-0 = <&uart2_pins>;
+    };
 
-		uartfe4: feserial@481a8000 {
-			compatible = "free-electrons,serial";
-			ti,hwmods = "uart5";
-			clock-frequency = <48000000>;
-			reg = <0x481a8000 0x2000>;
-			interrupts = <45>;
-			status = "okay";
-			pinctrl-names = "default";
-			pinctrl-0 = <&uart4_pins>;
-		};
-
+    uartfe4: feserial@481a8000 {
+        compatible = "free-electrons,serial";
+        ti,hwmods = "uart5";
+        clock-frequency = <48000000>;
+        reg = <0x481a8000 0x2000>;
+        interrupts = <45>;
+        status = "okay";
+        pinctrl-names = "default";
+        pinctrl-0 = <&uart4_pins>;
+    };
 \end{verbatim}
 
 Note: we are calling these devices with \code{uartfe} instead of
@@ -212,12 +211,19 @@ pointer to an \code{feserial_dev} structure and an \code{offset} integer
 offset.
 
 In this function, read from a 32 bits register at the base virtual
-address for the device plus the offset multiplied by 4, and return
-this value.
+address for the device plus the offset multiplied by 4\footnote{You have
+to multiply by 4 because we are using a void* pointer so pointer
+arithmetic will use the offset as bytes whereas we are using 32 bits
+registers.}, and return this value.
 
-Create a similar \code{reg_write()} routine, writing an unsigned
-integer value at a given integer offset from the device base virtual
-address.
+Create a similar \code{reg_write()} routine, writing an unsigned integer
+value at a given integer offset (don't forget to multiply it by 4) from
+the device base virtual address. The following code samples are using
+the \code{writel()} convention of passing the value first, then the
+offset. Your prototype should look like:
+\begin{verbatim}
+    static void reg_write(struct feserial_dev *dev, int val, int off);
+\end{verbatim}
 
 All the UART register offsets have standardized values, shared between
 several types of serial drivers (see
@@ -231,14 +237,14 @@ We are now ready to read and write registers!
 Add the below lines to the probe function:
 
 \begin{verbatim}
-	pm_runtime_enable(&pdev->dev);
-	pm_runtime_get_sync(&pdev->dev);
+    pm_runtime_enable(&pdev->dev);
+    pm_runtime_get_sync(&pdev->dev);
 \end{verbatim}
 
 And add the below line to the \code{remove()} routine:
 
 \begin{verbatim}
-	pm_runtime_disable(&pdev->dev);
+    pm_runtime_disable(&pdev->dev);
 \end{verbatim}
 
 \subsection{Line and baud rate configuration}
@@ -258,7 +264,7 @@ property from the device tree, in this case \code{clock-frequency}:
         reg_write(dev, UART_LCR_DLAB, UART_LCR);
         reg_write(dev, baud_divisor & 0xff, UART_DLL);
         reg_write(dev, (baud_divisor >> 8) & 0xff, UART_DLM);
-	reg_write(dev, UART_LCR_WLEN8, UART_LCR);
+        reg_write(dev, UART_LCR_WLEN8, UART_LCR);
 \end{verbatim}
 
 Declare \code{baud_divisor} and \code{uartclk} as \code{unsigned int}.

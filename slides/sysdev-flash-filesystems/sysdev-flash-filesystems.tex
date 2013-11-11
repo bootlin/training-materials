@@ -15,8 +15,9 @@
   \item The {\bf mtdchar} driver creates a character device for each
     MTD device of the system
     \begin{itemize}
-    \item Usually named \code{/dev/mtdX}, major 90. Even minors for
-      read-write access, odd minors for read-only access
+    \item Usually named \code{/dev/mtdX} or \code{/dev/mtdXro}, major 90.
+      Even minors for read-write access (\code{/dev/mtdX}),
+      odd minors for read-only access (\code{/dev/mtdXro})
     \item Provide \code{ioctl()} to erase and manage the flash
     \item Used by the {\em mtd-utils} utilities
     \end{itemize}
@@ -27,6 +28,7 @@
       number of the MTD device
     \item Allows read/write block-level access. But bad blocks are not
       handled, and no wear leveling is done for writes.
+    \item Primary use: mounting filesystems
     \end{itemize}
   \end{itemize}
 \end{frame}
@@ -43,7 +45,8 @@
   \item Unlike block devices, which contains their own partition
     table, the partitioning of MTD devices is described externally
     \begin{itemize}
-    \item Hard-coded into the kernel code
+    \item Specified in the board Device Tree
+    \item Hard-coded into the kernel code (if no Device Tree)
     \item Specified through the kernel command line
     \end{itemize}
   \item Each partition becomes a separate MTD device
@@ -57,11 +60,35 @@
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{Definition of MTD partitions}
+  \frametitle{Definition of MTD partitions (1)}
+  The Device Tree is the standard place to device MTD partitions
+  for boards with Device Tree support.\\
+  Example from \code{arch/arm/boot/dts/omap3-igep0020.dts}:
+\begin{minted}[fontsize=\scriptsize]{perl}
+        nand@0,0 {
+                linux,mtd-name= "micron,mt29c4g96maz";
+		[...]
+                partition@0 {
+                        label = "SPL";
+                        reg = <0 0x100000>;
+                };
+                partition@0x80000 {
+                        label = "U-Boot";
+                        reg = <0x100000 0x180000>;
+                };
+		[...]
+                partition@0x780000 {
+                        label = "Filesystem";
+                        reg = <0x680000 0x1f980000>;
+                };
+\end{minted}
+\end{frame}
 
-  MTD partitions are defined in the kernel, in the board
-  definitions. Example from
-  \code{arch/arm/mach-omap2/board-igep0020.c}:
+\begin{frame}[fragile]
+  \frametitle{Definition of MTD partitions (2)}
+  For boards or platforms that do not use the Device Tree,
+  MTD partitions can be defined in the kernel.
+  Legacy example from \code{arch/arm/mach-omap2/board-igep0020.c}:
 \begin{minted}[fontsize=\scriptsize]{c}
 static struct mtd_partition igep2_flash_partitions[] = {
     {
@@ -90,7 +117,7 @@ static struct mtd_partition igep2_flash_partitions[] = {
   \item MTD partitions can fortunately be defined through the kernel
     command line.
   \item First need to find the name of the MTD device. Look at the
-    kernel log at boot time. In our case, the MTD device name is
+    kernel log at boot time. In the below example, the MTD device name is
     \code{omap2-nand.0}:
 \end{itemize}
 \tiny
@@ -321,7 +348,6 @@ Creating 5 MTD partitions on "omap2-nand.0":
     \begin{itemize}
     \item The next generation of the jffs2 filesystem, from the same
       linux-mtd developers.
-    \item Available since Linux 2.6.27
     \item Works on top of UBI volumes
     \item Has a noticeable metadata overhead on very small partitions
       (4M, 8M)
@@ -384,12 +410,13 @@ Creating 5 MTD partitions on "omap2-nand.0":
     \begin{itemize}
     \item \code{mkfs.ubifs -m 4096 -e 256KiB -c 1000 -r rootfs/ ubifs.img}
       \begin{itemize}
-      \item \code{-m 4096}, minimal I/O size
-      \item \code{-e 256 KiB}, erase block size
+      \item \code{-m 4096}, minimal I/O size\\
+                 (see \code{/sys/class/mtd/mtdx/writesize}).
+      \item \code{-e 252 KiB}, logical erase block size (smaller than
+                 PEB size, look at \code{dmesg})
       \item \code{-c 1000}, maximum number of logical erase
-        blocks. See
-        \url{http://www.linux-mtd.infradead.org/faq/ubifs.html\#L_max_leb_cnt}
-        for details.
+        blocks. Details:
+        {\tiny\url{http://linux-mtd.infradead.org/faq/ubifs.html\#L_max_leb_cnt}}
       \end{itemize}
     \item Can be written to a UBI volume using \code{ubiupdatevol} and
       the \code{/dev/ubiX_Y devices}
@@ -412,6 +439,10 @@ Creating 5 MTD partitions on "omap2-nand.0":
     \item Creates \code{ubi.img}, with 256KiB physical erase blocks,
       4096 minimum I/O size (\code{-m}).
     \end{itemize}
+  \item See
+    \url{http://free-electrons.com/blog/creating-flashing-ubi-ubifs-images/}
+    for details about creating UBI and UBIFS images.
+  \item Build systems like Buildroot can do this for you!
   \end{itemize}
 \end{frame}
 
@@ -473,9 +504,13 @@ vol_alignment=1
     and use the Linux filesystems doing wear leveling.
   \item No details about the layer (Flash Translation Layer) they
     use. Details are kept as trade secrets, and may hide poor
-    implementations.
-  \item Hence, it is highly recommended to limit the number of writes
-    to these devices.
+    implementations. 
+  \item Can use {\em flashbench}
+        (\url{https://github.com/bradfa/flashbench}) to find out
+        the erase block size and optimize filesystem formating.
+  \item Not knowing about the wear leveling algorithm,
+        it is highly recommended to limit the number of writes
+        to these devices.
   \end{itemize}
 \end{frame}
 
@@ -502,10 +537,8 @@ vol_alignment=1
   \item Arnd Bergmann: Optimizing Linux with cheap flash drives\\
     In depth coverage of flash storage with a block interface.\\
     \url{http://lwn.net/Articles/428584/}
-  \item Introduction to JFFS2 and LogFS:\\
-    \url{http://lwn.net/Articles/234441/}
-  \item Nice UBI presentation from Toshiba:\\
-    \url{http://free-electrons.com/redirect/celf-ubi.html}
+  \item Managing flash storage with Linux:\\
+    \url{http://free-electrons.com/blog/managing-flash-storage-with-linux/}
   \item Documentation on the linux-mtd website:\\
     \url{http://www.linux-mtd.infradead.org/}
   \end{itemize}
