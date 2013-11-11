@@ -16,7 +16,7 @@ KERNEL_SLIDES = \
 		licensing \
 		about-us \
 		course-information-title \
-		kernel-beagleboneblack \
+		beagleboneblack-board \
 		course-information \
 		setup-lab \
 		kernel-introduction-title \
@@ -119,7 +119,7 @@ ANDROID_SLIDES = \
 		licensing \
 		about-us \
 		course-information-title \
-		devkit8000-board \
+		beagleboneblack-board \
 		android-linaro-introduction \
 		android-course-outline \
 		course-information \
