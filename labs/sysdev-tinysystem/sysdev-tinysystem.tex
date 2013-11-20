@@ -94,14 +94,29 @@ Of course, you need to adapt the IP addresses to your exact network
 setup. Save the environment variables (with \code{saveenv}).
 
 Now, boot your system. The kernel should be able to mount the root
-filesystem over NFS.
+filesystem over NFS:
+
+\begin{verbatim}
+[    7.467895] VFS: Mounted root (nfs filesystem) readonly on device 0:12.
+\end{verbatim}
 
 If the kernel fails to mount the NFS filesystem, look carefully at the
 error messages in the console. If this doesn't give any clue, you can
 also have a look at the NFS server logs in \code{/var/log/syslog}.
 
-However, the kernel will complain that it can't find an init
-application:
+However, at this stage, the kernel should stop because of the below
+issue:
+
+\begin{verbatim}
+[    7.476715] devtmpfs: error mounting -2
+\end{verbatim}
+
+This happens because the kernel is trying to mount the {\em devtmpfs}
+filesystem in \code{/dev/} in the root filesystem. To address this,
+create a \code{dev} directory under \code{nfsroot} and reboot.
+
+Now, the kernel should complain for the last time, saying that it can't
+find an init application:
 
 \footnotesize
 \begin{verbatim}
@@ -110,9 +125,9 @@ Kernel panic - not syncing: No init found.  Try passing init= option to kernel.
 \end{verbatim}
 \normalsize
 
-Obviously, our root filesystem being empty, there isn't such an
-application. Follow on to add Busybox to our root filesystem and
-finally make it useful.
+Obviously, our root filesystem being mostly empty, there isn't such an
+application yet. In the next paragraph, you will add Busybox to your root
+filesystem and finally make it usable.
 
 \section{Root filesystem with Busybox}
 
@@ -216,7 +231,6 @@ Before doing that, measure the size of the \code{busybox} executable.
 Then, build Busybox with shared libraries, and install it again on the
 target filesystem. Make sure that the system still boots and see
 how much smaller the \code{busybox} executable got.
-
 
 \section{Implement a web interface for your device}
 
