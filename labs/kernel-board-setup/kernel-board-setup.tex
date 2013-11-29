@@ -42,7 +42,6 @@ of the 48 pins headers. Using your special USB to Serial adaptor provided
 by your instructor, connect the ground wire (blue) to the pin closest
 to the power supply connector (let's call it pin 1), and the \code{TX} (red)
 and \code{RX} (green) wires to the pins 4 (\code{RX}) and 5 (\code{TX}).
-
 \footnote{See
 \url{https://www.olimex.com/Products/Components/Cables/USB-Serial-Cable/USB-Serial-Cable-F/}
 for details about the USB to Serial adaptor that we are using.} 
@@ -89,80 +88,12 @@ It is now time to power up your board by plugging in the mini-USB
 cable supplied by your instructor (with your PC or a USB power supply at the
 other end of the cable).
 
-See what messages you get on the serial line.
+See what messages you get on the serial line. You should see Linux boot
+on the serial line.
 
-\section{Prepare a bootable micro-SD card}
+\section{Bootloader interaction}
 
-Using a micro-SD card is a convenient way to control the way
-the board boots, whatever the initial contents of the on-board MMC
-storage.
-
-A micro-SD card also makes it easy to modify its contents by connecting
-it to your workstation.
-
-In order to boot from a micro-SD card, the CPU romcode needs the card
-to be partitioned and formatted in a particular way.
-
-Connect the micro-SD card provided by your instructor to your
-workstation:
-
-\begin{itemize}
-\item Either using a direct SD slot if available.
-      In this case, the card should be seen as \code{/dev/mmcblk0} by
-      your computer (check the \code{dmesg} command).
-\item Either using a card reader provided by your instructor too.
-      In this case, the card should be seen as \code{/dev/sdb}, or
-      \code{/dev/sdc}, etc.
-\end{itemize}
-
-Now, run the \code{mount} command to check for mounted SD card
-partitions. Umount them with command such as \code{sudo umount
-/dev/mmcblk0p1} or \code{sudo umount /dev/sdb1}, depending on how
-the system sees the media card device.
-
-Now type the below command to partition the micro-SD card
-(we assume that the card is seen as \code{/dev/mmcblk0}):
-
-\begin{verbatim}
-sudo sfdisk --in-order --Linux --unit M /dev/mmcblk0 << EOF
-1,48,0xE,*
-,,,-
-EOF
-\end{verbatim}
-
-Now, let's format the first partition in FAT format:
-
-\begin{verbatim}
-sudo mkfs.vfat -F 16 /dev/mmcblk0p1 -n boot
-\end{verbatim}
-
-Remove the card and insert it again. It should automatically be mounted
-on \code{/media/boot} \footnote{Or on \code{/media/<user>/boot} if you
-are using Ubuntu 12.10 or later.}.
-
-Now, copy the first stage bootloader (\code{MLO}: {\em Mmc LOad}) and the main
-bootloader (\code{u-boot.cmd}) to your micro-SD card:
-
-\begin{verbatim}
-cd $HOME/felabs/linux/bootloader
-cp beaglebone-black/MLO /media/boot/
-cp beaglebone-black/u-boot.img /media/boot
-sudo umount /media/boot
-\end{verbatim}
-
-\section{Boot the board}
-
-Force the board to boot on the external card. To do this, you will
-have to remove the power supply, press and hold the \code{boot switch}
-button, insert the power supply, and then release this button.
-
-Note that from now on, the board will always boot on the external 
-MMC, until you remove the power. You only have do this manipulation
-when you power on the board for the first time.
-
-You should then see U-boot 2013.10-rc3 start.
-
-Press a key in the \code{picocom} terminal to stop the U-boot
+Reset your board. Press a key in the \code{picocom} terminal to stop the U-boot
 countdown. You should then see the U-Boot prompt:
 \begin{verbatim}
 U-Boot>
@@ -226,12 +157,12 @@ setenv ipaddr 192.168.0.100
 setenv serverip 192.168.0.1
 \end{verbatim}
 
-Save these settings to the MMC card:
+Save these settings to the eMMC storage on the board:
 \footnote{The U-boot environment settings are stored in some free space
 between the master boot record (512 bytes, containing the partition
 tables and other stuff), and the beginning of the first partition (often
 at \code{32256}). This is why you won't find any related file in the
-first partition.}
+first partition of the eMMC storage.}
 
 \begin{verbatim}
 saveenv
