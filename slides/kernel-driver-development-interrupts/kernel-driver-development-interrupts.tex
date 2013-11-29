@@ -11,13 +11,13 @@ int request_irq(unsigned int irq,
    \begin{itemize}
    \item Register an interrupt handler.
    \item \code{irq} is the requested IRQ channel. For platform
-     devices, use \code{platform_get_irq()} to retrieve the
+     devices, use \kfunc{platform_get_irq} to retrieve the
      interrupt number.
    \item \code{handler} is a pointer to the IRQ handler
    \item \code{irq_flags} are option masks (see next slide)
    \item \code{devname} is the registered name
    \item \code{dev_id} is a pointer to some data. It cannot be NULL
-     as it is used as an identifier for \code{free_irq} when using
+     as it is used as an identifier for \kfunc{free_irq} when using
      shared IRQs.
    \end{itemize}
  \item \begin{minted}{c}
@@ -26,7 +26,7 @@ void free_irq(unsigned int irq, void *dev_id);
 \begin{itemize}
 \item Release an interrupt handler.
 \end{itemize}
- \item Defined in \code{include/linux/interrupt.h}
+ \item Defined in \kpath{include/linux/interrupt.h}
  \end{itemize}
 \end{frame}
 
@@ -36,13 +36,13 @@ void free_irq(unsigned int irq, void *dev_id);
   \item Main \code{irq_flags} bit values (can be combined, \code{0}
     when no flags are needed)
     \begin{itemize}
-    \item \code{IRQF_SHARED}
+    \item \ksym{IRQF_SHARED}
       \begin{itemize}
       \item The interrupt channel can be shared by several
         devices. Requires a hardware status register telling whether
         an IRQ was raised or not.
       \end{itemize}
-    \item \code{IRQF_SAMPLE_RANDOM}
+    \item \ksym{IRQF_SAMPLE_RANDOM}
       \begin{itemize}
       \item Use the IRQ arrival time to feed the kernel random number
         generator.
@@ -59,7 +59,7 @@ void free_irq(unsigned int irq, void *dev_id);
   \item Interrupt handler execution is managed by the CPU, not by the
     scheduler.  Handlers can't run actions that may sleep, because
     there is nothing to resume their execution. In particular, need to
-    allocate memory with \code{GFP_ATOMIC}.
+    allocate memory with \ksym{GFP_ATOMIC}.
   \item Interrupt handlers are run with all interrupts disabled (since
     2.6.36).  Therefore, they have to complete their job quickly
     enough, to avoiding blocking interrupts for too long.
@@ -102,12 +102,12 @@ Err:    0
     \begin{itemize}
     \item \code{irq}, the IRQ number
     \item \code{dev_id}, the opaque pointer that was passed to
-      \code{request_irq()}
+      \kfunc{request_irq}
     \end{itemize}
   \item Return value
     \begin{itemize}
-    \item \code{IRQ_HANDLED}: recognized and handled interrupt
-    \item \code{IRQ_NONE}: not on a device managed by the
+    \item \ksym{IRQ_HANDLED}: recognized and handled interrupt
+    \item \ksym{IRQ_NONE}: not on a device managed by the
       module. Useful to share interrupt channels and/or report
       spurious interrupts to the kernel.
     \end{itemize}
@@ -194,7 +194,7 @@ Err:    0
     not directly used by drivers, but by complete kernel subsystems
     (network, etc.)
   \item The list of softirqs is defined in
-    \code{include/linux/interrupt.h}: \code{HI}, \code{TIMER},
+    \kpath{include/linux/interrupt.h}: \code{HI}, \code{TIMER},
     \code{NET_TX}, \code{NET_RX}, \code{BLOCK}, \code{BLOCK_IOPOLL},
     \code{TASKLET}, \code{SCHED}, \code{HRTIMER}, \code{RCU}
   \item The \code{HI} and \code{TASKLET} softirqs are used to execute
@@ -209,16 +209,16 @@ Err:    0
     softirqs. They are executed with all interrupts enabled, but a
     given tasklet is guaranteed to execute on a single CPU at a time.
   \item A tasklet can be declared statically with the
-    \code{DECLARE_TASKLET()} macro or dynamically with the
-    \code{tasklet_init()} function. A tasklet is simply implemented as
+    \kfunc{DECLARE_TASKLET} macro or dynamically with the
+    \kfunc{tasklet_init} function. A tasklet is simply implemented as
     a function. Tasklets can easily be used by individual device
     drivers, as opposed to softirqs.
   \item The interrupt handler can schedule the execution of a tasklet
     with
     \begin{itemize}
-    \item \code{tasklet_schedule()} to get it executed in the
+    \item \kfunc{tasklet_schedule} to get it executed in the
       \code{TASKLET} softirq
-    \item \code{tasklet_hi_schedule()} to get it executed in the
+    \item \kfunc{tasklet_hi_schedule} to get it executed in the
       \code{HI} softirq (higher priority)
     \end{itemize}
   \end{itemize}
@@ -271,9 +271,9 @@ somewhere function(...) {
     \item All interrupts are enabled
     \item Sleeping is allowed
     \end{itemize}
-  \item A workqueue is registered with \code{INIT_WORK} and typically
-    triggered with \code{queue_work()}
-  \item The complete API, in \code{include/linux/workqueue.h} provides
+  \item A workqueue is registered with \kfunc{INIT_WORK} and typically
+    triggered with \kfunc{queue_work}
+  \item The complete API, in \kpath{include/linux/workqueue.h} provides
     many other possibilities (creating its own workqueue threads,
     etc.)
   \end{itemize}

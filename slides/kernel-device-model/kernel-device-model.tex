@@ -42,15 +42,15 @@
   \item The {\em device model} is organized around three main data
     structures:
     \begin{itemize}
-    \item The \code{struct bus_type}, which represent one type of bus
+    \item The \kstruct{bus_type} structure, which represent one type of bus
       (USB, PCI, I2C, etc.)
-    \item The \code{struct device_driver}, which represents one driver
+    \item The \kstruct{device_driver} structure, which represents one driver
       capable of handling certain devices on a certain bus.
-    \item The \code{struct device}, which represents one device
+    \item The \kstruct{device} structure, which represents one device
       connected to a bus
     \end{itemize}
   \item The kernel uses inheritance to create more specialized
-    versions of \code{struct device_driver} and \code{struct device}
+    versions of \kstruct{device_driver} and \kstruct{device}
     for each bus subsystem.
   \item In order to explore the device model, we will
     \begin{itemize}
@@ -72,7 +72,7 @@
     \end{itemize}
   \item It is responsible for
     \begin{itemize}
-    \item Registering the bus type (\code{struct bus_type})
+    \item Registering the bus type (\kstruct{bus_type})
     \item Allowing the registration of adapter drivers (USB
       controllers, I2C adapters, etc.), able of detecting the
       connected devices, and providing a communication mechanism with
@@ -82,8 +82,8 @@
     \item Matching the device drivers against the devices detected by
       the adapter drivers.
     \item Provides an API to both adapter drivers and device drivers
-    \item Defining driver and device specific structure, mainly
-      \code{usb_driver} and \code{usb_interface}
+    \item Defining driver and device specific structures, mainly
+      \kstruct{usb_driver} and \kstruct{usb_interface}
     \end{itemize}
   \end{itemize}
 \end{frame}
@@ -102,14 +102,14 @@
   \begin{itemize}
   \item Core infrastructure (bus driver)
     \begin{itemize}
-    \item \code{drivers/usb/core}
-    \item The \code{bus_type} is defined in
-      \code{drivers/usb/core/driver.c} and registered in
-      \code{drivers/usb/core/usb.c}
+    \item \kpath{drivers/usb/core}
+    \item \kstruct{bus_type} is defined in
+      \kpath{drivers/usb/core/driver.c} and registered in
+      \kpath{drivers/usb/core/usb.c}
     \end{itemize}
   \item Adapter drivers
     \begin{itemize}
-    \item \code{drivers/usb/host}
+    \item \kpath{drivers/usb/host}
     \item For EHCI, UHCI, OHCI, XHCI, and their implementations on
       various systems (Atmel, IXP, Xilinx, OMAP, Samsung, PXA, etc.)
     \end{itemize}
@@ -134,7 +134,7 @@
     \end{itemize}
   \item We will only look at the device driver side, and not the
     adapter driver side
-  \item The driver we will look at is \code{drivers/net/usb/rtl8150.c}
+  \item The driver we will look at is \kpath{drivers/net/usb/rtl8150.c}
   \end{itemize}
 \end{frame}
 
@@ -144,7 +144,7 @@
   \item Defines the set of devices that this driver can manage, so
     that the USB core knows for which devices this driver should be
     used
-  \item The \code{MODULE_DEVICE_TABLE} macro allows \code{depmod} to
+  \item The \kfunc{MODULE_DEVICE_TABLE} macro allows \code{depmod} to
     extract at compile time the relation between device identifiers
     and drivers, so that drivers can be loaded automatically by
     \code{udev}. See \code{/lib/modules/$(uname -r)/modules.{alias,usbmap}}
@@ -167,10 +167,10 @@ MODULE_DEVICE_TABLE(usb, rtl8150_table);
 \begin{frame}[fragile]
   \frametitle{Instantiation of usb\_driver}
   \begin{itemize}
-  \item \code{struct usb_driver} is a structure defined by the USB
+  \item \kstruct{usb_driver} is a structure defined by the USB
     core. Each USB device driver must instantiate it, and register
     itself to the USB core using this structure
-  \item This structure inherits from \code{struct driver}, which is defined
+  \item This structure inherits from \kstruct{driver}, which is defined
     by the device model.
     \begin{block}{}
   \begin{minted}{c}
@@ -192,7 +192,7 @@ static struct usb_driver rtl8150_driver = {
   \begin{itemize}
   \item When the driver is loaded or unloaded, it must register or
     unregister itself from the USB core
-  \item Done using \code{usb_register()} and \code{usb_deregister()},
+  \item Done using \kfunc{usb_register} and \kfunc{usb_deregister},
     provided by the USB core.
     \begin{block}{}
 \begin{minted}[fontsize=\scriptsize]{c}
@@ -211,7 +211,7 @@ module_exit(usb_rtl8150_exit);
 \end{minted}
 \end{block}
 \item Note: this code has now been replaced by a shorter
-  \code{module_usb_driver()} macro call.
+  \kfunc{module_usb_driver} macro call.
   \end{itemize}
 \end{frame}
 
@@ -220,12 +220,12 @@ module_exit(usb_rtl8150_exit);
   \begin{itemize}
   \item The USB adapter driver that corresponds to the USB controller
     of the system registers itself to the USB core
-  \item The \code{rtl8150} USB device driver registers itself to the USB core
+  \item The \ksym{rtl8150} USB device driver registers itself to the USB core
     \begin{center}
       \includegraphics[height=0.4\textheight]{slides/kernel-device-model/usb-registering.pdf}
     \end{center}
   \item The USB core now knows the association between the
-    vendor/product IDs of \code{rtl8150} and the \code{usb_driver} structure
+    vendor/product IDs of \ksym{rtl8150} and the \kstruct{usb_driver} structure
     of this driver
   \end{itemize}
 \end{frame}
@@ -242,7 +242,7 @@ module_exit(usb_rtl8150_exit);
   \begin{itemize}
   \item The \code{probe()} method receives as argument a structure
     describing the device, usually specialized by the bus
-    infrastructure (\code{pci_dev}, \code{usb_interface}, etc.)
+    infrastructure (\kstruct{pci_dev}, \kstruct{usb_interface}, etc.)
   \item This function is responsible for
     \begin{itemize}
     \item Initializing the device, mapping I/O memory, registering the
@@ -330,8 +330,8 @@ static int rtl8150_probe(struct usb_interface *intf,
 \begin{frame}[fragile]
   \frametitle{Implementation of a Platform Driver}
   \begin{itemize}
-  \item The driver implements a \code{struct platform_driver}
-    structure (example taken from \code{drivers/serial/imx.c})
+  \item The driver implements a \kstruct{platform_driver}
+    structure (example taken from \kpath{drivers/serial/imx.c})
     \begin{block}{}
     \begin{minted}[fontsize=\scriptsize]{c}
 static struct platform_driver serial_imx_driver = {
@@ -365,15 +365,15 @@ static void __exit imx_serial_cleanup(void) {
   \item As platform devices cannot be detected dynamically, they are
     defined statically
     \begin{itemize}
-    \item By direct instantiation of \code{struct platform_device}
+    \item By direct instantiation of \kstruct{platform_device}
       structures, as done on some ARM platforms. Definition done in
       the board-specific or SoC specific code.
     \item By using a \emph{device tree}, as done on Power PC (and on
-      some ARM platforms) from which \code{struct platform_device}
+      some ARM platforms) from which \kstruct{platform_device}
       structures are created
     \end{itemize}
   \item Example on ARM, where the instantiation is done in
-    \code{arch/arm/mach-imx/mx1ads.c}
+    \kpath{arch/arm/mach-imx/mx1ads.c}
     \begin{block}{}
 \begin{minted}[fontsize=\scriptsize]{c}
 static struct platform_device imx_uart1_device = {
@@ -428,9 +428,9 @@ MACHINE_END
   \item Each device managed by a particular driver typically uses
     different hardware resources: addresses for the I/O registers, DMA
     channels, IRQ lines, etc.
-  \item Such information can be represented using the
-    \code{struct resource}, and an array of \code{struct resource} is
-    associated to a \code{platform_device}
+  \item Such information can be represented using
+    \kstruct{resource}, and an array of \kstruct{resource} is
+    associated to a \kstruct{platform_device}
   \item Allows a driver to be instantiated for multiple devices
     functioning similarly, but with different addresses, IRQs, etc.
   \end{itemize}
@@ -459,8 +459,8 @@ static struct resource imx_uart1_resources[] = {
 \begin{frame}[fragile]
   \frametitle{Using Resources}
   \begin{itemize}
-  \item When a \code{platform_device} is added to the system using
-    \code{platform_add_device()}, the \code{probe()} method of the
+  \item When a \kstruct{platform_device} is added to the system using
+    \kfunc{platform_add_device}, the \code{probe()} method of the
     platform driver gets called
   \item This method is responsible for initializing the hardware,
     registering the device to the proper framework (in our case, the
@@ -481,14 +481,14 @@ sport->rxirq = platform_get_irq(pdev, 0);
   \begin{itemize}
   \item In addition to the well-defined resources, many drivers
     require driver-specific information for each platform device
-  \item Such information can be passed using the \code{platform_data}
-    field of \code{struct device} (from which
-    \code{struct platform_device} inherits)
+  \item Such information can be passed using the \kstruct{platform_data}
+    field of \kstruct{device} (from which
+    \kstruct{platform_device} inherits)
   \item As it is a \code{void *} pointer, it can be used to pass any
     type of information.
     \begin{itemize}
     \item Typically, each driver defines a structure to pass
-      information through \code{platform_data}
+      information through \kstruct{platform_data}
     \end{itemize}
   \end{itemize}
 \end{frame}
@@ -497,7 +497,7 @@ sport->rxirq = platform_get_irq(pdev, 0);
   \frametitle{platform\_data example 1/2}
   \begin{itemize}
   \item The i.MX serial port driver defines the following structure to
-    be passed through \code{platform_data}
+    be passed through \kstruct{platform_data}
     \begin{block}{}
   \begin{minted}[fontsize=\footnotesize]{c}
 struct imxuart_platform_data {
@@ -526,7 +526,7 @@ static struct imxuart_platform_data uart1_pdata = {
   \frametitle{platform\_data Example 2/2}
   \begin{itemize}
   \item The \code{uart_pdata} structure is associated to the
-    \code{platform_device} in the MX1ADS board file (the real code is
+    \kstruct{platform_device} structure in the MX1ADS board file (the real code is
     slightly more complicated)
     \begin{block}{}
   \begin{minted}[fontsize=\scriptsize]{c}
@@ -572,7 +572,7 @@ static int serial_imx_probe(struct platform_device *pdev)
   \item At boot time, the kernel is given a compiled version, the {\bf
       Device Tree Blob}, which is parsed to instantiate all the
     devices described in the DT.
-  \item On ARM, they are located in \code{arch/arm/boot/dts}.
+  \item On ARM, they are located in \kpath{arch/arm/boot/dts}.
   \end{itemize}
 \end{frame}
 
@@ -625,7 +625,7 @@ uart0: serial@44e09000 {
   \begin{itemize}
   \item With the {\em device tree}, a {\em device} is bound with the
     corresponding {\em driver} using the {\bf compatible} string.
-  \item The \code{of_match_table} field of \code{struct device_driver}
+  \item The \code{of_match_table} field of \kstruct{device_driver}
     lists the compatible strings supported by the driver.
     \begin{block}{}
   \begin{minted}[fontsize=\tiny]{c}

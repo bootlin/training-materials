@@ -24,11 +24,11 @@
   \item Simple API described in
     \url{http://free-electrons.com/kerneldoc/latest/DocBook/kernel-api/clk.html}
     \begin{itemize}
-    \item \code{clk_get()} to get a reference to a clock
-    \item \code{clk_enable()} to start the clock
-    \item \code{clk_disable()} to stop the clock
-    \item \code{clk_put()} to free the clock source
-    \item \code{clk_get_rate()} to get the current rate
+    \item \kfunc{clk_get} to get a reference to a clock
+    \item \kfunc{clk_enable} to start the clock
+    \item \kfunc{clk_disable} to stop the clock
+    \item \kfunc{clk_put} to free the clock source
+    \item \kfunc{clk_get_rate} to get the current rate
     \end{itemize}
   \end{itemize}
 \end{frame}
@@ -36,30 +36,30 @@
 \begin{frame}
   \frametitle{Clock Framework (2)}
   \begin{itemize}
-  \item The clock framework API and the \code{clk} structure are
+  \item The clock framework API and the \kstruct{clk} structure are
     usually implemented by each architecture (code duplication!)
     \begin{itemize}
-    \item See \code{arch/arm/mach-at91/clock.c} for an example
+    \item See \kpath{arch/arm/mach-at91/clock.c} for an example
     \item This is also where all clocks are defined.
     \item Clocks are identified by a name string specific to a given
       platform
     \end{itemize}
   \item Drivers can then use the clock API. Example from
-    \code{drivers/net/macb.c}:
+    \kpath{drivers/net/macb.c}:
     \begin{itemize}
-    \item \code{clk_get()} called from the \code{probe()} function, to
+    \item \kfunc{clk_get} called from the \code{probe()} function, to
       get the definition of a clock for the current board, get its
-      frequency, and run \code{clk_enable()}.
-    \item \code{clk_put()} called from the \code{remove()} function to
+      frequency, and run \kfunc{clk_enable}.
+    \item \kfunc{clk_put} called from the \code{remove()} function to
       release the reference to the clock, after calling
-      \code{clk_disable()}
+      \kfunc{clk_disable}
     \end{itemize}
   \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]
 \frametitle{Clock Disable Implementation}
-From \code{arch/arm/mach-at91/clock.c}: (2.6.36)
+From \kpath{arch/arm/mach-at91/clock.c}: (2.6.36)
 \begin{minted}[fontsize=\footnotesize]{c}
 static void __clk_disable(struct clk *clk)
 {
@@ -90,16 +90,16 @@ static void pmc_sys_mode(struct clk *clk, int is_on)
   \item Platform hooks
     \begin{itemize}
     \item \code{prepare()}, \code{enter()}, \code{finish()},
-      \code{valid()} in a \code{platform_suspend_ops} structure
-    \item Registered using the \code{suspend_set_ops()} function
-    \item See \code{arch/arm/mach-at91/pm.c}
+      \code{valid()} in a \kstruct{platform_suspend_ops} structure
+    \item Registered using the \kfunc{suspend_set_ops} function
+    \item See \kpath{arch/arm/mach-at91/pm.c}
     \end{itemize}
   \item Device drivers
     \begin{itemize}
     \item \code{suspend()} and \code{resume()} hooks in the
-      \code{*_driver} structures (\code{platform_driver},
-      \code{usb_driver}, etc.)
-    \item See \code{drivers/net/macb.c}
+      \code{*_driver} structures (\kstruct{platform_driver},
+      \kstruct{usb_driver}, etc.)
+    \item See \kpath{drivers/net/macb.c}
     \end{itemize}
   \end{itemize}
 \end{frame}
@@ -110,7 +110,7 @@ static void pmc_sys_mode(struct clk *clk, int is_on)
   \item Typically takes care of battery and charging management.
   \item Also defines \code{presuspend} and \code{postsuspend}
     handlers.
-  \item Example: \code{arch/arm/mach-pxa/spitz_pm.c}
+  \item Example: \kpath{arch/arm/mach-pxa/spitz_pm.c}
   \end{itemize}
 \end{frame}
 
@@ -128,8 +128,8 @@ static void pmc_sys_mode(struct clk *clk, int is_on)
     functions called by the bootloader.
   \item Examples to look at:
     \begin{itemize}
-    \item \code{arch/arm/mach-omap2/sleep24xx.S} (1st case)
-    \item \code{arch/arm/mach-pxa/sleep.S} (2nd case)
+    \item \kpath{arch/arm/mach-omap2/sleep24xx.S} (1st case)
+    \item \kpath{arch/arm/mach-pxa/sleep.S} (2nd case)
     \end{itemize}
   \end{itemize}
 \end{frame}
@@ -138,9 +138,9 @@ static void pmc_sys_mode(struct clk *clk, int is_on)
   \frametitle{Triggering Suspend}
   \begin{itemize}
   \item Whatever the power management implementation, CPU specific
-    \code{suspend_ops} functions are called by the \code{enter_state}
+    \kstruct{suspend_ops} functions are called by the \kfunc{enter_state}
     function.
-  \item \code{enter_state} also takes care of executing the suspend
+  \item \kfunc{enter_state} also takes care of executing the suspend
     and resume functions for your devices.
   \item The execution of this function can be triggered from
     userspace. To suspend to RAM:
@@ -149,7 +149,7 @@ static void pmc_sys_mode(struct clk *clk, int is_on)
     \end{itemize}
   \item Can also use the s2ram program from
     \url{http://suspend.sourceforge.net/}
-  \item Read \code{kernel/power/suspend.c}
+  \item Read \kpath{kernel/power/suspend.c}
   \end{itemize}
 \end{frame}
 
@@ -178,7 +178,7 @@ static void pmc_sys_mode(struct clk *clk, int is_on)
   \item Implemented in all architectures in
     \code{arch/<arch>/kernel/process.c}
   \item Example to read: look for \code{cpu_idle} in
-    \code{arch/arm/kernel/process.c}
+    \kpath{arch/arm/kernel/process.c}
   \item Each ARM cpu defines its own \code{arch_idle} function.
   \item The CPU can run power saving HLT instructions, enter NAP mode,
     and even disable the timers (tickless systems).
@@ -202,7 +202,7 @@ static void pmc_sys_mode(struct clk *clk, int is_on)
         transition operations
       \item Platform-independent governors (ladder and menu)
       \item Available for x86/ACPI, not supported yet by all ARM cpus.
-        (look for \code{cpuidle*} files under \code{arch/arm/})
+        (look for \code{cpuidle*} files under \kpath{arch/arm/})
       \item See \kerneldoc{cpuidle/} in kernel sources.
       \end{itemize}
     \end{itemize}
@@ -229,8 +229,8 @@ static void pmc_sys_mode(struct clk *clk, int is_on)
   \item Frequency and voltage scaling possible through the
     \code{cpufreq} kernel infrastructure.
     \begin{itemize}
-    \item Generic infrastructure: \code{drivers/cpufreq/cpufreq.c} and
-      \code{include/linux/cpufreq.h}
+    \item Generic infrastructure: \kpath{drivers/cpufreq/cpufreq.c} and
+      \kpath{include/linux/cpufreq.h}
     \item Generic governors, responsible for deciding frequency and
       voltage transitions
       \begin{itemize}
@@ -253,7 +253,7 @@ static void pmc_sys_mode(struct clk *clk, int is_on)
   \frametitle{Frequency and Voltage Scaling (2)}
   \begin{itemize}
   \item CPU support code in architecture dependent files.  Example to
-    read: \code{arch/arm/plat-omap/cpu-omap.c}
+    read: \kpath{arch/arm/plat-omap/cpu-omap.c}
   \item Must implement the operations of the \code{cpufreq_driver}
     structure and register them using \code{cpufreq_register_driver()}
     \begin{itemize}
@@ -336,7 +336,7 @@ static void pmc_sys_mode(struct clk *clk, int is_on)
     \begin{itemize}
     \item Will give you many useful details.
     \end{itemize}
-  \item \url{http://wiki.linaro.org/WorkingGroups/PowerManagement/}
+  \item {\small \url{http://wiki.linaro.org/WorkingGroups/PowerManagement/}}
     \begin{itemize}
     \item Ongoing developments on the ARM platform.
     \end{itemize}

@@ -117,7 +117,7 @@
     finest granularity (usually 4 KB, architecture dependent).
   \item However, the kernel memory management handles smaller memory
     allocations through its allocator (see \emph{SLAB allocators}
-    – used by \code{kmalloc}).
+    – used by \kfunc{kmalloc}).
   \end{itemize}
 \end{frame}
 
@@ -168,7 +168,7 @@
     \item Returns the starting virtual address of an area of several
       contiguous pages in physical RAM, with order being
       \code{log2(number_of_pages)}.Can be computed
-      from the size with the \code{get_order()} function.
+      from the size with the \kfunc{get_order} function.
     \end{itemize}
   \end{itemize}
 \end{frame}
@@ -194,25 +194,25 @@
   \begin{itemize}
   \item The most common ones are:
     \begin{itemize}
-    \item \code{GFP_KERNEL}
+    \item \ksym{GFP_KERNEL}
       \begin{itemize}
       \item Standard kernel memory allocation. The allocation may
         block in order to find enough available memory. Fine for most
         needs, except in interrupt handler context.
       \end{itemize}
-    \item \code{GFP_ATOMIC}
+    \item \ksym{GFP_ATOMIC}
       \begin{itemize}
       \item RAM allocated from code which is not allowed to block
         (interrupt handlers or critical sections). Never blocks,
         allows to access emergency pools, but can fail if no free
         memory is readily available.
       \end{itemize}
-    \item \code{GFP_DMA}
+    \item \ksym{GFP_DMA}
       \begin{itemize}
       \item Allocates memory in an area of the physical memory usable
         for DMA transfers. See our DMA chapter.
       \end{itemize}
-    \item Others are defined in \code{include/linux/gfp.h}
+    \item Others are defined in \kpath{include/linux/gfp.h}
     \end{itemize}
   \end{itemize}
 \end{frame}
@@ -233,7 +233,7 @@
     \item See \code{/proc/slabinfo}
     \end{itemize}
   \item They are rarely used for individual drivers.
-  \item See \code{include/linux/slab.h} for the API
+  \item See \kpath{include/linux/slab.h} for the API
 \end{itemize}
 \end{frame}
 
@@ -277,8 +277,8 @@
   \item The allocated area size is rounded up to the next power of two
     size (while using the SLAB allocator directly allows to have more
     flexibility)
-  \item It uses the same flags as the page allocator (\code{GFP_KERNEL},
-    \code{GFP_ATOMIC}, \code{GFP_DMA}, etc.) with the same semantics.
+  \item It uses the same flags as the page allocator (\ksym{GFP_KERNEL},
+    \ksym{GFP_ATOMIC}, \ksym{GFP_DMA}, etc.) with the same semantics.
   \item Maximum sizes, on \code{x86} and \code{arm} (see
     \url{http://j.mp/YIGq6W}): \\
     - Per allocation: 4 MB \\
@@ -303,7 +303,7 @@
     \begin{itemize}
     \item Free an allocated area
     \end{itemize}
-  \item Example: (\code{drivers/infiniband/core/cache.c})
+  \item Example: (\kpath{drivers/infiniband/core/cache.c})
 \begin{minted}{c}
 struct ib_update_work *work;
 work = kmalloc(sizeof *work, GFP_ATOMIC);
@@ -339,7 +339,7 @@ kfree(work);
 \begin{frame}[fragile]
   \frametitle{vmalloc Allocator}
   \begin{itemize}
-  \item The \code{vmalloc} allocator can be used to obtain virtually
+  \item The \kfunc{vmalloc} allocator can be used to obtain virtually
     contiguous memory zones, but not physically contiguous. The
     requested memory size is rounded up to the next page.
   \item The allocated area is in the kernel space part of the address
@@ -349,7 +349,7 @@ kfree(work);
     since physical memory fragmentation is not an issue, but areas
     cannot be used for DMA, as DMA usually requires physically
     contiguous buffers.
-  \item API in \code{include/linux/vmalloc.h}
+  \item API in \kpath{include/linux/vmalloc.h}
     \begin{itemize}
     \item \mint{c}+void *vmalloc(unsigned long size);+
       \begin{itemize}

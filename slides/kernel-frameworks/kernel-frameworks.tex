@@ -175,10 +175,10 @@ struct file_operations {
   \item \mint{c}+int foo_open(struct inode *i, struct file *f)+
     \begin{itemize}
     \item Called when user-space opens the device file.
-    \item \code{inode} is a structure that uniquely represent a file
+    \item \kstruct{inode} is a structure that uniquely represents a file
       in the system (be it a regular file, a directory, a symbolic
       link, a character or block device)
-    \item \code{file} is a structure created every time a file is
+    \item \kstruct{file} is a structure created every time a file is
       opened. Several file structures can point to the same
       \code{inode} structure.
       \begin{itemize}
@@ -236,7 +236,7 @@ struct file_operations {
   \frametitle{Exchanging data with user-space 1/3}
   \begin{itemize}
   \item Kernel code isn't allowed to directly access user-space
-    memory, using \code{memcpy} or direct pointer dereferencing
+    memory, using \kfunc{memcpy} or direct pointer dereferencing
     \begin{itemize}
     \item Doing so does not work on some architectures
     \item If the address passed by the application was invalid, the
@@ -272,7 +272,7 @@ struct file_operations {
       \mint{c}+const void __user *from, unsigned long n);+
     \end{itemize}
   \item The return value must be checked. Zero on success, non-zero on
-    failure. If non-zero, the convention is to return -\code{EFAULT}.
+    failure. If non-zero, the convention is to return -\ksym{EFAULT}.
   \end{itemize}
 \end{frame}
 
@@ -293,7 +293,7 @@ struct file_operations {
     \begin{itemize}
     \item \code{mmap()} system call to allow user space to directly
       access memory mapped I/O space.  See our \code{mmap()} chapter.
-    \item \code{get_user_pages()} to get a mapping to user pages
+    \item \kfunc{get_user_pages} to get a mapping to user pages
       without having to copy them. See \url{http://j.mp/oPW6Fb}
       (Kernel API doc). This API is more complex to use though.
     \end{itemize}
@@ -349,7 +349,7 @@ static long phantom_ioctl(struct file *file, unsigned int cmd,
 
     return 0; }
 \end{minted}
-Selected excerpt from \code{drivers/misc/phantom.c}
+Selected excerpt from \kpath{drivers/misc/phantom.c}
 \end{frame}
 
 \begin{frame}[fragile]
@@ -414,7 +414,7 @@ int main(void)
       \item \code{tristate "Support for frame buffer devices"}
       \end{itemize}
     \end{itemize}
-  \item Implemented in \code{drivers/video/}
+  \item Implemented in \kpath{drivers/video/}
     \begin{itemize}
     \item \code{fb.c}, \code{fbmem.c}, \code{fbmon.c},
       \code{fbcmap.c}, \code{fbsysfs.c}, \code{modedb.c},
@@ -423,13 +423,13 @@ int main(void)
   \item Implements a single character driver and defines the
     user/kernel API
     \begin{itemize}
-    \item First part of \code{include/linux/fb.h}
+    \item First part of \kpath{include/linux/fb.h}
     \end{itemize}
   \item Defines the set of operations a framebuffer driver must
     implement and helper functions for the drivers
     \begin{itemize}
-    \item \code{struct fb_ops}
-    \item Second part of \code{include/linux/fb.h} (in
+    \item \kstruct{fb_ops}
+    \item Second part of \kpath{include/linux/fb.h} (in
       \code{ifdef __KERNEL__})
     \end{itemize}
   \end{itemize}
@@ -438,9 +438,9 @@ int main(void)
 \begin{frame}
   \frametitle{Framebuffer Driver Skeleton}
   \begin{itemize}
-  \item Skeleton driver in \code{drivers/video/skeletonfb.c}
+  \item Skeleton driver in \kpath{drivers/video/skeletonfb.c}
   \item Implements the set of framebuffer specific operations defined
-    by the \code{struct fb_ops} structure
+    by the \kstruct{fb_ops} structure
   \end{itemize}
   \begin{columns}
     \column{0.45\textwidth}
@@ -473,7 +473,7 @@ int main(void)
   \frametitle{Framebuffer Driver Skeleton}
   \begin{itemize}
   \item After the implementation of the operations, definition of a
-    \code{struct fb_ops} structure
+    \kstruct{fb_ops} structure
   \begin{minted}[fontsize=\scriptsize]{c}
 static struct fb_ops xxxfb_ops = {
     .owner = THIS_MODULE,
@@ -519,7 +519,7 @@ static int xxxfb_probe (struct pci_dev *dev,
     [...]
 }
   \end{minted}
-  \item \code{register_framebuffer()} will create the character device
+  \item \kfunc{register_framebuffer} will create the character device
     that can be used by userspace applications with the generic
     framebuffer API.
 \end{itemize}
@@ -531,8 +531,8 @@ static int xxxfb_probe (struct pci_dev *dev,
   \item Each \emph{framework} defines a structure that a device driver
     must register to be recognized as a device in this framework
     \begin{itemize}
-    \item \code{uart_port} for serial port, \code{netdev} for network
-      devices, \code{fb_info} for framebuffers, etc.
+    \item \kstruct{uart_port} for serial port, \kstruct{netdev} for network
+      devices, \kstruct{fb_info} for framebuffers, etc.
     \end{itemize}
   \item In addition to this structure, the driver usually needs to
     store additional information about its device
@@ -549,8 +549,8 @@ static int xxxfb_probe (struct pci_dev *dev,
 \begin{frame}[fragile]
   \frametitle{Driver-specific Data Structure Examples 1/2}
   \begin{itemize}
-  \item i.MX serial driver: \code{imx_port} is a subclass of
-    \code{uart_port}
+  \item i.MX serial driver: \kstruct{imx_port} is a subclass of
+    \kstruct{uart_port}
   \begin{minted}[fontsize=\scriptsize]{c}
 struct imx_port {
     struct uart_port port;
@@ -561,8 +561,8 @@ struct imx_port {
     [...]
 };
   \end{minted}
-  \item ds1305 RTC driver: \code{ds1305} has a reference to
-    \code{rtc_device}
+  \item ds1305 RTC driver: \kstruct{ds1305} has a reference to
+    \kstruct{rtc_device}
   \begin{minted}[fontsize=\scriptsize]{c}
 struct ds1305 {
     struct spi_device       *spi;
@@ -576,8 +576,8 @@ struct ds1305 {
 \begin{frame}[fragile]
   \frametitle{Driver-specific Data Structure Examples 2/2}
   \begin{itemize}
-  \item rtl8150 network driver: \code{rtl8150} has a reference to
-    \code{net_device} and is allocated within that framework structure.
+  \item rtl8150 network driver: \kstruct{rtl8150} has a reference to
+    \kstruct{net_device} and is allocated within that framework structure.
   \begin{minted}[fontsize=\scriptsize]{c}
 struct rtl8150 {
     unsigned long flags;
@@ -593,7 +593,7 @@ struct rtl8150 {
 \begin{frame}
   \frametitle{Link Between Structures 1/4}
   \begin{itemize}
-  \item The framework typically contains a \code{struct device *}
+  \item The framework typically contains a \kstruct{device} \code{*}
     pointer that the driver must point to the corresponding struct
     device
     \begin{itemize}
@@ -606,7 +606,7 @@ struct rtl8150 {
     \begin{itemize}
     \item It's often use to link back the device to the higher-level
       structure from the framework.
-    \item It allows, for example, from the \code{platform_device}
+    \item It allows, for example, from the \kstruct{platform_device}
       structure, to find the structure describing the logical device
     \end{itemize}
   \end{itemize}
