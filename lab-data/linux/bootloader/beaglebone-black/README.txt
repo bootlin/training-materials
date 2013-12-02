@@ -5,6 +5,10 @@ Install U-boot 2013.10 on the Beagle Bone's internal flash storage (eMMC)
 This is needed for some aspects of Free Electrons' kernel and Android labs,
 such as saving U-Boot environment settings to eMMC storage.
 
+Tested on the following board revisions:
+- Rev A5C
+- Rev A6
+
 Make a bootable micro-SD card
 -----------------------------
 
