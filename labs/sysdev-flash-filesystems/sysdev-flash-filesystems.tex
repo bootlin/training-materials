@@ -28,25 +28,23 @@ be:
 
 \section{Enabling NAND flash and filesystems}
 
-Recompile your kernel with support for JFFS2 and for support for MTD
-partitions specified in the kernel command line
-(\code{CONFIG_MTD_CMDLINE_PARTS}).
+Apply the \code{0001-ARM-omap-switch-back-to-SW-ECC-on-IGEP.patch}
+patch available in the
+\code{$HOME/felabs/sysdev/flash-filesystems/data} directory to your
+kernel tree. This patch fixes a problem of the 3.11.x/3.12 kernel,
+which caused the kernel to use a different ECC scheme than the U-Boot
+bootloader, making it impossible to flash from U-Boot, and read from
+the kernel.
+
+After applying this patch, recompile your kernel with support for
+JFFS2 and for support for MTD partitions specified in the kernel
+command line (\code{CONFIG_MTD_CMDLINE_PARTS}).
 
 Also enable support for the flash chips on the board
 (\code{CONFIG_MTD_NAND_OMAP2}). You also need to enable support for
 hardware BCH error correction (\code{CONFIG_NAND_OMAP_BCH}) and select
 the \code{8 bits / 512 bytes (recommended)} mode
 (\code{MTD_NAND_OMAP_BCH8}).
-
-{\bf In this lab, you will also have to compile and boot a kernel without
-using the Device Tree. At least in Linux 3.11 and 3.12, there is an
-issue between the ECC mode declared in the IGEP Device Tree and the ECC
-configuration in U-boot 2013.10. The consequence is that JFFS2 images
-flashed from U-boot will cause ECC errors in Linux.}
-
-Therefore, compile your kernel with \code{CONFIG_MACH_IGEP0020} and
-boot your kernel without loading the Device Tree (\code{bootm
-800000000}).
 
 Last but not least, disable \code{CONFIG_PROVE_LOCKING}. This option is
 currently causing problems with the JFFS2 filesystem. This option is
@@ -81,6 +79,10 @@ up to the end of the NAND flash storage. You'll have to compute the
 remaining size of the flash, from 0x300000 to the end. Remember that
 you can look at U-Boot booting messages to find what is the size of
 the NAND flash.
+
+Before flashing JFFS2 images, make sure they will be flashed during
+the software ECC scheme, by running the \code{nandecc sw} command in
+U-Boot.
 
 Using the \code{tftp} command, download and flash the kernel image at
 the correct location.
