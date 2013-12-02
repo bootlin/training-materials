@@ -1,0 +1,85 @@
+From 6990a273b72507c50639de9fbed69a5e4256a2b3 Mon Sep 17 00:00:00 2001
+From: Nikita Kiryanov <nikita@compulab.co.il>
+Date: Thu, 28 Nov 2013 18:04:42 +0200
+Subject: [PATCH] arm: omap: i2c: don't zero cnt in i2c_write
+
+Writing zero into I2Ci.I2C_CNT register causes random I2C failures in OMAP3
+based devices. This seems to be related to the following advisory which
+apears in multiple erratas for OMAP3 SoCs (OMAP35xx, DM37xx), as well as
+OMAP4430 TRM:
+
+Advisory:
+I2C Module Does Not Allow 0-Byte Data Requests
+Details:
+When configured as the master, the I2C module does not allow 0-byte data
+transfers. Note: Programming I2Ci.I2C_CNT[15:0]: DCOUNT = 0 will cause
+undefined behavior.
+Workaround(s):
+No workaround. Do not use 0-byte data requests.
+
+The writes in question are unnecessary from a functional point of view.
+Most of them are done after I/O has finished, and the only one that preceds
+I/O (in i2c_probe()) is also unnecessary because a stop bit is sent before
+actual data transmission takes place.
+
+Therefore, remove all writes that zero the cnt register.
+
+Cc: Heiko Schocher <hs@denx.de>
+Cc: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+Cc: Tom Rini <trini@ti.com>
+Cc: Lubomir Popov <lpopov@mm-sol.com>
+Cc: Enric Balletbo Serra <eballetbo@gmail.com>
+Signed-off-by: Nikita Kiryanov <nikita@compulab.co.il>
+Signed-off-by: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+---
+ drivers/i2c/omap24xx_i2c.c | 6 ------
+ 1 file changed, 6 deletions(-)
+
+diff --git a/drivers/i2c/omap24xx_i2c.c b/drivers/i2c/omap24xx_i2c.c
+index ef38d71..4d79005 100644
+--- a/drivers/i2c/omap24xx_i2c.c
++++ b/drivers/i2c/omap24xx_i2c.c
+@@ -165,7 +165,6 @@ void i2c_init(int speed, int slaveadd)
+ 	udelay(1000);
+ 	flush_fifo();
+ 	writew(0xFFFF, &i2c_base->stat);
+-	writew(0, &i2c_base->cnt);
+ 
+ 	if (gd->flags & GD_FLG_RELOC)
+ 		bus_initialized[current_bus] = 1;
+@@ -205,8 +204,6 @@ int i2c_probe(uchar chip)
+ 		return res;
+ 
+ 	/* No data transfer, slave addr only */
+-	writew(0, &i2c_base->cnt);
+-	/* Set slave address */
+ 	writew(chip, &i2c_base->sa);
+ 	/* Stop bit needed here */
+ 	writew(I2C_CON_EN | I2C_CON_MST | I2C_CON_STT | I2C_CON_TRX |
+@@ -241,7 +238,6 @@ int i2c_probe(uchar chip)
+ pr_exit:
+ 	flush_fifo();
+ 	writew(0xFFFF, &i2c_base->stat);
+-	writew(0, &i2c_base->cnt);
+ 	return res;
+ }
+ 
+@@ -377,7 +373,6 @@ int i2c_read(uchar chip, uint addr, int alen, uchar *buffer, int len)
+ rd_exit:
+ 	flush_fifo();
+ 	writew(0xFFFF, &i2c_base->stat);
+-	writew(0, &i2c_base->cnt);
+ 	return i2c_error;
+ }
+ 
+@@ -476,7 +471,6 @@ int i2c_write(uchar chip, uint addr, int alen, uchar *buffer, int len)
+ wr_exit:
+ 	flush_fifo();
+ 	writew(0xFFFF, &i2c_base->stat);
+-	writew(0, &i2c_base->cnt);
+ 	return i2c_error;
+ }
+ 
+-- 
+1.8.1.2
+
