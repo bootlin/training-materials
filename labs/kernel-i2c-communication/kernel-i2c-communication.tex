@@ -15,7 +15,7 @@ compiling (stay in the \code{nunchuk} branch), and in
 \code{~/felabs/linux/modules/nfsroot/root/nunchuk} for module compiling
 (use two different terminals).
 
-\section{Add pinctrl properties to the Device Tree}
+\section{Find pin muxing configuration information for i2c1}
 
 As you found in the previous lab, we now managed to have our nunchuk
 device enumerated on the \code{i2c1} bus.
@@ -29,6 +29,36 @@ If you go back to the BeagleBone Black System Reference Manual, in the
 of the AM335 SoC. You can also see that such pins need to be configured 
 as \code{MODE2} to get the functionality that we need (\code{I2C1_SCL}
 and \code{I2C1_SDA}).
+
+The second step is to open the CPU datasheet (\code{am3359.pdf}), and
+look for pin assignment information ({\em Pin Assignments} section).
+You will find that the processor is available through two types of
+packages: \code{ZCE} and \code{ZCZ}. If you have a very close at the CPU
+(with your glasses on!), you will see that the CPU has \code{ZCZ} written
+on its lower right corner. The BeagleBonne Black Reference Manual also
+confirms this.
+
+So, in the {\em ZCZ Package Pin Maps (Top View)} section, you can find 
+hyperlinks to the descriptions of the \code{A16} and \code{B16} pins. 
+That's where you can find reference pin muxing information for these
+pins.  You can find that the pin name for \code{A16} is \code{SPI0_CS0}
+and that the pin name for \code{B16} is \code{SPI0_D1}.
+You can also get a confirm that to obtain the (\code{I2C1_SCL} and
+\code{I2C1_SDA}) signals, you need to configure muxing mode number 2.
+
+The next thing to do is to open the big TRM document and look for the
+address of the registers that control pin muxing. Look for
+\code{Control Module Registers} and you will find the \code{0x44E1_0000}
+address in {\em L4_WKUP Peripheral Memory Map}.
+Last but not least, look for the \code{SPI0_CS0} and \code{SPI0_D1} 
+pin names, and you will find the offsets for the registers controlling
+muxing for these pins in the {\em CONTROL_MODULE REGISTERS} table:
+respectively \code{0x95c} and \code{0x958}.
+
+We now know which registers we can write to to enable \code{i2c1}
+signals.
+
+\section{Add pinctrl properties to the Device Tree}
 
 Now look at the Device Tree for the AM335x EVM board
 (\code{arch/arm/boot/dts/am335x-evm.dts}). It's using \code{i2c1} too.
