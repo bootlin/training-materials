@@ -17,6 +17,7 @@ KERNEL_SLIDES = \
 		about-us \
 		course-information-title \
 		beagleboneblack-board \
+		kernel-shopping-list \
 		course-information \
 		setup-lab \
 		kernel-introduction-title \
