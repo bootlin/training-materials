@@ -1,0 +1,95 @@
+\subchapter{Application optimization}{Optimize the startup time of your
+applications}
+
+\section{Measuring}
+
+The general rule stays the same. You have to measure the time taken to
+execute the various pieces of code in your application.
+
+Here, except for possible compiler optimization, modifying the
+application is outside the scope of this workshop, because it requires
+a good knowledge about the application itself.
+
+However, we are going to use a few techniques which should help you to 
+improve your own application when you are back to real life.
+
+\subsection{Compiling utilities}
+
+With a build system like Buildroot, it's easy to add performance
+analysis and debugging utilities.
+
+Configure Buildroot to add \code{strace} to your root
+filesystem. You will find the corresponding configuration option in
+\code{Package selection for the target} and then in \code{Debugging,
+profiling and benchmark}.
+
+Note that with this version of Buildroot and Linux 3.6.9, we didn't
+manage to compile the \code{perf} utility. We will try again when a
+newer stable kernel is available for this board.
+
+Run Buildroot and reflash your device as usual. 
+
+\subsection{Tracing and profiling with strace}
+
+With \code{strace}'s help, you can already have a pretty good understanding
+of what how your application spends it time. You can see all the system
+calls that it makes and knowing the application, you can guess in which 
+part of the code it is at a given time.
+
+You can also spot unnecessary attempts to open files that do not exist,
+multiple accesses to the same file, or more generally things that the
+program was not supposed to do. All these correspond to opportunities
+to fix and optimize your application.
+
+Once the board has booted, run \code{strace} on the video player
+application:
+
+\begin{verbatim}
+strace -tt -f -o strace.log /root/go.sh
+\end{verbatim}
+
+Also have \code{strace} generate a summary: 
+
+\begin{verbatim}
+strace -c -f -o strace-summary.log /root/go.sh
+\end{verbatim}
+
+Take some time to read \code{strace.log}
+\footnote{At this stage, when you have to open files directly on the
+board, some familiarity with the basic commands of the \code{vi} editor
+becomes useful. See
+\url{http://free-electrons.com/doc/command_memento.pdf} for a basic
+command summary. Otherwise, you can use the more rudimentary \code{more}
+command. You can also copy the files to your PC, using a USB drive, for
+example.}
+, and look for the time when the program opens the video file.
+
+Also have a look at \code{strace-summary.log}. You will find the number
+of errors trying to open files that do not exist, for example. You can
+also count the number of memory allocations (using the \code{mmap2} system call). 
+
+\section{Removing unnecessary functionality}
+
+Based on what you learned by tracing and profiling your application, you
+could recompile it to remove support for the features that you know are
+not used in your system. This should speed up its execution, at least
+slightly.
+
+In our case, we could recompile \code{gstreamer} with just the features
+and plugins required to play the exact video format and codec that we
+have.
+
+\section{Postponing, reordering}
+
+In our particular case, modifying \code{gst-launch} would be very
+difficult. It could make sense with your own application though, for
+which to code is familiar to you.
+
+\section{Optimizing necessary functionality}
+
+In this particular case, \code{gst-launch} is far from being the most
+efficient way of opening the video. It is really meant to help creating
+a multimedia pipeline. Once it is well defined, the \code{GStreamer}
+developers recommend to directly program with the \code{GStreamer} API
+\footnote{See the details on 
+\url{http://docs.gstreamer.com/display/GstSDK/Basic+tutorial+10\%3A+GStreamer+tools}}.

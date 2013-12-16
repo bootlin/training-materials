@@ -208,6 +208,25 @@ ANDROID_SLIDES = \
 		android-resources \
 		last-slides
 
+BOOTTIME_SLIDES = \
+		licensing \
+		thanks-atmel \
+		about-us \
+		course-information-title \
+		sama5d3-board \
+		boottime-course-outline \
+		boottime-title \
+		boottime-principles \
+		boottime-measuring \
+		boottime-init-scripts \
+		sysdev-toolchains-c-libraries \
+		boottime-init-scripts2 \
+		boottime-application \
+		boottime-kernel \
+		boottime-bootloader \
+		boottime-hardware-init \
+		boottime-alternatives \
+
 # List of labs for the different courses
 
 SYSDEV_LABS   = setup \
@@ -254,6 +273,15 @@ ANDROID_LABS  = setup \
 		android-jni-library \
 		android-application \
 
+BOOTTIME_LABS = boottime-install \
+		boottime-getting-started \
+		boottime-measuring \
+		boottime-setup \
+		boottime-init-scripts \
+		boottime-application \
+		boottime-kernel \
+		boottime-bootloader \
+		boottime-results \
 
 # Output directory
 OUTDIR   = $(PWD)/out
@@ -396,6 +424,9 @@ LABS_CHAPTERS      = $(SYSDEV_LABS)
 else ifeq ($(LABS),full-android)
 LABS_VARSFILE      = common/android-labs-vars.tex
 LABS_CHAPTERS      = $(ANDROID_LABS)
+else ifeq ($(LABS),full-boottime)
+LABS_VARSFILE      = common/boottime-labs-vars.tex
+LABS_CHAPTERS      = $(BOOTTIME_LABS)
 else
 LABS_VARSFILE      = common/single-lab-vars.tex
 LABS_CHAPTERS      = $(LABS)
@@ -513,11 +544,14 @@ help:
 	@echo " full-sysdev-labs.pdf            Complete labs for the 'sysdev' course"
 	@echo " full-kernel-labs.pdf            Complete labs for the 'kernel' course"
 	@echo " full-android-labs.pdf           Complete labs for the 'android' course"
+	@echo " full-boottime-labs.pdf          Complete labs for the 'boottime' course"
 	@echo " full-sysdev-slides.pdf          Complete slides for the 'sysdev' course"
 	@echo " full-kernel-slides.pdf          Complete slides for the 'kernel' course"
 	@echo " full-android-slides.pdf         Complete slides for the 'android' course"
+	@echo " full-boottime-slides.pdf        Complete slides for the 'boottime' course"
 	@echo " kernel-agenda.pdf               Agenda for the 'kernel' course"
-	@echo " <some-chapter>-slides.pdf       Slides for a particular chapter in slides/"
+	@echo " boottime-agenda.pdf             Agenda for the 'boottime' course"
 	@echo
+	@echo " <some-chapter>-slides.pdf       Slides for a particular chapter in slides/"
 	@echo " <some-chapter>-labs.pdf         Labs for a particular chapter in labs/"
 	@echo

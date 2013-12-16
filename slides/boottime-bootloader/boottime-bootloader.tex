@@ -1,0 +1,142 @@
+\subsection{Bootloader optimizations}
+\begin{frame}
+\frametitle{Bootloader}
+Usually, bootloaders include many features needed only for
+development.
+\begin{itemize}
+	\item There may be different bootloaders for your board. Try
+		those !
+	\item Assess what features you really need. Do you need to
+		upgrade from the bootloader ?
+	\item Remove the boot delay! For \code{u-boot}, then have a look
+		at the \code{CONFIG_ZERO_BOOTDELAY_CHECK} option, documented in
+		\code{doc/README.autoboot} that will allow you to still enter
+		the bootloader shell.
+	\item Maybe you can skip the bootloader (AT91 example: 
+                \url{http://free-electrons.com/blog/starting-linux-directly-from-at91bootstrap3/}).
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Results}
+Before: 5.77s
+\begin{center}
+    \includegraphics[width=\textwidth]{slides/boottime-kernel/timechart-final.pdf}
+\end{center}
+After:
+\begin{center}
+    \includegraphics[width=\textwidth]{slides/boottime-bootloader/timechart-barebox.pdf}
+\end{center}
+Total: 4.67s.
+\end{frame}
+
+\begin{frame}
+\frametitle{Compression}
+Let's try LZO compression for the kernel again:
+Before (gzip): 4.67s
+\begin{center}
+    \includegraphics[width=\textwidth]{slides/boottime-bootloader/timechart-barebox.pdf}
+\end{center}
+After (LZO):
+\begin{center}
+    \includegraphics[width=\textwidth]{slides/boottime-bootloader/timechart-barebox-lzo.pdf}
+\end{center}
+Total: 4.59s.
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Features}
+Now, let's limit the features of the bootloader.\\
+We still keep a way to interact with it when a GPIO has a given value.
+For example, using the \code{gpio_direction_input} and
+\code{gpio_get_value} commands in a script that would then start an
+upgrade or boot a rescue kernel.
+\begin{block}{}
+\begin{verbatim}
+gpio_get_value 42
+if [ $? = 0 ]; then
+    kdev="/dev/nand0.krescue.bb"
+fi
+\end{verbatim}
+\end{block}
+\end{frame}
+
+\begin{frame}
+\frametitle{Results}
+Before: 4.59s
+\begin{center}
+    \includegraphics[width=\textwidth]{slides/boottime-bootloader/timechart-barebox-lzo.pdf}
+\end{center}
+After:
+\begin{center}
+    \includegraphics[width=\textwidth]{slides/boottime-bootloader/timechart-barebox-final.pdf}
+\end{center}
+Total: 3.07s.
+\end{frame}
+
+\begin{frame}
+\frametitle{Results}
+Note: the kernel didn't actually change but we don't get a message on
+the serial line exactly at the time we switch from the bootloader to
+the kernel.
+
+Warning: Sometimes, the kernel is relying on the bootloader to
+initialize the hardware (pinmuxing, clocks, ...) so be careful when
+removing features.
+\end{frame}
+
+\begin{frame}
+\frametitle{Results - Simplifying bootloader and kernel}
+
+Before: 3.07s
+\begin{center}
+    \includegraphics[width=0.8\textwidth]{slides/boottime-bootloader/timechart-barebox-final.pdf}
+\end{center}
+After:
+\begin{center}
+    \includegraphics[width=0.8\textwidth]{slides/boottime-bootloader/timechart-kernel.pdf}
+\end{center}
+Total: 2.57s.
+\end{frame}
+
+
+\begin{frame}[fragile]
+\frametitle{Removing the bootloader}
+You can also try to boot directly from \code{AT91bootstrap} to the
+Linux kernel,thus removing the second stage. But you will lose the
+main advantages of using \code{barebox}.  It is using the CPU caches
+while loading and decompressing the kernel.
+
+It is quite easy with AT91bootstrap3. You just need to configure it
+with one of the \code{linux} or \code{linux_dt} configuration:
+\begin{block}{}
+\begin{verbatim}
+make at91sama5d3xeknf_linux_dt_defconfig
+make
+\end{verbatim}
+\end{block}
+See \url{http://free-electrons.com/blog/at91bootstrap-linux/}
+\end{frame}
+
+\begin{frame}
+\frametitle{Removing the bootloader}
+Before: 3.07s
+\begin{center}
+    \includegraphics[width=\textwidth]{slides/boottime-bootloader/timechart-barebox-final.pdf}
+\end{center}
+Using \code{AT91bootstrap} to boot the Linux kernel:
+\begin{center}
+    \includegraphics[width=\textwidth]{slides/boottime-bootloader/timechart-at91.pdf}
+\end{center}
+Total: 3.94s.
+\end{frame}
+
+\setuplabframe
+{Reduce bootloader time}
+{
+\begin{itemize}
+\item Reduce boot time by using the Barebox bootloader
+\item Optimize Barebox
+\end{itemize}
+}
+

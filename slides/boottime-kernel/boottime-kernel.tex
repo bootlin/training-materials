@@ -1,0 +1,176 @@
+\subsection{Kernel optimizations}
+
+\begin{frame}[fragile]
+\frametitle{Measure - Kernel initialization functions}
+To understand which are the longest initializations, pass
+\code{initcall_debug} as an argument on your kernel command line.
+\begin{block}{}
+\tiny
+\begin{verbatim}
+...
+[    3.750000] calling  ov2640_i2c_driver_init+0x0/0x10 @ 1
+[    3.760000] initcall ov2640_i2c_driver_init+0x0/0x10 returned 0 after 544 usecs
+[    3.760000] calling  at91sam9x5_video_init+0x0/0x14 @ 1
+[    3.760000] at91sam9x5-video f0030340.lcdheo1: video device registered @ 0xe0d3e340, irq = 24
+[    3.770000] initcall at91sam9x5_video_init+0x0/0x14 returned 0 after 10388 usecs
+[    3.770000] calling  gspca_init+0x0/0x18 @ 1
+[    3.770000] gspca_main: v2.14.0 registered
+[    3.770000] initcall gspca_init+0x0/0x18 returned 0 after 3966 usecs
+...
+\end{verbatim}
+\end{block}
+It is probably a good idea to increase the log buffer with
+\code{CONFIG_LOG_BUF_SHIFT} in your kernel configuration. You will
+also need \code{CONFIG_PRINTK_TIME} and \code{CONFIG_KALLSYMS}.
+\end{frame}
+
+\begin{frame}
+\frametitle{Reducing the size}
+First, we focus on reducing the size without removing features
+\begin{itemize}
+	\item The main mechanism is to use kernel modules
+	\item Compile everything that is not needed at boot time as a
+		module
+	\item Two benefits: the kernel will be smaller and load faster and
+		less initialization code will get executed
+	\item Remove features that are not used by userland:
+		\code{CONFIG_KALLSYMS}, \code{CONFIG_DEBUG_FS},
+		\code{CONFIG_BUG}
+	\item use features designed for embedded systems:
+		\code{CONFIG_SLOB}, \code{CONFIG_EMBEDDED}
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Results}
+Before 8.54s
+\begin{center}
+    \includegraphics[width=\textwidth]{slides/boottime-init-scripts2/timechart-initramfs.pdf}
+\end{center}
+After:
+\begin{center}
+    \includegraphics[width=\textwidth]{slides/boottime-kernel/timechart-modules.pdf}
+\end{center}
+Total: 6.45s.
+\end{frame}
+
+\begin{frame}
+\frametitle{Kernel Compression}
+Depending on the balance between your storage reading speed and your
+CPU power to decompress the kernel, you will need to benchmark
+different compression algorithms.
+
+Before (gzip): 6.45s.
+\begin{center}
+    \includegraphics[width=\textwidth]{slides/boottime-kernel/timechart-modules.pdf}
+\end{center}
+After (LZO):
+\begin{center}
+    \includegraphics[width=\textwidth]{slides/boottime-kernel/timechart-lzo.pdf}
+\end{center}
+Total: 6.46s.
+Conclusion: don't use LZO for now.
+\end{frame}
+
+\begin{frame}
+\frametitle{Initialization}
+If you can't compile a feature as a module (e.g. networking or block
+subsystem), try \code{deferred_initcalls}. You kernel will not shrink
+but it won't execute some initialization. Once your critical
+application is ready, you can start the remaining initcalls. See
+\url{http://elinux.org/Deferred_Initcalls}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Tuning the command line}
+\begin{itemize}
+	\item At each boot, the Linux kernel calibrates a delay loop (for
+		the udelay function). This measures a number of loops per
+		jiffy ({\em lpj}) value. You just need to measure this once! Find
+		the \code{lpj} value in the kernel boot messages:
+\begin{block}{}
+\small
+\begin{verbatim}
+Calibrating delay loop... 262.96 BogoMIPS (lpj=1314816)
+\end{verbatim}
+\end{block}
+		Now, you can use the \code{lpj=<value>} argument. This saves
+		around 180 ms.
+	\item The console output is actually taking a lot of time. You
+		probably don't need it in production. It can be disabled by
+		passing the \code{quiet} argument on the kernel command line.
+		You will still be able to use \code{dmesg} to get the
+		messages.
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Multiprocessor support (SMP)}
+  \begin{itemize}
+	  \item SMP is quite slow to initialize
+	  \item UP systems may be faster to boot
+	  \item What you can try is to hotplug the other cores after your critical application has started
+  \end{itemize}
+\end{frame}
+
+\setuplabframe
+{Reduce kernel boot time}
+{
+\begin{itemize}
+\item Recompile the kernel, switching to an initramfs
+\item Use \code{initcall_debug} to find the biggest
+      time consumers
+\item Reduce the number of modules
+\item Tune kernel command line parameters
+\end{itemize}
+}
+
+\begin{frame}
+\frametitle{Kernel Optimization results}
+Before (gzip): 6.45s.
+\begin{center}
+    \includegraphics[width=\textwidth]{slides/boottime-kernel/timechart-modules.pdf}
+\end{center}
+After:
+\begin{center}
+    \includegraphics[width=\textwidth]{slides/boottime-kernel/timechart-final.pdf}
+\end{center}
+Total: 5.77s. Without losing any functionality!
+\end{frame}
+
+\begin{frame}
+\frametitle{Kernel: last milliseconds (1)}
+To shave off the last milliseconds, you will probably want to remove
+unnecessary features:
+\begin{itemize}
+        \item \code{CONFIG_PRINTK=n} will have the same effect as the
+\code{quiet}
+                argument but you won't have any access to kernel
+messages.
+        \item Try \code{CONFIG_CC_OPTIMIZE_FOR_SIZE=y}. This will have
+an
+                impact on the performance, you will have to benchmark.
+        \item Try to initialize less RAM by passing a \code{mem} value
+on the
+                kernel command line. The less RAM you need to
+initialize, the
+                faster you will boot.
+        \item Module loading/unloading
+        \item Block layer
+        \item Network stack
+        \item USB stack
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Kernel (last milliseconds (2)}
+\begin{itemize}
+        \item a.out format
+        \item power management
+        \item \code{CONFIG_SYSFS_DEPRECATED}
+        \item Input: keyboards / mice / touchscreens
+        \item \code{CONFIG_LEGACY_PTY_COUNT} or the
+                \code{pty.legacy_count} kernel parameter
+\end{itemize}
+\end{frame}
+
