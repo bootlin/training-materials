@@ -121,7 +121,6 @@ ANDROID_SLIDES = \
 		about-us \
 		course-information-title \
 		beagleboneblack-board \
-		android-linaro-introduction \
 		android-course-outline \
 		course-information \
 		setup-lab \
