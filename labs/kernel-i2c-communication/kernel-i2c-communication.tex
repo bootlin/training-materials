@@ -45,6 +45,9 @@ pins.  You can find that the pin name for \code{A16} is \code{SPI0_CS0}
 and that the pin name for \code{B16} is \code{SPI0_D1}.
 You can also get a confirm that to obtain the (\code{I2C1_SCL} and
 \code{I2C1_SDA}) signals, you need to configure muxing mode number 2.
+You can also see that pins both support pull-up and pull-down
+modes\footnote{See \url{http://en.wikipedia.org/wiki/Pull-up_resistor}}
+(see the \code{PULLUP /DOWN TYPE} column).
 
 The next thing to do is to open the big TRM document and look for the
 address of the registers that control pin muxing. Look for
@@ -60,14 +63,76 @@ signals.
 
 \section{Add pinctrl properties to the Device Tree}
 
-Now look at the Device Tree for the AM335x EVM board
-(\code{arch/arm/boot/dts/am335x-evm.dts}). It's using \code{i2c1} too.
+Now that we know the register offsets, let's try to understand
+how they are used in existing code. For example, open the
+the Device Tree for the AM335x EVM board
+(\code{arch/arm/boot/dts/am335x-evm.dts}), which is using
+\code{i2c1} too. Look for \code{i2c1_pins}, and you will see how
+offsets are declared and what values they are given:
 
-Edit the \code{arch/arm/boot/dts/am335x-bone-common.dtsi} file and 
-add what's needed to enable pin muxing for \code{i2c1}.
-Don't hesitate to go back to the lectures to understand what to do!
+\begin{verbatim}
+i2c1_pins: pinmux_i2c1_pins {
+        pinctrl-single,pins = <
+                0x158 (PIN_INPUT_PULLUP | MUX_MODE2)    /* spi0_d1.i2c1_sda */
+                0x15c (PIN_INPUT_PULLUP | MUX_MODE2)    /* spi0_cs0.i2c1_scl */
+                >;
+};
+\end{verbatim}
+
+That's surprising: we have \code{0x158} instead of \code{0x958}
+and \code{0x15c} instead of \code{0x95c}! In both cases, there is a
+\code{0x800} offset.
+
+However, this makes sense if you look at the way the base address of the 
+Control Module Registers is defined. Look for \code{pinctrl-single} in
+\code{arch/arm/boot/dts/am33xx.dtsi}:
+
+\begin{verbatim}
+am33xx_pinmux: pinmux@44e10800 {
+        compatible = "pinctrl-single";
+        reg = <0x44e10800 0x0238>;
+        #address-cells = <1>;
+        #size-cells = <0>;
+        pinctrl-single,register-width = <32>;
+        pinctrl-single,function-mask = <0x7f>;
+};
+\end{verbatim}
+
+The base address is \code{0x44e10800} instead of \code{0x44e10000} in
+the datasheet! The value in the DTS is \code{0x800} greater, which
+matches the different in the offsets.
+
+Why this difference? If you get back to the big TRM document where
+the offsets are defined, you will see that below the \code{0x800}
+offset, there are many other registers that seem to have nothing to do with
+pin muxing. Therefore, starting at offset \code{0x800} is probably
+a way to make sure that using the \code{pinctrl-single} driver, users
+can only access real pin muxing registers and do not mess with lower
+registers by mistake.
+
+Now, let's focus on the values for the registers corresponding
+to \code{i2c1}:
+
+\begin{verbatim}
+0x158 (PIN_INPUT_PULLUP | MUX_MODE2)    /* spi0_d1.i2c1_sda */
+0x15c (PIN_INPUT_PULLUP | MUX_MODE2)    /* spi0_cs0.i2c1_scl */
+\end{verbatim}
+
+\begin{itemize}
+\item \code{MUX_MODE2} corresponds to muxing mode 2, as explained in the
+      datasheet.
+\item \code{PIN_INPUT_PULLUP} puts the pin in pull-down mode (remember
+      that our pins support both pull-up and pull-down). It seems to
+      be needed for I2C bus operation.
+\end{itemize}
+
+Now that pin muxing settings have been explained, edit the
+\code{arch/arm/boot/dts/am335x-bone-common.dtsi} file and add
+the same definitions to enable pin muxing for \code{i2c1}.
 
 Rebuild and update your DTB, and eventually reboot the board.
+
+\section{I2C bus tests}
 
 We will use the \code{i2cdetect} command to make sure that 
 everything works fine for \code{i2c1}:
