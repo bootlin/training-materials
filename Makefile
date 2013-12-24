@@ -83,7 +83,8 @@ SYSDEV_SLIDES = \
 		setup-lab \
 		sysdev-toolchains-title \
 		sysdev-toolchains-definition \
-		sysdev-toolchains-c-libraries \
+		sysdev-toolchains-c-libraries-title \
+		c-libraries \
 		sysdev-toolchains-options \
 		sysdev-toolchains-obtaining \
 		sysdev-toolchains-lab \
@@ -214,11 +215,11 @@ BOOTTIME_SLIDES = \
 		course-information-title \
 		sama5d3-board \
 		boottime-course-outline \
-		boottime-title \
 		boottime-principles \
 		boottime-measuring \
 		boottime-init-scripts \
-		sysdev-toolchains-c-libraries \
+		boottime-c-libraries-title \
+		c-libraries \
 		boottime-init-scripts2 \
 		boottime-application \
 		boottime-kernel \
