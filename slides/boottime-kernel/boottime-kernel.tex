@@ -2,8 +2,9 @@
 
 \begin{frame}[fragile]
 \frametitle{Measure - Kernel initialization functions}
-To understand which are the longest initializations, pass
-\code{initcall_debug} as an argument on your kernel command line.
+To find out which kernel initialization functions are the longest to
+execute, add \code{initcall_debug} to the kernel command line.
+Here's what you get on the kernel log:
 \begin{block}{}
 \tiny
 \begin{verbatim}
@@ -19,13 +20,70 @@ To understand which are the longest initializations, pass
 ...
 \end{verbatim}
 \end{block}
-It is probably a good idea to increase the log buffer with
+It is probably a good idea to increase the log buffer size with
 \code{CONFIG_LOG_BUF_SHIFT} in your kernel configuration. You will
 also need \code{CONFIG_PRINTK_TIME} and \code{CONFIG_KALLSYMS}.
 \end{frame}
 
 \begin{frame}
-\frametitle{Reducing the size}
+\frametitle{Kernel boot graph}
+With \code{initcall_debug}, you can generate a boot graph
+making it easy to see which kernel initialization functions
+take most time to execute.
+\begin{itemize}
+\item Copy and paste the console output or the output of
+      the \code{dmesg} command to a file (let's call it \code{boot.log})
+\item On your workstation, run the \code{scripts/bootgraph.pl} script
+      in the kernel sources: \\
+      \code{perl scripts/bootgraph.pl boot.log > boot.svg}
+\item You can now open the boot graph with a vector graphics 
+      editor such as \code{inkscape}:
+\end{itemize}
+\begin{center}
+    \includegraphics[width=\textwidth]{slides/boottime-kernel/boot.png}
+\end{center}
+\end{frame}
+
+\begin{frame}
+\frametitle{Using the kernel boot graph (1)}
+Start working on the functions consuming most time first. For each
+function:
+\begin{itemize}
+\item Look for its definition in the kernel source code. You can use LXR
+      (for example \url{http://lxr.free-electrons.com}).
+\item Remove unnecessary functionality:
+      \begin{itemize}
+      \item Look for kernel parameters in C sources and Makefiles, starting
+      with \code{_CONFIG}. Some settings for such parameters could help
+      to remove code complexity or remove unnecessary features. 
+      \item Find which module (if any) it belongs to. Loading this module
+            could be deferred.
+      \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Using the kernel boot graph (2)}
+\begin{itemize}
+\item Postpone:
+      \begin{itemize}
+      \item Find which module (if any) the function belongs to.
+            Load this module later if possible.
+      \end{itemize}
+\item Optimize necessary functionality:
+      \begin{itemize}
+      \item Look for parameters which could be used to reduce probe time,
+            looking for the \code{module_param} macro.
+      \item Look for delay loops and calls to functions containing
+            \code{delay} in their name, which could take more time than
+            needed. You could reduce such delays, and see whether the 
+            code still works or not.
+      \end{itemize}
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Reduce kernel size}
 First, we focus on reducing the size without removing features
 \begin{itemize}
 	\item The main mechanism is to use kernel modules
