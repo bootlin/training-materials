@@ -46,7 +46,27 @@ critical application.
 \end{frame}
 
 \begin{frame}
-\frametitle{Main advice: worst things first!}
+\frametitle{What to optimize first}
+Start by optimizing the last steps of the boot process!
+\begin{itemize}
+\item Don't start by optimizing things that will reduce your ability to 
+      make measurements and implement other optimizations.
+\item Start by optimizing your applications and startup
+      scripts first.
+\item You can then simplify BusyBox, reducing the number of available
+      commands.
+\item The next thing to do is simplify and optimize the kernel. This
+      will make you lose debugging and development capabilities,
+      but this is fine as userspace has already been simplified.
+\item The last thing to do is implement bootloader optimizations,
+      when kernel optimizations are over and when the kernel command
+      line is frozen.
+\end{itemize}
+We will follow this order during the practical labs.
+\end{frame}
+
+\begin{frame}
+\frametitle{Worst things first!}
 {\em Premature optimization is the root of all evil.\\
 Donald Knuth}     
 \begin{itemize}
@@ -57,25 +77,40 @@ Donald Knuth}
 \end{itemize}
 \end{frame}
 
+\begin{frame}
+\frametitle{Build automation}
+\begin{itemize}
+\item Very important to automate the way the root filesystem is built,
+      if not done yet. That's always the first thing we do in boot time
+      reduction projects, and it's worth investing 1 or 2 days doing
+      this.
+\item Otherwise, you may lose existing optimizations or introduce new bugs
+      when making further optimizations. Without a build system,
+      you will waste a lot of time too.
+\item Can be done through build systems such as Buildroot or Yocto,
+      or using the original build automation of the project.
+\item Can also be done for kernel and bootloader optimizations, though
+      the need is less critical.
+\end{itemize}
+\end{frame}
 
 \begin{frame}
-\frametitle{Key ideas}
+\frametitle{Generic ideas}
 Some ideas to keep in mind while trying to reduce the boot time:
 \begin{itemize}
 \item The fastest code is code that is not executed
 \item A big part of booting is actually loading code and data from the
-        storage to RAM. Reading less means booting faster. I/O are
-        expensive !
+      storage to RAM. Reading less means booting faster. I/O are
+      expensive !
 \item The root filesystem may take longer to mount if it is bigger.
 \item So, even code that is not executed can make your boot time
-        longer.
+      longer.
 \item Also, try to benchmark different types of storage. It has
-        happened that booting from SD card was actually faster than
-        booting from NAND.
+      happened that booting from SD card was actually faster than
+      booting from NAND.
 \item It may be worth playing with gcc options like \code{-Os} to
-generate
-        smaller code but then, you will have to measure the performance.
-        It may or may not be worse.
+      generate smaller code but then, you will have to measure
+      the performance. It may or may not be worse.
 \end{itemize}
 \end{frame}
 
