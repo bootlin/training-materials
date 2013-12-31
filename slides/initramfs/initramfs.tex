@@ -1,0 +1,58 @@
+\begin{frame}
+  \frametitle{rootfs in memory: initramfs (1)}
+  \begin{itemize}
+  \item It is also possible to have the root filesystem integrated
+    into the kernel image
+  \item It is therefore loaded into memory together with the kernel
+  \item This mechanism is called {\bf initramfs}
+    \begin{itemize}
+    \item It integrates a compressed archive of the filesystem into
+      the kernel image
+    \item Variant: the compressed archive can also be loaded separately
+      by the bootloader.
+    \end{itemize}
+  \item It is useful for two cases
+    \begin{itemize}
+    \item Fast booting of very small root filesystems. As the
+      filesystem is completely loaded at boot time, application
+      startup is very fast.
+    \item As an intermediate step before switching to a real root
+      filesystem, located on devices for which drivers not part of the
+      kernel image are needed (storage drivers, filesystem drivers,
+      network drivers). This is always used on the kernel of
+      desktop/server distributions to keep the kernel image size
+      reasonable.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{rootfs in memory: initramfs (2)}
+  \begin{center}
+    \includegraphics[width=0.9\textwidth]{slides/initramfs/initramfs.pdf}
+  \end{center}
+\end{frame}
+
+\begin{frame}
+  \frametitle{rootfs in memory: initramfs (3)}
+  \begin{itemize}
+  \item The contents of an initramfs are defined at the kernel
+    configuration level, with the \code{CONFIG_INITRAMFS_SOURCE}
+    option
+    \begin{itemize}
+    \item Can be the path to a directory containing the root
+      filesystem contents
+    \item Can be the path to a cpio archive
+    \item Can be a text file describing the contents of the initramfs \\
+      (see documentation for details)
+    \end{itemize}
+  \item The kernel build process will automatically take the contents
+    of the \code{CONFIG_INITRAMFS_SOURCE} option and integrate the
+    root filesystem into the kernel image
+  \item Details (in kernel sources): \\
+    {\small
+    \kerneldoc{filesystems/ramfs-rootfs-initramfs.txt}\\
+    \kerneldoc{early-userspace/README}
+    }
+  \end{itemize}
+\end{frame}

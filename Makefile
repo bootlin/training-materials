@@ -104,10 +104,12 @@ SYSDEV_SLIDES = \
 		sysdev-linux-intro-modules \
 		sysdev-root-filesystem-title \
 		sysdev-root-filesystem-principles \
+		initramfs \
 		sysdev-root-filesystem-contents \
 		sysdev-root-filesystem-device-files \
 		sysdev-root-filesystem-virtual-fs \
 		sysdev-root-filesystem-minimal \
+		boot-sequence-initramfs \
 		sysdev-busybox \
 		sysdev-block-filesystems \
 		sysdev-flash-filesystems \
@@ -165,6 +167,7 @@ ANDROID_SLIDES = \
 		android-adb-lab \
 		android-fs-title \
 		sysdev-root-filesystem-principles \
+		initramfs \
 		android-fs-contents \
 		sysdev-root-filesystem-device-files \
 		sysdev-root-filesystem-minimal \
@@ -221,6 +224,9 @@ BOOTTIME_SLIDES = \
 		boottime-c-libraries-title \
 		c-libraries \
 		boottime-init-scripts2 \
+		initramfs \
+		boot-sequence-initramfs \
+		boottime-init-scripts3 \
 		boottime-application \
 		boottime-kernel \
 		boottime-bootloader \
