@@ -6,12 +6,39 @@ application and then switch to the final root filesystem with
 \begin{itemize}
 \item Use a light C library reduced to the minimum,
       {\em uClibc} if you are not yet using it for your root filesystem
+\item Reduce BusyBox to the strict minimum.
+      You could even do without it and implement \code{/init} in C.
 \item Use statically linked applications (less CPU overhead, less
       libraries to load, smaller initramfs if no libraries at all).
       \code{BR2_PREFER_STATIC_LIB} in Buildroot.
-\item Reduce BusyBox to the strict minimum (if you use it).  
 \item Don't compress your initramfs if your kernel is already
       compressed.
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Statically linked executables: licensing constraints}
+\begin{itemize}
+\item Statically linked executables are very useful to reduce size
+      (especially in small initramfs), and require less work to start.
+\item However, the LGPL license in libraries (uClibc, glibc), require
+      to leave the user the ability to relink the executable
+      with a modified version of the library.
+\item Solution to keep static binaries:
+      \begin{itemize}
+      \item Either provide the executable source code (even
+            proprietary), allowing to recompile it with a modified
+            version of the library. That's what you do when
+            you ship a static BusyBox.
+      \item Or also provide a dynamically linked version of the
+	    executable (in a separate way), allowing to use another
+            library version.
+      \end{itemize}
+\item References: \\
+      {\footnotesize
+      \url{http://gnu.org/licenses/gpl-faq.html\#LGPLStaticVsDynamic} \\
+      \url{http://gnu.org/copyleft/lesser.html\#section4}
+      }
 \end{itemize}
 \end{frame}
 
