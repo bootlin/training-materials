@@ -11,8 +11,6 @@ application and then switch to the final root filesystem with
 \item Use statically linked applications (less CPU overhead, less
       libraries to load, smaller initramfs if no libraries at all).
       \code{BR2_PREFER_STATIC_LIB} in Buildroot.
-\item Don't compress your initramfs if your kernel is already
-      compressed.
 \end{itemize}
 \end{frame}
 
@@ -41,6 +39,24 @@ application and then switch to the final root filesystem with
       }
 \end{itemize}
 \end{frame}
+
+\begin{frame}
+\frametitle{Do not compress your initramfs}
+\begin{itemize}
+\item If you ship your initramfs inside a compressed kernel image, don't compress
+      it \\
+      (enable \code{CONFIG_INITRAMFS_COMPRESSION_NONE}).
+\item Otherwise, your initramfs data will be compressed twice, and
+      the kernel will be slightly bigger and will take a little more time to uncompress. 
+\item Tests on Linux 3.13-rc4, measuring the penalty of having a
+      \code{gzip} compressed initramfs in a \code{gzip} compressed kernel: 
+      \begin{itemize}
+      \item CALAO USB-A9263 (Atmel AT91SAM9263): +18 ms
+      \item Beagle Bone Black (TI AM3359): +11 ms
+      \end{itemize}
+\end{itemize}
+\end{frame}
+
 
 \begin{frame}
 \frametitle{Results: after switch to initramfs}
