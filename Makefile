@@ -220,6 +220,7 @@ BOOTTIME_SLIDES = \
 		boottime-course-outline \
 		boottime-principles \
 		boottime-measuring \
+		boottime-filesystems \
 		boottime-init-scripts \
 		boottime-c-libraries-title \
 		c-libraries \
