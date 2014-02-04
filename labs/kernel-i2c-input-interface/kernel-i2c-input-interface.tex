@@ -117,13 +117,7 @@ this structure:
 
 Then allocate one such instead for each new device:
 
-\begin{verbatim}
-        nunchuk = devm_kzalloc(&client->dev, sizeof(struct nunchuk_dev), GFP_KERNEL);
-        if (!nunchuk) {
-                dev_err(&client->dev, "Failed to allocate memory\n");
-                return -ENOMEM;
-        }
-\end{verbatim}
+\sourcecode{labs/kernel-i2c-input-interface/private-data-alloc.c}
 
 Note that we haven't seen kernel memory allocator routines and flags
 yet.
@@ -141,14 +135,7 @@ all the details later.
 
 Now implement the pointers: 
 
-\begin{verbatim}
-	nunchuk->i2c_client = client;
-	nunchuk->polled_input = polled_input;
-	polled_input->private = nunchuk;
-	i2c_set_clientdata(client, nunchuk);
-	input = polled_input->input;
-	input->dev.parent = &client->dev;
-\end{verbatim}
+\sourcecode{labs/kernel-i2c-input-interface/device-pointers.c}
 
 Make sure you add this code before registering the input device. You
 don't want to enable a device with incomplete information or when it is
@@ -173,14 +160,7 @@ input: Unspecified device as /devices/virtual/input/input0
 Add the below lines of code (still before device registration, of
 course):
 
-\begin{verbatim}
-        input->name = "Wii Nunchuk";
-        input->id.bustype = BUS_I2C;
-
-        set_bit(EV_KEY, input->evbit);
-        set_bit(BTN_C, input->keybit);
-        set_bit(BTN_Z, input->keybit);
-\end{verbatim}
+\sourcecode{labs/kernel-i2c-input-interface/input-device-attributes.c}
 
 Recompile and reload your driver. You should now see in the kernel log
 that the \code{Unspecified device} type is replaced by 
@@ -211,14 +191,7 @@ of \code{return value;}}.
 At the end of the polling routine, the last thing to do is post the events 
 and notify the \code{input} core:
 
-\begin{verbatim}
-        input_event(nunchuk->polled_input->input,
-                    EV_KEY, BTN_Z, zpressed);
-        input_event(nunchuk->polled_input->input,
-                    EV_KEY, BTN_C, cpressed);
-
-        input_sync(nunchuk->polled_input->input);
-\end{verbatim}
+\sourcecode{labs/kernel-i2c-input-interface/input-notification.c}
 
 Now, back to the \code{probe()} function, the last thing to do
 is to declare the new polling function (see the slides if you forgot
