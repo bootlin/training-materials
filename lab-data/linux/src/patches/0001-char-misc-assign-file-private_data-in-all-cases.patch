@@ -1,7 +1,7 @@
-From 4547bfff95be09924d190351169dfd810489dcee Mon Sep 17 00:00:00 2001
+From f0cedb3593f34cf3be26d972666e6bffacc824be Mon Sep 17 00:00:00 2001
 From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
 Date: Fri, 21 Jun 2013 14:43:13 +0200
-Subject: [PATCH 1/6] char: misc: assign file->private_data in all cases
+Subject: [PATCH] char: misc: assign file->private_data in all cases
 
 In fa1f68db6ca ("drivers: misc: pass miscdevice pointer via file
 private data"), the misc driver infrastructure was changed to assigned
@@ -25,19 +25,19 @@ Signed-off-by: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/drivers/char/misc.c b/drivers/char/misc.c
-index 190d442..fd504d3 100644
+index ffa97d2..205ad4c 100644
 --- a/drivers/char/misc.c
 +++ b/drivers/char/misc.c
-@@ -143,8 +143,8 @@ static int misc_open(struct inode * inode, struct file * file)
+@@ -142,8 +142,8 @@ static int misc_open(struct inode * inode, struct file * file)
+ 
  	err = 0;
- 	old_fops = file->f_op;
- 	file->f_op = new_fops;
+ 	replace_fops(file, new_fops);
 +	file->private_data = c;
  	if (file->f_op->open) {
 -		file->private_data = c;
- 		err=file->f_op->open(inode,file);
- 		if (err) {
- 			fops_put(file->f_op);
+ 		err = file->f_op->open(inode,file);
+ 	}
+ fail:
 -- 
-1.8.1.2
+1.8.3.2
 
