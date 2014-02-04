@@ -51,25 +51,33 @@ Now, open the \code{arch/arm/boot/dts/am335x-bone-common.dtsi}
 file and create declarations for UART2 and UART4 in the pin muxing
 section:
 
-\sourcecode{labs/kernel-serial-iomem/uarts-pinctrl.dts}
+{\small \sourcecode{labs/kernel-serial-iomem/uarts-pinctrl.dts}}
 
 Then, declare the corresponding devices:
 
 \sourcecode{labs/kernel-serial-iomem/uarts.dts}
 
-Note: we are calling these devices with \code{uartfe} instead of
-\code{uart} to avoid conflicts with declarations in
-\code{arch/arm/boot/dts/am33xx.dtsi}. The \code{uart} devices are 
-meant to be used by the regular serial driver.
+This is a good example of how we can override definitions in the Device
+Tree. \code{uart2} and \code{uart4} are already defined in 
+\code{arch/arm/boot/dts/am33xx.dtsi}. In the above code, we just
+override a few properties and add missing ones. We don't have to 
+duplicate the valid ones:
 
-We will see how to use the device parameters in the driver code.
+\begin{itemize}
+\item \code{compatible}: use our driver instead of using the default one
+      (\code{omap3-uart}). 
+\item \code{status}: enabled the device (was set to \code{disabled} in
+      the original definition.
+\item \code{pinctrl-names}, \code{pinctrl-0}: add pinmux settings
+      (none were defined so far).
+\end{itemize}
 
 Rebuild and update your DTB.
 
 \section{Operate a platform device driver}
 
 Go to the \code{~/felabs/linux/modules/nfsroot/root/serial/} directory.
-You will find a \code{feserial.c} file already provides a platform
+You will find a \code{feserial.c} file which already provides a platform
 driver skeleton.
 
 Add the code needed to match the driver with the devices which you have
