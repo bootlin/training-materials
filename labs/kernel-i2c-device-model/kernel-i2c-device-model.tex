@@ -62,29 +62,67 @@ Now connect the nunchuk pins:
 To let the Linux kernel handle a new device, the first thing is to add a
 description for it in the board device tree.
 
-Do this by editing the \code{arch/arm/boot/dts/am335x-boneblack.dts}
-file describing all the buses and devices. You will need to follow the
-examples given in the lectures.
+We will have to do two things:
 
 \begin{enumerate}
-\item Add a node declaring a second I2C bus (\code{i2c1}), functioning
-  at 100 KHz. As for \code{i2c0}, you will need to declare the base
-  address of its registers. Open the processor datasheet and find this
-  address \footnote{Tip: you can look-up the \code{i2c0} base address
-    which you already know from the existing Device Tree (put an
-    underscore character in the middle of the address, as in
-    \code{FFFF_FFFF}... that's how addresses are written in the
-    datasheet). The base address for \code{i2c1} won't be far away.
-    If you do so, ignore the \code{pinctrl} properties for now.}.
-\item As a child node to this second bus, declare the \code{nunchuk}
-  device, choosing \code{nintendo,nunchuk} for its \code{compatible}
-  property. You find the I2C slave address of the nunchuk on the
-  nunckuk document that we have used earlier \footnote{This I2C slave
-    addressed is enforced by the device itself. You can't change it.}.
+\item Add a node declaring a second I2C bus (\code{i2c1}) 
+\item Add a child node to this bus, corresponding to the Nunchuk device. 
 \end{enumerate}
 
-Once this is done, recompile your DTB and copy the updated version to
-the tftp server home directory.
+\subsection{Declare a second I2C bus}
+
+First, find in which DTS file the first I2C bus (\code{i2c0}) for the 
+BeagleBone Black is instantiated and in which file it is defined.
+
+Find the definitions for \code{i2c1}. What is the base address of its
+registers? Also find the same address in the processor datasheet
+\footnote{Tip: to do your search, put an underscore character in the middle
+of the address, as in \code{FFFF_FFFF}... that's how addresses are written in the
+TI datasheet).}.
+
+Then, imitating the definitions found for \code{i2c0},
+modify the \code{arch/arm/boot/dts/am335x-boneblack.dts}
+file to instantiate \code{i2c1}, functioning at 100 KHz.
+
+\subsection{Declare the Nunchuk device} 
+
+As a child node to this second bus, declare the \code{nunchuk}
+device, choosing \code{nintendo,nunchuk} for its \code{compatible}
+property. You will find the I2C slave address of the nunchuk on the
+nunckuk document that we have used earlier \footnote{This I2C slave
+addressed is enforced by the device itself. You can't change it.}.
+
+\subsection{Checking the device tree on the running system}
+
+Now that you have modified the board device tree, recompile your
+DTB and copy the updated version to the tftp server home directory.
+
+Boot the board.
+
+Through the \code{/proc/device-tree} directory, it is possible to check
+the Device Tree settings that your system has loaded. That's useful when
+you are not sure exactly which settings were actually loaded. 
+
+For example, you can check the presence of a new \code{nunchuk} node in
+your device tree:
+
+\begin{verbatim}
+# find /proc/device-tree -name "*nunchuk*"
+/proc/device-tree/ocp/i2c@4802a000/nunchuk@52
+\end{verbatim}
+
+Using the Device Tree Compiler (\code{dtc}, which we put in the root
+filesystem), you can also check the whole Device Tree structure. That's
+better than checking the source files and includes in the source
+directory!
+
+\begin{verbatim}
+# dtc -I fs /proc/device-tree/
+\end{verbatim}
+
+Look for \code{i2c1} and \code{nunchuk} in the output of this command,
+and see where the nodes are instantiated. Don't hesitate to ask your
+instructor for questions!
 
 \section{Implement a basic I2C driver for the nunchuk}
 
