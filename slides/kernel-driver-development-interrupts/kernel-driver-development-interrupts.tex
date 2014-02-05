@@ -2,32 +2,42 @@
 
 \begin{frame}[fragile]
   \frametitle{Registering an interrupt handler 1/2}
+  The "managed" API is recommended:
+  \begin{minted}{c}
+int devm_request_irq(struct device *dev,
+                     unsigned int irq,
+                     irq_handler_t handler,
+                     unsigned long irq_flags,
+                     const char *devname,
+                     void *dev_id);
+  \end{minted}
   \begin{itemize}
-  \item \begin{minted}{c}
-int request_irq(unsigned int irq,
-     irq_handler_t handler, unsigned long irq_flags,
-     const char *devname, void *dev_id);
-   \end{minted}
-   \begin{itemize}
-   \item Register an interrupt handler.
-   \item \code{irq} is the requested IRQ channel. For platform
-     devices, use \kfunc{platform_get_irq} to retrieve the
-     interrupt number.
-   \item \code{handler} is a pointer to the IRQ handler
-   \item \code{irq_flags} are option masks (see next slide)
-   \item \code{devname} is the registered name
-   \item \code{dev_id} is a pointer to some data. It cannot be NULL
-     as it is used as an identifier for \kfunc{free_irq} when using
-     shared IRQs.
-   \end{itemize}
- \item \begin{minted}{c}
-void free_irq(unsigned int irq, void *dev_id);
-\end{minted}
-\begin{itemize}
-\item Release an interrupt handler.
-\end{itemize}
- \item Defined in \kpath{include/linux/interrupt.h}
- \end{itemize}
+  \item Register an interrupt handler.
+  \item \code{device} for automatic freeing at device or module
+        release time.
+  \item \code{irq} is the requested IRQ channel. For platform
+        devices, use \kfunc{platform_get_irq} to retrieve the
+        interrupt number.
+  \item \code{handler} is a pointer to the IRQ handler
+  \item \code{irq_flags} are option masks (see next slide)
+  \item \code{devname} is the registered name
+  \item \code{dev_id} is a pointer to some data. It cannot be NULL
+        as it is used as an identifier for \kfunc{free_irq} when using
+        shared IRQs.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Releasing an interrupt handler}
+  \begin{minted}{c}
+void free_irq(struct device *dev,
+              unsigned int irq, void *dev_id);
+  \end{minted}
+  \begin{itemize}
+  \item Explicitely release an interrupt handler. Done automatically
+        in normal situations.
+  \end{itemize}
+  Defined in \kpath{include/linux/interrupt.h}
 \end{frame}
 
 \begin{frame}
@@ -129,24 +139,26 @@ Err:    0
 
 \begin{frame}[fragile]
   \frametitle{Threaded interrupts}
+  In 2.6.30, support for threaded interrupts has been added to
+  the Linux kernel
   \begin{itemize}
-  \item In 2.6.30, support for threaded interrupts has been added to
-    the Linux kernel
-    \begin{itemize}
-    \item The interrupt handler is executed inside a thread.
-    \item Allows to block during the interrupt handler, which is often
-      needed for I2C/SPI devices as the interrupt handler needs to
-      communicate with them.
-    \item Allows to set a priority for the interrupt handler
-      execution, which is useful for real-time usage of Linux
-    \end{itemize}
-  \item \mint{c}+int request_threaded_irq(unsigned int irq,+
-    \mint{c}+irq_handler_t handler, irq_handler_t thread_fn,+
-    \mint{c}+unsigned long flags, const char *name, void *dev);+
-    \begin{itemize}
-    \item \code{handler}, ``hard IRQ'' handler
-    \item \code{thread_fn}, executed in a thread
-    \end{itemize}
+  \item The interrupt handler is executed inside a thread.
+  \item Allows to block during the interrupt handler, which is often
+        needed for I2C/SPI devices as the interrupt handler needs to
+        communicate with them.
+  \item Allows to set a priority for the interrupt handler
+        execution, which is useful for real-time usage of Linux
+  \end{itemize}
+  \begin{minted}{c}
+int devm_request_threaded_irq(
+    struct device *dev,
+    unsigned int irq,
+    irq_handler_t handler, irq_handler_t thread_fn
+    unsigned long flags, const char *name, void *dev);
+  \end{minted}
+  \begin{itemize}
+  \item \code{handler}, ``hard IRQ'' handler
+  \item \code{thread_fn}, executed in a thread
   \end{itemize}
 \end{frame}
 
