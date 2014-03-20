@@ -233,6 +233,8 @@ BOOTTIME_SLIDES = \
 		boottime-bootloader \
 		boottime-hardware-init \
 		boottime-alternatives \
+		last-slides
+
 
 # List of labs for the different courses
 
