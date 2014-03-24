@@ -558,8 +558,11 @@ help:
 	@echo " full-kernel-slides.pdf          Complete slides for the 'kernel' course"
 	@echo " full-android-slides.pdf         Complete slides for the 'android' course"
 	@echo " full-boottime-slides.pdf        Complete slides for the 'boottime' course"
-	@echo " kernel-agenda.pdf               Agenda for the 'kernel' course"
+	@echo " android-agenda.pdf              Agenda for the 'android' course"
 	@echo " boottime-agenda.pdf             Agenda for the 'boottime' course"
+	@echo " buildroot-agenda.pdf            Agenda for the 'buildroot' course"
+	@echo " kernel-agenda.pdf               Agenda for the 'kernel' course"
+	@echo " yocto-agenda.pdf                Agenda for the 'yocto' course"
 	@echo
 	@echo " <some-chapter>-slides.pdf       Slides for a particular chapter in slides/"
 	@echo " <some-chapter>-labs.pdf         Labs for a particular chapter in labs/"
