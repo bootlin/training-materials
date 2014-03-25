@@ -21,23 +21,7 @@ Install the required packages:
 sudo apt-get install chrpath gawk texinfo
 \end{verbatim}
 
-\section{Install the TFTP server}
-
-First we need to setup a TFTP server on the training computer.
-
-Install the \code{tftpd-hdpa} server and create the root TFTP directory:
-\begin{verbatim}
-sudo apt-get install tftp-hdpa
-sudo mkdir -m 777 /tftp
-\end{verbatim}
-
-Then make sure the \code{tftp-hdpa} server uses the right directory by checking
-the \code{TFTP_DIRECTORY} variable in \code{/etc/default/tftpd-hpa}.
-
-Finally restart the service to make sure all modifications are effective:
-\begin{verbatim}
-sudo service tftpd-hdpa restart
-\end{verbatim}
+\input{../labs/common/setup-ethernet-communication.tex}
 
 \section{Download Yocto}
 
@@ -86,18 +70,15 @@ bitbake core-image-minimal
 Once the build finished, all output images can be find under
 \code{\$BUILDDIR/tmp/deploy/images/beaglebone}.
 
+\section{Setup the internal eMMC}
+
+In order to boot from the internal eMMC, we should make sure it is properly
+setted up before writing our images.
+
 \section{Flash the board}
 
 In order to boot the BeagleBone Black we will flash the bootloader and the
 kernel image in the internal eMMC here.
-
-First we need to set the correct environment variables from the U-Boot command
-line so that the BeagleBone Black can communicate with the TFTP server:
-\begin{verbatim}
-setenv ipaddr 192.168.0.2
-setenv serverip 192.168.0.1
-setenv loadaddr 0x80200000
-\end{verbatim}
 
 On the training computer copy the bootloader, kernel and rootfs images in the
 root TFTP directory:
