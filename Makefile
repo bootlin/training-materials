@@ -70,7 +70,7 @@ KERNEL_SLIDES = \
 		kernel-driver-development-mmap \
 		kernel-git-title \
 		kernel-git-content \
-		kernel-git-lab 
+		kernel-git-lab
 
 SYSDEV_SLIDES = \
 		licensing \
@@ -292,6 +292,10 @@ BOOTTIME_LABS = boottime-install \
 		boottime-bootloader \
 		boottime-results \
 
+YOCTO_LABS    = setup \
+		yocto-first-build \
+		yocto-advanced-configuration \
+
 # Output directory
 OUTDIR   = $(PWD)/out
 
@@ -436,6 +440,9 @@ LABS_CHAPTERS      = $(ANDROID_LABS)
 else ifeq ($(LABS),full-boottime)
 LABS_VARSFILE      = common/boottime-labs-vars.tex
 LABS_CHAPTERS      = $(BOOTTIME_LABS)
+else ifeq ($(LABS),full-yocto)
+LABS_VARSFILE      = common/yocto-labs-vars.tex
+LABS_CHAPTERS      = $(YOCTO_LABS)
 else
 LABS_VARSFILE      = common/single-lab-vars.tex
 LABS_CHAPTERS      = $(LABS)
