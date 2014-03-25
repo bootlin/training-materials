@@ -1,0 +1,117 @@
+\subchapter{First Yocto build}{Your first dive into a Yocto project and its
+	build mechanism}
+
+During this lab, you will:
+\begin{itemize}
+  \item Setup a Yocto environment
+  \item Configure the project and choose a target
+  \item Build your first Yocto image
+\end{itemize}
+
+\section{Setup}
+
+Before starting this lab, make sure your home directory is not encrypted. Yocto
+cannot be used on top of an eCryptFS file system due to limitations on file name
+lengths.
+
+Go to the \code{\$HOME/felabs/yocto/} directory.
+
+Install the required packages:
+\begin{verbatim}
+sudo apt-get install chrpath gawk texinfo
+\end{verbatim}
+
+\section{Install the TFTP server}
+
+First we need to setup a TFTP server on the training computer.
+
+Install the \code{tftpd-hdpa} server and create the root TFTP directory:
+\begin{verbatim}
+sudo apt-get install tftp-hdpa
+sudo mkdir -m 777 /tftp
+\end{verbatim}
+
+Then make sure the \code{tftp-hdpa} server uses the right directory by checking
+the \code{TFTP_DIRECTORY} variable in \code{/etc/default/tftpd-hpa}.
+
+Finally restart the service to make sure all modifications are effective:
+\begin{verbatim}
+sudo service tftpd-hdpa restart
+\end{verbatim}
+
+\section{Download Yocto}
+
+Download the latest stable version of the Yocto project and extract it:
+\begin{verbatim}
+wget http://downloads.yoctoproject.org/releases/yocto/yocto-1.5.1/\
+  poky-dora-10.0.1.tar.bz2
+tar xf poky-dora-10.0.1.tar.bz2
+\end{verbatim}
+
+Go to the Yocto root directory: \code{cd poky-dora-10.0.1}
+
+Then download the Yocto TI layer:
+\begin{verbatim}
+git clone git://git.yoctoproject.org/meta-ti.git
+\end{verbatim}
+
+\section{Setup the build environment}
+
+Export all needed variables and setup the build directory:
+\begin{verbatim}
+source oe-init-build-env
+\end{verbatim}
+
+In order to choose the target and to configure the generic build settings,
+edit the local configuration file (\code{\$BUILDDIR/conf/local.conf}). Set
+the target machine to \code{beaglebone} and update the parallelization variables
+(\code{BB_NUMBER_THREADS} and \code{PARALLEL_MAKE}) according to your computer
+capabilities.
+
+Also, if you need to save disk space on your computer you can add \code{INHERIT
++= "rm_work"} in the previous configuration file. This will remove the
+package work directory once a package is built.
+
+Finally, don't forget to let the configuration aware of the TI layer. Edit the
+layer configuration file (\code{\$BUILDDIR/conf/bblayers.conf}) and append the
+full path to the \code{meta-ti} directory to the \code{BBLAYERS} variable.
+
+\section{Build your first image}
+
+Now that you're ready to start the compilation, simply run:
+\begin{verbatim}
+bitbake core-image-minimal
+\end{verbatim}
+
+Once the build finished, all output images can be find under
+\code{\$BUILDDIR/tmp/deploy/images/beaglebone}.
+
+\section{Flash the board}
+
+In order to boot the BeagleBone Black we will flash the bootloader and the
+kernel image in the internal eMMC here.
+
+First we need to set the correct environment variables from the U-Boot command
+line so that the BeagleBone Black can communicate with the TFTP server:
+\begin{verbatim}
+setenv ipaddr 192.168.0.2
+setenv serverip 192.168.0.1
+setenv loadaddr 0x80200000
+\end{verbatim}
+
+On the training computer copy the bootloader, kernel and rootfs images in the
+root TFTP directory:
+\begin{verbatim}
+cp $BUILDDIR/tmp/deploy/images/beaglebone/{MLO,u-boot.img,zImage} /tftp
+\end{verbatim}
+
+Then retrieve these files on the BeagleBone Board memory. We will first download
+the first stage bootloader, the \code{MLO}:
+\begin{verbatim}
+tftp 0x80200000 MLO
+\end{verbatim}
+
+Finally flash this file into the internal eMMC:
+\begin{verbatim}
+TBD
+\end{verbatim}
