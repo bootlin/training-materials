@@ -1,0 +1,132 @@
+\subchapter{Advanced Yocto configuration}{Configure the build, customize the
+	output images and use NFS}
+
+During this lab, you will:
+\begin{itemize}
+  \item Customize the package selection
+  \item Configure the build system
+  \item Use the rootfs over NFS
+\end{itemize}
+
+\section{Setup the NFS server}
+
+First install the NFS server on the training computer and create the root NFS
+directory:
+\begin{verbatim}
+sudo apt-get install nfs-kernel-server
+sudo mkdir -m 777 /nfs
+\end{verbatim}
+
+Then make sure this directory is used and exported by the NFS server by adding
+\code{/nfs *{rw,sync,subtree_check}} to the \code{/etc/exports} file.
+
+Finally restart the service:
+\begin{verbatim}
+sudo service nfs-kernel-server restart
+\end{verbatim}
+
+\section{Tell the kernel to use the rootfs over NFS}
+
+Then set the kernel boot arguments U-Boot will pass to the Linux kernel at boot
+time:
+\begin{verbatim}
+setenv bootargs 'console=ttyS0 root=/dev/nfs rw nfsroot=192.168.0.1:/nfs
+  ip=192.168.0.100'
+saveenv
+\end{verbatim}
+
+If you later want to make changes to this setting, you can use:
+\begin{verbatim}
+editenv bootargs
+\end{verbatim}
+
+\section{Add a package to the rootfs image}
+
+You can add packages to be built by editing the local configuration file
+\code{\$BUILDDIR/conf/local.conf}. The \code{IMAGE_INSTALL} variable controls the
+packages included into the output image.
+
+To illustrate this, add the Dropbear SSH server to the list of enabled
+packages.
+
+Tip: do not override the default enabled package list, but append the Dropbear
+package instead.
+
+\section{Choose a package variant}
+
+Dependencies of a given package are explicitly defined in their recipes. Some
+packages need a specific library or piece of software but others only depends on
+a functionality. As an example, the kernel dependency is described by
+\code{virtual/kernel}.
+
+To see which kernel is used, dry-run bitbake:
+\begin{verbatim}
+bitbake -vn virtual/kernel
+\end{verbatim}
+
+In our case, we can see the \code{linux-ti-staging} provides the
+\code{virtual/kernel} functionality:
+\begin{verbatim}
+NOTE: selecting linux-ti-staging to satisfy virtual/kernel due to PREFERRED_PROVIDERS
+\end{verbatim}
+
+We can force Yocto to select antoher \code{kernel} by defining explicitly and
+manually which one to use in our local configuration. Try switching from
+\code{linux-ti-staging} to \code{linux-dummy} only using the local
+configuration.
+
+Then check the previous step worked by dry-running again bitbake.
+\begin{verbatim}
+\end{verbatim}
+
+You can now rebuild the whole Yocto project, with \code{bitbake
+core-image-minimal}
+
+Tip: you need to define the more specific information here to be sure it is the
+one used. The \code{MACHINE} variable can help here.
+
+\section{Boot with the updated rootfs}
+
+First we need to put the rootfs under the NFS root directory so that it is
+accessible by NFS clients. Simply uncompress the archived output image in the
+previously created \code{/nfs} directory:
+\begin{verbatim}
+tar xpf $BUILDDIR/tmp/deploy/images/beaglebone/\
+  core-image-minimal-beaglebone.tar.bz2 -C /nfs
+\end{verbatim}
+
+Then boot the board.
+
+The Dropbear SSH server was enabled a few steps before, and should now be
+running as a service on the BeagleBone Black. You can test it by accessing the
+board through SSH:
+\begin{verbatim}
+ssh root@192.168.0.100
+\end{verbatim}
+
+\section{Bonus: some Bitbake tips}
+
+Bitbake is a powerfull tool which can be used to execute specific commands. Here
+is a list of some useful ones, used with the \code{virtual/kernel} package.
+
+\begin{itemize}
+  \item The Yocto recipes are divided into numerous tasks, you can print them
+        by using: \code{bitbake -c listtasks virtual/kernel}.
+  \item Bitbake allows to call a specific task only (and its dependencies)
+        with: \code{bitbake -c <task> virtual/kernel}. (\code{<task>} can be
+	\code{menuconfig} here).
+  \item You can force to rebuild a package by calling: \code{bitbake -f
+	virtual/kernel}
+  \item \code{world} is a special keyword for all packages. \code{bitbake -c
+	fetchall world} will download all packages sources (and their
+        dependencies).
+  \item You can get a list of locally available packages and their current
+        version with: \\
+	\code{bitbake -s}
+  \item You can also find detailed informations on available packages, their
+        current version, dependencies or the contact information of the
+	maintainer by visiting: \\
+	\url{http://packages.yoctoproject.org/}
+\end{itemize}
+
+For detailed informations, please run \code{bitbake -h}
