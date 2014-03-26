@@ -23,6 +23,11 @@
       \item Get variables from the bootloader
       \item Control the boot sequence
     \end{itemize}
+  \item Specified in \code{fastboot_protocol.txt} in either
+    \begin{itemize}
+      \item bootable/bootloader/legacy (up to Android 4.1)
+      \item system/core/fastboot (since Android 4.3)
+    \end{itemize}
   \end{itemize}
 \end{frame}
 
@@ -33,55 +38,110 @@
   \end{center}
 \end{frame}
 
-\begin{frame}
-  \frametitle{Commands available 1/2}
+\begin{frame}[fragile]{Booting into the bootloader}
   \begin{itemize}
-  \item Vendor-specific commands must begin with an upper-case
-    character. Commands beginning with a lower-case character are reserved
-    for the Fastboot specifications and their evolution
-  \item Commands defined by the Fastboot specifications are:
+    \item On a typical Android device you can boot into the bootloader by:
+      \begin{itemize}
+         \item powering on while pressing various buttons, the
+           combination depends on your particular device.
+         \item using \code{adb reboot bootloader}
+      \end{itemize}
+    \item Once the device has booted into the bootloader you can use
+      the \code{fastboot} command on the development machine to
+      communicate with it
   \end{itemize}
+\end{frame}
+
+\begin{frame}{fastboot commands (1/3)}
+Basic commands
   \begin{description}
-  \item[getvar:\%s] Reads a variable from the bootloader. It will be
-    returned after the \code{OKAY} command.
-  \item[download:\%08x] Writes data to memory on the device to be used
-    later. The client either replies \code{DATA\%08x} if it succeeded
-    or \code{FAIL}.
-  \item[verify:\%08x] Sends a digital signature to verify the
-    previously downloaded data. Required if the device is secure.
-  \item[flash:\%s] Writes the previously sent data to the given
-    partition.
+    \item[devices\hfill] \hfill \\
+      List devices attached that will accept fastboot commands
+    \item[getvar\hfill] \hfill \\
+      Get a variable
+    \item[continue\hfill] \hfill \\
+      Continue the boot process as usual
+    \item[reboot\hfill] \hfill \\
+      Reboot device
+    \item[reboot-bootloader] \hfill \\
+      Reboot back into bootloader
   \end{description}
 \end{frame}
 
-\begin{frame}
-  \frametitle{Commands available 2/2}
-  \begin{description}
-  \item[erase:\%s] Erases the given flash partition (sets all the
-    partition to \code{0xFF}
-  \item[boot] Means that what was last downloaded is a root filesystem, 
-    and instructs to boot on it.
-  \item[continue] Orders the device to continue booting as usual
-  \item[reboot] Reboots the device
-  \item[reboot-bootloader] Reboots back in the bootloader mode
-  \item[powerdown] Powers off the device
+\begin{frame}{fastboot commands (2/3)}
+Flashing commands
+\begin{description}
+    \item[erase \code{<partition>}] \hfill \\
+      Erase \code{<partition>}
+    \item[flash \code{<partition>}] \hfill \\
+      Erase and program \code{<partition>} with \code{<partition>.img}
+      of current product
+    \item[flash \code{<partition> <filename>}] \hfill \\
+      Erase and program \code{<partition>} with \code{<filename>}
+    \item[flashall\hfill] \hfill \\
+      Erase and program \code{boot.img, recovery.img and system.img}
+      of current product and then reboot
   \end{description}
+  Where \code{<partition>} is one of \code{boot}, \code{recovery},
+  \code{system}, \code{userdata}, \code{cache} current product is
+  \code{$ANDROID_PRODUCT_OUT} \\
+  Note: the location and size of partitions is hard-coded in the
+  bootloader
 \end{frame}
 
-\begin{frame}
-  \frametitle{Defined variables}
-  \begin{itemize}
-  \item Vendor-specific variables must also begin with a upper-case
-    letter. Variables beginning with a lower-case letter are reserved
-    for the Fastboot specifications and their evolution.
-  \item They are retrieved through the \code{getvar} command.
-    \begin{description}
-    \item[version] Version of the Fastboot protocol implemented
-    \item[version-bootloader] Version of the bootloader
-    \item[version-baseband] Version of the baseband firmware
+\begin{frame}[fragile]{fastboot commands (3/3)}
+Special commands
+  \begin{description}
+    \item[oem \hfill] \hfill \\ Device-specific operations
+    \item[boot \code{<kernel> <ramdisk>}] \hfill \\
+      Load and boot \code{kernel} and \code{ramdisk}
+  \end{description}
+  Example:
+  \footnotesize
+  \begin{verbatim}
+  fastboot -c "kernel command line" boot zImage ramdisk.cpio.gz
+  \end{verbatim}
+  \normalsize
+\end{frame}
+
+\begin{frame}{fastboot variables}
+  The \code{getvar} command should return values for at least these
+  \begin{description}[leftmargin=*,widest=a]
+    \item[version] Version of the protocol: 0.4 is the one documented
+    \item[version-bootloader] Version string of the Bootloader
+    \item[version-baseband] Version string of the Baseband Software
     \item[product] Name of the product
     \item[serialno] Product serial number
-    \item[secure] Does the bootloader require signed images?
-    \end{description}
+    \item[secure] If "yes" the bootloader requires signed images
+  \end{description}
+  Vendor-specific variables must begin with an upper-case letter.
+  Variables beginning with a lower-case letter are reserved for the
+  Fastboot specifications and their evolution.
+\end{frame}
+
+\begin{frame}{Android boot and recovery images}
+  \begin{itemize}
+    \item The files \code{boot.img} and \code{recovery.img} are
+      created by the tool \code{mkbootimg} (code in
+      \code{system/core/mkbootimg}
+    \item They contain a compressed kernel, the kernel command line
+      and, optionally, a ramdisk in the Linux standard compressed cpio
+      format
+    \item Most Android bootloaders can read and load these images into
+      memory
+    \item The format is defined in \code{bootimg.h}
   \end{itemize}
 \end{frame}
+
+\begin{frame}{Android boot and recovery images}
+  \begin{center}
+  \includegraphics[width=1.0\textwidth]{slides/android-bootloaders-fastboot/boot-image-format.pdf}
+  \end{center}
+\end{frame}
+
+\begin{frame}{Boot sequence}
+  \begin{center}
+  \includegraphics[width=0.8\textwidth]{slides/android-bootloaders-fastboot/boot-sequence.pdf}
+  \end{center}
+\end{frame}
+
