@@ -216,9 +216,9 @@ Creating 5 MTD partitions on "omap2-nand.0":
   \item Mount the partition:\\
     \code{mount -t jffs2 /dev/mtdblock2 /mnt/flash}\\
   \item Fill the contents by writing\\
-    (copying from NFS or from external storage)
+    (copying through the network or from external storage)
   \item Other possibility: use a {\em jffs2} image (see next page to
-    produce it):\\
+    make it):\\
     \code{flash_eraseall /dev/mtd2}\\
     \code{nandwrite -p /dev/mtd2 rootfs.jffs2}
   \end{itemize}
@@ -277,14 +277,28 @@ Creating 5 MTD partitions on "omap2-nand.0":
       (exact instructions depending on flash type, NOR or NAND,\\
       reuse the instructions used to flash your kernel). Make sure to
       write only the size of the image, not more!
-    \item If you boot on a jffs2 root filesystem, add
-      \code{root=/dev/mtdblock<x>} and \code{rootfstype=jffs2} to the
-      Linux command line arguments.
     \end{itemize}
   \item Limitation: need to split the jffs2 image in several chunks\\
     if bigger than the RAM size.
   \end{itemize}
 \end{frame}
+
+\begin{frame}
+  \frametitle{Booting from a jffs2 root partition}
+  \begin{itemize}
+  \item To boot on a jffs2 root filesystem, add
+    \code{root=/dev/mtdblock<x>} and \code{rootfstype=jffs2} to the
+    Linux command line arguments.
+  \item The Linux kernel cannot autodetect the type of a root filesystem
+    in MTD flash. That's why the \code{rootfstype} kernel parameter is
+    needed.
+  \item For root partitions on a block device, using \code{rootfstype} 
+    (for example: \code{rootfstype=ext3}) can reduce boot time a little
+    bit. This way, the kernel doesn't have to try all the block
+    filesystems it supports.
+  \end{itemize}
+\end{frame}
+
 
 \begin{frame}
   \frametitle{yaffs2}
