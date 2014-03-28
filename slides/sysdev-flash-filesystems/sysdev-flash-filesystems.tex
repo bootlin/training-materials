@@ -423,11 +423,11 @@ Creating 5 MTD partitions on "omap2-nand.0":
   \item Images of UBIFS filesystems can be created using the
     \code{mkfs.ubifs} utility
     \begin{itemize}
-    \item \code{mkfs.ubifs -m 4096 -e 256KiB -c 1000 -r rootfs/ ubifs.img}
+    \item \code{mkfs.ubifs -m 4096 -e 252KiB -c 1000 -r rootfs/ ubifs.img}
       \begin{itemize}
       \item \code{-m 4096}, minimal I/O size\\
                  (see \code{/sys/class/mtd/mtdx/writesize}).
-      \item \code{-e 252 KiB}, logical erase block size (smaller than
+      \item \code{-e 252KiB}, logical erase block size (smaller than
                  PEB size, look at \code{dmesg})
       \item \code{-c 1000}, maximum number of logical erase
         blocks. Details:
@@ -439,33 +439,15 @@ Creating 5 MTD partitions on "omap2-nand.0":
   \end{itemize}
 \end{frame}
 
-\begin{frame}
-  \frametitle{Ubinize}
-  \begin{itemize}
-  \item Images of a full UBI space, containing several volumes can be
-    created using the \code{ubinize} utility
-    \begin{itemize}
-    \item Can be written to a raw MTD partition using \code{nand write} in U-boot.
-    \item Caution: \code{nand erase} will also erase the Erase
-      Counters
-    \end{itemize}
-  \item \code{ubinize -o ubi.img -p 256KiB -m 4096 ubi.ini}
-    \begin{itemize}
-    \item Creates \code{ubi.img}, with 256KiB physical erase blocks,
-      4096 minimum I/O size (\code{-m}).
-    \end{itemize}
-  \item See
-    \url{http://free-electrons.com/blog/creating-flashing-ubi-ubifs-images/}
-    for details about creating UBI and UBIFS images.
-  \item Build systems like Buildroot can do this for you!
-  \end{itemize}
-\end{frame}
-
 \begin{frame}[fragile]
-  \frametitle{UBIFS - How to prepare a root fs}
+  \frametitle{Ubinize (1)}
+  After creating images of UBIFS filesystems, images of a full UBI space,
+  containing several volumes, can be created using \code{ubinize}:
   \begin{itemize}
-  \item Create the UBIFS image from the target directory
-  \item Write the configuration file for the UBI device (\code{ubi.ini}):
+  \item Can be written to a raw MTD partition in U-boot.
+  \item Caution: \code{nand erase} will also erase the Erase Counters
+  \end{itemize}
+  First, create a configuration file describing the UBI volumes (\code{ubi.ini}):
 \small
 \begin{verbatim}
 [RFS-volume]
@@ -478,9 +460,29 @@ vol_name=rootfs
 vol_flags=autoresize
 vol_alignment=1
 \end{verbatim}
-\normalsize
-  \item Create the UBI device image
-  \item Flash it using a bad block aware command from the bootloader
+\end{frame}
+
+\begin{frame}
+  \frametitle{Ubinize (2)}
+  \begin{itemize}
+  \item \code{ubinize -o ubi.img -p 256KiB -m 4096 ubi.ini}
+  \begin{itemize}
+    \item Creates \code{ubi.img}, with 256KiB physical erase blocks,
+      4096 minimum I/O size (\code{-m}).
+    \end{itemize}
+  \item See
+    \url{http://free-electrons.com/blog/creating-flashing-ubi-ubifs-images/}
+    for details about creating UBI and UBIFS images.
+  \item Build systems like Buildroot can run \code{ubinize} automatically!
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{UBIFS - How to prepare a root fs}
+  \begin{itemize}
+  \item Create the UBIFS image for the root filesystem
+  \item Create the UBI device image (with \code{ubinize})
+  \item Flash it from the bootloader
   \item Pass UBI layout information to the kernel:
     \begin{itemize}
     \item \code{rootfstype=ubifs ubi.mtd=1 root=ubi0:rootfs}
