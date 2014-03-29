@@ -1,0 +1,360 @@
+\section{Writing recipes - basics}
+
+\subsection{Recipes: overview}
+
+\begin{frame}{Recipes}
+  \begin{center}
+    \includegraphics[width=\textwidth]{slides/yocto-recipe-basics/yocto-recipe-basics-overview.pdf}
+  \end{center}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Basics}
+  \begin{itemize}
+    \item Recipes describe how to handle a given packet.
+    \item A recipe is a set of instructions to describe how to
+      retrieve, patch, compile, install and generate binary packages
+      for a given application.
+    \item It also defines what build or runtime dependencies are
+      required.
+    \item The recipes are parsed by the BitBake build engine.
+    \item The format of a recipe file name is
+      \code{<package-name>-<version>.bb}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Content of a recipe}
+  \begin{itemize}
+    \item A recipe contains configuration variables: name, license,
+      dependencies, path to retrieve the source code\dots
+    \item It also contains functions that can be run (fetch,
+      configure, compile\dots) which are called {\bf tasks}.
+    \item Tasks provide a set of actions to perform.
+    \item Remember the \code{bitbake -c <task> <package>} command?
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Common variables}
+  \begin{itemize}
+    \item To make it easier to write a recipe, some variables are
+      automatically available:
+      \begin{description}
+        \item[PN] package name, as specified in the recipe file name
+        \item[PV] package version, as specified in the recipe file
+          name
+        \item[PR] package release, defaults to \code{r0}
+        \item[PE] package epoch: used to reorder package versions when
+          the numbering scheme has changed
+      \end{description}
+    \item When using the recipe \code{bash_4.2.bb}:
+      \begin{itemize}
+        \item \code{${PN} = "bash"}
+        \item \code{${PV} = "4.2"}
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\subsection{Organization of a recipe}
+
+\begin{frame}{Organization of a recipe}
+  \begin{center}
+    \includegraphics[width=\textwidth]{slides/yocto-recipe-basics/yocto-recipe-basics-organisation.pdf}
+  \end{center}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Organization of a recipe}
+  \begin{itemize}
+    \item Many packages have more than one recipe, to support
+      different versions. In that case the common metadata is
+      included in each version specific recipe and is in a \code{.inc}
+      file:
+      \begin{itemize}
+        \item \code{<package>.inc}: version agnostic metadata.
+        \item \code{<package>_<version>.bb}: \code{require
+          <package>.inc} and version specific metadata.
+      \end{itemize}
+    \item We can divide a recipe into three main parts:
+      \begin{itemize}
+        \item The header: what/who
+        \item The sources: where
+        \item The tasks: how
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{The header}
+  \begin{itemize}
+    \item Configuration variables to describe the package:
+      \begin{description}
+        \item[DESCRIPTION] describes what the software is about
+        \item[HOMEPAGE] URL to the project's homepage
+        \item[PRIORITY] defaults to \code{optional}
+        \item[SECTION] package category (e.g. \code{console/utils})
+        \item[LICENSE] the package's license
+      \end{description}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{The source locations 1/3}
+  \begin{itemize}
+    \item We need to retrieve both the raw sources from an official
+      location and the resources needed to configure, patch or install
+      the package.
+    \item \code{SRC_URI} defines where and how to retrieve the
+      needed elements. It is a set of URI schemes pointing to the
+      resource locations (local or remote).
+      \begin{itemize}
+        \item URI scheme syntax: \code{scheme://url;param1;param2}
+        \item \code{file://joystick-support.patch}
+        \item
+          \code{${SOURCEFORGE_MIRROR}/<project-name>/${PV}.tar.gz}
+          %stopzone
+        \item
+          \code{git://<url>;protocol=<protocol>;branch=<branch>}
+          When using git, it is necessary to also define
+          \code{SRCREV}. If \code{SRCREV} is a hash or a tag not
+          present in master, the branch parameter is mandatory. When
+          the tag is not in any branch, it is possible to use
+          \code{nobranch=1}
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{The source locations 2/3}
+  \begin{itemize}
+    \item For the local files, the searched paths are defined in the
+      \code{FILESPATH} variable, custom ones can be added using
+      \code{FILESEXTRAPATHS}. BitBake will also search in subfolders
+      listed in the \code{OVERRIDES} variables in those paths.
+    \item Prepend the paths, as the order matters.
+    \item All local files found in \code{SRC_URI} are copied into the
+      package's working directory, in \code{build/tmp/work/}.
+    \item Files ending in \code{.patch}, \code{.diff} or having the
+      \code{apply=yes} parameter will be applied after the sources are
+      retrieved and extracted.
+    \item Patches are applied in the order they are found.
+    \item \code{LIC_FILES_CHKSUM} defines the URI pointing to the
+      license file in the source code as well as its checksum. This
+      allows to track any license update: if the license changes, the
+      build will trigger a failure as the checksum won't be valid
+      anymore.
+      \begin{itemize}
+        \item \code{LIC_FILES_CHKSUM = "file://gpl.txt;md5=393a5ca..."}
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{The source locations 3/3}
+  \begin{itemize}
+    \item When the sources are provided in a tarball:
+      \begin{itemize}
+        \item An md5 or an sha256 sum must be provided:
+          \begin{itemize}
+            \item \code{SRC_URI[md5sum] = "97b2c3fb082241ab5c56ab728522622b"}
+            \item \code{SRC_URI[sha256sum] = "..."}
+          \end{itemize}
+        \item BitBake expects to find the extracted sources in a
+          directory called \code{<package-name>-<version>}. This is
+          controlled by the \code{S} variable. If the directory has
+          another name, you must explicitly define \code{S}.
+      \end{itemize}
+    \item By default, sources are fetched in
+      \code{$BUILDDIR/downloads}. Change it with the \code{DL_DIR}
+      variable in \code{conf/local.conf}
+    \item Use the \code{PREMIRRORS} and \code{MIRRORS} variables if
+      you want to use local mirrors or fallback mirrors.
+    \item To ensure no network access will be done when building, use
+      \code{BB_NO_NETWORK = "1"}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Tasks}
+  Default tasks already exists, they are defined in classes:
+  \begin{itemize}
+    \item do\_fetch
+    \item do\_unpack
+    \item do\_patch
+    \item do\_configure
+    \item do\_compile
+    \item do\_install
+    \item do\_package
+    \item do\_rootfs
+  \end{itemize}
+  You can get a list of existing tasks for a recipe with:
+  \code{bitbake <recipe> -c listtasks}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Writing tasks 1/3}
+  \begin{itemize}
+    \item Functions use the sh shell syntax, with available
+      OpenEmbedded variables and internal functions available.
+      \begin{description}
+        \item[D] The destination directory (root directory of where
+          the files are installed, before creating the image).
+        \item[WORKDIR] the package's working directory
+      \end{description}
+    \item Syntax of a task:
+  \end{itemize}
+  \begin{block}{}
+    \begin{minted}{c}
+do_task() {
+    action0
+    action1
+    ...
+}
+    \end{minted}
+  \end{block}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Writing tasks 2/3}
+  \begin{itemize}
+    \item Example:
+  \end{itemize}
+  \begin{block}{}
+    \begin{minted}[fontsize=\small]{c}
+do_compile() {
+    ${CC} ${CFLAGS} ${LDFLAGS} -o hello ${WORKDIR}/hello.c
+}
+
+do_install() {
+    install -d ${D}${bindir}
+    install -m 0755 hello ${D}${bindir}
+}
+    \end{minted}
+  \end{block}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Writing tasks 3/3}
+  \begin{itemize}
+    \item Or using a Makefile:
+  \end{itemize}
+  \begin{block}{}
+    \begin{minted}{c}
+do_compile() {
+    oe_runmake
+}
+
+do_install() {
+    install -d ${D}${bindir}
+    install -m 0755 hello ${D}${bindir}
+}
+    \end{minted}
+  \end{block}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Modifying existing tasks}
+  Tasks can be extended with \code{_prepend} or \code{_append}
+  \begin{block}{}
+    \begin{minted}{c}
+do_install_append() {
+    install -d ${D}${sysconfdir}
+    install -m 0755 hello.conf ${D}${sysconfdir}
+}
+    \end{minted}
+  \end{block}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Adding new tasks}
+  Tasks can be added with \code{addtask}
+  \begin{block}{}
+    \begin{minted}{c}
+do_mkimage () {
+    uboot-mkimage ...
+}
+
+addtask mkimage after do_compile before do_install
+    \end{minted}
+  \end{block}
+\end{frame}
+
+\subsection{Example of a recipe}
+
+\begin{frame}[fragile]
+  \frametitle{Hello world recipe}
+  \begin{block}{}
+    \begin{minted}[fontsize=\small]{c}
+DESCRIPTION = "Hello world program"
+HOMEPAGE = "http://example.net/helloworld/"
+PRIORITY = "optional"
+SECTION = "examples"
+LICENSE = "GPLv2"
+
+SRC_URI = "file://hello.c"
+
+do_compile() {
+    ${CC} ${CFLAGS} ${LDFLAGS} -o hello ${WORKDIR}/hello.c
+}
+
+do_install() {
+    install -d ${D}${bindir}
+    install -m 0755 hello ${D}${bindir}
+}
+    \end{minted}
+  \end{block}
+\end{frame}
+
+\subsection{Example of a recipe with a version agnostic part}
+
+\begin{frame}[fragile]
+  \frametitle{tar.inc}
+  \begin{block}{}
+    \begin{minted}{c}
+SUMMARY = "GNU file archiving program"
+HOMEPAGE = "http://www.gnu.org/software/tar/"
+SECTION = "base"
+
+SRC_URI = "${GNU_MIRROR}/tar/tar-${PV}.tar.bz2"
+
+do_configure() { ... }
+
+do_compile() { ... }
+
+do_install() { ... }
+    \end{minted}
+  \end{block}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{tar\_1.17.bb}
+  \begin{block}{}
+    \begin{minted}[fontsize=\small]{c}
+require tar.inc
+
+LICENSE = "GPLv2"
+LIC_FILES_CHKSUM =  \
+  "file://COPYING;md5=59530bdf33659b29e73d4adb9f9f6552"
+
+SRC_URI += "file"//avoid_heap_overflow.patch"
+
+SRC_URI[md5sum] = "c6c4f1c075dbf0f75c29737faa58f290"
+    \end{minted}
+  \end{block}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{tar\_1.26.bb}
+  \begin{block}{}
+    \begin{minted}[fontsize=\small]{c}
+require tar.inc
+
+LICENSE = "GPLv3"
+LIC_FILES_CHKSUM =  \
+  "file://COPYING;md5=d32239bcb673463ab874e80d47fae504"
+
+SRC_URI[md5sum] = "2cee42a2ff4f1cd4f9298eeeb2264519"
+    \end{minted}
+  \end{block}
+\end{frame}

@@ -237,7 +237,39 @@ BOOTTIME_SLIDES = \
 		boottime-kernel \
 		boottime-bootloader \
 		boottime-hardware-init \
-		boottime-alternatives \
+
+
+YOCTO_SLIDES    = \
+		licensing \
+		about-us \
+		course-information-title \
+		beagleboneblack-board \
+		yocto-course-outline \
+		course-information \
+		setup-lab \
+		yocto-introduction-title \
+		yocto-introduction-distributions \
+		yocto-overview \
+		yocto-basics \
+		yocto-build-lab \
+		yocto-advanced \
+		yocto-advanced-lab \
+		yocto-recipe-basics \
+		yocto-recipe-basics-lab \
+		yocto-recipe-advanced \
+		yocto-layer \
+		yocto-layer-lab \
+		yocto-bsp \
+		yocto-bsp-lab \
+		yocto-layer-distro \
+		yocto-image \
+		yocto-image-lab \
+		yocto-sdk \
+		yocto-sdk-lab \
+		yocto-sdk-eclipse-lab \
+		yocto-licensing \
+		yocto-recipe-extra \
+		yocto-resources \
 		last-slides
 
 
@@ -299,6 +331,13 @@ BOOTTIME_LABS = boottime-install \
 YOCTO_LABS    = setup \
 		yocto-first-build \
 		yocto-advanced-configuration \
+		yocto-add-application \
+		yocto-layer \
+		yocto-extend-recipe \
+		yocto-custom-machine \
+		yocto-recipe-extra \
+		yocto-sdk \
+		yocto-sdk-eclipse \
 
 # Output directory
 OUTDIR   = $(PWD)/out
@@ -560,10 +599,12 @@ help:
 	@echo " full-kernel-labs.pdf            Complete labs for the 'kernel' course"
 	@echo " full-android-labs.pdf           Complete labs for the 'android' course"
 	@echo " full-boottime-labs.pdf          Complete labs for the 'boottime' course"
+	@echo " full-yocto-labs.pdf             Complete labs for the 'yocto' course"
 	@echo " full-sysdev-slides.pdf          Complete slides for the 'sysdev' course"
 	@echo " full-kernel-slides.pdf          Complete slides for the 'kernel' course"
 	@echo " full-android-slides.pdf         Complete slides for the 'android' course"
 	@echo " full-boottime-slides.pdf        Complete slides for the 'boottime' course"
+	@echo " full-yocto-slides.pdf           Complete slides for the 'yocto' course"
 	@echo " android-agenda.pdf              Agenda for the 'android' course"
 	@echo " boottime-agenda.pdf             Agenda for the 'boottime' course"
 	@echo " buildroot-agenda.pdf            Agenda for the 'buildroot' course"

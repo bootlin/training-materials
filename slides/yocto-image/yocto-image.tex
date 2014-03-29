@@ -1,0 +1,138 @@
+\section{Images}
+\subsection{Introduction to images}
+
+\begin{frame}
+  \frametitle{Overview 1/3}
+  \begin{itemize}
+    \item An \code{image} is the top level recipe and is used
+      alongside the \code{machine} definition.
+    \item Whereas the \code{machine} describes the hardware used and
+      its capabilities, the \code{image} is architecture agnostic and
+      defines how the root filesystem is built, with what packages.
+    \item By default, several images are provided in Poky:
+      \begin{itemize}
+        \item \code{meta*/recipes*/images/*.bb}
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Overview 2/3}
+  \begin{itemize}
+    \item Common images are:
+      \begin{description}
+        \item[core-image-base] Console-only image, with full support
+          of the hardware.
+        \item[core-image-minimal] Small image, capable of booting a
+          device.
+        \item[core-image-minimal-dev] Small image with extra debug
+          symbols, tools and libraries.
+        \item[core-image-x11] Image with basic X11 support.
+        \item[core-image-rt] \code{core-image-minimal} with real time
+          tools and test suite.
+      \end{description}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Overview 3/3}
+  \begin{itemize}
+    \item An \code{image} is no more than a recipe.
+    \item It has a description, a license and inherits the
+      \code{core-image} class.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Organization of an image recipe}
+  \begin{itemize}
+    \item Some special configuration variables are used to describe an
+      image:
+      \begin{description}
+        \item[IMAGE\_BASENAME] The name of the output image files.
+          Defaults to \code{\${PN}}.
+        \item[IMAGE\_INSTALL] List of packages and package groups to
+          install in the generated image.
+        \item[IMAGE\_ROOTFS\_SIZE] The final root filesystem size.
+        \item[IMAGE\_FEATURES] List of features to enable in the
+          image.
+        \item[IMAGE\_FSTYPES] List of formats the OpenEmbedded build
+          system will use to create images.
+        \item[IMAGE\_LINGUAS] List of the locales to be supported in
+          the image.
+        \item[IMAGE\_PKGTYPE] Package type used by the build system.
+          One of \code{deb}, \code{rpm}, \code{ipk} and \code{tar}.
+        \item[IMAGE\_POSTPROCESS\_COMMAND] Shell commands to run at
+          post process.
+      \end{description}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Example of an image}
+  \begin{block}{}
+    \begin{minted}{c}
+require recipes-core/images/core-image-minimal.bb
+
+DESCRIPTION = "Example image"
+
+IMAGE_INSTALL += " ninvaders"
+
+IMAGE_FSTYPES = "tar.bz2 cpio squashfs"
+
+IMAGE_PKGTYPE = "deb"
+
+LICENSE = "MIT"
+    \end{minted}
+  \end{block}
+\end{frame}
+\subsection{Package groups}
+
+\begin{frame}
+  \frametitle{Overview}
+  \begin{itemize}
+    \item \code{Package groups} are a way to group packages by
+      functionality or common purpose.
+    \item Package groups are used in image recipes to help building
+      the list of packages to install.
+    \item They can be found under
+      \code{meta*/recipes-core/packagegroups/}
+    \item A package group is yet another recipe.
+    \item The prefix \code{packagegroup-} is always used.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Common package groups}
+  \begin{itemize}
+    \item packagegroup-core-boot
+    \item packagegroup-core-buildessential
+    \item packagegroup-core-nfs
+    \item packagegroup-core-ssh-dropbear
+    \item packagegroup-core-ssh-openssh
+    \item packagegroup-core-tools-debug
+    \item packagegroup-core-tools-profile
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Example}
+  \code{meta/recipes-core/packagegroups/packagegroup-core-nfs.bb}:
+  \begin{block}{}
+    \begin{minted}{c}
+DESCRIPTION = "NFS package groups"
+LICENSE = "MIT"
+PR = "r2"
+
+inherit packagegroup
+
+PACKAGES = "${PN}-server"
+
+SUMMARY_${PN}-server = "NFS server"
+RDEPENDS_${PN}-server = "\
+    nfs-utils \
+    nfs-utils-client \
+    "
+    \end{minted}
+  \end{block}
+\end{frame}

@@ -1,0 +1,74 @@
+\subchapter{Create a custom image}{The highest level of customization in Poky}
+
+During this lab, you will:
+\begin{itemize}
+  \item Write a full customized image recipe
+  \item Choose the exact packages you want on your board
+\end{itemize}
+
+\section{Add a basic image recipe}
+
+A build is configured by two top level recipes: the machine recipe and the image
+one. The image recipe is the top configuration file for the generated rootfs and
+the packages it includes. Our aim is this lab is to define a custom image from
+scratch to allow a precise selection of packages on the BeagleBone Black. To
+show how to deal with real world configuration and how the Yocto Project can be
+used in the industry we will, in addition to the production image recipe you
+will use in the final product, create a development one including debug tools
+and show how to link the two of them to avoid configuration duplication.
+
+First add a custom image recipe in the \code{meta-felabs} layer. We will name it
+\code{felabs-image-minimal}. You can find information on how to create a custom
+image on the dedicated Yocto Project development manual at
+\url{http://www.yoctoproject.org/docs/1.5.1/dev-manual/dev-manual.html}. There
+are different ways to customize an image, we here want to create a full recipe,
+using a custom \code{.bb} file.
+
+Do not forget to inherit from the \code{core-image} class.
+
+\section{Select the images capabilities and packages}
+
+You can control the packages built and included into the final image with the
+\code{IMAGE_INSTALL} configuration variable. It is a list of packages to be
+built. You can also use package groups to include a bunch of programs, generally
+enabling a functionality, such as \code{packagegroup-core-boot} which adds the
+minimal set of packages required to boot an image (i.e. a shell or a kernel).
+
+You can find the package groups under the \code{packagegroups} directories. To
+have a list of the available one:
+\begin{verbatim}
+find -name packagegroups
+\end{verbatim}
+
+Open some of them to read their description and have an idea about the
+capabilities they provide. Then update the installed packages of the image
+recipe and don't forget to add the nInvaders one!
+
+\section{Add a custom package group}
+
+We just saw it is possible to use package groups to organize and select the
+packages instead of having a big blob of configuration in the image recipe
+itself. We will here create a custom package for game related recipes.
+
+With the above documentation, create a \code{packagegroup-felabs-games} group
+which inherits from the \code{packagegroup} class. Add the nInvaders program
+into its dependencies.
+
+Now update the image recipe to include the package group instead of the
+nInvaders program directly.
+
+\section{Differentiate the production recipe from the debug one}
+
+You can enable the debugging capabilities of your image just by changing the
+BitBake target when building the whole system. We want here to have a common
+base for both the production and the debug images, but also take in account the
+possible differences. In our example only the built package list will change.
+
+Create a debug version of the previous image recipe, and name it
+\code{felabs-image-minimal-dev}. Try to avoid duplicating code! Then add the
+\code{dev-pkgs} to the built packages list as well as the \code{i2c-tools}. It
+is also recommended to update the recipe's description.
+
+Build the new debug image with BitBake and check the previously
+included packages are present in the newly generated rootfs. You can
+look for the \code{i2c-tools} binaries.

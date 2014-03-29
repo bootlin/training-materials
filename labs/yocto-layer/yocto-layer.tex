@@ -1,0 +1,75 @@
+\subchapter{Create a Yocto layer}{Add a custom layer to the Yocto project for
+	your project needs}
+
+During this lab, you will:
+\begin{itemize}
+  \item Create a new Yocto layer
+  \item Interface this custom layer to the existing Yocto project
+  \item Use applications from custom layers
+\end{itemize}
+
+This lab extends the previous one, in order to fully understand how to interface
+a custom project to the basic Yocto project.
+
+\section{Tools}
+
+You can access the configuration and state of layers with the
+\code{bitbake-layers} command. This command can also be used to retrieve useful
+information about available recipes. Try the following commands:
+\begin{verbatim}
+bitbake-layers show-layers
+bitbake-layers show-recipes linux-ti-staging
+bitbake-layers show-overlayed
+\end{verbatim}
+
+Another helpful exported script is \code{yocto-layer}. You can read its dedicated
+help page by using the \code{help} argument. Also read the help page related to
+the \code{create} argument.
+
+\section{Create a new layer}
+
+With the above commands, create a new Yocto layer named
+\code{meta-felabs} with a priority of \code{7}.
+
+Before using the new layer, we need to configure its generated configuration
+files. You can start with the \code{README} file which is not used in the build
+process but contains information related to layer maintenance. You can then
+check, and adapt if needed, the global layer configuration file located in the
+\code{conf} directory of your custom layer.
+
+Tips: the \code{yocto-layer} command creates a layer in the current directory
+unless otherwise stated. Also be careful, the \code{meta-} keyword is mandatory.
+
+\section{Integrate a layer to the build}
+
+To be fair, we already used and integrated a layer in our build configuration
+during the first lab, with \code{meta-ti}. This layer was responsible for
+BeagleBone Black support in Yocto. We have to do the same for our
+\code{meta-felabs} now.
+
+There is a file which contains all the paths of the layers we use. Try to find it
+without looking back to the first lab. Then add the full path to our newly
+created layer to the list of removable layers (i.e. those which aren't part of
+the true Yocto core).
+
+Validate the integration of the \code{meta-felabs} layer with:
+\begin{verbatim}
+bitbake-layers show-layers
+\end{verbatim}
+
+\section{Add a recipe to the layer}
+
+In the previous lab we introduced a recipe for the nInvaders game. We included
+it to the existing \code{meta} layer. While this approach give a working result,
+the Yocto logic is not respected. You should instead always use a custom layer
+to add recipes or to customize the existing ones. To illustrate this we will
+move our previously created nInvaders recipe into the \code{meta-felabs} layer.
+
+You can check the nInvaders recipe is part of the \code{meta} layer first:
+\begin{verbatim}
+bitbake-layers show-recipes ninvaders
+\end{verbatim}
+
+Then move the nInvaders recipe to the layer created below. You can check that
+the nInvaders recipe is now part of the \code{meta-felabs} layer with the
+\code{bitbake-layers} command.

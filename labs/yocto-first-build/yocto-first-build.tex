@@ -1,53 +1,59 @@
-\subchapter{First Yocto build}{Your first dive into a Yocto project and its
-	build mechanism}
+\subchapter{First Yocto Project build}{Your first dive into Yocto
+Project and its build mechanism}
 
 During this lab, you will:
 \begin{itemize}
-  \item Setup a Yocto environment
+  \item Set up an OpenEmbedded environment
   \item Configure the project and choose a target
-  \item Build your first Yocto image
+  \item Build your first Poky image
 \end{itemize}
 
 \section{Setup}
 
-Before starting this lab, make sure your home directory is not encrypted. Yocto
-cannot be used on top of an eCryptFS file system due to limitations on file name
-lengths.
+Before starting this lab, make sure your home directory is not
+encrypted. OpenEmbedded cannot be used on top of an eCryptFS file
+system due to limitations in file name lengths.
 
-Go to the \code{\$HOME/yocto-labs/} directory.
+Go to the \code{$HOME/yocto-labs/} directory.
 
 Install the required packages:
 \begin{verbatim}
-sudo apt-get install chrpath gawk texinfo
+sudo apt-get install bc build-essential chrpath diffstat gawk git texinfo wget
 \end{verbatim}
-
-\input{../labs/common/setup-ethernet-communication.tex}
 
 \section{Download Yocto}
 
-Download the latest stable version of the Yocto project and extract it:
+Download the latest stable release of the Yocto Project and extract it:
 \begin{verbatim}
 wget http://downloads.yoctoproject.org/releases/yocto/yocto-1.5.1/\
   poky-dora-10.0.1.tar.bz2
 tar xf poky-dora-10.0.1.tar.bz2
 \end{verbatim}
 
-Go to the Yocto root directory: \code{cd poky-dora-10.0.1}
+Go to the Poky root directory: \code{cd poky-dora-10.0.1}
 
-Then download the Yocto TI layer:
+Then download the OpenEmbedded TI layer:
 \begin{verbatim}
 git clone git://git.yoctoproject.org/meta-ti.git
+cd meta-ti
+git checkout dora
 \end{verbatim}
 
-\section{Setup the build environment}
-
-Export all needed variables and setup the build directory:
+To improve BeagleBone support, you need to apply a patch:
 \begin{verbatim}
+git am ~/yocto-labs/0001-beaglebone-use-the-am335x_boneblack-u-boot-configura.patch
+\end{verbatim}
+
+\section{Set up the build environment}
+
+Export all needed variables and set up the build directory:
+\begin{verbatim}
+cd ..
 source oe-init-build-env
 \end{verbatim}
 
 In order to choose the target and to configure the generic build settings,
-edit the local configuration file (\code{\$BUILDDIR/conf/local.conf}). Set
+edit the local configuration file (\code{$BUILDDIR/conf/local.conf}). Set
 the target machine to \code{beaglebone} and update the parallelization variables
 (\code{BB_NUMBER_THREADS} and \code{PARALLEL_MAKE}) according to your computer
 capabilities.
@@ -56,8 +62,8 @@ Also, if you need to save disk space on your computer you can add \code{INHERIT
 += "rm_work"} in the previous configuration file. This will remove the
 package work directory once a package is built.
 
-Finally, don't forget to let the configuration aware of the TI layer. Edit the
-layer configuration file (\code{\$BUILDDIR/conf/bblayers.conf}) and append the
+Finally, don't forget to make the configuration aware of the TI layer. Edit the
+layer configuration file (\code{$BUILDDIR/conf/bblayers.conf}) and append the
 full path to the \code{meta-ti} directory to the \code{BBLAYERS} variable.
 
 \section{Build your first image}
@@ -67,32 +73,111 @@ Now that you're ready to start the compilation, simply run:
 bitbake core-image-minimal
 \end{verbatim}
 
-Once the build finished, all output images can be find under
-\code{\$BUILDDIR/tmp/deploy/images/beaglebone}.
+Once the build finished, you will find the output images under
+\code{$BUILDDIR/tmp/deploy/images/beaglebone}.
 
-\section{Setup the internal eMMC}
+\section{Set up the SD card}
 
-In order to boot from the internal eMMC, we should make sure it is properly
-setted up before writing our images.
+In this first lab we will use an SD card to store the bootloader, kernel and
+root filesystem files. Before copying the images on it, we first need to set up the
+partition layout. You will find a bash script to do so, under
+\code{$HOME/yocto-labs/script/}.
 
-\section{Flash the board}
-
-In order to boot the BeagleBone Black we will flash the bootloader and the
-kernel image in the internal eMMC here.
-
-On the training computer copy the bootloader, kernel and rootfs images in the
-root TFTP directory:
+Execute it:
 \begin{verbatim}
-cp $BUILDDIR/tmp/deploy/images/beaglebone/{MLO,u-boot.img,zImage} /tftp
+umount /dev/sdb*
+sudo ./format_sdcard.sh /dev/sdb
 \end{verbatim}
 
-Then retrieve these files on the BeagleBone Board memory. We will first download
-the first stage bootloader, the \code{MLO}:
+Once this is finished, remove the SD card, then insert it again, it
+should automatically be mounted.
+
+You can now copy the two U-Boot stages, the Linux kernel image and the compiled
+device tree in the \code{boot} partition.
 \begin{verbatim}
-tftp 0x80200000 MLO
+cp $BUILDDIR/tmp/deploy/images/beaglebone/{MLO,u-boot.img,zImage} \
+  /media/$USER/boot
+cp $BUILDDIR/tmp/deploy/images/beaglebone/zImage-am335x-boneblack.dtb \
+  /media/$USER/boot/dtb
 \end{verbatim}
 
-Finally flash this file into the internal eMMC:
+Now uncompress the generated rootfs in the second partition with the
+following \code{tar} command:
 \begin{verbatim}
-TBD
+sudo tar xpf $BUILDDIR/tmp/deploy/images/beaglebone/\
+  core-image-minimal-beaglebone.tar.gz -C /media/$USER/rootfs
+sync
 \end{verbatim}
+
+\section{Setting up serial communication with the board}
+
+The Beaglebone serial connector is exported on the 6 pins close to one
+of the 48 pins headers. Using your special USB to Serial adapter provided
+by your instructor, connect the ground wire (blue) to the pin closest
+to the power supply connector (let's call it pin 1), and the \code{TX} (red)
+and \code{RX} (green) wires to the pins 4 (board \code{RX}) and
+5 (board \code{TX}). \footnote{See
+\url{https://www.olimex.com/Products/Components/Cables/USB-Serial-Cable/USB-Serial-Cable-F/}
+for details about the USB to Serial adapter that we are using.}
+
+You always should make sure that you connect the \code{TX} pin of the cable
+to the \code{RX} pin of the board, and vice-versa, whatever the board and
+cables that you use.
+
+\begin{center}
+\includegraphics[width=8cm]{labs/yocto-first-build/beaglebone-black-serial-connection.jpg}
+\end{center}
+
+Once the USB to Serial connector is plugged in, a new serial port
+should appear: \code{/dev/ttyUSB0}.  You can also see this device
+appear by looking at the output of \code{dmesg}.
+
+To communicate with the board through the serial port, install a
+serial communication program, such as \code{picocom}:
+
+\begin{verbatim}
+sudo apt-get install picocom
+\end{verbatim}
+
+If you run \code{ls -l /dev/ttyUSB0}, you can also see that only
+\code{root} and users belonging to the \code{dialout} group have
+read and write access to this file. Therefore, you need to add your user
+to the \code{dialout} group:
+
+\begin{verbatim}
+sudo adduser $USER dialout
+\end{verbatim}
+
+You now need to log out and log in again to make the new group
+visible everywhere.
+
+Now, you can run \code{picocom -b 115200 /dev/ttyUSB0}, to start serial
+communication on \code{/dev/ttyUSB0}, with a baudrate of \code{115200}. If
+you wish to exit \code{picocom}, press \code{[Ctrl][a]} followed by
+\code{[Ctrl][x]}.
+
+There should be nothing on the serial line so far, as the board is not
+powered up yet.
+
+\section{Configure the U-Boot environment and boot}
+
+Insert the SD card in the dedicated slot on the BeagleBone Black. Press the S2
+push button (located just above the previous slot), plug in the USB cable and
+release the push button. You should see boot messages on the console.
+
+Stop the boot process when you see \code{Hit any key to stop autoboot} to access
+the U-Boot command line.
+
+In order to boot properly, you need to set up some configuration variables to
+tell the bootloader how to load the Linux kernel. In the U-Boot command-line,
+set the following variables:
+\begin{verbatim}
+setenv bootcmd 'mmc rescan; fatload mmc 0 0x80200000 zImage; fatload mmc 0
+0x82000000 dtb; bootz 0x80200000 - 0x82000000'
+setenv bootargs 'console=ttyO0 earlyprintk root=/dev/mmcblk0p2 rw'
+saveenv
+\end{verbatim}
+
+Finally you can start the kernel using the U-Boot command \code{boot}. Wait
+until the login prompt, then enter \code{root} as user. Congratulations! The
+board has booted and you now have a shell.

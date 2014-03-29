@@ -1,0 +1,351 @@
+\section{Writing recipes - advanced}
+
+\subsection{Extending a recipe}
+
+\begin{frame}
+  \frametitle{Introduction to recipe extensions}
+  \begin{itemize}
+    \item It is a good practice {\bf not} to modify recipes available
+          in Poky.
+    \item But it is sometimes useful to modify an existing recipe, to
+          apply a custom patch for example.
+    \item The BitBake \emph{build engine} allows to modify a recipe by
+          extending it.
+    \item Multiple extensions can be applied to a recipe.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Introduction to recipe extensions}
+  \begin{itemize}
+    \item Metadata can be changed, added or appended.
+    \item Tasks can be added or appended.
+    \item Operators are used extensively, to add, append, prepend or
+          assign values.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Extend a recipe}
+  \begin{center}
+    \includegraphics[width=\textwidth]{slides/yocto-recipe-advanced/yocto-recipe-advanced-extend.pdf}
+  \end{center}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Extend a recipe}
+  \begin{itemize}
+    \item The recipe extensions end in \code{.bbappend}
+    \item Append files must have the same root name as the recipe they
+          extend.
+    \begin{itemize}
+      \item \code{example_0.1.bbappend} applies to
+            \code{example_0.1.bb}
+    \end{itemize}
+    \item Append files are {\bf version specific}. If the recipe is
+          updated to a newer version, the append files must also be
+          updated.
+    \item If adding new files, the path to their directory must
+          be prepended to the \code{FILESEXTRAPATHS} variable.
+    \begin{itemize}
+      \item Files are looked up in paths referenced in
+            \code{FILESEXTRAPATHS}, from left to right.
+      \item Prepending a path makes sure it has priority over the recipe's
+            one. This allows to override recipes' files.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Extend a recipe: compatibility}
+  \begin{itemize}
+    \item When using a Yocto Project release {\bf older than 1.5}, the
+      Metadata revision number must explicitly be incremented in each
+      append file.
+    \item The revision number is stored in the \code{PRINC} variable.
+    \item At the end of the recipe, you must increment it:
+      \begin{itemize}
+        \item \code{PRINC := "${@int(PRINC) + 1"}}
+      \end{itemize}
+    \item Since version 1.5, \code{PRINC} is automatically taken care
+      of unless you are building on multiple machines. In that case,
+      use the PR server, with \code{bitbake-prserv}
+  \end{itemize}
+\end{frame}
+
+\subsection{Append file example}
+
+\begin{frame}[fragile]
+  \frametitle{Hello world append file}
+  \begin{block}{}
+    \begin{minted}{c}
+FILESEXTRAPATHS_prepend = "${THISDIR}/files:"
+
+SRC_URI += "file://custom-modification-0.patch \
+            file://custom-modification-1.patch"
+    \end{minted}
+  \end{block}
+\end{frame}
+
+\subsection{Advanced recipe configuration}
+
+\begin{frame}
+  \frametitle{Advanced configuration}
+  \begin{itemize}
+    \item In the real word, more complex configurations are often needed
+          because recipes may:
+    \begin{itemize}
+      \item Have dependencies
+      \item Provide virtual packages
+      \item Inherit generic functions from classes
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Add dependencies}
+  \begin{itemize}
+    \item A package can have dependencies during the build or at
+          runtime. To reflect these requirements in the recipe, two
+          variables are used:
+    \begin{description}
+      \item[DEPENDS] List of the package build-time dependencies.
+      \item[RDEPENDS] List of the package runtime
+        dependencies.
+    \end{description}
+    \item \code{DEPENDS = "package_b"}: the local \code{do_configure}
+      task depends on the \code{do_populate_sysroot} task of package
+      b.
+    \item \code{RDEPENDS = "package_b"}: the local \code{do_build}
+      task depends on the \code{do_package_write_<archive-format>}
+      task of package b.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Providing virtual packages}
+  \begin{itemize}
+    \item BitBake allows to use virtual names instead of the actual
+          package name. We saw a use case with \emph{package
+          variants}.
+    \item The virtual name is specified through the \code{PROVIDES}
+          variable.
+    \item Several packages can provide the same virtual name. Only one
+          will be built and installed into the generated image.
+    \item \code{PROVIDES = "virtual/kernel"}
+  \end{itemize}
+\end{frame}
+
+\subsection{Classes}
+
+\begin{frame}
+  \frametitle{Introduction to classes}
+  \begin{itemize}
+    \item Classes provide an abstraction to common code, which can be
+          re-used in multiple packages.
+    \item Common tasks do not have to be re-developed!
+    \item Any metadata and task which can be put in a recipe can be
+          used in a class.
+    \item Classes extension is \code{.bbclass}
+    \item Classes are located in the \code{classes} folder of a layer.
+    \item Packages can use this common code by inheriting a class:
+    \begin{itemize}
+      \item \code{inherits <class>}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Common classes}
+  \begin{itemize}
+    \item Common classes can be found in \code{meta/classes/}
+    \begin{itemize}
+      \item \code{base.bbclass}
+      \item \code{kernel.bbclass}
+      \item \code{autotools.bbclass}
+      \item \code{update-alternatives.bbclass}
+      \item \code{useradd.bbclass}
+      \item \dots
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{The base class}
+  \begin{itemize}
+    \item Every recipe inherits the base class automatically.
+    \item Contains a set of basic common tasks to fetch, unpack or
+          compile packages.
+    \item Inherits other common classes, providing:
+    \begin{itemize}
+      \item Mirrors definitions: \code{DEBIAN_MIRROR},
+            \code{GNU_MIRROR}, \code{KERNELORG_MIRROR}\dots
+      \item The ability to filter patches by \code{SRC_URI}
+      \item Some tasks: \code{clean}, \code{listtasks} or
+            \code{fetchall}.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{The kernel class}
+  \begin{itemize}
+    \item Used to build Linux kernels.
+    \item Defines tasks to configure, compile and install a kernel and
+          its modules.
+    \item The kernel is divided into several packages: \code{kernel},
+          \code{kernel-base}, \code{kernel-dev},
+          \code{kernel-modules}\dots
+    \item Automatically provides the virtual package
+          \code{virtual/kernel}.
+    \item Configuration variables are available:
+    \begin{itemize}
+      \item \code{KERNEL_IMAGETYPE}, defaults to \code{zImage}
+      \item \code{KERNEL_EXTRA_ARGS}
+      \item \code{INITRAMFS_IMAGE}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{The autotools class}
+  \begin{itemize}
+    \item Defines tasks and metadata to handle packages using the
+          autotools build system (autoconf, automake and libtool):
+    \begin{itemize}
+      \item \code{do_configure}: generates the configure script using
+            \code{autoreconf} and loads it with standard arguments or
+            cross-compilation.
+      \item \code{do_compile}: runs \code{make}
+      \item \code{do_install}: runs \code{make install}
+    \end{itemize}
+    \item Extra configuration parameters can be passed with
+          \code{EXTRA_OECONF}.
+    \item Compilation flags can be added thanks to the
+          \code{EXTRA_OEMAKE} variable.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Example: use the autotools class}
+  \begin{block}{}
+    \begin{minted}[fontsize=\tiny]{c}
+DESCRIPTION = "Print a friendly, customizable greeting"
+HOMEPAGE = "https://www.gnu.org/software/hello/"
+PRIORITY = "optional"
+SECTION = "examples"
+LICENSE = "GPLv3"
+
+SRC_URI = "${GNU_MIRROR}/hello/hello-${PV}.tar.gz"
+SRC_URI[md5sum] = "67607d2616a0faaf5bc94c59dca7c3cb"
+SRC_URI[sha256sum] = "ecbb7a2214196c57ff9340aa71458e1559abd38f6d8d169666846935df191ea7"
+LIC_FILES_CHKSUM = "file://COPYING;md5=d32239bcb673463ab874e80d47fae504"
+
+inherits autotools
+    \end{minted}
+  \end{block}
+\end{frame}
+
+\begin{frame}
+  \frametitle{The update-alternative class}
+  \begin{itemize}
+    \item Allows to install multiple binaries having the same
+          functionality, avoiding conflicts by renaming the binaries.
+    \item Four variables are used to configure the class:
+    \begin{description}
+      \item[ALTERNATIVE\_NAME] The name of the binary.
+      \item[ALTERNATIVE\_LINK] The path of the resulting binary.
+      \item[ALTERNATIVE\_PATH] The path of the real binary.
+      \item[ALTERNATIVE\_PRIORITY] The alternative priority.
+    \end{description}
+    \item The command with the highest priority will be used.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{The useradd class}
+  \begin{itemize}
+    \item This class helps to add users to the resulting image.
+    \item Adding custom users is required by many services to avoid
+          running them as root.
+    \item \code{USERADD_PACKAGES} must be defined when the
+          \code{useradd} class is inherited. Defines the list of
+          packages which needs the user.
+    \item Users and groups will be created before the packages using
+          it perform their \code{do_install}.
+    \item At least one of the two following variables must be set:
+    \begin{itemize}
+      \item \code{USERADD_PARAM}: parameters to pass to
+            \code{useradd}.
+      \item \code{GROUPADD_PARAM}: parameters to pass to
+            \code{groupadd}.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Example: use the useradd class}
+  \begin{block}{}
+    \begin{minted}[fontsize=\tiny]{c}
+DESCRIPTION = "useradd class usage example"
+PRIORITY = "optional"
+SECTION = "examples"
+LICENSE = "MIT"
+
+SRC_URI = "file://file0"
+LIC_FILES_CHKSUM = "file://${COREBASE}/meta/files/common-licenses/MIT;md5=0835ade698e0bc..."
+
+inherits useradd
+
+USERADD_PACKAGES = "${PN}"
+USERADD_PARAM = "-u 1000 -d /home/user0 -s /bin/bash user0"
+
+do_install() {
+    install -m 644 file0 ${D}/home/user0/
+    chown user0:user0 ${D}/home/user0/file0
+}
+    \end{minted}
+  \end{block}
+\end{frame}
+
+\subsection{Binary packages}
+
+\begin{frame}
+  \frametitle{Specifics for binary packages}
+  \begin{itemize}
+    \item It is possible to install binaries into the generated root
+      filesystem.
+    \item Set the \code{LICENSE} to \code{CLOSED}.
+    \item Use the \code{do_install} task to copy the binaries into the
+      root file system.
+  \end{itemize}
+\end{frame}
+
+\subsection{Debugging recipes}
+
+\begin{frame}[fragile]
+  \frametitle{Debugging recipes}
+  \begin{itemize}
+    \item For each task, logs are available in the \code{temp}
+      directory in the work folder of a recipe.
+    \item A development shell, exporting the full environment can be
+      used to debug build failures:
+      \begin{block}{}
+        \begin{minted}{console}
+$ bitbake -c devshell <recipe>
+        \end{minted}
+      \end{block}
+    \item To understand what a change in a recipe implies, you can
+      activate build history in \code{local.conf}:
+      \begin{block}{}
+        \begin{minted}{c}
+INHERIT += "buildhistory"
+BUILDHISTORY_COMMIT = "1"
+        \end{minted}
+      \end{block}
+      Then use the \code{buildhistory-diff} tool to examine
+      differences between two builds.
+      \begin{itemize}
+        \item \code{./scripts/buildhistory-diff}
+      \end{itemize}
+  \end{itemize}
+\end{frame}

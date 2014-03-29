@@ -1,0 +1,275 @@
+\section{Creating and using an SDK}
+
+\subsection{Introduction to the SDK}
+
+\begin{frame}
+  \frametitle{Overview}
+  \begin{itemize}
+    \item An SDK (Software Development Kit) is a set of tools allowing
+      the development of applications for a given target (operating
+      system, platform, environment\dots).
+    \item It generally provides a set of of tools including:
+      \begin{itemize}
+        \item Compilers or cross-compilers.
+        \item Linkers.
+        \item Library headers.
+        \item Debuggers.
+        \item Custom utilities.
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Advantages}
+  \begin{itemize}
+    \item The Yocto Project is often used to build images for embedded
+      targets.
+      \begin{itemize}
+        \item This often requires a special toolchain, to cross
+          compile the software.
+        \item Some libraries headers may be specific to the target
+          and not available on the developers' computers.
+      \end{itemize}
+    \item A self-sufficient environment makes development easier and
+      avoids many errors.
+    \item Long manuals are not necessary, the only thing required is
+      the SDK!
+    \item Using the SDK to develop an application limits the risks of
+      dependency issues when running it on the target.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{The Poky SDK}
+  \begin{itemize}
+    \item The Poky reference system is used to generate images, by
+      building many applications and doing a lot configuration work.
+      \begin{itemize}
+        \item When developing an application, we only care about the
+          application itself.
+        \item We want to be able to develop, test and debug easily.
+      \end{itemize}
+    \item The Poky SDK is an application development SDK, which can be
+      generated to provide a full environment compatible with the
+      target.
+    \item It includes a toolchain, libraries headers and all the
+      needed tools.
+    \item This SDK can be installed on any computer and is
+      self-contained. The presence of Poky is not required for the SDK
+      to fully work.
+  \end{itemize}
+\end{frame}
+
+\subsection{Generating an SDK}
+
+\begin{frame}
+  \frametitle{Available SDKs}
+  \begin{itemize}
+    \item Two different SDKs can be generated:
+      \begin{itemize}
+        \item A generic SDK, including:
+          \begin{itemize}
+            \item A toolchain.
+            \item Common tools.
+            \item A collection of basic libraries.
+          \end{itemize}
+        \item An image-based SDK, including:
+          \begin{itemize}
+            \item The generic SDK.
+            \item The sysroot matching the target root filesystem.
+            \item Its toolchain is self-contained (linked to an
+              SDK embedded libc).
+          \end{itemize}
+      \end{itemize}
+    \item The SDKs generated with Poky are distributed in the form of a
+      shell script.
+    \item Executing this script extracts the tools and sets up the
+      environment.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{The generic SDK}
+  \begin{itemize}
+    \item Mainly used for low-level development, where only the
+      toolchain is needed:
+      \begin{itemize}
+        \item Bootloader development.
+        \item Kernel development.
+      \end{itemize}
+    \item The recipe \code{meta-toolchain} generates this SDK:
+      \begin{itemize}
+        \item \code{bitbake meta-toolchain}
+      \end{itemize}
+    \item The generated script, containing all the tools for this SDK,
+      is in:
+      \begin{itemize}
+        \item \code{build/tmp/deploy/sdk}
+        \item Example:
+          \code{poky-eglibc-x86_64-meta-toolchain-i586-toolchain-1.5.3.sh}
+      \end{itemize}
+    \item The SDK will be configured to be compatible with the
+      specified \code{MACHINE}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{The image-based SDK}
+  \begin{itemize}
+    \item Used to develop applications running on the target.
+    \item One task is dedicated to the process. The task behavior
+      can vary between the images.
+      \begin{itemize}
+        \item \code{populate_sdk}
+      \end{itemize}
+    \item To generate an SDK for \code{core-image-minimal}:
+      \begin{itemize}
+        \item \code{bitbake -c populate_sdk core-image-minimal}
+      \end{itemize}
+    \item The generated script, containing all the tools for this SDK,
+      is in:
+      \begin{itemize}
+        \item \code{build/tmp/deploy/sdk}
+        \item Example:
+          \code{poky-eglibc-x86_64-core-image-minimal-i586-toolchain-1.5.3.sh}
+      \end{itemize}
+    \item The SDK will be configured to be compatible with the
+      specified \code{MACHINE}.
+  \end{itemize}
+\end{frame}
+
+\subsection{Use the SDK}
+
+\begin{frame}[fragile]
+  \frametitle{SDK format}
+  \begin{itemize}
+    \item Both SDKs are distributed as bash scripts.
+    \item These scripts self extract themselves to install the
+      toolchains and the files they provide.
+    \item To install an SDK, retrieve the generated script and execute
+      it.
+      \begin{itemize}
+        \item The script asks where to install the SDK. Defaults to
+          \code{/opt/poky/<version>}
+        \item Example: \code{/opt/poky/1.5.3}
+        \begin{block}{}
+          \begin{minted}[fontsize=\scriptsize]{console}
+$ ./poky-eglibc-x86_64-meta-toolchain-i586-toolchain-1.5.3.sh
+Enter target directory for SDK (default: /opt/poky/1.5.3):
+You are about to install the SDK to "/opt/poky/1.5.3". Proceed[Y/n]?
+Extracting SDK...done
+Setting it up...done
+SDK has been successfully set up and is ready to be used.
+          \end{minted}
+        \end{block}
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Use the SDK}
+  \begin{itemize}
+    \item To use the SDK, a script is available to set up the
+      environment:
+      \begin{block}{}
+        \begin{minted}{console}
+$ cd /opt/poky/1.5.3
+$ source ./environment-setup-i586-poky-linux
+        \end{minted}
+      \end{block}
+    \item The \code{PATH} is updated to take into account the binaries
+      installed alongside the SDK.
+    \item Environment variables are exported to help using the tools.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{SDK installation}
+  \begin{description}
+    \item[environment-setup-i586-poky-linux] Exports environment
+      variables.
+    \item[site-config-i586-poky-linux] Variables used during the
+      toolchain creation
+    \item[sysroots] SDK binaries, headers and libraries. Contains
+      one directory for the host and one for the target.
+    \item[version-i586-poky-linux] Version information.
+  \end{description}
+\end{frame}
+
+\begin{frame}
+  \frametitle{SDK environment variables}
+  \begin{description}
+    \item[CC] Full path to the C compiler binary.
+    \item[CFLAGS] C flags, used by the C compiler.
+    \item[CXX] C++ compiler.
+    \item[CXXFLAGS] C++ flags, used by \code{CPP}
+    \item[LD] Linker.
+    \item[LDFLAGS] Link flags, used by the linker.
+    \item[ARCH] For kernel compilation.
+    \item[CROSS\_COMPILE] For kernel compilation.
+    \item[GDB] SDK GNU Debugger.
+    \item[OBJDUMP] SDK objdump.
+  \end{description}
+  \begin{itemize}
+    \item To see the full list, open the environment script.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Examples}
+  \begin{itemize}
+    \item To build an application for the target:
+      \begin{block}{}
+        \begin{minted}{console}
+$ $CC -o example example.c
+        \end{minted}
+      \end{block}
+    \item The \code{LDFLAGS} variables is set to be used with the C
+      compiler (\code{gcc}).
+      \begin{itemize}
+        \item When building the Linux kernel, unset this variable.
+          \begin{block}{}
+            \begin{minted}{console}
+$ unset LDFLAGS
+$ make menuconfig
+$ make
+            \end{minted}
+          \end{block}
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\subsection{Eclipse integration}
+
+\begin{frame}
+  \frametitle{The Yocto Project ADT}
+  \begin{itemize}
+    \item Eclipse can be used as a graphical interface to the Yocto
+      SDK.
+      \begin{itemize}
+        \item To modify and develop recipes and applications.
+        \item To compile packages and build images.
+        \item To debug the system.
+      \end{itemize}
+    \item This is done thanks to an Eclipse Yocto plugin.
+    \item The SDK and the Eclipse plugin is called the Yocto
+      Application Development Toolkit.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Installation}
+  \begin{itemize}
+    \item The Eclipse Yocto plugin can be installed from a pre-built
+      version available at:
+      \begin{itemize}
+        \item \code{http://downloads.yoctoproject.org/releases/eclipse-plugin/1.6.1/kepler}
+      \end{itemize}
+    \item Or it can be compiled from the official repository:
+      \begin{itemize}
+        \item \code{git://git.yoctoproject.org/eclipse-poky-kepler}
+      \end{itemize}
+    \item The full explanations to install and use the Eclipse Yocto
+      plugin are given in the labs.
+  \end{itemize}
+\end{frame}

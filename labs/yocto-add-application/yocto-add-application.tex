@@ -1,0 +1,84 @@
+\subchapter{Add a custom application}{Add a new recipe to support a required
+	custom application}
+
+During this lab, you will:
+\begin{itemize}
+  \item Write a recipe for a custom application
+  \item Integrate this application into the build
+\end{itemize}
+
+This is the first step of adding an application to Yocto. The
+remaining part is covered in the next lab, "Create a Yocto layer".
+
+\section{Setup and organization}
+
+In this lab we will add a recipe handling the \code{nInvaders}
+application. Before starting the recipe itself, find the
+\code{recipes-extended} directory and add a subdirectory for your
+application.
+
+A recipe for an application is usually divided into a version specific \code{bb}
+file and a common one. Try to follow this logic and separate the configuration
+variables accordingly.
+
+Tip: it is possible to include a file into a recipe with the keyword
+\code{require}.
+
+\section{First hands on nInvaders}
+
+The nInvaders application is a terminal based game following the space invaders
+family. In order to deal with the text based user interface, nInvaders uses the
+ncurses library.
+
+First try to find the project homepage, download the sources and have a first
+look: license, Makefile, requirements \dots
+
+\section{Write the version specific recipe}
+
+Create a file that respects the Yocto nomenclature: \code{${PN}_${PV}.bb}
+%stopzone
+
+Add the required common configuration variables: archive checksum, license file
+checksum, package revision \dots
+
+\section{Write the common recipe}
+
+Create an appropriate common file, ending in \code{.inc}
+
+In this file add the common configuration variables: source URI, package
+description \dots
+
+You can check the whole packaging process is working fine by explicitly running
+the build task on the \code{nInvaders} recipe:
+\begin{verbatim}
+bitbake ninvaders
+\end{verbatim}
+
+Try to make the recipe on your own. Also eliminate the warnings related to your
+package: some configuration variables are not mandatory but it is a very good
+practice to define them all.
+
+If you hang on a problem, check the following points:
+\begin{itemize}
+  \item The common recipe is included in the version specific one
+  \item The checksum and the URI are valid
+  \item The dependencies are explicitly defined
+  \item The internal state has changed, clean the working directory: \\
+     \code{bitbake -c cleanall ninvaders}
+\end{itemize}
+
+Tip: BitBake has command line flags to increase its verbosity and activate debug
+outputs.
+
+\section{Update the rootfs and test}
+
+Now that you've compiled the \code{nInvaders} package, generate a new
+rootfs image with \code{bitbake core-image-minimal}. Then update the
+NFS root directory. You can confirm the \code{nInvaders} program is
+present by running:
+\begin{verbatim}
+find /nfs -iname ninvaders
+\end{verbatim}
+
+Access the board command line through SSH. You should be able to
+launch the \code{nInvaders} program. It's time to play!

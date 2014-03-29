@@ -1,0 +1,113 @@
+\section{Writing recipes - going further}
+
+\subsection{Splitting packages}
+
+\begin{frame}
+  \frametitle{Benefits}
+  \begin{itemize}
+    \item Packages can be split.
+    \item Useful when a single remote repository provides multiple
+      binaries or libraries.
+    \item The list of packages to provide is defined by the
+      \code{PACKAGES} variable.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Example}
+  \begin{itemize}
+    \item The \code{kexec tools} provides \code{kexec} and \code{kdump}:
+    \begin{block}{}
+    \begin{minted}{c}
+require kexec-tools.inc
+export LDFLAGS = "-L${STAGING_LIBDIR}"
+EXTRA_OECONF = " --with-zlib=yes"
+
+SRC_URI[md5sum] = "b9f2a3ba0ba9c78625ee7a50532500d8"
+SRC_URI[sha256sum] = "..."
+
+PACKAGES =+ "kexec kdump"
+
+FILES_kexec = "${sbindir}/kexec"
+FILES_kdump = "${sbindir}/kdump"
+    \end{minted}
+    \end{block}
+  \end{itemize}
+\end{frame}
+
+\subsection{Packages features}
+
+\begin{frame}
+  \frametitle{Benefits}
+  \begin{itemize}
+    \item Features can be built depending on the needs.
+    \item This allows to avoid compiling all features in a software
+      component when only a few are required.
+    \item A good example is \code{ConnMan}: Bluetooth support
+      is built only if there is Bluetooth on the target.
+    \item The \code{PACKAGECONFIG} variable is used to configure the
+      build on a per feature granularity, for packages.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{\code{PACKAGECONFIG}}
+  \begin{itemize}
+    \item \code{PACKAGECONFIG} takes the list of features to enable.
+    \item \code{PACKAGECONFIG[feature]} takes up to four arguments,
+      separated by commas:
+      \begin{enumerate}
+        \item Argument used by the configuration task if the feature
+          is enabled (\code{EXTRA_OECONF}).
+        \item Argument added to \code{EXTRA_OECONF} if the feature is
+          disabled.
+        \item Additional build dependency (\code{DEPENDS}), if enabled.
+        \item Additional runtime dependency (\code{RDEPENDS}), if enabled.
+      \end{enumerate}
+    \item Unused arguments can be omitted or left blank.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Example: from \code{ConnMan}}
+  \begin{block}{}
+  \begin{minted}{c}
+PACKAGECONFIG ??= "wifi openvpn"
+
+PACKAGECONFIG[wifi] = "--enable-wifi,            \
+                       --disable-wifi,           \
+                       wpa-supplicant"
+PACKAGECONFIG[bluetooth] = "--enable-bluetooth,  \
+                            --disable-bluetooth, \
+                            bluez4"
+PACKAGECONFIG[openvpn] = "--enable-openvpn,      \
+                          --with-openvpn=...,    \
+                          --disable-openvpn,     \
+                          ,                      \
+                          openvpn"
+  \end{minted}
+  \end{block}
+\end{frame}
+
+\subsection{Conditional features}
+
+\begin{frame}[fragile]
+  \frametitle{Conditional features}
+  \begin{itemize}
+    \item Some values can be set dynamically, thanks to a set of
+      functions:
+    \item \code{base_contains(variable, checkval, trueval,
+      falseval, d)}: if \code{checkval} is found in
+      \code{variable}, \code{trueval} is returned; otherwise
+      \code{falseval} is used.
+    \item Example:
+      \begin{block}{}
+      \begin{minted}[fontsize=\tiny]{c}
+PACKAGECONFIG ??= "                                                       \
+    ${@base_contains('DISTRO_FEATURES', 'wifi','wifi', '', d)}            \
+    ${@base_contains('DISTRO_FEATURES', 'bluetooth','bluetooth', '', d)}  \
+    ${@base_contains('DISTRO_FEATURES', '3g','3g', '', d)}"
+      \end{minted}
+      \end{block}
+  \end{itemize}
+\end{frame}

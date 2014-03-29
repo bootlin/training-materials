@@ -8,7 +8,9 @@ During this lab, you will:
   \item Use the rootfs over NFS
 \end{itemize}
 
-\section{Setup the NFS server}
+\input{../labs/common/setup-ethernet-communication.tex}
+
+\section{Set up the NFS server}
 
 First install the NFS server on the training computer and create the root NFS
 directory:
@@ -30,7 +32,7 @@ sudo service nfs-kernel-server restart
 Then set the kernel boot arguments U-Boot will pass to the Linux kernel at boot
 time:
 \begin{verbatim}
-setenv bootargs 'console=ttyS0 root=/dev/nfs rw nfsroot=192.168.0.1:/nfs
+setenv bootargs 'console=ttyO0 root=/dev/nfs rw nfsroot=192.168.0.1:/nfs
   ip=192.168.0.100'
 saveenv
 \end{verbatim}
@@ -43,7 +45,7 @@ editenv bootargs
 \section{Add a package to the rootfs image}
 
 You can add packages to be built by editing the local configuration file
-\code{\$BUILDDIR/conf/local.conf}. The \code{IMAGE_INSTALL} variable controls the
+\code{$BUILDDIR/conf/local.conf}. The \code{IMAGE_INSTALL} variable controls the
 packages included into the output image.
 
 To illustrate this, add the Dropbear SSH server to the list of enabled
@@ -54,29 +56,32 @@ package instead.
 
 \section{Choose a package variant}
 
-Dependencies of a given package are explicitly defined in their recipes. Some
-packages need a specific library or piece of software but others only depends on
-a functionality. As an example, the kernel dependency is described by
-\code{virtual/kernel}.
+Dependencies of a given package are explicitly defined in its recipe.
+Some packages may need a specific library or piece of software but
+others only depend on a functionality. As an example, the kernel
+dependency is described by \code{virtual/kernel}.
 
-To see which kernel is used, dry-run bitbake:
+To see which kernel is used, dry-run BitBake:
 \begin{verbatim}
 bitbake -vn virtual/kernel
 \end{verbatim}
 
 In our case, we can see the \code{linux-ti-staging} provides the
 \code{virtual/kernel} functionality:
+\small
 \begin{verbatim}
 NOTE: selecting linux-ti-staging to satisfy virtual/kernel due to PREFERRED_PROVIDERS
 \end{verbatim}
+\normalsize
 
-We can force Yocto to select antoher \code{kernel} by defining explicitly and
-manually which one to use in our local configuration. Try switching from
-\code{linux-ti-staging} to \code{linux-dummy} only using the local
-configuration.
+We can force Yocto to select another \code{kernel} by explicitly
+defining which one to use in our local configuration. Try switching
+from \code{linux-ti-staging} to \code{linux-dummy} only using the
+local configuration.
 
-Then check the previous step worked by dry-running again bitbake.
+Then check the previous step worked by dry-running again BitBake.
 \begin{verbatim}
+bitbake -vn virtual/kernel
 \end{verbatim}
 
 You can now rebuild the whole Yocto project, with \code{bitbake
@@ -92,7 +97,7 @@ accessible by NFS clients. Simply uncompress the archived output image in the
 previously created \code{/nfs} directory:
 \begin{verbatim}
 tar xpf $BUILDDIR/tmp/deploy/images/beaglebone/\
-  core-image-minimal-beaglebone.tar.bz2 -C /nfs
+  core-image-minimal-beaglebone.tar.gz -C /nfs
 \end{verbatim}
 
 Then boot the board.
@@ -104,29 +109,31 @@ board through SSH:
 ssh root@192.168.0.100
 \end{verbatim}
 
-\section{Bonus: some Bitbake tips}
+You should see the BeagleBone Black command line!
 
-Bitbake is a powerfull tool which can be used to execute specific commands. Here
+\section{Going further: BitBake tips}
+
+BitBake is a powerful tool which can be used to execute specific commands. Here
 is a list of some useful ones, used with the \code{virtual/kernel} package.
 
 \begin{itemize}
   \item The Yocto recipes are divided into numerous tasks, you can print them
         by using: \code{bitbake -c listtasks virtual/kernel}.
-  \item Bitbake allows to call a specific task only (and its dependencies)
+  \item BitBake allows to call a specific task only (and its dependencies)
         with: \code{bitbake -c <task> virtual/kernel}. (\code{<task>} can be
-	\code{menuconfig} here).
+        \code{menuconfig} here).
   \item You can force to rebuild a package by calling: \code{bitbake -f
-	virtual/kernel}
+        virtual/kernel}
   \item \code{world} is a special keyword for all packages. \code{bitbake -c
-	fetchall world} will download all packages sources (and their
+        fetchall world} will download all packages sources (and their
         dependencies).
   \item You can get a list of locally available packages and their current
         version with: \\
-	\code{bitbake -s}
+        \code{bitbake -s}
   \item You can also find detailed information on available packages, their
         current version, dependencies or the contact information of the
-	maintainer by visiting: \\
-	\url{http://packages.yoctoproject.org/}
+        maintainer by visiting: \\
+        \url{http://packages.yoctoproject.org/}
 \end{itemize}
 
 For detailed information, please run \code{bitbake -h}

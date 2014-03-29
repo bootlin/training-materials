@@ -1,0 +1,151 @@
+\section{Using Yocto Project - basics}
+
+\subsection{Environment setup}
+
+\begin{frame}
+  \frametitle{Environment setup}
+  \begin{itemize}
+    \item All Poky files are left unchanged when building a custom
+      image.
+    \item Specific configuration files and build repositories are
+      stored in a separate build directory.
+    \item A script, \code {oe-init-build-env}, is provided to set up
+      the build directory and the environment variables (needed to be
+      able to use the \code{bitbake} command for example).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{oe-init-build-env}
+  \begin{itemize}
+    \item Modifies the environment: has to be sourced!
+    \item Adds environment variables, used by the build engine.
+    \item Allows you to use commands provided in Poky.
+    \item \code{source ./oe-init-build-env [builddir]}
+    \item Sets up a basic build directory, named \code{builddir} if it
+      is not found. If not provided, the default name is \code{build}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Common targets}
+  \begin{itemize}
+    \item Common targets are listed when sourcing the script:
+      \begin{description}[style=nextline]
+        \item[core-image-minimal] A small image to boot a device and
+          have access to core command line commands and services.
+        \item[core-image-sato] Image with Sato support. Sato is a
+          GNOME mobile-based user interface.
+        \item[meta-toolchain] Includes development headers and
+          libraries to develop directly on the target.
+        \item[adt-installer] Build the application development toolkit
+          installer.
+        \item[meta-ide-support] Generates the cross-toolchain. Useful
+          when working with the SDK.
+      \end{description}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Exported environment variables}
+  \begin{description}[style=nextline]
+    \item[BUILDDIR] Absolute path of the build directory.
+    \item[BB\_ENV\_EXTRAWHITE] List of environment variables to load
+      from the user's environment into BitBake data store.
+    \item[PATH] Contains the directories where executable programs are
+      located. Absolute paths to \code{scripts/} and
+      \code{bitbake/bin/} are prepended.
+  \end{description}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Available commands}
+  \begin{description}[style=nextline]
+    \item[bitbake] The main build engine command. Used to perform
+      tasks on available packages (download, configure, compile\dots).
+    \item[bitbake-*] Various specific commands related to the BitBake
+      build engine.
+    \item[yocto-layer] Command to create a new generic layer.
+    \item[yocto-bsp] Command to create a new generic BSP.
+  \end{description}
+\end{frame}
+
+\begin{frame}
+  \frametitle{The \code{build/} directory 1/2}
+  \begin{description}[style=nextline]
+    \item[conf/] Configuration files. Image specific and layer
+      configuration.
+    \item[downloads/] Downloaded upstream tarballs of the packages
+      used in the builds.
+    \item[sstate-cache/] Shared state cache. Used by all builds.
+    \item[tmp/] Holds all the build system outputs.
+  \end{description}
+\end{frame}
+
+\begin{frame}
+  \frametitle{The \code{build/} directory 2/2}
+  \begin{description}
+    \item[tmp/buildstats/] Build statistics for all packages built
+      (CPU usage, elapsed time, host, timestamps\dots).
+    \item[tmp/deploy/] Final output of the build.
+    \item[tmp/deploy/images/] Contains the complete images built by
+      the OpenEmbedded build system. These images are used to flash
+      the target.
+    \item[tmp/work/] Set of specific work directories, split by
+      architecture. They are used to unpack, configure and build the
+      packages. Contains the patched sources, generated objects and
+      logs.
+    \item[tmp/sysroots/] Shared libraries and headers used to compile
+      packages for the target but also for the host.
+  \end{description}
+\end{frame}
+
+\subsection{Configuring the build system}
+
+\begin{frame}
+  \frametitle{The \code{build/conf/} directory}
+  \begin{itemize}
+    \item The \code{conf/} directory in the \code{build} one holds 
+      build specific configuration.
+    \begin{description}
+      \item[bblayers.conf] Explicitly list the available layers.
+      \item[local.conf] Set up the configuration variables relative to
+        the current user for the build. Configuration variables can be
+        overridden there.
+    \end{description}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Configuring the build}
+  \begin{itemize}
+    \item The \code{conf/local.conf} configuration file holds local
+    user configuration variables:
+    \begin{description}
+      \item[BB\_NUMBER\_THREADS] How many tasks BitBake should perform
+        in parallel.
+      \item[PARALLEL\_MAKE] How many processes should be used when
+        compiling.
+      \item[MACHINE] The machine the target is built for, e.g.
+        \code{beaglebone}.
+      \item[PACKAGE\_CLASSES] Packages format (\code{deb}, \code{ipk}
+        or \code{rpm}).
+    \end{description}
+  \end{itemize}
+\end{frame}
+
+\subsection{Building an image}
+
+\begin{frame}
+  \frametitle{Compilation}
+  \begin{itemize}
+    \item The compilation is handled by the BitBake {\em build
+      engine}.
+    \item Usage: \code{bitbake [options] [recipename/target ...]}
+    \item To build a target: \code{bitbake [target]}
+    \item Building a minimal image: \code{bitbake core-image-minimal}
+    \begin{itemize}
+      \item This will run a full build for the selected target.
+    \end{itemize}
+  \end{itemize}
+\end{frame}

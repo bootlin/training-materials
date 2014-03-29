@@ -1,0 +1,161 @@
+\section{Layers}
+
+\subsection{Introduction to layers}
+
+\begin{frame}
+  \frametitle{Layers' principles}
+  \begin{itemize}
+    \item The OpenEmbedded \emph{build system} manipulates
+          \emph{metadata}.
+    \item Layers allow to isolate and organize the metadata.
+    \begin{itemize}
+      \item A layer is a collection of packages and build tasks.
+    \end{itemize}
+    \item It is a good practice to begin a layer name with the prefix
+      \code{meta-}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Layers in Poky}
+  \begin{center}
+    \includegraphics[width=\textwidth]{slides/yocto-overview/yocto-overview-poky.pdf}
+  \end{center}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Layers in Poky}
+  \begin{itemize}
+    \item The Poky \emph{reference system} is a set of basic common
+          layers:
+    \begin{itemize}
+      \item meta
+      \item meta-oe
+      \item meta-skeleton
+      \item meta-yocto
+      \item meta-yocto-bsp
+    \end{itemize}
+    \item Poky is not a final set of layers. It is the common base.
+    \item Layers are added when needed.
+    \item When making modifications to the existing recipes or when
+      adding new packages, it is a good practice not to modify Poky.
+      Instead you can create your own layers!
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Poky}
+  \begin{center}
+    \includegraphics[width=\textwidth]{slides/yocto-layer/yocto-layer-intro.pdf}
+  \end{center}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Integrate and use a layer 1/2}
+  \begin{itemize}
+    \item A list of existing and maintained layers can be found at
+      \url{http://layers.openembedded.org/layerindex/branch/master/layers/}
+    \item Instead of redeveloping layers, always check the work hasn't
+      been done by others.
+    \item It takes less time to download a layer providing a package
+      you need and to add an append file if some modifications are
+      needed than to do it from scratch.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Integrate and use a layer 2/2}
+  \begin{itemize}
+    \item The location where a layer is saved on the disk doesn't
+      matter.
+    \begin{itemize}
+      \item But a good practice is to save it where all others layers
+        are stored.
+    \end{itemize}
+    \item The only requirement is to let BitBake know about the new
+          layer:
+    \begin{itemize}
+      \item The list of layers BitBake uses is defined in
+        \code{build/conf/bblayers.conf}
+      \item To include a new layer, add its absolute path to the
+        \code{BBLAYERS} variable.
+      \item BitBake parses each layer specified in \code{BBLAYERS} and
+        adds the recipes, configurations files and classes it
+        contains.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Some useful layers}
+  \begin{itemize}
+    \item Many SoC specific layers are available, providing support
+      for the boards using these SoCs. Some examples: \code{meta-ti},
+      \code{meta-fsl-arm} and \code{meta-raspberrypi}.
+    \item Other layers offer to support packages not available in the
+      Poky reference system:
+    \begin{itemize}
+      \item \code{meta-browser}: web browsers (Chromium, Firefox).
+      \item \code{meta-filesystems}: support for additional
+        filesystems.
+      \item \code{meta-gstreamer10}: support for GStreamer 1.0.
+      \item \code{meta-java} and \code{meta-oracle-java}: Java support.
+      \item \code{meta-linaro-toolchain}: Linaro toolchain recipes.
+      \item \code{meta-qt5}: QT5 modules.
+      \item \code{meta-realtime}: real time tools and test programs.
+      \item \code{meta-telephony} and many more\dots
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\subsection{Creating a layer}
+
+\begin{frame}{Custom layer}
+  \begin{center}
+    \includegraphics[width=\textwidth]{slides/yocto-layer/yocto-layer-create.pdf}
+  \end{center}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Create a custom layer 1/2}
+  \begin{itemize}
+    \item A layer is a set of files and directories and can be created
+      by hand.
+    \item However, the \code{yocto-layer} command helps us create new
+      layers and ensures this is done right.
+    \item \code{meta-} is automatically prepended to the layer name.
+    \item By default \code{yocto-layer} creates the new layer in the
+      current directory.
+    \item \code{yocto-layer create <layer_name> -o <dest_dir>}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Create a custom layer 2/2}
+  \begin{itemize}
+    \item The layer created will be pre-filled with the following
+          files:
+    \begin{description}
+      \item[conf/layer.conf] The layer's configuration. Holds its
+        priority and generic information. No need to modify it in many
+        cases.
+      \item[COPYING.MIT] The license under which a layer is released.
+        By default MIT.
+      \item[README] A basic description of the layer. Contains a
+        contact e-mail to update.
+    \end{description}
+    \item By default, all metadata matching \code{./recipes-*/*/*.bb}
+          will be parsed by the BitBake \emph{build engine}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Use a layer: best practices}
+  \begin{itemize}
+    \item Do not copy and modify existing recipes from other layers.
+      Instead use append files.
+    \item Avoid duplicating files. Use append files or explicitly use
+      a path relative to other layers.
+    \item Save the layer alongside other layers, in \code{OEROOT}.
+    \item Use \code{LAYERDEPENDS} to explicitly define layer
+      dependencies.
+  \end{itemize}
+\end{frame}
