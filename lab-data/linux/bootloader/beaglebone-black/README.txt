@@ -40,13 +40,13 @@ Now, format the first partition in FAT format:
 sudo mkfs.vfat -F 16 /dev/mmcblk0p1 -n boot
 
 Remove the card and insert it again. It should automatically be mounted
-'/media/boot' (or '/media/<user>/boot' if you are using Ubuntu 12.10 or later).
+'/media/BOOT' (or '/media/$USER/BOOT' if you are using Ubuntu 12.10 or later).
 
 Now, copy the below files to this partition:
 
-cp am335x-boneblack.dtb MLO u-boot.img uEnv.txt uImage /media/boot/
+cp am335x-boneblack.dtb MLO u-boot.img uEnv.txt uImage /media/$USER/BOOT
 
-Now, unmount '/media/boot' and you are done!
+Now, unmount '/media/$USER/BOOT' and you are done!
 
 Using your bootable micro-SD card
 ---------------------------------
