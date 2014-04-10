@@ -25,18 +25,5 @@ static struct platform_driver feserial_driver = {
         .remove = feserial_remove,
 };
 
-static int __init feserial_init(void)
-{
-        return platform_driver_register(&feserial_driver);
-}
-
-static void __exit feserial_exit(void)
-{
-        platform_driver_unregister(&feserial_driver);
-}
-
-module_init(feserial_init);
-module_exit(feserial_exit);
-
+module_platform_driver(feserial_driver);
 MODULE_LICENSE("GPL");
-
