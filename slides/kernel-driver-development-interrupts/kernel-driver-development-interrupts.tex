@@ -65,13 +65,14 @@ void devm_free_irq(struct device *dev,
   \frametitle{Interrupt handler constraints}
   \begin{itemize}
   \item No guarantee in which address space the system will be in when
-    the interrupt occurs: can't transfer data to and from user space
+    the interrupt occurs: can't transfer data to and from user space.
   \item Interrupt handler execution is managed by the CPU, not by the
     scheduler.  Handlers can't run actions that may sleep, because
     there is nothing to resume their execution. In particular, need to
     allocate memory with \ksym{GFP_ATOMIC}.
-  \item Interrupt handlers are run with all interrupts disabled (since
-    2.6.36).  Therefore, they have to complete their job quickly
+  \item Interrupt handlers are run with all interrupts disabled on
+    the local CPU (see \url{http://lwn.net/Articles/380931}).
+    Therefore, they have to complete their job quickly
     enough, to avoiding blocking interrupts for too long.
   \end{itemize}
 \end{frame}
