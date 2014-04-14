@@ -159,6 +159,10 @@ ANDROID_SLIDES = \
 		android-bootloaders-title \
 		sysdev-bootloaders-sequence \
 		android-bootloaders-fastboot \
+		android-build-system-basics-title \
+		android-build-system-basics-basics \
+		android-build-system-basics-envsetup \
+		android-build-system-basics-configuration \
 		android-new-board-lab \
 		android-adb-title \
 		android-adb-introduction \
@@ -171,13 +175,10 @@ ANDROID_SLIDES = \
 		android-fs-contents \
 		sysdev-root-filesystem-device-files \
 		sysdev-root-filesystem-minimal \
-		android-build-system-title \
-		android-build-system-basics \
-		android-build-system-envsetup \
-		android-build-system-configuration \
-		android-build-system-modules \
+		android-build-system-advanced-title \
+		android-build-system-advanced-modules \
 		android-build-system-lab-library \
-		android-build-system-product \
+		android-build-system-advanced-product \
 		android-build-system-lab-product \
 		android-native-layer-title \
 		sysdev-toolchains-definition \
