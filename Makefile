@@ -163,6 +163,7 @@ ANDROID_SLIDES = \
 		android-build-system-basics-basics \
 		android-build-system-basics-envsetup \
 		android-build-system-basics-configuration \
+		android-build-system-basics-results \
 		android-new-board-lab \
 		android-adb-title \
 		android-adb-introduction \
