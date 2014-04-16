@@ -212,6 +212,65 @@ However, you'll see that a process keeps crashing. If you use the
 This component is Android's window manager, and it keeps crashing
 because we haven't installed the GPU drivers yet.
 
+\section{Adding the GPU drivers}
+
+GPU drivers are most of the time implemented in userspace, with a
+bunch of libraries and kernel modules implemented provided by the GPU
+vendor.
+
+This is often a real pain to integrate, since it's tied to a
+particular kernel version. There's several options to integrate them,
+ranging from wrapping the Android build system invocations into a
+custom script that will build the driver every time you run it, until
+rewriting the whole driver Makefile to hook nicely into the build
+system.
+
+The solution we're going to use is probably one of the easiest, while
+remaining one of the less evil.
+
+The way we're going to proceed is, just like what we did for the
+kernel, we're going to build the libraries and modules, and store them
+in our device folder.
+
+We're then going to add to the device configuration that the build
+system has to copy those files into the images at compilation time.
+
+The first thing to do is to download the SGX drivers source code from
+rowboat. Modify your local manifest to download them from
+\code{http://git.free-electrons.com/android/training/hardware-ti-sgx},
+at revision \code{ti_sgx_sdk-ddk_1.10-jb-4.3-fe}, and store it in
+\code{hardware/ti/sgx}.
+
+Once done, open up a new terminal, download it using \code{repo}. Now,
+setup the path to use the Android toolchain.
+
+\begin{verbatim}
+export PATH=$(pwd)/prebuilts/gcc/linux-x86/arm/arm-eabi-4.6/bin:$PATH
+\end{verbatim}
+
+Then, go to the \code{sgx} folder, and compile it using the following
+commands:
+
+\begin{verbatim}
+export TARGET_PRODUCT=beagleboneblack
+export OMAPES=4.x
+export ANDROID_ROOT_DIR=<path/to/android/source>
+
+make
+make install 
+\end{verbatim}
+
+Now, if you look into the folder \code{device/ti/beagleboneblack/sgx},
+you should see some folders with libraries and kernel modules that
+have been installed by the SGX Makefile.
+
+If you have some spare time, you can take a look at the file
+\code{device-sgx.mk} in the beaglebone black device folder to see how
+we install everything.
+
+Now, you can recompile your images, flash the boot and system images,
+and you should see the Android splash screen when rebooting!
+
 \section{Fix the blank screen}
 
 After the android logo, the screen will turn black. This is actually
