@@ -13,37 +13,83 @@ After this lab, you will be able to:
 Go to the directory holding the Android source code (either
 \code{/opt/android} or \code{$HOME/felabs/android/source}).
 
-We will use the TI-flavored Android build, named rowboat, for our
-board. This should make most of the port ready to use, and only a few
-fixes here and there will be needed.
+While still using AOSP, we will use the configuration done in
+TI-flavored Android build named \emph{rowboat}. This should make most
+of the port mostly ready to use, and only a few things here and there
+will be needed.
 
-\code{repo} allows to download a new Android tree in a smart way,
+\code{repo} allows to manage your Android source tree in a smart way,
 downloading only the differences between the new manifest we would
-give him and the current code we have. To do so, we first need to
-change the manifest we use to the rowboat's one.
+give him and the current code we have. In order to integrate these
+additions nicely, the first thing we need is to add rowboat's
+configuration repo to the manifest.
+
+To do so, edit the file \path{.repo/manifest.xml}, to add the
+repository
+\code{git://gitorious.org/rowboat/vendor-ti-beagleboneblack.git}, at
+revision \code{b6c997642cd3}.
+
+Once done, you can run \code{repo sync} again. It will download the
+new git tree we just added and add it to our source code.
+
+\section{Build the kernel}
+
+Obviously, the Beaglebone Black needs a kernel of its own. The way
+it's usually done in Android is by first compiling the kernel, and
+then configuring the build system to use that binary.
+
+So, the first step is to download the kernel. Once again, we can use
+repo for that. Make it fetch the kernel from
+\code{git://gitorious.org/rowboat/kernel.git}, at revision
+\code{rowboat-am335x-kernel-3.2}, in the \code{kernel} directory.
+
+Once done, make \code{repo} download it, and we can start building our
+kernel. This time, you'll need to use the \code{am335x_evm_android}
+default configuration.
+
+You can then start the compilation.
+
+Once the compilation is over, we need to make the build system aware
+of the image we just compiled.
+
+To do so, we need a few things. First we need to move the
+\code{zImage} we just compiled to our device folder.
+
+Then, we need to tell Android that it will need to generate a
+\code{boot.img} with the brand new kernel we have. This is done
+through the \code{TARGET_NO_KERNEL} variable. Obviously, this will
+need to be disabled.
+
+In order for Android to be able to properly generate the boot image,
+it also needs to know to which base address and which command line it
+needs. This is done by the \code{BOARD_KERNEL_BASE} and
+\code{BOARD_KERNEL_CMDLINE} variables. You can see that
+\code{BOARD_KERNEL_BASE} is already set, while
+\code{BOARD_KERNEL_CMDLINE} isn't. In order for Android to show its
+boot traces on the serial link, we need to set it to
 
 \begin{verbatim}
-repo init -u git://git.free-electrons.com/android/rowboat/manifest.git \
-        -b free-electrons -m rowboat-jb-am335x.xml
+console=ttyO0,115200n8 androidboot.console=ttyO0
 \end{verbatim}
 
-Now, let's run the big download job:
+Finally, we need to inform the Android build system of where our
+actual image is. The \code{mkbootimg} tool is actually looking for a
+file called \code{kernel} in the build directory, and it's up to the
+device configuration to copy it there. Fortunately, the
+\code{PRODUCT_COPY_FILES} macro is doing just that, so we'll need to
+add our kernel copying to list of files to copy, with the syntax:
+
 \begin{verbatim}
-repo sync -c -j4
+<path/to/source/image>:kernel
 \end{verbatim}
 
-We then need to reapply our \code{ccache} commit.
-\begin{verbatim}
-cd prebuilts/misc
-git cherry-pick 81012983
-cd ../..
-\end{verbatim}
+And we should be done for now.
 
 \section{Build Android for the BeagleBone Black}
 
-As we said earlier, rowboat already includes support for the
-BeagleBone Black we're using. To compile it, we have to use lunch, in
-the same way we did previously:
+No, we have gained support for the BeagleBone Black we're using. To
+compile Android for it, we have to use lunch, in the same way we did
+previously:
 
 \begin{verbatim}
 source build/envsetup.sh
@@ -54,50 +100,29 @@ Make sure we are using \code{ccache}:
 
 \begin{verbatim}
 export USE_CCACHE=1
-export CCACHE_DIR=$HOME/felabs/android/ccache-rowboat
+export CCACHE_DIR=$HOME/felabs/android/ccache
 \end{verbatim}
 or, depending on your setup,
 \begin{verbatim}
-export CCACHE_DIR=/opt/ccache-rowboat
+export CCACHE_DIR=/opt/ccache
 \end{verbatim}
 
-Then, we will need an extra package that will be required by the build system
-to build the kernel images:
+Then, we can start the compilation:
 
 \begin{verbatim}
-sudo apt-get install uboot-mkimage
+make -jX
 \end{verbatim}
 
-And finally, we can start the compilation:
-
-\begin{verbatim}
-make OMAPES=4.x -jX
-\end{verbatim}
-
-Once again, you can expect this build job to take quite a long time (a
-few hours) to run, even on a recent and rather fast laptop.
+Once again, you can expect this build job to take quite a long time
+(an hour or so) to run, even on a recent and rather fast laptop.
 
 This job will build four images in
 \code{out/target/product/beagleboneblack}: \code{cache.img},
-\code{ramdisk.img}, \code{system.img} and \code{userdata.img}.
+\code{boot.img} \code{ramdisk.img}, \code{system.img} and
+\code{userdata.img}.
 
-These images are the one usually generated by the Android build
-system. However, rowboat provides all the tools needed to flash an
-image to an SD card, but they do use a tarball containing the whole
-Android system.
-
-To create such a tarball, you can use the following make target:
-
-\begin{verbatim}
-make OMAPES=4.x fs_tarball
-\end{verbatim}
-
-It will generate in \code{out/target/product/beagleboneblack} a
-\code{rootfs.tar.bz2} tarball holding all the files needed for Android
-to boot.
-
-We will now be able to boot on this image, using NFS to ease the
-development process.
+We just generated bootable images that we will use on our device, we
+can now run them on our boards.
 
 \section{Setting up serial communication with the board}
 
@@ -140,269 +165,52 @@ you wish to exit \code{picocom}, press \code{[Ctrl][a]} followed by
 
 You should then be able to access the serial console.
 
-\section{Bootloader interaction}
+\section{Flashing and Booting the Images}
 
-Reset your board. Press a key in the \code{picocom} terminal to stop the
-U-boot countdown. You should then see the U-Boot prompt:
+To flash the images we previously generated, we will use
+\code{fastboot}.
+
+The first thing you need to do is power up the board, and stop the
+bootloader automatic boot. To do so, press a key in the \code{picocom}
+terminal whenever the U-boot countdown shows up. You should then see
+the U-Boot prompt:
 \begin{verbatim}
 U-Boot>
 \end{verbatim}
 
-You can now use U-Boot. Run the \code{help} command to see the available
-commands.
+You can now use U-Boot. Run the \code{help} command to see the
+available commands. To switch to fastboot mode, the only thing you
+need to do is type the command \code{fastboot} in this prompt.
 
-Using the \code{version} command, make sure that you have at least
-version \code{2013.10}.
-\footnote{This will be needed to use the \code{saveenv} command to
-save your U-Boot environment settings to the boards' eMMC storage.
-Some earlier versions do not support this.}
+The device will then wait for fastboot communications on its USB port.
 
-If you are doing these labs on your own (i.e. without participating to a
-Free Electrons course), we ask you to install the U-Boot binary
-that we compiled and tested. See the
-\code{$HOME/felabs/linux/bootloader/beaglebone-black/README.txt}
-file for a simple way to do this.
-
-\section{Load the kernel from TFTP}
-
-Later on, we will transfer files from the development workstation to
-the board using the TFTP protocol, which works on top of an Ethernet
-connection.
-
-To start with, install and configure a TFTP server on your development
-workstation.
+To flash the images, you need to flash the images. On your
+workstation, first start by formatting the device
 
 \begin{verbatim}
-apt-get install tftpd-hpa
+fastboot oem format
 \end{verbatim}
 
-With a network cable, connect the Ethernet port of your board to the
-one of your computer. If your computer already has a wired connection
-to the network, your instructor will provide you with a USB Ethernet
-adapter. A new network interface, probably \code{eth1} or \code{eth2},
-should appear on your Linux system.
-
-To configure this network interface on the workstation side, click on
-the {\em Network Manager} tasklet on your desktop, and select {\em
-  Edit Connections}.
-
-\begin{center}
-\includegraphics[width=8cm]{labs/android-new-board/network-config-1.png}
-\end{center}
-
-Select the new {\em wired network connection}:
-
-\begin{center}
-\includegraphics[width=8cm]{labs/android-new-board/network-config-2.png}
-\end{center}
-
-In the \code{IPv4 Settings} tab, press the \code{Add} button
-and make the interface use a static IP
-address, like \code{192.168.0.1} (of course, make sure that this
-address belongs to a separate network segment from the one of the main
-company network).
-
-\begin{center}
-\includegraphics[width=8cm]{labs/android-new-board/network-config-3.png}
-\end{center}
-
-You can use \code{255.255.255.0} as \code{Netmask}, and leave the
-\code{Gateway} field untouched (if you click on the \code{Gateway} box, you
-will have to type a valid IP address, otherwise you won't be apply to
-click on the \code{Apply} button).
-
-Now, configure the network on the board in U-Boot by setting the \code{ipaddr}
-and \code{serverip} environment variables:
+Then, you can flash each images independently by using the commands
 
 \begin{verbatim}
-setenv ipaddr 192.168.0.100
-setenv serverip 192.168.0.1
+fastboot flash <partition>
 \end{verbatim}
 
-In case the board was previously configured in a different way, we
-also turn off automatic booting after commands that can be used to
-copy a kernel to RAM:
+It will retrieve the matching images from the \code{out} folder, and
+will flash them using fastboot. Be sure you flash the \code{boot},
+\code{cache}, \code{system} and \code{userdata} partitions.
 
-\begin{verbatim}
-setenv autostart no
-\end{verbatim}
+Once this is done, reboot using \code{fastboot reboot}, and you should
+see Android booting.
 
-To make these settings permanent, save the environment:
+However, you'll see that a process keeps crashing. If you use the
+\code{logcat} command, you'll see that the crashing process is
+\code{zygote}, and more specifically when starting a component called
+\code{SurfaceFlinger}.
 
-\begin{verbatim}
-saveenv
-\end{verbatim}
-
-Now switch your board off and on again\footnote{Power cycling your
-  board is needed to make your \code{ethaddr} permanent, for obscure
-  reasons. If you don't, U-boot will complain that \code{ethaddr} is not
-  set.}.
-
-You can then test the TFTP connection. \code{tftpd-hpa} stores the files
-it serves in the \code{/var/lib/tftpboot} directory on your
-workstation. So first, put a small text file in this directory and
-then, from U-Boot, do:
-
-\begin{verbatim}
-tftp 0x80000000 textfile.txt
-\end{verbatim}
-
-{\bf Caution: known issue in Ubuntu 12.04 and later}:
-if this command doesn't work, you may have to stop the server
-and start it again every time you boot your workstation:
-
-\begin{verbatim}
-sudo service tftpd-hpa restart
-\end{verbatim}
-
-The \code{tftp} command should have downloaded
-the \code{textfile.txt} file from your development
-workstation into the board's memory at location 0x80000000 (this
-location is part of the board DRAM). You can verify that the download
-was successful by dumping the contents of the memory:
-
-\begin{verbatim}
-md 0x80000000
-\end{verbatim}
-
-Now, we can start loading our kernel.
-
-\begin{itemize}
-\item On your workstation, copy the file
-  \code{kernel/arch/arm/boot/uImage} to the directory exposed by the
-  TFP server.
-\item On the target, load \code{uImage} from TFTP into RAM at address
-  \code{0x80000000}
-  \begin{itemize}
-  \item \code{tftp 0x80000000 uImage}
-  \end{itemize}
-\item Boot the kernel
-  \begin{itemize}
-  \item \code{bootm 0x80000000}
-  \end{itemize}
-\end{itemize}
-
-You should see Linux boot and finally hang with the following message:
-
-\begin{verbatim}
-Waiting for root device /dev/mmcblk0p2...
-\end{verbatim}
-
-This is expected: we haven't provided a working root filesystem for
-our device yet.
-
-You can now automate all this every time the board is booted or
-reset. Reset the board, and specify a different \code{bootcmd}:
-
-\begin{verbatim}
-setenv bootcmd 'tftp 80000000 uImage; bootm 80000000'
-saveenv
-\end{verbatim}
-
-\section{Creating the SDcard}
-
-Because Android has permissions issues when using an NFS volume as
-\code{/data}, we have to use an Android SDcard that we'll leave in the
-slot. Android will mount it and use it for \code{/data}.
-
-Your instructor will provide such an SDcard. It has been prepared
-with:
-
-\begin{verbatim}
-sudo ./external/ti_android_utilities/am335x/mk-mmc/mkmmc-android.sh \
-  /dev/sdX u-boot/MLO u-boot/u-boot.img kernel/arch/arm/boot/uImage \
-  ./external/ti_android_utilities/am335x/u-boot-env/uEnv_beagleboneblack.txt \
-  ./out/target/product/beagleboneblack/rootfs.tar.bz2
-\end{verbatim}
-
-\section{Setting up the NFS server}
-
-Create a \code{nfsroot} directory in the \code{felabs/android}
-directory. This \code{nfsroot} directory will be used to store the
-contents of our new root filesystem.
-
-Install the NFS server by installing the \code{nfs-kernel-server}
-package if you don't have it yet. Once installed, edit the
-\code{/etc/exports} file as root to add the following line, assuming that the
-IP address of your board will be \code{192.168.0.100}:
-
-\footnotesize
-\begin{verbatim}
-/home/<user>/felabs/android/nfsroot 192.168.0.100(rw,no_root_squash,no_subtree_check)
-\end{verbatim}
-\normalsize
-
-Make sure that the path and the options are on the same line.
-Also make sure that there is no space between the IP address and the NFS
-options, otherwise default options will be used for this IP address,
-causing your root filesystem to be read-only.
-
-Then, restart the NFS server:
-
-\begin{verbatim}
-sudo /etc/init.d/nfs-kernel-server restart
-\end{verbatim}
-
-\section{Booting the system}
-
-First, boot the board to the U-Boot prompt. Before booting the kernel,
-we need to tell it that the root filesystem should be mounted over
-NFS, by setting some kernel parameters.
-
-Use the following U-Boot command to do so, {\bf in just 1 line}
-(Caution: in \code{ttyO0} below, it's the capital letter \code{O}, like in
-{\bf O}MAP and then the number zero):
-
-\begin{verbatim}
-setenv bootargs console=ttyO0,115200 root=/dev/nfs ip=192.168.0.100
-   nfsroot=192.168.0.1:/home/<user>/felabs/android/nfsroot rw
-   androidboot.console=ttyO0 init=/init
-\end{verbatim}
-
-Of course, you need to adapt the IP addresses to your exact network
-setup. Save the environment variables (with \code{saveenv}).
-
-If you later want to make changes to this setting, you can type the
-below command in U-boot:
-
-\begin{verbatim}
-editenv bootargs
-\end{verbatim}
-
-Now, boot your system. The kernel should be able to mount the root
-filesystem over NFS:
-
-\begin{verbatim}
-[    7.467895] VFS: Mounted root (nfs filesystem) readonly on device 0:12.
-\end{verbatim}
-
-If the kernel fails to mount the NFS filesystem, look carefully at the
-error messages in the console. If this doesn't give any clue, you can
-also have a look at the NFS server logs in \code{/var/log/syslog}.
-
-However, at this stage, the kernel should complain, saying that it
-can't find an init application:
-
-\footnotesize
-\begin{verbatim}
-Kernel panic - not syncing: No init found.  Try passing init= option to kernel.
-  See Linux Documentation/init.txt for guidance.
-\end{verbatim}
-\normalsize
-
-Obviously, our root filesystem being empty, there isn't such an
-application yet.
-
-\section{Booting the board}
-
-Go into the \code{nfsroot} directory, and extract the rootfs tarball
-we created previously using
-\code{sudo tar xvf ../source/out/target/product/beagleboneblack/rootfs.tar.bz2}.
-
-Once there's extraction's done, you can reboot the board. On the
-serial port, you should see Android going through its boot process,
-until you finally have a shell on the serial link and the screen
-working properly.
+This component is Android's window manager, and it keeps crashing
+because we haven't installed the GPU drivers yet.
 
 \section{Fix the blank screen}
 
