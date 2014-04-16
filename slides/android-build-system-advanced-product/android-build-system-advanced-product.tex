@@ -174,3 +174,33 @@ USE_CAMERA_STUB := true
     \end{itemize}
   \end{itemize}
 \end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Kernel Integration into Android}
+  \begin{itemize}
+  \item Android is just a user-space, the build system isn't designed
+    to build the kernel
+  \item However, there is some facilities to integrate a precompiled
+    kernel kernel into the Android images
+  \item To do so, you need to:
+    \begin{itemize}
+    \item In \code{BoardConfig.mk}
+      \begin{itemize}
+      \item Remove \code{TARGET_NO_KERNEL} if set
+      \item Set \code{BOARD_KERNEL_BASE} to the load address of your
+        kernel
+      \end{itemize}
+    \item In your device Makefile, have something like
+\begin{minted}[fontsize=\scriptsize]{make}
+ifeq ($(TARGET_PREBUILT_KERNEL),)
+LOCAL_KERNEL := device/ti/panda/kernel
+else
+LOCAL_KERNEL := $(TARGET_PREBUILT_KERNEL)
+endif
+
+PRODUCT_COPY_FILES := \
+        $(LOCAL_KERNEL):kernel
+\end{minted}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
