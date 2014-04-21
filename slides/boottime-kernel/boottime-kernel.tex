@@ -54,7 +54,7 @@ function:
 \item Remove unnecessary functionality:
       \begin{itemize}
       \item Look for kernel parameters in C sources and Makefiles, starting
-      with \code{_CONFIG}. Some settings for such parameters could help
+      with \code{CONFIG_}. Some settings for such parameters could help
       to remove code complexity or remove unnecessary features. 
       \item Find which module (if any) it belongs to. Loading this module
             could be deferred.
@@ -142,26 +142,48 @@ Conclusion: don't use LZO for now.
 \end{itemize}
 \end{frame}
 
-\begin{frame}[fragile]
+\begin{frame}
 \frametitle{Tuning the command line}
 \begin{itemize}
-	\item At each boot, the Linux kernel calibrates a delay loop (for
-		the udelay function). This measures a number of loops per
-		jiffy ({\em lpj}) value. You just need to measure this once! Find
-		the \code{lpj} value in the kernel boot messages:
-\begin{block}{}
-\small
-\begin{verbatim}
-Calibrating delay loop... 262.96 BogoMIPS (lpj=1314816)
-\end{verbatim}
-\end{block}
-		Now, you can use the \code{lpj=<value>} argument. This saves
-		around 180 ms on ARM.
 	\item The console output is actually taking a lot of time. You
 		probably don't need it in production. It can be disabled by
 		passing the \code{quiet} argument on the kernel command line.
 		You will still be able to use \code{dmesg} to get the
 		messages.
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Preset loops per jiffy}
+\begin{itemize}
+	\item At each boot, the Linux kernel calibrates a delay loop (for
+	      the \kfunc{udelay} function). This measures a number of loops per
+	      jiffy ({\em lpj}) value. You just need to measure this once! Find
+	      the \code{lpj} value in the kernel boot messages:
+\begin{block}{}
+\tiny
+\begin{verbatim}
+Calibrating delay loop... 262.96 BogoMIPS (lpj=1314816)
+\end{verbatim}
+\end{block}
+	\item Now, you can add \code{lpj=<value>} to the kernel command
+	      line:
+\begin{block}{}
+\tiny
+\begin{verbatim}
+Calibrating delay loop (skipped) preset value.. 262.96 BogoMIPS (lpj=1314816)
+\end{verbatim}
+\end{block}
+	\item Tests on the Atmel SAMA5D3 Xplained (ARM), Linux 3.10:
+    \begin{tabular}{| l || c | c | c |}
+    \hline
+    & Time & Diff \\
+    \hline
+    Without \code{lpj} & 71 ms & \\
+    With \code{lpj} & 8 ms & -63 ms\\
+    \hline
+    \end{tabular}
+	\item This calculation was longer before 2.6.39 (about 200 ms).
 \end{itemize}
 \end{frame}
 
