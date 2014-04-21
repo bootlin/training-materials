@@ -1,24 +1,139 @@
 \section{Bootloader optimizations}
+
 \begin{frame}
 \frametitle{Bootloader}
-Usually, bootloaders include many features needed only for
-development.
 \begin{itemize}
-	\item There may be different bootloaders for your board. Try
-		those!
-	\item Assess what features you really need. Do you need to
-		upgrade from the bootloader?
-	\item Remove the boot delay! For \code{u-boot}, then have a look
-		at the \code{CONFIG_ZERO_BOOTDELAY_CHECK} option, documented in
-		\code{doc/README.autoboot} that will allow you to still enter
-		the bootloader shell.
-	\item Maybe you can skip the bootloader (AT91 example: 
-                \url{http://free-electrons.com/blog/starting-linux-directly-from-at91bootstrap3/}).
+
+\item Remove unnecessary functionality.\\
+      Usually, bootloaders include many features needed only for
+      development. Compile your bootloader with less features.
+\item Optimize required functionality.\\
+      Tune your bootloader for fastest performance. \\
+      Switch to another bootloader (if available) \\
+      Skip the bootloader and load the kernel right away.
+\end{itemize}
+\end{frame}
+
+\subsection{U-Boot optimizations}
+
+\begin{frame}
+\frametitle{U-Boot - Remove unnecessary functionality}
+Recompile U-Boot to remove features not needed in production
+\begin{itemize}
+\item Disable as many features as possible 
+      in \code{include/configs/<soc>-<board>.h}
+\item Examples: MMC, USB, Ethernet, dhcp, ping, command line edition,
+      command completion...
+\item A smaller and simpler U-Boot is faster to load and faster 
+      to initialize.
 \end{itemize}
 \end{frame}
 
 \begin{frame}
-\frametitle{Results}
+\frametitle{U-Boot - Remove the boot delay}
+\begin{itemize}
+\item Remove the boot delay:\\
+      \code{setenv bootdelay 0}
+\item This usually saves several seconds!
+\item Before you do that, recompile U-Boot with
+      \code{CONFIG_ZERO_BOOTDELAY_CHECK}, documented in
+      \code{doc/README.autoboot}. It allows to stop the autoboot 
+      process by hitting a key even if the boot delay is set to
+      \code{0}.
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{U-Boot - Optimize kernel loading}
+\begin{itemize}
+\item After copying the kernel \code{uImage} to RAM,
+      U-Boot always moves it to the load address specified
+      in the \code{uImage} header.
+\item A CRC check is also performed.
+\end{itemize}
+\begin{center}
+    \includegraphics[width=\textwidth]{slides/boottime-bootloader/u-boot-kernel-loading.pdf}
+\end{center}
+\end{frame}
+
+\begin{frame}
+\frametitle{U-Boot - Remove unnecessary memmove (1)}
+\begin{itemize}
+\item You can make U-Boot skip the \code{memmove} operation
+      by directly loading the \code{uImage} at the right
+      address.
+\item Compute this address: \\
+      {\small
+      \code{Addr = Load Address - uImage header size}\\
+      \code{Addr = Load Address - (size(uImage) - size(zImage))}\\ 
+      \code{Addr = 0x20008000 - 0x40 = 0x20007fc0}\\
+      }
+\end{itemize}
+\begin{center}
+    \includegraphics[width=\textwidth]{slides/boottime-bootloader/u-boot-kernel-loading-no-memmove.pdf}
+\end{center}
+\end{frame}
+
+\begin{frame}
+\frametitle{U-Boot - Remove unnecessary memmove (2)}
+Results on Atmel SAMA5D3 Xplained (ARM), Linux 3.10:
+\newline\newline
+\begin{tabular}{| l || c | c |}
+\hline
+& Time & Diff \\
+\hline
+Default & 1.433 s & \\
+Optimum load address & 0.583 s & -0.85 s\\
+\hline
+\end{tabular}
+\newline\newline
+\small
+Measured between \code{Booting kernel} and \code{Starting kernel ...}
+\end{frame}
+
+\begin{frame}
+\frametitle{U-Boot - Remove kernel CRC check}
+\begin{itemize}
+\item Fine in production when you no longer have data corruption
+      copying the kernel to RAM.
+\item Disable CRC checking with a U-boot environment variable:\\
+      \code{setenv verify no}
+\end{itemize}
+Results on Atmel SAMA5D3 Xplained (ARM), Linux 3.10:
+\newline\newline
+\begin{tabular}{| l || c | c |}
+\hline
+& Time & Diff \\
+\hline
+With CRC check & 583 ms & \\
+Without CRC check & 60 ms & -523 ms \\
+\hline
+\end{tabular}
+\newline\newline
+\small
+Measured between \code{Booting kernel} and \code{Starting kernel ...}
+\end{frame}
+
+\begin{frame}
+\frametitle{Further U-Boot optimizations}
+\begin{itemize}
+\item Silence U-Boot console output. You will need to compile
+      U-Boot with \code{CONFIG_SILENT_CONSOLE} and
+      \code{setenv silent yes}.\\
+      See \code{doc/README.silent} for details.
+\item Ultimate solution: use U-Boot's {\em Falcon} mode.\\
+      U-Boot is split in two parts: the SPL (Secondary Program Loader)
+      and the U-Boot image. U-Boot can then configure to the SPL to load
+      the Linux kernel directly, instead of the U-Boot image.\\
+      See \code{doc/README.falcon} for details.
+\end{itemize}
+\end{frame}
+
+\subsection{Switching to another bootloader}
+
+\begin{frame}
+\frametitle{Switching from U-Boot to Barebox}
+Results with the SAMA5D3x-EK board \\
 Before: 5.77s
 \begin{center}
     \includegraphics[width=\textwidth]{slides/boottime-kernel/timechart-final.pdf}
@@ -99,23 +214,29 @@ After:
 Total: 2.57s.
 \end{frame}
 
+\subsection{Skipping the bootloader}
 
 \begin{frame}[fragile]
 \frametitle{Removing the bootloader}
-You can also try to boot directly from \code{AT91bootstrap} to the
-Linux kernel,thus removing the second stage. But you will lose the
-main advantages of using \code{barebox}.  It is using the CPU caches
-while loading and decompressing the kernel.
-
-It is quite easy with AT91bootstrap3. You just need to configure it
-with one of the \code{linux} or \code{linux_dt} configuration:
+\begin{itemize}
+\item Principle: instead of loading the bootloader and then the kernel,
+      load the kernel right away!
+\item For example, on Atmel AT91, is is easy to implement with
+      \code{at91bootstrap v3}. You just need to configure it
+      with one of the \code{linux} or \code{linux_dt} configurations:
 \begin{block}{}
 \begin{verbatim}
 make at91sama5d3xeknf_linux_dt_defconfig
 make
 \end{verbatim}
 \end{block}
-See \url{http://free-electrons.com/blog/at91bootstrap-linux/}
+      Full details on
+      \url{http://free-electrons.com/blog/starting-linux-directly-from-at91bootstrap3/}
+
+\item In our particular case, though, you will lose the
+      main advantages of using Barebox.  It is uses the CPU caches
+      while loading the kernel.
+\end{itemize}
 \end{frame}
 
 \begin{frame}
