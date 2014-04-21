@@ -18,12 +18,6 @@ we work on in boot time projects.
 \begin{frame}
 \frametitle{Different filesystem for different storage types}
 \begin{itemize}
-\item Raw flash storage
-      \begin{itemize}
-      \item JFFS2
-      \item YAFFS2
-      \item UBIFS
-      \end{itemize}
 \item Block storage (including memory cards, eMMC)
       \begin{itemize}
       \item ext2, ext3, ext4
@@ -31,6 +25,13 @@ we work on in boot time projects.
       \item btrfs
       \item f2fs
       \item SquashFS
+      \end{itemize}
+\item Raw flash storage
+      \begin{itemize}
+      \item JFFS2
+      \item YAFFS2
+      \item UBIFS
+      \item ubiblock + SquashFS
       \end{itemize}
 \end{itemize}
 See our embedded Linux training materials for full details:
@@ -45,6 +46,22 @@ See also our flash filesystem benchmarks:
 \end{frame}
 
 \begin{frame}
+\frametitle{Block filesystems}
+For block storage
+\begin{itemize}
+\item ext4: best for rather big partitions, good read and write
+      performance.
+\item xfs, jfs, reiserfs: can be good in some read or write scenarii
+      as well.
+\item btrfs, f2fs: can achieve best read and write performance,
+      taking advantage of the characteristics of flash-based block
+      devices.
+\item SquashFS: best mount time and read performance, for read-only
+      partitions. Great for root filesystems which can be read-only.
+\end{itemize}
+\end{frame}
+
+\begin{frame}
 \frametitle{JFFS2}
 For raw flash storage
 \begin{itemize}
@@ -53,7 +70,7 @@ For raw flash storage
       belongs to each file.
 \item Need to use the \code{CONFIG_JFFS2_SUMMARY} kernel option
       to store such information in flash. This dramatically reduces
-      mount time (from 16 s to 0.8 s for a 128 MB partition).
+      mount time (benchmark on ARM: from 16 s to 0.8 s for a 128 MB partition).
 \item Rather poor read and write performance (compared to YAFFS2 and
       UBIFS)
 \end{itemize}
@@ -63,7 +80,6 @@ For raw flash storage
 \frametitle{YAFFS2}
 For raw flash storage
 \begin{itemize}
-\item Mount time depending on filesystem size: the kernel has to
 \item Good mount time
 \item Good read and write performance
 \item Drawbacks: no compression, not in the mainline Linux kernel
@@ -82,10 +98,12 @@ For raw flash storage
       \end{itemize}
 \item Drawbacks:
       \begin{itemize}
+      \item Not appropriate for small partitions (too much metadata
+   	    overhead). Use JFFS2 or JAFFS2 instead.
       \item Not so good mount time, because of the time needed
             to initialize UBI ({\em UBI Attach}: at boot time or running
             \code{ubi_attach} in userspace).
-      \item Addressed by {\em UBI Fastmap}, introduced in Linux 3.7.
+      \item Addressed by {\em UBI Fastmap}, introduced in Linux 3.7. \\
             See next slides.
       \end{itemize}
 \end{itemize}
@@ -124,9 +142,9 @@ For raw flash storage
 \begin{frame}
 \frametitle{UBI Fastmap benchmark}
 \begin{itemize}
-\item Measured on the Atmel SAMA5D3 Xplained board, Linux 3.10
+\item Measured on the Atmel SAMA5D3 Xplained board (ARM), Linux 3.10
 \item UBI space: 216 MB
-\item Root filesystem: 80 MB used, built by Yocto 
+\item Root filesystem: 80 MB used (Yocto)
 \item Average results:
     \newline \newline
     \begin{tabular}{| l || c | c | c |}
@@ -146,18 +164,17 @@ attach process.
 \end{frame}
 
 \begin{frame}
-\frametitle{Block filesystems}
-For block storage
+\frametitle{ubiblock + SquashFS}
+For raw flash storage
 \begin{itemize}
-\item ext4: best for rather big partitions, good read and write
-      performance
-\item xfs, jfs, reiserfs: can be good in some read or write scenarii
-      as well.
-\item btrfs, f2fs: can achieve best read and write performance,
-      taking advantage of the characteristics of flash-based block
-      devices.
-\item SquashFS: best mount time and read performance, for read-only
-      partitions. Great for root filesystems which can be read-only.
+\item {\em ubiblock}: read-only block device on top of UBI
+      (\code{CONFIG_MTD_UBI_BLOCK}). Available in Linux 3.15
+      (developed on his spare time by Ezequiel Garcia,
+      a Free Electrons contractor).
+\item Allows to put SquashFS on a UBI volume.
+\item Expecting great boot time and read performance. Great
+      for read-only root filesystems.
+\item Benchmarks not available yet.
 \end{itemize}
 \end{frame}
 
