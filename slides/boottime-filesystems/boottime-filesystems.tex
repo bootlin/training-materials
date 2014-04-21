@@ -74,15 +74,75 @@ For raw flash storage
 \frametitle{UBIFS}
 For raw flash storage
 \begin{itemize}
-\item Not so good mount time, because of the time needed
-      to initialize UBI (\code{ubi_attach} command in userspace).
-      Filesystem getting slower and slower as it gets older.
-\item Need \code{CONFIG_UBI_FASTMAP} (introduced in Linux 3.7) to do
-      \code{ubi_attach} in constant time, and get a good mount time. 
-\item Good read and write performance (similar to YAFFS2)
-\item Other advantages: better for wear leveling (operates on the whole
-      flash storage, not only within a flash partition).
+\item Advantages:
+      \begin{itemize}
+      \item Good read and write performance (similar to YAFFS2)
+      \item Other advantages: better for wear leveling (can operate on the
+      	    whole UBI space, not only within a single partition).
+      \end{itemize}
+\item Drawbacks:
+      \begin{itemize}
+      \item Not so good mount time, because of the time needed
+            to initialize UBI ({\em UBI Attach}: at boot time or running
+            \code{ubi_attach} in userspace).
+      \item Addressed by {\em UBI Fastmap}, introduced in Linux 3.7.
+            See next slides.
+      \end{itemize}
 \end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{How UBI Fastmap works}
+\begin{itemize}
+\item {\em UBI Attach}: needs to read UBI metadata by
+      scanning all erase blocks. Time proportional
+      to the storage size. 
+\item {\em UBI Fastmap} stores such information in a few flash
+      blocks (typically at UBI detach time during system
+      shutdown) and finds it there at boot time.
+\item This makes {\em UBI Attach} time constant.
+\item If {\em Fastmap} information is invalid (unclean system
+      shutdown, for example), it falls back to scanning
+      (slower, but correct, and {\em Fastmap} will work again
+      during the next boot).
+\item Details: ELCE 2012 presentation from Thomas Gleixner:
+      \url{http://elinux.org/images/a/ab/UBI_Fastmap.pdf}
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{Using UBI Fastmap}
+\begin{itemize}
+\item Compile your kernel with \code{CONFIG_UBI_FASTMAP}
+\item Boot your system at least once with the
+      \code{ubi.fm_autoconvert=1} kernel parameter.
+\item Reboot your system in a clean way
+\item You can now remove \code{ubi.fm_autoconvert=1}
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+\frametitle{UBI Fastmap benchmark}
+\begin{itemize}
+\item Measured on the Atmel SAMA5D3 Xplained board, Linux 3.10
+\item UBI space: 216 MB
+\item Root filesystem: 80 MB used, built by Yocto 
+\item Average results:
+    \newline \newline
+    \begin{tabular}{| l || c | c | c |}
+    \hline
+    & Attach time & Diff & Total time\\
+    \hline
+    Without {\em UBI Fastmap} & 968 ms & & \\
+    With {\em UBI Fastmap} & 238 ms & -731 ms & -665 ms \\
+    \hline
+    \end{tabular}
+    \newline
+\item Expect to save more with bigger UBI spaces!
+\end{itemize}
+Note: total boot time reduction a bit lower probably
+because of other kernel threads executing during the
+attach process.
 \end{frame}
 
 \begin{frame}
