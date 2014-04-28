@@ -41,6 +41,23 @@ application and then switch to the final root filesystem with
 \end{frame}
 
 \begin{frame}
+\frametitle{Results: after switch to initramfs}
+Before:
+\begin{center}
+    \includegraphics[width=\textwidth]{slides/boottime-init-scripts/timechart-init.pdf}
+\end{center}
+After:
+\begin{center}
+    \includegraphics[width=\textwidth]{slides/boottime-init-scripts3/timechart-initramfs.pdf}
+\end{center}
+\begin{itemize}
+\item U-Boot takes more time because the kernel is bigger
+\item \code{init} is started earlier because UBI is not initialized yet
+      (slow, UBIFS root filesystem)
+\end{itemize}
+\end{frame}
+
+\begin{frame}
 \frametitle{Do not compress your initramfs (1)}
 \begin{itemize}
 \item If you ship your initramfs inside a compressed kernel image, don't compress
@@ -57,7 +74,7 @@ Tests on Linux 3.13-rc4, measuring the penalty of having a
 \code{gzip} compressed initramfs in a \code{gzip} compressed kernel. \\
 \vfill{}
 \scriptsize
-Beagle Bone Black (TI AM3359)
+Beagle Bone Black (ARM, TI AM3359, 1 GHz)
 \begin{tabular}{| l || c | c | c | c | c | }
 \hline
 Mode & Size & Copy & Uncompress & Total & Diff \\
@@ -67,7 +84,7 @@ Initramfs compression & 4309112 & 455 ms & 947 ms & 5.527 s & + 11 ms \\
 \hline
 \end{tabular}
 \newline\newline
-CALAO USB-A9263 (Atmel AT91SAM9263)
+CALAO USB-A9263 (ARM, Atmel AT91SAM9263, 200 MHz)
 \begin{tabular}{| l || c | c | c | c | c | }
 \hline
 Mode & Size & Copy & Uncompress & Total & Diff \\
@@ -78,21 +95,58 @@ Initramfs compression & 3016928 & 4.1050 s & 1.760 s  & 8.813 s & + 18 ms \\
 \end{tabular}
 \end{frame}
 
+\begin{frame}
+\frametitle{Quick splashscreen display (1)}
+Often the first sign of life that you are showing!
+\begin{itemize}
+\item You could use the \code{fbv} program
+      (\url{http://freecode.com/projects/fbv})\\
+      to display your splashscreen.
+\item On \code{armel}, you can just use our statically compiled
+      binary: {\tiny
+\url{http://git.free-electrons.com/users/michael-opdenacker/static-binaries/tree/fbv}}
+\item However, this is slow:\\
+      878 ms on an Atmel AT91SAM9263 system!
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Quick splashscreen display (2)}
+\begin{itemize}
+\item To do it faster, you can dump the framebuffer contents:\\
+      \begin{verbatim}
+fbv -d 1 /root/logo.bmp
+cp /dev/fb0 /root/logo.fb
+lzop -9 /root/logo.fb
+      \end{verbatim}
+\item And then copy it back as early as possible in an initramfs:
+      \begin{verbatim}
+lzopcat /root/logo.fb.lzo > /dev/fb0 
+      \end{verbatim}
+\end{itemize}
+Results on an Atmel AT91SAM9263 system: \\
+\begin{tabular}{| l || c | c | c | }
+\hline
+& \code{fbv} & plain copy (\code{dd}) & \code{lzopcat} \\
+\hline
+Time & 878 ms & 54 ms & 52.5 ms\\
+\hline
+\end{tabular}
+\vfill
+\footnotesize
+\url{http://free-electrons.com/blog/super-fast-linux-splashscreen/}
+\end{frame}
 
 \begin{frame}
-\frametitle{Results: after switch to initramfs}
-Before:
-\begin{center}
-    \includegraphics[width=\textwidth]{slides/boottime-init-scripts/timechart-init.pdf}
-\end{center}
-After:
-\begin{center}
-    \includegraphics[width=\textwidth]{slides/boottime-init-scripts3/timechart-initramfs.pdf}
-\end{center}
+\frametitle{Animated splashscreen}
+Still slow to read and write entire screens. Just draw useful pixels
+and even create an animation!
 \begin{itemize}
-\item U-Boot takes more time because the kernel is bigger
-\item \code{init} is started earlier because UBI is not initialized yet
-      (slow, UBIFS root filesystem)
+\item Create a simple C program that just animates pixels and simple
+      geometric shapes on the framebuffer!
+\item Example: {\small \url{http://free-electrons.com/pub/code/fb/anim.c}}.
+      On a 400 MHz ARM9 system: starts drawing in 10 ms \\
+      size: 24 KB, compiled statically).
 \end{itemize}
 \end{frame}
 
