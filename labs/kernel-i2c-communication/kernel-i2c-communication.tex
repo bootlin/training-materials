@@ -200,18 +200,25 @@ In the probe routine (run every time a matching device is found):
 \begin{enumerate}
 \item Using the I2C raw API (see the slides), send two bytes to the
       device: \code{0xf0} and \code{0x55}
-      \footnote{There are two ways of communicating with a wiimote extension.
-        The first known way was with data encryption by writing two
-        bytes: 0x40 and 0x00. With this way, you have to decrypt each byte you
-        read from the nunchuk (not so hard but something you have to do).
-        Unfortunately, such encryption doesn't work on third
-        party nunchuks so you have to set up unencrypted communication by
-        writing 0xf0 and 0x55 instead. This works across
-        all brands of nunchuks (including Nintendo ones).}.
-      Make sure you check the return value of 
-      the function you're using. This could reveal communication issues.
-      Using LXR, find examples of how to handle failures properly using
-      the same function.
+      \footnote{The I2C messages to communicate with a wiimote
+        extension are in the form: \code{<i2c_address> <register> }
+        for reading and \code{<i2c_address> <register> <value>} for
+        writing. The address, \code{0x52} is sent by the i2c framework
+        so you only have to write the other bytes, the register
+        address and if needed, the value you want to write. There are
+        two ways to setup the communication. The first known way was
+        with data encryption by writing \code{0x00} to register
+        \code{0x40} of the nunchuk.  With this way, you have to
+        decrypt each byte you read from the nunchuk (not so hard but
+        something you have to do).  Unfortunately, such encryption
+        doesn't work on third party nunchuks so you have to set up
+        unencrypted communication by writing \code{0x55} to
+        \code{0xf0} instead. This works across all brands of nunchuks
+        (including Nintendo ones).}.
+      Make sure you check the return value of the function you're
+      using. This could reveal communication issues.  Using LXR, find
+      examples of how to handle failures properly using the same
+      function.
 \item Let the CPU wait for 1 ms by using the \code{udelay()} routine.
       You may need to use LXR again to find the right C headers to
       include.
