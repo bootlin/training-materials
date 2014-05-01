@@ -122,32 +122,54 @@ After:
 \end{frame}
 
 \begin{frame}[fragile]
-\frametitle{Reduce forking}
+\frametitle{Reduce forking (1)}
 \begin{itemize}
-	\item \code{fork}/\code{exec} system calls are very expensive.
-		Because of this, calls to executables from shells are slow.
-	\item Even executing \code{echo} in \code{busybox} shells results
-	      in a \code{fork} syscall!
-	\item Select \code{Shells -> Standalone shell} in \code{busybox}
-	      configuration to make the \code{busybox} shell call applets
-	      whenever possible.
-	\item Pipes and back-quotes are also implemented by
-	      \code{fork}/\code{exec}.  You can reduce their usage in
-	      scripts. Example:
-	      \begin{block}{}
-			\begin{verbatim}
+\item \code{fork}/\code{exec} system calls are very expensive.
+      Because of this, calls to executables from shells are slow.
+\item Even an \code{echo} in a BusyBox shell results in a \code{fork}
+syscall!
+\item Select \code{Shells -> Standalone shell} in BusyBox
+      configuration to make the shell call applets whenever possible.
+\item Pipes and back-quotes are also implemented by
+      \code{fork}/\code{exec}.  You can reduce their usage in
+      scripts. Example:
+      \begin{block}{}
+      \begin{verbatim}
 cat /proc/cpuinfo | grep model
-			\end{verbatim}
-		\end{block}
-		Replace it with:
-		\begin{block}{}
-			\begin{verbatim}
+      \end{verbatim}
+      \end{block}
+Replace it with:
+      \begin{block}{}
+      \begin{verbatim}
 grep model /proc/cpuinfo
-			\end{verbatim}
-		\end{block}
+      \end{verbatim}
+      \end{block}
 \end{itemize}
 See \url{http://elinux.org/Optimize_RC_Scripts}
 \end{frame}
+
+\begin{frame}[fragile]
+\frametitle{Reduce forking (2)}
+Replaced:
+\begin{block}{}
+\begin{verbatim}
+if [ $(expr match "$(cat /proc/cmdline)" '.* debug.*')\
+       -ne 0 -o -f /root/debug ]; then
+DEBUG=1
+\end{verbatim}
+\end{block}
+By a much cheaper command running only one process:
+\begin{block}{}
+\begin{verbatim}
+res=`grep " debug" /proc/cmdline`
+if [ "$res" -o -f /root/debug ]; then
+DEBUG=1
+\end{verbatim}
+\end{block}
+This only optimization allowed to save 87 ms on an ARM AT91SAM9263
+system (200 MHz)!
+\end{frame}
+
 
 \begin{frame}
 \frametitle{Reduce size (1)}

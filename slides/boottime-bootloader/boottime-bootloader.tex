@@ -43,6 +43,34 @@ Recompile U-Boot to remove features not needed in production
 \end{itemize}
 \end{frame}
 
+\begin{frame}[fragile]
+\frametitle{U-Boot - Simplify scripts}
+Some boards have over-complicated scripts:
+\begin{block}{}
+\scriptsize
+\begin{verbatim}
+bootcmd=run bootf0
+bootf0=run ${args0}; setenv bootargs ${bootargs} \
+maximasp.kernel=maximasp_nand.0:kernel0; nboot 0x70007fc0 kernel0
+\end{verbatim}
+\end{block}
+Let's replace this by:
+\begin{block}{}
+\tiny
+\begin{verbatim}
+setenv bootargs 'mem=128M console=tty0 consoleblank=0
+console=ttyS0,57600 \
+mtdparts=maximasp_nand.0:2M(u-boot)ro,512k(env0)ro,512k(env1)ro,\
+4M(kernel0),4M(kernel1),5M(kernel2),100M(root0),100M(root1),-(other)\
+rw ubi.mtd=root0 root=ubi0:rootfs rootfstype=ubifs earlyprintk debug \
+user_debug=28 maximasp.board=EEKv1.3.x \
+maximasp.kernel=maximasp_nand.0:kernel0'
+setenv bootcmd 'nboot 0x70007fc0 kernel0'
+\end{verbatim}
+\end{block}
+This saved 56 ms on this ARM9 system (400 MHz)!
+\end{frame}
+
 \begin{frame}
 \frametitle{Bootloader: copy the exact kernel size}
 \begin{itemize}
