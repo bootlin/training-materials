@@ -41,7 +41,7 @@ then configuring the build system to use that binary.
 So, the first step is to download the kernel. Once again, we can use
 repo for that. Make it fetch the kernel from
 \code{git://gitorious.org/rowboat/kernel.git}, at revision
-\sloppy{\mbox{\code{rowboat-am335x-kernel-3.2}}}, in the \code{kernel} directory.
+\code{rowboat-am335x-kernel-3.2}, in the \code{kernel} directory.
 
 Once done, make \code{repo} download it, and we can start building our
 kernel. This time, you'll need to use the \code{am335x_evm_android}
@@ -58,7 +58,8 @@ To do so, we need a few things. First we need to move the
 Then, we need to tell Android that it will need to generate a
 \code{boot.img} with the brand new kernel we have. This is done
 through the \code{TARGET_NO_KERNEL} variable. Obviously, this will
-need to be disabled.
+need to be disabled. You can find where this variable is defined using
+\code{grep}.
 
 In order for Android to be able to properly generate the boot image,
 it also needs to know to which base address and which command line it
@@ -71,6 +72,8 @@ boot traces on the serial link, we need to set it to
 \begin{verbatim}
 console=ttyO0,115200n8 androidboot.console=ttyO0
 \end{verbatim}
+
+You also need to change \code{BOARD_KERNEL_BASE} to \code{0x80008000}.
 
 Finally, we need to inform the Android build system of where our
 actual image is. The \code{mkbootimg} tool is actually looking for a
@@ -253,10 +256,9 @@ commands:
 
 \begin{verbatim}
 export TARGET_PRODUCT=beagleboneblack
-export OMAPES=4.x
 export ANDROID_ROOT_DIR=<path/to/android/source>
 
-make
+make OMAPES=4.x W=1
 make install 
 \end{verbatim}
 
@@ -283,7 +285,10 @@ controls until you find the values that are working.
 
 To make those changes permanently, you will have to edit the kernel
 code. The used PWM is defined is the \code{am335xevm} board file, in
-the \code{arch/arm/mach-omap2} folder.
+the \code{arch/arm/mach-omap2} folder. The PWM work by switching on
+and off at a fast pace the power supply to be able to adjust the
+average voltage delivered between 0 and the actual voltage of the
+line. Increase the period by a factor of 100.
 
 Once you're done, rebuild the kernel, boot it, and you should be able
 to read the screen now!
