@@ -168,6 +168,34 @@ you wish to exit \code{picocom}, press \code{[Ctrl][a]} followed by
 
 You should then be able to access the serial console.
 
+\section{Configure USB access on your machine}
+
+Your instructor will now give you a USB to mini-USB cable. Connect
+the mini-USB connector to your board, and the other connector to your
+computer.
+
+We will use this connection for fastboot and, later on, adb.
+
+If you execute any command right now, you are very likely to have an
+error, because fastboot can't even detect the device. This is because
+the USB device associated to the BeagleBone doesn't have the right
+permissions to let you open it.
+
+We need to make sure that \code{udev} sets the right permissions so
+that we can access it as a user. To do so, create the file
+\code{/etc/udev/rules.d/51-android.rules} and copy the following line:
+
+\code{SUBSYSTEM=="usb", ATTR{idVendor}=="<VendorId>", ATTR{idProduct}=="<ProductID>", MODE="0600", OWNER="<username>"}
+
+You can retrieve the vendor and product IDs to use when by using the
+\code{lsusb} command, and looking at the line with \code{Google
+  Inc.}. You should see on this line the IDs to use, with the format
+\code{ID <VendorID>:<ProductID>}.
+
+Now, unplug the USB cable and plug it again. You should now be able to
+use \code{fastboot} from your user account, with the command
+\code{fastboot devices} showing the board properly.
+
 \section{Flashing and Booting the Images}
 
 To flash the images we previously generated, we will use
