@@ -3,15 +3,19 @@
 \begin{frame}
   \frametitle{Location of kernel sources}
   \begin{itemize}
-  \item The official version of the Linux kernel, as released by Linus
-    Torvalds is available at \url{http://www.kernel.org}
+  \item The official versions of the Linux kernel, as released by Linus
+    Torvalds, are available at \url{http://www.kernel.org}
     \begin{itemize}
-    \item This version follows the well-defined development model of
-      the kernel
-    \item However, it may not contain the latest development from a
-      specific area, due to the organization of the development model
-      and because features in development might not be ready for
-      mainline inclusion
+    \item These versions follow the development model of the kernel
+    \item However, they may not contain the latest development from a
+      specific area yet. Some features in development might not be
+      ready for mainline inclusion yet.
+    \end{itemize}
+  \item Many chip vendors supply their own kernel sources
+    \begin{itemize}
+    \item Focusing on hardware support first
+    \item Can have a very important delta with mainline Linux
+    \item Useful only when mainline hasn't caught up yet.
     \end{itemize}
   \item Many kernel sub-communities maintain their own kernel, with
     usually newer but less stable features
@@ -19,8 +23,29 @@
     \item Architecture communities (ARM, MIPS, PowerPC, etc.), device
       drivers communities (I2C, SPI, USB, PCI, network, etc.), other
       communities (real-time, etc.)
-    \item They generally don't release official versions, only
-      development trees are available
+    \item No official releases, only development trees are available.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Getting Linux sources}
+  \begin{itemize}
+
+  \item The kernel sources are available from
+    \url{http://kernel.org/pub/linux/kernel} as {\bf full tarballs}
+    (complete kernel sources) and {\bf patches} (differences between
+    two kernel versions).
+  \item However, more and more people use the \code{git} version
+    control system. Absolutely needed for kernel development!
+    \begin{itemize}
+    \item Fetch the entire kernel sources and history\\
+      \code{git clone git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git}
+    \item Create a branch that starts at a specific stable version\\
+      \code{git checkout -b <name-of-branch> v3.11}
+    \item Web interface available at
+      \url{http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/}.
+    \item Read more about Git at \url{http://git-scm.com/}
     \end{itemize}
   \end{itemize}
 \end{frame}
@@ -51,178 +76,26 @@
   \begin{columns}
     \column{0.5\textwidth}
     \begin{itemize}
-    \item \code{drivers/}: 49.4\%
-    \item \code{arch/}: 21.9\%
-    \item \code{fs/}: 6.0\%
-    \item \code{include/}: 4.7\%
-    \item \code{sound/}: 4.4\%
-    \item \code{Documentation/}: 4.0\%
-    \item \code{net/}: 3.9\%
-    \item \code{firmware/}: 1.0\%
-    \item \code{kernel/}: 1.0\%
+    \item \kpath{drivers/}: 49.4\%
+    \item \kpath{arch/}: 21.9\%
+    \item \kpath{fs/}: 6.0\%
+    \item \kpath{include/}: 4.7\%
+    \item \kpath{sound/}: 4.4\%
+    \item \kpath{Documentation/}: 4.0\%
+    \item \kpath{net/}: 3.9\%
+    \item \kpath{firmware/}: 1.0\%
+    \item \kpath{kernel/}: 1.0\%
     \end{itemize}
     \column{0.5\textwidth}
     \begin{itemize}
-    \item \code{tools/}: 0.9\%
-    \item \code{scripts/}: 0.5\%
-    \item \code{mm/}: 0.5\%
-    \item \code{crypto/}: 0.4\%
-    \item \code{security/}: 0.4\%
-    \item \code{lib/}: 0.4\%
-    \item \code{block/}: 0.2\%
+    \item \kpath{tools/}: 0.9\%
+    \item \kpath{scripts/}: 0.5\%
+    \item \kpath{mm/}: 0.5\%
+    \item \kpath{crypto/}: 0.4\%
+    \item \kpath{security/}: 0.4\%
+    \item \kpath{lib/}: 0.4\%
+    \item \kpath{block/}: 0.2\%
     \item ...
     \end{itemize}
   \end{columns}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Getting Linux sources}
-  \begin{itemize}
-  \item {\bf Full tarballs}
-    \begin{itemize}
-    \item Contain the complete kernel sources: long to download and
-      uncompress, but must be done at least once
-    \item Example:\\
-      \footnotesize
-      \url{http://www.kernel.org/pub/linux/kernel/v3.x/linux-3.10.9.tar.xz}
-      \normalsize
-    \item Extract command:\\
-      \footnotesize
-      \code{tar xf linux-3.10.9.tar.xz}
-      \normalsize
-    \end{itemize}
-  \item {\bf Incremental patches between versions}
-    \begin{itemize}
-    \item It assumes you already have a base version and you apply the
-      correct patches in the right order. Quick to download and apply
-    \item Examples:\\
-      \scriptsize
-      \url{http://www.kernel.org/pub/linux/kernel/v3.x/patch-3.10.xz}\\(3.9 to 3.10)\\
-      \url{http://www.kernel.org/pub/linux/kernel/v3.x/patch-3.10.9.xz}\\(3.10 to 3.10.9)
-    \end{itemize}
-  \item All previous kernel versions are available in
-    \url{http://kernel.org/pub/linux/kernel/}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}[fragile]
-  \frametitle{Patch}
-  \begin{itemize}
-  \item A patch is the difference between two source trees
-    \begin{itemize}
-    \item Computed with the \code{diff} tool, or with more elaborate
-      version control systems
-    \end{itemize}
-  \item They are very common in the open-source community
-  \item Excerpt from a patch:
-  \end{itemize}
-\footnotesize
-\begin{verbatim}
-diff -Nru a/Makefile b/Makefile
---- a/Makefile 2005-03-04 09:27:15 -08:00
-+++ b/Makefile 2005-03-04 09:27:15 -08:00
-@@ -1,7 +1,7 @@
- VERSION = 2
- PATCHLEVEL = 6
- SUBLEVEL = 11
--EXTRAVERSION =
-+EXTRAVERSION = .1
- NAME=Woozy Numbat
-
- # *DOCUMENTATION*
-\end{verbatim}
-\end{frame}
-
-\begin{frame}[fragile]
-  \frametitle{Contents of a patch}
-  \begin{itemize}
-  \item One section per modified file, starting with a header
-\scriptsize
-\begin{verbatim}
-diff -Nru a/Makefile b/Makefile
---- a/Makefile 2005-03-04 09:27:15 -08:00
-+++ b/Makefile 2005-03-04 09:27:15 -08:00
-\end{verbatim}
-\normalsize
-  \item One sub-section per modified part of the file, starting with
-    header with the affected line numbers
-\scriptsize
-\begin{verbatim}
-@@ -1,7 +1,7 @@
-\end{verbatim}
-\normalsize
-  \item Three lines of context before the change
-\scriptsize
-\begin{verbatim}
- VERSION = 2
- PATCHLEVEL = 6
- SUBLEVEL = 11
-\end{verbatim}
-\normalsize
-  \item The change itself
-\scriptsize
-\begin{verbatim}
--EXTRAVERSION =
-+EXTRAVERSION = .1
-\end{verbatim}
-\normalsize
-    \item Three lines of context after the change
-\scriptsize
-\begin{verbatim}
- NAME=Woozy Numbat
-
- # *DOCUMENTATION*
-\end{verbatim}
-\normalsize
-    \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Using the patch command}
-  The \code{patch} command:
-  \begin{itemize}
-  \item Takes the patch contents on its standard input
-  \item Applies the modifications described by the patch into the
-    current directory
-  \end{itemize}
-  \code{patch} usage examples:
-  \begin{itemize}
-  \item \code{patch -p<n> < diff_file}
-  \item \code{cat diff_file | patch -p<n>}
-  \item \code{xzcat diff_file.xz | patch -p<n>}
-  \item \code{bzcat diff_file.bz2 | patch -p<n>}
-  \item \code{zcat diff_file.gz | patch -p<n>}
-  \item Notes:
-    \begin{itemize}
-    \item \code{n}: number of directory levels to skip in the file paths
-    \item You can reverse apply a patch with the \code{-R} option
-    \item You can test a patch with \code{--dry-run} option
-    \end{itemize}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}[fragile]
-  \frametitle{Applying a Linux patch}
-  \begin{itemize}
-  \item Two types of Linux patches:
-        \begin{itemize}
-	\item Either to be applied to the previous stable version\\
-	      (from \code{3.<x-1>} to \code{3.x})
-	\item Or implementing fixes to the current stable version\\
-	      (from \code{3.x} to \code{3.x.y})
-	\end{itemize}
-  \item Can be downloaded in \code{gzip}, \code{bzip2} or \code{xz} (much
-    smaller) compressed files.
-  \item Always produced for \code{n=1}\\
-    (that's what everybody does... do it too!)
-  \item Need to run the \code{patch} command inside the kernel source
-    directory
-  \item Linux patch command line example:\\
-\begin{verbatim}
-cd linux-3.9
-xzcat ../patch-3.10.xz | patch -p1
-xzcat ../patch-3.10.9.xz | patch -p1
-cd ..; mv linux-3.9 linux-3.10.9
-\end{verbatim}
-  \end{itemize}
 \end{frame}
