@@ -1,7 +1,6 @@
 /* hello_param.c */
 #include <linux/init.h>
 #include <linux/module.h>
-#include <linux/moduleparam.h>
 
 MODULE_LICENSE("GPL");
 

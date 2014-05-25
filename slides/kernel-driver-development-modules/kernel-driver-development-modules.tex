@@ -36,7 +36,8 @@ MODULE_AUTHOR("William Shakespeare");
   \end{itemize}
 \item \ksym{__exit}
   \begin{itemize}
-  \item discarded when module compiled statically into the kernel.
+  \item discarded when module compiled statically into the kernel,
+        or when module unloading support is not enabled.
   \end{itemize}
 \item Example available on
   \url{http://git.free-electrons.com/training-materials/plain/code/hello/hello.c}
@@ -75,7 +76,7 @@ MODULE_AUTHOR("William Shakespeare");
   \item From a kernel module, only a limited number of kernel
     functions can be called
   \item Functions and variables have to be explicitly exported by the
-    kernel to be visible from a kernel module
+    kernel to be visible to a kernel module
   \item Two macros are used in the kernel to export functions and
     variables:
     \begin{itemize}
@@ -153,8 +154,9 @@ MODULE_AUTHOR("William Shakespeare");
   \item The below \code{Makefile} should be reusable for any single-file
     out-of-tree Linux module
   \item The source file is \code{hello.c}
-  \item Just run make to build the \code{hello.ko} file
+  \item Just run \code{make} to build the \code{hello.ko} file
   \end{itemize}
+{\footnotesize
 \begin{block}{}
 \begin{minted}{make}
 ifneq ($(KERNELRELEASE),)
@@ -167,12 +169,14 @@ all:
 endif
 \end{minted}
 \end{block}
+}
 
 \begin{itemize}
-\item For \code{KDIR}, you can either set
+\item For \code{KDIR}, you can either set:
   \begin{itemize}
-  \item full kernel source directory (configured and compiled)
-  \item or just kernel headers directory (minimum needed)
+  \item full kernel source directory\\
+        (configured + \code{make modules_prepare})
+  \item or just kernel headers directory (\code{make headers_install})
   \end{itemize}
 \end{itemize}
 \end{frame}
@@ -271,7 +275,6 @@ config USB_SERIAL_NAVMAN
 /* hello_param.c */
 #include <linux/init.h>
 #include <linux/module.h>
-#include <linux/moduleparam.h>
 
 MODULE_LICENSE("GPL");
 
@@ -315,20 +318,18 @@ Source code available on: {\small
   \frametitle{Declaring a module parameter}
 
 \begin{minted}[fontsize=\small]{c}
-#include <linux/moduleparam.h>
-
 module_param(
     name, /* name of an already defined variable */
     type, /* either byte, short, ushort, int, uint, long, ulong,
-             charp, or bool. (checked at run time!) */ 
+             charp, bool or invbool. (checked at run time!) */ 
     perm  /* for /sys/module/<module_name>/parameters/<param>,
              0: no such module parameter value file */
 );
 
 /* Example */
-int irq=5;
+static int irq=5;
 module_param(irq, int, S_IRUGO);
 \end{minted}
 Modules parameter arrays are also possible with
-\kfunc{module_param_array}, but they are less common.
+\kfunc{module_param_array}.
 \end{frame}
