@@ -21,7 +21,7 @@
 \subsection{User space vision of devices}
 
 \begin{frame}
-  \frametitle{Types of devices} Under Linux, there is essentially
+  \frametitle{Types of devices} Under Linux, there are essentially
   three types of devices:
   \begin{itemize}
   \item {\bf Network devices}. They are represented as network
@@ -48,8 +48,8 @@
     device.
   \item The {\em minor number} typically indicates the number of the
     device (when they are for example several serial ports)
-  \item Major and minor numbers are statically allocated, and
-    identical accross all Linux systems.
+  \item Most major and minor numbers are statically allocated, and
+    identical across all Linux systems.
   \item They are defined in \kerneldoc{devices.txt}.
   \end{itemize}
 \end{frame}
@@ -155,6 +155,8 @@ close(fd);
     driver. All of them are optional.
   \end{itemize}
 \begin{minted}[fontsize=\footnotesize]{c}
+#include <linux/fs.h>
+
 struct file_operations {
     ssize_t (*read) (struct file *, char __user *,
         size_t, loff_t *);
@@ -200,7 +202,7 @@ struct file_operations {
 \begin{frame}
   \frametitle{read()}
   \begin{itemize}
-  \item \mint{c}+ssize_t foo_read(struct file *f, __user char *buf,+
+  \item \mint{c}+ssize_t foo_read(struct file *f, char __user *buf,+
     \mint{c}+size_t sz, loff_t *off)+
     \begin{itemize}
     \item Called when user space uses the \code{read()} system call on
@@ -221,7 +223,7 @@ struct file_operations {
   \frametitle{write()}
   \begin{itemize}
   \item \mint{c}+ssize_t foo_write(struct file *f,+
-    \mint{c}+__user const char *buf, size_t sz, loff_t *off)+
+    \mint{c}+const char __user *buf, size_t sz, loff_t *off)+
     \begin{itemize}
     \item Called when user space uses the \code{write()} system call
       on the device
