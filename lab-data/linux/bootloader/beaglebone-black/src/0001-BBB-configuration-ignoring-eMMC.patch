@@ -1,0 +1,58 @@
+From 9e705c6d8ea4bf7a65f1217ce5cb2114ef3fbfc0 Mon Sep 17 00:00:00 2001
+From: Michael Opdenacker <michael.opdenacker@free-electrons.com>
+Date: Tue, 27 May 2014 11:21:16 +0200
+Subject: [PATCH] BBB configuration ignoring eMMC
+
+- Useful to boot the BBB from MMC and completely ignore
+  the U-Boot environment that could be stored on eMMC.
+
+Signed-off-by: Michael Opdenacker <michael.opdenacker@free-electrons.com>
+---
+ boards.cfg                   | 2 +-
+ include/configs/am335x_evm.h | 9 ++++-----
+ 2 files changed, 5 insertions(+), 6 deletions(-)
+
+diff --git a/boards.cfg b/boards.cfg
+index b4203f1..86a361d 100644
+--- a/boards.cfg
++++ b/boards.cfg
+@@ -264,7 +264,7 @@ Active  arm         armv7          am33xx      siemens         dxr2
+ Active  arm         armv7          am33xx      siemens         pxm2                pxm2                                 -                                                                                                                                 Roger Meier <r.meier@siemens.com>
+ Active  arm         armv7          am33xx      siemens         rut                 rut                                  -                                                                                                                                 Roger Meier <r.meier@siemens.com>
+ Active  arm         armv7          am33xx      silica          pengwyn             pengwyn                              -                                                                                                                                 Lothar Felten <lothar.felten@gmail.com>
+-Active  arm         armv7          am33xx      ti              am335x              am335x_boneblack                     am335x_evm:SERIAL1,CONS_INDEX=1,EMMC_BOOT                                                                                         Tom Rini <trini@ti.com>
++Active  arm         armv7          am33xx      ti              am335x              am335x_boneblack                     am335x_evm:SERIAL1,CONS_INDEX=1                                                                                         Tom Rini <trini@ti.com>
+ Active  arm         armv7          am33xx      ti              am335x              am335x_evm                           am335x_evm:SERIAL1,CONS_INDEX=1,NAND                                                                                              Tom Rini <trini@ti.com>
+ Active  arm         armv7          am33xx      ti              am335x              am335x_evm_nor                       am335x_evm:SERIAL1,CONS_INDEX=1,NAND,NOR                                                                                          Tom Rini <trini@ti.com>
+ Active  arm         armv7          am33xx      ti              am335x              am335x_evm_norboot                   am335x_evm:SERIAL1,CONS_INDEX=1,NOR,NOR_BOOT                                                                                      Tom Rini <trini@ti.com>
+diff --git a/include/configs/am335x_evm.h b/include/configs/am335x_evm.h
+index ea9e758..a5fb466 100644
+--- a/include/configs/am335x_evm.h
++++ b/include/configs/am335x_evm.h
+@@ -32,6 +32,8 @@
+ /* Always 128 KiB env size */
+ #define CONFIG_ENV_SIZE			(128 << 10)
+ 
++#define CONFIG_ENV_IS_NOWHERE
++
+ /* Enhance our eMMC support / experience. */
+ #define CONFIG_CMD_GPT
+ #define CONFIG_EFI_PARTITION
+@@ -173,12 +175,9 @@
+ #endif
+ 
+ #define CONFIG_BOOTCOMMAND \
+-	"run findfdt; " \
+-	"run mmcboot;" \
+-	"setenv mmcdev 1; " \
+-	"setenv bootpart 1:2; " \
++	"setenv mmcdev 0; " \
++	"setenv bootpart 0; " \
+ 	"run mmcboot;" \
+-	"run nandboot;"
+ 
+ /* NS16550 Configuration */
+ #define CONFIG_SYS_NS16550_COM1		0x44e09000	/* Base EVM has UART0 */
+-- 
+1.9.1
+

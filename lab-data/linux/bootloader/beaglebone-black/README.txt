@@ -9,6 +9,12 @@ Tested on the following board revisions:
 - Rev A5C
 - Rev A6
 
+Caution: this procedure can erase data installed on the board eMMC.
+This won't make your board unusable though. 
+
+If you want to install a distribution again on the eMMC, just go to
+http://beagleboard.org/latest-images and follow instructions.
+
 Make a bootable micro-SD card
 -----------------------------
 
@@ -40,13 +46,13 @@ Now, format the first partition in FAT format:
 sudo mkfs.vfat -F 16 /dev/mmcblk0p1 -n boot
 
 Remove the card and insert it again. It should automatically be mounted
-'/media/BOOT' (or '/media/$USER/BOOT' if you are using Ubuntu 12.10 or later).
+'/media/boot' (or '/media/$USER/boot' if you are using Ubuntu 12.10 or later).
 
 Now, copy the below files to this partition:
 
-cp am335x-boneblack.dtb MLO u-boot.img uEnv.txt uImage /media/$USER/BOOT
+cp am335x-boneblack.dtb MLO u-boot.img MLO.final u-boot.img.final uEnv.txt uImage /media/$USER/boot
 
-Now, unmount '/media/$USER/BOOT' and you are done!
+Now, unmount '/media/$USER/boot' and you are done!
 
 Using your bootable micro-SD card
 ---------------------------------
@@ -85,14 +91,13 @@ If the partitions need fixing and reformating, the root filesystem
 you will boot on contains many useful commands, in particular 'fdisk'
 and 'mkfs.vfat'.
 
-Restoring factory defaults
---------------------------
+The provided root filesystem may not be sufficient for all needs though.
+For example, we failed to create a partition table with correct eMMC 
+geometry settings with the provided fdisk command. fsck.vfat is not
+available either.
 
-At any time, you should be able to restore the original 'MLO' 
-and 'u-boot.img' files on the eMMC storage. To do this, boot on
-your special micro-SD card, access the command line on the serial console,
-mount the eMMC boot partition (/dev/mmcblk1p1), and copy
-the 'MLO.factory' and 'u-boot.img.factory' files to 'MLO' and 'u-boot.img'.
+Should you need more standard tools, you may boot the board with
+an MMC card with Debian on it (see http://beagleboard.org/latest-images).
 
 ===============================
 How the binaries where compiled
@@ -117,7 +122,12 @@ Compiling U-Boot
 Clone the mainline U-boot sources:
 git clone git://git.denx.de/u-boot.git
 git tag
-git checkout v2013.10
+git checkout v2014.04
+
+Apply a special configuration to ignore the U-Boot environment in eMMC
+
+git checkout -b reflash-from-mmc
+git apply 0001-BBB-configuration-ignoring-eMMC.patch (file available in the src/ directory)
 
 export ARCH=arm
 export CROSS_COMPILE=arm-linux-gnueabi-
