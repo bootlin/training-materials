@@ -99,6 +99,18 @@ available either.
 Should you need more standard tools, you may boot the board with
 an MMC card with Debian on it (see http://beagleboard.org/latest-images).
 
+Limitations
+-----------
+
+- The system does not erase the previous U-Boot environment that would
+  remain from an earlier session.
+  How to do it safely from Linux without damaging existing partitions? 
+
+- The system cannot cope with broken partition tables that are
+  not suitable with booting on the first partition with U-Boot.
+  In case the partition table needs fixing, do it from Debian booted
+  from MMC.
+
 ===============================
 How the binaries where compiled
 ===============================
