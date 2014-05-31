@@ -10,7 +10,7 @@ Tested on the following board revisions:
 - Rev A6
 
 Caution: this procedure can erase data installed on the board eMMC.
-This won't make your board unusable though. 
+This won't make your board unusable though.
 
 If you want to install a distribution again on the eMMC, just go to
 http://beagleboard.org/latest-images and follow instructions.
@@ -50,7 +50,7 @@ Remove the card and insert it again. It should automatically be mounted
 
 Now, copy the below files to this partition:
 
-cp am335x-boneblack.dtb MLO u-boot.img MLO.final u-boot.img.final uEnv.txt uImage /media/$USER/boot
+cp am335x-boneblack.dtb MLO MBR u-boot.img MLO.final u-boot.img.final uEnv.txt uImage /media/$USER/boot
 
 Now, unmount '/media/$USER/boot' and you are done!
 
@@ -58,13 +58,13 @@ Using your bootable micro-SD card
 ---------------------------------
 
 Your bootable micro-SD card should be easy to use. In particular, it allows
-to reflash multiple boards without even needing to connect them to a serial 
+to reflash multiple boards without even needing to connect them to a serial
 line.
 
 First, insert the micro-SD card in the corresponding slot in the board.
 
 Then, press and hold the 'Boot Switch' button (the only one near the USB
-host slot), power up the board (either through the power or USB device 
+host slot), power up the board (either through the power or USB device
 connectors), and release the button.
 
 After about 20 to 30 seconds, you should see the 4 LEDs next to the Ethernet
@@ -92,24 +92,12 @@ you will boot on contains many useful commands, in particular 'fdisk'
 and 'mkfs.vfat'.
 
 The provided root filesystem may not be sufficient for all needs though.
-For example, we failed to create a partition table with correct eMMC 
+For example, we failed to create a partition table with correct eMMC
 geometry settings with the provided fdisk command. fsck.vfat is not
 available either.
 
 Should you need more standard tools, you may boot the board with
 an MMC card with Debian on it (see http://beagleboard.org/latest-images).
-
-Limitations
------------
-
-- The system does not erase the previous U-Boot environment that would
-  remain from an earlier session.
-  How to do it safely from Linux without damaging existing partitions? 
-
-- The system cannot cope with broken partition tables that are
-  not suitable with booting on the first partition with U-Boot.
-  In case the partition table needs fixing, do it from Debian booted
-  from MMC.
 
 ===============================
 How the binaries where compiled
@@ -156,12 +144,12 @@ The root filesystem is available in src/rootfs.tar.xz
 
 To rebuild your kernel, extract the contents of this archive.
 
-This root filesystem just contains BusyBox utilities and a 
+This root filesystem just contains BusyBox utilities and a
 few custom scripts. It is very easy to update (you don't need
 tools like Buildroot).
 
 If you to need to update it, get the latest BusyBox 1.21.x sources,
-and configure them with src/busybox-1.21.x.config 
+and configure them with src/busybox-1.21.x.config
 
 If you don't, just go to the next section.
 
@@ -170,7 +158,7 @@ Assuming you extracted the rootfs archive in the 'rootfs' directory,
 just run:
 
 export CROSS_COMPILE=arm-linux-gnueabi-
-make 
+make
 make install
 
 Linux kernel
@@ -191,7 +179,7 @@ Extract these sources and compile them as follows:
 export ARCH=arm
 export CROSS_COMPILE=arm-linux-gnueabi-
 
-- Configure Linux with src/linux-3.12-bone-black.config 
+- Configure Linux with src/linux-3.12-bone-black.config
 - Compile the kernel:
 
 make -j 8 LOADADDR=80008000 uImage
