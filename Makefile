@@ -194,6 +194,7 @@ ANDROID_SLIDES = \
 		android-native-layer-dalvik \
 		android-native-layer-hal \
 		android-native-layer-jni \
+		android-native-layer-lab-jni \
 		android-framework-title \
 		android-framework-native-services \
 		android-framework-ipc \
@@ -280,9 +281,10 @@ ANDROID_LABS  = setup \
 		android-new-board \
 		android-adb \
 		android-native-library \
-		android-system-customization \
 		android-native-app \
+		android-system-customization \
 		android-jni-library \
+		android-framework \
 		android-application \
 
 BOOTTIME_LABS = boottime-install \

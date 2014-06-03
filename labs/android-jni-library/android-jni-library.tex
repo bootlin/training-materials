@@ -5,8 +5,6 @@ After this lab, you will be able to
 \begin{itemize}
   \item Develop bindings from Java to C
   \item Integrate these bindings into the build system
-  \item Modify the Android framework
-  \item Use JNI bindings
 \end{itemize}
 
 \section{Write the bindings}
@@ -21,40 +19,39 @@ You will mostly have to modify function prototypes from your previous
 application to make it work with JNI.
 
 As a reminder, JNI requires the function prototype to be like:
-\code{JNIEXPORT <jni type> JNICALL Java_<package_class>_<function_name>(JNIEnv *env, jobject this)}.
+\code{JNIEXPORT <jni type> JNICALL Java_<package>_<class>_<function_name>(JNIEnv *env, jobject this)}.
 Beware that the function name can't have any underscore in its name
 for JNI to function properly.
 
-Aside from the \code{jni} folder, there is also a \code{java} folder that
-contains a Java Interface, \code{MissileBackendImpl}. In the same folder,
-write the \code{USBBackend} class implementing this interface that uses your
-bindings. You have an example of such a class in the \code{DummyBackend.java}
-file.
+The package we are going to use is \code{com.fe.android.backend}, and
+the class name is \code{USBBackend}. We are going to need the
+functions \code{fire}, \code{stop}, \code{initUSB}, \code{freeUSB},
+\code{moveDown}, \code{moveUp}, \code{moveLeft} and \code{moveRight}.
+
+Aside from the \code{jni} folder, there is also a \code{java} folder
+that contains a Java Interface, \code{MissileBackendImpl}. In the same
+folder, write the \code{USBBackend} class implementing this interface
+that uses your bindings. You have an example of such a class in the
+\code{DummyBackend.java} file.
 
 \section{Integrate it in the build system}
 
-Now you can integrate it into the build system, so that it generates a .jar
-library that is in our product, with the proper dependencies expressed.
+Now you can integrate it into the build system, by writing an
+\code{Android.mk} as usual.
 
-You can find documentation about how to integrate device-specific parts of the
-framework in the \code{device/sample/frameworks} folder.
+The library should be called \code{liblauncher_jni}.
 
 \section{Testing the bindings}
 
 We should now have a system with the files
-\code{/system/framework/com.fe.android.backend.jar}, containing the Java
-classes, \code{/system/lib/liblauncher_jni.so}, containing the JNI bindings and
+\code{/system/lib/liblauncher_jni.so}, containing the JNI bindings and
 \code{/system/lib/libusb.so}.
 
-Test what you did using the Main class present in the Java source code
-by directly invoking Dalvik through the \code{app_process}
-command. You will have to provide both the classpath and the class
-name to make it work and should look like
-\code{CLASSPATH=path/to/java.jar app_process /system/bin com.fe.android.Main}
+Test what you did so far by using the \code{TestJNI.apk} application
+you'll find in the \code{felabs/android} directory.
 
-Once you have a solution that works, you can ask your instructor to 
-give you a URL where Free Electrons' solution is available, and compare
-it with what you implemented.
+Install it using adb, and make sure that you see a succesful message
+in the logs after running it.
 
 \section{Going further}
 
