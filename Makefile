@@ -180,6 +180,7 @@ ANDROID_SLIDES = \
 		android-build-system-advanced-title \
 		android-build-system-advanced-modules \
 		android-build-system-lab-library \
+		android-build-system-lab-binary \
 		android-build-system-advanced-product \
 		android-build-system-lab-product \
 		android-native-layer-title \
@@ -193,7 +194,6 @@ ANDROID_SLIDES = \
 		android-native-layer-dalvik \
 		android-native-layer-hal \
 		android-native-layer-jni \
-		android-native-layer-lab-binary \
 		android-framework-title \
 		android-framework-native-services \
 		android-framework-ipc \
