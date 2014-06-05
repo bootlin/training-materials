@@ -28,18 +28,76 @@ Recompile your kernel with support for SquashFS and ext3.
 
 Boot your board with this new kernel and on the NFS filesystem you
 used in this previous lab.\footnote{If you didn't do or complete the
-  tinysystem lab, you can use the \code{data/rootfs} directory instead.}
+  tinysystem lab, you can use the \code{data/rootfs} directory
+  instead.}
 
-\section{Add partitions to the MMC card}
+\section{Prepare the MMC card}
 
-Using \code{cfdisk}
-\footnote{Now that one partition already exists, you don't have to specify
-headers and sectors again. Just run \code{cfdisk /dev/sdx}},
-add two additional partitions to the MMC card (in
-addition to the existing \code{boot} partition created in the
-bootloaders lab):
+We're going to use an MMC card for our block device.
+
+Plug the MMC card your instructor gave you on your workstation. Type
+the \code{dmesg} command to see which device is used by your
+workstation. In case the device is \code{/dev/sdb}, you will see
+something like
+
+\begin{verbatim}
+sd 3:0:0:0: [sdb] 3842048 512-byte hardware sectors: (1.96 GB/1.83 GiB)
+\end{verbatim}
+
+If your PC has an internal MMC/SD card reader, the device may also
+been seen as \code{/dev/mmcblk0}, and the first partition as
+\code{mmcblk0p1}. \footnote{This is not always the case with internal
+  MMC/SD card readers. On some PCs, such devices are behind an
+  internal USB bus, and thus are visible in the same way external card
+  readers are}. You will see that the MMC/SD card is seen in the same
+way by the board.
+
+In the following instructions, we will assume that your MMC/SD card
+is seen as \code{/dev/sdb} by your PC workstation.
+
+\fbox{
+  \begin{minipage}{\textwidth}
+    {\bfseries Caution: read this carefully before proceeding. You
+      could destroy existing partitions on your PC!
+
+      Do not make the confusion between the device that is used by
+      your board to represent your MMC/SD disk (probably
+      \code{/dev/sda}), and the device that your workstation uses when
+      the card reader is inserted (probably \code{/dev/sdb}).
+
+      So, don't use the \code{/dev/sda} device to reflash your MMC
+      disk from your workstation. People have already destroyed their
+      Windows partition by making this mistake.}
+  \end{minipage}
+}
+
+You can also run \code{cat /proc/partitions} to list all block devices
+in your system. Again, make sure to distinguish the SD/MMC card from
+the hard drive of your development workstation!
+
+Type the \code{mount} command to check your currently mounted
+partitions. If MMC/SD partitions are mounted, unmount them:
+
+\begin{verbatim}
+$ sudo umount /dev/sdb*
+\end{verbatim}
+
+Then, clear possible MMC/SD card contents remaining from previous
+training sessions:
+
+\begin{verbatim}
+$ sudo dd if=/dev/zero of=/dev/sdb bs=1M count=256
+\end{verbatim}
+
+Now, let's use the \code{cfdisk} command to create the partitions that
+we are going to use.
+
+In the \code{cfdisk} interface, two primary partition,
+starting from the beginning, with the following properties:
 
 \begin{itemize}
+
+\item One partition, 64MB big, with the \code{FAT16} partition type.
 
 \item One partition, 8 MB big
   \footnote{For the needs of our system, the partition could even be
@@ -57,37 +115,36 @@ bootloaders lab):
 
 \end{itemize}
 
-At the end, you should have three partitions: one for the boot, one
-for the root filesystem and one for the data filesystem.
+Press \code{Write} when you are done.
 
 \section{Data partition on the MMC disk}
 
-\fbox{\begin{minipage}{\textwidth}
-{\bfseries
-Caution: read this carefully before proceeding. You could destroy
-existing partitions on your PC!
+\fbox{
+  \begin{minipage}{\textwidth}
+    {\bfseries Caution: read this carefully before proceeding. You
+      could destroy existing partitions on your PC!
 
-Do not make the confusion between the device that is used by your
-board to represent your MMC disk (\code{/dev/mmcblk0)} or
-\code{/dev/sda} if you are connecting the MMC card to the board 
-with a USB card reader), and the device that your workstation
-uses (probably \code{/dev/sdb}).
+      Do not make the confusion between the device that is used by
+      your board to represent your MMC disk (\code{/dev/mmcblk0)} or
+      \code{/dev/sda} if you are connecting the MMC card to the board
+      with a USB card reader), and the device that your workstation
+      uses (probably \code{/dev/sdb}).
 
-So, don't use the \code{/dev/sdaX} device to reflash your MMC disk from your
-workstation. People have already destroyed their Windows partition by
-making this mistake.}
-\end{minipage}}
+      So, don't use the \code{/dev/sdaX} device to reflash your MMC
+      disk from your workstation. People have already destroyed their
+      Windows partition by making this mistake.}
+  \end{minipage}
+}
 
-Using the \code{mkfs.ext3} create a journaled file system on the third
-partition of the MMC disk. Remember that you can use the \code{-L}
-option to set a volume name for the partition. Move the contents of
-the \code{www/upload/files} directory (in your target root filesystem)
-into this new partition. The goal is to use the third partition of the
-MMC card as the storage for the uploaded images.
+Using the \code{mkfs.ext3} create a journaled file system on the
+second partition of the MMC disk. Remember that you can use the
+\code{-L} option to set a volume name for the partition. Move the
+contents of the \code{/www/upload/files} directory (in your target root
+filesystem) into this new partition. The goal is to use the second
+partition of the MMC card as the storage for the uploaded images.
 
-Connect the MMC disk to your board (after rebooting the board... that's
-currently needed with Linux 3.11 with the Device Tree supported IGEPv2
-board). You should see the MMC partitions in \code{/proc/partitions}.
+Connect the MMC disk to your board. You should see the MMC partitions
+in \code{/proc/partitions}.
   
 Mount this third partition on \code{/www/upload/files}.
 
@@ -145,9 +202,25 @@ Check that your system still works. Congratulations if it does!
 
 \section{Store the kernel image and DTB on the MMC card}
 
-Finally, copy the \code{uImage} kernel image and DTB to the first partition of
-the MMC card (the partition called \code{boot}), and adjust the
-\code{bootcmd} of U-Boot so that it loads the kernel and DTB from the MMC card
-instead of loading them through the network\footnote{Go back to the
-instructions in the "Bootloader - U-Boot" lab if you don't remember how
-to load files from an MMC card.}.
+Finally, copy the \code{zImage} kernel image and DTB to the first
+partition of the MMC card and adjust the \code{bootcmd} of U-Boot so
+that it loads the kernel and DTB from the MMC card instead of loading
+them through the network.
+
+You'll first need to format the first partition, using:
+\begin{verbatim}
+sudo mkfs.vfat -F 16 -n boot /dev/sdb1
+\end{verbatim}
+
+It will create a new FAT16 partition, called \code{boot}. Remove and
+plug the MMC card. You can now copy the image and DTBs to it.
+
+In U-boot, you can load a file from a FAT filesystem using a command
+like
+
+\begin{verbatim}
+fatload mmc 0:1 0x21000000 dtb
+\end{verbatim}
+
+Which will load the \code{dtb} file, at the address \code{0x21000000},
+from the first partition of the first MMC device.
