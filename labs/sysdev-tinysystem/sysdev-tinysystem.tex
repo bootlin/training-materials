@@ -6,7 +6,7 @@ After this lab, you will:
   directory on your workstation, shared through the network by NFS.
 \item be able to create and configure a minimalistic root filesystem
   from scratch (ex nihilo, out of nothing, entirely hand made...) for
-  the IGEP board
+  the Xplained board
 \item understand how small and simple an embedded Linux system can be.
 \item be able to install BusyBox on this filesystem.
 \item be able to create a simple startup script based on /sbin/init.
@@ -72,7 +72,7 @@ causing your root filesystem to be read-only.
 Then, restart the NFS server:
 
 \begin{verbatim}
-sudo /etc/init.d/nfs-kernel-server restart
+sudo service nfs-kernel-server restart
 \end{verbatim}
 
 \section{Booting the system}
@@ -82,11 +82,9 @@ we need to tell it that the root filesystem should be mounted over
 NFS, by setting some kernel parameters.
 
 Use the following U-Boot command to do so, {\bf in just 1 line}
-(Caution: in \code{ttyO2} below, it's the capital letter \code{O}, like in
-{\bf O}MAP and not the number zero):
 
 \begin{verbatim}
-setenv bootargs console=ttyO2,115200 root=/dev/nfs ip=192.168.0.100
+setenv bootargs console=ttyS0,115200 root=/dev/nfs ip=192.168.0.100
    nfsroot=192.168.0.1:/home/<user>/felabs/sysdev/tinysystem/nfsroot rw
 \end{verbatim}
 
@@ -100,7 +98,7 @@ Now, boot your system. The kernel should be able to mount the root
 filesystem over NFS:
 
 \begin{verbatim}
-[    7.467895] VFS: Mounted root (nfs filesystem) readonly on device 0:12.
+VFS: Mounted root (nfs filesystem) on device 0:13.
 \end{verbatim}
 
 If the kernel fails to mount the NFS filesystem, look carefully at the
@@ -178,8 +176,8 @@ Run the \code{ps} command. You can see that it complains that the
 process-related commands use the \code{proc} virtual filesystem to get
 their information from the kernel.
 
-From the Linux command line in the target, create the \code{proc}, \code{sys} and
-\code{etc} directories in your root filesystem.
+From the Linux command line in the target, create the \code{proc},
+\code{sys} and \code{etc} directories in your root filesystem.
 
 Now mount the \code{proc} virtual filesystem. Now that \code{/proc} is
 available, test again the \code{ps} command.
@@ -209,12 +207,12 @@ Take the \code{hello.c} program supplied in the lab \code{data}
 directory. Cross-compile it for ARM, dynamically-linked with the
 libraries, and run it on the target.
 
-You will first encounter a \code{not found} error caused by the absence of
-the \code{ld-uClibc.so.0} executable, which is the dynamic linker
-required to execute any program compiled with shared libraries. Using
-the find command (see examples in your command memento sheet), look
-for this file in the toolchain install directory, and copy it to the
-\code{lib/} directory on the target.
+You will first encounter a \code{not found} error caused by the
+absence of the \code{ld-uClibc.so.0} executable, which is the dynamic
+linker required to execute any program compiled with shared
+libraries. Using the find command (see examples in your command
+memento sheet), look for this file in the toolchain install directory,
+and copy it to the \code{lib/} directory on the target.
 
 Then, running the executable again and see that the loader executes
 and finds out which shared libraries are missing. Similarly, find
@@ -222,18 +220,19 @@ these libraries in the toolchain and copy them to \code{lib/} on the
 target.
 
 Once the small test program works, we are going to recompile Busybox
-without the static compilation option, so that Busybox takes advantages of the
-shared libraries that are now present on the target.
+without the static compilation option, so that Busybox takes
+advantages of the shared libraries that are now present on the target.
 
 Before doing that, measure the size of the \code{busybox} executable.
 
 Then, build Busybox with shared libraries, and install it again on the
-target filesystem. Make sure that the system still boots and see
-how much smaller the \code{busybox} executable got.
+target filesystem. Make sure that the system still boots and see how
+much smaller the \code{busybox} executable got.
 
 \section{Implement a web interface for your device}
 
-Replicate \code{data/www/} to the \code{/www} directory in your target root filesystem.
+Replicate \code{data/www/} to the \code{/www} directory in your target
+root filesystem.
 
 Now, run the BusyBox http server from the target command line:
 
