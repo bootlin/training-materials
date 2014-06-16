@@ -32,54 +32,63 @@
   \end{itemize}
 \end{frame}
 
-\begin{frame}
-  \frametitle{Clock Framework (2)}
+
+\begin{frame}{Clock Framework (2)}
   \begin{itemize}
-  \item The clock framework API and the \kstruct{clk} structure are
-    usually implemented by each architecture (code duplication!)
+  \item The common clock framework
     \begin{itemize}
-    \item See \kpath{arch/arm/mach-at91/clock.c} for an example
-    \item This is also where all clocks are defined.
-    \item Clocks are identified by a name string specific to a given
-      platform
-    \end{itemize}
-  \item Drivers can then use the clock API. Example from
-    \kpath{drivers/net/macb.c}:
-    \begin{itemize}
-    \item \kfunc{clk_get} called from the \code{probe()} function, to
-      get the definition of a clock for the current board, get its
-      frequency, and run \kfunc{clk_enable}.
-    \item \kfunc{clk_put} called from the \code{remove()} function to
-      release the reference to the clock, after calling
-      \kfunc{clk_disable}
+    \item Allows to declare the available clocks and their association
+      to devices in the Device Tree (preferred) or statically in the
+      source code (old method)
+    \item Provides a {\em debugfs} representation of the clock tree
+    \item Is implemented in \kpath{drivers/clk}
     \end{itemize}
   \end{itemize}
 \end{frame}
 
-\begin{frame}[fragile]
-\frametitle{Clock Disable Implementation}
-From \kpath{arch/arm/mach-at91/clock.c}: (2.6.36)
-\begin{minted}[fontsize=\footnotesize]{c}
-static void __clk_disable(struct clk *clk)
-{
-    BUG_ON(clk->users == 0);
-    if (--clk->users == 0 && clk->mode)
-        /* Call the hardware function switching off this clock */
-        clk->mode(clk, 0);
-    if (clk->parent)
-        __clk_disable(clk->parent);
-}
+\begin{frame}{Diagram overview of the common clock framework}
+  \begin{center}
+    \includegraphics[width=\textwidth]{slides/kernel-power-management-content/clock-framework.pdf}
+\end{center}
+\end{frame}
 
-[...]
+\begin{frame}{Clock Framework (3)}
+  The interface of the  CCF divided into two halves:
+  \begin{itemize}
+  \item Common Clock Framework core
+    \begin{itemize}
+    \item Common definition of \code{struct clk}
+    \item Common implementation of the \code{clk.h} API (defined in
+      \kpath{drivers/clk/clk.c})
+    \item \code{struct clk_ops}: operations invoked by the clk API
+      implementation
+    \item Not supposed to be modified when adding a new driver
+    \end{itemize}
+  \item Hardware-specific
+    \begin{itemize}
+    \item Callbacks registered with \code{struct clk_ops} and the
+      corresponding hardware-specific structures
+    \item Has to be written for each new hardware clock
+    \end{itemize}
+  \end{itemize}
+\end{frame}
 
-static void pmc_sys_mode(struct clk *clk, int is_on)
-{
-    if (is_on)
-        at91_sys_write(AT91_PMC_SCER, clk->pmc_mask);
-    else
-        at91_sys_write(AT91_PMC_SCDR, clk->pmc_mask);
-}
-\end{minted}
+\begin{frame}{Clock Framework (4)}
+  \begin{itemize}
+  \item Hardware clock operations: device tree
+    \begin{itemize}
+    \item The \textbf{device tree} is the \textbf{mandatory way} to
+      declare a clock and to get its resources, as for any other
+      driver using DT we have to:
+      \begin{itemize}
+      \item \textbf{Parse} the device tree to \textbf{setup} the
+        clock: the resources but also the properties are retrieved.
+      \item Declare the \textbf{compatible} clocks and associate it
+        with an \textbf{initialization} function using
+        \code{CLK_OF_DECLARE}
+      \end{itemize}
+    \end{itemize}
+  \end{itemize}
 \end{frame}
 
 \begin{frame}
