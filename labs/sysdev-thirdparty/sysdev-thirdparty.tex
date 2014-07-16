@@ -4,9 +4,8 @@
 
 To illustrate how to use existing libraries and applications, we will
 extend the small root filesystem built in the {\em A tiny embedded
-  system} lab to add the {\em DirectFB} graphic library and sample
-applications using this library. Because many boards do not have a
-display, we will test the result of this lab with {\em QEMU}.
+  system} lab to add the {\em ALSA} libraries and tools and an audio
+playback application using these libraries.
 
 We'll see that manually re-using existing libraries is quite tedious,
 so that more automated procedures are necessary to make it
@@ -16,25 +15,27 @@ automated tools.
 
 \section{Figuring out library dependencies}
 
-As most libraries, DirectFB depends on other libraries, and these
-dependencies are different depending on the configuration chosen for
-DirectFB. In our case, we will enable support for:
+We're going to integrate the \code{alsa-utils} and \code{ogg123}. As
+most software components, they in turn depend on other libraries, and
+these dependencies are different depending on the configuration chosen
+for them. In our case, the dependency chain for the \code{alsa-utils}
+is quite simple, it only depends on the \code{alsa-lib} library.
 
-\begin{itemize}
-\item PNG image loading
-\item JPEG image loading
-\item Font rendering using a font engine
-\end{itemize}
+The dependencies are a bit more complex for \code{ogg123}. It is part
+of the \code{vorbis-tools}, that depend on \code{libao} and
+\code{libvorbis}. \code{libao} in turn depend on \code{alsa-lib}, and
+\code{libvorbis} on \code{libogg}.
 
-The PNG image loading feature will be provided by the {\em libpng}
-library, the JPEG image loading feature by the {\em jpeg} library and
-the font engine will be implemented by the {\em FreeType} library. The
-{\em libpng} library itself depends on the {\em zlib}
-compression/decompression library. So, we end up with the following
-dependency tree:
+\code{libao}, the \code{alsa-utils} and the \code{alsa-lib} are here
+to abstract the use of \code{ALSA}, one of the Audio Subsystems
+supported in Linux. The \code{vorbis-tools}, \code{libvorbis} and
+\code{libogg} are used to handle the audio files encoded using the Ogg
+codec, which is quite common.
+
+So, we end up with the following dependency tree:
 
 \begin{center}
-\includegraphics[width=\textwidth]{labs/sysdev-thirdparty/directfb-dependencies.pdf}
+\includegraphics[width=\textwidth]{labs/sysdev-thirdparty/alsa-dependencies.pdf}
 \end{center}
 
 Of course, all these libraries rely on the C library, which is not
@@ -53,10 +54,9 @@ several ways, that can be combined:
 \end{itemize}
 
 To configure, compile and install all the components of our system,
-we're going to start from the bottom of the tree with {\em zlib}, then
-continue with {\em libpng}, \emph{jpeg} and \emph{FreeType}, to
-finally compile \emph{DirectFB} and the \emph{DirectFB} sample
-applications.
+we're going to start from the bottom of the tree with {\em alsa-lib},
+then continue with the {\em alsa-utils}, \emph{libao}, {\em libogg},
+and \emph{libvorbis}, to finally compile the \emph{vorbis-tools}.
 
 \section{Preparation}
 
@@ -79,8 +79,8 @@ To sum up, the {\em staging} space will contain everything that's
 needed for compilation, while the {\em target} space will contain only
 what's needed for execution.
 
-So, in \code{$HOME/felabs/sysdev/thirdparty}, create two
-directories: \code{staging} and \code{target}.
+So, in \code{$HOME/felabs/sysdev/thirdparty}, create two directories:
+\code{staging} and \code{target}.
 
 For the target, we need a basic system with BusyBox, device nodes and
 initialization scripts. We will re-use the system built in the {\em A
@@ -97,41 +97,25 @@ the {\em A tiny embedded system} lab contains a few device nodes.
 \section{Testing}
 
 Make sure the \code{target/} directory is exported by your NFS server
-by adding the following line to \code{/etc/exports}:
+to your board by modifying \code{/etc/exports} and restarting your NFS
+server.
 
-\scriptsize
-\begin{verbatim}
-/home/<user>/felabs/sysdev/thirdparty/target 172.20.0.2(rw,no_root_squash,no_subtree_check)
-\end{verbatim}
-\normalsize
+Make sure your board boots as it used to and that you can get a
+prompt.
 
-And restart your NFS server.
+\section{alsa-lib}
 
-Install the QEMU emulator for non-x86 architectures by installing the
-\code{qemu-kvm-extras} package.
-
-Then, run QEMU with the provided script:
-
-\begin{verbatim}
-./run_qemu
-\end{verbatim}
-
-The system should boot and give you a prompt.
-
-\section{zlib}
-
-\code{Zlib} is a compression/decompression library available at
-\url{http://www.zlib.net/}. Download version 1.2.5, and extract it in
-\code{$HOME/felabs/sysdev/thirdparty/}.
+\code{alsa-lib} is a library supposed to handle the interaction with
+the ALSA subsystem. It is available at
+\url{http://alsa-project.org}. Download version 1.0.28, and extract it
+in \code{$HOME/felabs/sysdev/thirdparty/}.
 
 By looking at the \code{configure} script, we see that this configure
-script has not been generated by \code{autoconf} (otherwise it would
-contain a sentence like {\em Generated by GNU Autoconf
-  2.62}). Moreover, the project doesn't use automake since there are
-no Makefile.am files. So zlib uses a custom build system, not a build
-system based on the classical autotools.
-
-Let's try to configure and build zlib:
+script has been generated by \code{autoconf} (the header contain a
+sentence like {\em Generated by GNU Autoconf 2.62}). Most of the time,
+\code{autoconf} comes with \code{automake}, that generates Makefiles
+from Makefile.am files. So the alsa-lib uses a rather common build
+system. Let's try to configure and build alsa-lib:
 
 \begin{verbatim}
 ./configure
@@ -150,202 +134,33 @@ CC=arm-linux-gcc ./configure
 Of course, the \code{arm-linux-gcc} cross-compiler must be in your
 PATH prior to running the configure script. The CC environment
 variable is the classical name for specifying the compiler to
-use. Moreover, the beginning of the configure script tells us about
-this:
-
-\begin{verbatim}
-# To impose specific compiler or flags or
-# install directory, use for example:
-#    prefix=$HOME CC=cc CFLAGS="-O4" ./configure
-\end{verbatim}
-
-Now when you compile with make, the cross-compiler is used. Look at
-the result of compiling: a set of object files, a file \code{libz.a}
-and set of \code{libz.so*} files.
-
-The \code{libz.a} file is the static version of the library. It has
-been generated using the following command:
-
-\begin{verbatim}
-ar rc libz.a adler32.o compress.o crc32.o gzio.o uncompr.o deflate.o \
-      trees.o zutil.o inflate.o infback.o inftrees.o inffast.o
-\end{verbatim}
-
-It can be used to compile applications linked statically with the zlib
-library, as shown by the compilation of the example program:
-
-\begin{verbatim}
-arm-linux-gcc -O3 -DUSE_MMAP -o example example.o -L. libz.a
-\end{verbatim}
-
-In addition to this static library, there is also a dynamic version of
-the library, the \code{libz.so*} files. The shared library itself is
-\code{libz.so.1.2.5}, it has been generated by the following command
-line:
-
-\begin{verbatim}
-arm-linux-gcc -shared -Wl,-soname,libz.so.1 -o libz.so.1.2.5 \
-              adler32.o compress.o crc32.o gzio.o uncompr.o  \
-              deflate.o trees.o zutil.o inflate.o infback.o  \
-              inftrees.o inffast.o
-\end{verbatim}
-
-And creates symbolic links \code{libz.so} and \code{libz.so.1}:
-
-\begin{verbatim}
-ln -s libz.so.1.2.5 libz.so
-ln -s libz.so.1.2.5 libz.so.1
-\end{verbatim}
-
-These symlinks are needed for two different reasons:
-
-\begin{itemize}
-\item \code{libz.so} is used at compile time when you want to compile
-  an application that is dynamically linked against the library. To do
-  so, you pass the \code{-lLIBNAME} option to the compiler, which will
-  look for a file named \code{lib<LIBNAME>.so}. In our case, the
-  compilation option is \code{-lz} and the name of the library file is
-  \code{libz.so}. So, the \code{libz.so} symlink is needed at compile
-  time;
-\item \code{libz.so.1} is needed because it is the {\em SONAME} of the
-  library. {\em SONAME} stands for {\em Shared Object Name}. It is the
-  name of the library as it will be stored in applications linked
-  against this library. It means that at runtime, the dynamic loader
-  will look for exactly this name when looking for the shared
-  library. So this symbolic link is needed at runtime.
-\end{itemize}
-
-To know what's the {\em SONAME} of a library, you can use:
-\begin{verbatim}
-arm-linux-readelf -d libz.so.1.2.5
-\end{verbatim}
-
-and look at the \code{(SONAME)} line. You'll also see that this
-library needs the C library, because of the \code{(NEEDED)} line on
-\code{libc.so.0}.
-
-The mechanism of \code{SONAME} allows to change the library without
-recompiling the applications linked with this library. Let's say that
-a security problem is found in zlib 1.2.5, and fixed in the next
-release 1.2.6. You can recompile the library, install it on your
-target system, change the link \code{libz.so.1} so that it points to
-\code{libz.so.1.2.6} and restart your applications. And it will work,
-because your applications don't look specifically for
-\code{libz.so.1.2.5} but for the {\em SONAME}
-\code{libz.so.1}. However, it also means that as a library developer,
-if you break the ABI of the library, you must change the {\em SONAME}:
-change from \code{libz.so.1} to \code{libz.so.2}.
-
-Finally, the last step is to tell the configure script where the
-library is going to be installed. Most configure scripts consider that
-the installation prefix is \code{/usr/local/} (so that the library is
-installed in \code{/usr/local/lib}, the headers in
-\code{/usr/local/include}, etc.). But in our system, we simply want
-the libraries to be installed in the \code{/usr} prefix, so let's tell
-the configure script about this:
-
-\begin{verbatim}
-CC=arm-linux-gcc ./configure --prefix=/usr
-make
-\end{verbatim}
-
-For the zlib library, this option may not change anything to the
-resulting binaries, but for safety, it is always recommended to make
-sure that the prefix matches where your library will be running on the
-target system.
-
-Do not confuse the {\em prefix} (where the application or library will
-be running on the target system) from the location where the
-application or library will be installed on your host while building
-the root filesystem. For example, zlib will be installed in
-\code{$HOME/felabs/sysdev/thirdparty/target/usr/lib/} because
-this is the directory where we are building the root filesystem, but
-once our target system will be running, it will see zlib in
-\code{/usr/lib}. The prefix corresponds to the path in the target
-system and {\bf never} on the host. So, one should {\bf never} pass a
-prefix like \code{$HOME/felabs/sysdev/thirdparty/target/usr},
-otherwise at runtime, the application or library may look for files
-inside this directory on the target system, which obviously doesn't
-exist! By default, most build systems will install the application or
-library in the given prefix (\code{/usr} or \code{/usr/local}), but
-with most build systems (including {\em autotools}), the installation
-prefix can be overriden, and be different from the configuration
-prefix.
-
-First, let's make the installation in the {\em staging} space:
-\begin{verbatim}
-make DESTDIR=../staging install
-\end{verbatim}
-
-Now look at what has been installed by zlib:
-\begin{itemize}
-\item A manpage in \code{/usr/share/man}
-\item A pkgconfig file in \code{/usr/lib/pkgconfig}. We'll come back to these
-  later
-\item The shared and static versions of the library in \code{/usr/lib}
-\item The headers in \code{/usr/include}
-\end{itemize}
-
-Finally, let's install the library in the {\em target} space:
-
-\begin{enumerate}
-\item Create the \code{target/usr/lib} directory, it will contain the
-  stripped version of the library
-\item Copy the dynamic version of the library. Only \code{libz.so.1} and \code{libz.so.1.2.5} are needed, since \code{libz.so.1} is the {\em SONAME} of the library and \code{libz.so.1.2.5} is the real binary:\\
-  \code{cp -a libz.so.1* ../target/usr/lib}
-\item Strip the library:\\
-  \code{arm-linux-strip ../target/usr/lib/libz.so.1.2.5}
-\end{enumerate}
-
-Ok, we're done with zlib!
-
-\section{Libpng}
-
-Download libpng from its official website at
-\url{http://www.libpng.org/pub/png/libpng.html}. We tested the lab
-with version 1.4.3. Please stick to this version as newer versions are
-incompatible with the DirectFB version we use in this lab.
-
-Once uncompressed, we quickly discover that the libpng build system is
-based on the {\em autotools}, so we will work with a regular configure
-script.
-
-As we've seen previously, if we just run \code{./configure}, the build
-system will use the native compiler to build the library, which is not
-what we want. So let's tell the build system to use the
-cross-compiler:
-
-\begin{verbatim}
-CC=arm-linux-gcc ./configure
-\end{verbatim}
+use.
 
 Quickly, you should get an error saying:
 
 \begin{verbatim}
+checking whether we are cross compiling... configure: error: in `.../thirdparty/alsa-lib-1.0.28':
 configure: error: cannot run C compiled programs.
 If you meant to cross compile, use `--host'.
-See `config.log' for more details.
-If you look at config.log, you quickly understand what's going on:
-configure:2942: checking for C compiler default output file name
-configure:2964: arm-linux-gcc    conftest.c  >&5
-configure:2968: $? = 0
-configure:3006: result: a.out
-configure:3023: checking whether the C compiler works
-configure:3033: ./a.out
-./configure: line 3035: ./a.out: cannot execute binary file
+See `config.log' for more details
 \end{verbatim}
 
-The configure script compiles a binary with the cross-compiler and
-then tries to run it on the development workstation. Obviously, it
-cannot work, and the system says that it
-\code{cannot execute binary file}. The job of the configure script is
-to test the configuration of the system. To do so, it tries to compile
-and run a few sample applications to test if this library is
-available, if this compiler option is supported, etc. But in our case,
-running the test examples is definitely not possible. We need to tell
-the configure script that we are cross-compiling, and this can be done
-using the \code{--build} and \code{--host} options, as described in
-the help of the configure script:
+If you look at the config.log file, you can see that the configure
+script compiles a binary with the cross-compiler and then tries to run
+it on the development workstation. This is a rather usual thing to do
+for a configure script, and that's why it tests so early that it's
+actually doable, and bails out if not.
+
+Obviously, it cannot work in our case, and the scripts exits. The job
+of the configure script is to test the configuration of the system. To
+do so, it tries to compile and run a few sample applications to test
+if this library is available, if this compiler option is supported,
+etc. But in our case, running the test examples is definitely not
+possible.
+
+We need to tell the configure script that we are cross-compiling, and
+this can be done using the \code{--build} and \code{--host} options,
+as described in the help of the configure script:
 
 \begin{verbatim}
 System types:
@@ -369,12 +184,178 @@ So, let's override the value of the \code{--host} option:
 CC=arm-linux-gcc ./configure --host=arm-linux
 \end{verbatim}
 
-Now, we go a little bit further in the execution of the configure
-script, until we reach:
+The configure script should end properly now, and create a
+Makefile. Run the \code{make} command, and you should see that at some
+point it is failing because of a missing python header.
+
+You can get rid of this error by disabling the python support in the
+configure script by using the \code{--disable-python} option. Start
+make again, and this time you should have the compilation ending fine.
+
+Look at the result of compiling in src/.libs: a set of object files
+and a set of \code{libasound.so*} files.
+
+The \code{libasound.so*} files are a dynamic version of the
+library. The shared library itself is \code{libz.so.2.0.0}, it has
+been generated by the following command line:
 
 \begin{verbatim}
-checking for zlibVersion in -lz... no
-configure: error: zlib not installed
+arm-linux-gcc -shared conf.o confmisc.o input.o output.o \
+              async.o error.o dlmisc.o socket.o shmarea.o \
+              userfile.o names.o -lm -ldl -lpthread -lrt  \
+              -Wl,-soname -Wl,libasound.so.2 -o libasound.so.2.0.0
+\end{verbatim}
+
+And creates the symbolic link \code{libasound.so} and
+\code{libasound.so.2}.
+
+\begin{verbatim}
+ln -s libasound.so.2.0.0 libasound.so.2
+ln -s libasound.so.2.0.0 libasound.so
+\end{verbatim}
+
+These symlinks are needed for two different reasons:
+
+\begin{itemize}
+\item \code{libasound.so} is used at compile time when you want to
+  compile an application that is dynamically linked against the
+  library. To do so, you pass the \code{-lLIBNAME} option to the
+  compiler, which will look for a file named
+  \code{lib<LIBNAME>.so}. In our case, the compilation option is
+  \code{-lasound} and the name of the library file is
+  \code{libasound.so}. So, the \code{libasound.so} symlink is needed
+  at compile time;
+\item \code{libasound.so.2} is needed because it is the {\em SONAME}
+  of the library. {\em SONAME} stands for {\em Shared Object Name}. It
+  is the name of the library as it will be stored in applications
+  linked against this library. It means that at runtime, the dynamic
+  loader will look for exactly this name when looking for the shared
+  library. So this symbolic link is needed at runtime.
+\end{itemize}
+
+To know what's the {\em SONAME} of a library, you can use:
+\begin{verbatim}
+arm-linux-readelf -d libasound.so.2.0.0
+\end{verbatim}
+
+and look at the \code{(SONAME)} line. You'll also see that this
+library needs the C library, because of the \code{(NEEDED)} line on
+\code{libc.so.0}.
+
+The mechanism of \code{SONAME} allows to change the library without
+recompiling the applications linked with this library. Let's say that
+a security problem is found in the alsa-lib release that provides
+libasound 2.0.0, and fixed in the next alsa-lib release, which will
+now provide libasound 2.0.1.
+
+You can just recompile the library, install it on your target system,
+change the link \code{libasound.so.2} so that it points to
+\code{libasound.so.2.0.1} and restart your applications. And it will
+work, because your applications don't look specifically for
+\code{libasound.so.2.0.0} but for the {\em SONAME}
+\code{libasound.so.2}.
+
+However, it also means that as a library developer, if you break the
+ABI of the library, you must change the {\em SONAME}: change from
+\code{libasound.so.2} to \code{libasound.so.3}.
+
+Finally, the last step is to tell the configure script where the
+library is going to be installed. Most configure scripts consider that
+the installation prefix is \code{/usr/local/} (so that the library is
+installed in \code{/usr/local/lib}, the headers in
+\code{/usr/local/include}, etc.). But in our system, we simply want
+the libraries to be installed in the \code{/usr} prefix, so let's tell
+the configure script about this:
+
+\begin{verbatim}
+CC=arm-linux-gcc ./configure --host=arm-linux --disable-python --prefix=/usr
+make
+\end{verbatim}
+
+For this library, this option may not change anything to the resulting
+binaries, but for safety, it is always recommended to make sure that
+the prefix matches where your library will be running on the target
+system.
+
+Do not confuse the {\em prefix} (where the application or library will
+be running on the target system) from the location where the
+application or library will be installed on your host while building
+the root filesystem.
+
+For example, libasound will be installed in
+\code{$HOME/felabs/sysdev/thirdparty/target/usr/lib/} because this is
+the directory where we are building the root filesystem, but once our
+target system will be running, it will see libasound in
+\code{/usr/lib}.
+
+The prefix corresponds to the path in the target system and {\bf
+  never} on the host. So, one should {\bf never} pass a prefix like
+\code{$HOME/felabs/sysdev/thirdparty/target/usr}, otherwise at
+runtime, the application or library may look for files inside this
+directory on the target system, which obviously doesn't exist! By
+default, most build systems will install the application or library in
+the given prefix (\code{/usr} or \code{/usr/local}), but with most
+build systems (including {\em autotools}), the installation prefix can
+be overriden, and be different from the configuration prefix.
+
+We now only have the installation process left to do.
+
+First, let's make the installation in the {\em staging} space:
+\begin{verbatim}
+make DESTDIR=../staging install
+\end{verbatim}
+
+Now look at what has been installed by alsa-lib:
+\begin{itemize}
+\item Some configuration files in \code{/usr/share/alsa}
+\item The headers in \code{/usr/include}
+\item The shared library and its libtool file in \code{/usr/lib}
+\item A pkgconfig file in \code{/usr/lib/pkgconfig}. We'll come back
+  to these later
+\end{itemize}
+
+Finally, let's install the library in the {\em target} space:
+
+\begin{enumerate}
+\item Create the \code{target/usr/lib} directory, it will contain the
+  stripped version of the library
+\item Copy the dynamic version of the library. Only
+  \code{libasound.so.2} and \code{libasound.so.2.0.0} are needed,
+  since \code{libasound.so.2} is the {\em SONAME} of the library and
+  \code{libasound.so.2.0.0} is the real binary:
+  \begin{itemize}
+  \item \code{cp -a src/.libs/libasound.so.2* ../target/usr/lib}
+  \end{itemize}
+\item Strip the library:
+  \begin{itemize}
+  \item \code{arm-linux-strip ../target/usr/lib/libasound.so.2.0.0}
+  \end{itemize}
+\end{enumerate}
+
+And we're done with alsa-lib!
+
+\section{Alsa-utils}
+
+Download alsa-utils from the ALSA offical webpage. We tested the lab
+with version 1.0.28.
+
+Once uncompressed, we quickly discover that the libpng build system is
+based on the {\em autotools}, so we will work once again with a
+regular configure script.
+
+As we've seen previously, we will have to provide the prefix and host
+options and the CC variable:
+
+\begin{verbatim}
+CC=arm-linux-gcc ./configure --host=arm-linux --prefix=/usr
+\end{verbatim}
+
+Now, we should quiclky get an error in the execution of the configure
+script:
+
+\begin{verbatim}
+checking for libasound headers version >= 1.0.27... not present.
+configure: error: Sufficiently new version of libasound not found.
 \end{verbatim}
 
 Again, we can check in config.log what the configure script is trying
@@ -382,23 +363,49 @@ to do:
 
 \footnotesize
 \begin{verbatim}
-configure:12452: checking for zlibVersion in -lz
-configure:12487: arm-linux-gcc -o conftest -g -O2   conftest.c -lz  -lm  >&5
-/usr/local/xtools/arm-unknown-linux-uclibcgnueabi/[...]usr/bin/[...]/ld: cannot find -lz
-collect2: ld returned 1 exit status
+configure:7130: checking for libasound headers version >= 1.0.27
+configure:7192: arm-linux-gnueabi-gcc -c -g -O2  conftest.c >&5
+conftest.c:15:28: fatal error: alsa/asoundlib.h: No such file or directory
 \end{verbatim}
 \normalsize
 
+Of course, since {\em alsa-utils} uses the {\em alsa-lib}, it includes
+its header file! So we need to tell the C compiler where the headers
+can be found: there are not in the default directory
+\code{/usr/include/}, but in the \code{/usr/include} directory of our
+{\em staging} space. The help text of the configure script says:
+
+\begin{verbatim}
+  CPPFLAGS              C/C++/Objective C preprocessor flags,
+                        e.g. -I<include dir> if you have headers
+                        in a nonstandard directory <include dir>
+\end{verbatim}
+
+Let's use it:
+
+\begin{verbatim}
+CPPFLAGS=-I$HOME/felabs/sysdev/thirdparty/staging/usr/include \
+CC=arm-linux-gcc \
+./configure --host=arm-linux --prefix=/usr
+\end{verbatim}
+
+Now, it should stop a bit later, this time with the error:
+\begin{verbatim}
+checking for libasound headers version >= 1.0.27... found.
+checking for snd_ctl_open in -lasound... no
+configure: error: No linkable libasound was found.
+\end{verbatim}
+
 The configure script tries to compile an application against {\em
-  zlib} (as can be seen from the \code{-lz} option): {\em libpng} uses
-the {\em zlib} library, so the \code{configure} script wants to make
-sure this library is already installed. Unfortunately, the \code{ld}
-linker doesn't find this library. So, let's tell the linker where to
-look for libraries using the \code{-L} option followed by the
-directory where our libraries are (in \code{staging/usr/lib}). This
-\code{-L} option can be passed to the linker by using the
-\code{LDFLAGS} at configure time, as told by the help text of the
-configure script:
+  libasound} (as can be seen from the \code{-lasound} option): {\em
+  alsa-utils} uses the {\em alsa-lib}, so the \code{configure} script
+wants to make sure this library is already installed. Unfortunately,
+the \code{ld} linker doesn't find this library. So, let's tell the
+linker where to look for libraries using the \code{-L} option followed
+by the directory where our libraries are (in
+\code{staging/usr/lib}). This \code{-L} option can be passed to the
+linker by using the \code{LDFLAGS} at configure time, as told by the
+help text of the configure script:
 
 \begin{verbatim}
   LDFLAGS       linker flags, e.g. -L<lib dir> if you have
@@ -418,37 +425,27 @@ installed in \code{/usr} and not \code{/usr/local}:
 
 \begin{verbatim}
  LDFLAGS=-L$HOME/felabs/sysdev/thirdparty/staging/usr/lib \
+ CPPFLAGS=-I$HOME/felabs/sysdev/thirdparty/staging/usr/include \
  CC=arm-linux-gcc \
 ./configure --host=arm-linux --prefix=/usr
 \end{verbatim}
 
-Then, run the compilation using make. Quickly, you should get a pile
-of error messages, starting with:
+Once again, it should fail a bit further down the tests, this time
+complaining about the panelw library missing. This library is part of
+\code{ncurses}, a graphical framework to design UIs in the
+terminal. This is only used for one of the tools provided by
+alsa-utils, alsamixer, that we are not going to use. Hence, we can
+just disable the build of alsamixer.
+
+Of course, if we wanted it, we would have had to build ncurses first,
+just like we built alsa-lib. We will also need to disable the xmlto
+support that generates the documentation.
 
 \begin{verbatim}
-In file included from png.c:13:
-png.h:470:18: error: zlib.h: No such file or directory
-\end{verbatim}
-
-Of course, since {\em libpng} uses the {\em zlib} library, it includes
-its header file! So we need to tell the C compiler where the headers
-can be found: there are not in the default directory
-\code{/usr/include/}, but in the \code{/usr/include} directory of our
-{\em staging} space. The help text of the configure script says:
-
-\begin{verbatim}
-  CPPFLAGS              C/C++/Objective C preprocessor flags,
-                        e.g. -I<include dir> if you have headers
-                        in a nonstandard directory <include dir>
-\end{verbatim}
-
-Let's use it:
-
-\begin{verbatim}
-LDFLAGS=-L$HOME/felabs/sysdev/thirdparty/staging/usr/lib \
-CPPFLAGS=-I$HOME/felabs/sysdev/thirdparty/staging/usr/include \
-CC=arm-linux-gcc \
-./configure --host=arm-linux --prefix=/usr
+ LDFLAGS=-L$HOME/felabs/sysdev/thirdparty/staging/usr/lib \
+ CPPFLAGS=-I$HOME/felabs/sysdev/thirdparty/staging/usr/include \
+ CC=arm-linux-gcc \
+./configure --host=arm-linux --prefix=/usr --disable-alsamixer --disable-xmlto
 \end{verbatim}
 
 Then, run the compilation with make. Hopefully, it works!
@@ -460,7 +457,7 @@ afterwards, it is only to verify what will be installed before
 polluting the staging space):
 
 \begin{verbatim}
-make DESTDIR=/tmp/libpng/ install
+make DESTDIR=/tmp/alsa-utils/ install
 \end{verbatim}
 
 The \code{DESTDIR} variable can be used with all Makefiles based on
@@ -468,97 +465,71 @@ automake. It allows to override the installation directory: instead of
 being installed in the configuration-prefix, the files will be
 installed in \code{DESTDIR/configuration-prefix}.
 
-Now, let's see what has been installed in \code{/tmp/libpng/}:
+Now, let's see what has been installed in \code{/tmp/alsa-utils/}:
 
 \begin{verbatim}
-./usr/lib/libpng.la                     -> libpng14.la
-./usr/lib/libpng14.a
-./usr/lib/libpng14.la
-./usr/lib/libpng14.so                   -> libpng14.so.14.3.0
-./usr/lib/libpng14.so.14                -> libpng14.so.14.3.0
-./usr/lib/libpng14.so.14.3.0
-./usr/lib/libpng.a                      -> libpng14.a
-./usr/lib/libpng.la                     -> libpng14.la
-./usr/lib/libpng.so                     -> libpng14.so
-./usr/lib/pkgconfig/libpng.pc           -> libpng14.pc
-./usr/lib/pkgconfig/libpng14.pc
-./usr/share/man/man5/png.5
-./usr/share/man/man3/libpngpf.3
-./usr/share/man/man3/libpng.3
-./usr/include/pngconf.h                 -> libpng14/pngconf.h
-./usr/include/png.h                     -> libpng14/png.h
-./usr/include/libpng14/pngconf.h
-./usr/include/libpng14/png.h
-./usr/bin/libpng-config                 -> libpng14-config
-./usr/bin/libpng14-config
+./lib/udev/rules.d/90-alsa-restore.rules
+./usr/bin/aseqnet
+./usr/bin/aseqdump
+./usr/bin/arecordmidi
+./usr/bin/aplaymidi
+./usr/bin/aconnect
+./usr/bin/alsaloop
+./usr/bin/speaker-test
+./usr/bin/iecset
+./usr/bin/aplay
+./usr/bin/amidi
+./usr/bin/amixer
+./usr/bin/alsaucm
+./usr/sbin/alsaconf
+./usr/sbin/alsactl
+./usr/share/sounds/alsa/Side_Left.wav
+./usr/share/sounds/alsa/Rear_Left.wav
+./usr/share/sounds/alsa/Noise.wav
+./usr/share/sounds/alsa/Front_Right.wav
+./usr/share/sounds/alsa/Front_Center.wav
+./usr/share/sounds/alsa/Side_Right.wav
+./usr/share/sounds/alsa/Rear_Right.wav
+./usr/share/sounds/alsa/Rear_Center.wav
+./usr/share/sounds/alsa/Front_Left.wav
+./usr/share/locale/ru/LC_MESSAGES/alsaconf.mo
+./usr/share/locale/ja/LC_MESSAGES/alsaconf.mo
+./usr/share/locale/ja/LC_MESSAGES/alsa-utils.mo
+./usr/share/locale/fr/LC_MESSAGES/alsa-utils.mo
+./usr/share/locale/de/LC_MESSAGES/alsa-utils.mo
+./usr/share/man/fr/man8/alsaconf.8
+./usr/share/man/man8/alsaconf.8
+./usr/share/man/man1/aseqnet.1
+./usr/share/man/man1/aseqdump.1
+./usr/share/man/man1/arecordmidi.1
+./usr/share/man/man1/aplaymidi.1
+./usr/share/man/man1/aconnect.1
+./usr/share/man/man1/alsaloop.1
+./usr/share/man/man1/speaker-test.1
+./usr/share/man/man1/iecset.1
+./usr/share/man/man1/aplay.1
+./usr/share/man/man1/amidi.1
+./usr/share/man/man1/amixer.1
+./usr/share/man/man1/alsactl.1
+./usr/share/alsa/speaker-test/sample_map.csv
+./usr/share/alsa/init/ca0106
+./usr/share/alsa/init/hda
+./usr/share/alsa/init/test
+./usr/share/alsa/init/info
+./usr/share/alsa/init/help
+./usr/share/alsa/init/default
+./usr/share/alsa/init/00main
 \end{verbatim}
 
 So, we have:
 \begin{itemize}
-
-\item The library, with many symbolic links
-
-  \begin{itemize}
-  \item \code{libpng14.so.14.3.0}, the binary of the current version of
-    library
-  \item \code{libpng14.so.14}, a symbolic link to
-    \code{libpng14.so.14.3.0}, so that applications using
-    \code{libpng14.so.14} as the {\em SONAME} of the library will find
-    nit and use the current version
-  \item \code{libpng14.so} is a symbolic link to
-    \code{libpng14.so.14.3.0}. So it points to the current version of
-    the library, so that new applications linked with \code{-lpng14}
-    will use the current version of the library \code{libpng.so} is a
-    symbolic link to libpng14.so. So applications linked with
-    \code{-lpng} will be linked with the current version of the
-    library (and not the obsolete one since we don't want anymore to
-    link applications against the obsolete version!)
-  \item \code{libpng14.a} is a static version of the library
-  \item \code{libpng.a} is a symbolic link to \code{libpng14.a}, so
-    that applications statically linked with \code{libpng.a} will in
-    fact use the current version of the library
-  \item \code{libpng14.la} is a configuration file generated by {\em
-      libtool} which gives configuration details for the library. It
-    will be used to compile applications and libraries that rely on
-    libpng.
-  \item \code{libpng.la} is a symbolic link to \code{libpng14.la}: we
-    want to use the current version for new applications, once again.
-  \end{itemize}
-
-\item The {\em pkg-config} files, in \code{/usr/lib/pkgconfig/}. These
-  configuration files are used by the pkg-config tool that we will
-  cover later. They describe how to link new applications against the
-  library.
-
-\item The manual pages in \code{/usr/share/man/}, explaining how to use the
-  library.
-
-\item The header files, in \code{/usr/include/}, needed to compile new
-  applications or libraries against {\em libpng}. They define the
-  interface to {\em libpng}. There are symbolic links so that one can
-  choose between the following solutions:
-
-  \begin{itemize}
-
-  \item Use \code{#include <png.h>} in the source code and compile with
-    the default compiler flags
-
-  \item Use \code{#include <png.h>} in the source code and compile
-    with \code{-I/usr/include/libpng14}
-
-  \item Use \code{#include <libpng14/png.h>} in the source and compile
-    with the default compiler flags
-
-  \end{itemize}
-
-\item The \code{/usr/bin/libpng14-config} tool and its symbolic link
-  \code{/usr/bin/libpng-config}. This tool is a small shell script
-  that gives configuration information about the libraries, needed to
-  know how to compile applications/libraries against libpng. This
-  mechanism based on shell scripts is now being superseded by {\em
-    pkg-config}, but as old applications or libraries may rely on it,
-  it is kept for compatibility.
-
+\item The udev rules in \code{lib/udev}
+\item The alsa-utils binaries in \code{/usr/bin} and \code{/usr/sbin}
+\item Some sound samples in \code{/usr/share/sounds}
+\item The various translations in \code{/usr/share/locale}
+\item The manual pages in \code{/usr/share/man/}, explaining how to
+  use the various tools
+\item Some configuration samples in \code{/usr/share/alsa}.
 \end{itemize}
 
 Now, let's make the installation in the {\em staging} space:
@@ -571,19 +542,25 @@ Then, let's install only the necessary files in the {\em target}
 space, manually:
 
 \begin{verbatim}
-cd ..
-cp -a staging/usr/lib/libpng14.so.* target/usr/lib
-arm-linux-strip target/usr/lib/libpng14.so.14.3.0
+cp -a staging/usr/bin/a* staging/usr/bin/speaker-test target/usr/bin/
+cp -a staging/usr/sbin/alsa* target/usr/sbin
+arm-linux-strip target/usr/bin/a*
+arm-linux-strip target/usr/bin/speaker-test
+arm-linux-strip target/usr/sbin/alsactl
+
+cp -a staging/usr/share/alsa/alsa.conf* target/usr/share/alsa
 \end{verbatim}
 
-And we're finally done with libpng!
+And we're finally done with the alsa-utils! You can test that all is
+working fine by running the speaker-test utils on your board, with the
+headset provided by your instructor plugged in.
 
-\section{libjpeg}
+\section{libogg}
 
-Now, let's work on {\em libjpeg}. Download it from
-\url{http://www.ijg.org/files/jpegsrc.v8.tar.gz} and extract it.
+Now, let's work on {\em libogg}. Download the version 1.3.2 from
+\url{http://xiph.org} and extract it.
 
-Configuring {\em libjpeg} is very similar to the configuration of the
+Configuring {\em libogg} is very similar to the configuration of the
 previous libraries:
 
 \begin{verbatim}
@@ -609,25 +586,27 @@ And finally, install manually the only needed files at runtime in the
 
 \begin{verbatim}
 cd ..
-cp -a staging/usr/lib/libjpeg.so.8* target/usr/lib/
-arm-linux-strip target/usr/lib/libjpeg.so.8.0.0
+cp -a staging/usr/lib/libogg.so.0* target/usr/lib/
+arm-linux-strip target/usr/lib/libogg.so.0.8.2
 \end{verbatim}
 
-Done with libjpeg!
+Done with libogg!
 
-\section{FreeType}
+\section{libvorbis}
 
-The {\em FreeType} library is the next step. Grab the tarball from
-\url{http://www.freetype.org}. We tested the lab with version 2.4.2
-but more other versions may also work. Uncompress the tarball.
+{\em Libvorbis} is the next step. Grab the version 1.3.4 from
+\url{http://xiph.org} and uncompress it.
 
-The FreeType build system is a nice example of what can be done with a
-good usage of the autotools. Cross-compiling FreeType is very
-easy. First, the configure step:
+Once again, the libvorbis build system is a nice example of what can
+be done with a good usage of the autotools. Cross-compiling libvorbis
+is very easy, and almost identical to what we've seen with the
+alsa-utils. First, the configure step:
 
 \begin{verbatim}
-CC=arm-linux-gcc ./configure --host=arm-linux  \
-                             --prefix=/usr
+LDFLAGS=-L$HOME/felabs/sysdev/thirdparty/staging/usr/lib \
+CPPFLAGS=-I$HOME/felabs/sysdev/thirdparty/staging/usr/include \
+CC=arm-linux-gcc \
+./configure --host=arm-linux --prefix=/usr
 \end{verbatim}
 
 Then, compile the library:
@@ -646,106 +625,134 @@ And install only the required files in the {\em target} space:
 
 \begin{verbatim}
 cd ..
-cp -a staging/usr/lib/libfreetype.so.6* target/usr/lib/
-arm-linux-strip target/usr/lib/libfreetype.so.6.6.0
+cp -a staging/usr/lib/libvorbis.so.0* target/usr/lib/
+arm-linux-strip target/usr/lib/libvorbis.so.0.4.7
+cp -a staging/usr/lib/libvorbisfile.so.3* target/usr/lib/
+arm-linux-strip target/usr/lib/libvorbisfile.so.3.3.6
 \end{verbatim}
 
-Done with FreeType!
+And we're done with libvorbis!
 
-\section{DirectFB}
+\section{libao}
 
-Finally, with {\em zlib}, {\em libpng}, {\em jpeg} and {\em FreeType},
-all the dependencies of DirectFB are ready. We can now build the
-DirectFB library itself. Download it from the official website, at
-\url{http://www.directfb.org/}. We tested version 1.4.5 of the
-library. As usual, extract the tarball.
+Now, let's work on {\em libao}. Download the version 1.2.0 from
+\url{http://xiph.org} and extract it.
 
-Before configuring DirectFB, let's have a look at the available
-options by running \code{./configure --help}. A lot of options are
-available. We see that:
-
-\begin{itemize}
-\item Support for Fbdev (the Linux framebuffer) is automatically
-  detected, so that's fine;
-\item Support for PNG, JPEG and FreeType is enabled by default, so
-  that's fine;
-\item We should specify a value for \code{--with-gfxdrivers}. The
-  hardware emulated by QEMU doesn't have any accelerated driver in
-  DirectFB, so we'll pass \code{--with-gfxdrivers=none};
-\item We should specify a value for \code{--with-inputdrivers}. We'll
-  need keyboard (for the keyboard) and linuxinput to support the Linux
-  Input subsystem. So we'll pass
-  \code{--with-inputdrivers=keyboard,linuxinput}
-\end{itemize}
-
-So, let's begin with a configure line like:
+Configuring {\em libao} is once again fairly easy, and similar to
+every sane autotools based build system without any dependency:
 
 \begin{verbatim}
 CC=arm-linux-gcc ./configure --host=arm-linux \
-        --prefix=/usr --with-gfxdrivers=none \
-        --with-inputdrivers=keyboard,linuxinput
+                             --prefix=/usr
 \end{verbatim}
 
-In the output, we see:
+Of course, compile the library:
 
 \begin{verbatim}
-*** JPEG library not found. JPEG image provider will not be built.
+make
 \end{verbatim}
 
-So let's look in config.log for the JPEG issue. By search for
-\code{jpeg}, you can find:
+Installation to the {\em staging} space can be done using the
+classical \code{DESTDIR} mechanism:
 
-\footnotesize
 \begin{verbatim}
-configure:24701: arm-linux-gcc -o conftest [...] conftest.c -ljpeg  -ldl -lpthread  >&5
-/usr/local/xtools/arm-unknown-linux-uclibcgnueabi/[...]/bin/ld: cannot find -ljpeg
+make DESTDIR=$HOME/felabs/sysdev/thirdparty/staging/ install
 \end{verbatim}
-\normalsize
 
-Of course, it cannot find the jpeg library, since we didn't pass the
-proper \code{LDFLAGS} and \code{CFLAGS} telling where our libraries
-are. So let's configure again with:
+And finally, install manually the only needed files at runtime in the
+{\em target} space:
 
-\small
+\begin{verbatim}
+cd ..
+cp -a staging/usr/lib/libao.so.4* target/usr/lib/
+arm-linux-strip target/usr/lib/libao.so.4.1.0
+\end{verbatim}
+
+We will also need the alsa plugins that is loaded dynamically by the
+libao at startup:
+\begin{verbatim}
+mkdir -p target/usr/lib/ao/plugins-4/
+cp -a staging/usr/lib/ao/plugins-4/libalsa.so target/usr/lib/ao/plugins-4/
+\end{verbatim}
+
+Done with libao!
+
+\section{vorbis-tools}
+
+Finally, thanks to all the libraries we compiled previously, all the
+dependencies are ready. We can now build the vorbis-tools themselves.
+Download the version 1.4.5 from the official website, at
+\url{http://xiph.org/}. As usual, extract the tarball.
+
+Before starting the configuration, let's have a look at the available
+options by running \code{./configure --help}. A lot of options are
+available. We see that we can, in addition to the usual autotools
+configuration options:
+
+\begin{itemize}
+\item Enable/Disable the various tools that are going to be built:
+  ogg123, oggdec, oggenc, etc.
+\item Enable or disable support for various other codecs: FLAC, Speex,
+  etc.
+\item Enable or disable the use of various libraries that can
+  optionally be used by the vorbis tools
+\end{itemize}
+
+So, let's begin with our usual configure line:
+
 \begin{verbatim}
 LDFLAGS=-L$HOME/felabs/sysdev/thirdparty/staging/usr/lib \
 CPPFLAGS=-I$HOME/felabs/sysdev/thirdparty/staging/usr/include \
 CC=arm-linux-gcc \
-./configure --host=arm-linux --prefix=/usr \
- --with-gfxdrivers=none --with-inputdrivers=keyboard,linuxinput
+./configure --host=arm-linux --prefix=/usr
 \end{verbatim}
-\normalsize
+
+At the end, you should see the following warning:
+
+\begin{verbatim}
+configure: WARNING: Prerequisites for ogg123 not met, ogg123 will be skipped.
+Please ensure that you have POSIX threads, libao, and (optionally) libcurl
+libraries and headers present if you would like to build ogg123.
+\end{verbatim}
+
+Which is unfortunate, since we precisely want ogg123.
+
+If you look back at the script output, you should see at some point
+that it tests for the libao and fails to find it:
+
+\begin{verbatim}
+checking for AO... no
+configure: WARNING: libao too old; >= 1.0.0 required
+\end{verbatim}
 
 Ok, now at the end of the configure, we get:
 
+If you look into the \code{config.log} file now, you should find
+something like:
+
 \begin{verbatim}
-JPEG             yes  -ljpeg
-PNG              yes  -I/usr/include/libpng12 -lpng12
-[...]
-FreeType2        yes  -I/usr/include/freetyp2 -lfreetype
+configure:22343: checking for AO
+configure:22351: $PKG_CONFIG --exists --print-errors "ao >= 1.0.0"
+Package ao was not found in the pkg-config search path.
+Perhaps you should add the directory containing `ao.pc'
+to the PKG_CONFIG_PATH environment variable
+No package 'ao' found
 \end{verbatim}
 
-It found the JPEG library properly, but for libpng and freetype, it
-has added \code{-I} options that points to the libpng and freetype libraries
-installed on our host (x86) and not the one of the target. This is not
-correct!
+In this case, the configure script uses the {\em pkg-config} system to
+get the configuration parameters to link the library against libao. By
+default, {\em pkg-config} looks in \code{/usr/lib/pkgconfig/} for
+\code{.pc} files, and because the \code{libao-dev} package is probably
+not installed in your system the configure script will not find the
+libao we just compiled.
 
-In fact, the DirectFB configure script uses the {\em pkg-config}
-system to get the configuration parameters to link the library against
-libpng and FreeType. By default, {\em pkg-config} looks in
-\code{/usr/lib/pkgconfig/} for \code{.pc} files, and because the
-\code{libfreetype6-dev} and \code{libpng12-dev} packages are already
-installed in your system (it was installed in a previous lab as a
-dependency of another package), then the configure script of DirectFB
-found the libpng and FreeType libraries of your host!
+It would have been worse if we had the package installed, because it
+would have detected and used our host package to compile libao, which,
+since we're cross-compiling, is a pretty bad thing to do.
 
 This is one of the biggest issue with cross-compilation: mixing host
 and target libraries, because build systems have a tendency to look
-for libraries in the default paths. In our case, if
-\code{libfreetype6-dev} was not installed, then the
-\code{/usr/lib/pkgconfig/freetype2.pc} file wouldn't exist, and the
-configure script of DirectFB would have said something like {\em
-  Sorry, can't find FreeType}.
+for libraries in the default paths.
 
 So, now, we must tell {\em pkg-config} to look inside the
 \code{/usr/lib/pkgconfig/} directory of our {\em staging} space. This
@@ -754,7 +761,7 @@ explained in the manual page of \code{pkg-config}.
 
 Moreover, the \code{.pc} files contain references to paths. For
 example, in
-\code{$HOME/felabs/sysdev/thirdparty/staging/usr/lib/pkgconfig/freetype2.pc},
+\code{$HOME/felabs/sysdev/thirdparty/staging/usr/lib/pkgconfig/ao.pc},
 we can see:
 
 \begin{verbatim}
@@ -763,128 +770,17 @@ exec_prefix=${prefix}
 libdir=${exec_prefix}/lib
 includedir=${prefix}/include
 [...]
-Libs: -L${libdir} -lfreetype
-Cflags: -I${includedir}/freetype2 -I${includedir}
+Libs: -L${libdir} -lao
+Cflags: -I${includedir}
 \end{verbatim}
 
 So we must tell \code{pkg-config} that these paths are not absolute,
 but relative to our {\em staging} space. This can be done using the
 \code{PKG_CONFIG_SYSROOT_DIR} environment variable.
 
-Then, let's run the configuration of DirectFB again, passing the
-\code{PKG_CONFIG_PATH} and \code{PKG_CONFIG_SYSROOT_DIR} environment
-variables:
-
-\small
-\begin{verbatim}
-LDFLAGS=-L$HOME/felabs/sysdev/thirdparty/staging/usr/lib \
-CPPFLAGS=-I$HOME/felabs/sysdev/thirdparty/staging/usr/include \
-PKG_CONFIG_PATH=$HOME/felabs/sysdev/thirdparty/staging/usr/lib/pkgconfig \
-PKG_CONFIG_SYSROOT_DIR=$HOME/felabs/sysdev/thirdparty/staging \
-CC=arm-linux-gcc \
-./configure --host=arm-linux --prefix=/usr \
- --with-gfxdrivers=none --with-inputdrivers=keyboard,linuxinput
-\end{verbatim}
-\normalsize
-
-Ok, now, the lines related to Libpng and FreeType 2 looks much better:
-
-\footnotesize
-\begin{verbatim}
-PNG       yes -I/home/<user>/felabs/sysdev/thirdparty/staging/usr/include/libpng14 -lpng14
-FreeType2 yes -I/home/<user>/felabs/sysdev/thirdparty/staging/usr/include/freetype2 -lfreetype
-\end{verbatim}
-\normalsize
-
-Let's build DirectFB with make. After a while, it fails, complaining
-that \code{X11/Xlib.h} and other related header files cannot be
-found. In fact, if you look back the \code{./configure} script output,
-you can see:
-
-\begin{verbatim}
-X11 support		yes		-lX11 -lXext
-\end{verbatim}
-
-Because X11 was installed on our host, DirectFB \code{./configure}
-script thought that it should enable support for it. But we won't have
-X11 on our system, so we have to disable it explicitly. In the
-\code{./configure --help} output, one can see:
-
-\begin{verbatim}
---enable-x11		build with X11 support [default=auto]
-\end{verbatim}
-
-So we have to run the configuration again with the same arguments, and
-add \code{--disable-x11} to them.
-
-The build now goes further, but still fails with another error:
-
-\begin{verbatim}
-/usr/lib/libfreetype.so: could not read symbols: File in wrong format
-\end{verbatim}
-
-As you can read from the above command line, the Makefile is trying to
-feed an x86 binary (\code{/usr/lib/libfreetype.so}) to your ARM
-toolchain. Instead, it should have been using
-\code{usr/lib/libfreetype.so} found in your staging environment.
-
-This happens because the {\em libtool} \code{.la} files in your
-staging area need to be fixed to describe the right paths in this
-staging area. So, in the .la files, replace \code{libdir='/usr/lib'}
-by
-\code{libdir='/home/<user>/felabs/sysdev/thirdparty/staging/usr/lib'}. Restart
-the build again, preferably from scratch (\code{make clean} then
-\code{make}) to be sure everything is fine.
-
-Finally, it builds!
-
-Now, install DirectFB to the {\em staging} space using:
-
-\begin{verbatim}
-make DESTDIR=$HOME/felabs/sysdev/thirdparty/staging/ install
-\end{verbatim}
-
-And so the installation in the {\em target} space:
-
-\begin{itemize}
-
-\item First, the libraries:
-\small
-\begin{verbatim}
-cd ..
-cp -a staging/usr/lib/libdirect-1.4.so.5* target/usr/lib
-cp -a staging/usr/lib/libdirectfb-1.4.so.5* target/usr/lib
-cp -a staging/usr/lib/libfusion-1.4.so.5* target/usr/lib
-arm-linux-strip target/usr/lib/libdirect-1.4.so.5.0.0
-arm-linux-strip target/usr/lib/libdirectfb-1.4.so.5.0.0
-arm-linux-strip target/usr/lib/libfusion-1.4.so.5.0.0
-\end{verbatim}
-\normalsize
-
-\item Then, the plugins that are dynamically loaded by DirectFB. We
-  first copy the whole \code{/usr/lib/directfb-1.4-5/} directory, then
-  remove the useless files (\code{.la}) and finally strip the
-  \code{.so} files:
-
-\small
-\begin{verbatim}
-cp -a staging/usr/lib/directfb-1.4-5/ target/usr/lib
-find target/usr/lib/directfb-1.4-5/ -name '*.la' -exec rm {} \;
-find target/usr/lib/directfb-1.4-5/ -name '*.so' -exec arm-linux-strip {} \;
-\end{verbatim}
-\normalsize
-
-\end{itemize}
-
-\section{DirectFB examples}
-
-To test that our DirectFB installation works, we will use the example
-applications provided by the DirectFB project. Start by downloading
-the tarball at
-\url{http://www.directfb.org/downloads/Extras/DirectFB-examples-1.2.0.tar.gz}
-and extract it.
-
-Then, we configure it just as we configured DirectFB:
+Then, let's run the configuration of the vorbis-tools again, passing
+the \code{PKG_CONFIG_PATH} and \code{PKG_CONFIG_SYSROOT_DIR}
+environment variables:
 
 \small
 \begin{verbatim}
@@ -897,106 +793,59 @@ CC=arm-linux-gcc \
 \end{verbatim}
 \normalsize
 
-Then, compile it with \code{make}. Soon a compilation error will occur
-because \code{bzero} is not defined. The \code{bzero} function is a deprecated
-BSD function, and \code{memset} should be used instead. The GNU C library
-still defines \code{bzero}, but by default, the uClibc library doesn't
-provide \code{bzero} (to save space). So, let's modify the source code in
-\code{src/df_knuckles/matrix.c} to change the line:
-
+Now, the configure script should end properly, we can now start the
+compilation:
 \begin{verbatim}
-#define M_CLEAR(m) bzero(m, MATRIX_SIZE)
+libusb
 \end{verbatim}
 
-to
+It should fail rather quickly, complaining that the curl headers are
+missing. This is because the configure script, in curl's case, didn't
+actually test wether it was available or not, but just assumed it was.
 
+Add the \code{--without-curl} option to the configure invocation,
+restart the compilation.
+
+The compilation should then fail with an error related to libm. While
+the code uses the function from this library, the generated Makefile
+doesn't give the right command line argument in order to link against
+the libm.
+
+If you look at the configure help, you can see
 \begin{verbatim}
-#define M_CLEAR(m) memset(m, 0, MATRIX_SIZE)
+LIBS        libraries to pass to the linker, e.g. -l<library>
 \end{verbatim}
 
-Run the compilation again, it should succeed.
+And this is exactly what we are supposed to use to add new linker
+flags.
 
-For the installation, as DirectFB examples are only applications and
-not libraries, we don't really need them in the {\em staging} space,
-but only in the {\em target} space. So we'll directly install in the
-{\em target} space using the \code{install-strip} make target. This
-make target is usually available with autotools based build
-systems. In addition to the destination directory (\code{DESTDIR}
-variable), we must also tell which strip program should be used, since
-stripping is an architecture-dependent operation (\code{STRIP}
-variable):
-
+Add this to the configure command line to get
 \begin{verbatim}
-make STRIP=arm-linux-strip \
-     DESTDIR=$HOME/felabs/sysdev/thirdparty/target/ install-strip
+LDFLAGS=-L$HOME/felabs/sysdev/thirdparty/staging/usr/lib \
+CPPFLAGS=-I$HOME/felabs/sysdev/thirdparty/staging/usr/include \
+PKG_CONFIG_PATH=$HOME/felabs/sysdev/thirdparty/staging/usr/lib/pkgconfig \
+PKG_CONFIG_SYSROOT_DIR=$HOME/felabs/sysdev/thirdparty/staging \
+LIBS=-lm \
+CC=arm-linux-gcc \
+./configure --host=arm-linux --prefix=/usr --without-curl
 \end{verbatim}
 
-\section{Final setup}
+Finally, it builds!
 
-Start the system in QEMU using the \code{run_qemu} script, and try to
-run the \code{df_andi} program, which is one of the DirectFB examples.
-
-The application will fail to run, because the {\em pthread} library
-(which is a component of the C library) is missing. This library is
-available inside the toolchain. So let's add it to the target:
+Now, install the vorbis-tools to the {\em staging} space using:
 
 \begin{verbatim}
-TOOLCHAIN_SYSROOT=$(arm-linux-gcc -print-sysroot)
-cp -a $TOOLCHAIN_SYSROOT/lib/libpthread* target/lib/
+make DESTDIR=$HOME/felabs/sysdev/thirdparty/staging/ install
 \end{verbatim}
 
-Then, try to run \code{df_andi} again. It will complain about
-\code{libdl}, which is used to dynamically load libraries during
-application execution. So let's add this library to the target:
+And then install them in the {\em target} space:
 
 \begin{verbatim}
-cp -a $TOOLCHAIN_SYSROOT/lib/libdl* target/lib
+cd ..
+cp -a staging/usr/bin/ogg* target/usr/bin
+arm-linux-strip target/usr/bin/ogg*
 \end{verbatim}
 
-When running \code{df_andi} again, it will complain about
-\code{libgcc_s}, so let's copy this library to the target:
-
-\begin{verbatim}
-cp -a $TOOLCHAIN_SYSROOT/lib/libgcc_s* target/lib
-\end{verbatim}
-
-Now, the application should no longer complain about missing
-libraries. But when started, it should complain about the \code{/dev/fb0}
-device file that doesn't exist. So let's create this device file:
-
-\begin{verbatim}
-sudo mknod target/dev/fb0 c 29 0
-\end{verbatim}
-
-Next executing the application will complain about missing
-\code{/dev/ttyx} device files, so let's create them:
-
-\begin{verbatim}
-sudo mknod target/dev/tty0 c 4 0
-sudo mknod target/dev/tty2 c 4 2
-sudo mknod target/dev/tty5 c 4 5
-\end{verbatim}
-
-Finally, when running \code{df_andi}, another error message shows up:
-
-\small
-\begin{verbatim}
-Unable to dlopen '/usr/lib/[...]/libidirectfbimageprovider_png.so' !
-	File not found
-\end{verbatim}
-\normalsize
-
-DirectFB is trying to load the PNG plugin using the \code{dlopen()} function,
-which is part of the \code{libdl} library we added to the target system
-before. Unfortunately, loading the plugin fails with the {\em File not
-found} error. However, the plugin is properly present, so the problem
-is not the plugin itself. What happens is that the plugin depends on
-the {\em libpng} library, which itself depends on the {\em mathematic}
-library. And the mathematic library \code{libm} (part of the C library) has
-not yet been added to our system. So let's do it:
-
-\begin{verbatim}
-cp -a $TOOLCHAIN_SYSROOT/lib/libm* target/lib
-\end{verbatim}
-
-Now, you can try and run the \code{df_andi} application!
+You can now test that everything works! Run \code{ogg123} on the
+sample file found in \code{thirdparty/data}, and everything should
+work fine!
