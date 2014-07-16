@@ -41,16 +41,14 @@ struct feserial_dev {
 };
 \end{verbatim}
 
-Now, there is a very convenient shortcut to retrieve the
-hardware IRQ number from the device tree and get a virtual IRQ number.
+Now, to retrieve the IRQ number to be used with \code{request_irq()} :
 
 \begin{verbatim}
-dev->irq = irq_of_parse_and_map(pdev->dev.of_node, 0);
+dev->irq = platform_get_irq(pdev, 0);
 \end{verbatim}
 
-Then, pass the newly created virtual interrupt to \code{devm_request_irq()}
-along with the interrupt handler to register your interrupt in the
-kernel.
+Then, pass the interrupt number to \code{devm_request_irq()} along
+with the interrupt handler to register your interrupt in the kernel.
 
 Then, in the interrupt handler, just print a message and return
 \code{IRQ_HANDLED} (to tell the kernel that we have handled the
