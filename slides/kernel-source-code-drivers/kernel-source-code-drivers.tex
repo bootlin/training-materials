@@ -158,31 +158,20 @@
 \end{frame}
 
 \begin{frame}
-  \frametitle{Advantages of GPL drivers 1/2}
+  \frametitle{Advantages of GPL drivers}
   \begin{itemize}
   \item You don't have to write your driver from scratch. You can
     reuse code from similar free software drivers.
-  \item You get free community contributions, support, code review and
-    testing.  Proprietary drivers (even with sources) don't get any.
-  \item Your drivers can be freely shipped by others (mainly by
-    distributions).
-  \item Closed source drivers often support a given kernel version. A
-    system with closed source drivers from 2 different sources is
-    unmanageable.
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Advantages of GPL drivers 2/2}
-  \begin{itemize}
-  \item Users and the community get a positive image of your
-    company. Makes it easier to hire talented developers.
-  \item You don't have to supply binary driver releases for each
-    kernel version and patch version (closed source drivers).
-  \item Drivers have all privileges. You need the sources to make sure
-    that a driver is not a security risk.
-  \item Your drivers can be statically compiled into the kernel
-    (useful to have a kernel image with all drivers needed at boot time)
+  \item You could get free community contributions, support, code
+    review and testing, though this generally only happens with code
+    submitted for the mainline kernel.
+  \item Your drivers can be freely and easily shipped by others (for
+    example by Linux distributions or embedded Linux build systems).
+  \item Pre-compiled drivers work with only one kernel version and one
+    specific configuration, making life difficult for users who want
+    to change the kernel version.
+  \item Legal certainty, you are sure that a GPL driver is fine from a
+    legal point of view.
   \end{itemize}
 \end{frame}
 
@@ -191,33 +180,48 @@
   \begin{itemize}
   \item Once your sources are accepted in the mainline tree, they are
     maintained by people making changes.
-  \item Cost-free maintenance, security fixes and improvements.
+  \item Near cost-free maintenance, security fixes and improvements.
   \item Easy access to your sources by users.
   \item Many more people reviewing your code.
   \end{itemize}
 \end{frame}
 
 \begin{frame}
-  \frametitle{User space device drivers 1/2}
+  \frametitle{User space device drivers 1/3}
   \begin{itemize}
-  \item Possible to implement device drivers in user space!
-  \item Such drivers just need access to the devices through minimum,
-    generic kernel drivers.
-  \item Examples
+  \item In some cases, it is possible to implement device drivers in
+    user space!
+  \item Can be used when
     \begin{itemize}
-    \item Printer and scanner drivers (on top of generic parallel port
-      or USB drivers)
-    \item X drivers: low level kernel drivers + user space X drivers.
-    \item User space drivers based on UIO. See \kerneldoc{DocBook/uio-howto}
-      in the kernel documentation for details about UIO and the \emph{Using UIO on
-        an Embedded platform} talk at ELC 2008
-        (\url{http://j.mp/tBzayM})
+    \item The kernel provides a mechanism that allows userspace
+      applications to directly access the hardware.
+    \item There is no need to leverage an existing kernel subsystem
+      such as the networking stack or filesystems.
+    \item There is no need for the kernel to act as a ``multiplexer''
+      for the device: only one application accesses the device.
     \end{itemize}
   \end{itemize}
 \end{frame}
 
 \begin{frame}
-  \frametitle{User space device drivers 2/2}
+  \frametitle{User space device drivers 2/3}
+  \begin{itemize}
+  \item Possibilities for userspace device drivers:
+    \begin{itemize}
+    \item USB with {\em libusb}, \url{http://www.libusb.org/}
+    \item SPI with {\em spidev}, \kerneldoc{Documentation/spi/spidev}
+    \item I2C with {\em i2cdev}, \kerneldoc{Documentation/i2c/dev-interface}
+    \item Memory-mapped devices with {\em UIO}, including interrupt
+      handling, \url{http://free-electrons.com/kerneldoc/latest/DocBook/uio-howto/}
+    \end{itemize}
+  \item Certain classes of devices (printers, scanners, 2D/3D graphics
+    acceleration) are typically handled partly in kernel space, partly
+    in user space.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{User space device drivers 3/3}
   \begin{itemize}
   \item Advantages
     \begin{itemize}
@@ -230,11 +234,13 @@
     \item Can be swapped out (kernel code cannot be).
     \item Can use floating-point computation.
     \item Less in-kernel complexity.
+    \item Potentially higher performances, especially for
+      memory-mapped devices, thanks to the avoidance of system calls.
     \end{itemize}
   \item Drawbacks
     \begin{itemize}
     \item Less straightforward to handle interrupts.
-    \item Increased latency vs. kernel code.
+    \item Increased interrupt latency vs. kernel code.
     \end{itemize}
   \end{itemize}
 \end{frame}
