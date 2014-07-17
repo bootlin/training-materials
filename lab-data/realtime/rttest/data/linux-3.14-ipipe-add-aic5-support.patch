@@ -1,0 +1,143 @@
+From: Gilles Chanteperdrix <gilles.chanteperdrix@xenomai.org>
+
+diff --git a/arch/arm/mach-at91/gpio.c b/arch/arm/mach-at91/gpio.c
+index 8ef9c3e..ec539bc 100644
+--- a/arch/arm/mach-at91/gpio.c
++++ b/arch/arm/mach-at91/gpio.c
+@@ -994,6 +994,10 @@ void __init at91_gpio_init(struct at91_gpio_bank *data, int nr_banks)
+ }
+ 
+ #if defined(CONFIG_IPIPE)
++extern unsigned long at91_aic_caps;
++#define AT91_AIC_CAP_AIC5	(1 << 0)
++#define has_aic5()		(at91_aic_caps & AT91_AIC_CAP_AIC5)
++
+ static void at91_enable_irqdesc(struct ipipe_domain *ipd, unsigned irq)
+ {
+ 	struct irq_desc *desc = irq_to_desc(irq);
+@@ -1089,6 +1093,9 @@ void at91_pic_muter_register(void)
+ 		.unmute = at91_unmute_pic,
+ 	};
+ 
++	if (has_aic5())
++		return;
++
+ 	ipipe_pic_muter_register(&at91_pic_muter);
+ }
+ #endif /* CONFIG_IPIPE */
+diff --git a/arch/arm/mach-at91/irq.c b/arch/arm/mach-at91/irq.c
+index a18f229..be13b65 100644
+--- a/arch/arm/mach-at91/irq.c
++++ b/arch/arm/mach-at91/irq.c
+@@ -48,7 +48,7 @@ void __iomem *at91_aic_base;
+ static struct irq_domain *at91_aic_domain;
+ static struct device_node *at91_aic_np;
+ static unsigned int n_irqs = NR_AIC_IRQS;
+-static unsigned long at91_aic_caps = 0;
++unsigned long at91_aic_caps = 0;
+ 
+ /* AIC5 introduces a Source Select Register */
+ #define AT91_AIC_CAP_AIC5	(1 << 0)
+@@ -202,7 +202,7 @@ static void at91_aic_mask_irq(struct irq_data *d)
+ 	hard_cond_local_irq_restore(flags);
+ }
+ 
+-static void __maybe_unused at91_aic5_mask_irq(struct irq_data *d)
++static inline void at91_aic5_hard_mask_irq(struct irq_data *d)
+ {
+ 	/* Disable interrupt on AIC5 */
+ 	at91_aic_write(AT91_AIC5_SSR, d->hwirq & AT91_AIC5_INTSEL_MSK);
+@@ -211,6 +211,16 @@ static void __maybe_unused at91_aic5_mask_irq(struct irq_data *d)
+ 	clear_backup(d->hwirq);
+ }
+ 
++static void __maybe_unused at91_aic5_mask_irq(struct irq_data *d)
++{
++	unsigned long flags;
++
++	flags = hard_cond_local_irq_save();
++	at91_aic5_hard_mask_irq(d);
++	ipipe_lock_irq(d->irq);
++	hard_cond_local_irq_restore(flags);
++}
++
+ static inline void at91_aic_hard_unmask_irq(struct irq_data *d)
+ {
+ 	/* Enable interrupt on AIC */
+@@ -229,7 +239,7 @@ static void at91_aic_unmask_irq(struct irq_data *d)
+ 	hard_cond_local_irq_restore(flags);
+ }
+ 
+-static void __maybe_unused at91_aic5_unmask_irq(struct irq_data *d)
++static inline void at91_aic5_hard_unmask_irq(struct irq_data *d)
+ {
+ 	/* Enable interrupt on AIC5 */
+ 	at91_aic_write(AT91_AIC5_SSR, d->hwirq & AT91_AIC5_INTSEL_MSK);
+@@ -238,6 +248,16 @@ static void __maybe_unused at91_aic5_unmask_irq(struct irq_data *d)
+ 	set_backup(d->hwirq);
+ }
+ 
++static void __maybe_unused at91_aic5_unmask_irq(struct irq_data *d)
++{
++	unsigned long flags;
++
++	flags = hard_cond_local_irq_save();
++	at91_aic5_hard_unmask_irq(d);
++	ipipe_unlock_irq(d->irq);
++	hard_cond_local_irq_restore(flags);
++}
++
+ static void at91_aic_eoi(struct irq_data *d)
+ {
+ 	/*
+@@ -247,6 +267,11 @@ static void at91_aic_eoi(struct irq_data *d)
+ 	at91_aic_write(AT91_AIC_EOICR, 0);
+ }
+ 
++static void __maybe_unused at91_aic5_eoi(struct irq_data *d)
++{
++	at91_aic_write(AT91_AIC5_EOICR, 0);
++}
++
+ #ifdef CONFIG_IPIPE
+ static void at91_aic_hold_irq(struct irq_data *d)
+ {
+@@ -256,14 +281,24 @@ static void at91_aic_hold_irq(struct irq_data *d)
+ 
+ static void at91_aic_release_irq(struct irq_data *d)
+ {
++	unsigned long flags = hard_local_irq_save();
+ 	at91_aic_hard_unmask_irq(d);
++	hard_local_irq_restore(flags);
+ }
+-#endif /* CONFIG_IPIPE */
+ 
+-static void __maybe_unused at91_aic5_eoi(struct irq_data *d)
++static void __maybe_unused at91_aic5_hold_irq(struct irq_data *d)
+ {
+-	at91_aic_write(AT91_AIC5_EOICR, 0);
++	at91_aic5_hard_mask_irq(d);
++	at91_aic5_eoi(d);
++}
++
++static void __maybe_unused at91_aic5_release_irq(struct irq_data *d)
++{
++	unsigned long flags = hard_local_irq_save();
++	at91_aic5_hard_unmask_irq(d);
++	hard_local_irq_restore(flags);
+ }
++#endif /* CONFIG_IPIPE */
+ 
+ static unsigned long *at91_extern_irq;
+ 
+@@ -527,6 +562,10 @@ int __init at91_aic5_of_init(struct device_node *node,
+ 	at91_aic_chip.irq_mask		= at91_aic5_mask_irq;
+ 	at91_aic_chip.irq_unmask	= at91_aic5_unmask_irq;
+ 	at91_aic_chip.irq_eoi		= at91_aic5_eoi;
++#ifdef CONFIG_IPIPE
++	at91_aic_chip.irq_hold		= at91_aic5_hold_irq;
++	at91_aic_chip.irq_release	= at91_aic5_release_irq;
++#endif
+ 	at91_aic_irq_ops.map		= at91_aic5_irq_map;
+ 
+ 	err = at91_aic_of_common_init(node, parent);

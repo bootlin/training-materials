@@ -8,7 +8,8 @@ After this lab, you will:
 \item Be able to start processes with real-time priority.
 \item Be able to build a real-time application against the standard
 POSIX real-time API, and against Xenomai's POSIX skin.
-\item Have compared scheduling latency on your system, between a standard kernel and a kernel with Xenomai.
+\item Have compared scheduling latency on your system, between a
+  standard kernel and a kernel with Xenomai.
 \end{itemize}
 
 \section{Setup}
@@ -36,30 +37,22 @@ supports Xenomai.
 
 Let's build this with Buildroot.
 
-Reuse and extract the Buildroot 2013.02 sources. Apply the
-Buildroot patch \code{buildroot-2013.02-bump-xenomai-to-2.6.2.1.patch}
-from the lab {\em data} directory to your Buildroot sources. It
-upgrades the Xenomai version to 2.6.2.1, which allows to use the 3.5
-kernel. Apply the
-\code{0001-ext-toolchain-wrapper-fix-paths-if-executable-was-re.patch}
-patch from this buildroot lab's \code{data} directory. It fixes a bug
-in Buildroot's external toolchain logic.
-
-Configure Buildroot with the following settings, using the \code{/}
-command in \code{make menuconfig} to find parameters by their name:
+Reuse and extract the Buildroot 2014.05 sources. Configure Buildroot
+with the following settings, using the \code{/} command in \code{make
+  menuconfig} to find parameters by their name:
 
 \begin{itemize}
 \item \code{Target architecture}: \code{ARM (little endian)} 
-\item \code{Target Architecture Variant}: \code{cortex-a8}
+\item \code{Target Architecture Variant}: \code{cortex-a5}
 \item In \code{Toolchain}:
    \begin{itemize}
    \item \code{Toolchain type}: \code{External toolchain}
-   \item \code{Toolchain}: \code{Sourcery CodeBench ARM 2012.03}
+   \item \code{Toolchain}: \code{Sourcery CodeBench ARM 2013.11}
    \end{itemize}
 \item In \code{System configuration}: 
    \begin{itemize}
    \item \code{/dev management}: \code{Dynamic using devtmpfs only}
-   \item \code{Port to run a getty (login prompt) on}: \code{ttyO2}
+   \item \code{Port to run a getty (login prompt) on}: \code{ttyS0}
    \end{itemize}
 \item In \code{Package Selection for the target}:
    \begin{itemize}
@@ -93,44 +86,22 @@ cp data/* nfsroot/root
 
 \section{Compile a standard Linux kernel}
 
-Download the exact Linux 3.5.7 version. That's the most recent
-ARM Linux version that Xenomai 2.6.2.1 supports. You will have trouble
-applying Xenomai kernel patches otherwise.
+Reusing the kernel we previously compiled, make sure that you disable
+\code{CONFIG_PROVE_LOCKING}, \code{CONFIG_DEBUG_LOCK_ALLOC},
+\code{CONFIG_DEBUG_MUTEXES} and \code{CONFIG_DEBUG_SPINLOCK}.
 
-Apply the \code{linux-3.5.7-igepv2-fix-pinmux.patch} patch from this
-lab's \code{data} directory.
-
-Configure your kernel with the default configuration for the IGEPv2
-board.
-
-In the kernel configuration interface:
-\begin{itemize}
-\item Enable \code{CONFIG_DEVTMPFS} and \code{CONFIG_DEVTMPFS_MOUNT}
-      The root filesystem that we use has an empty \code{/dev}
-      directory, and we let the kernel populate it with the devices
-      present on the system.
-\item For the moment, remove \code{CONFIG_HIGH_RES_TIMERS},
-      to start by testing the kernel without high-resolution timers.
-\item Disable \code{CONFIG_SMP}, as Xenomai 2.6.1 does not support
-  yet multi-processing on OMAP (and the IGEPv2 is anyway a single
-  core processor).
-\item Disable \code{CONFIG_PROVE_LOCKING},
-  \code{CONFIG_DEBUG_LOCK_ALLOC}, \code{CONFIG_DEBUG_MUTEXES} and
-  \code{CONFIG_DEBUG_SPINLOCK}.
-\end{itemize}
-
-Boot the IGEP board by mounting the root filesystem that you built.
-As usual, login as \code{root}, there is no password.
+Boot the Xplained board by mounting the root filesystem that you
+built. As usual, login as \code{root}, there is no password.
 
 \section{Compiling with the POSIX RT library}
 
 The root filesystem was built with the GNU C library, because it has
 better support for the POSIX RT API.
 
-In our case, when we created this lab, uClibc
-didn't support the \code{clock_nanosleep} function used in our
-\code{rttest.c} program. {\em uClibc} also does not support priority
-inheritance on mutexes.
+In our case, when we created this lab, uClibc didn't support the
+\code{clock_nanosleep} function used in our \code{rttest.c}
+program. {\em uClibc} also does not support priority inheritance on
+mutexes.
 
 Therefore, we will need to compile our test application with the
 toolchain that Buildroot used.
@@ -139,12 +110,12 @@ Let's configure our \code{PATH} to use this toolchain:
 
 \begin{verbatim}
 export
-PATH=$HOME/felabs/realtime/rttest/buildroot-2013.02/output/host/usr/bin:$PATH
+PATH=$HOME/felabs/realtime/rttest/buildroot-2014.05/output/host/usr/bin:$PATH
 \end{verbatim}
 
-Have a look at the \code{rttest.c} source file available in \code{root/} in
-the \code{nfsroot/} directory. See how it shows the resolution of the
-\code{CLOCK_MONOTONIC} clock.
+Have a look at the \code{rttest.c} source file available in
+\code{root/} in the \code{nfsroot/} directory. See how it shows the
+resolution of the \code{CLOCK_MONOTONIC} clock.
 
 Now compile this program:
 \begin{verbatim}
@@ -152,14 +123,15 @@ arm-none-linux-gnueabi-gcc -o rttest rttest.c -lrt
 \end{verbatim}
 
 Execute the program on the board. Is the clock resolution good or bad?
-Compare it to the timer tick of your system, as defined by \code{CONFIG_HZ}.
+Compare it to the timer tick of your system, as defined by
+\code{CONFIG_HZ}.
 
 Obviously, this resolution will not provide accurate sleep times, and
 this is because our kernel doesn't use high-resolution timers. So
 let's enable the \code{CONFIG_HIGH_RES_TIMERS} option in the kernel
 configuration.
 
-Recompile your kernel, boot your IGEP board with the new version, and
+Recompile your kernel, boot your Xplained with the new version, and
 check the new resolution. Better, isn't it?
 
 \section{Testing the non-preemptible kernel}
@@ -189,11 +161,38 @@ the results.
 
 \section{Testing Xenomai scheduling latency}
 
-Prepare the kernel for Xenomai compilation:
+Since the Xplained is pretty recent, no Xenomai release has been made
+yet with support for it. Fortunately, it is supported in the current
+development tree.
+
+First, download a 3.14 Xenomai-enabled kernel. We tested the kernel
+and the patch with the revision \code{4d7a9fefe28a}, so that's what we
+are going to use.
 \begin{verbatim}
-cd $HOME/felabs/realtime/rttest/buildroot-2013.02/
-./output/build/xenomai-2.6.2.1/scripts/prepare-kernel.sh \
-   --arch=arm --linux=/path/to/linux-3.5.7
+cd $HOME/felabs/realtime/rttest
+git clone git://git.xenomai.org/ipipe-gch.git ipipe
+cd ipipe
+git checkout 4d7a9fefe28a
+\end{verbatim}
+
+Then, we're going to need an additional patch in order to support the
+SoC used in the Xplained. Apply the patch
+\code{data/linux-3.14-ipipe-add-aic5-support.patch}
+
+Now, download Xenomai's master, in order to apply the extra patches
+needed for the interaction with the Xenomai user-space components.
+
+\begin{verbatim}
+cd $HOME/felabs/realtime/rttest
+git clone git://git.xenomai.org/xenomai-2.6.git xenomai
+cd xenomai
+git checkout 589882956280
+\end{verbatim}
+
+Now, prepare our kernel for Xenomai compilation:
+\begin{verbatim}
+cd $HOME/felabs/realtime/rttest
+./xenomai/scripts/prepare-kernel.sh --arch=arm --linux=ipipe/
 \end{verbatim}
 
 Now, run the kernel configuration interface, and make sure that
@@ -212,7 +211,7 @@ source directory, and force Buildroot to build the host variant of
 {\em pkg-config}:
 
 \begin{verbatim}
-cd $HOME/felabs/realtime/rttest/buildroot-2013.02/
+cd $HOME/felabs/realtime/rttest/buildroot-2014.05/
 make host-pkgconf
 \end{verbatim}
 
@@ -222,7 +221,7 @@ compile \code{rttest} for the Xenomai POSIX skin:
 \small
 \begin{verbatim}
 cd $HOME/felabs/realtime/rttest/nfsroot/root
-export PATH=$HOME/felabs/realtime/rttest/buildroot-2013.02/output/host/usr/bin:$PATH
+export PATH=$HOME/felabs/realtime/rttest/buildroot-2014.05/output/host/usr/bin:$PATH
 arm-none-linux-gnueabi-gcc -o rttest rttest.c $(pkg-config --libs --cflags libxenomai_posix)
 \end{verbatim}
 \normalsize
