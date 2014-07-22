@@ -20,6 +20,18 @@ if [ ! -d lab-data ]; then
    exit 1
 fi
 
+if [ -z $1 ]; then
+    $ECHO "ERROR: training name missing"
+    exit 1
+fi
+
+if ! ls lab-data | grep -q $1; then
+    $ECHO "ERROR: not a valid training name"
+    exit 1
+fi
+
+FELABS=felabs-$1
+
 # Updating repo
 
 $ECHO "Git repository update..."
@@ -28,24 +40,24 @@ $GIT pull
 # Copy lab data
 
 $ECHO "Copying data from the git repository"
-$RSYNC --exclude=.git -a --delete lab-data/ felabs/
+$RSYNC --exclude=.git -a --delete lab-data/$1/ $FELABS
 
 # Uncompress compressed files
 
 $ECHO "Extracting tar.xz archives (root permissions needed for device files)"
 
-for f in `$FIND felabs -name "*.tar.xz"`; do
+for f in `$FIND $FELABS -name "*.tar.xz"`; do
 	$SUDO $TAR -C `dirname $f` -Jxf $f
 	$RM $f
 done
 
-$SUDO $CHOWN -R $USER.$USER felabs
+$SUDO $CHOWN -R $USER.$USER $FELABS
 
 $ECHO "Uncompressing other .xz files"
-$FIND felabs -name "*.xz" -exec $UNXZ {} ';' 
+$FIND $FELABS -name "*.xz" -exec $UNXZ {} ';'
 
 # Create the final archive
 
 $ECHO "Creating the final archive..."
-$TAR Jcf labs.tar.xz felabs 
+$TAR Jcf labs-$1.tar.xz $FELABS
 
