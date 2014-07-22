@@ -386,6 +386,8 @@ endif
 SLIDES_COMMON_AFTER  = common/slide-footer.tex
 endif
 
+TRAINING = $(SLIDES_TRAINING)
+
 ifeq ($(SLIDES_CHAPTERS),)
 $(error "No chapter to build, maybe you're building a single chapter whose name doesn't start with a training session name")
 endif
@@ -437,11 +439,14 @@ LABS_VARSFILE      = common/$(LABS_TRAINING)-labs-vars.tex
 LABS_CHAPTERS      = $($(call UPPERCASE, $(LABS_TRAINING))_LABS)
 LABS_FOOTER        = common/labs-footer.tex
 else
+LABS_TRAINING      = $(firstword $(subst -, , $(LABS)))
 LABS_VARSFILE      = common/single-lab-vars.tex
 LABS_CHAPTERS      = $(LABS)
 LABS_HEADER        = common/single-lab-header.tex
 LABS_FOOTER        = common/labs-footer.tex
 endif
+
+TRAINING           = $(LABS_TRAINING)
 
 # Compute the set of corresponding .tex files and pictures
 LABS_TEX      = \
@@ -542,7 +547,7 @@ $(OUTDIR)/%.jpg: %.jpg
 $(VARS): FORCE
 	@mkdir -p $(dir $@)
 	/bin/echo "\def \sessionurl {$(SESSION_URL)}" > $@
-	/bin/echo "\def \training {$(SLIDES_TRAINING)}" >> $@
+	/bin/echo "\def \training {$(TRAINING)}" >> $@
 
 clean:
 	$(RM) -rf $(OUTDIR) *.pdf
