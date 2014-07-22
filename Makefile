@@ -430,25 +430,12 @@ endif
 #
 
 ifdef LABS
+ifeq ($(firstword $(subst -, , $(LABS))),full)
+LABS_TRAINING      = $(lastword $(subst -, , $(LABS)))
 LABS_HEADER        = common/labs-header.tex
+LABS_VARSFILE      = common/$(LABS_TRAINING)-labs-vars.tex
+LABS_CHAPTERS      = $($(call UPPERCASE, $(LABS_TRAINING))_LABS)
 LABS_FOOTER        = common/labs-footer.tex
-# Compute the set of chapters to build depending on the name of the
-# PDF file that was requested.
-ifeq ($(LABS),full-kernel)
-LABS_VARSFILE      = common/kernel-labs-vars.tex
-LABS_CHAPTERS      = $(KERNEL_LABS)
-else ifeq ($(LABS),full-sysdev)
-LABS_VARSFILE      = common/sysdev-labs-vars.tex
-LABS_CHAPTERS      = $(SYSDEV_LABS)
-else ifeq ($(LABS),full-android)
-LABS_VARSFILE      = common/android-labs-vars.tex
-LABS_CHAPTERS      = $(ANDROID_LABS)
-else ifeq ($(LABS),full-boottime)
-LABS_VARSFILE      = common/boottime-labs-vars.tex
-LABS_CHAPTERS      = $(BOOTTIME_LABS)
-else ifeq ($(LABS),full-yocto)
-LABS_VARSFILE      = common/yocto-labs-vars.tex
-LABS_CHAPTERS      = $(YOCTO_LABS)
 else
 LABS_VARSFILE      = common/single-lab-vars.tex
 LABS_CHAPTERS      = $(LABS)
