@@ -256,7 +256,7 @@ SYSDEV_LABS   = setup \
 		sysdev-application-development \
 		sysdev-application-debugging \
 		sysdev-real-time \
-		backup
+#		backup # Currently broken for sysdev course
 
 KERNEL_LABS   = setup \
 		kernel-sources-download \
