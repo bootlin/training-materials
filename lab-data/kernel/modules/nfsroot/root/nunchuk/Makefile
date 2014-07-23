@@ -1,7 +1,7 @@
 ifneq ($(KERNELRELEASE),)
 obj-m := nunchuk.o
 else
-KDIR := $(HOME)/felabs/linux/src/linux
+KDIR := $(HOME)/felabs-kernel/src/linux
 all:
 	$(MAKE) -C $(KDIR) M=$$PWD
 endif
