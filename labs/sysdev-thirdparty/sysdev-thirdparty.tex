@@ -372,7 +372,7 @@ to do:
 \footnotesize
 \begin{verbatim}
 configure:7130: checking for libasound headers version >= 1.0.27
-configure:7192: arm-linux-gnueabi-gcc -c -g -O2  conftest.c >&5
+configure:7192: arm-linux-gnueabihf-gcc -c -g -O2  conftest.c >&5
 conftest.c:15:28: fatal error: alsa/asoundlib.h: No such file or directory
 \end{verbatim}
 \normalsize
@@ -433,9 +433,9 @@ Let's also specify the prefix, so that the library is compiled to be
 installed in \code{/usr} and not \code{/usr/local}:
 
 \begin{verbatim}
- LDFLAGS=-L$HOME/felabs/sysdev/thirdparty/staging/usr/lib \
- CPPFLAGS=-I$HOME/felabs/sysdev/thirdparty/staging/usr/include \
- CC=arm-linux-gcc \
+LDFLAGS=-L$HOME/felabs/sysdev/thirdparty/staging/usr/lib \
+CPPFLAGS=-I$HOME/felabs/sysdev/thirdparty/staging/usr/include \
+CC=arm-linux-gcc \
 ./configure --host=arm-linux --prefix=/usr
 \end{verbatim}
 
@@ -451,10 +451,11 @@ just like we built alsa-lib. We will also need to disable the xmlto
 support that generates the documentation.
 
 \begin{verbatim}
- LDFLAGS=-L$HOME/felabs/sysdev/thirdparty/staging/usr/lib \
- CPPFLAGS=-I$HOME/felabs/sysdev/thirdparty/staging/usr/include \
- CC=arm-linux-gcc \
-./configure --host=arm-linux --prefix=/usr --disable-alsamixer --disable-xmlto
+LDFLAGS=-L$HOME/felabs/sysdev/thirdparty/staging/usr/lib \
+CPPFLAGS=-I$HOME/felabs/sysdev/thirdparty/staging/usr/include \
+CC=arm-linux-gcc \
+./configure --host=arm-linux --prefix=/usr \
+--disable-alsamixer --disable-xmlto
 \end{verbatim}
 
 Then, run the compilation with make. Hopefully, it works!
@@ -557,9 +558,9 @@ arm-linux-strip target/usr/bin/a*
 arm-linux-strip target/usr/bin/speaker-test
 arm-linux-strip target/usr/sbin/alsactl
 
+mkdir -p target/usr/share/alsa/pcm
 cp -a staging/usr/share/alsa/alsa.conf* target/usr/share/alsa
 cp -a staging/usr/share/alsa/cards target/usr/share/alsa
-mkdir target/usr/share/alsa/pcm
 cp -a staging/usr/share/alsa/pcm/default.conf target/usr/share/alsa/pcm
 \end{verbatim}
 
@@ -615,10 +616,24 @@ is very easy, and almost identical to what we've seen with the
 alsa-utils. First, the configure step:
 
 \begin{verbatim}
-LDFLAGS=-L$HOME/felabs/sysdev/thirdparty/staging/usr/lib \
-CPPFLAGS=-I$HOME/felabs/sysdev/thirdparty/staging/usr/include \
 CC=arm-linux-gcc \
 ./configure --host=arm-linux --prefix=/usr
+\end{verbatim}
+
+It will fail with:
+
+\begin{verbatim}
+configure: error: Ogg >= 1.0 required !
+\end{verbatim}
+
+By running \code{./configure --help}, you will find the
+\code{--with-ogg-libraries} and \code{--with-ogg-includes} options.
+Use those:
+
+\begin{verbatim}
+CC=arm-linux-gcc ./configure --host=arm-linux --prefix=/usr \
+  --with-ogg-includes=$HOME/felabs/sysdev/thirdparty/staging/usr/include \
+  --with-ogg-libraries=$HOME/felabs/sysdev/thirdparty/staging/usr/lib
 \end{verbatim}
 
 Then, compile the library:
@@ -815,12 +830,38 @@ make
 
 It should fail rather quickly, complaining that the curl headers are
 missing. This is because the configure script, in curl's case, didn't
-actually test wether it was available or not, but just assumed it was.
+actually test whether it was available or not, but just assumed it was.
+
+It may also fail with the following cryptic message:
+\begin{verbatim}
+if arm-linux-gcc -DSYSCONFDIR=\"/usr/etc\" -DLOCALEDIR=\"/usr/share/locale\"
+ -DHAVE_CONFIG_H -I. -I. -I.. -I/usr/include -I../include -I../intl
+ -I/home/ubuntu/felabs/sysdev/thirdparty/staging/usr/include  -O2 -Wall
+ -ffast-math -fsigned-char -g -O2 -MT audio.o -MD -MP -MF ".deps/audio.Tpo"
+ -c -o audio.o audio.c; \
+	then mv -f ".deps/audio.Tpo" ".deps/audio.Po"; else rm -f ".deps/audio.Tpo"; exit 1; fi
+In file included from /usr/include/stdio.h:28:0,
+                 from audio.c:22:
+/usr/include/features.h:324:26: fatal error: bits/predefs.h: No such file or directory
+ #include <bits/predefs.h>
+                          ^
+compilation terminated.
+make[2]: *** [audio.o] Error 1
+make[2]: Leaving directory `/home/ubuntu/felabs/sysdev/thirdparty/vorbis-tools-1.4.0/ogg123'
+make[1]: *** [all-recursive] Error 1
+make[1]: Leaving directory `/home/ubuntu/felabs/sysdev/thirdparty/vorbis-tools-1.4.0'
+make: *** [all] Error 2
+\end{verbatim}
+
+You can notice that \code{/usr/include} is added to the include paths.
+Again, this is not what we want because it contains includes for the
+host, not the target. It is coming from the autodetected value for
+\code{CURL_CFLAGS}.
 
 Add the \code{--without-curl} option to the configure invocation,
 restart the compilation.
 
-The compilation should then fail with an error related to libm. While
+The compilation may then fail with an error related to libm. While
 the code uses the function from this library, the generated Makefile
 doesn't give the right command line argument in order to link against
 the libm.
