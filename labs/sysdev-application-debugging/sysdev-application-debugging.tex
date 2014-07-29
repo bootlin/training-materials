@@ -11,49 +11,22 @@ Go to the \code{$HOME/felabs-sysdev/debugging} directory.
 \section{Debugging setup}
 
 Boot your ARM board over NFS on the filesystem produced in the {\em
-  Tiny embedded system} lab, with the same kernel.
+  Using a build system, example with Buildroot} lab, with the same kernel.
 
-%\section{Setting up gdbserver, strace and ltrace}
-\section{Setting up gdbserver and strace}
+\section{Setting up gdbserver, strace and ltrace}
 
-%\code{gdbserver}, \code{strace} and \code{ltrace} have already been
-\code{gdbserver} and \code{strace} have already been
+\code{gdbserver}, \code{strace} and \code{ltrace} have already been
 compiled for your target architecture as part of the cross-compiling
 toolchain. Find them in the installation directory of your
 toolchain. Copy these binaries to the \code{/usr/bin/} directory in
 the root filesystem of your target system.
 
-\section{Enabling job control}
-
-In this lab, we are going to run a buggy program that keeps hanging
-and crashing.  Because of this, we are going to need job control, in
-particular \code{[Ctrl] [C]} allowing to interrupt a running program.
-
-At boot time, you probably noticed that warning that job control was
-turned off:
-
-\begin{verbatim}
-/bin/sh: can't access tty; job control turned off
-\end{verbatim}
-
-This happens when the shell is started in the console. The system
-console cannot be used as a controlling terminal.
-
-The fix is to start this shell in ttyO2 (the 3rd OMAP serial port on
-the IGEPv2 board) by modifying the \code{/etc/inittab} file:
-
-Replace
-\begin{verbatim}
-::askfirst:/bin/sh
-\end{verbatim}
-which implied the use of the system console device by
-\begin{verbatim}
-ttyO2::askfirst:/bin/sh
-\end{verbatim}
-to tell the \code{init} program to start the shell on \code{/dev/ttyO2}
-
-Now reboot. You should no longer see the \code{Job control turned off}
-warning, and should be able to use \code{[Ctrl] [C]}.
+Unfortunately, the latest \code{ltrace} release is quite old and is
+not working on recent kernels. You can go back to Buildroot, apply the
+patch named \code{0001-ltrace-use-current-master.patch}, select the
+\code{ltrace} package and build. this will build a fairly recent
+version of \code{ltrace} that you can now install in your NFS
+directory.
 
 \section{Using strace}
 
@@ -86,14 +59,14 @@ code!
 Now add what the program was waiting for, and now see your program
 proceed to another bug, failing with a segmentation fault.
 
-%\section{Using ltrace}
+\section{Using ltrace}
 
-%Try to run the program through \code{ltrace}. You will see that
-%another library is required to run this utility. Find this library in
-%the toolchain and add it to your root filesystem again.
+Try to run the program through \code{ltrace}. You may see that
+another library is required to run this utility. Find this library in
+the Buildroot output and add it to your root filesystem.
 
-%Now, ltrace should run fine and you should see what the program does:
-%it tries to consume as much system memory as it can!
+Now you should see what the program does: it tries to consume as much
+system memory as it can!
 
 \section{Using gdbserver}
 
@@ -132,8 +105,8 @@ your workstation. This is done by setting GDB \code{sysroot} variable
 (on one line):
 
 \begin{verbatim}
-(gdb) set sysroot /usr/local/xtools/arm-unknown-linux-uclibcgnueabi/
-arm-unknown-linux-uclibcgnueabi/sysroot/
+(gdb) set sysroot /usr/local/xtools/arm-unknown-linux-uclibcgnueabihf/
+arm-unknown-linux-uclibcgnueabihf/sysroot/
 \end{verbatim}
 
 And tell gdb to connect to the remote system:

@@ -13,10 +13,8 @@ After this lab, you will be able to:
 
 Go to the \code{$HOME/felabs-sysdev/kernel} directory.
 
-Install the following packages: \code{libqt4-dev} and
-\code{u-boot-tools}. \code{libqt4-dev} is needed for the
-\code{xconfig} kernel configuration interface, and \code{u-boot-tools}
-is needed to build the \code{uImage} kernel image file for U-Boot.
+Install the package \code{libqt4-dev} which is needed for the
+\code{xconfig} kernel configuration interface.
 
 \section{Target system}
 
@@ -50,32 +48,18 @@ Also, don't forget to either:
 \section{Linux kernel configuration}
 
 By running \code{make help}, find the proper Makefile target to
-configure the kernel for the IGEPv2 board (hint: the default
-configuration is not named after the board, but after the CPU
+configure the kernel for the Xplained board (hint: the default
+configuration is not named after the board, but after the SoC
 name). Once found, use this target to configure the kernel with the
 ready-made configuration.
 
 Don't hesitate to visualize the new settings by running
 \code{make xconfig} afterwards!
 
-In the kernel configuration:
-
-\begin{itemize}
-
-\item Disable support for the IGEPv2 board compiled into the kernel
-  (\code{CONFIG_MACH_IGEP0020}). We will boot our kernel with a device
-  tree for our board, and won't compile the board description file
-  (\code{arch/arm/mach-omap2/board-igep0020.c} in the kernel
-  sources.). Technically speaking, you can leave this option enabled,
-  and still boot using a {\em Device Tree}, but disabling it makes
-  sure that your board will not fall back to legacy booting if you do
-  a mistake! You will have to review dependencies to be able to
-  disable this kernel configuration setting.
-\item As an experiment, let's change the kernel compression from Gzip
-  to XZ. This compression algorithm is far more efficient than Gzip,
-  in terms of compression ratio, at the expense of a higher
-  decompression time.
-\end{itemize}
+In the kernel configuration, as an experiment, change the kernel
+compression from Gzip to XZ. This compression algorithm is far more
+efficient than Gzip, in terms of compression ratio, at the expense of
+a higher decompression time.
 
 \section{Cross compiling}
 
@@ -93,23 +77,9 @@ the kernel image. You can also see the Device Tree \code{.dtb} files
 which got compiled. Find which \code{.dtb} file corresponds to your
 board.
 
-However, the default image produced by the kernel build process is not
-suitable to be booted from U-Boot. A post-processing operation must be
-performed using the \code{mkimage} tool provided by U-Boot developers. This
-tool has already been installed in your system as part of the
-\code{u-boot-tools} package. To run the post-processing operation on
-the kernel image, simply run:
-
-\begin{verbatim}
-make LOADADDR=0x80008000 uImage
-\end{verbatim}
-
-The \code{LOADADDR} indicates to U-Boot where the kernel image should
-be loaded.
-
 \section{Setting up serial communication with the board}
 
-Plug the IGEP board on your computer. Start Picocom on
+Plug the Xplained board on your computer. Start Picocom on
 \code{/dev/ttyS0}, or on \code{/dev/ttyUSB0} if you are using a serial
 to USB adapter.
 
@@ -130,40 +100,34 @@ saveenv
 
 \section{Load and boot the kernel using U-Boot}
 
-We will use TFTP to load the kernel image to the IGEP board:
+We will use TFTP to load the kernel image to the Xplained board:
 
 \begin{itemize}
 
-\item On your workstation, copy the \code{uImage} and DTB files to the
+\item On your workstation, copy the \code{zImage} and DTB files to the
   directory exposed by the TFTP server.
 
-\item On the target, load \code{uImage} from TFTP into RAM at address
-  0x80000000:\\
-  \code{tftp 0x80000000 uImage}
+\item On the target, load \code{zImage} from TFTP into RAM at address
+  0x22000000:\\
+  \code{tftp 0x21000000 zImage}
 
 \item Now, also load the DTB file into RAM at address 0x81000000:\\
-  \code{tftp 0x81000000 omap3-igep0020.dtb}
+  \code{tftp 0x22000000 at91-sama5d3_xplained.dtb}
 
 \item Boot the kernel with its device tree:\\
-  \code{bootm 0x80000000 - 0x81000000}
+  \code{bootz 0x21000000 - 0x22000000}
 
 \end{itemize}
 
-You should see Linux boot and finally hang with the following message:
-
-\begin{verbatim}
-Waiting for root device /dev/mmcblk0p2...
-\end{verbatim}
-
-This is expected: we haven't provided a working root filesystem for
-our device yet.
+You should see Linux boot and finally crashing. This is expected: we
+haven't provided a working root filesystem for our device yet.
 
 You can now automate all this every time the board is booted or
 reset. Reset the board, and specify a different \code{bootcmd}:
 
 {\scriptsize
 \begin{verbatim}
-setenv bootcmd 'tftp 80000000 uImage; tftp 81000000 omap3-igep0020.dtb; bootm 80000000 - 81000000'
+setenv bootcmd 'tftp 0x21000000 zImage; tftp 0x22000000 at91-sama5d3_xplained.dtb; bootz 0x21000000 - 0x22000000'
 saveenv
 \end{verbatim}
 }
@@ -171,9 +135,8 @@ saveenv
 \section{Flashing the kernel and DTB in NAND flash}
 
 In order to let the kernel boot on the board autonomously, we can
-flash the kernel image and DTB in the NAND flash available on the IGEP
-board. See the bootloader lab for details about U-boot's \code{nand}
-command.
+flash the kernel image and DTB in the NAND flash available on the
+Xplained board.
 
 After storing the first stage bootloader, U-boot and its environment
 variables, we will keep special areas in NAND flash for the DTB
@@ -187,14 +150,14 @@ So, let's start by erasing the corresponding 128 KiB of NAND flash
 for the DTB:
 
 \begin{verbatim}
-nand erase 0x2e0000 0x20000
+nand erase 0x140000 0x20000
         (NAND offset) (size)
 \end{verbatim}
 
 Then, let's erase the 5 MiB of NAND flash for the kernel image:
 
 \begin{verbatim}
-nand erase 0x300000 0x500000
+nand erase 0x160000 0x500000
 \end{verbatim}
 
 Then, copy the DTB and kernel binaries from TFTP into memory, using the
@@ -203,33 +166,24 @@ same addresses as before.
 Then, flash the DTB and kernel binaries:
 
 \begin{verbatim}
-nand write 0x81000000 0x2e0000 0x20000
+nand write 0x22000000 0x140000 0x20000
            (RAM addr) (NAND offset) (size)
-nand write 0x80000000 0x300000 0x500000
+nand write 0x21000000 0x160000 0x500000
 \end{verbatim}
 
 Power your board off and on, to clear RAM contents. We should now be
 able to load the DTB and kernel image from NAND and boot with:
 
 \begin{verbatim}
-nand read 0x81000000 0x2e0000 0x20000
-nboot 0x80000000 0        0x300000
-      (RAM addr) (device) (NAND offset)
-bootm 0x80000000 - 0x81000000
+nand read 0x22000000 0x140000 0x20000
+          (RAM addr) (offset) (size)
+nand read 0x21000000 0x160000 0x500000
+bootz 0x21000000 - 0x22000000
 \end{verbatim}
-
-\code{nboot} copies the kernel to RAM, using the \code{uImage} headers
-to know how many bytes to copy. To load the kernel
-to RAM, image, you could have used \code{nand read
-0x80000000 0x300000 0x500000}, but you would have copied more bytes than
-the actual size of your kernel. \footnote{\code{nboot} can save a lot 
-of boot time, as it avoids having to copy a pessimistic number of
-bytes from flash to RAM. Note that U-boot is not always configured
-with \code{nboot} support.}.
 
 Write a U-Boot script that automates the DTB + kernel download
 and flashing procedure. Finally, adjust \code{bootcmd} so that
-the IGEP board boots using the kernel in Flash.
+the Xplained board boots using the kernel in Flash.
 
 Now, power off the board and power it on again to check that it boots
 fine from NAND flash. Check that this is really your own version of

@@ -19,15 +19,22 @@ Install the packages needed for this lab:
 
 \begin{verbatim}
 sudo apt-get install autoconf automake libtool libexpat1-dev \
-     libncurses5-dev bison flex patch curl cvs texinfo \
-     build-essential subversion gawk python-dev gperf
+     libncurses5-dev bison flex patch curl cvs texinfo git bc \
+     build-essential subversion gawk python-dev gperf unzip \
+     pkg-config wget
 \end{verbatim}
 
 \section{Getting Crosstool-ng}
 
-Get the latest 1.19.x release of Crosstool-ng at
-\url{http://crosstool-ng.org}. Expand the archive right in the current
-directory, and enter the Crosstool-ng source directory.
+We will need a recent version of Crosstool-ng for this lab, including
+code that is not part of a release yet so we will use git to download
+it:
+
+\begin{verbatim}
+git clone http://crosstool-ng.org/git/crosstool-ng
+cd crosstool-ng/
+git checkout 71074b7f822c
+\end{verbatim}
 
 \section{Installing Crosstool-ng}
 
@@ -37,6 +44,7 @@ solution. As documented in
 \code{docs/2\ -\ Installing\ crosstool-NG.txt}, do:
 
 \begin{verbatim}
+autoreconf
 ./configure --enable-local
 make
 make install
@@ -58,10 +66,11 @@ Crosstool-ng comes with a set of ready-made configuration files for
 various typical setups: Crosstool-ng calls them {\em samples}. They can be
 listed by using \code{./ct-ng list-samples}.
 
-We will use the arm-unknown-linux-uclibcgnueabi sample. It can be loaded by issuing:
+We will use the \code{arm-cortexa5-linux-uclibcgnueabihf} sample. It
+can be loaded by issuing:
 
 \begin{verbatim}
-./ct-ng arm-unknown-linux-uclibcgnueabi
+./ct-ng arm-cortexa5-linux-uclibcgnueabihf
 \end{verbatim}
 
 Then, to refine the configuration, let's run the \code{menuconfig} interface:
@@ -84,7 +93,7 @@ In \code{Toolchain options}:
 \begin{itemize}
 \item Set \code{Tuple's alias} to \code{arm-linux}. This way, we will
   be able to use the compiler as \code{arm-linux-gcc} instead of
-  \code{arm-unknown-linux-uclibcgnueabi-gcc}, which is much longer to
+  \code{arm-unknown-linux-uclibcgnueabihf-gcc}, which is much longer to
   type.
 \end{itemize}
 
@@ -93,12 +102,9 @@ In \code{Debug facilities}:
 \item Make sure that \code{gdb}, \code{strace} and \code{ltrace} are
       enabled.
 \item Remove the other options (\code{dmalloc} and \code{duma}).
-\item In \code{gdb} options:
-  \begin{itemize}
-  \item Make sure that the \code{Cross-gdb} and \code{Build a static gdbserver}
-	options are enabled; the other options are not needed.
-  \item Set \code{gdb version} to \code{7.4.1}.
-  \end{itemize}
+\item In \code{gdb} options, make sure that the \code{Cross-gdb} and
+      \code{Build a static gdbserver} options are enabled; the other
+      options are not needed.
 \end{itemize}
 
 Explore the different other available options by traveling through the
@@ -158,7 +164,7 @@ One solution is to add the \code{-fpermissive} flag to the
 \section{Testing the toolchain}
 
 You can now test your toolchain by adding
-\code{/usr/local/xtools/arm-unknown-linux-uclibcgnueabi/bin/} to your
+\code{/usr/local/xtools/arm-unknown-linux-uclibcgnueabihf/bin/} to your
 \code{PATH} environment variable and compiling the simple
 \code{hello.c} program in your main lab directory with
 \code{arm-linux-gcc}.

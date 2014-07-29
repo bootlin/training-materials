@@ -1,7 +1,7 @@
 \subchapter{Using a build system, example with Buildroot}{Objectives:
   discover how a build system is used and how it works, with the
   example of the Buildroot build system. Build a Linux system with
-  libraries and make it work inside Qemu.}
+  libraries and make it work on the board.}
 
 \section{Setup}
 
@@ -12,7 +12,7 @@ kernel image.
 \section{Get Buildroot and explore the source code}
 
 The official Buildroot website is available at
-\url{http://buildroot.org/}. Download the latest stable 2013.08.x
+\url{http://buildroot.org/}. Download the latest stable 2014.05.x
 version which we have tested for this lab. Uncompress the tarball
 and go inside the Buildroot source directory.
 
@@ -52,10 +52,9 @@ In our case, we would like to:
 \item Generate an embedded Linux system for ARM;
 \item Use an already existing external toolchain instead of having
   Buildroot generating one for us;
-\item Integrate Busybox, DirectFB and DirectFB sample applications in
-  our embedded Linux system;
-\item Integrate the target filesystem into both an ext2 filesystem
-  image and a tarball
+\item Integrate Busybox, alsa-utils and vorbis-tools in our embedded
+  Linux system;
+\item Integrate the target filesystem into a tarball
 \end{itemize}
 
 To run the configuration utility of Buildroot, simply run:
@@ -67,44 +66,45 @@ make menuconfig
 Set the following options:
 
 \begin{itemize}
-\item \code{Target Architecture}: \code{ARM (little endian)}
-\item \code{Target Architecture Variant}: \code{arm926t} (we will start booting
-      the generated filesystem on an emulated arm9 based system,
-      instead of the IGEPv2 board)
+\item \code{Target options}
+  \begin{itemize}
+  \item \code{Target Architecture}: \code{ARM (little endian)}
+  \item \code{Target Architecture Variant}: \code{cortex-A5}
+  \item \code{Target ABI}: \code{EABIhf}
+  \item \code{Floating point strategy}: \code{VFPv4-D16}
+  \end{itemize}
 \item \code{Toolchain}
   \begin{itemize}
   \item \code{Toolchain type}: \code{External toolchain}
   \item \code{Toolchain}: \code{Custom toolchain}
   \item \code{Toolchain path}: use the toolchain you built:
-    \code{/usr/local/xtools/arm-unknown-linux-uclibcgnueabi}
+    \code{/usr/local/xtools/arm-unknown-linux-uclibcgnueabihf}
+  \item \code{External toolchain kernel headers series}: \code{3.10.x}
   \item \code{External toolchain C library}: \code{uClibc}
   \item We must tell Buildroot about our toolchain configuration, so:
     enable \code{Toolchain has large file support?}, \code{Toolchain has
-    RPC support?}, and \code{Toolchain has C++ support?}.
+    WCHAR support?}, \code{Toolchain has SSP support?} and
+    \code{Toolchain has C++ support?}.
     Buildroot will check these parameters anyway.
-  \end{itemize}
-\item \code{System configuration}
-  \begin{itemize}
-  \item \code{Port to run a getty (login prompt) on}: change \code{ttyS0} to \code{tty1}
   \end{itemize}
 \item \code{Target packages}
   \begin{itemize}
   \item Keep \code{BusyBox} (default version) and keep the Busybox
     configuration proposed by Buildroot;
-  \item \code{In Graphic libraries and applications (graphic/text)}
+  \item \code{Audio and video applications}
     \begin{itemize}
-    \item Select \code{directfb}. Buildroot will automatically select the
-      necessary dependencies.
+    \item Select \code{alsa-utils}
+    \item \code{ALSA utils selection}
     \begin{itemize}
-         \item Remove \code{enable touchscreen support}
-         \item Select \code{directfb examples}
-         \item Select all the DirectFB examples
+         \item Select alsactl
+         \item Select alsamixer
+         \item Select speaker-test
      \end{itemize}
+    \item Select \code{vorbis-utils}
     \end{itemize}
   \end{itemize}
 \item \code{Filesystem images}
   \begin{itemize}
-  \item Select \code{ext2/3/4 root filesystem}
   \item Select \code{tar the root filesystem}
   \end{itemize}
 \end{itemize}
@@ -141,12 +141,9 @@ explore its contents:
   makedevs, fakeroot)
 
 \item \code{images}, which contains the final images produced by
-  Buildroot. In our case it's just an ext2 filesystem image and a
-  tarball of the filesystem, but depending on the Buildroot
-  configuration, there could also be a kernel image or a bootloader
-  image. This is where we find \code{rootfs.tar} and
-  \code{rootfs.ext2}, which are respectively the tarball and the ext2
-  image of the generated root filesystem.
+  Buildroot. In our case it's just a tarball of the filesystem, called
+  \code{rootfs.tar}, but depending on the Buildroot configuration,
+  there could also be a kernel image or a bootloader image.
 
 \item \code{staging}, which contains the “build” space of the target
   system. All the target libraries, with headers, documentation. It
@@ -168,46 +165,49 @@ explore its contents:
 
 \section{Run the generated system}
 
-If you didn't do it in the previous lab, install QEMU emulator for non
-x86 targets:
+Go back to the \code{$HOME/felabs-sysdev/buildroot/} directory. Create
+a new directory \code{system} that is going to hold our system,
+exported over NFS. Go into this directory, and untar the rootfs using:
 
 \begin{verbatim}
-sudo apt-get install qemu-kvm-extras
+sudo tar -xvf ../buildroot/output/images/rootfs.tar
 \end{verbatim}
 
-We will use the kernel image in \code{data} and the filesystem image
-generated by Buildroot in the ext2 format to boot the generated system
-in QEMU. We start by using a QEMU emulated ARM board with display
-support, allowing to test graphical applications relying on the
-DirectFB library. Later, we will be able move to a real board if your
-hardware also has a graphical display.
+Add our \code{system} directory to the list of the directory exported
+by NFS in \code{/etc/exports}, and make sure the board use it too.
 
-Execute the \code{run_qemu} script, which contains what's needed
-to boot the system in QEMU.
+Boot the board, and log in (\code{root} account, no password).
 
-Log in (\code{root} account, no password), and run demo programs:
-
-\begin{verbatim}
-df_andi
-df_dok
-df_fire
-...
-\end{verbatim}
+You should now have a shell, where you will be able to run
+\code{speaker-test} and \code{ogg123} like you used to in the previous
+lab.
 
 \section{Going further}
 
 \begin{itemize}
 
+\item Flash the new system on the flash of the board
+  \begin{itemize}
+  \item First, in buildroot, select the JFFS2 filesystem image type.
+  \item You'll also need to provide buildroot some informations on the
+    underlying device that will store the filesystem. In our case, we
+    will store it on a NAND, with pages 2kB wide, and with an erase
+    size of 128kB.
+  \item We'll also need to pad the output to the end of the next erase
+    block
+  \item Then, once the image has been generated, flash it on your
+    board.
+  \end{itemize}
+
 \item Add dropbear (SSH server and client) to the list of packages
-  built by Buildroot, add the network emulation in QEMU (see the
-  \code{../thirdparty/run_qemu} script for an example), and log to
-  your target system in QEMU using a ssh client on your development
-  workstation. Hint: you will have to set a non-empty password for the
-  root account on your target for this to work.
+  built by Buildroot and log to your target system using a ssh client
+  on your development workstation. Hint: you will have to set a
+  non-empty password for the root account on your target for this to
+  work.
 
 \item Add a new package in Buildroot for the GNU Gtypist game. Read
   the Buildroot documentation to see how to add a new
   package. Finally, add this package to your target system, compile it
-  and run it in QEMU.
+  and run it.
 
 \end{itemize}
