@@ -8,7 +8,7 @@ time.
 \section{Setting your goals}
 
 As explained in the lectures, the first thing to do is to choose what do
-measure. In the demo running on this particular board, a natural choice is to 
+measure. In the demo running on this particular board, a natural choice is to
 measure the time taken to start the demo video.
 
 Ideally, we would measure the time elapsed since power-on or since a
@@ -58,7 +58,7 @@ Here are details about this command:
 \begin{itemize}
 \item \code{-m "RomBOOT"} specifies the string marking the
 origin of time.
-\item \code{-t} makes \code{grabserial} show the time when 
+\item \code{-t} makes \code{grabserial} show the time when
 {\bf the first character of each line is received}.
 \item \code{-e 30} tells \code{grabserial} to stop measuring after 30
 seconds.
@@ -69,49 +69,49 @@ First, you will have to exit \code{picocom} using \code{C-a C-x} to run
 
 Start \code{grabserial} and reset the board using \code{PB1}. You will
 see that it takes around 13.5 seconds to reach the Buildroot prompt and
-show the demo video: 
+show the demo video:
 
 \begin{verbatim}
 $ ~/bin/grabserial -d /dev/ttyACM0 -m RomBOOT  -t -e 30
 [0.000002 0.000002] RomBOOT
-[0.054440 0.054440] 
-[0.054594 0.000154] 
+[0.054440 0.054440]
+[0.054594 0.000154]
 [0.054719 0.000125] AT91Bootstrap 3.5.2 (Wed Jan 30 18:42:28 CET 2013)
-[0.059009 0.004290] 
+[0.059009 0.004290]
 [0.059185 0.000176] 1-Wire: Loading 1-Wire information ...
 [0.062645 0.003460] 1-Wire: ROM Searching ... Done, 0x3 1-Wire chips
 found
-[0.110066 0.047421] 
+[0.110066 0.047421]
 ...
 [12.158893 0.064820] Starting portmap: done
 [12.284482 0.125589] Initializing random number generator... done.
 [12.393179 0.108697] ALSA: Restoring mixer settings...
 [12.447447 0.054268] Starting network...
 [13.077587 0.630140] Starting sshd: OK
-[13.467746 0.390159] 
+[13.467746 0.390159]
 [13.470225 0.002479] Welcome to Buildroot
 [13.472141 0.001916] buildroot login:
-$ 
+$
 \end{verbatim}
 
 Note that there's no information on exactly when the first user space
 code gets executed. We will fix that in the {\em Add instrumentation}
-section.  
+section.
 
 You can make a visual check that the \code{buildroot
 login:} message is issued at about the same time as the video
 starts playing. Of course, the accuracy is about 1 or 2 seconds,
 and it's time to measure the video starting time in a more accurate way.
 
-\section{Trick to estimate the video start time} 
+\section{Trick to estimate the video start time}
 
-For this kind of need, finding out when a device starts functioning, 
+For this kind of need, finding out when a device starts functioning,
 the ideal solution would be to monitor the LCD screen pins with an
-oscilloscope, and based on the recorded activity, find out when the 
+oscilloscope, and based on the recorded activity, find out when the
 video actually starts playing.
 
 When only software tracing is available, a standard solution is to
-add instrumentation to the application (here the video player) to write a message to 
+add instrumentation to the application (here the video player) to write a message to
 the serial line.
 
 In our case, however, our video player is based on GStreamer, a very
@@ -119,7 +119,7 @@ complex piece of software. We can write a message on the serial line
 before starting the player application, but the time to load this
 application and actually start playing the video is far from being
 negligible. This time is one of the components of boot time that we want to
-measure. 
+measure.
 
 A trick here is to replace the video by the shortest video possible
 (with the same codecs), containing only one frame. Assuming that
@@ -203,7 +203,7 @@ helpers to handle hotplug events.}, when it's done booting the device.
 
 The programs that are executed by the \code{init} program can
 found by reading the \code{/etc/inittab} file, which is a configuration
-file for \code{init}. 
+file for \code{init}.
 
 Start \code{picocom} if needed and study this file. You will see that
 a \code{/etc/init.d/rcS} script is also executed, and executes more
@@ -214,7 +214,7 @@ understand how the video player is started.
 
 Make sure you are in the \code{/opt/felabs/boottime/buildroot/buildroot-at91} directory.
 
-Copy the \code{../data/1frame.avi} file 
+Copy the \code{../data/1frame.avi} file
 \footnote {Here's the command that was used to generate a video
 containing only the first frame of the original video: \\
 \code{avconv -i MPEG2_480_272.avi -vcodec copy -acodec copy -frames 1
@@ -222,16 +222,16 @@ containing only the first frame of the original video: \\
 to \code{board/atmel/sama5d3ek_demo/}, where the original video is
 stored.
 
-Now, modify the \code{board/atmel/sama5d3ek_demo/post-build.sh} file 
+Now, modify the \code{board/atmel/sama5d3ek_demo/post-build.sh} file
 \footnote{This script is called after compiling the root filesystem
-components, and is used to add custom scripts and files to the system.} 
+components, and is used to add custom scripts and files to the system.}
 
 \begin{itemize}
 \item To copy the \code{1frame.avi} video to \code{/root} on the target
-      file system. Do this by looking for the instruction that copies the 
+      file system. Do this by looking for the instruction that copies the
       original video, and by using a similar command.
 \item To modify the contents of the \code{/root/go.sh} script
-      which starts the video player: 
+      which starts the video player:
       \begin{itemize}
       \item To add an \code{echo -e "\nStarting video player"} command
 	    \footnote{We are using a newline (\code{\n}) at the
@@ -251,7 +251,7 @@ as a newline.}
 \end{itemize}
 
 The next thing we need is to know when the \code{init} program starts to
-execute. 
+execute.
 
 Let's have a look at home this program is built. Run the below command
 to check the configuration of \code{BusyBox}, which implements
@@ -279,7 +279,7 @@ you get this file right.
 
 If you can't manage to get it right, have a look at the
 \code{../solutions/post-build1.sh} file.
- 
+
 \section{Re-flash the root filesystem}
 
 We will use \code{SAM-BA} again to update the root filesystem.
@@ -288,7 +288,7 @@ Let's copy our new root filesystem to it to our \code{SAM-BA} directory:
 
 \begin{verbatim}
 cp output/images/rootfs.ubi \
-/opt/felabs/boottime/flashing/sama5d3xek-demo/ 
+/opt/felabs/boottime/flashing/sama5d3xek-demo/
 \end{verbatim}
 
 Put your board in RomBOOT mode (follow the procedure in the previous
@@ -296,7 +296,7 @@ chapter), and assuming that the SAM-BA device is \code{/dev/ttyACM1},
 reflash your board, using the same instructions as before:
 
 \begin{verbatim}
-cd /opt/felabs/boottime/flashing/sama5d3xek-demo/ 
+cd /opt/felabs/boottime/flashing/sama5d3xek-demo/
 sam-ba /dev/ttyACM1 AT91SAMa5d3x-EK sama5d3xek_demo_linux_nandflash.tcl
 \end{verbatim}
 
@@ -329,25 +329,25 @@ For this purpose, you can use the \code{bc -l} command line calculator.
 \begin{tabular}{| l | c | c | r |}
   \hline
   Boot phase & Start string & Time stamp & Elapsed \\
-  \hline                        
+  \hline
   \hline
   RomBOOT & \code{RomBOOT} & & \\
-  \hline                        
+  \hline
   Bootstrap & \code{AT91Bootstrap 3.5.2} & & \\
-  \hline                        
+  \hline
   Bootloader & \code{U-Boot 2012.10} & & \\
-  \hline  
+  \hline
   Kernel & \code{Booting Linux on physical CPU 0} & & \\
-  \hline  
+  \hline
   Init scripts & \code{init started: BusyBox v1.21.0} & & \\
-  \hline  
+  \hline
   Critical application & \code{Starting video player} & & \\
-  \hline  
+  \hline
   Critical application ready & \code{Done playing video} & & \\
-  \hline  
-  \hline  
+  \hline
+  \hline
   \multicolumn{3}{| c |}{Total} & \\
-  \hline  
+  \hline
 \end{tabular}
 
 In the next labs, we will work on reducing boot time for each of the boot phases.

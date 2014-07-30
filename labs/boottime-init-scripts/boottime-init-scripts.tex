@@ -5,7 +5,7 @@ scripts}
 
 Remember that the first step in optimization work is measuring elapsed
 time. We need to know which parts of the init scripts are the biggest
-time consumers. 
+time consumers.
 
 \subsection{Use bootchartd on the board}
 
@@ -75,7 +75,7 @@ install a few Java packages:
 sudo apt-get install ant openjdk-6-jdk
 \end{verbatim}
 
-Now, get the \code{bootchart} source code 
+Now, get the \code{bootchart} source code
 \footnote{The source code was originally found on
 \url{http://prdownloads.sourceforge.net/bootchart/bootchart-0.9.tar.bz2}.}
 \footnote{Don't try to get the \code{bootchart} package supplied by
@@ -105,7 +105,7 @@ xdg-open bootlog.png
 type with the associated application as registered in the system.
 According to the exact Ubuntu flavor that you are using (Ubuntu,
 Xubuntu, Kubuntu...), it will run the particular image viewer available in that
-particular flavor. 
+particular flavor.
 
 \begin{center}
 \includegraphics[width=8cm]{labs/boottime-init-scripts/bootlog.png}
@@ -113,15 +113,15 @@ particular flavor.
 
 \section{Remove unnecessary functionality}
 
-The above graph shows that there are \code{udev} processes running 
+The above graph shows that there are \code{udev} processes running
 during the startup process, taking a significant amount of CPU time
 (the graph shows blue rectanges when the processes actually uses
-the CPU). 
+the CPU).
 
 \code{udev} is pretty likely to be unnecessary in this system. Managing
 device files (even for hotplugged devices) is perfectly taken care
 of by the kernel's \code{devtmpfs} filesystem. \code{udev} might be
-needed to run specific programs to react to hotplugging events, but 
+needed to run specific programs to react to hotplugging events, but
 it has no visible usefulness in the basic demo usage scenario.
 
 So let's remove \code{udev}! To do so, disable it in the Buildroot
@@ -138,24 +138,24 @@ choose \code{Dynamic using devtmpfs only}.
 The next step would be to re-run Buildroot. However, we're hitting one
 of the current limitations of Buildroot. To keep its design simple and
 efficient, Buildroot currently doesn't support removing software
-even if it has been removed from the configuration. The clean way 
+even if it has been removed from the configuration. The clean way
 {\em would} be to run \code{make clean} and then run \code{make}
 again.
 
 This is usually fine, as Buildroot is pretty fast. In our case however,
 we made it Buildroot build its own toolchain, and doing this is the most
-time consuming part. We would lose a lot of time. 
+time consuming part. We would lose a lot of time.
 
 So, let's remove \code{udev} manually instead. Again, this is a quick
 and dirty trick to save time in a time limited workshop. Don't do this
 for a production project! It may have unexpected side effects.
 
 \begin{verbatim}
-find output/target/ -name "*udev*" 
+find output/target/ -name "*udev*"
 rm -r output/target/etc/udev/
-rm output/target/etc/init.d/S10udev 
-rm output/target/usr/lib/libudev.so 
-rm output/target/usr/bin/udevadm 
+rm output/target/etc/init.d/S10udev
+rm output/target/usr/lib/libudev.so
+rm output/target/usr/bin/udevadm
 rm -r output/target/lib/udev/
 rm output/target/lib/libudev.so.0*
 \end{verbatim}
@@ -176,7 +176,7 @@ board through \code{grabserial} and measure the time stamp for the
 \section{Postpone services}
 
 If we get back to the bootchart that we generated, we can see that there
-are several other services which might be needed for the device to 
+are several other services which might be needed for the device to
 have all its features, but which should be run after the demo video,
 instead of before it. One example is the SSH server.
 
@@ -220,9 +220,9 @@ The last thing to do before running \code{make} is to remove the
 Buildroot doesn't clean the target directory!
 
 Now run \code{make} and make sure that
-\code{output/target/etc/init.d/rcS} has the new right contents. 
+\code{output/target/etc/init.d/rcS} has the new right contents.
 
-Reflash your system, and reboot it through \code{grabserial} to 
+Reflash your system, and reboot it through \code{grabserial} to
 measure the new total boot time.
 \footnote{Note that we are no longer bothered by SSH key generation,
 as it starts after our video is played. Therefore, one reboot
@@ -251,10 +251,10 @@ Directly on the board, modify \code{/root/go.sh}, replacing
 while `ls /dev/fb0 > /dev/null 2>&1`
 \end{verbatim}
 
-by 
+by
 
 \begin{verbatim}
-while [ -e /dev/fb0 ] 
+while [ -e /dev/fb0 ]
 \end{verbatim}
 
 This is a much simpler test, with no output to manage. It is even
@@ -276,10 +276,10 @@ children processes to be run while fewer would be sufficient.
 Now, let's make \code{/root/go.sh} as simple as possible:
 
 \begin{itemize}
-\item By removing the soc subtype check. 
+\item By removing the soc subtype check.
       This check was very complex, and completely unnecessary
       when you have the video capable SoC.
-\item By running the video player just once, instead of through 
+\item By running the video player just once, instead of through
       an endless \code{while} loop.
 \end{itemize}
 
@@ -291,7 +291,7 @@ new results and store them in the table below.
 
 \subsection{Going further}
 
-If you are ahead of the others in the workshop, there are 
+If you are ahead of the others in the workshop, there are
 other thing you could try to do to start the video player earlier: You could
 
 \begin{itemize}
@@ -306,13 +306,13 @@ other thing you could try to do to start the video player earlier: You could
 
 Last but not least, there's another thing we can simplify. We could
 recompile \code{BusyBox} with only the capabilities that are needed
-in this demo. It would make the \code{init} program and the other 
+in this demo. It would make the \code{init} program and the other
 executables faster to load (being smaller) and run.
 
 However, we prefer to make such a simplification at the end, because
 it is convenient to interact with a full-featured set of UNIX commands
 when you experiment with your system.
- 
+
 \section{Results}
 
 Fill the below table with the results from your experiments:

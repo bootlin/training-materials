@@ -5,11 +5,11 @@ optimize the kernel boot time}
 
 We are going to use the kernel \code{initcall_debug} functionality.
 
-The first thing we need to do is to recompile the kernel to make sure 
+The first thing we need to do is to recompile the kernel to make sure
 it has the right options.
 
 So, let's get the kernel sources for our system. A source archive
-is available on your USB disk. We will need 
+is available on your USB disk. We will need
 them to recompile our kernel in a few minutes anyway.
 
 Plug-in your USB disk and type the below commands:
@@ -44,13 +44,13 @@ Now configure the kernel with the below settings:
 
 Save your configuration. We are ready to compile our kernel:
 \begin{verbatim}
-make -j 8 uImage 
+make -j 8 uImage
 \end{verbatim}
 
 Keep a backup copy of your original kernel image, and copy the new one:
 \footnote{So far, we are lucky to have a kernel with most drivers
-compiled inside the kernel. If we had important drivers compiled 
-as modules, we would need to compile the kernel with Buildroot, 
+compiled inside the kernel. If we had important drivers compiled
+as modules, we would need to compile the kernel with Buildroot,
 to put the updated modules in the root filesystem. We are also lucky
 not to have to update the Device Tree Binary, as we are using
 the same kernel sources as the demo.}
@@ -61,7 +61,7 @@ cp uImage uImage.orig
 cp ../../kernel/linux-3.6.9-at91/arch/arm/boot/uImage .
 \end{verbatim}
 
-Reflash your system and make it boots in the same way as before. 
+Reflash your system and make it boots in the same way as before.
 
 Now, let's enable \code{initcall_debug}. Reboot your board and press
 a key to stop the U-boot countdown.
@@ -97,14 +97,14 @@ editor:
 
 \begin{verbatim}
 sudo apt-get install inkscape
-inkscape boot.svg 
+inkscape boot.svg
 \end{verbatim}
 
 \begin{center}
 \includegraphics[width=\textwidth]{labs/boottime-kernel/boot.png}
 \end{center}
 
-Now review the longuest initcalls in detail. Each label is the name of 
+Now review the longuest initcalls in detail. Each label is the name of
 a function in the kernel sources. Try to find out in which source file
 each function is defined
 \footnote{You can do it with utilities such as \code{cscope}, which your
@@ -126,12 +126,12 @@ chapter.
 
 \section{Reordering and postponing functionality}
 
-The boot graph revealed drivers which could be compiled as modules 
+The boot graph revealed drivers which could be compiled as modules
 and loaded later.  Let's compile such drivers that you found as modules
-and install the corresponding modules in the root filesystem. 
+and install the corresponding modules in the root filesystem.
 
 Because of this requirement, we now need to compile the kernel with
-Buildroot. 
+Buildroot.
 
 First let's prepare a kernel configuration in which the selected
 drivers are now compiled as modules:
@@ -143,9 +143,9 @@ make xconfig
 
 For each driver, you have to look for the parameter which enables it.
 If the parameter name is not trivial to find in the kernel configuration
-interface, already knowing the source file implementing 
-the function in the boot chart, you can look at 
-the \code{Makefile} file in the same directory, and find which 
+interface, already knowing the source file implementing
+the function in the boot chart, you can look at
+the \code{Makefile} file in the same directory, and find which
 parameter is used to compile the source file in a conditional way.
 
 Once you are done converting static drivers into modules,
@@ -190,9 +190,9 @@ Check that your modules have been added to the root filesystem:
 find output/target -name *.ko
 \end{verbatim}
 
-The last thing to do is to load the necessary modules in a manual way 
+The last thing to do is to load the necessary modules in a manual way
 \footnote{Oops, we don't have \code{udev} any more, and it would have
-done it for us. However, manually loading modules is no big deal, and a 
+done it for us. However, manually loading modules is no big deal, and a
 simpler solution for hotplug events can still be put in place anyway.}
 from the \code{/etc/init.d/rcS} file, before starting the services (SSH
 will need the network driver to be loaded, for example).
@@ -213,9 +213,9 @@ driver that would consume a significant amount of time and could be
 taken away because it is completely useless.
 
 Of course, there will be kernel features that we will be able to remove,
-in order to reduce the kernel size and make the kernel faster to load 
+in order to reduce the kernel size and make the kernel faster to load
 in the bootloader. However, this shouldn't have much impact on the
-kernel's execution time. 
+kernel's execution time.
 
 There's one thing we can remove though, and didn't appear on the boot
 graph: we can disable console output. Writing messages on the serial
