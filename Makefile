@@ -76,7 +76,7 @@ SYSDEV_SLIDES = \
 		licensing \
 		about-us \
 		course-information-title \
-		igepv2-board \
+		xplained-board \
 		course-information \
 		sysdev-intro \
 		sysdev-dev-environment \
