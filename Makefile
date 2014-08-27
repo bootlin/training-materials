@@ -550,7 +550,7 @@ $(VARS): FORCE
 	/bin/echo "\def \training {$(TRAINING)}" >> $@
 
 clean:
-	$(RM) -rf $(OUTDIR) *.pdf
+	$(RM) -rf $(OUTDIR) *.pdf felabs-*
 
 help:
 	@echo "Available targets:"
