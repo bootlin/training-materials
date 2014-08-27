@@ -552,6 +552,8 @@ $(VARS): FORCE
 clean:
 	$(RM) -rf $(OUTDIR) *.pdf felabs-*
 
+all: full-sysdev-slides.pdf full-sysdev-labs.pdf full-kernel-slides.pdf full-kernel-labs.pdf full-android-slides.pdf full-android-labs.pdf full-boottime-slides.pdf full-boottime-labs.pdf kernel-agenda.pdf android-agenda.pdf boottime-agenda.pdf
+
 help:
 	@echo "Available targets:"
 	@echo
