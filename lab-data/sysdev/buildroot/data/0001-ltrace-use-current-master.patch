@@ -1,4 +1,4 @@
-From 36592dfb950380fd7e0432a5e1be4f17eef73eda Mon Sep 17 00:00:00 2001
+From af4692a1d97509c9b82ba31c51f65de4d2380dae Mon Sep 17 00:00:00 2001
 From: Alexandre Belloni <alexandre.belloni@free-electrons.com>
 Date: Thu, 24 Jul 2014 23:54:20 +0200
 Subject: [PATCH] ltrace: use current master
@@ -13,29 +13,34 @@ PTRACE_SINGLESTEP: Input/output error
 
 Using master solves that until a new release is made.
 
+gc: removed the libelf dependency, ltrace only works with the
+libelf.so.1 library provided by the elfutils package.
+
 Signed-off-by: Alexandre Belloni <alexandre.belloni@free-electrons.com>
+Signed-off-by: Gregory CLEMENT <gregory.clement@free-electrons.com>
 ---
- package/ltrace/Config.in               |  1 +
+ package/ltrace/Config.in               |  2 +-
  package/ltrace/ltrace-02-arm-plt.patch | 30 ++++++++++++++++++++++++++++++
  package/ltrace/ltrace.mk               | 13 +++++++++----
- 3 files changed, 40 insertions(+), 4 deletions(-)
+ 3 files changed, 40 insertions(+), 5 deletions(-)
  create mode 100644 package/ltrace/ltrace-02-arm-plt.patch
 
 diff --git a/package/ltrace/Config.in b/package/ltrace/Config.in
-index 3448342619af..aee14bd001bc 100644
+index 3448342..36907b8 100644
 --- a/package/ltrace/Config.in
 +++ b/package/ltrace/Config.in
-@@ -3,6 +3,7 @@ config BR2_PACKAGE_LTRACE
+@@ -2,7 +2,7 @@ config BR2_PACKAGE_LTRACE
+ 	bool "ltrace"
  	depends on (BR2_i386 || BR2_arm || BR2_mips || BR2_mipsel \
  		|| BR2_powerpc || BR2_sparc || BR2_x86_64)
- 	select BR2_PACKAGE_LIBELF
+-	select BR2_PACKAGE_LIBELF
 +	select BR2_PACKAGE_ELFUTILS
  	help
  	  Debugging program which runs a specified command until it exits.
  	  While the command is executing, ltrace intercepts and records
 diff --git a/package/ltrace/ltrace-02-arm-plt.patch b/package/ltrace/ltrace-02-arm-plt.patch
 new file mode 100644
-index 000000000000..f130ce8426e7
+index 0000000..f130ce8
 --- /dev/null
 +++ b/package/ltrace/ltrace-02-arm-plt.patch
 @@ -0,0 +1,30 @@
@@ -70,7 +75,7 @@ index 000000000000..f130ce8426e7
 +1.9.1
 +
 diff --git a/package/ltrace/ltrace.mk b/package/ltrace/ltrace.mk
-index 99c1af64b678..0a3a90c344c1 100644
+index 99c1af6..48bf7bd 100644
 --- a/package/ltrace/ltrace.mk
 +++ b/package/ltrace/ltrace.mk
 @@ -4,13 +4,18 @@
@@ -83,7 +88,7 @@ index 99c1af64b678..0a3a90c344c1 100644
 -LTRACE_DEPENDENCIES = libelf
 +LTRACE_VERSION = 0896ce554f80afdcba81d9754f6104f863dea803
 +LTRACE_SITE = git://anonscm.debian.org/collab-maint/ltrace.git
-+LTRACE_DEPENDENCIES = libelf elfutils
++LTRACE_DEPENDENCIES = elfutils
  LTRACE_CONF_OPT = --disable-werror
  LTRACE_LICENSE = GPLv2
  LTRACE_LICENSE_FILES = COPYING
