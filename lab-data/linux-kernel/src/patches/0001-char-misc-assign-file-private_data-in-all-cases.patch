@@ -1,0 +1,43 @@
+From f0cedb3593f34cf3be26d972666e6bffacc824be Mon Sep 17 00:00:00 2001
+From: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+Date: Fri, 21 Jun 2013 14:43:13 +0200
+Subject: [PATCH] char: misc: assign file->private_data in all cases
+
+In fa1f68db6ca ("drivers: misc: pass miscdevice pointer via file
+private data"), the misc driver infrastructure was changed to assigned
+file->private_data as a pointer to the 'struct miscdevice' that
+corresponds to the device being opened.
+
+However, this assignment was only done when the misc driver was
+declaring a driver-specific ->open() operation in its
+file_operations. This doesn't make sense, as the driver may not
+necessarily have a custom ->open() operation, and might still be
+interested in having file->private_data properly set for use in its
+->read() and write() operations.
+
+Therefore, we move the assignment of file->private_data outside of the
+condition that tests whether a driver-specific ->open() operation was
+defined.
+
+Signed-off-by: Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+---
+ drivers/char/misc.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/char/misc.c b/drivers/char/misc.c
+index ffa97d2..205ad4c 100644
+--- a/drivers/char/misc.c
++++ b/drivers/char/misc.c
+@@ -142,8 +142,8 @@ static int misc_open(struct inode * inode, struct file * file)
+ 
+ 	err = 0;
+ 	replace_fops(file, new_fops);
++	file->private_data = c;
+ 	if (file->f_op->open) {
+-		file->private_data = c;
+ 		err = file->f_op->open(inode,file);
+ 	}
+ fail:
+-- 
+1.8.3.2
+

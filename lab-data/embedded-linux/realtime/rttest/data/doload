@@ -1,0 +1,21 @@
+#! /bin/sh
+
+(while :; do cat /root/netcat.data; sleep 15; done | netcat -vv -l -p 5566 ) &
+a=$!
+
+dd if=/dev/zero of=/dev/null &
+b=$!
+
+while true; do killall hackbench; sleep 5; done &
+d=$!
+
+while true; do /usr/bin/hackbench 1; done &
+e=$!
+
+while true; do ls -lR / > /dev/null 2>&1; done &
+f=$!
+
+sleep $1
+kill $a $b $c $d $e $f
+killall netcat dd hackbench ls doload sleep
+

@@ -1,0 +1,323 @@
+From b6a5591584e190b07a480e58c7f5bfb2d30728f2 Mon Sep 17 00:00:00 2001
+From: tux <tux@tux-Vostro-3550.(none)>
+Date: Tue, 13 Aug 2013 17:45:50 +0200
+Subject: [PATCH] Sama5d3x optimizations
+
+Signed-off-by: tux <tux@tux-Vostro-3550.(none)>
+---
+ arch/arm/boards/sama5d3xek/env/config             |    6 +-
+ arch/arm/boards/sama5d3xek/env_fast/bin/init      |   14 +++
+ arch/arm/boards/sama5d3xek/env_fast/config        |   21 +++++
+ arch/arm/boards/sama5d3xek/env_org/bin/init_board |   15 ++++
+ arch/arm/boards/sama5d3xek/env_org/config         |   44 ++++++++++
+ arch/arm/configs/sama5d3xek_fast_defconfig        |   54 ++++++++++++
+ arch/arm/configs/sama5d3xek_org_defconfig         |   95 +++++++++++++++++++++
+ 7 files changed, 246 insertions(+), 3 deletions(-)
+ create mode 100644 arch/arm/boards/sama5d3xek/env_fast/bin/init
+ create mode 100644 arch/arm/boards/sama5d3xek/env_fast/config
+ create mode 100644 arch/arm/boards/sama5d3xek/env_org/bin/init_board
+ create mode 100644 arch/arm/boards/sama5d3xek/env_org/config
+ create mode 100644 arch/arm/configs/sama5d3xek_fast_defconfig
+ create mode 100644 arch/arm/configs/sama5d3xek_org_defconfig
+
+diff --git a/arch/arm/boards/sama5d3xek/env/config b/arch/arm/boards/sama5d3xek/env/config
+index a7fd930..52118f9 100644
+--- a/arch/arm/boards/sama5d3xek/env/config
++++ b/arch/arm/boards/sama5d3xek/env/config
+@@ -13,11 +13,11 @@ global.dhcp.client_id="${sama5d3xcm.board}-${sama5d3xcm.vendor}"
+ #eth0.serverip=a.b.c.d
+ 
+ # can be either 'nfs', 'tftp', 'nor' or 'nand'
+-kernel_loc=nfs
++kernel_loc=nand
+ # can be either 'net', 'nor', 'nand' or 'initrd'
+-rootfs_loc=net
++rootfs_loc=nand
+ # can be either 'nfs', 'tftp', 'nand' or empty
+-oftree_loc=nfs
++oftree_loc=nand
+ 
+ # can be either 'jffs2' or 'ubifs'
+ rootfs_type=ubifs
+diff --git a/arch/arm/boards/sama5d3xek/env_fast/bin/init b/arch/arm/boards/sama5d3xek/env_fast/bin/init
+new file mode 100644
+index 0000000..2f4bda7
+--- /dev/null
++++ b/arch/arm/boards/sama5d3xek/env_fast/bin/init
+@@ -0,0 +1,14 @@
++#!/bin/sh
++
++PATH=/env/bin
++export PATH
++
++global hostname
++
++. /env/config
++if [ -e /dev/nand0 -a -n "$nand_parts" ]; then
++	addpart /dev/nand0 $nand_parts
++	nand -a /dev/nand0.*
++fi
++
++boot
+diff --git a/arch/arm/boards/sama5d3xek/env_fast/config b/arch/arm/boards/sama5d3xek/env_fast/config
+new file mode 100644
+index 0000000..266456c
+--- /dev/null
++++ b/arch/arm/boards/sama5d3xek/env_fast/config
+@@ -0,0 +1,21 @@
++#!/bin/sh
++
++ip=none
++
++kernel_loc=nand
++rootfs_loc=nand
++oftree_loc=nand
++
++# can be either 'jffs2' or 'ubifs'
++rootfs_type=ubifs
++rootfsimage=root.$rootfs_type
++ubiroot=rootfs
++
++kernelimage=zImage
++
++nand_device=atmel_nand
++nand_parts="256k(at91bootstrap),384k(barebox)ro,256k@768k(bareboxenv),256k(bareboxenv2),128k@1536k(oftree),5M@2M(kernel),-@8M(rootfs)"
++
++rootfs_mtdblock_nand=6
++
++bootargs="console=ttyS0,115200 quiet lpj=1314816"
+diff --git a/arch/arm/boards/sama5d3xek/env_org/bin/init_board b/arch/arm/boards/sama5d3xek/env_org/bin/init_board
+new file mode 100644
+index 0000000..f3d417e
+--- /dev/null
++++ b/arch/arm/boards/sama5d3xek/env_org/bin/init_board
+@@ -0,0 +1,15 @@
++#!/bin/sh
++
++PATH=/env/bin
++export PATH
++
++. /env/config
++
++splash=/env/splash.png
++
++if [ -f ${splash} -a -e /dev/fb0 ]; then
++	splash -o ${splash}
++	fb0.enable=1
++fi
++
++exit 1
+diff --git a/arch/arm/boards/sama5d3xek/env_org/config b/arch/arm/boards/sama5d3xek/env_org/config
+new file mode 100644
+index 0000000..facd058
+--- /dev/null
++++ b/arch/arm/boards/sama5d3xek/env_org/config
+@@ -0,0 +1,44 @@
++#!/bin/sh
++
++# use 'dhcp' to do dhcp in barebox and in kernel
++# use 'none' if you want to skip kernel ip autoconfiguration
++ip=none
++global.dhcp.vendor_id=barebox-sama5d3xek
++global.dhcp.client_id="${sama5d3xcm.board}-${sama5d3xcm.vendor}"
++
++# or set your networking parameters here
++#eth0.ipaddr=a.b.c.d
++#eth0.netmask=a.b.c.d
++#eth0.gateway=a.b.c.d
++#eth0.serverip=a.b.c.d
++
++# can be either 'nfs', 'tftp', 'nor' or 'nand'
++kernel_loc=nand
++# can be either 'net', 'nor', 'nand' or 'initrd'
++rootfs_loc=nand
++# can be either 'nfs', 'tftp', 'nand' or empty
++oftree_loc=nand
++
++# can be either 'jffs2' or 'ubifs'
++#rootfs_type=ubifs
++#rootfsimage=root.$rootfs_type
++#ubiroot=rootfs
++
++# The image type of the kernel. Can be uimage, zimage, raw, or raw_lzo
++kernelimage=zImage
++#kernelimage=uImage
++#kernelimage=Image
++#kernelimage=Image.lzo
++
++nand_device=atmel_nand
++nand_parts="256k(at91bootstrap),384k(barebox)ro,256k@768k(bareboxenv),256k(bareboxenv2),128k@1536k(oftree),5M@2M(kernel),-@8M(rootfs)"
++rootfs_mtdblock_nand=6
++
++m25p80_parts="64k(bootstrap),384k(barebox),256k(bareboxenv),256k(bareboxenv2),128k(oftree),-(updater)"
++
++autoboot_timeout=1
++
++bootargs="console=ttyS0,115200 quiet lpj=1314816"
++
++# set a fancy prompt (if support is compiled in)
++PS1="\e[1;32mbarebox@\e[1;31m\h:\w\e[0m\n# "
+diff --git a/arch/arm/configs/sama5d3xek_fast_defconfig b/arch/arm/configs/sama5d3xek_fast_defconfig
+new file mode 100644
+index 0000000..fb07c78
+--- /dev/null
++++ b/arch/arm/configs/sama5d3xek_fast_defconfig
+@@ -0,0 +1,54 @@
++CONFIG_ARCH_SAMA5D3=y
++CONFIG_BAREBOX_MAX_IMAGE_SIZE=0x60000
++CONFIG_AEABI=y
++# CONFIG_CMD_ARM_CPUINFO is not set
++CONFIG_ARM_OPTIMZED_STRING_FUNCTIONS=y
++# CONFIG_BANNER is not set
++# CONFIG_MEMINFO is not set
++CONFIG_PBL_IMAGE=y
++CONFIG_MMU=y
++CONFIG_TEXT_BASE=0x26f00000
++CONFIG_MALLOC_SIZE=0xA00000
++CONFIG_EXPERIMENTAL=y
++CONFIG_MALLOC_TLSF=y
++CONFIG_PROMPT="A5D3X-EK:"
++CONFIG_GLOB=y
++# CONFIG_ERRNO_MESSAGES is not set
++CONFIG_CONSOLE_ACTIVATE_ALL=y
++CONFIG_PARTITION=y
++CONFIG_PARTITION_DISK=y
++CONFIG_DEFAULT_ENVIRONMENT_GENERIC=y
++CONFIG_DEFAULT_ENVIRONMENT_PATH="arch/arm/boards/sama5d3xek/env_fast"
++CONFIG_POLLER=y
++CONFIG_COMPILE_LOGLEVEL=0
++CONFIG_CMD_EDIT=y
++CONFIG_CMD_SLEEP=y
++CONFIG_CMD_SAVEENV=y
++CONFIG_CMD_EXPORT=y
++CONFIG_CMD_PRINTENV=y
++CONFIG_CMD_READLINE=y
++CONFIG_CMD_FILETYPE=y
++CONFIG_CMD_ECHO_E=y
++CONFIG_CMD_LOADB=y
++CONFIG_CMD_MEMINFO=y
++CONFIG_CMD_FLASH=y
++CONFIG_CMD_BOOTM_SHOW_TYPE=y
++CONFIG_CMD_BOOTM_VERBOSE=y
++CONFIG_CMD_BOOTM_INITRD=y
++CONFIG_CMD_BOOTM_OFTREE=y
++# CONFIG_CMD_BOOTU is not set
++CONFIG_CMD_RESET=y
++CONFIG_CMD_OFTREE=y
++CONFIG_CMD_TIMEOUT=y
++CONFIG_CMD_PARTITION=y
++# CONFIG_CMD_HELP is not set
++# CONFIG_SPI is not set
++CONFIG_MTD=y
++# CONFIG_MTD_OOB_DEVICE is not set
++CONFIG_NAND=y
++# CONFIG_NAND_ECC_SOFT is not set
++# CONFIG_NAND_ECC_HW_SYNDROME is not set
++# CONFIG_NAND_ECC_HW_NONE is not set
++CONFIG_NAND_ATMEL=y
++CONFIG_NAND_ATMEL_PMECC=y
++CONFIG_ZLIB=y
+diff --git a/arch/arm/configs/sama5d3xek_org_defconfig b/arch/arm/configs/sama5d3xek_org_defconfig
+new file mode 100644
+index 0000000..cd1ad58
+--- /dev/null
++++ b/arch/arm/configs/sama5d3xek_org_defconfig
+@@ -0,0 +1,95 @@
++CONFIG_ARCH_SAMA5D3=y
++CONFIG_BAREBOX_MAX_IMAGE_SIZE=0x60000
++CONFIG_AEABI=y
++# CONFIG_CMD_ARM_CPUINFO is not set
++CONFIG_ARM_OPTIMZED_STRING_FUNCTIONS=y
++CONFIG_PBL_IMAGE=y
++CONFIG_MMU=y
++CONFIG_TEXT_BASE=0x26f00000
++CONFIG_MALLOC_SIZE=0xA00000
++CONFIG_EXPERIMENTAL=y
++CONFIG_MALLOC_TLSF=y
++CONFIG_PROMPT="A5D3X-EK:"
++CONFIG_LONGHELP=y
++CONFIG_GLOB=y
++CONFIG_PROMPT_HUSH_PS2="y"
++CONFIG_HUSH_FANCY_PROMPT=y
++CONFIG_CMDLINE_EDITING=y
++CONFIG_AUTO_COMPLETE=y
++CONFIG_CONSOLE_ACTIVATE_ALL=y
++CONFIG_DEFAULT_ENVIRONMENT_GENERIC=y
++CONFIG_DEFAULT_ENVIRONMENT_PATH="arch/arm/boards/sama5d3xek/env_org"
++CONFIG_CMD_EDIT=y
++CONFIG_CMD_SLEEP=y
++CONFIG_CMD_SAVEENV=y
++CONFIG_CMD_EXPORT=y
++CONFIG_CMD_PRINTENV=y
++CONFIG_CMD_READLINE=y
++CONFIG_CMD_TFTP=y
++CONFIG_CMD_FILETYPE=y
++CONFIG_CMD_ECHO_E=y
++CONFIG_CMD_LOADB=y
++CONFIG_CMD_MEMINFO=y
++CONFIG_CMD_FLASH=y
++CONFIG_CMD_BOOTM_SHOW_TYPE=y
++CONFIG_CMD_BOOTM_VERBOSE=y
++CONFIG_CMD_BOOTM_INITRD=y
++CONFIG_CMD_BOOTM_OFTREE=y
++CONFIG_CMD_BOOTM_OFTREE_UIMAGE=y
++CONFIG_CMD_UIMAGE=y
++# CONFIG_CMD_BOOTU is not set
++CONFIG_CMD_RESET=y
++CONFIG_CMD_GO=y
++CONFIG_CMD_OFTREE=y
++CONFIG_CMD_MTEST=y
++CONFIG_CMD_MTEST_ALTERNATIVE=y
++CONFIG_CMD_SPLASH=y
++CONFIG_CMD_TIMEOUT=y
++CONFIG_CMD_PARTITION=y
++CONFIG_CMD_GPIO=y
++CONFIG_CMD_I2C=y
++CONFIG_CMD_SPI=y
++CONFIG_CMD_LED=y
++CONFIG_CMD_LED_TRIGGER=y
++CONFIG_CMD_MIITOOL=y
++CONFIG_NET=y
++CONFIG_NET_DHCP=y
++CONFIG_NET_NFS=y
++CONFIG_NET_PING=y
++CONFIG_NET_NETCONSOLE=y
++CONFIG_MICREL_PHY=y
++CONFIG_DRIVER_NET_MACB=y
++CONFIG_DRIVER_SPI_ATMEL=y
++CONFIG_I2C=y
++CONFIG_I2C_GPIO=y
++CONFIG_MTD=y
++# CONFIG_MTD_OOB_DEVICE is not set
++CONFIG_MTD_M25P80=y
++CONFIG_NAND=y
++# CONFIG_NAND_ECC_SOFT is not set
++# CONFIG_NAND_ECC_HW_SYNDROME is not set
++# CONFIG_NAND_ECC_HW_NONE is not set
++CONFIG_NAND_ATMEL=y
++CONFIG_NAND_ATMEL_PMECC=y
++CONFIG_UBI=y
++CONFIG_VIDEO=y
++CONFIG_DRIVER_VIDEO_ATMEL_HLCD=y
++CONFIG_MCI=y
++CONFIG_MCI_STARTUP=y
++CONFIG_MCI_ATMEL=y
++CONFIG_LED=y
++CONFIG_LED_GPIO=y
++CONFIG_LED_TRIGGERS=y
++CONFIG_KEYBOARD_GPIO=y
++CONFIG_KEYBOARD_QT1070=y
++CONFIG_W1=y
++CONFIG_W1_MASTER_GPIO=y
++CONFIG_W1_SLAVE_DS2431=y
++CONFIG_W1_SLAVE_DS2433=y
++CONFIG_W1_DUAL_SEARCH=y
++CONFIG_FS_EXT4=y
++CONFIG_FS_TFTP=y
++CONFIG_FS_FAT=y
++CONFIG_FS_FAT_WRITE=y
++CONFIG_FS_FAT_LFN=y
++CONFIG_PNG=y
+-- 
+1.7.9.5
+
