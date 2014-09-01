@@ -256,7 +256,6 @@ SYSDEV_LABS   = setup \
 		sysdev-application-development \
 		sysdev-application-debugging \
 		sysdev-real-time \
-#		backup # Currently broken for sysdev course
 
 KERNEL_LABS   = setup \
 		kernel-sources-download \
@@ -273,7 +272,6 @@ KERNEL_LABS   = setup \
 		kernel-locking \
 		kernel-debugging \
 		kernel-git \
-#		backup # Currently broken for kernel course
 
 ANDROID_LABS  = setup \
 		android-source-code \
