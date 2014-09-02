@@ -548,7 +548,7 @@ $(VARS): FORCE
 	/bin/echo "\def \training {$(TRAINING)}" >> $@
 
 clean:
-	$(RM) -rf $(OUTDIR) *.pdf *-labs
+	$(RM) -rf $(OUTDIR) *.pdf *-labs *.xz
 
 all: full-sysdev-slides.pdf full-sysdev-labs.pdf full-kernel-slides.pdf full-kernel-labs.pdf full-android-slides.pdf full-android-labs.pdf full-boottime-slides.pdf full-boottime-labs.pdf kernel-agenda.pdf android-agenda.pdf boottime-agenda.pdf
 
