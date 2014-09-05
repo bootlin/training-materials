@@ -566,6 +566,7 @@ help:
 	@echo " android-agenda.pdf              Agenda for the 'android' course"
 	@echo " boottime-agenda.pdf             Agenda for the 'boottime' course"
 	@echo " buildroot-agenda.pdf            Agenda for the 'buildroot' course"
+	@echo " sysdev-agenda.pdf               Agenda for the 'sysdev' course"
 	@echo " kernel-agenda.pdf               Agenda for the 'kernel' course"
 	@echo " yocto-agenda.pdf                Agenda for the 'yocto' course"
 	@echo
