@@ -1,0 +1,31 @@
+From f5b5cfb1f629b49aad55efe88751d4e7dd2254f6 Mon Sep 17 00:00:00 2001
+From: Boris BREZILLON <boris.brezillon@free-electrons.com>
+Date: Tue, 2 Sep 2014 10:06:24 +0200
+Subject: [PATCH] mtd: atmel_nand: Disable subpage NAND write when using Atmel
+ PMECC
+
+Disable subpage write when using PMECC to prevent buggy partial page write.
+
+This fix has been taken from linux sources (see commit
+90445ff6241e2a13445310803e2efa606c61f276)
+
+Signed-off-by: Boris BREZILLON <boris.brezillon@free-electrons.com>
+---
+ drivers/mtd/nand/atmel_nand.c | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/drivers/mtd/nand/atmel_nand.c b/drivers/mtd/nand/atmel_nand.c
+index e73834d..ee67662 100644
+--- a/drivers/mtd/nand/atmel_nand.c
++++ b/drivers/mtd/nand/atmel_nand.c
+@@ -881,6 +881,7 @@ static int atmel_pmecc_nand_init_params(struct nand_chip *nand,
+ 		return -ENOMEM;
+ 	}
+ 
++	nand->options |= NAND_NO_SUBPAGE_WRITE;
+ 	nand->ecc.read_page = atmel_nand_pmecc_read_page;
+ 	nand->ecc.write_page = atmel_nand_pmecc_write_page;
+ 	nand->ecc.strength = cap;
+-- 
+1.9.1
+
