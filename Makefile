@@ -1,4 +1,4 @@
-# Required packages (tested on Ubuntu 12.04):
+# Required packages (tested on Ubuntu 14.04):
 # inkscape texlive-latex-base texlive-font-utils dia python-pygments
 
 # Needed tools
