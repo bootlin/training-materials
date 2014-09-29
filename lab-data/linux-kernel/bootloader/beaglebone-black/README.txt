@@ -46,7 +46,7 @@ Now, format the first partition in FAT format:
 sudo mkfs.vfat -F 16 /dev/mmcblk0p1 -n boot
 
 Remove the card and insert it again. It should automatically be mounted
-'/media/boot' (or '/media/$USER/boot' if you are using Ubuntu 12.10 or later).
+on '/media/$USER/boot'.
 
 Now, copy the below files to this partition:
 
