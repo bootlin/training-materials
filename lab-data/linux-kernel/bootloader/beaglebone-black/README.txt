@@ -8,6 +8,7 @@ such as saving U-Boot environment settings to eMMC storage.
 Tested on the following board revisions:
 - Rev A5C
 - Rev A6
+- Rev C
 
 Caution: this procedure can erase data installed on the board eMMC.
 This won't make your board unusable though.
