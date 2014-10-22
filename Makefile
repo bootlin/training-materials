@@ -13,7 +13,7 @@ UPPERCASE = $(shell echo $1 | tr "[:lower:]" "[:upper:]")
 # List of slides for the different courses
 
 KERNEL_SLIDES = \
-		licensing \
+		first-slides \
 		about-us \
 		course-information-title \
 		beagleboneblack-board \
@@ -73,7 +73,7 @@ KERNEL_SLIDES = \
 		kernel-git-lab
 
 SYSDEV_SLIDES = \
-		licensing \
+		first-slides \
 		about-us \
 		course-information-title \
 		xplained-board \
@@ -121,7 +121,7 @@ SYSDEV_SLIDES = \
 		last-slides
 
 ANDROID_SLIDES = \
-		licensing \
+		first-slides \
 		about-us \
 		course-information-title \
 		beagleboneblack-board \
@@ -217,7 +217,7 @@ ANDROID_SLIDES = \
 		last-slides
 
 BOOTTIME_SLIDES = \
-		licensing \
+		first-slides \
 		thanks-atmel \
 		about-us \
 		course-information-title \
@@ -546,6 +546,7 @@ $(VARS): FORCE
 	@mkdir -p $(dir $@)
 	/bin/echo "\def \sessionurl {$(SESSION_URL)}" > $@
 	/bin/echo "\def \training {$(TRAINING)}" >> $@
+	/bin/echo "\def \trainer {$(TRAINER)}" >> $@
 
 clean:
 	$(RM) -rf $(OUTDIR) *.pdf *-labs *.xz
