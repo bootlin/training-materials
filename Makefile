@@ -240,7 +240,7 @@ BOOTTIME_SLIDES = \
 
 
 YOCTO_SLIDES    = \
-		licensing \
+		first-slides \
 		about-us \
 		course-information-title \
 		beagleboneblack-board \
