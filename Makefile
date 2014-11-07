@@ -335,6 +335,7 @@ YOCTO_LABS    = setup \
 		yocto-layer \
 		yocto-extend-recipe \
 		yocto-custom-machine \
+		yocto-custom-image \
 		yocto-recipe-extra \
 		yocto-sdk \
 		yocto-sdk-eclipse \
