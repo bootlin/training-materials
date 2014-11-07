@@ -15,13 +15,49 @@ make our custom machine image here, we'll create a new one to demonstrate the
 process.
 
 Add a new \code{felabs} machine to the previously created layer. In order to
-properly boot on the BeagleBone Black board, this machine configuration has to
-use the configuration defined in the \code{ti33x} file. Also open it to see how
-that the \code{PREFERRED_PROVIDERS} are defined here.
+properly boot on the BeagleBone Black board.
 
-Then add the machine's features you need to be supported, configure the
-serial parameters and the file system type to have a \code{tar.gz}
-archive.
+This machine describes a board using the \code{cortexa8thf-neon} tune
+and is a part of the \code{ti33x} SoC family. Add the following lines
+to your machine configuration file:
+
+\begin{verbatim}
+SOC_FAMILY = "ti33x"
+require conf/machine/include/soc-family.inc
+
+DEFAULTTUNE ?= "cortexa8thf-neon"
+require conf/machine/include/tune-cortexa8.inc
+
+UBOOT_ARCH = "arm"
+UBOOT_MACHINE = "am335x_evm_config"
+UBOOT_ENTRYPOINT = "0x80008000"
+UBOOT_LOADADDRESS = "0x80008000"
+\end{verbatim}
+
+\section{Populate the machine configuration}
+
+This \code{felabs} machine needs:
+
+\begin{itemize}
+  \item To select \code{linux-ti-staging} as the preferred provider
+    for the kernel.
+  \item To select \code{u-boot-ti-staging} as the preferred provider
+    for the bootloader.
+  \item To use a \code{zImage} kernel image type.
+  \item To configure the serial console to \code{115200 ttyO0}
+  \item And to support some features:
+    \begin{itemize}
+      \item kernel26
+      \item apm
+      \item usbgadget
+      \item usbhost
+      \item vfat
+      \item ext2
+      \item ethernet
+    \end{itemize}
+\end{itemize}
+
+\section{Build an image with the new machine}
 
 You can now update the \code{MACHINE} variable value in the local configuration
 and start a fresh build.
