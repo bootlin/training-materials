@@ -77,6 +77,7 @@ SYSDEV_SLIDES = \
 		about-us \
 		course-information-title \
 		xplained-board \
+		sysdev-shopping-list \
 		course-information \
 		sysdev-intro \
 		sysdev-dev-environment \
