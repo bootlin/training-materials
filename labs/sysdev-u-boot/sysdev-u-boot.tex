@@ -23,9 +23,9 @@ very specific to the hardware platform. There are usually two cases:
 The Xplained board, which uses the SAMA5D3 SoCs, falls into the second
 category. The monitor integrated in the ROM reads the MMC/SD card to
 search for a valid bootloader before looking at the internal NAND
-flash for a bootloader. Whenever nothing's available, it will operate
-in a fallback mode, that will allow to use an external tool through
-USB to reflash some bootloader. Therefore, either by using an MMC/SD
+flash for a bootloader. In case nothing is available, it will operate
+in a fallback mode, that will allow to use an external tool
+to reflash some bootloader through USB. Therefore, either by using an MMC/SD
 card or that fallback mode, we can start up a SAMA5D3-based board
 without having anything installed on it.
 
@@ -34,16 +34,26 @@ without having anything installed on it.
 Go to the \code{~/embedded-linux-labs/bootloader} directory.
 
 If you are using a 64 bit installation of Ubuntu, install support for
-executables built with a 32 bit C library:
+some 32 bit libraries:
 
 \begin{verbatim}
-sudo apt-get install ia32-libs
+sudo dpkg --add-architecture i386
+sudo apt-get update
+sudo apt-get install libxss1:i386 libxft2:i386
+\end{verbatim}
+
+Otherwise, you just need to install the below libraries:
+
+\begin{verbatim}
+sudo apt-get install libxss1 libxft2
 \end{verbatim}
 
 We're going to use that fallback mode, and its associated tool,
 \code{sam-ba}.
 
-We first need to download this tool, from Atmel's website.
+We first need to download this tool, from Atmel's website
+\footnote{In case this website is down, you can also find this
+tool on \url{http://free-electrons.com/labs/tools/}.}.
 
 \begin{verbatim}
 wget http://www.atmel.com/Images/sam-ba_2.12.zip
@@ -77,8 +87,14 @@ sudo adduser $USER dialout
 You need to log out and in again for the group change to be effective.
 
 Run \code{picocom -b 115200 /dev/ttyUSB0}, to start serial
-communication on \code{/dev/ttyUSB0}, with a baudrate of 115200. If
-you wish to exit \code{picocom}, press \code{[Ctrl][a]} followed by
+communication on \code{/dev/ttyUSB0}, with a baudrate of 115200.
+
+You can now power-up the board by connecting the micro-USB cable to 
+the board, and to your PC at the other end. If a system was previously
+installed on the board, you should be able to interact with it
+through the serial line.
+
+If you wish to exit \code{picocom}, press \code{[Ctrl][a]} followed by
 \code{[Ctrl][x]}.
 
 \section{AT91Bootstrap Setup}
@@ -110,8 +126,9 @@ The first item to compile is AT91Bootstrap that you can fetch from
 Atmel's github account:
 
 \begin{verbatim}
-git clone git://github.com/linux4sam/at91bootstrap.git -b at91bootstrap-3.x
+git clone git://github.com/linux4sam/at91bootstrap.git
 cd at91bootstrap
+git checkout v3.7.1
 \end{verbatim}
 
 Then, we first need to configure the build system for our setup. We're
@@ -123,12 +140,12 @@ going to need a few pieces of information for this:
 \item What component you want AT91Boostrap to load
 \end{itemize}
 
-You can get the list of the supported board by listing the
-\code{board} directory. You'll see that in each of these folder, we
+You can get the list of the supported boards by listing the
+\code{board} directory. You'll see that in each of these folders, we
 have a bunch of \code{defconfig} files, that are the supported
-combinations. In our case, we will load U-Boot, from the NAND.
+combinations. In our case, we will load U-Boot, from NAND flash.
 
-Then, you've found the right defconfig, load it using
+Then, you've found the right \code{defconfig}, load it using
 \code{make <defconfig_name>}, and you can start the compilation using
 \code{make}\footnote{You can speed up the compiling by using the
   \code{-jX} option with \code{make}, where X is the number of
@@ -142,8 +159,10 @@ At the end of the compilation, you should have a file called
 
 In order to flash it, we need to do a few things. First, remove the
 \code{NAND CS} jumper on the board. It's next to the pin header
-closest to the Micro-USB plug. Reset the board, and put the jumper
-back. On the serial port, you should see \code{RomBoot}.
+closest to the Micro-USB plug. Now, press the \code{RESET} button.
+On the serial port, you should see \code{RomBoot}.
+
+Put the jumper back.
 
 Then, start \code{sam-ba} as root. You'll get a small window. Select
 the \code{ttyACM0} connection, and the \code{at91sama5d3x-ek} board. Hit
@@ -151,12 +170,14 @@ the \code{ttyACM0} connection, and the \code{at91sama5d3x-ek} board. Hit
 
 You need to:
 \begin{itemize}
-\item Hit the NANDFlash tab
-\item In the scripts choices, select \code{Enable NandFlash} and hit \code{Execute}
+\item Hit the \code{NANDFlash} tab
+\item In the \code{Scripts} choices, select \code{Enable NandFlash}
+      and hit \code{Execute}
 \item Select \code{Erase All}, and execute the command
-\item Then, select \code{Enable OS PMECC} parameters in order to
-  change the NAND ECC parameters to what RomBOOT expects. Change the
-  number of ECC bits to 4, and the ECC offset to 36.
+\item Then, select and execute \code{Enable OS PMECC parameters}
+  in order to change the NAND ECC parameters to what RomBOOT expects.
+  Change the number of ECC bits to \code{4}, and the ECC offset to
+  \code{36}.
 \item Finally, send the image we just compiled using the command
   \code{Send Boot File}
 \end{itemize}
@@ -179,10 +200,12 @@ needs a patch to work properly. Apply the patch named
 \code{0001-mtd-atmel_nand-Disable-subpage-NAND-write-when-using.patch},
 by doing:
 
+{\small
 \begin{verbatim}
 cd u-boot-2014.07/
 cat ../data/0001-mtd-atmel_nand-Disable-subpage-NAND-write-when-using.patch | patch -p1
 \end{verbatim}
+}
 
 Get an understanding of its configuration and compilation steps by
 reading the \code{README} file, and specifically the {\em Building the
@@ -196,7 +219,7 @@ Basically, you need to:
 
 \item run \code{make <NAME>_config}, where \code{<NAME>} is the name
   of your board as declared in the \code{boards.cfg} file. There are
-  two flavors of the Xplained: one to run from the SD card
+  two flavors of the Xplained configuration: one to run from the SD card
   (\code{sama5d3_xplained_mmc}) and one to run from the NAND flash
   (\code{sama5d3_xplained_nandflash}). Since we're going to boot on
   the NAND, use the latter. Note that for our platform, both these
@@ -212,13 +235,15 @@ Now, in sam-ba, in the \code{Send File Name} field, set the path to
 the \code{u-boot.bin} that was just compiled, and set the address to
 \code{0x40000}. Click on the \code{Send File} button.
 
+You can now exist sam-ba.
+
 \section{Testing U-Boot}
 
 Reset the board and check that it boots your new bootloaders. You can
 verify this by checking the build dates:
 
 \begin{verbatim}
-AT91Bootstrap 3.6.2-00090-g1e8fd41ce714 (mercredi 4 juin 2014, 11:08:41 (UTC+0200))
+AT91Bootstrap 3.7.1 (mercredi 3 décembre 2014, 11:08:41 (UTC+0100))
 
 NAND: ONFI flash detected
 NAND: Manufacturer ID: 0x2c Chip ID: 0x32
@@ -228,7 +253,7 @@ NAND: Image: Copy 0x80000 bytes from 0x40000 to 0x26f00000
 NAND: Done to load image
 
 
-U-Boot 2014.07 (Aug 26 2014 - 09:47:25)
+U-Boot 2014.07 (Dec 03 2014 - 09:47:25)
 
 CPU: SAMA5D36
 Crystal frequency:       12 MHz
@@ -286,10 +311,10 @@ Select the new {\em wired network connection}:
 \end{center}
 
 In the \code{IPv4 Settings} tab, press the \code{Add} button
-and make the interface use a static IP
-address, like \code{192.168.0.1} (of course, make sure that this
-address belongs to a separate network segment from the one of the main
-company network).
+and then choose the \code{Manual} method to make the interface use
+a static IP address, like \code{192.168.0.1} (of course, make sure
+that this address belongs to a separate network segment from the one
+of the main company network).
 
 \begin{center}
 \includegraphics[width=8cm]{labs/sysdev-u-boot/network-config-3.png}
@@ -329,10 +354,10 @@ To make these settings permanent, save the environment:
 saveenv
 \end{verbatim}
 
-Now switch your board off and on again\footnote{Power cycling your
-  board is needed to make your \code{ethaddr} permanent, for obscure
-  reasons. If you don't, U-boot will complain that \code{ethaddr} is not
-  set.}.
+Now reset your board \footnote{Resetting your board is needed to
+make your \code{ethaddr} permanent, for obscure reasons. If you
+don't, U-boot will complain that \code{ethaddr} is not
+set.}.
 
 You can then test the TFTP connection. First, put a small text file in
 the directory exported through TFTP on your development
@@ -342,9 +367,10 @@ workstation. Then, from U-Boot, do:
 tftp 0x22000000 textfile.txt
 \end{verbatim}
 
-{\bf Caution: known issue in Ubuntu 12.04 and later}:
-if this command doesn't work, you may have to stop the server
-and start it again every time you boot your workstation:
+{\bf Caution: known issue in Ubuntu 12.04 and later (still present
+in Ubuntu 14.04}: if this command doesn't work, you may have to
+stop the server and start it again every time you boot your
+workstation:
 
 \begin{verbatim}
 sudo service tftpd-hpa restart
