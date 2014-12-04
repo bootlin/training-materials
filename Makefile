@@ -608,6 +608,7 @@ help:
 	@echo " full-boottime-slides.pdf        Complete slides for the 'boottime' course"
 	@echo " full-yocto-slides.pdf           Complete slides for the 'yocto' course"
 	@echo " android-agenda.pdf              Agenda for the 'android' course"
+	@echo " autotools-agenda.pdf            Agenda for the 'autotools' course"
 	@echo " boottime-agenda.pdf             Agenda for the 'boottime' course"
 	@echo " buildroot-agenda.pdf            Agenda for the 'buildroot' course"
 	@echo " sysdev-agenda.pdf               Agenda for the 'sysdev' course"
