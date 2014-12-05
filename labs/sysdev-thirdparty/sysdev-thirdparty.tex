@@ -431,15 +431,15 @@ CC=arm-linux-gcc \
 \end{verbatim}
 
 Once again, it should fail a bit further down the tests, this time
-complaining about the panelw library missing. This library is part of
-\code{ncurses}, a graphical framework to design UIs in the
-terminal. This is only used for one of the tools provided by
-alsa-utils, alsamixer, that we are not going to use. Hence, we can
-just disable the build of alsamixer.
+complaining about a missing {\em curses helper header}. {\em curses}
+or {\em ncurses} is a graphical framework to design UIs in the
+terminal. This is only used by {\em alsamixer}, one of the tools
+provided by {\em alsa-utils}, that we are not going to use.
+Hence, we can just disable the build of {\em alsamixer}.
 
-Of course, if we wanted it, we would have had to build ncurses first,
-just like we built alsa-lib. We will also need to disable the xmlto
-support that generates the documentation.
+Of course, if we wanted it, we would have had to build {\em ncurses} first,
+just like we built {\em alsa-lib}. We will also need to disable support
+for {\em xmlto} that generates the documentation.
 
 \begin{verbatim}
 LDFLAGS=-L$HOME/embedded-linux-labs/thirdparty/staging/usr/lib \
@@ -449,7 +449,7 @@ CC=arm-linux-gcc \
 --disable-alsamixer --disable-xmlto
 \end{verbatim}
 
-Then, run the compilation with make. Hopefully, it works!
+Then, run the compilation with \code{make}. Hopefully, it works!
 
 Let's now begin the installation process.  Before really installing in
 the staging directory, let's install in a dummy directory, to see
@@ -462,9 +462,9 @@ make DESTDIR=/tmp/alsa-utils/ install
 \end{verbatim}
 
 The \code{DESTDIR} variable can be used with all Makefiles based on
-automake. It allows to override the installation directory: instead of
-being installed in the configuration-prefix, the files will be
-installed in \code{DESTDIR/configuration-prefix}.
+\code{automake}. It allows to override the installation directory:
+instead of being installed in the configuration prefix directory, the
+files will be installed in \code{DESTDIR/configuration-prefix}.
 
 Now, let's see what has been installed in \code{/tmp/alsa-utils/}:
 
@@ -543,6 +543,7 @@ Then, let's install only the necessary files in the {\em target}
 space, manually:
 
 \begin{verbatim}
+cd ..
 cp -a staging/usr/bin/a* staging/usr/bin/speaker-test target/usr/bin/
 cp -a staging/usr/sbin/alsa* target/usr/sbin
 arm-linux-strip target/usr/bin/a*
@@ -550,21 +551,21 @@ arm-linux-strip target/usr/bin/speaker-test
 arm-linux-strip target/usr/sbin/alsactl
 
 mkdir -p target/usr/share/alsa/pcm
-cp -a staging/usr/share/alsa/alsa.conf* target/usr/share/alsa
-cp -a staging/usr/share/alsa/cards target/usr/share/alsa
-cp -a staging/usr/share/alsa/pcm/default.conf target/usr/share/alsa/pcm
+cp -a staging/usr/share/alsa/alsa.conf* target/usr/share/alsa/
+cp -a staging/usr/share/alsa/cards target/usr/share/alsa/
+cp -a staging/usr/share/alsa/pcm/default.conf target/usr/share/alsa/pcm/
 \end{verbatim}
 
-And we're finally done with the alsa-utils!
+And we're finally done with {\em alsa-utils}!
 
-Now test that all is working fine by running the speaker-test utils on
+Now test that all is working fine by running the \code{speaker-test} util on
 your board, with the headset provided by your instructor plugged
 in. You will need to add the missing libraries from the toolchain
 install directory.
 
 \section{libogg}
 
-Now, let's work on {\em libogg}. Download the version 1.3.2 from
+Now, let's work on {\em libogg}. Download the 1.3.2 version from
 \url{http://xiph.org} and extract it.
 
 Configuring {\em libogg} is very similar to the configuration of the
@@ -587,8 +588,8 @@ classical \code{DESTDIR} mechanism:
 make DESTDIR=$HOME/embedded-linux-labs/thirdparty/staging/ install
 \end{verbatim}
 
-And finally, install manually the only needed files at runtime in the
-{\em target} space:
+And finally, only install manually in the {\em target} space the files
+needed at runtime:
 
 \begin{verbatim}
 cd ..
@@ -596,17 +597,17 @@ cp -a staging/usr/lib/libogg.so.0* target/usr/lib/
 arm-linux-strip target/usr/lib/libogg.so.0.8.2
 \end{verbatim}
 
-Done with libogg!
+Done with {\em libogg}!
 
 \section{libvorbis}
 
-{\em Libvorbis} is the next step. Grab the version 1.3.4 from
+{\em Libvorbis} is the next step. Grab the 1.3.4 version from
 \url{http://xiph.org} and uncompress it.
 
-Once again, the libvorbis build system is a nice example of what can
-be done with a good usage of the autotools. Cross-compiling libvorbis
-is very easy, and almost identical to what we've seen with the
-alsa-utils. First, the \code{configure} step:
+Once again, the {\em libvorbis} build system is a nice example of what can
+be done with a good usage of the autotools. Cross-compiling {\em
+libvorbis} is very easy, and almost identical to what we've seen
+with {\em alsa-utils}. First, the \code{configure} step:
 
 \begin{verbatim}
 CC=arm-linux-gcc \
@@ -651,11 +652,11 @@ cp -a staging/usr/lib/libvorbisfile.so.3* target/usr/lib/
 arm-linux-strip target/usr/lib/libvorbisfile.so.3.3.6
 \end{verbatim}
 
-And we're done with libvorbis!
+And we're done with {\em libvorbis}!
 
 \section{libao}
 
-Now, let's work on {\em libao}. Download the version 1.2.0 from
+Now, let's work on {\em libao}. Download the 1.2.0 version from
 \url{http://xiph.org} and extract it.
 
 Configuring {\em libao} is once again fairly easy, and similar to
@@ -690,30 +691,30 @@ cp -a staging/usr/lib/libao.so.4* target/usr/lib/
 arm-linux-strip target/usr/lib/libao.so.4.1.0
 \end{verbatim}
 
-We will also need the alsa plugins that is loaded dynamically by the
-libao at startup:
+We will also need the alsa plugin that is loaded dynamically by
+{\em libao} at startup:
 \begin{verbatim}
 mkdir -p target/usr/lib/ao/plugins-4/
 cp -a staging/usr/lib/ao/plugins-4/libalsa.so target/usr/lib/ao/plugins-4/
 \end{verbatim}
 
-Done with libao!
+Done with {\em libao}!
 
 \section{vorbis-tools}
 
 Finally, thanks to all the libraries we compiled previously, all the
-dependencies are ready. We can now build the vorbis-tools themselves.
-Download the version 1.4.0 from the official website, at
+dependencies are ready. We can now build the vorbis tools themselves.
+Download the 1.4.0 version from the official website, at
 \url{http://xiph.org/}. As usual, extract the tarball.
 
 Before starting the configuration, let's have a look at the available
-options by running \code{./configure --help}. A lot of options are
+options by running \code{./configure --help}. Many options are
 available. We see that we can, in addition to the usual autotools
 configuration options:
 
 \begin{itemize}
 \item Enable/Disable the various tools that are going to be built:
-  ogg123, oggdec, oggenc, etc.
+  \code{ogg123}, \code{oggdec}, \code{oggenc}, etc.
 \item Enable or disable support for various other codecs: FLAC, Speex,
   etc.
 \item Enable or disable the use of various libraries that can
@@ -737,10 +738,10 @@ Please ensure that you have POSIX threads, libao, and (optionally) libcurl
 libraries and headers present if you would like to build ogg123.
 \end{verbatim}
 
-Which is unfortunate, since we precisely want ogg123.
+Which is unfortunate, since we precisely want \code{ogg123}.
 
-If you look back at the script output, you should see at some point
-that it tests for the libao and fails to find it:
+If you look back at the script output, you should see that at some point
+that it tests for {\em libao} and fails to find it:
 
 \begin{verbatim}
 checking for AO... no
@@ -762,14 +763,14 @@ No package 'ao' found
 \end{verbatim}
 
 In this case, the \code{configure} script uses the {\em pkg-config} system to
-get the configuration parameters to link the library against libao. By
+get the configuration parameters to link the library against {\em libao}. By
 default, {\em pkg-config} looks in \code{/usr/lib/pkgconfig/} for
 \code{.pc} files, and because the \code{libao-dev} package is probably
-not installed in your system the \code{configure} script will not find the
-libao we just compiled.
+not installed in your system the \code{configure} script will not find
+{\em libao} library that we just compiled.
 
 It would have been worse if we had the package installed, because it
-would have detected and used our host package to compile libao, which,
+would have detected and used our host package to compile {\em libao}, which,
 since we're cross-compiling, is a pretty bad thing to do.
 
 This is one of the biggest issue with cross-compilation: mixing host
@@ -828,23 +829,23 @@ actually test whether it was available or not, but just assumed it was.
 It may also fail with the following cryptic message:
 \footnotesize
 \begin{verbatim}
-if arm-linux-gcc -DSYSCONFDIR=\"/usr/etc\" -DLOCALEDIR=\"/usr/share/locale\"
- -DHAVE_CONFIG_H -I. -I. -I.. -I/usr/include -I../include -I../intl
- -I/home/ubuntu/embedded-linux-labs/thirdparty/staging/usr/include  -O2 -Wall
- -ffast-math -fsigned-char -g -O2 -MT audio.o -MD -MP -MF ".deps/audio.Tpo"
- -c -o audio.o audio.c; \
-	then mv -f ".deps/audio.Tpo" ".deps/audio.Po"; else rm -f ".deps/audio.Tpo"; exit 1; fi
-In file included from /usr/include/stdio.h:28:0,
+make[2]: Entering directory
+`/home/tux/embedded-linux-labs/thirdparty/vorbis-tools-1.4.0/ogg123'
+if arm-linux-gcc -DSYSCONFDIR=\"/usr/etc\"
+-DLOCALEDIR=\"/usr/share/locale\" -DHAVE_CONFIG_H -I. -I. -I..
+-I/usr/include -I../include -I../intl
+-I/home/tux/embedded-linux-labs/thirdparty/staging/usr/include  -O2
+-Wall -ffast-math -fsigned-char -g -O2 -MT audio.o -MD -MP -MF
+".deps/audio.Tpo" -c -o audio.o audio.c; \
+	then mv -f ".deps/audio.Tpo" ".deps/audio.Po"; else rm -f
+".deps/audio.Tpo"; exit 1; fi
+In file included from /usr/include/stdio.h:27:0,
                  from audio.c:22:
-/usr/include/features.h:324:26: fatal error: bits/predefs.h: No such file or directory
- #include <bits/predefs.h>
-                          ^
+/usr/include/features.h:398:23: fatal error: gnu/stubs.h: No such file
+or directory
+ #include <gnu/stubs.h>
+                       ^
 compilation terminated.
-make[2]: *** [audio.o] Error 1
-make[2]: Leaving directory `/home/ubuntu/embedded-linux-labs/thirdparty/vorbis-tools-1.4.0/ogg123'
-make[1]: *** [all-recursive] Error 1
-make[1]: Leaving directory `/home/ubuntu/embedded-linux-labs/thirdparty/vorbis-tools-1.4.0'
-make: *** [all] Error 2
 \end{verbatim}
 \normalsize
 
@@ -856,7 +857,7 @@ host, not the target. It is coming from the autodetected value for
 Add the \code{--without-curl} option to the \code{configure} invocation,
 restart the compilation.
 
-The compilation may then fail with an error related to libm. While
+The compilation may then fail with an error related to {\em libm}. While
 the code uses the function from this library, the generated Makefile
 doesn't give the right command line argument in order to link against
 the libm.
@@ -898,4 +899,4 @@ arm-linux-strip target/usr/bin/ogg*
 
 You can now test that everything works! Run \code{ogg123} on the
 sample file found in \code{thirdparty/data}, and everything should
-work fine!
+work fine (after copying a few extra C library objects if needed)!
