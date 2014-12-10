@@ -11,7 +11,7 @@ which already contains some data needed for this lab.
 \section{Get Buildroot and explore the source code}
 
 The official Buildroot website is available at
-\url{http://buildroot.org/}. Download the latest stable 2014.05.x
+\url{http://buildroot.org/}. Download the latest stable 2014.11.x
 version which we have tested for this lab. Uncompress the tarball
 and go inside the Buildroot source directory.
 
@@ -25,7 +25,7 @@ are:
 \item \code{configs} contains a set of predefined configurations,
   similar to the concept of defconfig in the kernel.
 \item \code{docs} contains the documentation for Buildroot. You can
-  start reading buildroot.html which is the main Buildroot
+  start reading \code{buildroot.html} which is the main Buildroot
   documentation;
 \item \code{fs} contains the code used to generate the various root
   filesystem image formats
@@ -51,8 +51,8 @@ In our case, we would like to:
 \item Generate an embedded Linux system for ARM;
 \item Use an already existing external toolchain instead of having
   Buildroot generating one for us;
-\item Integrate Busybox, alsa-utils and vorbis-tools in our embedded
-  Linux system;
+\item Integrate {\em Busybox}, {\em alsa-utils} and {\em vorbis-tools}
+  in our embedded Linux system;
 \item Integrate the target filesystem into a tarball
 \end{itemize}
 
@@ -62,7 +62,8 @@ To run the configuration utility of Buildroot, simply run:
 make menuconfig
 \end{verbatim}
 
-Set the following options:
+Set the following options. Don't hesitate to press the \code{Help}
+button whenever you need more details about a given option:
 
 \begin{itemize}
 \item \code{Target options}
@@ -78,7 +79,7 @@ Set the following options:
   \item \code{Toolchain}: \code{Custom toolchain}
   \item \code{Toolchain path}: use the toolchain you built:
     \code{/usr/local/xtools/arm-cortexa5-linux-uclibcgnueabihf}
-  \item \code{External toolchain kernel headers series}: \code{3.10.x}
+  \item \code{External toolchain kernel headers series}: \code{3.15.x}
   \item \code{External toolchain C library}: \code{uClibc}
   \item We must tell Buildroot about our toolchain configuration, so:
     enable \code{Toolchain has large file support?}, \code{Toolchain has
@@ -130,15 +131,15 @@ explore its contents:
 \begin{itemize}
 
 \item \code{build}, is the directory in which each component built by
-  Buildroot is extract, and where the build actually takes place
+  Buildroot is extracted, and where the build actually takes place
 
 \item \code{host}, is the directory where Buildroot installs some
   components for the host. As Buildroot doesn't want to depend on too
   many things installed in the developer machines, it installs some
   tools needed to compile the packages for the target. In our case it
-  installed pkg-config (since the version of the host may be ancient)
-  and tools to generate the root filesystem image (genext2fs,
-  makedevs, fakeroot)
+  installed {\em pkg-config} (since the version of the host may be ancient)
+  and tools to generate the root filesystem image ({\em genext2fs},
+  {\em makedevs}, {\em fakeroot}).
 
 \item \code{images}, which contains the final images produced by
   Buildroot. In our case it's just a tarball of the filesystem, called
@@ -146,7 +147,7 @@ explore its contents:
   there could also be a kernel image or a bootloader image.
 
 \item \code{staging}, which contains the “build” space of the target
-  system. All the target libraries, with headers, documentation. It
+  system. All the target libraries, with headers and documentation. It
   also contains the system headers and the C library, which in our
   case have been copied from the cross-compiling toolchain.
 
@@ -162,15 +163,15 @@ explore its contents:
 \section{Run the generated system}
 
 Go back to the \code{$HOME/embedded-linux-labs/buildroot/} directory. Create
-a new directory \code{nfsroot} that is going to hold our system,
+a new \code{nfsroot} directory that is going to hold our system,
 exported over NFS. Go into this directory, and untar the rootfs using:
 
 \begin{verbatim}
-sudo tar -xvf ../buildroot-2014.05/output/images/rootfs.tar
+sudo tar xvf ../buildroot-2014.11/output/images/rootfs.tar
 \end{verbatim}
 
-Add our \code{nfsroot} directory to the list of the directory exported
-by NFS in \code{/etc/exports}, and make sure the board use it too.
+Add our \code{nfsroot} directory to the list of directories exported
+by NFS in \code{/etc/exports}, and make sure the board uses it too.
 
 Boot the board, and log in (\code{root} account, no password).
 
