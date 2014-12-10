@@ -1,12 +1,10 @@
-%\subchapter{Remote application debugging}{Objective: Use strace and
-%  ltrace to diagnose program issues. Use gdbserver and a
-\subchapter{Remote application debugging}{Objective: Use strace
-  to diagnose program issues. Use gdbserver and a
+\subchapter{Remote application debugging}{Objective: Use \code{strace}
+  to diagnose program issues. Use \code{gdbserver} and a
   cross-debugger to remotely debug an embedded application}
 
 \section{Setup}
 
-Go to the \code{$HOME/embedded-linux-labs/debugging} directory.
+Go back to the \code{$HOME/embedded-linux-labs/buildroot} directory.
 
 \section{Debugging setup}
 
@@ -23,15 +21,11 @@ copied in your target filesystem thanks to the
 Buildroot can also help you compile debugging tools. Select the
 \code{strace} and \code{ltrace} packages.
 
-Unfortunately, the latest \code{ltrace} release is quite old and is
-not working on recent ARM kernels. This is the one that will be
-compiled by the Buildroot version you are using. You can apply the
-patch named \code{0001-ltrace-use-current-master.patch} to compile a
-more recent \code{ltrace} version.
-
 Now, you can compile and install everything in your root filesystem.
 
 \section{Using strace}
+
+Now, go to the \code{$HOME/embedded-linux-labs/debugging} directory.
 
 \code{strace} allows to trace all the system calls made by a process:
 opening, reading and writing files, starting other processes,
@@ -41,21 +35,15 @@ you don't have the source code.
 
 With your cross-compiling toolchain, compile the
 \code{data/vista-emulator.c} program, strip it with \code{arm-linux-strip},
-and copy the resulting binary to
-the \code{/root} directory of the root filesystem (you might need to create
-this directory if it doesn't exist yet).
-
-\begin{verbatim}
-arm-linux-gcc -o vista-emulator data/vista-emulator.c
-cp vista-emulator path/to/root/filesystem/root
-\end{verbatim}
+and copy the resulting binary to the \code{/root} directory of the root
+filesystem.
 
 Back to target system, try to run the \code{/root/vista-emulator}
 program. It should hang indefinitely!
 
 Interrupt this program by hitting \code{[Ctrl] [C]}.
 
-Now, running this program again through the strace command and
+Now, running this program again through the \code{strace} command and
 understand why it hangs. You can guess it without reading the source
 code!
 
@@ -64,9 +52,7 @@ proceed to another bug, failing with a segmentation fault.
 
 \section{Using ltrace}
 
-Try to run the program through \code{ltrace}. You may see that
-another library is required to run this utility. Find this library in
-the Buildroot output and add it to your root filesystem.
+Now run the program through \code{ltrace}.
 
 Now you should see what the program does: it tries to consume as much
 system memory as it can!
@@ -81,9 +67,9 @@ include debugging symbols. This time, just keep it on your workstation,
 as you already have the version without debugging symbols on your target.
 
 Then, on the target side, run \code{vista-emulator} under
-\code{gdbserver}. gdbserver will listen on a TCP port for a connection
-from GDB, and will control the execution of vista-emulator according
-to the GDB commands:
+\code{gdbserver}. \code{gdbserver} will listen on a TCP port for a
+connection from \code{gdb}, and will control the execution of
+\code{vista-emulator} according to the \code{gdb} commands:
 
 \begin{verbatim}
 gdbserver localhost:2345 vista-emulator
@@ -99,12 +85,12 @@ You can also start the debugger through the \code{ddd} interface:
 ddd --debugger arm-linux-gdb vista-emulator
 \end{verbatim}
 
-GDB starts and loads the debugging information from the
+\code{gdb} starts and loads the debugging information from the
 \code{vista-emulator} binary that has been compiled with \code{-g}.
 
 Then, we need to tell where to find our libraries, since they are not
 present in the default \code{/lib} and \code{/usr/lib} directories on
-your workstation. This is done by setting the GDB \code{sysroot}
+your workstation. This is done by setting the \code{gdb} \code{sysroot}
 variable (on one line):
 
 \begin{verbatim}
@@ -112,7 +98,7 @@ variable (on one line):
 buildroot-XXXX.YY/output/staging
 \end{verbatim}
 
-And tell gdb to connect to the remote system:
+And tell \code{gdb} to connect to the remote system:
 \begin{verbatim}
 (gdb) target remote <target-ip-address>:2345
 \end{verbatim}
@@ -126,9 +112,9 @@ application.
 
 Then, use \code{gdb} as usual to set breakpoints, look at the source
 code, run the application step by step, etc. Graphical versions of
-gdb, such as \code{ddd} can also be used in the same way. In our case,
-we'll just start the program and wait for it to hit the segmentation
-fault:
+\code{gdb}, such as \code{ddd} can also be used in the same way.
+In our case, we'll just start the program and wait for it to hit
+the segmentation fault:
 \begin{verbatim}
 (gdb) continue
 \end{verbatim}
@@ -146,17 +132,13 @@ finding the bug in our application.
 
 During this lab, we learned that...
 \begin{itemize}
-\item Compiling an application for the target system is very similar
-  to compiling an application for the host, except that the
-  cross-compilation introduces a few complexities when libraries are
-  used.
 
 \item It's easy to study the behavior of programs and diagnose issues
 %  without even having the source code, thanks to strace and ltrace.
   without even having the source code, thanks to strace.
 
 \item You can leave a small \code{gdbserver} program (300 KB) on your target
-  that allows to debug target applications, using a standard GDB
+  that allows to debug target applications, using a standard \code{gdb}
   debugger on the development host.
 
 \item It is fine to strip applications and binaries on the target
