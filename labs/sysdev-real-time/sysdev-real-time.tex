@@ -16,16 +16,6 @@ POSIX real-time API, and against Xenomai's POSIX skin.
 
 Go to the \code{$HOME/embedded-linux-labs/realtime/rttest} directory.
 
-If you are using a 64 bit installation of Ubuntu, install support for
-executables built with a 32 bit C library, if you didn't do it
-previously:
-
-\begin{verbatim}
-sudo apt-get install ia32-libs
-\end{verbatim}
-
-This will be needed to use the toolchain from Code Sourcery.
-
 Install the \code{netcat} package.
 
 \section{Root filesystem}
@@ -38,7 +28,7 @@ supports Xenomai.
 
 Let's build this with Buildroot.
 
-Reuse and extract the Buildroot 2014.05 sources. Configure Buildroot
+Reuse and extract the Buildroot 2014.11 sources. Configure Buildroot
 with the following settings, using the \code{/} command in \code{make
   menuconfig} to find parameters by their name:
 
@@ -114,7 +104,8 @@ Let's configure our \code{PATH} to use this toolchain:
 
 \scriptsize
 \begin{verbatim}
-export PATH=$HOME/embedded-linux-labs/realtime/rttest/buildroot-2014.05/output/host/usr/bin:$PATH
+export
+PATH=$HOME/embedded-linux-labs/realtime/rttest/buildroot-XXXX.YY/output/host/usr/bin:$PATH
 \end{verbatim}
 \normalsize
 
@@ -149,10 +140,11 @@ Now, do the following tests:
   board, by running \code{/root/doload 300 > /dev/null 2>&1 &} on the
   board, and using \code{netcat 192.168.0.100 5566} on your
   workstation in order to flood the network interface of the Xplained
-  board (where 192.168.0.100 is the IP address of the Xplained board).
+  board (where \code{192.168.0.100} is the IP address of the Xplained
+  board).
 \item Test your program again with the workload, but by running the
-  program in the \code{SCHED_FIFO} scheduling class at priority 99,
-  using the \code{chrt} command.
+  program in the \code{SCHED_FIFO} scheduling class at priority
+  \code{99}, using the \code{chrt} command.
 \end{itemize}
 
 \section{Testing the preemptible kernel}
@@ -166,44 +158,29 @@ the results.
 
 \section{Testing Xenomai scheduling latency}
 
-Since the Xplained is pretty recent, no Xenomai release has been made
-yet with support for it. Fortunately, it is supported in the current
-development tree.
+Stay in \code{$HOME/embedded-linux-labs/realtime/rttest}.
 
-As the development tree moves quite often, we made a patch to apply on
-a 3.14 kernel. First, extract a 3.14 kernel but not the 3.14.7 as the
-patch only apply on this release. Then apply the patch
-\code{ipipe-arm-3.14.patch.xz} provided in data:
+Download the latest 2.6.x release of Xenomai, and extract it.
 
-\begin{verbatim}
-cd $HOME/embedded-linux-labs/realtime/rttest
-tar xf $HOME/embedded-linux-labs/kernel/linux-3.13.tar.xz
-cd linux-3.13/
-xzcat $HOME/embedded-linux-labs/kernel/patch-3.14.xz | patch -p1
-xzcat ../data/ipipe-arm-3.14.patch.xz | patch -p1
-cd ..
-mv linux-3.13/ linux-3.14-ipipe
-\end{verbatim}
+As you can see in the \code{ksrc/arch/arm/patches} directory,
+the most recent Linux kernel version supported by Xenomai for ARM is
+3.14.17.
 
-Now, download Xenomai's master, in order to apply the extra patches
-needed for the interaction with the Xenomai user-space components.
-
-\begin{verbatim}
-cd $HOME/embedded-linux-labs/realtime/rttest
-git clone git://git.xenomai.org/xenomai-2.6.git xenomai
-cd xenomai
-git checkout 589882956280
-\end{verbatim}
-
+Then, download the 3.14.17 Linux sources ({\bf not the latest 3.14.x
+sources} because the Xenomai patches only apply to this exact version),
+and extract them.
+ 
 Now, prepare our kernel for Xenomai compilation:
 \begin{verbatim}
 cd $HOME/embedded-linux-labs/realtime/rttest
-./xenomai/scripts/prepare-kernel.sh --arch=arm --linux=linux-3.14-ipipe/
+./xenomai-2.6.x/scripts/prepare-kernel.sh --arch=arm \
+--linux=linux-3.14.17 \
+--adeos=xenomai-2.6.x/ksrc/arch/arm/patches/ipipe-core-3.14.17-arm-4.patch
 \end{verbatim}
 
-Now, run the kernel configuration interface, and make sure that
-the below options are enabled, taking your time to read their
-description:
+Now, configure your kernel for SAMA5 boards, then start the kernel
+configuration interface, and make sure that the below options are
+enabled, taking your time to read their description:
 
 \begin{itemize}
 \item \code{CONFIG_XENOMAI}
@@ -217,7 +194,7 @@ source directory, and force Buildroot to build the host variant of
 {\em pkg-config}:
 
 \begin{verbatim}
-cd $HOME/embedded-linux-labs/realtime/rttest/buildroot-2014.05/
+cd $HOME/embedded-linux-labs/realtime/rttest/buildroot-2014.11/
 make host-pkgconf
 \end{verbatim}
 
@@ -227,7 +204,7 @@ compile \code{rttest} for the Xenomai POSIX skin:
 \scriptsize
 \begin{verbatim}
 cd $HOME/embedded-linux-labs/realtime/rttest/nfsroot/root
-export PATH=$HOME/embedded-linux-labs/realtime/rttest/buildroot-2014.05/output/host/usr/bin:$PATH
+export PATH=$HOME/embedded-linux-labs/realtime/rttest/buildroot-2014.11/output/host/usr/bin:$PATH
 arm-none-linux-gnueabi-gcc -o rttest rttest.c \
   $(pkg-config --libs --cflags libxenomai_posix)
 \end{verbatim}
