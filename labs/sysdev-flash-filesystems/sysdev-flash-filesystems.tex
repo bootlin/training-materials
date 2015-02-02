@@ -86,12 +86,15 @@ of the root filesystem the correct location.
 Using the \code{tftp} command, download and flash the JFFS2 image of
 the data filesystem at the correction location.
 
-Use the \code{trimffs} version of the command \code{nand write} for the
-JFFS2 image. The command \code{nand write.trimffs} skips the blank
-sectors instead of writing them. It is needed because the algorithm
-used by the hardware ECC for the SAMA5D3 SoC generates a checksum with
-bytes different of 0xFF if the page is blank, whereas Linux expects to
-have the OOB full of 0xFF if the associated page is blank too.
+Use the \code{trimffs} version of the command \code{nand write} for
+the JFFS2 image. \footnote{The command \code{nand write.trimffs} skips
+  the blank sectors instead of writing them. It is needed because the
+  algorithm used by the hardware ECC for the SAMA5D3 SoC generates a
+  checksum with bytes different of 0xFF if the page is blank. Linux
+  only checks the page, and if it is blank it doesn't erase it, but as
+  the OOB is not blank it leads to ECC errors. More generally it is
+  not recommended writing more than one time on a page and its OOB
+  even if the page is blank.}
 
 Don't forget that you can write U-Boot scripts to automate these
 procedures. This is very handy to avoid mistakes when typing commands!
