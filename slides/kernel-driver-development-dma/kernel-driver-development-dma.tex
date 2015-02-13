@@ -8,6 +8,29 @@
 \end{frame}
 
 \begin{frame}
+  \frametitle{Peripheral DMA}
+  \begin{center}
+    \includegraphics[height=0.7\textheight]{slides/kernel-driver-development-dma/peripheral-dma.pdf}
+  \end{center}
+\end{frame}
+
+\begin{frame}
+  \frametitle{DMA Controllers}
+  \begin{center}
+    \includegraphics[width=\textwidth]{slides/kernel-driver-development-dma/dma-controller.pdf}
+  \end{center}
+\end{frame}
+
+\begin{frame}
+  \frametitle{DMA descriptors}
+  \begin{center}
+    \includegraphics[width=\textwidth]{slides/kernel-driver-development-dma/dma-descriptors.pdf}
+  \end{center}
+\end{frame}
+
+\subsection{DMA Usage}
+
+\begin{frame}
   \frametitle{Constraints with a DMA}
   \begin{itemize}
   \item A DMA deals with physical addresses, so:
@@ -160,5 +183,48 @@ void dma_unmap_single(struct device *dev, dma_addr_t handdle,
     for DMA).
   \item The Linux API also supports scatter / gather DMA streaming
     mappings.
+  \end{itemize}
+\end{frame}
+
+\subsection{DMA transfers}
+
+\begin{frame}
+  \frametitle{Starting DMA transfers}
+  \begin{itemize}
+  \item If the device you're writing a driver for is doing peripheral
+    DMA, no external API is involved.
+  \item If it relies on an external DMA controller, you'll need to
+    \begin{itemize}
+    \item Ask the hardware to use DMA, so that it will drive its
+      request line
+    \item Use Linux DMAEngine framework, especially its slave API
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{DMAEngine Slave API}
+  \begin{itemize}
+  \item In order to start a DMA transfer, you need to call the
+    following functions from your driver
+    \begin{enumerate}
+    \item Request a channel for exclusive use with
+      \code{dma_request_channel}, or one of its variants
+    \item Configure it for our use case, by filling a
+      \code{dma_slave_config} structures with various parameters
+      (source and destination adresses, accesses width, etc.) and
+      passing it as an argument to \code{dmaengine_slave_config}
+    \item Start a new transaction with
+      \code{dmaengine_prep_slave_single} or
+      \code{dmaengine_prep_slave_sg}
+    \item Put the transaction in the driver pending queue using
+      \code{dmaengine_submit}
+    \item And finally ask the driver to process all pending
+      transactions using \code{dmaengine_issue_pending}
+    \end{enumerate}
+  \item Of course, this needs to be done in addition to the DMA
+    mapping seen previously
+  \item Some framework abstract it away from you, such as \code{SPI}
+    and \code{ASoC}
   \end{itemize}
 \end{frame}
