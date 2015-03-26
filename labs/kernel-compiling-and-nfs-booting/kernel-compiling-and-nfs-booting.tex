@@ -44,14 +44,12 @@ Install packages needed for configuring, compiling and booting
 the kernel for your board:
 
 \begin{verbatim}
-sudo apt-get install libqt4-dev g++ u-boot-tools
+sudo apt-get install libqt4-dev g++
 \end{verbatim}
 
 \input{../errata/libqt4-dev.tex}
 
 \code{libqt4-dev} and \code{g++} are needed for \code{make xconfig}.
-\code{u-boot-tools} is needed to build the \code{uImage} file for
-U-boot (\code{mkimage} utility).
 
 \section{Cross-compiling toolchain setup}
 
@@ -82,31 +80,14 @@ booting on an NFS exported root directory).
 
 \section{Kernel compiling}
 
-Compile your kernel.
-
-To boot it on your board with the U-boot bootloader,
-you will need to encapsulate the kernel \code{zImage} file
-in a special \code{uImage} container for U-boot.
-The kernel \code{Makefile} can generate this container for you by running the
-\code{mkimage} tool found in the \code{uboot-mkimage} package).
-
-This file will contain, among other things, the load address of the
-kernel. Nowadays, the kernel can boot on several platforms, each with
-different load addresses. Therefore, you will have to specify the
-load address of your hardware platform when you generate the
-\code{uImage} file:
+Compile your kernel and generate the Device Tree Binaries (DTBs)
+(running 4 compile jobs in parallel):
 
 \begin{verbatim}
-make LOADADDR=0x80008000 uImage
+make -j 4 
 \end{verbatim}
 
-Now also generate the Device Tree Binaries (DTBs):
-
-\begin{verbatim}
-make dtbs
-\end{verbatim}
-
-Now, copy the \code{uImage} and \code{am335x-boneblack.dtb} files
+Now, copy the \code{zImage} and \code{am335x-boneblack.dtb} files
 to the TFTP server home directory (\code{/var/lib/tftpboot}).
 
 \section{Setting up the NFS server}
@@ -161,7 +142,7 @@ editenv bootargs
 Now, download the kernel image through \code{tftp}:
 
 \begin{verbatim}
-tftp 0x81000000 uImage
+tftp 0x81000000 zImage
 \end{verbatim}
 
 You'll also need to download the device tree blob:
@@ -173,7 +154,7 @@ tftp 0x82000000 am335x-boneblack.dtb
 Now, boot your kernel:
 
 \begin{verbatim}
-bootm 0x81000000 - 0x82000000
+bootz 0x81000000 - 0x82000000
 \end{verbatim}
 
 If everything goes right, you should reach a login prompt (user:
@@ -192,14 +173,14 @@ environment variable:
 
 {\scriptsize
 \begin{verbatim}
-setenv bootcmd 'tftp 0x81000000 uImage; tftp 0x82000000 am335x-boneblack.dtb; bootm 0x81000000 - 0x82000000'
+setenv bootcmd 'tftp 0x81000000 zImage; tftp 0x82000000 am335x-boneblack.dtb; bootz 0x81000000 - 0x82000000'
 saveenv
 \end{verbatim}
 }
 
 Don't hesitate to change it according to your exact needs.
 
-We could also copy the \code{uImage} file to the eMMC flash and avoid
+We could also copy the \code{zImage} file to the eMMC flash and avoid
 downloading it over and over again. However, detailed bootloader
 usage is outside of the scope of this course. See our
 \href{http://free-electrons.com/training/embedded-linux/}{Embedded
