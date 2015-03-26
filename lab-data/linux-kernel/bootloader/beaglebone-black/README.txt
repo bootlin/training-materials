@@ -71,6 +71,12 @@ connectors), and release the button.
 After about 20 to 30 seconds, you should see the 4 LEDs next to the Ethernet
 connector turned on. This confirms that reflashing went well. You are done!
 
+Don't switch off the board violently by removing the USB power.
+Otherwise, you could damage some components (see the slides for details).
+To power off the board in a clean way, first press the POWER button for 8
+seconds and wait for the LEDs to switch off. Then you can safely
+remove the USB power.
+
 Fixing issues (if any)
 ----------------------
 
