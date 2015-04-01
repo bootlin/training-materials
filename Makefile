@@ -10,6 +10,11 @@ EPSTOPDF = epstopdf
 # Needed macros
 UPPERCASE = $(shell echo $1 | tr "[:lower:]" "[:upper:]")
 
+define sep
+
+
+endef
+
 # List of slides for the different courses
 
 KERNEL_SLIDES = \
@@ -592,29 +597,25 @@ $(VARS): FORCE
 clean:
 	$(RM) -rf $(OUTDIR) *.pdf *-labs *.xz
 
-all: full-sysdev-slides.pdf full-sysdev-labs.pdf full-kernel-slides.pdf full-kernel-labs.pdf full-android-slides.pdf full-android-labs.pdf full-boottime-slides.pdf full-boottime-labs.pdf kernel-agenda.pdf android-agenda.pdf boottime-agenda.pdf
+ALL_TRAININGS = \
+	android \
+	boottime \
+	kernel \
+	sysdev \
+	yocto
+
+all: $(foreach p,$(ALL_TRAININGS),full-$(p)-slides.pdf full-$(p)-labs.pdf $(p)-agenda.pdf)
 
 help:
 	@echo "Available targets:"
 	@echo
-	@echo " full-sysdev-labs.pdf            Complete labs for the 'sysdev' course"
-	@echo " full-kernel-labs.pdf            Complete labs for the 'kernel' course"
-	@echo " full-android-labs.pdf           Complete labs for the 'android' course"
-	@echo " full-boottime-labs.pdf          Complete labs for the 'boottime' course"
-	@echo " full-yocto-labs.pdf             Complete labs for the 'yocto' course"
-	@echo " full-sysdev-slides.pdf          Complete slides for the 'sysdev' course"
-	@echo " full-kernel-slides.pdf          Complete slides for the 'kernel' course"
-	@echo " full-android-slides.pdf         Complete slides for the 'android' course"
-	@echo " full-boottime-slides.pdf        Complete slides for the 'boottime' course"
-	@echo " full-yocto-slides.pdf           Complete slides for the 'yocto' course"
-	@echo " android-agenda.pdf              Agenda for the 'android' course"
-	@echo " autotools-agenda.pdf            Agenda for the 'autotools' course"
-	@echo " boottime-agenda.pdf             Agenda for the 'boottime' course"
-	@echo " buildroot-agenda.pdf            Agenda for the 'buildroot' course"
-	@echo " sysdev-agenda.pdf               Agenda for the 'sysdev' course"
-	@echo " kernel-agenda.pdf               Agenda for the 'kernel' course"
-	@echo " yocto-agenda.pdf                Agenda for the 'yocto' course"
+	$(foreach p,$(ALL_TRAININGS),\
+		@printf " %-30s %s\n" "full-$(p)-labs.pdf" "Complete labs for the '$(p)' course"$(sep))
+	$(foreach p,$(ALL_TRAININGS),\
+		@printf " %-30s %s\n" "full-$(p)-slides.pdf" "Complete slides for the '$(p)' course"$(sep))
+	$(foreach p,$(ALL_TRAININGS),\
+		@printf " %-30s %s\n" "$(p)-agenda.pdf" "Agenda for the '$(p)' course"$(sep))
 	@echo
-	@echo " <some-chapter>-slides.pdf       Slides for a particular chapter in slides/"
-	@echo " <some-chapter>-labs.pdf         Labs for a particular chapter in labs/"
+	@echo " <some-chapter>-slides.pdf      Slides for a particular chapter in slides/"
+	@echo " <some-chapter>-labs.pdf        Labs for a particular chapter in labs/"
 	@echo
