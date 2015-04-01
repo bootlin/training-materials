@@ -278,6 +278,25 @@ YOCTO_SLIDES    = \
 		yocto-resources \
 		last-slides
 
+BUILDROOT_SLIDES = \
+		first-slides \
+		about-us \
+		course-information-title \
+		beagleboneblack-board \
+		course-information \
+		setup-lab \
+		buildroot-introduction \
+		buildroot-tree \
+		buildroot-toolchain \
+		buildroot-rootfs \
+		buildroot-new-packages \
+		buildroot-advanced-packages \
+		buildroot-analysis \
+		buildroot-board-project \
+		buildroot-appdev \
+		buildroot-internals \
+		buildroot-support-contribution \
+		last-slides
 
 # List of labs for the different courses
 
@@ -345,6 +364,16 @@ YOCTO_LABS    = setup \
 		yocto-recipe-extra \
 		yocto-sdk \
 		yocto-sdk-eclipse \
+
+BUILDROOT_LABS = setup \
+		buildroot-basic \
+		buildroot-toolchain \
+		buildroot-rootfs \
+		buildroot-new-packages \
+		buildroot-advanced-packages \
+		buildroot-analysis \
+		buildroot-board-project \
+		buildroot-appdev
 
 # Output directory
 OUTDIR   = $(PWD)/out
@@ -600,6 +629,7 @@ clean:
 ALL_TRAININGS = \
 	android \
 	boottime \
+	buildroot \
 	kernel \
 	sysdev \
 	yocto
