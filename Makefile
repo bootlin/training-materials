@@ -415,7 +415,8 @@ PICTURES = \
 	$(call PICTURES_WITH_TRANSFORMATION,$(1),svg) \
 	$(call PICTURES_WITH_TRANSFORMATION,$(1),dia) \
 	$(call PICTURES_NO_TRANSFORMATION,$(1),png)   \
-	$(call PICTURES_NO_TRANSFORMATION,$(1),jpg)
+	$(call PICTURES_NO_TRANSFORMATION,$(1),jpg)   \
+	$(call PICTURES_NO_TRANSFORMATION,$(1),pdf)
 
 # List of common pictures
 COMMON_PICTURES   = $(call PICTURES,common)
@@ -610,6 +611,10 @@ $(OUTDIR)/%.png: %.png
 .PRECIOUS: $(OUTDIR)/%.jpg
 
 $(OUTDIR)/%.jpg: %.jpg
+	mkdir -p $(dir $@)
+	@cp $^ $@
+
+$(OUTDIR)/%.pdf: %.pdf
 	mkdir -p $(dir $@)
 	@cp $^ $@
 
