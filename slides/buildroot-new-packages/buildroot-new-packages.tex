@@ -1,5 +1,512 @@
 \section{Integrating new packages in Buildroot}
 
+\begin{frame}{Why adding new packages in Buildroot?}
+  \begin{itemize}
+  \item A {\em package} in Buildroot-speak is the {\bf set of
+      meta-information needed to automate the build process} of a
+    certain component of a system.
+  \item Can be used for open-source, third party proprietary
+    components, or in-house components.
+  \item Can be used for user-space components (libraries and
+    applications) but also for firmware, kernel drivers, bootloaders,
+    etc.
+  \item Do not confuse with the notion of {\em binary package} in a
+    regular Linux distribution.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Basic elements of a Buildroot package}
+  \begin{itemize}
+  \item A directory, \code{package/foo}
+  \item A \code{Config.in} file, written in {\em kconfig} language,
+    describing the configuration options for the package.
+  \item A \code{<pkg>.mk} file, written in {\em make}, describing where to
+    fetch the source, how to build and install it, etc.
+  \item A \code{<pkg>.hash} file, providing hashes to check the integrity
+    of the downloaded tarballs.
+  \item Optionally, \code{.patch} files, that are applied on the
+    package source code before building.
+  \item Optionally, any additional file that might be useful for the
+    package: init script, example configuration file, etc.
+  \end{itemize}
+\end{frame}
+
+\subsection{Config.in file}
+
+\begin{frame}[fragile]{\code{package/<pkg>/Config.in}: basics}
+  \begin{itemize}
+  \item Describes the configuration options for the package.
+  \item Written in the {\em kconfig} language.
+  \item One option is mandatory to enable/disable the package, it {\bf
+      must} be named \code{BR2_PACKAGE_<PACKAGE>}.
+    \begin{block}{}
+      \scriptsize
+\begin{verbatim}
+config BR2_PACKAGE_STRACE
+        bool "strace"
+        help
+          A useful diagnostic, instructional, and debugging tool.
+          Allows you to track what system calls a program makes
+          while it is running.
+
+          http://sourceforge.net/projects/strace/
+\end{verbatim}
+    \end{block}
+  \item The main package option is a \code{bool} with the package name
+    as the prompt. Will be visible in \code{menuconfig}.
+  \item The help text give a quick description, and the homepage of
+    the project.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{\code{package/<pkg>/Config.in}: inclusion}
+  \begin{itemize}
+  \item The hierarchy of configuration options visible in
+    \code{menuconfig} is built by reading the top-level
+    \code{Config.in} file and the other \code{Config.in} file it
+    includes.
+  \item All \code{package/<pkg>/Config.in} files are included from
+    \code{package/Config.in}.
+  \item The location of a package in one of the package sub-menu is
+    decided in this file.
+  \end{itemize}
+  \begin{block}{package/Config.in}
+    \tiny
+\begin{verbatim}
+menu "Target packages"
+menu "Audio and video applications"
+        source "package/alsa-utils/Config.in"
+        ...
+endmenu
+...
+menu "Libraries"
+menu "Audio/Sound"
+        source "package/alsa-lib/Config.in"
+        ...
+endmenu
+...
+\end{verbatim}
+  \end{block}
+\end{frame}
+
+\begin{frame}{\code{package/<pkg>/Config.in}: dependencies}
+  \begin{itemize}
+  \item {\em kconfig} allows to express dependencies using
+    \code{select} or \code{depends on} statements
+    \begin{itemize}
+    \item \code{select} is an automatic dependency: if option {\em A}
+      \code{select} option {\em B}, as soon as {\em A} is enabled,
+      {\em B} will be enabled, and cannot be unselected.
+    \item \code{depends on} is a user-assisted dependency: if option
+      {\em A} \code{depends on} option {\em B}, {\em A} will only be
+      visible when {\em B} is enabled.
+    \end{itemize}
+  \item Buildroot uses them as follows:
+    \begin{itemize}
+    \item \code{depends on} for architecture, toolchain feature, or
+      {\em big} feature dependencies. E.g: package only available on
+      x86, or only if IPv6 is enabled, or depends on Python.
+    \item \code{select} for enabling the necessary other packages
+      needed to build the current package (libraries, etc.)
+    \end{itemize}
+  \item Such dependencies only ensure consistency at the configuration
+    level. They {\bf do not guarantee build ordering}!
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{\code{package/<pkg>/Config.in}: dependency example}
+
+  \begin{columns}
+    \column{0.5\textwidth}
+    \begin{block}{radvd package}
+      \tiny
+\begin{verbatim}
+config BR2_PACKAGE_RADVD
+        bool "radvd"
+        depends on BR2_USE_MMU # fork()
+        depends on BR2_INET_IPV6
+        select BR2_PACKAGE_FLEX
+        help
+          IPv6 Router Advertisement Daemon.
+
+          http://www.litech.org/radvd/
+
+comment "radvd needs a toolchain w/ IPv6"
+        depends on BR2_USE_MMU
+        depends on !BR2_INET_IPV6
+\end{verbatim}
+  \end{block}
+    \column{0.5\textwidth}
+    \small
+    \begin{itemize}
+    \item \code{depends on BR2_USE_MMU}, because the package uses
+      \code{fork()}. Note that there is no comment displayed about this
+      dependency, because it's a limitation of the architecture.
+    \item \code{depends on BR2_INET_IPV6}, because the package requires
+      IPv6 support from the toolchain. There is an associated comment,
+      because IPv6 support can be added to the toolchain.
+    \item \code{select BR2_PACKAGE_FLEX}, because the package needs
+      \code{flex} to be available on the target.
+    \end{itemize}
+  \end{columns}
+\end{frame}
+
+\begin{frame}[fragile]{Dependency propagation}
+
+  \begin{itemize}
+  \item A limitation of {\em kconfig} is that it doesn't propagate
+    \code{depends on} dependencies accross \code{select} dependencies.
+  \item Scenario: if package {\em A} has a \code{depends on FOO}, and
+    package {\em B} has a \code{select A}, then package {\em B} must
+    replicate the \code{depends on FOO}.
+  \end{itemize}
+
+  \begin{columns}
+    \column{0.5\textwidth}
+    \begin{block}{libglib2 package}
+      \tiny
+\begin{verbatim}
+config BR2_PACKAGE_LIBGLIB2
+        bool "libglib2"
+        select BR2_PACKAGE_GETTEXT if ...
+        select BR2_PACKAGE_LIBICONV if ...
+        select BR2_PACKAGE_LIBFFI
+        select BR2_PACKAGE_ZLIB
+        [...]
+        depends on BR2_USE_WCHAR # gettext
+        depends on BR2_TOOLCHAIN_HAS_THREADS
+        depends on BR2_USE_MMU # fork()
+[...]
+\end{verbatim}
+    \end{block}
+    \column{0.5\textwidth}
+    \begin{block}{neard package}
+      \tiny
+\begin{verbatim}
+config BR2_PACKAGE_NEARD
+        bool "neard"
+        depends on BR2_USE_WCHAR # libglib2
+        # libnl, dbus, libglib2
+        depends on BR2_TOOLCHAIN_HAS_THREADS
+        depends on BR2_USE_MMU # dbus, libglib2
+        select BR2_PACKAGE_DBUS
+        select BR2_PACKAGE_LIBGLIB2
+        select BR2_PACKAGE_LIBNL
+[...]
+\end{verbatim}
+    \end{block}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{\code{Config.in.host} for host packages?}
+  \begin{itemize}
+  \item Most of the packages in Buildroot are {\em target} packages,
+    i.e they are cross-compiled for the target architecture, and meant
+    to be run on the target platform.
+  \item Some packages have a {\em host} variant, built to be executed
+    on the build machine. Such packages are needed for the build
+    process of other packages.
+  \item The majority of {\em host} packages are not visible in
+    \code{menuconfig}: they are just dependencies of other packages,
+    the user doesn't really need to know about them.
+  \item A few of them are potentially directly useful to the user
+    (flashing tools, etc.), and can be shown in the {\em Host
+      utilities} section of \code{menuconfig}.
+  \item In this case, the configuration option is in a
+    \code{Config.in.host} file, included from
+    \code{package/Config.in.host}, and the option must be named
+    \code{BR2_PACKAGE_HOST_<PACKAGE>}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{\code{Config.in.host} example}
+  \begin{block}{package/Config.in.host}
+    \tiny
+\begin{verbatim}
+menu "Host utilities"
+
+        source "package/genimage/Config.in.host"
+        source "package/lpc3250loader/Config.in.host"
+        source "package/openocd/Config.in.host"
+        source "package/qemu/Config.in.host"
+
+endmenu
+\end{verbatim}
+  \end{block}
+
+  \begin{block}{package/openocd/Config.in.host}
+    \tiny
+\begin{verbatim}
+config BR2_PACKAGE_HOST_OPENOCD
+        bool "host openocd"
+        help
+          OpenOCD - Open On-Chip Debugger
+
+          http://openocd.berlios.de/web/
+\end{verbatim}
+  \end{block}
+\end{frame}
+
+\begin{frame}[fragile]{\code{Config.in} sub-options}
+  \begin{columns}
+    \column{0.4\textwidth}
+    \begin{itemize}
+    \item Additional sub-options can be defined to further configure
+      the package.
+    \item The value of such options can then be fetched from the package
+      \code{.mk} file to adjust the build accordingly.
+    \end{itemize}
+    \column{0.6\textwidth}
+    \begin{block}{package/pppd/Config.in}
+      \tiny
+\begin{verbatim}
+config BR2_PACKAGE_PPPD
+        bool "pppd"
+        depends on !BR2_STATIC_LIBS
+        depends on BR2_USE_MMU
+        ...
+
+if BR2_PACKAGE_PPPD
+
+config BR2_PACKAGE_PPPD_FILTER
+        bool "filtering"
+        select BR2_PACKAGE_LIBPCAP
+        help
+          Packet filtering abilities for pppd. If enabled,
+          the pppd active-filter and pass-filter options
+          are available.
+
+config BR2_PACKAGE_PPPD_RADIUS
+        bool "radius"
+        help
+          Install RADIUS support for pppd
+
+endif
+\end{verbatim}
+    \end{block}
+  \end{columns}
+\end{frame}
+
+\subsection{.mk file}
+
+\begin{frame}{Package infrastructures: what is it?}
+  \begin{itemize}
+  \item Each software component to be built by Buildroot comes with
+    its own {\em build system}.
+  \item Buildroot does not re-invent the build system of each
+    component, it simply uses it.
+  \item Numerous build systems available: hand-written Makefiles or
+    shell scripts, {\em autotools}, {\em CMake} and also some specific
+    to languages: Python, Perl, Lua, Erlang, etc.
+  \item In order to avoid duplicating code, Buildroot has {\em package
+      infrastructures} for well-known build systems.
+  \item And a generic package infrastructure for software components
+    with non-standard build systems.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Package infrastructures}
+  \begin{center}
+    \includegraphics[width=\textwidth]{slides/buildroot-new-packages/package-infrastructures.pdf}
+  \end{center}
+\end{frame}
+
+\begin{frame}{\code{generic-package} infrastructure}
+  \begin{itemize}
+  \item To be used for software components having non-standard build
+    systems.
+  \item Implements a default behavior for the downloading, extracting
+    and patching steps of the package build process.
+  \item Implements init script installation, legal information
+    collection, etc.
+  \item Leaves to the package developer the responsibility of
+    describing what should be done for the configuration, building and
+    installation steps.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Other packages infrastructures}
+  \begin{itemize}
+  \item The other package infrastructures are meant to be used when
+    the software component uses a well-known build system.
+  \item They {\em inherit} all the behavior of the
+    \code{generic-package} infrastructure: downloading, extracting,
+    patching, etc.
+  \item And in addition to that, they typically implement a default
+    behavior for the configuration, compilation and installation
+    steps.
+  \item For example, \code{autotools-package} will implement the
+    configuration step as a call to the \code{./configure} script with
+    the right arguments.
+  \item \code{pkg-kconfig} is an exception, it only provides some
+    helpers for packages using Kconfig, but does not implement the
+    configure, build and installation steps.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{The \code{<pkg>.mk} file}
+  \begin{itemize}
+  \item The \code{.mk} file of a package does not look like a normal
+    Makefile.
+  \item It is a succession of variable definitions, which must be
+    prefixed by the uppercase package name.
+    \begin{itemize}
+    \item \code{FOOBAR_SITE = http://foobar.com/downloads/}
+    \item
+\begin{verbatim}
+define FOOBAR_BUILD_CMDS
+       $(MAKE) -C $(@D)
+endef
+\end{verbatim}
+    \end{itemize}
+  \item And ends with a call to the desired package infrastructure
+    macro.
+    \begin{itemize}
+    \item \code{$(eval $(generic-package))}
+    \item \code{$(eval $(autotools-package))}
+    \item \code{$(eval $(host-autotools-package))}
+    \end{itemize}
+  \item The variables tell the package infrastructure what to do for
+    this specific package.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Naming conventions}
+
+  \begin{itemize}
+  \item The Buildroot package infrastructures make a number of
+    assumption on variables and files naming.
+  \item The following {\bf must} match to allow the package
+    infrastructure to work for a given package:
+    \begin{itemize}
+    \item The directory where the package description is located {\bf
+        must} be \code{package/<pkg>/}, where \code{<pkg>} is the
+      lowercase name of the package.
+    \item The \code{Config.in} option enabling the package {\bf must}
+      be named \code{BR2_PACKAGE_<PKG>}, where \code{<PKG>} is the
+      uppercase name of the package.
+    \item The variables in the \code{.mk} file {\bf must} be prefixed
+      with \code{<PKG>_}, where \code{<PKG>} is the uppercase name of
+      the package.
+    \end{itemize}
+  \item Note: a \code{-} in the lower-case package name is translated
+    to \code{_} in the upper-case package name.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Download related variables}
+  \begin{itemize}
+  \item \code{<pkg>_SITE}, {\bf download location}
+    \begin{itemize}
+    \item HTTP or FTP URL where a tarball can be found, or the address
+      of a version control repository.
+    \item \code{CAIRO_SITE = http://cairographics.org/releases}
+    \item \code{FMC_SITE = git://git.freescale.com/ppc/sdk/fmc.git}
+    \end{itemize}
+  \item \code{<pkg>_VERSION}, {\bf version of the
+    package}
+  \begin{itemize}
+    \item version of a tarball, or a commit, revision or tag for
+      version control systems
+    \item \code{CAIRO_VERSION = 1.14.2}
+    \item \code{FMC_VERSION = fsl-sdk-v1.5-rc3}
+    \end{itemize}
+  \item \code{<pkg>_SOURCE}, {\bf file name} of the tarball
+    \begin{itemize}
+    \item The full URL of the downloaded tarball is
+      \code{$(<pkg>_SITE)/$(<pkg>_SOURCE)}
+    \item When not specified, defaults to
+      \code{<pkg>-$(<pkg>_VERSION)}
+    \item \code{CAIRO_SOURCE = cairo-$(CAIRO_VERSION).tar.xz}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Available download methods}
+  \begin{itemize}
+  \item Buildroot can fetch the source code using different methods:
+    \begin{itemize}
+    \item \code{wget}, for FTP/HTTP downloads
+    \item \code{scp}, to fetch the tarball using SSH/SCP
+    \item \code{svn}, for Subversion
+    \item \code{cvs}, for CVS
+    \item \code{git}, for Git
+    \item \code{hg}, for Mercurial
+    \item \code{bzr}, for Bazaar
+    \item \code{file}, for a local tarball
+    \item \code{local}, for a local directory
+    \end{itemize}
+  \item In most cases, the fetching method is guessed by Buildroot
+    using the \code{<pkg>_SITE} variable.
+  \item Exceptions:
+    \begin{itemize}
+    \item Git, Subversion or Mercurial repositories accessed over
+      HTTP.
+    \item \code{file} and \code{local} methods
+    \end{itemize}
+  \item In such cases, use \code{<pkg>_SITE_METHOD} explicitly.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Download methods examples}
+
+  \begin{itemize}
+  \item Subversion repository accessed over HTTP:
+    \begin{block}{}
+      \begin{minted}{make}
+CJSON_VERSION = 58
+CJSON_SITE_METHOD = svn
+CJSON_SITE = http://svn.code.sf.net/p/cjson/code
+      \end{minted}
+    \end{block}
+  \item Source code available in a local directory:
+    \begin{block}{}
+      \begin{minted}{make}
+MYAPP_SITE = $(TOPDIR)/../apps/myapp
+MYAPP_SITE_METHOD = local
+      \end{minted}
+    \end{block}
+    \begin{itemize}
+    \item The "{\em download}" will consist in copying the source code
+      from the designated directory to the Buildroot per-package build
+      directory.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Downloading more elements}
+
+  \begin{itemize}
+  \item \code{<pkg>_PATCH}, a list of patches to download and apply
+    before building the package. They are automatically applied by the
+    package infrastructure.
+  \item \code{<pkg>_EXTRA_DOWNLOADS}, a list of additional files to
+    download together with the package source code. It is up to the
+    package \code{.mk} file to do something with them.
+  \item Two options:
+    \begin{itemize}
+    \item Just a file name: assumed to be relative to \code{<pkg>_SITE}.
+    \item A full URL: downloaded over HTTP, FTP.
+    \end{itemize}
+  \item Examples:
+    \begin{block}{sysvinit.mk}
+      \begin{minted}[fontsize=\tiny]{make}
+SYSVINIT_PATCH = sysvinit_$(SYSVINIT_VERSION)dsf-13.1+squeeze1.diff.gz
+      \end{minted}
+    \end{block}
+
+    \begin{block}{perl.mk}
+      \begin{minted}[fontsize=\tiny]{make}
+PERL_CROSS_SITE = http://raw.github.com/arsv/perl-cross/releases
+PERL_CROSS_SOURCE = perl-$(PERL_CROSS_BASE_VERSION)-cross-$(PERL_CROSS_VERSION).tar.gz
+PERL_EXTRA_DOWNLOADS = $(PERL_CROSS_SITE)/$(PERL_CROSS_SOURCE)
+      \end{minted}
+    \end{block}
+
+  \end{itemize}
+
+\end{frame}
+
 \setuplabframe
 {New packages in Buildroot}
 {
