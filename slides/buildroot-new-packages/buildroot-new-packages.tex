@@ -353,11 +353,11 @@ endif
     \begin{itemize}
     \item \code{FOOBAR_SITE = http://foobar.com/downloads/}
     \item
-\begin{verbatim}
+\begin{minted}{make}
 define FOOBAR_BUILD_CMDS
        $(MAKE) -C $(@D)
 endef
-\end{verbatim}
+\end{minted}
     \end{itemize}
   \item And ends with a call to the desired package infrastructure
     macro.
@@ -475,7 +475,6 @@ MYAPP_SITE_METHOD = local
 \end{frame}
 
 \begin{frame}[fragile]{Downloading more elements}
-
   \begin{itemize}
   \item \code{<pkg>_PATCH}, a list of patches to download and apply
     before building the package. They are automatically applied by the
@@ -502,9 +501,206 @@ PERL_CROSS_SOURCE = perl-$(PERL_CROSS_BASE_VERSION)-cross-$(PERL_CROSS_VERSION).
 PERL_EXTRA_DOWNLOADS = $(PERL_CROSS_SITE)/$(PERL_CROSS_SOURCE)
       \end{minted}
     \end{block}
+  \end{itemize}
+\end{frame}
 
+\begin{frame}[fragile]{Describing dependencies}
+  \begin{itemize}
+  \item Dependencies expressed in \code{Config.in} do not enforce
+    build order.
+  \item The \code{<pkg>_DEPENDENCIES} variable is used to describe the
+    dependencies of the current package.
+  \item Packages listed in \code{<pkg>_DEPENDENCIES} are guaranteed to
+    be built before the {\em configure} step of the current package
+    starts.
+  \item It can contain both target and host packages.
+  \item It can be appended conditionally with additional dependencies.
   \end{itemize}
 
+  \begin{block}{python.mk}
+    \begin{minted}[fontsize=\scriptsize]{make}
+PYTHON_DEPENDENCIES = host-python libffi
+
+ifeq ($(BR2_PACKAGE_PYTHON_READLINE),y)
+PYTHON_DEPENDENCIES += readline
+endif
+    \end{minted}
+  \end{block}
+\end{frame}
+
+\begin{frame}{Defining where to install (1)}
+  \begin{itemize}
+  \item Target packages can install files to different locations:
+    \begin{itemize}
+    \item To the {\em target} directory, \code{$(TARGET_DIR}, which is
+      what will be the target root filesystem.
+    \item To the {\em staging} directory, \code{$(STAGING_DIR)}, which
+      is the compiler {\em sysroot}
+    \item To the {\em images} directory, \code{$(BINARIES_DIR)}, which
+      is where final images are located.
+    \end{itemize}
+  \item There are three corresponding variables, to define whether or
+    not the package will install something to one of these locations:
+    \begin{itemize}
+    \item \code{<pkg>_INSTALL_TARGET}, defaults to \code{YES}. If
+      \code{YES}, then \code{<pkg>_INSTALL_TARGET_CMDS} will be
+      called.
+    \item \code{<pkg>_INSTALL_STAGING}, defaults to \code{NO}. If
+      \code{YES}, then \code{<pkg>_INSTALL_STAGING_CMDS} will be
+      called.
+    \item \code{<pkg>_INSTALL_IMAGES}, defaults to \code{NO}. If
+      \code{YES}, then \code{<pkg>_INSTALL_IMAGES_CMDS} will be
+      called.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Defining where to install (2)}
+
+  \begin{itemize}
+  \item A package for an application:
+    \begin{itemize}
+    \item installs to \code{$(TARGET_DIR)} only
+    \item \code{<pkg>_INSTALL_TARGET} defaults to \code{YES}, so there
+      is nothing to do
+    \end{itemize}
+  \item A package for a shared library:
+    \begin{itemize}
+    \item installs to both \code{$(TARGET_DIR)} and \code{$(STAGING_DIR)}
+    \item must set \code{<pkg>_INSTALL_STAGING = YES}
+    \end{itemize}
+  \item A package for a pure header-based library, or a static-only
+    library:
+    \begin{itemize}
+    \item installs only to \code{$(STAGING_DIR)}
+    \item must set \code{<pkg>_INSTALL_TARGET = NO} and
+    \code{<pkg>_INSTALL_STAGING = YES}
+  \end{itemize}
+  \item A package installing a bootloader or kernel image:
+    \begin{itemize}
+    \item installs to \code{$(BINARIES_DIR)}
+    \item must set \code{<pkg>_INSTALL_IMAGES = YES}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Defining where to install (3)}
+  \begin{block}{libyaml.mk}
+    \begin{minted}[fontsize=\footnotesize]{make}
+LIBYAML_INSTALL_STAGING = YES
+    \end{minted}
+  \end{block}
+
+  \begin{block}{eigen.mk}
+    \begin{minted}[fontsize=\footnotesize]{make}
+EIGEN_INSTALL_STAGING = YES
+EIGEN_INSTALL_TARGET = NO
+    \end{minted}
+  \end{block}
+
+  \begin{block}{linux.mk}
+    \begin{minted}[fontsize=\footnotesize]{make}
+LINUX_INSTALL_IMAGES = YES
+    \end{minted}
+  \end{block}
+\end{frame}
+
+\begin{frame}{Describing actions for \code{generic-package}}
+  \begin{itemize}
+  \item In a package using \code{generic-package}, only the download,
+    extract and patch steps are implemented by the package
+    infrastructure.
+  \item The other steps should be described by the package \code{.mk}
+    file:
+    \begin{itemize}
+    \item \code{<pkg>_CONFIGURE_CMDS}, always called
+    \item \code{<pkg>_BUILD_CMDS}, always called
+    \item \code{<pkg>_INSTALL_TARGET_CMDS}, called when
+      \code{<pkg>_INSTALL_TARGET = YES}, for target packages
+    \item \code{<pkg>_INSTALL_STAGING_CMDS}, called when
+      \code{<pkg>_INSTALL_STAGING = YES}, for target packages
+    \item \code{<pkg>_INSTALL_IMAGES_CMDS}, called when
+      \code{<pkg>_INSTALL_IMAGES = YES}, for target packages
+    \item \code{<pkg>_INSTALL_CMDS}, always called for host packages
+    \end{itemize}
+  \item Packages are free to not implement any of these variables:
+    they are all optional.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Describing actions: useful variables}
+  Inside an action block, the following variables are often useful:
+  \begin{itemize}
+  \item \code{$(@D)} is the source directory of the package
+  \item \code{$(MAKE)} to call \code{make}
+  \item \code{$(MAKE1)} when the package doesn't build properly in
+    parallel mode
+  \item \code{$(TARGET_MAKE_ENV)} and \code{$(HOST_MAKE_ENV)}, to pass
+    in the \code{$(MAKE)} environment to ensure the \code{PATH} is
+    correct
+  \item \code{$(TARGET_CONFIGURE_OPTS)} and
+    \code{$(HOST_CONFIGURE_OPTS)} to pass \code{CC}, \code{LD},
+    \code{CFLAGS}, etc.
+  \item \code{$(TARGET_DIR)}, \code{$(STAGING_DIR)},
+    \code{$(BINARIES_DIR)} and \code{$(HOST_DIR)}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Describing actions: example (1)}
+  \begin{block}{eeprog.mk}
+    \begin{minted}[fontsize=\scriptsize]{make}
+EEPROG_VERSION = 0.7.6
+EEPROG_SITE = http://www.codesink.org/download
+EEPROG_LICENSE = GPLv2+
+EEPROG_LICENSE_FILES = eeprog.c
+
+define EEPROG_BUILD_CMDS
+        $(MAKE) $(TARGET_CONFIGURE_OPTS) -C $(@D)
+endef
+
+define EEPROG_INSTALL_TARGET_CMDS
+        $(INSTALL) -D $(@D)/eeprog $(TARGET_DIR)/usr/bin/eeprog
+endef
+
+$(eval $(generic-package))
+    \end{minted}
+  \end{block}
+\end{frame}
+
+\begin{frame}[fragile]{Describing actions: example (2)}
+  \begin{block}{zlib.mk}
+    \begin{minted}[fontsize=\tiny]{make}
+ZLIB_VERSION = 1.2.8
+ZLIB_SOURCE = zlib-$(ZLIB_VERSION).tar.xz
+ZLIB_SITE = http://downloads.sourceforge.net/project/libpng/zlib/$(ZLIB_VERSION)
+ZLIB_INSTALL_STAGING = YES
+
+define ZLIB_CONFIGURE_CMDS
+        (cd $(@D); rm -rf config.cache; \
+                $(TARGET_CONFIGURE_ARGS) \
+                $(TARGET_CONFIGURE_OPTS) \
+                CFLAGS="$(TARGET_CFLAGS) $(ZLIB_PIC)" \
+                ./configure \
+                $(ZLIB_SHARED) \
+                --prefix=/usr \
+        )
+endef
+
+define ZLIB_BUILD_CMDS
+        $(MAKE1) -C $(@D)
+endef
+
+define ZLIB_INSTALL_STAGING_CMDS
+        $(MAKE1) -C $(@D) DESTDIR=$(STAGING_DIR) LDCONFIG=true install
+endef
+
+define ZLIB_INSTALL_TARGET_CMDS
+        $(MAKE1) -C $(@D) DESTDIR=$(TARGET_DIR) LDCONFIG=true install
+endef
+
+$(eval $(generic-package))
+    \end{minted}
+  \end{block}
 \end{frame}
 
 \setuplabframe
