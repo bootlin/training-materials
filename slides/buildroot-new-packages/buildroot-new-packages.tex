@@ -1,3 +1,5 @@
+\setbeamerfont{block title}{size=\scriptsize}
+
 \section{Integrating new packages in Buildroot}
 
 \begin{frame}{Why adding new packages in Buildroot?}
@@ -31,7 +33,7 @@
   \end{itemize}
 \end{frame}
 
-\subsection{Config.in file}
+\subsection{{\tt Config.in} file}
 
 \begin{frame}[fragile]{\code{package/<pkg>/Config.in}: basics}
   \begin{itemize}
@@ -287,7 +289,7 @@ endif
   \end{columns}
 \end{frame}
 
-\subsection{.mk file}
+\subsection{Package infrastructures}
 
 \begin{frame}{Package infrastructures: what is it?}
   \begin{itemize}
@@ -344,6 +346,8 @@ endif
   \end{itemize}
 \end{frame}
 
+\subsection{{\tt .mk} file for {\tt generic-package}}
+
 \begin{frame}[fragile]{The \code{<pkg>.mk} file}
   \begin{itemize}
   \item The \code{.mk} file of a package does not look like a normal
@@ -391,6 +395,22 @@ endef
     \end{itemize}
   \item Note: a \code{-} in the lower-case package name is translated
     to \code{_} in the upper-case package name.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Behind the scenes}
+  \begin{itemize}
+  \item Behind the scenes, \code{$(eval $(generic-package))}:
+    \begin{itemize}
+    \item is a {\em make} macro that is expanded
+    \item infers the name of the current package by looking at the
+      directory name: \code{package/<pkg>/<pkg>.mk}: \code{<pkg>} is
+      the package name
+    \item will use all the variables prefixed by \code{<PKG>_}
+    \item and expand to a set of {\em make} rules and variable
+      definitions that describe what should be done for each step of
+      the package build process
+    \end{itemize}
   \end{itemize}
 \end{frame}
 
@@ -699,6 +719,323 @@ define ZLIB_INSTALL_TARGET_CMDS
 endef
 
 $(eval $(generic-package))
+    \end{minted}
+  \end{block}
+\end{frame}
+
+\subsection{{\tt autotools-package} infrastructure}
+
+\begin{frame}{The \code{autotools-package} infrastructure: basics}
+
+  \begin{itemize}
+  \item The \code{autotools-package} infrastructure inherits from
+    \code{generic-package} and is specialized to handle {\em
+      autotools} based packages.
+  \item It provides a default implementation of:
+    \begin{itemize}
+    \item \code{<pkg>_CONFIGURE_CMDS}. Calls the \code{./configure}
+      script with appropriate environment variables and arguments.
+    \item \code{<pkg>_BUILD_CMDS}. Calls \code{make}.
+    \item \code{<pkg>_INSTALL_TARGET_CMDS},
+      \code{<pkg>_INSTALL_STAGING_CMDS} and
+      \code{<pkg>_INSTALL_CMDS}. Call \code{make install} with the
+      appropriate \code{DESTDIR}.
+    \end{itemize}
+  \item A normal {\em autotools} based package therefore does not need
+    to describe any action: only metadata about the package.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{The \code{autotools-package} infrastructure: variables}
+  \begin{itemize}
+  \item It provides additional variables that can be defined by the
+    package:
+    \begin{itemize}
+    \item \code{<pkg>_CONF_ENV} to pass additional values in the
+      environment of the \code{./configure} script.
+    \item \code{<pkg>_CONF_OPTS} to pass additional options to the
+      \code{./configure} script.
+    \item \code{<pkg>_INSTALL_OPTS}, \code{<pkg>_INSTALL_STAGING_OPTS}
+      and \code{<pkg>_INSTALL_TARGET_OPTS} to adjust the {\em make}
+      target and options used for the installation.
+    \item \code{<pkg>_AUTORECONF}. Defaults to \code{NO}, can be set
+      to \code{YES} is regenerating \code{Makefile.in} files and
+      \code{configure} script is needed. The infrastructure will
+      automatically make sure {\em autoconf}, {\em automake}, {\em
+        libtool} are built.
+    \item \code{<pkg>_GETTEXTIZE}. Defaults to \code{NO}, can be set
+      to \code{YES} to {\em gettextize} the package.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Canonical \code{autotools-package} example}
+  \begin{block}{libyaml.mk}
+    \begin{minted}[fontsize=\scriptsize]{make}
+LIBYAML_VERSION = 0.1.6
+LIBYAML_SOURCE = yaml-$(LIBYAML_VERSION).tar.gz
+LIBYAML_SITE = http://pyyaml.org/download/libyaml
+LIBYAML_INSTALL_STAGING = YES
+LIBYAML_LICENSE = MIT
+LIBYAML_LICENSE_FILES = LICENSE
+
+$(eval $(autotools-package))
+    \end{minted}
+  \end{block}
+\end{frame}
+
+\begin{frame}[fragile]{More complicated \code{autotools-package} example}
+  \begin{columns}
+    \column{0.5\textwidth}
+    \begin{block}{}
+      \begin{minted}[fontsize=\tiny]{make}
+POPPLER_VERSION = 0.32.0
+POPPLER_SOURCE = poppler-$(POPPLER_VERSION).tar.xz
+POPPLER_SITE = http://poppler.freedesktop.org
+POPPLER_DEPENDENCIES = fontconfig
+POPPLER_LICENSE = GPLv2+
+POPPLER_LICENSE_FILES = COPYING
+POPPLER_INSTALL_STAGING = YES
+POPPLER_CONF_OPTS = \
+   --with-font-configuration=fontconfig
+
+ifeq ($(BR2_PACKAGE_LCMS2),y)
+POPPLER_CONF_OPTS += --enable-cms=lcms2
+POPPLER_DEPENDENCIES += lcms2
+else
+POPPLER_CONF_OPTS += --enable-cms=none
+endif
+
+ifeq ($(BR2_PACKAGE_TIFF),y)
+POPPLER_CONF_OPTS += --enable-libtiff
+POPPLER_DEPENDENCIES += tiff
+else
+POPPLER_CONF_OPTS += --disable-libtiff
+endif
+
+[...]
+\end{minted}
+\end{block}
+\column{0.5\textwidth}
+    \begin{block}{}
+      \begin{minted}[fontsize=\tiny]{make}
+[...]
+
+ifeq ($(BR2_PACKAGE_POPPLER_QT),y)
+POPPLER_DEPENDENCIES += qt
+POPPLER_CONF_OPTS += --enable-poppler-qt4
+else
+POPPLER_CONF_OPTS += --disable-poppler-qt4
+endif
+
+ifeq ($(BR2_PACKAGE_OPENJPEG),y)
+POPPLER_DEPENDENCIES += openjpeg
+POPPLER_CONF_OPTS += \
+   -enable-libopenjpeg=openjpeg1
+else
+POPPLER_CONF_OPTS += -enable-libopenjpeg=none
+endif
+
+$(eval $(autotools-package))
+      \end{minted}
+    \end{block}
+  \end{columns}
+\end{frame}
+
+\subsection{{\tt python-package} infrastructure}
+
+\begin{frame}{Python package infrastructure: basics}
+  \begin{itemize}
+  \item Modules for the Python language often use {\em distutils} or
+    {\em setuptools} as their build/installation system.
+  \item Buildroot provides a \code{python-package} infrastructure for
+    such packages.
+  \item Supports all the \code{generic-package} metadata information
+    (source, site, license, etc.)
+  \item Adds a mandatory variable \code{<pkg>_SETUP_TYPE}, which must
+    be set to either \code{distutils} or \code{setuptools}
+  \item And several optional variables to further adjust the build:
+    \code{<pkg>_ENV}, \code{<pkg>_BUILD_OPTS},
+    \code{<pkg>_INSTALL_TARGETS_OPTS},
+    \code{<pkg>_INSTALL_STAGING_OPTS}, \code{<pkg>_INSTALL_OPTS},
+    \code{<pkg>_NEEDS_HOST_PYTHON}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Python package: simple example}
+
+  \begin{block}{python-serial.mk}
+    \begin{minted}[fontsize=\scriptsize]{make}
+PYTHON_SERIAL_VERSION = 2.6
+PYTHON_SERIAL_SOURCE = pyserial-$(PYTHON_SERIAL_VERSION).tar.gz
+PYTHON_SERIAL_SITE = http://pypi.python.org/packages/source/p/pyserial
+PYTHON_SERIAL_LICENSE = Python Software Foundation License
+PYTHON_SERIAL_LICENSE_FILES = LICENSE.txt
+PYTHON_SERIAL_SETUP_TYPE = distutils
+
+$(eval $(python-package))
+    \end{minted}
+  \end{block}
+
+\end{frame}
+
+\begin{frame}[fragile]{Python package: more complicated example}
+  \begin{block}{python-serial.mk}
+    \begin{minted}[fontsize=\scriptsize]{make}
+PYTHON_LXML_VERSION = 3.4.2
+PYTHON_LXML_SITE = http://lxml.de/files
+PYTHON_LXML_SOURCE = lxml-$(PYTHON_LXML_VERSION).tgz
+[...]
+PYTHON_LXML_SETUP_TYPE = setuptools
+PYTHON_LXML_DEPENDENCIES = libxml2 libxslt zlib
+
+PYTHON_LXML_BUILD_OPTS = \
+        --with-xslt-config=$(STAGING_DIR)/usr/bin/xslt-config \
+        --with-xml2-config=$(STAGING_DIR)/usr/bin/xml2-config
+
+$(eval $(python-package))
+    \end{minted}
+  \end{block}
+\end{frame}
+
+\subsection{Target vs. host packages}
+
+\begin{frame}{Host packages}
+
+  \begin{itemize}
+  \item As explained earlier, most packages in Buildroot are
+    cross-compiled for the target. They are called {\bf target
+      packages}.
+  \item Some packages however may need to be built natively for the
+    build machine, they are called {\bf host packages}. They generally
+    exist for one of two reasons:
+    \begin{itemize}
+    \item Needed as a tool to build other things for the
+      target. Buildroot wants to limit the number of host utilities
+      required to be installed on the build machine, and wants to ensure
+      the proper version is used. So it builds some host utilities by
+      itself.
+    \item Needed as a tool to interact, debug, reflash, generate images,
+      or other activities around the build itself.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Target vs. host in the package infrastructure (1)}
+  \begin{itemize}
+  \item Each package infrastructure provides a \code{<foo>-package}
+    macro and a \code{host-<foo>-package} macro.
+  \item For a given package in \code{package/baz/baz.mk},
+    \code{<foo>-package} will create a package named \code{baz} and
+    \code{host-<foo>-package} will create a package named
+    \code{host-<foo>}.
+  \item \code{<foo>-package} will use the variables prefixed with
+    \code{BAZ_}
+  \item \code{host-<foo>-package} will use the variables prefixed with
+    \code{HOST_BAZ_}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Target vs. host in the package infrastructure (2)}
+  \begin{itemize}
+  \item For many variables, when \code{HOST_BAZ_<var>} is not defined,
+    the package infrastructure uses \code{BAZ_<var>} instead: source,
+    site, version, license, etc.
+    \begin{itemize}
+    \item E.g. defining \code{<PKG>_SITE} once is sufficient.
+    \end{itemize}
+  \item But not for all variables, especially commands
+    \begin{itemize}
+    \item E.g. \code{HOST_<PKG>_BUILD_CMDS} is not inherited
+      from \code{<PKG>_BUILD_CMDS}
+    \end{itemize}
+  \item \code{HOST_<PKG>_DEPENDENCIES} is handled specially:
+    \begin{itemize}
+    \item Derived automatically from \code{<PKG>_DEPENDENCIES}, after
+      prepending \code{host-} to all dependencies.
+    \item \code{FOO_DEPENDENCIES = bar host-baz} $\rightarrow$
+      \code{HOST_FOO_DEPENDENCIES = host-bar host-baz}.
+    \item Can be overriden if the dependencies of the host variant are
+      different than the ones of the target variant.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Example 1: a pure build utility}
+  \begin{itemize}
+  \item {\em bison}, a general-purpose parser generator.
+  \item Purely used as build dependency in packages
+    \begin{itemize}
+    \item \code{FBSET_DEPENDENCIES = host-bison host-flex}
+    \end{itemize}
+  \item No \code{Config.in}, not visible in \code{menuconfig}.
+  \end{itemize}
+  \begin{block}{package/bison/bison.mk}
+    \begin{minted}[fontsize=\tiny]{make}
+BISON_VERSION = 3.0.4
+BISON_SOURCE = bison-$(BISON_VERSION).tar.xz
+BISON_SITE = $(BR2_GNU_MIRROR)/bison
+BISON_LICENSE = GPLv3+
+BISON_LICENSE_FILES = COPYING
+HOST_BISON_DEPENDENCIES = host-m4
+
+$(eval $(host-autotools-package))
+    \end{minted}
+  \end{block}
+\end{frame}
+
+\begin{frame}[fragile]{Example 2: a flashing utility}
+
+  \begin{itemize}
+  \item \code{dfu-util}, to reflash devices support the USB DFU
+    protocol. Typically used on a development PC.
+  \item Not used as a build dependency of another package
+    $\rightarrow$ visible in \code{menuconfig}.
+  \end{itemize}
+  \begin{block}{package/dfu-util/Config.in.host}
+    \tiny
+\begin{verbatim}
+config BR2_PACKAGE_HOST_DFU_UTIL
+        bool "host dfu-util"
+        help
+          Dfu-util is the host side implementation of the DFU 1.0
+          specification of the USB forum. DFU is intended to download
+          and upload firmware to devices connected over USB.
+
+          http://dfu-util.gnumonks.org/
+\end{verbatim}
+  \end{block}
+
+  \begin{block}{package/dfu-util/dfu-util.mk}
+    \begin{minted}[fontsize=\tiny]{make}
+DFU_UTIL_VERSION = 0.6
+DFU_UTIL_SITE = http://dfu-util.gnumonks.org/releases
+DFU_UTIL_LICENSE = GPLv2+
+DFU_UTIL_LICENSE_FILES = COPYING
+
+HOST_DFU_UTIL_DEPENDENCIES = host-libusb
+
+$(eval $(host-autotools-package))
+    \end{minted}
+  \end{block}
+\end{frame}
+
+\begin{frame}[fragile]{Example 3: target and host of the same package}
+  \begin{block}{package/e2tools/e2tools.mk}
+    \begin{minted}[fontsize=\tiny]{make}
+E2TOOLS_VERSION = 3158ef18a903ca4a98b8fa220c9fc5c133d8bdf6
+E2TOOLS_SITE = $(call github,ndim,e2tools,$(E2TOOLS_VERSION))
+
+# Source coming from GitHub, no configure included.
+E2TOOLS_AUTORECONF = YES
+E2TOOLS_LICENSE = GPLv2
+E2TOOLS_LICENSE_FILES = COPYING
+E2TOOLS_DEPENDENCIES = e2fsprogs
+E2TOOLS_CONF_ENV = LIBS="-lpthread"
+HOST_E2TOOLS_CONF_ENV = LIBS="-lpthread"
+
+$(eval $(autotools-package))
+$(eval $(host-autotools-package))
     \end{minted}
   \end{block}
 \end{frame}
