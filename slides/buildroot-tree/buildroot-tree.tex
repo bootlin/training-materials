@@ -1,1 +1,271 @@
 \section{Buildroot source and build trees}
+
+\subsection{Source tree}
+
+\begin{frame}{Source tree (1)}
+  \begin{itemize}
+  \item \code{Makefile}
+    \begin{itemize}
+    \item top-level \code{Makefile}, handles the configuration and
+      general orchestration of the build
+    \end{itemize}
+  \item \code{Config.in}
+    \begin{itemize}
+    \item top-level \code{Config.in}, main/general options. Includes
+      many other \code{Config.in} files
+    \end{itemize}
+  \item \code{arch/}
+    \begin{itemize}
+    \item \code{Config.in.*} files defining the architecture
+      variants (processor type, ABI, floating point, etc.)
+    \item \code{Config.in}, \code{Config.in.arm},
+      \code{Config.in.x86}, \code{Config.in.microblaze}, etc.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Source tree (2)}
+  \begin{itemize}
+  \item \code{toolchain/}
+    \begin{itemize}
+    \item packages for generating or using toolchains
+    \item \code{toolchain/} virtual package that depends on either
+      \code{toolchain-buildroot} or \code{toolchain-external}
+    \item \code{toolchain-buildroot/} virtual package to build the
+      internal toolchain
+    \item \code{toolchain-external/} package to handle external
+      toolchains
+    \end{itemize}
+  \item \code{system/}
+    \begin{itemize}
+    \item \code{skeleton/} the rootfs skeleton
+    \item \code{Config.in}, options for system-wide features like
+      init system, \code{/dev} handling, etc.
+    \end{itemize}
+  \item \code{linux/}
+    \begin{itemize}
+    \item \code{linux.mk}, the Linux kernel package
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Source tree (3)}
+  \begin{itemize}
+  \item \code{package/}
+    \begin{itemize}
+    \item all the userspace packages (1500+)
+    \item \code{busybox/}, \code{gcc/}, \code{qt5/}, etc.
+    \item \code{pkg-generic.mk}, core package infrastructure
+    \item \code{pkg-cmake.mk}, \code{pkg-autotools.mk},
+      \code{pkg-perl.mk}, etc. Specialized package infrastructures
+    \end{itemize}
+  \item \code{fs/}
+    \begin{itemize}
+    \item logic to generate filesystem images in various formats
+    \item \code{common.mk}, common logic
+    \item \code{cpio/}, \code{ext2/}, \code{squashfs/}, \code{tar/},
+      \code{ubifs/}, etc.
+    \end{itemize}
+  \item \code{boot/}
+    \begin{itemize}
+    \item bootloader packages
+    \item \code{at91bootstrap3/}, \code{barebox/}, \code{grub/},
+      \code{syslinux/}, \code{uboot/}, etc.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Source tree (4)}
+  \begin{itemize}
+  \item \code{configs/}
+    \begin{itemize}
+    \item default configuration files for various platforms
+    \item similar to kernel defconfigs
+    \item \code{atmel_xplained_defconfig},
+      \code{beaglebone_defconfig}, \code{raspberrypi_defconfig}, etc.
+    \end{itemize}
+  \item \code{board/}
+    \begin{itemize}
+    \item board-specific files (kernel configuration files, kernel
+      patches, image flashing scripts, etc.)
+    \item typically go together with a {\em defconfig} in
+      \code{configs/}
+    \end{itemize}
+  \item \code{support/}
+    \begin{itemize}
+    \item misc utilities (kconfig code, libtool patches, download
+      helpers, and more.)
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Source tree (5)}
+  \begin{itemize}
+  \item \code{docs/}
+    \begin{itemize}
+    \item Buildroot documentation
+    \item Written in AsciiDoc, can generate HTML, PDF, TXT versions:
+      \code{make manual}
+    \item ~90 pages PDF document
+    \item Also available pre-generated online.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\subsection{Build tree}
+
+\begin{frame}{Build tree: {\tt \$(O)}}
+  \begin{itemize}
+  \item \code{output/}
+  \item Global output directory
+  \item Can be customized for out-of-tree build by passing \code{O=<dir>}
+  \item Variable: \code{O} (as passed on the command line)
+  \item Variable: \code{BASE_DIR} (as an absolute path)
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Build tree: {\tt \$(O)/build}}
+  \begin{itemize}
+  \item \code{output/}
+    \begin{itemize}
+    \item \code{build/}
+      \begin{itemize}
+        \tiny
+      \item \code{buildroot-config/}
+      \item \code{busybox-1.22.1/}
+      \item \code{host-pkgconf-0.8.9/}
+      \item \code{kmod-1.18/}
+      \item \code{build-time.log}
+      \end{itemize}
+    \item Where all source tarballs are extracted
+    \item Where the build of each package takes place
+    \item In addition to the package sources and object files, {\em
+        stamp} files are created by Buildroot
+    \item Variable: \code{BUILD_DIR}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Build tree: {\tt \$(O)/host}}
+  \begin{itemize}
+  \item \code{output/}
+    \begin{itemize}
+    \item \code{host/}
+      \begin{itemize}
+        \tiny
+      \item \code{usr/lib}
+      \item \code{usr/bin}
+      \item \code{usr/sbin}
+        \vspace{0.2cm}
+      \item \code{usr/<tuple>/sysroot/bin}
+      \item \code{usr/<tuple>/sysroot/lib}
+      \item \code{usr/<tuple>/sysroot/usr/lib}
+      \item \code{usr/<tuple>/sysroot/usr/bin}
+      \end{itemize}
+    \item Contains both the tools built for the host
+      (cross-compiler, etc.) and the {\em sysroot} of the toolchain
+    \item Variable: \code{HOST_DIR}
+    \item Host tools are directly in \code{host/usr}
+    \item The {\em sysroot} is in \code{host/<tuple>/sysroot/usr}
+    \item Variable for the {\em sysroot}: \code{STAGING_DIR}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Build tree: {\tt \$(O)/staging}}
+  \begin{itemize}
+  \item \code{output/}
+    \begin{itemize}
+    \item \code{staging/}
+    \item Just a symbolic link to the {\em sysroot}, i.e to
+      \code{host/<tuple>/sysroot/}.
+    \item Available for convenience
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Build tree: {\tt \$(O)/target}}
+  \begin{itemize}
+  \item \code{output/}
+    \begin{itemize}
+    \item \code{target/}
+      \begin{itemize}
+        \tiny
+      \item \code{bin/}
+      \item \code{etc/}
+      \item \code{lib/}
+      \item \code{usr/bin/}
+      \item \code{usr/lib/}
+      \item \code{usr/share/}
+      \item \code{usr/sbin/}
+      \item \code{THIS_IS_NOT_YOUR_ROOT_FILESYSTEM}
+      \item ...
+      \end{itemize}
+    \item The target root filesystem
+    \item Usual Linux hierarchy
+    \item Not completely ready for the target: permissions, device
+      files, etc.
+    \item Buildroot does not run as root: all files are owned by the
+      user running Buildroot, not {\em setuid}, etc.
+    \item Used to generate the final root filesystem images in
+      \code{images/}
+    \item Variable: \code{TARGET_DIR}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Build tree: {\tt \$(O)/images}}
+  \begin{itemize}
+  \item \code{output/}
+    \begin{itemize}
+    \item \code{images/}
+      \begin{itemize}
+        \scriptsize
+      \item \code{zImage}
+      \item \code{armada-370-mirabox.dtb}
+      \item \code{rootfs.tar}
+      \item \code{rootfs.ubi}
+      \end{itemize}
+    \item Contains the final images: kernel image, bootloader image,
+      root filesystem image(s)
+    \item Variable: \code{BINARIES_DIR}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Build tree: {\tt \$(O)/graphs}}
+  \begin{itemize}
+  \item \code{output/}
+    \begin{itemize}
+    \item \code{graphs/}
+    \item Visualization of Buildroot operation: dependencies between
+      packages, time to build the different packages
+    \item \code{make graph-depends}
+    \item \code{make graph-build}
+    \item Variable: \code{GRAPHS_DIR}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Build tree: {\tt \$(O)/legal-info}}
+  \begin{itemize}
+  \item \code{output/}
+    \begin{itemize}
+    \item \code{legal-info/}
+      \begin{itemize}
+        \scriptsize
+      \item \code{manifest.csv}
+      \item \code{host-manifest.csv}
+      \item \code{licenses.txt}
+      \item \code{licenses/}
+      \item \code{sources/}
+      \item ...
+      \end{itemize}
+    \item Legal information: license of all packages, and their
+      source code, plus a licensing manifest
+    \item Useful for license compliance
+    \item \code{make legal-info}
+    \item Variable: \code{LEGAL_INFO_DIR}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
