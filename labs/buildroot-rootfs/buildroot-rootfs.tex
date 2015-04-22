@@ -143,6 +143,71 @@ default.
 
 \section{Linux kernel customization}
 
+Now, we would like to connect an additional peripheral to our system:
+the {\em Wii Nunchuk}. Using this custom peripheral requires adding a
+new driver to the Linux kernel, making changes to the Device Tree
+describing the hardware, and changing the kernel configuration. This
+is the purpose of this section.
+
+We will first create a new directory to store our kernel patches. It
+will sit next to our {\em rootfs overlay} in our project-specific
+directory:
+
+\begin{verbatim}
+mkdir board/felabs/beagleboneblack/linux-patches/
+\end{verbatim}
+
+Copy in this directory the two patches that we provided with the data
+of this lab, in \code{$HOME/felabs/buildroot-rootfs/}, but change
+their name so that their start with \code{linux-}\footnote{Note: this
+  renaming will no longer be necessary starting from Buildroot
+  2015.05, all \code{*.patch} files will be applied.}:
+
+\begin{verbatim}
+cp $HOME/felabs/buildroot-rootfs/0001-.....patch \
+     board/felabs/beagleboneblack/linux-patches/linux-0001-.....patch
+cp $HOME/felabs/buildroot-rootfs/0002-.....patch \
+     board/felabs/beagleboneblack/linux-patches/linux-0002-.....patch
+\end{verbatim}
+
+The first patch adds the driver, the second patch adjusts the Device
+Tree. Feel free to look at them. If you're interested, you can look at
+our training course {\em Embedded Linux kernel driver development},
+which precisely covers the development of this driver.
+
+Now, we need to tell Buildroot to apply these patches before building
+the kernel. To do so, run \code{menuconfig}, go the to the {\em
+Kernel} menu, and adjust the \code{Custom kernel patches} variable to
+\code{board/felabs/beagleboneblack/linux-patches/}.
+
+Let's now clean up completely the \code{linux} package so that its
+sources will be re-extracted and our patches applied the next time we
+do a build:
+
+\begin{verbatim}
+make linux-dirclean
+\end{verbatim}
+
+If you check in \code{output/build/}, the \code{linux-4.0} directory
+will have disappeared.
+
+Now, we need to adjust our kernel configuration to enable the {\em Wii
+Nunchuk} driver. To start the Linux kernel configuration tool, run:
+
+\begin{verbatim}
+make linux-menuconfig
+\end{verbatim}
+
+This will:
+
+\begin{itemize}
+\item Extract the Linux kernel sources
+\item Apply our two patches
+\item Load the default kernel configuration
+  \code{omap2plus_defconfig}, as we specified in the previous lab
+\item Start the kernel \code{menuconfig} tool
+\end{itemize}
+
 \section{Add and use {\em input-tools}}
 
 \section{Generate a {\em defconfig}}
