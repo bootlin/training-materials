@@ -367,7 +367,6 @@ YOCTO_LABS    = setup \
 
 BUILDROOT_LABS = setup \
 		buildroot-basic \
-		buildroot-toolchain \
 		buildroot-rootfs \
 		buildroot-new-packages \
 		buildroot-advanced-packages \
