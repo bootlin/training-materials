@@ -184,6 +184,73 @@ you are in the function \code{config_init} called by \code{main}:
 #1  0x000106f0 in main () at myapp.c:11
 \end{verbatim}
 
+Note that if you want \code{gdbserver} to stop on the target, you need
+to run the {\em gdb} command \code{monitor exit}.
+
 \section{Use {\tt <pkg>\_OVERRIDE\_SRCDIR}}
+
+Now, let's say we have a more realistic application than a single
+source file application: this application will have its own build
+system ({\em Makefile}, {\em autotools}, etc.) and will also be
+packaged in Buildroot because the application is part of the final
+system.
+
+The \code{<pkg>_OVERRIDE_SRCDIR} mechanism allows to tell Buildroot to
+not use the download location indicated in the \code{.mk} file, but a
+custom, local, directory instead.
+
+In the {\em Advanced packaging} lab, we created a package for an
+application called \code{bar}. Our \code{bar} package downloads the
+application source code as a tarball from an HTTP server, and builds
+it.
+
+However, since we now want to do some active development on this
+application, we want to tell Buildroot to use a custom location. In
+the same lab, you did a Git clone of the \code{bar} Git repository, so
+we will simply point Buildroot to this clone location. In your
+Buildroot sources, created a file called \code{local.mk} that
+contains:
+
+\begin{verbatim}
+BAR_OVERRIDE_SRCDIR = $(HOME)/bar
+\end{verbatim}
+
+Then, force the complete rebuild of the \code{bar} package:
+
+\begin{verbatim}
+make bar-dirclean all
+\end{verbatim}
+
+You should see as the first step being done that the \code{bar} source
+code, instead of being extracted from a tarball, gets {\em rsynced}
+from \code{$(HOME)/bar}:
+
+\begin{verbatim}
+>>> bar custom Syncing from source dir /home/thomas/bar
+\end{verbatim}
+
+However, the {\em configure} step fails, because the Git repository
+doesn't contain a pre-generated configure script. So go to
+\code{$HOME/bar} and run \code{autoreconf -i}.
+
+Restart the compilation of the \code{bar} package from the {\em
+  configure} step by running \code{make bar-reconfigure}. Notice how
+it {\em rsyncs} the code again.
+
+The build should now proceed to the end. Now, make a stupid but
+visible change to \code{src/main.c}, such as:
+
+\begin{verbatim}
+-               printf("%d\n", result);
++               printf("==> %d\n", result);
+\end{verbatim}
+
+Restart the build of \code{bar} using \code{make bar-rebuild}, and
+then scp the file \code{output/target/usr/bin/bar} to
+\code{192.168.0.2:/usr/bin} and run \code{bar} again on the target.
+
+As you can see you can now develop your applications and libraries,
+using your normal version control system and relying on Buildroot to
+do all the configure, build and install steps for you.
 
 \section{Use the Eclipse IDE with Buildroot}
