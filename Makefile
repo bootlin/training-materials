@@ -371,7 +371,6 @@ BUILDROOT_LABS = setup \
 		buildroot-new-packages \
 		buildroot-advanced-packages \
 		buildroot-analysis \
-		buildroot-board-project \
 		buildroot-appdev
 
 # Output directory
