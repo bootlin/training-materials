@@ -286,6 +286,7 @@ BUILDROOT_SLIDES = \
 		course-information \
 		setup-lab \
 		buildroot-introduction \
+		buildroot-build \
 		buildroot-tree \
 		buildroot-toolchain \
 		buildroot-rootfs \

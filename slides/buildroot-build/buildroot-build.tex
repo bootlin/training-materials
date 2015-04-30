@@ -1,0 +1,307 @@
+\section{Managing the build and the configuration}
+
+\begin{frame}{Default build organization}
+  \begin{itemize}
+  \item By default:
+    \begin{itemize}
+    \item All the build output goes into a directory called
+      \code{output/} within the top-level Buildroot source directory.
+      \begin{itemize}
+      \item \code{O = output}
+      \end{itemize}
+    \item The configuration file is stored as \code{.config} in the
+      top-level Buildroot source directory.
+      \begin{itemize}
+      \item \code{CONFIG_DIR = $(TOPDIR)}
+      \item \code{TOPDIR = $(shell pwd)}
+      \end{itemize}
+    \item \code{buildroot/}
+      \begin{itemize}
+      \item {\bf \code{.config}}
+      \item \code{arch/}
+      \item \code{package/}
+      \item {\bf \code{output/}}
+      \item \code{fs/}
+      \item ...
+      \end{itemize}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Out of tree build: introduction}
+  \begin{itemize}
+  \item Out of tree build allows to use an output directory different
+    than \code{output/}
+  \item Useful to build different Buildroot configurations with the
+    same source tree.
+  \item Customization of the output directory done by passing
+    \code{O=/path/to/directory} on the command line.
+  \item Configuration file stored inside the \code{$(O)} directory, as
+    opposed to inside the Buildroot sources for the in-tree build
+    case.
+  \item \code{project/}
+    \begin{itemize}
+    \item \code{buildroot/}, Buildroot sources
+    \item \code{foo-output/}, output of a first project
+      \begin{itemize}
+      \item \code{.config}
+      \end{itemize}
+    \item \code{bar-output/}, output of a second project
+      \begin{itemize}
+      \item \code{.config}
+      \end{itemize}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Out of tree build: using}
+  \begin{itemize}
+  \item To start an out of tree build, two solutions:
+    \begin{itemize}
+    \item From the Buildroot source tree, simplify specify a \code{O=}
+      variable:
+      \begin{block}{}
+\begin{verbatim}
+make O=../foo-output/ menuconfig
+\end{verbatim}
+      \end{block}
+    \item From an empty output directory, specify \code{O=} and the
+      path to the Buildroot source tree:
+      \begin{block}{}
+\begin{verbatim}
+make -C ../buildroot/ O=$(pwd) menuconfig
+\end{verbatim}
+      \end{block}
+    \end{itemize}
+  \item Once one out of tree operation has been done
+    (\code{menuconfig}, loading a defconfig, etc.), Buildroot creates
+    a small wrapper \code{Makefile} in the output directory.
+  \item This wrapper \code{Makefile} then avoids the need to pass
+    \code{O=} and the path to the Buildroot source tree.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Out of tree build: example}
+  \small
+  \begin{enumerate}
+  \item You are in your Buildroot source tree:\\
+{\tiny
+\begin{block}{}
+\begin{verbatim}
+$ ls
+arch board boot ... Makefile ... package ...
+\end{verbatim}
+\end{block}
+}
+  \item Create a new output directory, and move to it:\\
+{\tiny
+\begin{block}{}
+\begin{verbatim}
+$ mkdir ../foobar-output
+$ cd ../foobar-output
+\end{verbatim}
+\end{block}
+}
+  \item Start a new Buildroot configuration:\\
+{\tiny
+\begin{block}{}
+\begin{verbatim}
+$ make -C ../buildroot O=$(pwd) menuconfig
+\end{verbatim}
+\end{block}
+}
+  \item Start the build (passing \code{O=} and \code{-C} no longer needed thanks to the wrapper):\\
+{\tiny
+\begin{block}{}
+\begin{verbatim}
+$ make
+\end{verbatim}
+\end{block}
+}
+  \item Adjust the configuration again, restart the build, clean the build:\\
+{\tiny
+\begin{block}{}
+\begin{verbatim}
+$ make menuconfig
+$ make
+$ make clean
+\end{verbatim}
+\end{block}
+}
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}{Full config file vs. {\em defconfig}}
+  \begin{itemize}
+  \item The \code{.config} file is a {\em full} config file: it
+    contains the value for all options (except those having unmet
+    dependencies)
+  \item The default \code{.config}, without any customization, has
+    2618 lines (as of Buildroot 2015.02)
+    \begin{itemize}
+    \item Not very practical for reading and modifying by humans.
+    \end{itemize}
+  \item A {\em defconfig} stores only the values for options for which
+    the non-default value is chosen.
+    \begin{itemize}
+    \item Much easier to read
+    \item Can be modified by humans
+    \item Can be used for automated construction of configurations
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{{\em defconfig}: example}
+  \begin{itemize}
+  \item For the default Buildroot configuration, the {\em defconfig}
+    is empty: everything is the default.
+  \item If you change the architecture to be ARM, the {\em defconfig}
+    is just one line:
+{\small
+\begin{block}{}
+\begin{verbatim}
+BR2_arm=y
+\end{verbatim}
+\end{block}
+}
+  \item If then you also enable the \code{stress} package, the {\em
+      defconfig} will be just two lines:
+{\small
+\begin{block}{}
+\begin{verbatim}
+BR2_arm=y
+BR2_PACKAGE_STRESS=y
+\end{verbatim}
+\end{block}
+}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Using and creating a {\em defconfig}}
+  \begin{itemize}
+  \item To use a {\em defconfig}, copying it to \code{.config} is not
+    sufficient as all the missing (default) options need to be
+    expanded.
+  \item Buildroot allows to load {\em defconfig} stored in the
+    \code{configs/} directory, by doing:
+    \code{make <foo>_defconfig}
+    \begin{itemize}
+    \item It overwrites the current \code{.config}, if any
+    \end{itemize}
+  \item To create a {\em defconfig}, run:\\
+    \code{make savedefconfig}
+    \begin{itemize}
+    \item By default, saved as \code{defconfig}.
+    \item Can be customized using \code{BR2_DEFCONFIG} configuration
+      option (can also be passed in the environment)
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Assembling a {\em defconfig} (1/2)}
+
+  \begin{itemize}
+  \item {\em defconfigs} are trivial text files, one can use simple
+    concatenation to assemble them from fragments.
+  \end{itemize}
+
+{\small
+   \begin{block}{platform1.frag}
+\begin{verbatim}
+BR2_arm=y
+BR2_TOOLCHAIN_BUILDROOT_WCHAR=y
+BR2_GCC_VERSION_4_9_X=y
+\end{verbatim}
+   \end{block}
+}
+
+{\small
+    \begin{block}{platform2.frag}
+\begin{verbatim}
+BR2_mipsel=y
+BR2_TOOLCHAIN_EXTERNAL=y
+BR2_TOOLCHAIN_EXTERNAL_CODESOURCERY_MIPS201405=y
+\end{verbatim}
+    \end{block}
+}
+
+{\small
+   \begin{block}{packages.frag}
+\begin{verbatim}
+BR2_PACKAGE_STRESS=y
+BR2_PACKAGE_MTD=y
+BR2_PACKAGE_LIBCONFIG=y
+\end{verbatim}
+   \end{block}
+}
+
+\end{frame}
+
+\begin{frame}[fragile]{Assembling a {\em defconfig} (1/2)}
+
+{\small
+   \begin{block}{debug.frag}
+\begin{verbatim}
+BR2_ENABLE_DEBUG=y
+BR2_PACKAGE_STRACE=y
+\end{verbatim}
+   \end{block}
+}
+
+\begin{itemize}
+
+  \item Build a release system for {\em platform1}:
+{\small
+    \begin{block}{}
+\begin{verbatim}
+$ cat platform1.frag packages.frag > configs/foo_defconfig
+$ make foo_defconfig && make
+\end{verbatim}
+    \end{block}{}
+}
+  \item Build a debug system for {\em platform2}:
+{\small
+    \begin{block}{}
+\begin{verbatim}
+$ cat platform2.frag packages.frag debug.frag > \
+        configs/foo_defconfig
+$ make foo_defconfig && make
+\end{verbatim}
+    \end{block}
+}
+
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Other building tips}
+  \begin{itemize}
+  \item Cleaning targets
+    \begin{itemize}
+    \item Cleaning all the build output, but keeping the configuration
+      file:
+      \begin{block}{}
+\begin{verbatim}
+$ make clean
+\end{verbatim}
+      \end{block}
+    \item Cleaning everything, including the configuration file:
+      \begin{block}{}
+\begin{verbatim}
+$ make distclean
+\end{verbatim}
+      \end{block}
+    \end{itemize}
+  \item Verbose build
+    \begin{itemize}
+    \item By default, Buildroot hides a number of commands it runs
+      during the build, only showing the most important ones.
+    \item To get a fully verbose build, pass \code{V=1}:
+      \begin{block}{}
+\begin{verbatim}
+$ make V=1
+\end{verbatim}
+      \end{block}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
