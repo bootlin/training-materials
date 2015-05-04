@@ -94,40 +94,364 @@ OWL_LINUX_REDISTRIBUTE = NO
 
 \end{frame}
 
-\begin{frame}{Users, permissions, devices}
+\begin{frame}[fragile]{Package-specific users}
 
-\code{<pkg>_USERS}
-\code{<pkg>_PERMISSIONS}
-\code{<pkg>_DEVICES}
+\begin{itemize}
+
+\item The default skeleton in \code{system/skeleton/} has a number of
+  default users/groups.
+\item Packages can define their own custom users/groups using the
+  \code{<pkg>_USERS} variable:
+{\footnotesize
+  \begin{block}{}
+\begin{verbatim}
+define <pkg>_USERS
+        username uid group gid password home shell groups comment
+endef
+\end{verbatim}
+  \end{block}}
+\item Examples:
+  \begin{block}{}
+    \begin{minted}[fontsize=\footnotesize]{make}
+define AVAHI_USERS
+        avahi -1 avahi -1 * - - -
+endef
+\end{minted}
+\end{block}
+
+\begin{block}{}
+  \begin{minted}[fontsize=\footnotesize]{make}
+define MYSQL_USERS
+        mysql -1 nogroup -1 * /var/mysql - - MySQL daemon
+endef
+  \end{minted}
+\end{block}
+\end{itemize}
 
 \end{frame}
 
-\begin{frame}{Init script, systemd unit files}
+\begin{frame}[fragile]{File permissions and owernship}
 
-\code{<pkg>_INSTALL_INIT_SYSV}
-\code{<pkg>_INSTALL_INIT_SYSTEMD}
+\begin{itemize}
+
+\item By default, before creating the root filesystem images,
+  Buildroot changes the ownership of all files to \code{0:0}, i.e
+  \code{root:root}
+\item Permissions are preserved as is, but since the build is executed
+  as non-root, it is not possible to install setuid applications.
+\item A default set of permissions for certain files or directories is
+  defined in \code{system/device_table.txt}.
+\item The \code{<pkg>_PERMISSIONS} variable allows packages to define
+  special ownership and permissions for files and directories:
+{\small
+  \begin{block}{}
+\begin{verbatim}
+define <pkg>_PERMISSIONS
+name type mode uid gid major minor start inc count
+endef
+\end{verbatim}
+  \end{block}}
+\item The \code{major}, \code{minor}, \code{start}, \code{inc} and
+  \code{count} fields are not used.
+
+\end{itemize}
 
 \end{frame}
 
-\begin{frame}{Config scripts}
+\begin{frame}[fragile]{File permissions and owership: examples}
 
-\code{<pkg>_CONFIG_SCRIPTS}
+  \begin{itemize}
+  \item \code{sudo} needs to be installed {\em setuid root}:
+  \begin{block}{}
+    \begin{minted}[fontsize=\small]{make}
+define SUDO_PERMISSIONS
+        /usr/bin/sudo f 4755 0 0 - - - - -
+endef
+\end{minted}
+\end{block}
+
+\item \code{/var/lib/nginx} needs to be owned by \code{www-data},
+  which has UID/GID \code{33} defined in the skeleton:
+
+\begin{block}{}
+  \begin{minted}[fontsize=\small]{make}
+define NGINX_PERMISSIONS
+        /var/lib/nginx d 755 33 33 - - - - -
+endef
+\end{minted}
+\end{block}
+
+\end{itemize}
 
 \end{frame}
 
-\begin{frame}{Hooks}
+\begin{frame}[fragile]{Devices}
+  \begin{itemize}
+  \item Definining devices only applies when the chosen \code{/dev}
+    management strategy is {\em Static using a device table}. In other
+    cases, {\em device files} are created dynamically.
+  \item A default set of {\em device files} is described in
+    \code{system/device_table_dev.txt} and created by Buildroot in the
+    root filesystem images.
+  \item When packages need some additional custom devices, they can
+    use the \code{<pkg>_DEVICES} variable:
+{\small
+  \begin{block}{}
+\begin{verbatim}
+define <pkg>_DEVICES
+name type mode uid gid major minor start inc count
+endef
+\end{verbatim}
+  \end{block}}
+\item Becoming less useful, since most people are using a dynamic
+  \code{/dev} nowadays.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Devices: example}
+
+    \begin{block}{xenomai.mk}
+      \begin{minted}{make}
+define XENOMAI_DEVICES
+/dev/rtheap  c  666  0  0  10  254  0  0  -
+/dev/rtscope c  666  0  0  10  253  0  0  -
+/dev/rtp     c  666  0  0  150 0    0  1  32
+endef
+      \end{minted}
+    \end{block}
 
 \end{frame}
 
-\begin{frame}{Overriding commands}
+\begin{frame}{Init scripts, systemd unit files}
+
+\begin{itemize}
+
+\item Buildroot supports two main init system: {\em sysvinit/Busybox}
+  and {\em systemd}
+
+\item When packages want to install a program to be started at boot
+  time, they need to install either a startup script ({\em sysvinit})
+  or a {\em systemd service} file.
+
+\item They can do so with the \code{<pkg>_INSTALL_INIT_SYSV} and
+  \code{<pkg>_INSTALL_INIT_SYSTEMD} variables, which contain a list of
+  shell commands.
+
+\item Buildroot will execute either the \code{<pkg>_INSTALL_INIT_SYSV}
+  or the \code{<pkg>_INSTALL_INIT_SYSTEMD} commands of all enabled
+  packages depending on the selected init system.
+
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Init scripts, systemd unit files: example}
+
+\begin{block}{bind.mk}
+  \begin{minted}[fontsize=\scriptsize]{make}
+define BIND_INSTALL_INIT_SYSV
+  $(INSTALL) -m 0755 -D package/bind/S81named \
+     $(TARGET_DIR)/etc/init.d/S81named
+endef
+
+define BIND_INSTALL_INIT_SYSTEMD
+  $(INSTALL) -D -m 644 package/bind/named.service \
+     $(TARGET_DIR)/usr/lib/systemd/system/named.service
+
+  mkdir -p $(TARGET_DIR)/etc/systemd/system/multi-user.target.wants
+
+  ln -sf /usr/lib/systemd/system/named.service \
+    $(TARGET_DIR)/etc/systemd/system/multi-user.target.wants/named.service
+endef
+  \end{minted}
+\end{block}
+
+\end{frame}
+
+\begin{frame}{Config scripts: introduction}
+  \begin{itemize}
+  \item Libraries not using \code{pkg-config} often install a {\bf
+      small shell script} that allows applications to query the
+    compiler and linker flags to use the library.
+  \item Examples: \code{curl-config}, \code{freetype-config}, etc.
+  \item Such scripts will:
+    \begin{itemize}
+    \item generally return results that are {\bf not appropriate for
+        cross-compilation}
+    \item be used by other cross-compiled Buildroot packages that use
+      those libraries
+    \end{itemize}
+  \item By listing such scripts in the \code{<pkg>_CONFIG_SCRIPTS}
+    variable, Buildroot will {\bf adapt the prefix, header and library
+      paths} to make them suitable for cross-compilation.
+  \item Paths in \code{<pkg>_CONFIG_SCRIPTS} are relative to
+    \code{$(STAGING_DIR)/usr/bin}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Config scripts: examples}
+
+  \begin{block}{libpng.mk}
+    \begin{minted}[fontsize=\footnotesize]{make}
+LIBPNG_CONFIG_SCRIPTS = \
+        libpng$(LIBPNG_SERIES)-config libpng-config
+\end{minted}
+\end{block}
+
+\begin{block}{imagemagick.mk}
+  \begin{minted}[fontsize=\footnotesize]{make}
+IMAGEMAGICK_CONFIG_SCRIPTS = \
+        $(addsuffix -config,Magick MagickCore MagickWand Wand)
+
+ifeq ($(BR2_INSTALL_LIBSTDCPP)$(BR2_USE_WCHAR),yy)
+IMAGEMAGICK_CONFIG_SCRIPTS += Magick++-config
+endif
+\end{minted}
+\end{block}
+
+\end{frame}
+
+\begin{frame}[fragile]{Config scripts: effect}
+
+\begin{block}{Without \code{<pkg>_CONFIG_SCRIPTS}}
+{\footnotesize
+  \begin{verbatim}
+$ ./output/staging/usr/bin/libpng-config --cflags --ldflags
+-I/usr/include/libpng16
+-L/usr/lib -lpng16
+  \end{verbatim}}
+\end{block}
+
+\begin{block}{With \code{<pkg>_CONFIG_SCRIPTS}}
+{\tiny
+  \begin{verbatim}
+$ ./output/staging/usr/bin/libpng-config --cflags --ldflags
+-I.../buildroot/output/host/usr/arm-buildroot-linux-uclibcgnueabi/sysroot/usr/include/libpng16
+-L.../buildroot/output/host/usr/arm-buildroot-linux-uclibcgnueabi/sysroot/usr/lib -lpng16
+  \end{verbatim}}
+\end{block}
+
+\end{frame}
+
+\begin{frame}{Hooks: principle (1)}
+  \begin{itemize}
+  \item Buildroot {\em package infrastructure} often implement a
+    default behavior for certain steps:
+    \begin{itemize}
+    \item \code{generic-package} implements for all packages the
+      download, extract and patch steps
+    \item Other infrastructures such as \code{autotools-package} or
+      \code{cmake-package} also implement the configure, build and
+      installations steps
+    \end{itemize}
+  \item In some situations, the package may want to do {\bf additional
+      actions} before or after one these steps.
+  \item The {\bf hook} mechanism allows packages to add such custom
+    actions.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Hooks: principle (2)}
+  \begin{itemize}
+  \item There are {\bf pre} and {\bf post} hooks available for all
+    steps of the package compilation process:
+    \begin{itemize}
+    \item download, extract, rsync, patch, configure, build, install,
+      install staging, install target, install images, legal info
+    \item \code{<pkg>_(PRE|POST)_<step>_HOOKS}
+    \item Example: \code{CMAKE_POST_INSTALL_TARGET_HOOKS},
+      \code{CVS_POST_PATCH_HOOKS}, \code{BINUTILS_PRE_PATCH_HOOKS}
+    \end{itemize}
+  \item Hook variables contain a list of make macros to call at the
+    appropriate time.
+    \begin{itemize}
+    \item Use \code{+=} to register an additional hook to a hook point
+    \end{itemize}
+  \item Those make macros contain a list of commands to execute.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Hooks: examples}
+
+\begin{block}{libungif.mk: remove unneeded binaries}
+  \begin{minted}[fontsize=\scriptsize]{make}
+define LIBUNGIF_BINS_CLEANUP
+        rm -f $(addprefix $(TARGET_DIR)/usr/bin/,$(LIBUNGIF_BINS))
+endef
+
+LIBUNGIF_POST_INSTALL_TARGET_HOOKS += LIBUNGIF_BINS_CLEANUP
+  \end{minted}
+\end{block}
+
+\begin{block}{vsftpd.mk: adjust configuration}
+  \begin{minted}[fontsize=\scriptsize]{make}
+define VSFTPD_ENABLE_SSL
+        $(SED) 's/.*VSF_BUILD_SSL/#define VSF_BUILD_SSL/' \
+                $(@D)/builddefs.h
+endef
+
+ifeq ($(BR2_PACKAGE_OPENSSL),y)
+VSFTPD_DEPENDENCIES += openssl
+VSFTPD_LIBS += -lssl -lcrypto
+VSFTPD_POST_CONFIGURE_HOOKS += VSFTPD_ENABLE_SSL
+endif
+  \end{minted}
+\end{block}
+
+\end{frame}
+
+\begin{frame}{Overriding commands: principle}
+
+  \begin{itemize}
+  \item In other situations, a package may want to completely {\bf
+      override} the default implementation of a step provided by a
+    package infrastructure.
+
+  \item A package infrastructure will in fact only implement a given
+    step {\bf if not already defined by a package}.
+
+  \item So defining \code{<pkg>_EXTRACT_CMDS} or
+    \code{<pkg>_BUILDS_CMDS} in your package \code{.mk} file will
+    override the package infrastructure implementation (if any).
+
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Overriding commands: examples}
+
+\begin{block}{jquery: source code is only one file}
+\begin{minted}[fontsize=\scriptsize]{make}
+JQUERY_SITE = http://code.jquery.com
+JQUERY_SOURCE = jquery-$(JQUERY_VERSION).min.js
+
+define JQUERY_EXTRACT_CMDS
+        cp $(DL_DIR)/$(JQUERY_SOURCE) $(@D)
+endef
+\end{minted}
+\end{block}
+
+\begin{block}{tftpd: install only what's needed}
+\begin{minted}[fontsize=\scriptsize]{make}
+define TFTPD_INSTALL_TARGET_CMDS
+        $(INSTALL) -D $(@D)/tftp/tftp $(TARGET_DIR)/usr/bin/tftp
+        $(INSTALL) -D $(@D)/tftpd/tftpd $(TARGET_DIR)/usr/sbin/tftpd
+endef
+
+$(eval $(autotools-package))
+\end{minted}
+\end{block}
 
 \end{frame}
 
 \setuplabframe
-{Advanced package recipe tricks}
+{Advanced packages}
 {
   \begin{itemize}
-  \item Use {\em hooks} in packages
-  \item Use special features for custom software
+  \item Package an application with a mandatory dependency and an
+    optional dependency
+  \item Package a library, hosted on Github
+  \item Use {\em hooks} to tweak packages
+  \item Add a patch to a package
   \end{itemize}
 }
