@@ -1,0 +1,129 @@
+\setbeamerfont{block title}{size=\scriptsize}
+
+\section{Download infrastructure in Buildroot}
+
+\begin{frame}{Introduction}
+  \begin{itemize}
+  \item One important aspect of Buildroot is to fetch source code or
+    binary files from third party projects.
+  \item Download supported from HTTP(S), FTP, Git, Subversion, CVS,
+    Mercurial, etc.
+  \item Being able to do reproducible builds over a long period of
+    time requires understanding the download infrastructure.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Download location}
+  \begin{itemize}
+  \item Each Buildroot package indicates in its \code{.mk} file which
+    files it needs to be downloaded.
+  \item Can be a tarball, one or several patches, binary files, etc.
+  \item When downloading a file, Buildroot will successively try the
+    following locations:
+    \begin{enumerate}
+    \item The local \code{$(DL_DIR)} directory where downloaded files
+      are kept
+    \item The {\bf primary site}, as indicated by \code{BR2_PRIMARY_SITE}
+    \item The {\bf original site}, as indicated by the package
+      \code{.mk} file
+    \item The {\bf backup Buildroot mirror}, as indicated by
+      \code{BR2_BACKUP_SITE}
+    \end{enumerate}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Primary site}
+  \begin{itemize}
+  \item The \code{BR2_PRIMARY_SITE} option allows to define the
+    location of a HTTP or FTP server.
+  \item By default empty, so this feature is disabled.
+  \item When defined, used in priority over the original location.
+  \item Allows to do a local mirror, in your company, of all the files
+    that Buildroot needs to download.
+  \item When option \code{BR2_PRIMARY_SITE_ONLY} is enabled, only the
+    {\em primary site} is used
+    \begin{itemize}
+    \item It does not fall back on the original site and the backup
+      Buildroot mirror
+    \item Guarantees that all downloads must be in the primary site
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Backup Buildroot mirror}
+  \begin{itemize}
+  \item Since sometimes the upstream location disappear or are
+    temporarily unavailable, having a backup server is sometimes
+    useful
+  \item Address configured through \code{BR2_BACKUP_SITE}
+  \item Defaults to \code{http://sources.buildroot.net}
+    \begin{itemize}
+    \item maintained by the Buildroot community
+    \item updated before every Buildroot release to contain the
+      downloaded files for all packages
+    \item exception: cannot store all possible versions for packages
+      that have their version as a configuration option. Generally
+      only affects the kernel or bootloader, which typically don't
+      disappear upstream.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{{\tt DL\_DIR}}
+  \begin{itemize}
+  \item Once a file has been downloaded by Buildroot, it is cached in
+    the directory pointed by \code{$(DL_DIR)}
+  \item By default, \code{$(TOPDIR)/dl}
+  \item Can be changed
+    \begin{itemize}
+    \item using the \code{BR2_DL_DIR} configuration option
+    \item or by passing the \code{BR2_DL_DIR} environment variable
+    \end{itemize}
+  \item The download mechanism is written in a way that allows
+    independent parallel builds to share the same \code{DL_DIR} (using
+    atomic renaming of files)
+  \item No cleanup mechanism: files are only added, never removed,
+    even when the package version is updated.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Special case of VCS download}
+  \begin{itemize}
+  \item When a package uses the source code from Git, Subversion or
+    another VCS, Buildroot cannot directly download a tarball.
+  \item It uses a VCS-specific method to fetch the specified version
+    of the source from the VCS repository
+  \item The source code is stored in a temporary location
+  \item Finally a tarball containing only the source code (and not the
+    version control history or metadata) is created and stored in
+    \code{DL_DIR}
+    \begin{itemize}
+    \item Example: \code{avrdude-eabe067c4527bc2eedc5db9288ef5cf1818ec720.tar.gz}
+    \end{itemize}
+  \item This tarball will be re-used for the next builds.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Download-related {\tt make} targets}
+  \begin{itemize}
+  \item \code{make source}
+    \begin{itemize}
+    \item Triggers the download of all the files needed to build the
+      current configuration.
+    \item All files are stored in \code{$(DL_DIR)}
+    \item Allows to prepare a fully offline build
+    \end{itemize}
+  \item \code{make external-deps}
+    \begin{itemize}
+    \item Lists the files from \code{$(DL_DIR)} that are needed for
+      the current configuration to build.
+    \item Does not guarantee that all files are in \code{$(DL_DIR)}, a
+      \code{make source} is required
+    \end{itemize}
+  \item \code{make source-check}
+    \begin{itemize}
+    \item Checks where the upstream site of all downloads needed for
+      the current configuration are still available.
+    \end{itemize}
+  \end{itemize}
+\end{frame}

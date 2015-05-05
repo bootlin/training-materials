@@ -290,6 +290,7 @@ BUILDROOT_SLIDES = \
 		buildroot-tree \
 		buildroot-toolchain \
 		buildroot-rootfs \
+		buildroot-download \
 		buildroot-new-packages \
 		buildroot-advanced-packages \
 		buildroot-analysis \
