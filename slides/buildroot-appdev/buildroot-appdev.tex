@@ -1,11 +1,182 @@
+\setbeamerfont{block title}{size=\scriptsize}
+
 \section{Application development}
 
 \begin{frame}{Building code for Buildroot}
+  \begin{itemize}
+  \item The Buildroot cross-compiler is installed in
+    \code{$(HOST_DIR)/usr/bin}
+  \item It is already set up to:
+    \begin{itemize}
+    \item generate code for the configured architecture
+    \item look for libraries and headers in \code{$(STAGING_DIR)}
+    \end{itemize}
+  \item Other useful tools that may be built by Buildroot are
+    installed in \code{$(HOST_DIR)/usr/bin}:
+    \begin{itemize}
+    \item \code{pkg-config}, to find libraries. Beware that it is
+      configured to return results for {\em target} libraries: it
+      should only be used when cross-compiling.
+    \item \code{qmake}, when building Qt applications with this build
+      system.
+    \item \code{autoconf}, \code{automake}, \code{libtool}, to use
+      versions independent from the host system.
+    \end{itemize}
+  \item Adding \code{$(HOST_DIR)/usr/bin} to your \code{PATH} when
+    cross-compiling is the easiest solution.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Building code for Buildroot: C program}
+
+\begin{block}{Building a C program for the host}
+{\small
+  \begin{verbatim}
+$ gcc -o foobar foobar.c
+$ file foobar
+foobar: ELF 64-bit LSB executable, x86-64, version 1...
+\end{verbatim}}
+\end{block}
+
+\begin{block}{Building a C program for the target}
+{\small
+  \begin{verbatim}
+$ export PATH=$(pwd)/output/host/usr/bin:$PATH
+$ arm-linux-gcc -o foobar foobar.c
+$ file foobar
+foobar: ELF 32-bit LSB executable, ARM, EABI5 version 1...
+\end{verbatim}}
+\end{block}
 
 \end{frame}
 
-\begin{frame}{The {\tt <pkg>\_OVERRIDE\_SRCDIR} mechanism}
+\begin{frame}[fragile]{Building code for Buildroot: pkg-config}
 
+  \begin{block}{Using the system \code{pkg-config}}
+{\small
+\begin{verbatim}
+$ pkg-config --cflags libpng
+-I/usr/include/libpng12
+
+$ pkg-config --libs libpng
+-lpng12
+\end{verbatim}}
+  \end{block}
+
+  \begin{block}{Using the Buildroot \code{pkg-config}}
+{\small
+\begin{verbatim}
+$ export PATH=$(pwd)/output/host/usr/bin:$PATH
+
+$ pkg-config --cflags libpng
+-I.../output/host/usr/arm-buildroot-linux-uclibcgnueabi/
+    sysroot/usr/include/libpng16
+
+$ pkg-config --libs libpng
+-L.../output/host/usr/arm-buildroot-linux-uclibcgnueabi/
+    sysroot/usr/lib -lpng16
+\end{verbatim}}
+  \end{block}
+
+{\tiny Note: too long lines have been splitted.}
+
+\end{frame}
+
+\begin{frame}[fragile]{Building code for Buildroot: autotools}
+  \begin{itemize}
+  \item Building simple {\em autotools} components outside of
+    Buildroot is easy:
+    \begin{block}{}
+{\small
+\begin{verbatim}
+$ export PATH=.../buildroot/output/host/usr/bin/:$PATH
+$ ./configure --host=arm-linux
+\end{verbatim}}
+\end{block}
+\item Passing \code{--host=arm-linux} tells the configure script to
+  use the cross-compilation tools prefixed by \code{arm-linux-}.
+\item In more complex cases, some additional \code{CFLAGS} or
+  \code{LDFLAGS} might be needed in the environment.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{The {\tt <pkg>\_OVERRIDE\_SRCDIR} mechanism}
+  \begin{itemize}
+  \item Very often, you don't build packages manually: Buildroot
+    builds them for you.
+  \item But Buildroot also downloads them for you, and keeps the
+    source code in the package build directory.
+  \item Not very practical during development:
+    \begin{itemize}
+    \item The build directory is temporary, gets removed when doing a
+      \code{make clean} or \code{make <pkg>-dirclean}
+    \item The build directory isn't checked out from your version
+      control system.
+    \end{itemize}
+  \item Buildroot should, for certain packages, pick up the source
+    from a local directory.
+  \item This is exactly what \code{<pkg>\_OVERRIDE\_SRCDIR} allows to
+    do.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Without {\tt <pkg>\_OVERRIDE\_SRCDIR}}
+  \begin{itemize}
+  \item The normal package build process, when
+    \code{<pkg>_OVERRIDE_SRCDIR} is not used, is:
+    \begin{enumerate}
+    \item Package gets downloaded as a tarball, or from a VCS
+      repository (in which case a tarball is generated)
+    \item The tarball is extracted in
+      \code{$(O)/build/<pkg>-<version>}
+    \item Then the configure, build and installs steps are executed
+    \end{enumerate}
+  \item \code{$(O)/build/<pkg>-<version>/} does not contain any VCS
+    metadata, and is a temporary directory.
+  \item Running \code{make <pkg>-reconfigure}, \code{make
+      <pkg>-rebuild}, \code{make <pkg>-reinstall} only restarts the
+    build process from one of the corresponding steps.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Effect of {\tt <pkg>\_OVERRIDE\_SRCDIR}}
+  \begin{itemize}
+  \item For each package, you can define a
+    \code{<pkg>_OVERRIDE_SRCDIR} variable that points to a local
+    directory containing the source code for this package.
+  \item Instead of downloading and extracting the original source,
+    Buildroot will {\em rsync} the source from the specified directory
+    to the build directory.
+  \item Invoking \code{make <pkg>-reconfigure}, \code{make
+      <pkg>-rebuild}, \code{make <pkg>-reinstall} will retrigger a
+    {\em rsync}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Passing {\tt <pkg>\_OVERRIDE\_SRCDIR}}
+  \begin{itemize}
+  \item \code{<pkg>_OVERRIDE_SRCDIR} can be specified:
+    \begin{itemize}
+    \item In the package \code{.mk} file itself. Not ideal solution,
+      and identical to \code{<pkg>_SITE_METHOD = local}
+    \item In a {\em package override file}, configured in
+      \code{BR2_PACKAGE_OVERRIDE_FILE}, by default
+      \code{$(CONFIG_DIR)/local.mk.}
+    \end{itemize}
+  \end{itemize}
+
+  \begin{block}{Example \code{local.mk}}
+\begin{minted}{make}
+LIBPNG_OVERRIDE_SRCDIR = $(HOME)/projects/libpng
+LINUX_OVERRIDE_SRCDIR = $(HOME)/projects/linux
+\end{minted}
+  \end{block}
+\end{frame}
+
+\begin{frame}{{\tt <pkg>\_OVERRIDE\_SRCDIR} workflow}
+  \begin{center}
+    \includegraphics[height=0.8\textheight]{slides/buildroot-appdev/override-srcdir.pdf}
+  \end{center}
 \end{frame}
 
 \begin{frame}{Debugging: debugging symbols and stripping}
