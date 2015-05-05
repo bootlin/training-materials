@@ -429,6 +429,39 @@ endef
   \end{itemize}
 \end{frame}
 
+\begin{frame}[fragile]{{\tt .mk} file: accessing the configuration}
+
+  \begin{itemize}
+  \item The Buildroot \code{.config} file is a succession of lines
+    \code{name = value}
+    \begin{itemize}
+    \item This file is valid {\em make} syntax!
+    \end{itemize}
+  \item The main Buildroot \code{Makefile} simply includes it, which
+    turns every Buildroot configuration option into a {\em make}
+    variable.
+  \item From a package \code{.mk} file, one can directly use such
+    variables:
+    \begin{block}{}
+    \begin{minted}[fontsize=\tiny]{make}
+ifeq ($(BR2_PACKAGE_LIBCURL),y)
+...
+endif
+
+FOO_DEPENDENCIES += $(if $(BR2_PACKAGE_TIFF),tiff)
+\end{minted}
+\end{block}
+
+\item Hint: use the {\em make} \code{qstrip} function to remove double
+  quotes on string options:
+\begin{block}{}
+  \begin{minted}[fontsize=\tiny]{make}
+NODEJS_MODULES_LIST = $(call qstrip,$(BR2_PACKAGE_NODEJS_MODULES_ADDITIONAL))
+  \end{minted}
+\end{block}
+  \end{itemize}
+\end{frame}
+
 \begin{frame}{Download related variables}
   \begin{itemize}
   \item \code{<pkg>_SITE}, {\bf download location}
