@@ -1,12 +1,334 @@
+\setbeamerfont{block title}{size=\scriptsize}
+
 \section{Root filesystem in Buildroot}
+
+\begin{frame}{Overall rootfs construction steps}
+  \begin{center}
+    \includegraphics[width=\textwidth]{slides/buildroot-rootfs/overall-steps.pdf}
+  \end{center}
+\end{frame}
+
+\begin{frame}{Root filesystem skeleton}
+  \begin{itemize}
+  \item The base of a Linux root filesystem: Unix directory hierarchy,
+    a few configuration files and scripts in \code{/etc}. No programs
+    or libraries.
+  \item First thing to get copied to \code{$(TARGET_DIR)} at the
+    beginning of the build.
+  \item By default (\code{BR2_ROOTFS_SKELETON_DEFAULT=y}), the one in
+    \code{system/skeleton} is used.
+  \item A custom {\em skeleton} can be used, through the
+    \code{BR2_ROOTFS_SKELETON_CUSTOM} and
+    \code{BR2_ROOTFS_SKELETON_CUSTOM_PATH} options.
+    \begin{itemize}
+    \item Not recommended though: the {\em skeleton} is only copied
+      once at the beginning of the build, and the base is usually good
+      for most projects.
+    \item Use {\em rootfs overlays} or {\em post-build scripts} for
+      customization.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Installation of packages}
+  \begin{itemize}
+  \item All the target packages will be built: Busybox, Qt, OpenSSH,
+    and the thousands of other possible packages.
+  \item Most of them will install files in \code{$(TARGET_DIR)}:
+    programs, libraries, fonts, data files, configuration files, etc.
+  \item This is really the step that will bring in the root filesystem
+    the vast majority of the files.
+  \item Covered in more details in the section about creating your own
+    Buildroot packages.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Cleanup step}
+  \begin{itemize}
+  \item Once all packages have been installed, a cleanup step is
+    executed to reduce the size of the root filesystem.
+  \item It mainly involves:
+    \begin{itemize}
+    \item Remove header files, pkg-config files, CMake files, static
+      libraries, man pages, documentation.
+    \item Stripping all the programs and libraries using \code{strip},
+      to remove unneeded information. Depends on
+      \code{BR2_ENABLE_DEBUG} and \code{BR2_STRIP_*} options.
+    \item Additional specific clean up steps: clean up unneeded Python
+      files when Python is used, etc. See \code{TARGET_FINALIZE_HOOKS}
+      in the Buildroot code.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Root filesystem overlay}
+
+  \begin{itemize}
+
+  \item To customize the contents of your root filesystem, to add
+    configuration files, scripts or any other file, one possible
+    solution is to use a {\bf root filesystem overlay}.
+
+  \item A {\em root filesystem overlay} is simply a directory whose
+    contents will be {\bf copied over the root filesystem}, after all
+    packages have been installed. Overwriting files is allowed.
+
+  \item The option \code{BR2_ROOTFS_OVERLAY} contains a
+    space-separated list of overlay paths.
+
+\begin{block}{}
+{\small
+\begin{verbatim}
+$ grep ^BR2_ROOTFS_OVERLAY .config
+BR2_ROOTFS_OVERLAY="board/myproject/rootfs-overlay"
+$ find -type f board/myproject/rootfs-overlay
+board/myproject/rootfs-overlay/etc/ssh/sshd_config
+board/myproject/rootfs-overlay/etc/init.d/S99myapp
+\end{verbatim}}
+\end{block}
+
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}{Post-build scripts}
+  \begin{itemize}
+  \item Sometimes a {\em root filesystem overlay} is not sufficient,
+    and you actually want to {\bf execute commands}, you can use {\bf
+      post-build scripts}.
+  \item These scripts are executed before the root filesystem image is
+    created. They can be written in any language, shell scripts are
+    often used.
+  \item \code{BR2_ROOTFS_POST_BUILD_SCRIPT} contains a space-separated
+    list of post-build script paths.
+  \item \code{$(TARGET_DIR)} path passed as first argument, additional
+    arguments can be passed in the \code{BR2_ROOTFS_POST_SCRIPT_ARGS}
+    option.
+  \item Various environment variables are available:
+    \begin{itemize}
+      \item \code{BR2_CONFIG}, path to the Buildroot .config file
+      \item \code{HOST_DIR}, \code{STAGING_DIR}, \code{TARGET_DIR},
+        \code{BUILD_DIR}, \code{BINARIES_DIR}, \code{BASE_DIR}
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Post-build script: example}
+
+\begin{block}{board/myproject/post-build.sh}
+\begin{minted}[fontsize=\scriptsize]{bash}
+#!/bin/sh
+TARGET_DIR=$1
+BOARD_DIR=board/myproject/
+
+# Adjust password of the 'default' user
+sed -i 's%^default::%default:jfbeg/OwGfiab:%' $TARGET_DIR/etc/shadow
+
+# Create /applog mountpoint, and adjust /etc/fstab
+mkdir -p $TARGET_DIR/applog
+grep -q "^/dev/mtdblock7" $TARGET_DIR/etc/fstab || \
+    echo "/dev/mtdblock7\t\t/applog\tjffs2\tdefaults\t\t0\t0" >> \
+    $TARGET_DIR/etc/fstab
+
+# Copy a file
+install -D -m 0755 $BOARD_DIR/cleanup-logs \
+    $TARGET_DIR/usr/bin/cleanup-logs
+\end{minted}
+\end{block}
+
+\begin{block}{Buildroot configuration}
+{\scriptsize
+\begin{verbatim}
+BR2_ROOTFS_POST_BUILD_SCRIPT="board/myproject/post-build.sh"
+\end{verbatim}}
+\end{block}
+
+\end{frame}
+
+\begin{frame}{Generating the filesystem images}
+
+  \begin{itemize}
+  \item In the \code{Filesystem images} menu, you can select which
+    filesystem image formats to generate.
+  \item To generate those images, Buildroot will generate a shell
+    script that:
+    \begin{itemize}
+    \item {\bf Changes the owner} of all files to \code{0:0} (root user)
+    \item Takes into account the global {\bf permission and device tables},
+      as well as the per-package ones.
+    \item Takes into account the {\bf global and per-package users
+        tables}.
+    \item Runs the {\bf filesystem image generation utility}, which
+      depends on each filesystem type (\code{genext2fs},
+      \code{mkfs.ubifs}, \code{tar}, etc.)
+    \end{itemize}
+  \item This script is executed using a tool called {\em fakeroot}
+    \begin{itemize}
+    \item Allows to fake being root so that permissions and ownership
+      can be modified, device files can be created, etc.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Permission table}
+  \begin{itemize}
+  \item By default, all files are owned by the \code{root} user, and
+    the permissions with which they are installed in
+    \code{$(TARGET_DIR)} are preserved.
+  \item To customize the ownership or the permission of installed
+    files, one can create one or several {\bf permission tables}
+  \item \code{BR2_ROOTFS_DEVICE_TABLE} contains a space-separated list
+    of permission table files. The option name contains {\em device}
+    for backward compatibility reasons only.
+  \item The \code{system/device_table.txt} file is used by default.
+  \item Packages can also specify their own permissions. See the {\em
+      Advanced package aspects} section for details.
+  \end{itemize}
+
+\begin{block}{Permission table example}
+{\tiny
+\begin{verbatim}
+#<name>    <type>  <mode>  <uid>   <gid>   <major> <minor> <start> <inc>   <count>
+/dev       d       755     0       0       -       -       -       -       -
+/tmp       d       1777    0       0       -       -       -       -       -
+/var/www   d       755     33      33      -       -       -       -       -
+\end{verbatim}
+}
+\end{block}
+
+\end{frame}
+
+\begin{frame}[fragile]{Device table}
+
+  \begin{itemize}
+  \item When the system is using a static \code{/dev}, one may need to
+    create additional {\em device nodes}
+  \item Done using one or several {\bf device tables}
+  \item \code{BR2_ROOTFS_STATIC_DEVICE_TABLE} contains a
+    space-separated list of device table files.
+  \item The \code{system/device_table_dev.txt} file is used by
+    default.
+  \item Packages can also specify their own device files. See the {\em
+      Advanced package aspects} section for details.
+  \end{itemize}
+
+\begin{block}{Device table example}
+{\tiny
+\begin{verbatim}
+# <name>        <type>  <mode>  <uid>   <gid>   <major> <minor> <start> <inc>   <count>
+/dev/mem        c       640     0       0       1       1       0       0       -
+/dev/kmem       c       640     0       0       1       2       0       0       -
+/dev/i2c-       c       666     0       0       89      0       0       1       4
+\end{verbatim}
+}
+\end{block}
+
+\end{frame}
+
+\begin{frame}[fragile]{Users table}
+  \begin{itemize}
+  \item One may need to add specific Unix users and groups in addition
+    to the one available in the default skeleton.
+  \item \code{BR2_ROOTFS_USERS_TABLES} is a space-separated list of
+    user tables.
+  \item Packages can also specify their own users. See the {\em
+      Advanced package aspects} section for details.
+  \end{itemize}
+
+\begin{block}{Users table example}
+{\tiny
+\begin{verbatim}
+# <username> <uid> <group> <gid> <password> <home>    <shell> <groups>    <comment>
+foo          -1    bar     -1    !=blabla   /home/foo /bin/sh alpha,bravo Foo user
+test         8000  wheel   -1    =          -         /bin/sh -           Test user
+\end{verbatim}
+}
+\end{block}
+
+\end{frame}
+
+\begin{frame}{Post-image scripts}
+  \begin{itemize}
+  \item Once all the filesystem images have been created, at the very
+    end of the build, {\bf post-image} scripts are called.
+  \item They allow to do any custom action at the end of the
+    build. For example:
+    \begin{itemize}
+    \item Extract the root filesystem to do NFS booting
+    \item Generate a final firmware image
+    \item Start the flashing process
+    \end{itemize}
+  \item \code{BR2_ROOTFS_POST_IMAGE_SCRIPT} is a space-separated list
+    of {\em post-image} scripts to call.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Init mechanism}
+  \begin{itemize}
+  \item Buildroot supports multiple {\em init} implementations:
+    \begin{itemize}
+    \item {\bf Busybox init}, the default. Simplest solution.
+    \item {\bf sysvinit}, the old style featureful {\em init}
+      implementation
+    \item {\bf systemd}, the new generation init system
+    \end{itemize}
+  \item Selecting the {\em init} implementation in the \code{System
+      configuration} menu will:
+    \begin{itemize}
+    \item Ensure the necessary packages are selected
+    \item Make sure the appropriate init scripts or configuration
+      files are installed by packages. See {\em Advanced package
+        aspects} for details.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{{\tt /dev} management method}
+  \begin{itemize}
+  \item Buildroot supports four methods to handle the \code{/dev}
+    directory:
+    \begin{itemize}
+    \item Using {\bf devtmpfs}. \code{/dev} is managed by the kernel
+      {\em devtmpfs}, which creates device files
+      automatically. Requires kernel 2.6.32+. Default option.
+    \item Using {\bf static /dev}. This is the old way of doing
+      \code{/dev}, not very practical.
+    \item Using {\bf mdev}. \code{mdev} is part of Busybox and can run
+      custom actions when devices are added/removed. Requires {\em
+        devtmpfs} kernel support.
+    \item Using {\bf eudev}. Forked from \code{systemd}, allows to run
+      custom actions. Requires {\em devtmpfs} kernel support.
+    \end{itemize}
+  \item When {\em systemd} is used, the only option is {\em udev} from
+    {\em systemd} itself.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Other customization options}
+  \begin{itemize}
+  \item There are various other options to customize the root
+    filesystem:
+    \begin{itemize}
+    \item {\bf getty} options, to run a login prompt on a serial port
+      or screen
+    \item {\bf hostname} and {\bf banner} options
+    \item {\bf DHCP network} on one interface (for more complex
+      setups, use an {\em overlay}
+    \item {\bf root password}
+    \item {\bf timezone} installation and selection
+    \end{itemize}
+  \end{itemize}
+\end{frame}
 
 \setuplabframe
 {Root filesystem construction}
 {
   \begin{itemize}
-  \item Generate Buildroot systems with different \code{/dev}
-    management options and test them on a hardware platform.
-  \item Customize the root filesystem contents using a {\em rootfs
-      overlay} and {\em post-build} scripts.
+  \item Explore the build output
+  \item Customize the root filesystem using a rootfs overlay
+  \item Customize the kernel with patches and additional configuration
+    options
+  \item Add more packages
+  \item Use defconfig files and out of tree build
   \end{itemize}
 }
