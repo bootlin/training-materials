@@ -180,23 +180,157 @@ LINUX_OVERRIDE_SRCDIR = $(HOME)/projects/linux
 \end{frame}
 
 \begin{frame}{Debugging: debugging symbols and stripping}
-
+  \begin{itemize}
+  \item To use debuggers, you need the programs and libraries to be
+    built with debugging symbols.
+  \item The \code{BR2_ENABLE_DEBUG} option controls whether programs
+    and libraries are built with debugging symbols
+    \begin{itemize}
+    \item Disabled by default.
+    \item Sub-options allow to control the amount of debugging symbols
+      (i.e gcc options \code{-g1}, \code{-g2} and \code{-g3}).
+    \end{itemize}
+  \item The \code{BR2_STRIP_none} and \code{BR2_STRIP_strip} options
+    allow to disable or enable stripping of binaries on the target.
+  \end{itemize}
 \end{frame}
 
-\begin{frame}{Debugging: gdb, gdbserver and sysroot}
+\begin{frame}{Debugging: debugging symbols and stripping}
+  \begin{itemize}
+  \item With \code{BR2_ENABLE_DEBUG=y} and \code{BR2_STRIP_strip=y}
+    \begin{itemize}
+    \item get debugging symbols in \code{$(STAGING_DIR)} for
+      libraries, and in the build directories for everything.
+    \item stripped binaries in \code{$(TARGET_DIR)}
+    \item Appropriate for {\bf remote debugging}
+    \end{itemize}
+  \item With \code{BR2_ENABLE_DEBUG=y} and \code{BR2_STRIP_none=y}
+    \begin{itemize}
+    \item debugging symbols in both \code{$(STAGING_DIR)} and
+      \code{$(TARGET_DIR)}
+    \item appropriate for {\bf on-target debugging}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
 
+\begin{frame}{Debugging: remote debugging requirements}
+  \begin{itemize}
+  \item To do remote debugging, you need:
+    \begin{itemize}
+    \item A {\bf cross-debugger}
+      \begin{itemize}
+      \item With the {\em internal toolchain backend}, can be built
+        using \code{BR2_PACKAGE_HOST_GDB=y}.
+      \item With the {\em external toolchain backend}, is either
+        provided pre-built by the toolchain, or can be built using
+        \code{BR2_PACKAGE_HOST_GDB=y}.
+      \end{itemize}
+    \item {\bf gdbserver}
+      \begin{itemize}
+      \item With the {\em internal toolchain backend}, can be built
+        using \code{BR2_PACKAGE_GDB=y} + \code{BR2_PACKAGE_GDB_SERVER=y}
+      \item With the {\em external toolchain backend}, if
+        \code{gdbserver} is provided by the toolchain it can be copied
+        to the target using
+        \code{BR2_TOOLCHAIN_EXTERNAL_GDB_SERVER_COPY=y} or otherwise
+        built from source like with the internal toolchain backend.
+      \end{itemize}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Debugging: remote debugging setup}
+  \begin{itemize}
+  \item On the target, start {\em gdbserver}
+    \begin{itemize}
+    \item Use a TCP socket, network connectivity needed
+    \item The {\em multi} mode is quite convenient
+    \item \code{$ gdbserver --multi localhost:2345}
+    \end{itemize}
+  \item On the host, start \code{<tuple>-gdb}
+    \begin{itemize}
+    \item \code{$ ./output/host/usr/bin/<tuple>-gdb <program>}
+    \item \code{<program>} is the path to the program to debug, with
+      debugging symbols
+    \end{itemize}
+  \item Inside {\em gdb}, you need to:
+    \begin{itemize}
+    \item Connect to the target:\\
+      \code{(gdb) target remote-extended <ip>:2345}
+    \item Set the path to the {\em sysroot} so that {\em gdb} can find debugging symbols for libraries:\\
+      \code{(gdb) set sysroot ./output/staging/}
+    \item Start the program:\\
+      \code{(gdb) run}
+    \end{itemize}
+  \end{itemize}
 \end{frame}
 
 \begin{frame}{Debugging tools available in Buildroot}
-
+  \begin{itemize}
+  \item Buildroot also includes a huge amount of other debugging or
+    profiling related tools.
+  \item To list just a few:
+    \begin{itemize}
+    \item strace
+    \item ltrace
+    \item LTTng
+    \item perf
+    \item sysdig
+    \item sysprof
+    \item OProfile
+    \item valgrind
+    \end{itemize}
+  \item Look in \code{Target packages} $\rightarrow$ \code{Debugging,
+      profiling and benchmark} for more.
+  \end{itemize}
 \end{frame}
 
 \begin{frame}{Generating a SDK for application developers}
+  \begin{itemize}
+  \item If you would like application developers to build applications
+    for a Buildroot generated system, without building Buildroot, you
+    can generate a SDK.
+  \item To achieve this:
+    \begin{itemize}
+    \item Customize the \code{BR2_HOST_DIR} option to a path like
+      \code{/opt/project-sdk/}.
+    \item Do a full build from scratch. Due to the value of
+      \code{BR2_HOST_DIR}, the cross-compiler and the sysroot with all
+      its libraries will be installed in \code{/opt/project-sdk/}
+      instead of the normal \code{$(O)/host}.
+    \item Tarball the \code{/opt/project-sdk/} and share it with the
+      developers.
+    \end{itemize}
+  \item Warnings:
+    \begin{itemize}
+    \item The SDK is not relocatable: it must remain in
+      \code{/opt/project-sdk/}
+    \item The SDK must remain in sync with the root filesystem running
+      on the target, otherwise applications built with the SDK may not
+      run properly.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
 
+\begin{frame}{Eclipse plug-in}
+  \begin{itemize}
+  \item For application developers interested in using the Eclipse
+    IDE, a Buildroot-specific plugin has been developed.
+  \item It integrates the toolchain(s) generated by Buildroot into the
+    Eclipse C/C++ Development Environment.
+  \item Allows Eclipse projects to easily use the compiler, linker and
+    debugger provided by Buildroot
+  \item In Buildroot, enable the \code{BR2_ECLIPSE_REGISTER} option.
+  \item In Eclipse, install the {\em Buildroot} plugin, and follow the
+    instructions available from the plugin website.
+  \item See
+    \url{https://github.com/mbats/eclipse-buildroot-bundle/wiki} for
+    download, installation and usage details.
+  \end{itemize}
 \end{frame}
 
 \setuplabframe
-{Application development with Buildroot}
+{Application development}
 {
   \begin{itemize}
   \item Build and run your own application
