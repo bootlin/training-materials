@@ -1,3 +1,5 @@
+\setbeamerfont{block title}{size=\scriptsize}
+
 \section{Managing the build and the configuration}
 
 \begin{frame}{Default build organization}
@@ -194,6 +196,8 @@ BR2_PACKAGE_STRESS=y
     \item By default, saved as \code{defconfig}.
     \item Can be customized using \code{BR2_DEFCONFIG} configuration
       option (can also be passed in the environment)
+    \item Move it to \code{configs/} to make it easily loadable with
+      \code{make <foo>_defconfig}.
     \end{itemize}
   \end{itemize}
 \end{frame}
@@ -239,38 +243,37 @@ BR2_PACKAGE_LIBCONFIG=y
 
 \begin{frame}[fragile]{Assembling a {\em defconfig} (1/2)}
 
-{\small
-   \begin{block}{debug.frag}
+  \begin{block}{debug.frag}
+    {\small
 \begin{verbatim}
 BR2_ENABLE_DEBUG=y
 BR2_PACKAGE_STRACE=y
 \end{verbatim}
-   \end{block}
-}
+    }
+  \end{block}
 
-\begin{itemize}
-
-  \item Build a release system for {\em platform1}:
-{\small
-    \begin{block}{}
+  \begin{block}{Build a release system for {\em platform1}}
+    {\small
 \begin{verbatim}
-$ cat platform1.frag packages.frag > configs/foo_defconfig
-$ make foo_defconfig && make
+$ cat platform1.frag packages.frag > .config
+$ make olddefconfig
+$ make
 \end{verbatim}
-    \end{block}{}
-}
-  \item Build a debug system for {\em platform2}:
-{\small
-    \begin{block}{}
-\begin{verbatim}
-$ cat platform2.frag packages.frag debug.frag > \
-        configs/foo_defconfig
-$ make foo_defconfig && make
-\end{verbatim}
-    \end{block}
-}
+    }
+  \end{block}
 
-\end{itemize}
+  \begin{block}{Build a debug system for {\em platform2}}
+    {\small
+\begin{verbatim}
+$ cat platform2.frag packages.frag debug.frag > .config
+$ make olddefconfig
+$ make
+\end{verbatim}
+    }
+  \end{block}
+
+  Note: \code{olddefconfig} expands a minimal {\em defconfig} to a full
+  \code{.config}.
 
 \end{frame}
 

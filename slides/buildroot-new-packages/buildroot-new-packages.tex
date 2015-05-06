@@ -107,7 +107,8 @@ endmenu
     \begin{itemize}
     \item \code{depends on} for architecture, toolchain feature, or
       {\em big} feature dependencies. E.g: package only available on
-      x86, or only if IPv6 is enabled, or depends on Python.
+      x86, or only if wide char support is enabled, or depends on
+      Python.
     \item \code{select} for enabling the necessary other packages
       needed to build the current package (libraries, etc.)
     \end{itemize}
@@ -119,37 +120,48 @@ endmenu
 \begin{frame}[fragile]{\code{package/<pkg>/Config.in}: dependency example}
 
   \begin{columns}
-    \column{0.5\textwidth}
-    \begin{block}{radvd package}
+    \column{0.6\textwidth}
+    \begin{block}{btrfs-progs package}
       \tiny
 \begin{verbatim}
-config BR2_PACKAGE_RADVD
-        bool "radvd"
-        depends on BR2_USE_MMU # fork()
-        depends on BR2_INET_IPV6
-        select BR2_PACKAGE_FLEX
+config BR2_PACKAGE_BTRFS_PROGS
+        bool "btrfs-progs"
+        depends on BR2_USE_WCHAR # util-linux
+        depends on BR2_USE_MMU # util-linux
+        depends on BR2_TOOLCHAIN_HAS_THREADS
+        select BR2_PACKAGE_ACL
+        select BR2_PACKAGE_ATTR
+        select BR2_PACKAGE_E2FSPROGS
+        select BR2_PACKAGE_LZO
+        select BR2_PACKAGE_UTIL_LINUX
+        select BR2_PACKAGE_UTIL_LINUX_LIBBLKID
+        select BR2_PACKAGE_UTIL_LINUX_LIBUUID
+        select BR2_PACKAGE_ZLIB
         help
-          IPv6 Router Advertisement Daemon.
+          Btrfs filesystem utilities
 
-          http://www.litech.org/radvd/
+          https://btrfs.wiki.kernel.org/in...
 
-comment "radvd needs a toolchain w/ IPv6"
+comment "btrfs-progs needs a toolchain w/ wchar, threads"
         depends on BR2_USE_MMU
-        depends on !BR2_INET_IPV6
+        depends on !BR2_USE_WCHAR || \
+               !BR2_TOOLCHAIN_HAS_THREADS
 \end{verbatim}
   \end{block}
-    \column{0.5\textwidth}
-    \small
+    \column{0.4\textwidth}
+    {\scriptsize
     \begin{itemize}
     \item \code{depends on BR2_USE_MMU}, because the package uses
       \code{fork()}. Note that there is no comment displayed about this
       dependency, because it's a limitation of the architecture.
-    \item \code{depends on BR2_INET_IPV6}, because the package requires
-      IPv6 support from the toolchain. There is an associated comment,
-      because IPv6 support can be added to the toolchain.
-    \item \code{select BR2_PACKAGE_FLEX}, because the package needs
-      \code{flex} to be available on the target.
-    \end{itemize}
+    \item \code{depends on BR2_USE_WCHAR} and \code{depends on
+        BR2_TOOLCHAIN_HAS_THREADS}, because the package requires
+      wide-char and thread support from the toolchain. There is an
+      associated comment, because such support can be added to the
+      toolchain.
+    \item Multiple \code{select BR2_PACKAGE_*}, because the package
+      needs numerous libraries.
+    \end{itemize}}
   \end{columns}
 \end{frame}
 
@@ -727,7 +739,7 @@ define EEPROG_BUILD_CMDS
 endef
 
 define EEPROG_INSTALL_TARGET_CMDS
-        $(INSTALL) -D $(@D)/eeprog $(TARGET_DIR)/usr/bin/eeprog
+        $(INSTALL) -m 0755 -D $(@D)/eeprog $(TARGET_DIR)/usr/bin/eeprog
 endef
 
 $(eval $(generic-package))
@@ -807,12 +819,13 @@ $(eval $(generic-package))
       and \code{<pkg>_INSTALL_TARGET_OPTS} to adjust the {\em make}
       target and options used for the installation.
     \item \code{<pkg>_AUTORECONF}. Defaults to \code{NO}, can be set
-      to \code{YES} is regenerating \code{Makefile.in} files and
+      to \code{YES} if regenerating \code{Makefile.in} files and
       \code{configure} script is needed. The infrastructure will
       automatically make sure {\em autoconf}, {\em automake}, {\em
         libtool} are built.
     \item \code{<pkg>_GETTEXTIZE}. Defaults to \code{NO}, can be set
-      to \code{YES} to {\em gettextize} the package.
+      to \code{YES} to {\em gettextize} the package. Only makes sense
+      if \code{<pkg>_AUTORECONF = YES}.
     \end{itemize}
   \end{itemize}
 \end{frame}
@@ -1019,7 +1032,7 @@ $(eval $(python-package))
     \begin{itemize}
     \item \code{FBSET_DEPENDENCIES = host-bison host-flex}
     \end{itemize}
-  \item No \code{Config.in}, not visible in \code{menuconfig}.
+  \item No \code{Config.in.host}, not visible in \code{menuconfig}.
   \end{itemize}
   \begin{block}{package/bison/bison.mk}
     \begin{minted}[fontsize=\tiny]{make}

@@ -101,7 +101,33 @@
     \item Example: \code{avrdude-eabe067c4527bc2eedc5db9288ef5cf1818ec720.tar.gz}
     \end{itemize}
   \item This tarball will be re-used for the next builds.
+  \item Due to this, always use a tag name or a full commit id, and
+    never a branch name: the code will never be re-downloaded when the
+    branch is updated.
   \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{File integrity checking}
+  \begin{itemize}
+  \item Buildroot packages can provide a \code{.hash} file to provide
+    {\em hashes} for the downloaded files.
+  \item The download infrastructure uses this hash file when available
+    to check the integrity of the downloaded files.
+  \item Hashs are checked every time a downloaded file is used, even
+    if it is already cached in \code{$(DL_DIR)}.
+  \item If the hash is incorrect, the download infrastructure attempts
+    to re-download the file once. If that still fails, the build
+    aborts with an error.
+  \end{itemize}
+
+  \begin{block}{Hash checking message}
+{\scriptsize
+\begin{verbatim}
+strace-4.10.tar.xz: OK (md5: 107a5be455493861189e9b57a3a51912)
+strace-4.10.tar.xz: OK (sha1: 5c3ec4c5a9eeb440d7ec70514923c2e7e7f9ab6c)
+>>> strace 4.10 Extracting
+\end{verbatim}}
+  \end{block}
 \end{frame}
 
 \begin{frame}{Download-related {\tt make} targets}
