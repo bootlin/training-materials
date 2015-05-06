@@ -1,4 +1,8 @@
+\setbeamerfont{block title}{size=\scriptsize}
+
 \section{Advanced package aspects}
+
+\subsection{Licensing report}
 
 \begin{frame}[fragile]{Licensing report: introduction}
   \begin{itemize}
@@ -93,6 +97,8 @@ OWL_LINUX_REDISTRIBUTE = NO
 \end{block}
 
 \end{frame}
+
+\subsection{User, permission and device tables}
 
 \begin{frame}[fragile]{Package-specific users}
 
@@ -222,6 +228,8 @@ endef
 
 \end{frame}
 
+\subsection{Init scripts and systemd unit files}
+
 \begin{frame}{Init scripts, systemd unit files}
 
 \begin{itemize}
@@ -267,6 +275,8 @@ endef
 \end{block}
 
 \end{frame}
+
+\subsection{Config scripts}
 
 \begin{frame}{Config scripts: introduction}
   \begin{itemize}
@@ -332,6 +342,8 @@ $ ./output/staging/usr/bin/libpng-config --cflags --ldflags
 \end{block}
 
 \end{frame}
+
+\subsection{Hooks}
 
 \begin{frame}{Hooks: principle (1)}
   \begin{itemize}
@@ -400,6 +412,8 @@ endif
 
 \end{frame}
 
+\subsection{Overriding commands}
+
 \begin{frame}{Overriding commands: principle}
 
   \begin{itemize}
@@ -444,6 +458,8 @@ $(eval $(autotools-package))
 
 \end{frame}
 
+\subsection{Legacy handling}
+
 \begin{frame}{Legacy handling: {\tt Config.in.legacy}}
   \begin{itemize}
   \item When a \code{Config.in} option is removed, the corresponding
@@ -456,6 +472,141 @@ $(eval $(autotools-package))
   \item When options that have been part of a Buildroot release are
     removed, they are moved to this file.
   \end{itemize}
+\end{frame}
+
+\subsection{Virtual packages}
+
+\begin{frame}{Virtual packages}
+  \begin{itemize}
+  \item There are situations where different packages provide an
+    implementation of the same interface
+  \item The most useful example is OpenGL
+    \begin{itemize}
+    \item OpenGL is an API
+    \item Each HW vendor typically provides its own OpenGL
+      implementation, each packaged as separate Buildroot packages
+    \end{itemize}
+  \item Packages using the OpenGL interface do not want to know which
+    implementation they are using: they are simply using the OpenGL
+    API
+  \item The mechanism of {\em virtual packages} in Buildroot allows to
+    solve this situation.
+    \begin{itemize}
+    \item \code{libgles} is a virtual package offering the OpenGL ES API
+    \item Eight packages are {\em providers} of the OpenGL ES API:
+      \code{gpu-amd-bin-mx51}, \code{gpu-viv-bin-mx6q}, \code{mesa3d},
+      \code{nvidia-driver}, \code{nvidia-tegra23-binaries},
+      \code{rpi-userland}, \code{sunxi-mali}, \code{ti-gfx}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Virtual package definition: Config.in}
+
+\begin{block}{libgles/Config.in}
+{\small
+\begin{verbatim}
+config BR2_PACKAGE_HAS_LIBGLES
+        bool
+
+config BR2_PACKAGE_PROVIDES_LIBGLES
+        depends on BR2_PACKAGE_HAS_LIBGLES
+        string
+\end{verbatim}}
+\end{block}
+
+\begin{itemize}
+\item \code{BR2_PACKAGE_HAS_LIBGLES} is a hidden boolean
+  \begin{itemize}
+  \item Packages needing OpenGL ES will \code{depends on} it.
+  \item Packages providing OpenGL ES will \code{select} it.
+  \end{itemize}
+\item \code{BR2_PACKAGE_PROVIDES_LIBGLES} is a hidden string
+  \begin{itemize}
+  \item Packages providing OpenGL ES will define their name as the
+    variable value
+  \item The \code{libgles} package will have a build dependency on
+    this provider package.
+  \end{itemize}
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Virtual package definition: {\tt .mk}}
+
+\begin{block}{libgles/libgles.mk}
+\begin{minted}{make}
+$(eval $(virtual-package))
+\end{minted}
+\end{block}
+
+\begin{itemize}
+
+\item Nothing to do: the \code{virtual-package} infrastructure takes
+  care of everything, using the \code{BR2_PACKAGE_HAS_<name>} and
+  \code{BR2_PACKAGE_PROVIDES_<name>} options.
+
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Virtual package provider}
+
+\begin{block}{sunxi-mali/Config.in}
+{\small
+\begin{verbatim}
+config BR2_PACKAGE_SUNXI_MALI
+        bool "sunxi-mali"
+        select BR2_PACKAGE_HAS_LIBEGL
+        select BR2_PACKAGE_HAS_LIBGLES
+
+config BR2_PACKAGE_PROVIDES_LIBGLES
+        default "sunxi-mali"
+\end{verbatim}}
+\end{block}
+
+\begin{block}{sunxi-mali/sunxi-mali.mk}
+\begin{minted}{make}
+[...]
+SUNXI_MALI_PROVIDES = libegl libgles
+[...]
+\end{minted}
+\end{block}
+
+\begin{itemize}
+\item The variable \code{<pkg>_PROVIDES} is only used to detect if two
+  providers for the same virtual package are enabled.
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Virtual package user}
+
+  \begin{block}{qt5/qt5base/Config.in}
+{\small
+\begin{verbatim}
+config BR2_PACKAGE_QT5BASE_OPENGL_ES2
+        bool "OpenGL ES 2.0+"
+        depends on BR2_PACKAGE_HAS_LIBGLES
+        help
+          Use OpenGL ES 2.0 and later versions.
+\end{verbatim}}
+\end{block}
+
+\begin{block}{qt5/qt5base/qt5base.mk}
+\begin{minted}[fontsize=\small]{make}
+ifeq ($(BR2_PACKAGE_QT5BASE_OPENGL_DESKTOP),y)
+QT5BASE_CONFIGURE_OPTS += -opengl desktop
+QT5BASE_DEPENDENCIES   += libgl
+else ifeq ($(BR2_PACKAGE_QT5BASE_OPENGL_ES2),y)
+QT5BASE_CONFIGURE_OPTS += -opengl es2
+QT5BASE_DEPENDENCIES   += libgles
+else
+QT5BASE_CONFIGURE_OPTS += -no-opengl
+endif
+\end{minted}
+\end{block}
+
 \end{frame}
 
 \setuplabframe
