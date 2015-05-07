@@ -1,0 +1,90 @@
+\section{Managing the Linux kernel configuration}
+
+\begin{frame}{Introduction}
+  \begin{itemize}
+  \item The Linux kernel itself uses {\em kconfig} to define its
+    configuration
+  \item Buildroot cannot replicate all Linux kernel configuration
+    options in its \code{menuconfig}
+  \item Defining the Linux kernel configuration therefore needs to be
+    done in a special way.
+  \item Note: while described with the example of the Linux kernel,
+    this discussion is also valid for other packages using {\em
+      kconfig}: \code{barebox}, \code{uclibc}, \code{busybox}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Defining the configuration}
+  \begin{itemize}
+  \item In the \code{Kernel} menu in \code{menuconfig}, after
+    selecting the kernel version, you have two options to define the
+    kernel configuration:
+    \begin{itemize}
+    \item \code{Use a defconfig}
+      \begin{itemize}
+      \item Will use a {\em defconfig} provided within the kernel
+        sources
+      \item Available in \code{arch/<ARCH>/configs} in the kernel
+        sources
+      \item Used unmodified by Buildroot
+      \item Good starting point
+      \end{itemize}
+    \item \code{Use a custom config file}
+      \begin{itemize}
+      \item Allows to give the path to either a full \code{.config},
+        or a minimal {\em defconfig}
+      \item Usually what you will use, so that you can have a custom
+        configuration
+      \end{itemize}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Changing the configuration}
+  \begin{itemize}
+  \item Running one of the Linux kernel configuration interfaces:
+    \begin{itemize}
+    \item \code{make linux-menuconfig}
+    \item \code{make linux-nconfig}
+    \item \code{make linux-xconfig}
+    \item \code{make linux-gconfig}
+    \end{itemize}
+  \item Will load either the defined kernel {\em defconfig} or custom
+    configuration file, and start the corresponding Linux kernel
+    configuration interface.
+  \item Changes made are only made in
+    \code{$(O)/build/linux-<version>/}, i.e they are not preserved
+    accross a clean rebuild.
+  \item To save them:
+    \begin{itemize}
+    \item \code{make linux-update-config}, to save a full config file
+    \item \code{make linux-update-defconfig}, to save a minimal defconfig
+    \item Only works if a {\em custom configuration file} is used
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Typical flow}
+  \begin{enumerate}
+  \item \code{make menuconfig}
+    \begin{itemize}
+    \item Start with a {\em defconfig} from the kernel, say \code{mvebu_v7_defconfig}
+    \end{itemize}
+  \item Run \code{make linux-menuconfig} to customize the
+    configuration
+  \item Do the build, test, tweak the configuration as needed.
+  \item You cannot do \code{make linux-update-config,defconfig},
+    since the Buildroot configuration points to a kernel {\em
+      defconfig}
+  \item \code{make menuconfig}
+    \begin{itemize}
+    \item Change to a custom configuration file. There's no need for
+      the file to exist, it will be created by Buildroot.
+    \end{itemize}
+  \item \code{make linux-update-defconfig}
+    \begin{itemize}
+    \item Will create your custom configuration file, as a minimal
+      {\em defconfig}
+    \end{itemize}
+  \end{enumerate}
+\end{frame}
