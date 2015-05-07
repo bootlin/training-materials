@@ -608,6 +608,111 @@ endif
   \end{block}
 \end{frame}
 
+\begin{frame}{Mandatory vs. optional dependencies}
+
+  \begin{itemize}
+  \item Very often, software components have some {\bf mandatory
+      dependencies} and some {\bf optional dependencies}, only needed
+    for optional features.
+  \item Handling mandatory dependencies in Buildroot consists in:
+    \begin{itemize}
+    \item Using a \code{select} or \code{depends on} on the main
+      package option in \code{Config.in}
+    \item Adding the dependency in \code{<pkg>_DEPENDENCIES}
+    \end{itemize}
+  \item For optional dependencies, there are two possibilities:
+    \begin{itemize}
+    \item Handle it automatically: in the \code{.mk} file, if the
+      optional dependency is available, use it.
+    \item Handle it explicitly: add a package sub-option in the
+      \code{Config.in} file.
+    \end{itemize}
+  \item {\em Automatic} handling is usually preferred as it reduces
+    the number of \code{Config.in} options, but it makes the possible
+    dependency less visible to the user.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Dependencies: {\tt ntp} example}
+
+  \begin{itemize}
+  \item Mandatory dependency: \code{libevent}
+  \item Optional dependency handled automatically: \code{openssl}
+  \end{itemize}
+
+\begin{block}{package/ntp/Config.in}
+{\scriptsize
+\begin{verbatim}
+config BR2_PACKAGE_NTP
+        bool "ntp"
+        select BR2_PACKAGE_LIBEVENT
+[...]
+\end{verbatim}}
+\end{block}
+
+\begin{block}{package/ntp/ntp.mk}
+\begin{minted}[fontsize=\scriptsize]{make}
+[...]
+NTP_DEPENDENCIES = host-pkgconf libevent
+[...]
+ifeq ($(BR2_PACKAGE_OPENSSL),y)
+NTP_CONF_OPTS += --with-crypto
+NTP_DEPENDENCIES += openssl
+else
+NTP_CONF_OPTS += --without-crypto --disable-openssl-random
+endif
+[...]
+\end{minted}
+\end{block}
+
+\end{frame}
+
+\begin{frame}[fragile]{Dependencies: {\tt mpd} example (1/2)}
+
+\begin{block}{package/mpd/Config.in}
+{\scriptsize
+\begin{verbatim}
+menuconfig BR2_PACKAGE_MPD
+        bool "mpd"
+        depends on BR2_INSTALL_LIBSTDCPP
+[...]
+        select BR2_PACKAGE_BOOST
+        select BR2_PACKAGE_LIBGLIB2
+        select BR2_PACKAGE_LIBICONV if !BR2_ENABLE_LOCALE
+[...]
+
+config BR2_PACKAGE_MPD_FLAC
+        bool "flac"
+        select BR2_PACKAGE_FLAC
+        help
+          Enable flac input/streaming support.
+          Select this if you want to play back FLAC files.
+
+\end{verbatim}}
+\end{block}
+
+\end{frame}
+
+\begin{frame}[fragile]{Dependencies: {\tt mpd} example (2/2)}
+
+\begin{block}{package/ntp/ntp.mk}
+\begin{minted}[fontsize=\scriptsize]{make}
+MPD_DEPENDENCIES = host-pkgconf boost libglib2
+
+[...]
+
+ifeq ($(BR2_PACKAGE_MPD_FLAC),y)
+MPD_DEPENDENCIES += flac
+MPD_CONF_OPTS += --enable-flac
+else
+MPD_CONF_OPTS += --disable-flac
+endif
+\end{minted}
+\end{block}
+
+\end{frame}
+
+
 \begin{frame}{Defining where to install (1)}
   \begin{itemize}
   \item Target packages can install files to different locations:
