@@ -294,7 +294,7 @@ BUILDROOT_SLIDES = \
 		buildroot-new-packages \
 		buildroot-advanced-packages \
 		buildroot-analysis \
-		buildroot-board-project \
+		buildroot-advanced \
 		buildroot-appdev \
 		buildroot-internals \
 		buildroot-support-contribution \
