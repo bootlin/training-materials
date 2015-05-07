@@ -321,6 +321,67 @@ test         8000  wheel   -1    =          -         /bin/sh -           Test u
   \end{itemize}
 \end{frame}
 
+\begin{frame}{Deploying the images}
+  \begin{itemize}
+  \item By default, Buildroot simply stores the different images in
+    \code{$(O)/images}
+  \item It is up to the user to deploy those images to the target
+    device.
+  \item Possible solutions:
+    \begin{itemize}
+    \item For removable storage (SD card, USB keys):
+      \begin{itemize}
+      \item manually create the partitions and extract the root
+        filesystem as a tarball to the appropriate partition.
+      \item use a tool like \code{genimage} to create a complete image
+        of the media, including all partitions
+      \end{itemize}
+    \item For NAND flash:
+      \begin{itemize}
+      \item Transfer the image to the target, and flash it.
+      \end{itemize}
+    \item NFS booting
+    \item initramfs
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Deploying the image: NFS booting}
+  \begin{itemize}
+  \item Many people try to use \code{$(O)/target} directly for NFS booting
+    \begin{itemize}
+    \item This cannot work, due to permissions/ownership being
+      incorrect
+    \item Clearly explained in the
+      \code{THIS_IS_NOT_YOUR_ROOT_FILESYSTEM} file.
+    \end{itemize}
+  \item Generate a tarball of the root filesystem
+  \item Use \code{sudo tar -C /nfs -xf output/images/rootfs.tar} to
+    prepare your NFS share.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Deploying the image: initramfs}
+  \begin{itemize}
+
+  \item Another common use case is to use an {\em initramfs}, i.e a
+    root filesystem fully in RAM.
+    \begin{itemize}
+    \item Convenient for small filesystems, fast booting or kernel
+      development
+    \end{itemize}
+  \item Two solutions:
+    \begin{itemize}
+    \item \code{BR2_TARGET_ROOTFS_CPIO=y} to generate a {\em cpio}
+      archive, that you can load from your bootloader next to the
+      kernel image.
+    \item \code{BR2_TARGET_ROOTFS_INITRAMFS=y} to directly include the
+      {\em initramfs} inside the kernel image. Only available when the
+      kernel is built by Buildroot.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
 \setuplabframe
 {Root filesystem construction}
 {
