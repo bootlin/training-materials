@@ -1,0 +1,196 @@
+\section{GNU Make 101}
+
+\begin{frame}{Introduction}
+  \begin{itemize}
+  \item Buildroot being implemented in {\bf GNU Make}, it is quite
+    important to know the basics of this language
+    \begin{itemize}
+    \item Basics of {\em make} rules
+    \item Defining and referencing variables
+    \item Conditions
+    \item Defining and using functions
+    \item Useful {\em make} functions
+    \end{itemize}
+  \item This does not aim at replacing a full course o {\em GNU Make}
+  \item \url{http://www.gnu.org/software/make/manual/make.html}
+  \item \url{http://www.nostarch.com/gnumake}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Basics of {\em make} rules}
+  \begin{itemize}
+  \item At their core, {\em Makefiles} are simply defining {\bf rules}
+    to create {\bf targets} from {\bf prerequisites} using {\bf recipe
+      commands}
+    \begin{block}{}
+\begin{verbatim}
+TARGET ...: PREREQUISITES ...
+         RECIPE
+         ...
+\end{verbatim}
+    \end{block}
+  \item {\bf target}: name of a file that is generated. Can also be an
+    arbitrary action, like \code{clean}, in which case it's a {\bf
+      phony target}
+  \item {\bf prerequisites}: list of files or other targets that are
+    needed as dependencies of building the current target.
+  \item {\bf recipe}: list of shell commands to create the target from
+    the prerequisites
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Rule example}
+
+\begin{block}{Makefile}
+\begin{minted}[fontsize=\scriptsize]{make}
+clean:
+        rm -rf $(TARGET_DIR) $(BINARIES_DIR) $(HOST_DIR) \
+                $(BUILD_DIR) $(BASE_DIR)/staging \
+                $(LEGAL_INFO_DIR)
+
+distclean: clean
+        [...]
+        rm -rf $(BR2_CONFIG) $(CONFIG_DIR)/.config.old \
+               $(CONFIG_DIR)/.auto.deps
+\end{minted}
+\end{block}
+
+\begin{itemize}
+\item \code{clean} and \code{distclean} are phony targets
+\end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{Defining and referencing variables}
+  \begin{itemize}
+  \item Defining variables is done in different ways:
+    \begin{itemize}
+    \item \code{FOOBAR = value}, a recursively expanded variable
+    \item \code{FOOBAR := value}, a simply expanded variable
+    \item \code{FOOBAR ?= value}, defined only if not already defined
+    \item Multi-line variables are described using \code{define NAME
+        ... endef}:
+      \begin{block}{}
+\begin{verbatim}
+define FOOBAR
+line 1
+line 2
+endef
+\end{verbatim}
+      \end{block}
+    \end{itemize}
+  \item Make variables are referenced using the \code{$(FOOBAR)}
+    syntax.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Conditions}
+  \begin{itemize}
+  \item With \code{ifeq} or \code{ifneq}
+    \begin{block}{}
+\begin{minted}[fontsize=\tiny]{make}
+ifeq ($(BR2_CCACHE),y)
+CCACHE := $(HOST_DIR)/usr/bin/ccache
+endif
+
+distclean: clean
+ifeq ($(DL_DIR),$(TOPDIR)/dl)
+        rm -rf $(DL_DIR)
+endif
+\end{minted}
+    \end{block}
+  \item With the \code{$(if ...)} make function:
+    \begin{block}{}
+\begin{minted}[fontsize=\tiny]{make}
+HOSTAPD_LIBS += $(if $(BR2_STATIC_LIBS),-lcrypto -lz)
+\end{minted}
+    \end{block}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Defining and using functions}
+  \begin{itemize}
+  \item Defining a function is exactly like defining a variable:
+    \begin{block}{}
+\begin{minted}[fontsize=\tiny]{make}
+MESSAGE = echo "$(TERM_BOLD)>>> $($(PKG)_NAME) $($(PKG)_VERSION) $(call qstrip,$(1))$(TERM_RESET)"
+
+define legal-license-header # pkg, license-file, {HOST|TARGET}
+        printf "$(LEGAL_INFO_SEPARATOR)\n\t$(1):\
+                $(2)\n$(LEGAL_INFO_SEPARATOR)\n\n\n" >>$(LEGAL_LICENSES_TXT_$(3))
+endef
+\end{minted}
+    \end{block}
+  \item Arguments accessible as \code{$(1)}, \code{$(2)}, etc.
+  \item Called using the \code{$(call func,arg1,arg2)} construct
+    \begin{block}{}
+\begin{minted}[fontsize=\tiny]{make}
+$(BUILD_DIR)/%/.stamp_extracted:
+        [...]
+        @$(call MESSAGE,"Extracting")
+
+define legal-license-nofiles # pkg, {HOST|TARGET}
+        $(call legal-license-header,$(1),unknown license file(s),$(2))
+endef
+\end{minted}
+    \end{block}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Useful {\em make} functions}
+  \begin{itemize}
+  \item \code{subst} and \code{patsubst} to replace text
+    \begin{block}{}
+\begin{minted}[fontsize=\tiny]{make}
+ICU_SOURCE = icu4c-$(subst .,_,$(ICU_VERSION))-src.tgz
+\end{minted}
+    \end{block}
+  \item \code{filter} and \code{filter-out} to filter entries
+  \item \code{foreach} to implement loops
+\begin{block}{}
+\begin{minted}[fontsize=\tiny]{make}
+$(foreach incdir,$(TI_GFX_HDR_DIRS),
+      $(INSTALL) -d $(STAGING_DIR)/usr/include/$(notdir $(incdir)); \
+      $(INSTALL) -D -m 0644 $(@D)/include/$(incdir)/*.h \
+              $(STAGING_DIR)/usr/include/$(notdir $(incdir))/
+)
+\end{minted}
+\end{block}
+  \item \code{dir}, \code{notdir}, \code{addsuffix}, \code{addprefix}
+    to manipulate file names
+    \begin{block}{}
+\begin{minted}[fontsize=\tiny]{make}
+UBOOT_SOURCE = $(notdir $(UBOOT_TARBALL))
+
+IMAGEMAGICK_CONFIG_SCRIPTS = \
+        $(addsuffix -config,Magick MagickCore MagickWand Wand)
+\end{minted}
+    \end{block}
+  \item And many more, see the {\em GNU Make} manual for details.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Writing recipes}
+
+  \begin{itemize}
+  \item Recipes are just shell commands
+  \item Each line of shell command in a given recipe is independent
+    from the other: variables are not shared between lines in the
+    recipe
+  \item Need to use a single line, possibly split using $\backslash$,
+    to do complex shell constructs
+  \item Shell variables must be referenced using \code{$$name}.
+    \begin{block}{package/pppd/pppd.mk}
+\begin{minted}[fontsize=\tiny]{make}
+define PPPD_INSTALL_RADIUS
+        ...
+        for m in $(PPPD_RADIUS_CONF); do \
+                $(INSTALL) -m 644 -D $(PPPD_DIR)/pppd/plugins/radius/etc/$$m \
+                        $(TARGET_DIR)/etc/ppp/radius/$$m; \
+        done
+        ...
+endef
+\end{minted}
+\end{block}
+  \end{itemize}
+\end{frame}

@@ -292,6 +292,7 @@ BUILDROOT_SLIDES = \
 		buildroot-kernel \
 		buildroot-rootfs \
 		buildroot-download \
+		buildroot-make \
 		buildroot-new-packages \
 		buildroot-advanced-packages \
 		buildroot-analysis \
