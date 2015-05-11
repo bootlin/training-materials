@@ -302,6 +302,16 @@ BUILDROOT_SLIDES = \
 		buildroot-support-contribution \
 		last-slides
 
+AUTOTOOLS_SLIDES = first-slides \
+		about-us \
+		course-information-title \
+		course-information \
+		setup-lab \
+		autotools-usage \
+		autotools-basics \
+		autotools-advanced \
+		last-slides
+
 # List of labs for the different courses
 
 SYSDEV_LABS   = setup \
@@ -376,6 +386,11 @@ BUILDROOT_LABS = setup \
 		buildroot-advanced-packages \
 		buildroot-analysis \
 		buildroot-appdev
+
+AUTOTOOLS_LABS = setup \
+		autotools-usage \
+		autotools-basics \
+		autotools-advanced
 
 # Output directory
 OUTDIR   = $(PWD)/out
@@ -635,6 +650,7 @@ clean:
 
 ALL_TRAININGS = \
 	android \
+	autotools \
 	boottime \
 	buildroot \
 	kernel \
