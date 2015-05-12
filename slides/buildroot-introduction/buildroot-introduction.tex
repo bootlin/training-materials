@@ -31,7 +31,7 @@
 \end{frame}
 
 \begin{frame}{System integration: several possibilities}
-  \scriptsize
+  \tiny
   \begin{tabularx}{11cm}{|X|X|X|}
     \hline
     & {\bf Pros} & {\bf Cons} \\
@@ -49,11 +49,12 @@
     Easy to create and extend
     &
     Hard to customize \newline
-    Hard to optimize \newline
-    No way to rebuild the full system from source \newline
+    Hard to optimize (boot time, size) \newline
+    Hard to rebuild the full system from source \newline
     Large system \newline
-    Usually slow boot \newline
-    Uses native compilation \newline
+    Uses native compilation (slow) \newline
+    No well-define mechanism to generate an image \newline
+    Lots of mandatory dependencies \newline
     Not available for all architectures \\
     \hline
     {\bf Build systems} \newline Buildroot, Yocto, PTXdist, etc.
@@ -61,7 +62,9 @@
     Nearly full flexibility \newline
     Built from source: customization and optimization are easy \newline
     Fully reproducible \newline
-    Uses cross-compilation
+    Uses cross-compilation \newline
+    Have embedded specific packages not necessarily in desktop distros \newline
+    Make more features optional
     &
     Not as easy as a binary distribution \newline
     Build time \\
@@ -113,6 +116,24 @@
   \end{itemize}
 \end{frame}
 
+\begin{frame}{Buildroot design goals}
+  \begin{itemize}
+  \item Buildroot is designed with a few key goals:
+    \begin{itemize}
+    \item Simple to use
+    \item Simple to customize
+    \item Reproducible builds
+    \item Small root filesystem
+    \item Relatively fast boot
+    \item Easy to understand
+    \end{itemize}
+  \item Some of these goals require to not necessarily support all
+    possible features
+  \item They are some more complicated and featureful build systems
+    available (Yocto Project, OpenEmbedded)
+  \end{itemize}
+\end{frame}
+
 \begin{frame}{Who's using Buildroot?}
   \begin{columns}
     \column{0.6\textwidth}
@@ -125,10 +146,10 @@
       \end{itemize}
     \item {\bf Processor vendors}
       \begin{itemize}
-      \item Analog Devices
       \item Imagination Technologies
       \item Marvell
       \item Atmel
+      \item Analog Devices
       \end{itemize}
     \item Many, many {\bf hobbyists} on development boards:
       Rasberry Pi, BeagleBone Black, etc.
@@ -150,8 +171,8 @@
   \item However, it is generally more convenient to clone the Git
     repository
     \begin{itemize}
-    \item Allows to clearly identify the changes made to the Buildroot
-      source code
+    \item Allows to clearly identify the changes you make to the
+      Buildroot source code
     \item Simplifies the upstreaming of the Buildroot changes
     \item \code{git clone git://git.busybox.net/buildroot}
     \item Git tags available for every stable release.
@@ -165,16 +186,16 @@
     \begin{itemize}
     \item With a few helper shell scripts
     \end{itemize}
-  \item Interaction always with the main \code{Makefile} in the main
-    Buildroot sources directory.
+  \item All interaction by calling \code{make} in the main Buildroot
+    sources directory.
     \begin{block}{}
 \begin{verbatim}
 $ cd buildroot/
 $ make help
 \end{verbatim}
     \end{block}
-  \item No need to run as \code{root}, Buildroot is designed to work
-    executed with normal user priviledges.
+  \item No need to run as \code{root}, Buildroot is designed to be
+    executed with normal user privileges.
     \begin{itemize}
     \item Running as root is even strongly discouraged!
     \end{itemize}
@@ -183,7 +204,7 @@ $ make help
 
 \begin{frame}{Configuring Buildroot}
   \begin{itemize}
-  \item Like the Linux kernel, uses {\em kconfig}
+  \item Like the Linux kernel, uses {\em Kconfig}
   \item A choice of configuration interfaces:
     \begin{itemize}
     \item \code{make menuconfig}
@@ -229,6 +250,13 @@ $ make 2>&1 | tee build.log
     \item One or several root filesystem images, in various formats
     \item One kernel image, possibly one or several Device Tree blobs
     \item One or several bootloader images
+    \end{itemize}
+  \item There is no standard way to install the images on any given
+    device
+    \begin{itemize}
+    \item Those steps are very device specific
+    \item Buildroot provides some tools for specific platforms (e.g:
+      SAM-BA for Atmel, imx-usb-loader for i.MX6, etc.)
     \end{itemize}
   \end{itemize}
 \end{frame}
