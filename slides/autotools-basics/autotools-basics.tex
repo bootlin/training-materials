@@ -1,1 +1,261 @@
 \section{Autotools basics}
+
+\begin{frame}{{\tt configure.ac} language}
+  \begin{itemize}
+  \item Really a shell script
+  \item Processed through the \code{m4} preprocessor
+  \item Language called \code{m4sh}
+  \item Shell script augmented with special constructs for portability:
+    \begin{itemize}
+    \item \code{AS_IF} instead of shell \code{if ... then .. fi}
+    \item \code{AS_CASE} instead of shell \code{case ... esac}
+    \item etc.
+    \end{itemize}
+  \item {\em autoconf} provides a large set of {\em m4} macros to do
+    most of the usual tests
+  \item Make sure to quote arguments to macro with \code{[]}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Minimal {\tt configure.ac}}
+  \begin{block}{configure.ac}
+  \begin{minted}{bash}
+AC_INIT([hello], [1.0])
+AC_OUTPUT
+  \end{minted}
+  \end{block}
+  \begin{itemize}
+  \item \code{AC_INIT}
+    \begin{itemize}
+    \item Every configure script must call \code{AC_INIT} before doing
+      anything else that produces output.
+    \item Process any command-line arguments and perform
+      initialization and verification.
+    \item Prototype:\\
+      \code{AC_INIT (package, version, [bug-report], [tarname], [url])}
+    \end{itemize}
+  \item \code{AC_OUTPUT}
+    \begin{itemize}
+    \item Every \code{configure.ac}, should finish by calling
+      \code{AC_OUTPUT}.
+    \item Generates and runs config.status, which in turn creates the
+      makefiles and any other files resulting from configuration.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Minimal {\tt configure.ac} example}
+
+  \begin{block}{}
+    \begin{minted}[fontsize=\scriptsize]{console}
+$ cat configure.ac
+AC_INIT([hello], [1.0])
+AC_OUTPUT
+$ ls
+configure.ac
+$ autoreconf -i
+$ ls
+autom4te.cache  configure  configure.ac
+$ ./configure
+configure: creating ./config.status
+$ ls
+autom4te.cache  config.log    config.status
+configure       configure.ac
+$ wc -l configure
+2390 configure
+\end{minted}
+\end{block}
+
+\end{frame}
+
+\begin{frame}{Additional basic macros}
+  \begin{itemize}
+  \item \code{AC_PREREQ}
+    \begin{itemize}
+    \item Verifies that a recent enough version of {\em autoconf} is used
+    \item \code{AC_PREREQ([2.68])}
+    \end{itemize}
+  \item \code{AC_CONFIG_SRCDIR}
+    \begin{itemize}
+    \item Gives the path to one source file in your project
+    \item Allows {\em autoconf} to check that it is really where it
+      should be
+    \item \code{AC_CONFIG_SRCDIR([hello.c])}
+    \end{itemize}
+  \item \code{AC_CONFIG_AUX_DIR}
+    \begin{itemize}
+    \item Tells {\em autoconf} to put the auxiliary build tools it
+      requires in a different directory, rather than the one of
+      \code{configure.ac}
+    \item Useful to keep cleaner build directory
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Checking for basic programs}
+  \begin{itemize}
+  \item \code{AC_PROG_CC}, makes sure a C compiler is available
+  \item \code{AC_PROG_CXX}, makes sure a C++ compiler is available
+  \item \code{AC_PROG_AWK}, \code{AC_PROG_GREP}, \code{AC_PROG_LEX},
+    \code{AC_PROG_YACC}, etc.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Checking for basic programs: example}
+
+\begin{block}{configure.ac}
+\begin{verbatim}
+AC_INIT([hello], [1.0])
+AC_PROG_CC
+AC_OUTPUT
+\end{verbatim}
+\end{block}
+
+\begin{block}{}
+\begin{minted}[fontsize=\scriptsize]{console}
+$ ./configure
+checking for gcc... gcc
+checking whether the C compiler works... yes
+checking for C compiler default output file name... a.out
+checking for suffix of executables...
+checking whether we are cross compiling... no
+checking for suffix of object files... o
+checking whether we are using the GNU C compiler... yes
+checking whether gcc accepts -g... yes
+checking for gcc option to accept ISO C89... none needed
+configure: creating ./config.status
+\end{minted}
+\end{block}
+
+\end{frame}
+
+\begin{frame}{{\tt AC\_CONFIG\_FILES}}
+  \begin{itemize}
+  \item \code{AC_CONFIG_FILES (file..., [cmds], [init-cmds])}
+  \item Make \code{AC_OUTPUT} create each file by copying an input
+    \code{file} (by default \code{file.in}), substituting the {\em
+      output variable values}.
+  \item Typically used to turn the Makefile templates
+    \code{Makefile.in} files into final \code{Makefile}.
+  \item Example:\\
+    \code{AC_CONFIG_FILES([Makefile src/Makefile])}
+  \item \code{cmds} and \code{init-cmds} are rarely used, see the {\em
+      autoconf} documentation for details.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Output variables}
+  \begin{itemize}
+  \item {\em autoconf} will replace \code{@variable@} constructs by
+    the appropriate values in files listed in \code{AC_CONFIG_FILES}
+  \item Long list of standard variables replaced by {\em autoconf}
+  \item Additional shell variables declared in \code{configure.ac} can
+    be replaced using \code{AC_SUBST}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{{\tt AC\_CONFIG\_FILES} example (1/2)}
+
+\begin{block}{configure.ac}
+\begin{verbatim}
+AC_INIT([hello], [1.0])
+AC_PROG_CC
+FOO=42
+AC_SUBST([FOO])
+AC_CONFIG_FILES([testfile])
+AC_OUTPUT
+\end{verbatim}
+\end{block}
+
+\begin{block}{testfile.in}
+\begin{verbatim}
+abs_builddir = @abs_builddir@
+CC = @CC@
+FOO = @FOO@
+\end{verbatim}
+\end{block}
+
+\end{frame}
+
+\begin{frame}[fragile]{{\tt AC\_CONFIG\_FILES} example (2/2)}
+
+\begin{block}{Executing \code{./configure}}
+\begin{minted}[fontsize=\scriptsize]{console}
+/tmp/foo$ ./configure
+checking for gcc... gcc
+checking whether the C compiler works... yes
+checking for C compiler default output file name... a.out
+checking for suffix of executables... 
+checking whether we are cross compiling... no
+checking for suffix of object files... o
+checking whether we are using the GNU C compiler... yes
+checking whether gcc accepts -g... yes
+checking for gcc option to accept ISO C89... none needed
+configure: creating ./config.status
+config.status: creating testfile
+\end{minted}
+\end{block}
+
+\begin{block}{Generated \code{testfile}}
+\begin{verbatim}
+abs_builddir = /tmp/foo
+CC = gcc
+FOO = 42
+\end{verbatim}
+\end{block}
+
+\end{frame}
+
+\begin{frame}[fragile]{{\tt configure.ac}: a shell script}
+
+\begin{itemize}
+\item It is possible to include normal shell constructs in
+  \code{configure.ac}
+\item Beware to not use {\em bashisms}: use only POSIX compatible
+  constructs
+\end{itemize}
+
+\begin{columns}
+\column{0.4\textwidth}
+
+\begin{block}{configure.ac}
+{\tiny
+\begin{verbatim}
+AC_INIT([hello], [1.0])
+echo "The value of CC is $CC"
+AC_PROG_CC
+echo "The value of CC is now $CC"
+FOO=42
+AC_SUBST([FOO])
+if test $FOO -eq 42 ; then
+   echo "The value of FOO is correct!"
+fi
+AC_CONFIG_FILES([testfile])
+AC_OUTPUT
+\end{verbatim}}
+\end{block}
+
+\column{0.6\textwidth}
+
+\begin{block}{Running \code{./configure}}
+\begin{minted}[fontsize=\tiny]{console}
+The value of CC is 
+checking for gcc... gcc
+checking whether the C compiler works... yes
+checking for C compiler default output file name... a.out
+checking for suffix of executables... 
+checking whether we are cross compiling... no
+checking for suffix of object files... o
+checking whether we are using the GNU C compiler... yes
+checking whether gcc accepts -g... yes
+checking for gcc option to accept ISO C89... none needed
+The value of CC is now gcc
+The value of FOO is correct!
+configure: creating ./config.status
+config.status: creating testfile
+\end{minted}
+\end{block}
+
+\end{columns}
+
+\end{frame}
