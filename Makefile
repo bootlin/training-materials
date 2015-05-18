@@ -310,6 +310,7 @@ AUTOTOOLS_SLIDES = first-slides \
 		autotools-usage \
 		autotools-basics \
 		autotools-advanced \
+		autotools-references \
 		last-slides
 
 # List of labs for the different courses
