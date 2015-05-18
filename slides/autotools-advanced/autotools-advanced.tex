@@ -452,6 +452,16 @@ enable_test = no
 
 \end{frame}
 
+\subsection{pkg-config}
+
+\begin{frame}{Using pkg-config with {\tt autoconf}}
+
+\end{frame}
+
+\begin{frame}{pkg-config example}
+
+\end{frame}
+
 \subsection{Misc}
 
 \begin{frame}{{\tt autoscan}}
@@ -469,6 +479,14 @@ enable_test = no
   \end{itemize}
 \end{frame}
 
+\begin{frame}{Additional {\tt m4} macros: {\em autoconf-archive}}
+  \begin{itemize}
+  \item The {\bf GNU Autoconf Archive} is a collection of more than
+    500 macros for \code{autoconf}
+  \item \url{http://www.gnu.org/software/autoconf-archive/}
+  \end{itemize}
+\end{frame}
+
 \begin{frame}{{\tt AC\_CONFIG\_MACRO\_DIR}}
 
 \end{frame}
@@ -476,8 +494,76 @@ enable_test = no
 \section{Automake advanced}
 
 \begin{frame}{Subdirectories}
+  \begin{itemize}
+  \item A project is often organized with multiple directories
+  \item \code{automake} offers two options to support this:
+    \begin{itemize}
+    \item {\bf recursive make}, where a sub-call to \code{make} is made
+      for sub-directories, and each directory has its own
+      \code{Makefile.am}
+    \item {\bf non-recursive make}, where there is a single
+      \code{Makefile.am}, building everything
+    \end{itemize}
+  \item {\bf recursive make} used to be the norm, but has significant
+    drawbacks
+    \begin{itemize}
+    \item {\em Recursive make considered harmful},
+      \url{http://aegis.sourceforge.net/auug97.pdf}
+    \end{itemize}
+  \item {\bf non-recursive make} is more and more commonly used in
+    modern projects
+  \end{itemize}
+\end{frame}
 
-SUBDIRS, recursive make, subdir-objects
+\begin{frame}[fragile]{Recursive make}
+
+  \begin{itemize}
+  \item The \code{SUBDIRS} variable in a \code{Makefile.am} indicate
+    the sub-directories that contain other \code{Makefile.am}
+  \end{itemize}
+
+  \begin{block}{configure.ac}
+\begin{verbatim}
+AC_CONFIG_FILES([Makefile src/Makefile])
+\end{verbatim}
+  \end{block}
+
+  \begin{block}{Makefile.am}
+\begin{verbatim}
+SUBDIRS = src
+\end{verbatim}
+  \end{block}
+
+  \begin{block}{src/Makefile.am}
+\begin{verbatim}
+bin_PROGRAMS = hello
+hello_SOURCES = main.c
+\end{verbatim}
+  \end{block}
+\end{frame}
+
+\begin{frame}[fragile]{Non-recursive make}
+
+  \begin{itemize}
+  \item The \code{AM_INIT_AUTOMAKE} macro accepts a
+    \code{subdir-objects} argument
+  \item If specified, allows a \code{Makefile.am} to reference code in
+    another directory
+  \end{itemize}
+
+\begin{block}{configure.ac}
+\begin{verbatim}
+AM_INIT_AUTOMAKE([subdir-objects])
+AC_CONFIG_FILES([Makefile])
+\end{verbatim}
+\end{block}
+
+\begin{block}{Makefile.am}
+\begin{verbatim}
+bin_PROGRAMS = hello
+hello_SOURCES = src/main.c
+\end{verbatim}
+\end{block}
 
 \end{frame}
 
@@ -491,10 +577,85 @@ SUBDIRS, recursive make, subdir-objects
 
 \end{frame}
 
-\begin{frame}{Building libraries}
+\begin{frame}{Building shared libraries}
+  \begin{itemize}
+  \item Building shared libraries is very different between Unix
+    variants
+  \item A specific tool, called \code{libtool}, was created to
+    abstract away the differences between platforms.
+  \item Concept called {\em libtool libraries}, using the \code{.la}
+    suffix
+  \item A libtool library can designate a static library, a shared
+    library, or both.
+    \begin{itemize}
+    \item \code{--{enable,disable}-{static,shared}} to select
+    \end{itemize}
+  \item Libtool libraries declared using the \code{LTLIBRARIES}
+    primary in a \code{Makefile.am}
+  \item Typically used in conjunction with the \code{HEADERS} primary
+    to install public headers.
+  \item \code{configure.ac} must call the \code{LT_PREREQ} and
+    \code{LT_INIT} macros
+  \end{itemize}
+\end{frame}
 
-%% \url{http://www.gnu.org/software/automake/manual/html_node/A-Library.html#A-Library}
-%% \url{http://www.gnu.org/software/automake/manual/html_node/A-Shared-Library.html#A-Shared-Library}
+\begin{frame}[fragile]{Libtool library example}
+
+\begin{block}{configure.ac}
+{\small
+\begin{verbatim}
+[...]
+LT_PREREQ([2.4])
+LT_INIT
+[...]
+\end{verbatim}}
+\end{block}
+
+\begin{block}{Makefile.am}
+{\small
+\begin{verbatim}
+bin_PROGRAMS = hello
+hello_SOURCES = src/main.c
+
+lib_LTLIBRARIES = libmyhello.la
+libmyhello_la_SOURCES = lib/core.c
+include_HEADERS = lib/myhello.h
+\end{verbatim}}
+\end{block}
+
+\end{frame}
+
+\begin{frame}[fragile]{Libtool library example (2/2)}
+
+\begin{block}{}
+\begin{minted}[fontsize=\tiny]{console}
+$ ./configure
+[...]
+checking whether stripping libraries is possible... yes
+checking if libtool supports shared libraries... yes
+checking whether to build shared libraries... yes
+checking whether to build static libraries... yes
+[...]
+$ make
+[...]
+$ make DESTDIR=/tmp/test install
+[...]
+$ find /tmp/test
+/tmp/test/
+/tmp/test/usr
+/tmp/test/usr/local
+/tmp/test/usr/local/include
+/tmp/test/usr/local/include/myhello.h
+/tmp/test/usr/local/bin
+/tmp/test/usr/local/bin/hello
+/tmp/test/usr/local/lib
+/tmp/test/usr/local/lib/libmyhello.a
+/tmp/test/usr/local/lib/libmyhello.la
+/tmp/test/usr/local/lib/libmyhello.so
+/tmp/test/usr/local/lib/libmyhello.so.0
+/tmp/test/usr/local/lib/libmyhello.so.0.0.0
+\end{minted}
+\end{block}
 
 \end{frame}
 
