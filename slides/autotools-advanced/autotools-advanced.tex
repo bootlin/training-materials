@@ -456,9 +456,75 @@ enable_test = no
 
 \begin{frame}{Using pkg-config with {\tt autoconf}}
 
+  \begin{itemize}
+
+  \item To find libraries, a much better solution than
+    \code{AC_SEARCH_LIBS} is to use {\bf pkg-config}
+
+  \item pkg-config is a database of small text files, using the
+    \code{.pc} extension, describing how to use a given library
+    \begin{itemize}
+    \item installed in \code{usr/lib/pkgconfig} on most systems
+    \item installed by most modern libraries
+    \end{itemize}
+
+  \item The \code{pkg-config} command line tool allows to query this
+    database for the compiler and linker flags needed to use a given
+    library.
+
+  \item The \code{PKG_CHECK_MODULES} {\em autoconf} macro allows to
+    query the pkg-config database.
+
+  \end{itemize}
+
 \end{frame}
 
-\begin{frame}{pkg-config example}
+\begin{frame}[fragile]{The {\tt PKG\_CHECK\_MODULES} macro}
+\begin{itemize}
+\item Syntax:
+  \begin{block}{}
+{\small
+\begin{verbatim}
+PKG_CHECK_MODULES(prefix, list-of-modules,
+                  action-if-found, action-if-not-found)
+\end{verbatim}}
+  \end{block}
+\item \code{prefix} will be used to create the
+  \code{<prefix>_CFLAGS} and \code{<prefix>_LIBS} variables
+  \begin{itemize}
+  \item Contain the pre-processor and linker flags to use the
+    libraries listed in \code{list-of-modules}
+  \item Are already \code{AC_SUBST}ed, so can be used directly in
+    \code{Makefile.am}
+  \end{itemize}
+\item \code{list-of-modules} is one or several pkg-config libraries
+  \begin{itemize}
+  \item Can contain version specifiers, such as \code{foo >= 3 bar
+      baz <= 4}
+  \end{itemize}
+\item Will exit with a failure if one of the dependency is missing.
+\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{{\tt PKG\_CHECK\_MODULES} example}
+
+\begin{block}{configure.ac}
+{\tiny
+\begin{verbatim}
+PKG_CHECK_MODULES(DBUS1,
+     dbus-1 >= 1.2.14,
+     [AC_DEFINE(HAVE_DBUS1, 1, [Define if dbus-1 is available]) have_dbus1=yes],
+     have_dbus1=no)
+\end{verbatim}}
+\end{block}
+
+\begin{block}{Makefile.am}
+{\tiny
+\begin{verbatim}
+gdbus_serialization_CFLAGS = $(AM_CFLAGS) $(DBUS1_CFLAGS)
+gdbus_serialization_LDADD = $(LDADD) $(DBUS1_LIBS)
+\end{verbatim}}
+\end{block}
 
 \end{frame}
 
@@ -479,19 +545,29 @@ enable_test = no
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Additional {\tt m4} macros: {\em autoconf-archive}}
+\begin{frame}{Additional {\tt m4} macros}
   \begin{itemize}
+  \item The core \code{autoconf} macros are installed in
+    \code{/usr/share/autoconf/autoconf/}
+  \item Additional macros can be installed by other packages in
+    \code{/usr/share/aclocal}
+    \begin{itemize}
+    \item Examples: \code{pkg.m4} (for pkg-config),
+      \code{gpg-error.m4}, \code{iconv.m4}, etc.
+    \end{itemize}
   \item The {\bf GNU Autoconf Archive} is a collection of more than
     500 macros for \code{autoconf}
-  \item \url{http://www.gnu.org/software/autoconf-archive/}
+    \begin{itemize}
+    \item \url{http://www.gnu.org/software/autoconf-archive/}
+    \item Example:
+      \code{AX_C_LONG_LONG}, {\em Provides a test for the existence of the long long int type and defines HAVE\_LONG\_LONG if it is found.}
+    \end{itemize}
   \end{itemize}
 \end{frame}
 
-\begin{frame}{{\tt AC\_CONFIG\_MACRO\_DIR}}
-
-\end{frame}
-
 \section{Automake advanced}
+
+\subsection{Subdirectories}
 
 \begin{frame}{Subdirectories}
   \begin{itemize}
@@ -567,15 +643,120 @@ hello_SOURCES = src/main.c
 
 \end{frame}
 
-\begin{frame}{Conditional compilation}
+\subsection{Conditionals}
 
-  Conditional compilation of source,
-%%  \url{http://www.gnu.org/software/automake/manual/html_node/Conditional-Sources.html#Conditional-Sources}
+\begin{frame}[fragile]{{\em automake} conditionals}
 
-  Conditional compilation of programs,
-%%  \url{http://www.gnu.org/software/automake/manual/html_node/Conditional-Programs.html#Conditional-Programs}
+  \begin{itemize}
+  \item In order to use a conditional in a \code{Makefile.am}, it must
+    be defined in the \code{configure.ac} script.
+  \item Done using the \code{AM_CONDITIONAL(conditional, condition)}
+    macro
+  \end{itemize}
+
+  \begin{block}{configure.ac}
+\begin{verbatim}
+AM_CONDITIONAL([DEBUG], [test x$debug = xtrue])
+\end{verbatim}
+  \end{block}
+
+  \begin{block}{Makefile.am}
+\begin{verbatim}
+if DEBUG
+...
+else
+...
+endif
+\end{verbatim}
+  \end{block}
 
 \end{frame}
+
+\begin{frame}[fragile]{Usage of {\em automake} conditionals}
+
+  \begin{columns}
+    \column{0.3\textwidth}
+    You cannot use conditionals inside a variable definition
+    \begin{block}{Non-working example}
+{\tiny
+\begin{verbatim}
+bin_PROGRAMS = \
+      bar \
+if DEBUG
+      baz \
+endif
+      foobar
+\end{verbatim}}
+\end{block}
+
+    \column{0.3\textwidth}
+    You should instead use an intermediate variable
+
+    \begin{block}{Working example}
+{\tiny
+\begin{verbatim}
+if DEBUG
+DEBUG_PROGS = baz
+endif
+
+bin_PROGRAMS = \
+      bar \
+      $(DEBUG_PROGS) \
+      foobar
+\end{verbatim}}
+\end{block}
+
+    \column{0.3\textwidth}
+    Or the \code{+=} assigment sign
+
+    \begin{block}{Working example}
+{\tiny
+\begin{verbatim}
+bin_PROGRAMS = \
+      bar \
+      foobar
+
+if DEBUG
+bin_PROGRAMS += baz
+endif
+\end{verbatim}}
+\end{block}
+\end{columns}
+\end{frame}
+
+\begin{frame}[fragile]{Conditional example}
+
+\begin{block}{configure.ac}
+{\tiny
+\begin{verbatim}
+AM_CONDITIONAL(THREADS_POSIX, [test "$g_threads_impl" = "POSIX"])
+AM_CONDITIONAL(THREADS_WIN32, [test "$g_threads_impl" = "WIN32"])
+AM_CONDITIONAL(THREADS_NONE, [test "$g_threads_impl" = "NONE"])
+\end{verbatim}}
+\end{block}
+
+\begin{block}{Makefile.am}
+{\tiny
+\begin{verbatim}
+libglib_2_0_la_SOURCES =        \
+        $(deprecated_sources)   \
+        glib_probes.d           \
+        garray.c                \
+[...]
+
+if THREADS_WIN32
+libglib_2_0_la_SOURCES += gthread-win32.c
+else
+if THREADS_POSIX
+libglib_2_0_la_SOURCES += gthread-posix.c
+endif
+endif
+\end{verbatim}}
+\end{block}
+
+\end{frame}
+
+\subsection{Shared libraries}
 
 \begin{frame}{Building shared libraries}
   \begin{itemize}
@@ -659,15 +840,82 @@ $ find /tmp/test
 
 \end{frame}
 
-\begin{frame}{Variables}
+\subsection{Misc}
 
-LDADD, LDFLAGS
+\begin{frame}[fragile]{Global {\em automake} variables}
+
+  \begin{itemize}
+  \item Apply to the current \code{Makefile.am}
+  \item \code{AM_CPPFLAGS}, default pre-processor flags
+  \item \code{AM_CFLAGS}, default compiler flags
+  \item \code{AM_LDFLAGS}, default linker flags
+  \item \code{LDADD}, libraries not detected by {\em configure} that we
+    should link with
+  \item Do not set \code{CPPFLAGS}, \code{CFLAGS} and \code{LDFLAGS}, so
+    that they can be passed in the environment by users
+  \end{itemize}
+
+\begin{block}{Example}
+{\tiny
+\begin{verbatim}
+LDADD = $(top_builddir)/glib/libglib-2.0.la
+AM_CPPFLAGS = $(gmodule_INCLUDES) $(GLIB_DEBUG_FLAGS)
+AM_CFLAGS = -g
+\end{verbatim}}
+\end{block}
 
 \end{frame}
 
-\begin{frame}{Silent rules}
+\begin{frame}[fragile]{Per product variables}
+  \begin{itemize}
+  \item \code{<product>_SOURCES}, list of source files
+  \item \code{<product>_LDADD}, libraries to link with
+  \item \code{<product>_CPPFLAGS}, pre-processor flags, overrides \code{AM_CPPFLAGS}
+  \item \code{<product>_CFLAGS}, compiler flags, overrides \code{AM_CFLAGS}
+  \item \code{<product>_LDFLAGS}, linker flags, overrides \code{AM_LDFLAGS}
+  \end{itemize}
 
-%% \url{http://www.gnu.org/software/automake/manual/html_node/Silencing-Make.html#Silencing-Make}
+  \begin{block}{Example}
+{\tiny
+\begin{verbatim}
+LDADD = $(top_builddir)/glib/libglib-2.0.la
+
+module_test_LDADD = $(top_builddir)/gmodule/libgmodule-2.0.la $(LDADD)
+module_test_LDFLAGS = $(G_MODULE_LDFLAGS)
+slice_threadinit_LDADD = $(top_builddir)/gthread/libgthread-2.0.la $(LDADD)
+\end{verbatim}}
+  \end{block}
+\end{frame}
+
+\begin{frame}[fragile]{Silent rules}
+
+  \begin{itemize}
+  \item By default, {\em automake} generate Makefiles that displays
+    the full compilation commands
+  \item Using the \code{AM_SILENT_RULES}, you can get a slimmer build
+    output
+  \item By default, the output remains verbose, but can be silenced by
+    passing the \code{V=0} variable.
+  \item If \code{AM_SILENT_RULES([yes])} is used, the output is quiet
+    by default, and verbose if \code{V=1} is passed.
+  \end{itemize}
+
+  \begin{block}{}
+\begin{minted}[fontsize=\tiny]{console}
+$ make
+  CC       lib/core.lo
+  CCLD     libmyhello.la
+  CC       src/main.o
+  CCLD     hello
+$ make V=1
+[...]
+libtool: link: (cd ".libs" && rm -f "libmyhello.so.0" && ln -s "libmyhello.so.0.0.0" ...
+libtool: link: (cd ".libs" && rm -f "libmyhello.so" && ln -s "libmyhello.so.0.0.0" ...
+libtool: link: ar cru .libs/libmyhello.a  lib/core.o
+libtool: link: ranlib .libs/libmyhello.a
+[...]
+\end{minted}
+  \end{block}
 
 \end{frame}
 
