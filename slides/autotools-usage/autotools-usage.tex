@@ -19,6 +19,28 @@
   \end{itemize}
 \end{frame}
 
+\begin{frame}{Alternatives to {\em autotools}}
+  \begin{itemize}
+  \item Regular {\em Makefiles}
+    \begin{itemize}
+    \item Not very portable
+    \item No configuration tests, or options
+    \item Hard to take into account all dependencies (e.g dependencies
+      on header files)
+    \item No standardized behavior
+    \end{itemize}
+  \item CMake
+    \begin{itemize}
+    \item A more modern build system
+    \item One language, instead of several for {\em autotools}
+    \item More straightforward to use and understand
+    \item A lot less widely used than {\em autotools}, but growing in
+      popularity
+    \item Also generates Makefiles, like {\em autotools}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
 \begin{frame}{Using {\em autotools} based packages}
   \begin{itemize}
   \item The basic steps to build an {\em autotools} based software
@@ -283,6 +305,61 @@ strace-4.9 $ find  /tmp/test/ -type f
 
 \end{frame}
 
+\begin{frame}{{\tt --prefix} or {\tt DESTDIR} ?}
+  \begin{itemize}
+  \item \code{--prefix} and \code{DESTDIR} are often misunderstood
+  \item \code{--prefix} is the location where the programs/libraries
+    will be placed when executed on the {\em host machine}
+  \item \code{DESTDIR} is a way of temporarily diverting the
+    installation to a different location.
+
+  \item For example, if you use \code{--prefix=/home/<foo>/sys/usr},
+    then binaries/libraries will look for icons in
+    \code{/home/<foo>/sys/usr/share/icons}
+    \begin{itemize}
+    \item Good for native installation in \code{/home/<foo>/sys}
+    \item {\bf Bad} for cross-compilation where the binaries will
+      ultimately be in \code{/usr}
+    \end{itemize}
+
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{{\tt --prefix} or {\tt DESTDIR} use cases}
+  \begin{itemize}
+  \item Native compilation, install system-wide in \code{/usr}
+    \begin{block}{}
+{\tiny
+\begin{verbatim}
+$ ./configure --prefix=/usr
+$ make
+$ sudo make install
+\end{verbatim}}
+\end{block}
+\item Native compilation, install in a user-specific directory:
+  \begin{block}{}
+{\tiny
+\begin{verbatim}
+$ ./configure --prefix=/home/<foo>/sys/
+$ make
+$ make install
+\end{verbatim}}
+\end{block}
+\item Cross-compilation, install in \code{/usr}, diverted to a
+  temporary directory where the system for the target is built
+  \begin{block}{}
+{\tiny
+\begin{verbatim}
+$ ./configure --prefix=/usr
+$ make
+$ make DESTDIR=/home/<foo>/target-rootfs/ install
+\end{verbatim}}
+\end{block}
+
+\end{itemize}
+
+\end{frame}
+
 \begin{frame}{Analyzing issues}
   \begin{itemize}
   \item \code{autoconf} keeps a log of all the tests it runs in a file
@@ -339,11 +416,114 @@ configure:18210: error:
 
 \end{frame}
 
-\begin{frame}{Overall process}
+\begin{frame}{autotools: {\em autoconf} and {\em automake}}
+  \begin{itemize}
+  \item The \code{configure} script is a shell script generated from
+    \code{configure.ac} by a program called \code{autoconf}
+    \begin{itemize}
+    \item \code{configure.ac} used to be named \code{configure.in} but
+      this name is now deprecated
+    \item written in shell script, augmented with numerous {\em m4}
+      macros
+    \end{itemize}
+  \item The \code{Makefile.in} are generated from \code{Makefile.am}
+    files by a program called \code{automake}
+    \begin{itemize}
+    \item Uses special \code{make} variables that are expanded in
+      standard \code{make} constructs
+    \end{itemize}
+  \item Some auxilliary tools like \code{autoheader} or \code{aclocal}
+    are also used
+    \begin{itemize}
+    \item \code{autoheader} is responsible for generated the {\em
+        configuration header} template, \code{config.h.in}
+    \end{itemize}
+  \item Generated files (\code{configure}, \code{Makefile.in},
+    \code{Makefile}) should not be modified.
+    \begin{itemize}
+    \item Reading them is also very difficult. Read the real source
+      instead!
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Distribution}
+  \begin{itemize}
+  \item In general:
+    \begin{itemize}
+    \item When a software is published as a {\em tarball}, the
+      \code{configure} script and \code{Makefile.in} files are already
+      generated and part of the tarball.
+    \item When a software is published through {\em version control
+        system}, only the real sources \code{configure.ac} and
+      \code{Makefile.am} are available.
+    \end{itemize}
+  \item There are some exceptions (like tarballs not having
+    pre-generated \code{configure}/\code{Makefile.in})
+  \item Do not version control generated files!
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Regenerating {\em autotools} files: {\tt autoreconf}}
+  \begin{itemize}
+  \item To generate all the files used by {\em autotools}, you could
+    call \code{automake}, \code{autoconf}, \code{aclocal},
+    \code{autoheader}, etc. manually.
+    \begin{itemize}
+    \item But it is not very easy and efficient.
+    \end{itemize}
+  \item A tool called \code{autoreconf} automates this process
+    \begin{itemize}
+    \item Useful option: \code{-i} or \code{--install}, to ask
+      \code{autoreconf} to copy missing auxiliary files
+    \end{itemize}
+  \item Always use \code{autoreconf}!
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{{\tt autoreconf} example}
+
+\begin{block}{}
+{\tiny
+\begin{verbatim}
+$ find . -type f
+./src/main.c
+./Makefile.am
+./configure.ac
+
+$ autoreconf -i
+configure.ac:4: installing './compile'
+configure.ac:3: installing './install-sh'
+configure.ac:3: installing './missing'
+Makefile.am: installing './depcomp'
+
+$ find . -type f
+./install-sh
+./src/main.c
+./config.h.in
+./configure
+./missing
+./depcomp
+./aclocal.m4
+./Makefile.am
+./autom4te.cache/traces.0
+./autom4te.cache/output.1
+./autom4te.cache/output.0
+./autom4te.cache/requests
+./autom4te.cache/traces.1
+./compile
+./Makefile.in
+./configure.ac
+\end{verbatim}}
+\end{block}
 
 \end{frame}
 
-\begin{frame}{Regenerating {\em autotools} files}
+\begin{frame}{Overall organization}
+
+  \begin{center}
+    \includegraphics[width=\textwidth]{slides/autotools-usage/autoreconf.pdf}
+  \end{center}
 
 \end{frame}
 
