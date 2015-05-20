@@ -818,6 +818,54 @@ $ find /tmp/test
 
 \end{frame}
 
+\begin{frame}{Libtool versioning}
+  \begin{itemize}
+  \item Needed to support changes in the library interface
+  \item Each system handles library versioning differently
+  \item \code{libtool} does not use the traditional
+    <major>.<minor>.<revision>
+  \item It uses a more abstract representation, converted differently
+    depending on the system on which you're building.
+  \item \code{libtool} representation is
+    \code{<current>:<revision>:<age>}
+    \begin{itemize}
+    \item \code{current} is the interface number, incremented whenever
+      the public interface changes
+    \item \code{revision} is incremented whenever the library source
+      code is changed
+    \item \code{age} is incremented when new functions are added,
+      reset to 0 when functions are removed
+    \end{itemize}
+  \item Defined using \code{-version-info <current>:<revision>:<age>}
+    in \code{<product>_LDFLAGS}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Libtool versioning: example}
+
+\begin{block}{Makefile.am}
+\begin{minted}{make}
+lib_LTLIBRARIES = libmyhello.la
+libmyhello_la_SOURCES = lib/core.c
+libmyhello_la_LDFLAGS = -version-info 3:4:2
+\end{minted}
+\end{block}
+
+\begin{block}{Installation}
+\begin{minted}[fontsize=\tiny]{console}
+$ make DESTDIR=/tmp/p install
+[...]
+$ ls -l /tmp/p/usr/local/lib
+-rw-r--r-- 1 thomas thomas  6224 mai   20 15:28 libmyhello.a
+-rwxr-xr-x 1 thomas thomas   963 mai   20 15:28 libmyhello.la
+lrwxrwxrwx 1 thomas thomas    19 mai   20 15:28 libmyhello.so -> libmyhello.so.1.2.4
+lrwxrwxrwx 1 thomas thomas    19 mai   20 15:28 libmyhello.so.1 -> libmyhello.so.1.2.4
+-rwxr-xr-x 1 thomas thomas 10608 mai   20 15:28 libmyhello.so.1.2.4
+\end{minted}
+\end{block}
+
+\end{frame}
+
 \subsection{Misc}
 
 \begin{frame}[fragile]{Global {\em automake} variables}
