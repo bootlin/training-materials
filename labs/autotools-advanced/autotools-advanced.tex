@@ -2,6 +2,199 @@
 {Autotools advanced}
 {Objectives:
   \begin{itemize}
-  \item TBD
+  \item Use {\tt AC\_ARG\_ENABLE} and {\tt config.h}
+  \item Implement a shared library
+  \item Switch to multiple directories
+  \item Make the compilation of programs conditional
+  \item Use {\tt pkg-config}
   \end{itemize}
 }
+
+\section{Use {\tt AC\_ARG\_ENABLE} and {\tt config.h}}
+
+Continue to work on the project started in the previous lab. Start by
+adding a \code{--enable-message} option in the \code{configure.ac} by
+using \code{AC_ARG_ENABLE}. The purpose of this option, which should
+be enabled by default, is to allow you to enable or disable the
+printing of the {\em Hello World} message.
+
+You will have to combine a {\em configuration header}, and
+\code{AC_DEFINE} to let the C source code know whether the option was
+enabled or not. \code{AC_DEFINE} could for example define a macro
+named \code{WANTS_HELLO_WORLD}.
+
+Once you are done, test that running \code{./configure} or
+\code{./configure --enable-message} gives a \code{config.h} file with
+\code{WANTS_HELLO_WORLD} defined, and that \code{./configure
+  --disable-message} gives a \code{config.h} without
+\code{WANTS_HELLO_WORLD}.
+
+Change the \code{hello.c} program to use
+\code{WANTS_HELLO_WORLD}. Build your \code{hello} program with
+\code{--enable-message} and \code{--disable-message} consecutively,
+and check that in the first case, \code{Hello World} is display, and
+that in the second case \code{Hello World} is not displayed:
+
+\begin{verbatim}
+$ ./configure --enable-message
+$ make
+$ ./hello
+Hello World
+$ ./configure --disable-message
+$ make
+$ ./hello
+$
+\end{verbatim}
+
+\section{Implement a shared library}
+
+For the purpose of this training, we'll implement a small library
+called \code{libhello}, which provides a single function
+\code{show_msg()} responsible for displaying the \code{Hello World}
+message. Our program will link against this library and use the
+function it provides.
+
+So create a file named \code{core.c}, with this function
+\code{show_msg()} (it should continue to use the
+\code{WANTS_HELLO_WORLD} macro defined in the previous section).
+
+Create a header file named \code{hello.h}, which contains the
+prototype of the \code{show_msg()} function.
+
+Then, change the \code{hello.c} program so that it calls the
+\code{show_msg()} function.
+
+Once the source preparation is done, it's time to adapt the build
+system:
+
+\begin{enumerate}
+\item Adapt the \code{configure.ac} script to initialize
+  \code{libtool}
+\item Change the \code{Makefile.am} to:
+  \begin{itemize}
+  \item build the \code{libhello} library from the \code{core.c} file
+  \item declare the library version
+  \item install the \code{hello.h} header
+  \item make the \code{hello} program link against the \code{libhello}
+    library
+  \end{itemize}
+\end{enumerate}
+
+Once this is done, {\em autoreconf} your project, run
+\code{configure}, build, and run the \code{hello} program.
+
+Configure it with \code{--prefix=$HOME/sys}, and install it there. You
+should see the library being installed in \code{$HOME/sys/lib} and the
+header file in \code{$HOME/sys/include}. By running:
+
+\begin{verbatim}
+readelf -d $HOME/sys/bin/hello
+\end{verbatim}
+
+You can verify that \code{hello} is indeed linked against
+\code{libhello}.
+
+To finish up this part, if you look back at the \code{autoreconf -i}
+output, it complained about \code{configure.ac} not using
+\code{AC_CONFIG_MACRO_DIR}. So as explained in the slides, make the
+needed changes to \code{configure.ac} and \code{Makefile.am}.
+
+\section{Switch to multiple directories}
+
+Even though our project is small, it's time to experiment with
+subdirectories. Since we're modern, we'll use {\em non-recursive
+  make}.
+
+Move \code{core.c} and \code{hello.h} to a folder called \code{lib/},
+and move \code{hello.c} to a folder called \code{src/}.
+
+Adjust the main \code{Makefile.am} accordingly, and make sure
+everything continues to build correctly.
+
+Hint: you will have to add a \code{hello_CPPFLAGS} variable.
+
+\section{Make the compilation of programs conditional}
+
+Since some people may not be interested in building the \code{hello}
+program, we'll make this optional. Create a new
+\code{--enable-programs} option in \code{configure.ac}, which should
+be enabled by default.
+
+Then, use an {\em automake} conditional to build the \code{hello}
+program only if enabled. Verify that when you pass
+\code{--disable-programs}, the \code{hello} program is not built.
+
+\section{Use {\tt pkg-config}}
+
+Now we will make our program rely on the \code{libconfig} library. You
+can install this library on your system, and its development files by
+running:
+
+\begin{verbatim}
+apt-get install libconfig-dev
+\end{verbatim}
+
+Now, change \code{src/hello.c} to do the following:
+
+\begin{verbatim}
+#include <libconfig.h>
+#include "hello.h"
+
+int main(void)
+{
+   config_t cfg;
+   config_init(&cfg);
+   show_msg();
+   return 0;
+}
+\end{verbatim}
+
+It doesn't do anything useful, but calls one function of the
+\code{libconfig} library, \code{config_init}, which is enough for our
+demonstration.
+
+If you try to build the program, it will fail with the following
+error:
+
+\begin{verbatim}
+hello.c:7: undefined reference to `config_init'
+\end{verbatim}
+
+This is because we are not yet linking with the \code{libconfig}
+library. We will use \code{pkg-config} to detect it and use the
+appropriate linker flags. To do that, use \code{PKG_CHECK_MODULES} in
+\code{configure.ac} when programs are enabled, and adjust your
+\code{Makefile.am} to use the compiler and linker flags provided by
+the \code{PKG_CHECK_MODULES} macro.
+
+If everything works fine, you should see the \code{./configure} script
+detecting \code{pkg-config}:
+
+\begin{verbatim}
+$ ./configure
+[...]
+checking pkg-config is at least version 0.9.0... yes
+checking for LIBCONFIG... yes
+[...]
+\end{verbatim}
+
+And finally the \code{hello} binary being linked with
+\code{libconfig}:
+
+\begin{verbatim}
+$ make
+[...]
+libtool: link: gcc -g -O2 -o .libs/hello src/hello-hello.o  ./.libs/libhello.so -lconfig
+[...]
+\end{verbatim}
+
+Congratulations, your program is now properly using the
+\code{libconfig} library!
+
+\section{Going further}
+
+Implement the use of {\em silent rules} as explained in the slides,
+and experiment with \code{make V=1} vs. \code{make V=0}.
+
+Add a README file to your project, and make sure it is properly
+distributed as part of the tarball generated by \code{make dist}
