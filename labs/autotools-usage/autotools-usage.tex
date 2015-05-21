@@ -1,7 +1,125 @@
 \subchapter
-{Autotools usage}
+{Usage of existing {\em autotools} projects}
 {Objectives:
   \begin{itemize}
-  \item TBD
+  \item First build of an {\em autotools} package
+  \item Out of tree build and cross-compilation
+  \item Overriding cache variables
   \end{itemize}
 }
+
+\section{First usage of {\em autotools}}
+
+\subsection{Download ethtool}
+
+Go to the \code{$HOME/autotools-labs/usage/} directory.
+
+To start our exploration of {\em autotools}, we'll use the {\bf
+  ethtool} set of programs. Download the 3.18 version from the project
+home page at
+\url{https://www.kernel.org/pub/software/network/ethtool/} and extract
+it.
+
+\subsection{Exploration of the sources}
+
+Inside the sources, look at the various files available, and pay
+special attention to \code{configure.ac} and \code{Makefile.am}. Even
+though we haven't yet discussed their syntax and contents, try to get
+some idea about what they could be doing.
+
+Compare their length with the length of their corresponding generated
+files \code{configure} and \code{Makefile.in}. Also, check if there is
+already a \code{Makefile} or not in the project.
+
+Read the output of \code{./configure --help}.
+
+\subsection{First build}
+
+Run \code{./configure}, and look at the output. Especially check the
+{\em build} and {\em host} systems that are detected. Also look at the
+contents of the \code{config.log} file.
+
+Then, run the build with \code{make}.
+
+Finally, try to run the installation with \code{make install}. As you
+can see, it fails with {\em Permission denied} messages, because it
+tries to install to \code{/usr/local}, which is the default {\em
+  prefix}.
+
+Since we don't want to install to \code{/usr/local}, let's configure
+{\em ethtool} to install to a different place:
+
+\begin{verbatim}
+mkdir $HOME/sys
+./configure --prefix=$HOME/sys/
+make
+make install
+\end{verbatim}
+
+This time, in \code{$HOME/sys}, you should have the {\em ethtool}
+program an man pages installed.
+
+\subsection{Out of tree build and cross-compiling}
+
+Now, create a separate build directory, say
+\code{$HOME/autotools-labs/usage/ethtool-arm/}, and move to this
+directory. Then, call the \code{configure} script of {\em ethtool}:
+
+\begin{verbatim}
+../ethtool-3.18/configure
+\end{verbatim}
+
+If you check the {\em build} and {\em host} system types, you can see
+that we're still doing native compilation. To cross-compile {\em
+  ethtool}, we'll first have to install a cross-compiler:
+
+\begin{verbatim}
+apt-get install gcc-arm-linux-gnueabihf
+\end{verbatim}
+
+Then you can do:
+
+\begin{verbatim}
+../ethtool-3.18/configure --host=arm-linux-gnueabihf
+\end{verbatim}
+
+Check again the detected {\em build} and {\em host} system types. Now
+the {\em host} system type should be different!
+
+Start the build, and verify that the cross-compiler is used.
+
+\subsection{Overriding cache variables}
+
+If you look at the {\em configure} output, you can see:
+
+\begin{verbatim}
+checking for strtol... yes
+\end{verbatim}
+
+The {\em configure} script is checking for the availability of the
+\code{strtol()} function. Now let's pretend for some reason that the
+detected value is not appropriate (it's obviously not the case for
+such a simple test, but we need to take an example!). We want to
+override this test by passing the appropriate value as an environment
+variable to the \code{configure} script.
+
+Bfore doing this change, look at the
+\code{config.h} {\em configuration header} and see the value of the
+definition related to \code{strtol}.
+
+Read the \code{config.log}, and identify which variable can be used to
+override the result of the \code{strtol} test. Pass it in the
+environment of \code{./configure}, and check that {\em configure}
+outputs:
+
+\begin{verbatim}
+checking for strtol... (cached) no
+\end{verbatim}
+
+You can also check in \code{config.h} the new value for definition
+related to \code{strtol}.
+
+However, it's interesting to notice that in practice the {\em ethtool}
+source code assumes \code{strtol} is present, without taking into
+account the \code{HAVE_STRTOL} definition. So if the function was
+really absent, there would be a build failure.
