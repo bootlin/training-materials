@@ -8,9 +8,7 @@
   \end{itemize}
 }
 
-\section{First usage of {\em autotools}}
-
-\subsection{Download ethtool}
+\section{Download ethtool}
 
 Go to the \code{$HOME/autotools-labs/usage/} directory.
 
@@ -20,7 +18,7 @@ home page at
 \url{https://www.kernel.org/pub/software/network/ethtool/} and extract
 it.
 
-\subsection{Exploration of the sources}
+\section{Exploration of the sources}
 
 Inside the sources, look at the various files available, and pay
 special attention to \code{configure.ac} and \code{Makefile.am}. Even
@@ -33,7 +31,7 @@ already a \code{Makefile} or not in the project.
 
 Read the output of \code{./configure --help}.
 
-\subsection{First build}
+\section{First build}
 
 Run \code{./configure}, and look at the output. Especially check the
 {\em build} and {\em host} systems that are detected. Also look at the
@@ -59,7 +57,7 @@ make install
 This time, in \code{$HOME/sys}, you should have the {\em ethtool}
 program an man pages installed.
 
-\subsection{Out of tree build and cross-compiling}
+\section{Out of tree build and cross-compiling}
 
 Now, create a separate build directory, say
 \code{$HOME/autotools-labs/usage/ethtool-arm/}, and move to this
@@ -68,6 +66,11 @@ directory. Then, call the \code{configure} script of {\em ethtool}:
 \begin{verbatim}
 ../ethtool-3.18/configure
 \end{verbatim}
+
+This will abort with an error: it doesn't want to do {\em out of tree}
+build if the source tree has been configured (which we did in the
+previous section of this lab). So as suggested, clean up the {\em
+  ethtool} source tree by running \code{make distclean}.
 
 If you check the {\em build} and {\em host} system types, you can see
 that we're still doing native compilation. To cross-compile {\em
@@ -88,7 +91,7 @@ the {\em host} system type should be different!
 
 Start the build, and verify that the cross-compiler is used.
 
-\subsection{Overriding cache variables}
+\section{Overriding cache variables}
 
 If you look at the {\em configure} output, you can see:
 
@@ -123,3 +126,59 @@ However, it's interesting to notice that in practice the {\em ethtool}
 source code assumes \code{strtol} is present, without taking into
 account the \code{HAVE_STRTOL} definition. So if the function was
 really absent, there would be a build failure.
+
+\section{Autoreconfiguring}
+
+Now, let's look at another piece of software, which isn't distributed
+with pre-generated \code{configure} and \code{Makefile.in} files.
+
+Move back to \code{$HOME/autotools-labs/usage/}, and use {\em Git} to
+fetch the source code of a library called {\em libconfuse}:
+
+\begin{verbatim}
+git clone https://github.com/martinh/libconfuse
+\end{verbatim}
+
+Note: you may need to install {\em Git}, using \code{apt-get install
+  git}.
+
+Look at the {\em libconfuse} source code, and see that you only have
+\code{configure.ac} but not the generated \code{configure} script, and
+only the \code{Makefile.am} files, and not the generated
+\code{Makefile.in} files.
+
+Now, run \code{autoreconf -i}, and look at which files where
+generated.
+
+If you get issues when running \code{autoreconf}, it is most likely
+because your system doesn't have the {\em autotools} installed. In
+this case, run:
+
+\begin{verbatim}
+apt-get install autoconf automake libtool autopoint gettext
+\end{verbatim}
+
+(Note: \code{autopoint} and \code{gettext} are needed because this
+package uses internationalization features provided by {\em gettext},
+which we won't cover in this training.)
+
+You can now build and install {\em libconfuse} in
+\code{$HOME/sys}. For good measure, don't forget to disable building
+the examples: look at \code{./configure --help} to know how to do
+that.
+
+When building, you should see a message \code{flex: command not
+  found}. Indeed, this tool is not present on our
+system. Interestingly, if you look back at the output of the
+\code{./configure} script, it did check for \code{flex}, concluded it
+wasn't available, but did not error out. As you can see not all
+\code{configure} scripts are properly written!
+
+Install {\em flex}:
+
+\begin{verbatim}
+apt-get install flex
+\end{verbatim}
+
+Re-run \code{./configure}, and restart the build.
+
