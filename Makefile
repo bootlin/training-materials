@@ -385,7 +385,7 @@ BUILDROOT_LABS = setup \
 		buildroot-rootfs \
 		buildroot-new-packages \
 		buildroot-advanced-packages \
-		buildroot-analysis \
+		buildroot-advanced \
 		buildroot-appdev
 
 AUTOTOOLS_LABS = setup \

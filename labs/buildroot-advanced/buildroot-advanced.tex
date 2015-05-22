@@ -1,11 +1,12 @@
 \subchapter
-{Use build time and dependency graphing, licensing report features}
+{Advanced aspects}
 {Objectives:
   \begin{itemize}
   \item Use build time graphing capabilities
   \item Use dependency graphing capabilities
   \item Use licensing report generation, and add licensing
     informations to your own packages
+  \item Use \code{BR2_EXTERNAL}
   \end{itemize}
 }
 
@@ -158,4 +159,68 @@ Now, explore \code{output/legal-info}, look at the \code{.csv} files,
 the \code{.txt} files, and the various directories. Buildroot has
 gathered for you most of what is needed to help with licensing
 compliance.
+
+\section{Use {\tt BR2\_EXTERNAL}}
+
+We should have used \code{BR2_EXTERNAL} since the beginning of the
+training, but we were busy learning about so many other things! So
+it's finally time to use \code{BR2_EXTERNAL}.
+
+The whole point of \code{BR2_EXTERNAL} is to allow storing your
+project-specific packages, configuration files, root filesystem
+overlay or patches outside of the Buildroot tree itself. It makes it
+easier to separate the open-source packages from the proprietary ones,
+and it makes updating Buildroot itself a lot simpler.
+
+So, as recommended in the slides, the goal now is to use
+\code{BR2_EXTERNAL} to move away from the main Buildroot tree the
+following elements:
+
+\begin{itemize}
+
+\item The \code{bar} and \code{libfoo} packages. We will keep the
+  \code{ninvaders} package in the Buildroot tree, since it's a
+  publicly available open-source package, so it should be submitted to
+  the official Buildroot rather than kept in a \code{BR2_EXTERNAL}
+  tree.
+
+\item The Linux kernel patch and Linux kernel configuration file. For
+  the Linux kernel patch, use \code{BR2_GLOBAL_PATCH_DIR} instead of
+  the Linux-specific \code{BR2_LINUX_KERNEL_PATCH} option.
+
+\item The {\em rootfs overlay}
+
+\item The {\em post-build script}
+
+\item The {\em defconfig}
+
+\end{itemize}
+
+Your \code{BR2_EXTERNAL} tree should look like this:
+
+\begin{verbatim}
++-- board/
+|   +-- felabs/
+|       +-- beagleboneblack/
+|           +-- linux.config
+|           +-- post-build.sh
+|           +-- linux-patches/
+|               +-- 0001-Add-nunchuk-driver.patch
+|               +-- 0002-Add-i2c1-and-nunchuk-nodes-in-dts.patch
+|           +-- rootfs-overlay/
+|               +-- etc
+|                   +-- network
+|                       +-- interfaces
++-- package/
+|   +-- bar
+|       +-- bar.mk
+|       +-- Config.in
+|   +-- libfoo
+|       +-- libfoo.mk
+|       +-- Config.in
++-- configs
+|   +-- felabs_defconfig
++-- Config.in
++-- external.mk
+\end{verbatim}
 
