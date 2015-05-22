@@ -119,6 +119,112 @@ make BR2_EXTERNAL=/path/to/external
   \end{itemize}
 \end{frame}
 
+\begin{frame}[fragile]{Understanding rebuilds (1)}
+  \begin{itemize}
+  \item Doing a {\bf full rebuild} is achieved using:
+    \begin{block}{}
+\begin{minted}{console}
+$ make clean all
+\end{minted}
+\end{block}
+\begin{itemize}
+\item It will completely remove all build artefacts and restart the
+  build from scratch
+\end{itemize}
+  \item Buildroot {\bf does not try to be smart}
+    \begin{itemize}
+    \item once the system has been built, if a configuration change is
+      made, the next \code{make} will {\bf not apply all the changes}
+      made to the configuration.
+    \item being smart is very, very complicated if you want to do it
+      in a reliable way.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+
+\begin{frame}{Understanding rebuilds (2)}
+  \begin{itemize}
+  \item When a package has been built by Buildroot, Buildroot keeps a
+    {\bf hidden file} telling that the package has been built.
+    \begin{itemize}
+    \item Buildroot will therefore {\em never} rebuild that package,
+      unless a {\bf full rebuild is done}, or this specific package is
+      {\bf explicitly rebuilt}.
+    \item Buildroot does not {\em recurse} into each package at each
+      \code{make} invocation, it would be too time-consuming. So if
+      you change one source file in a package, Buildroot does not know
+      it.
+    \end{itemize}
+  \item When \code{make} is invoked, Buildroot {\bf will always}:
+    \begin{itemize}
+    \item Build the packages that have not been built in a previous
+      build and install them to the target
+    \item Cleanup the target root filesystem from useless files
+    \item Run {\em post-build} scripts, copy {\em rootfs overlays}
+    \item Generate the root filesystem images
+    \item Run {\em post-image} scripts
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Understanding rebuilds: scenarios (1)}
+  \begin{itemize}
+  \item If you enable a new package in the configuration, and run
+    \code{make}
+    \begin{itemize}
+    \item Buildroot will build it and install it
+    \item However, other packages that may benefit from this package
+      will not be rebuilt automatically
+    \end{itemize}
+  \item If you remove a package from the configuration, and run
+    \code{make}
+    \begin{itemize}
+    \item Nothing happens. The files installed by this package are not
+      removed from the target filesystem.
+    \item Buildroot does not track which files are installed by which
+      package
+    \item Need to do a full rebuild to get the new result. Advice: do
+      it only when really needed.
+    \end{itemize}
+  \item If you change the sub-options of a package that had already
+    been built, and run \code{make}
+    \begin{itemize}
+    \item Nothing happens.
+    \item You can force Buildroot to rebuild this package using
+      \code{make <pkg>-reconfigure} or \code{make <pkg>-rebuild}.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Understanding rebuilds: scenarios (2)}
+  \begin{itemize}
+  \item If you make a change to a {\em post-build} script, a {\em
+      rootfs overlay} or a {\em post-image} script, and run
+    \code{make}
+    \begin{itemize}
+    \item This is sufficient, since these parts are re-executed at
+      every \code{make} invocation.
+    \end{itemize}
+  \item If you change a fundamental system configuration option:
+    architecture, type of toolchain or toolchain configuration, init
+    system, etc.
+    \begin{itemize}
+    \item You {\bf must do a full rebuild}
+    \end{itemize}
+  \item If you change some source code in
+    \code{output/build/<foo>-<version>/} and issue \code{make}
+    \begin{itemize}
+    \item The package will not be rebuilt automatically: Buildroot has
+      a {\em hidden file} saying that the package was already built.
+    \item Use \code{make <pkg>-reconfigure} or \code{make <pkg>-rebuild}
+    \item And remember that doing changes in
+      \code{output/build/<foo>-<version>/} can only be temporary: this
+      directory is removed during a \code{make clean}.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
 \begin{frame}{Tips for building faster}
   \begin{itemize}
   \item Build time is often an issue, so here are some tips to help
