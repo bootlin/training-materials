@@ -301,6 +301,7 @@ BUILDROOT_SLIDES = \
 		buildroot-internals \
 		buildroot-support-contribution \
 		buildroot-whats-new \
+		buildroot-acknowledgements \
 		last-slides
 
 AUTOTOOLS_SLIDES = first-slides \
