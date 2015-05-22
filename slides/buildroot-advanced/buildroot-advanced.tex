@@ -126,6 +126,134 @@ make BR2_EXTERNAL=/path/to/external
   \end{itemize}
 \end{frame}
 
+\begin{frame}{Package-specific targets: basics}
+  \begin{itemize}
+  \item Internally, each package is implemented through a number of
+    package-specific {\em make targets}
+    \begin{itemize}
+    \item They can sometimes be useful to call directly, in certain
+      situations.
+    \end{itemize}
+  \item The targets used in the normal build flow of a package are:
+    \begin{itemize}
+    \item \code{<pkg>}, fully build and install the package
+    \item \code{<pkg>-source}, just download the source code
+    \item \code{<pkg>-extract}, download and extract
+    \item \code{<pkg>-patch}, download, extract and patch
+    \item \code{<pkg>-configure}, download, extract, patch and configure
+    \item \code{<pkg>-build}, download, extract, patch, configure and build
+    \item \code{<pkg>-install-staging}, download, extract, patch,
+      configure and do the staging installation (target packages only)
+    \item \code{<pkg>-install-target}, download, extract, patch,
+      configure and do the target installation (target packages only)
+    \item \code{<pkg>-install}, download, extract, patch,
+      configure and install
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Package-specific targets: example (1)}
+
+\begin{block}{}
+{\tiny
+\begin{verbatim}
+$ make strace
+>>> strace 4.10 Extracting
+>>> strace 4.10 Patching
+>>> strace 4.10 Updating config.sub and config.guess
+>>> strace 4.10 Patching libtool
+>>> strace 4.10 Configuring
+>>> strace 4.10 Building
+>>> strace 4.10 Installing to target
+$ make strace-build
+... nothing ...
+$ make ltrace-patch
+>>> ltrace 0896ce554f80afdcba81d9754f6104f863dea803 Extracting
+>>> ltrace 0896ce554f80afdcba81d9754f6104f863dea803 Patching
+$ make ltrace
+>>> argp-standalone 1.3 Extracting
+>>> argp-standalone 1.3 Patching
+>>> argp-standalone 1.3 Updating config.sub and config.guess
+>>> argp-standalone 1.3 Patching libtool
+[...]
+>>> ltrace 0896ce554f80afdcba81d9754f6104f863dea803 Configuring
+>>> ltrace 0896ce554f80afdcba81d9754f6104f863dea803 Autoreconfiguring
+>>> ltrace 0896ce554f80afdcba81d9754f6104f863dea803 Patching libtool
+>>> ltrace 0896ce554f80afdcba81d9754f6104f863dea803 Building
+>>> ltrace 0896ce554f80afdcba81d9754f6104f863dea803 Installing to target
+\end{verbatim}}
+\end{block}
+
+\end{frame}
+
+\begin{frame}{Package-specific targets: advanced}
+  \begin{itemize}
+  \item Additional useful targets
+    \begin{itemize}
+    \item \code{make <pkg>-show-depends}, show the package dependencies
+    \item \code{make <pkg>-graph-depends}, generates a dependency graph
+    \item \code{make <pkg>-dirclean}, completely remove the package
+      source code directory. The next \code{make} invocation will
+      fully rebuild this package.
+    \item \code{make <pkg>-reinstall}, force to re-execute the
+      installation step of the package
+    \item \code{make <pkg>-rebuild}, force to re-execute the build and
+      installation steps of the package
+    \item \code{make <pkg>-reconfigure}, force to re-execute the
+      configure, build and installation steps of the package.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Package-specific targets: example (2)}
+
+\begin{block}{}
+{\tiny
+\begin{verbatim}
+$ make strace
+>>> strace 4.10 Extracting
+>>> strace 4.10 Patching
+>>> strace 4.10 Updating config.sub and config.guess
+>>> strace 4.10 Patching libtool
+>>> strace 4.10 Configuring
+>>> strace 4.10 Building
+>>> strace 4.10 Installing to target
+$ ls output/build/
+strace-4.10 [...]
+$ make strace-dirclean
+rm -Rf /home/thomas/projets/buildroot/output/build/strace-4.10
+$ ls output/build/
+[... no strace-4.10 directory ...]
+\end{verbatim}}
+\end{block}
+
+\end{frame}
+
+\begin{frame}[fragile]{Package-specific targets: example (3)}
+
+\begin{block}{}
+{\tiny
+\begin{verbatim}
+$ make strace
+>>> strace 4.10 Extracting
+>>> strace 4.10 Patching
+>>> strace 4.10 Updating config.sub and config.guess
+>>> strace 4.10 Patching libtool
+>>> strace 4.10 Configuring
+>>> strace 4.10 Building
+>>> strace 4.10 Installing to target
+$ make strace-rebuild
+>>> strace 4.10 Building
+>>> strace 4.10 Installing to target
+$ make strace-reconfigure
+>>> strace 4.10 Configuring
+>>> strace 4.10 Building
+>>> strace 4.10 Installing to target
+\end{verbatim}}
+\end{block}
+
+\end{frame}
+
 \begin{frame}[fragile]{Understanding rebuilds (1)}
   \begin{itemize}
   \item Doing a {\bf full rebuild} is achieved using:
