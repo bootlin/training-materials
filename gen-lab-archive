@@ -46,12 +46,16 @@ $RSYNC --exclude=.git -a --delete lab-data/$1/ $FELABS
 
 $ECHO "Extracting tar.xz archives (root permissions needed for device files)"
 
+tarball_extracted=no
 for f in `$FIND $FELABS -name "*.tar.xz"`; do
 	$SUDO $TAR -C `dirname $f` -Jxf $f
 	$RM $f
+	tarball_extracted=yes
 done
 
-$SUDO $CHOWN -R $USER.$USER $FELABS
+if test "${tarball_extracted}" = "yes"; then
+    $SUDO $CHOWN -R $USER.$USER $FELABS
+fi
 
 $ECHO "Uncompressing other .xz files"
 $FIND $FELABS -name "*.xz" -exec $UNXZ {} ';'
