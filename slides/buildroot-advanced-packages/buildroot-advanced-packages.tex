@@ -100,6 +100,210 @@ OWL_LINUX_REDISTRIBUTE = NO
 
 \end{frame}
 
+\subsection{Patching packages}
+
+\begin{frame}{Patching packages: why?}
+  \begin{itemize}
+  \item In some situations, it might be needed to patch the source
+    code of certain packages built by Buildroot.
+  \item Useful to:
+    \begin{itemize}
+    \item Fix cross-compilation issues
+    \item Backport bug or security fixes from upstream
+    \item Integrate new features or fixes not available upstream, or
+      that are too specific to the product being made
+    \end{itemize}
+  \item Patches are automatically applied by Buildroot, during the
+    {\em patch} step, i.e after extracting the package, but before
+    configuring it.
+  \item Buildroot already comes with a number of patches for various
+    packages, but you may need to add more for your own packages, or
+    to existing packages.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Patch application ordering}
+  \begin{itemize}
+  \item Overall the patches are applied in this order:
+    \begin{enumerate}
+    \item Patches mentionned in the \code{<pkg>_PATCH} variable of the
+      package \code{.mk} file. They are automatically downloaded
+      before being applied.
+    \item Patches present in the package directory
+      \code{package/<pkg>/*.patch}
+    \item Patches present in the {\em global patch directories}
+    \end{enumerate}
+  \item In each case, they are applied:
+    \begin{itemize}
+    \item In the order specified in a \code{series} file, if available
+    \item Otherwise, in alphabetic ordering
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Patch conventions}
+  \begin{itemize}
+  \item There are a few conventions and best practices that the
+    Buildroot project encourages to use when managing patches
+  \item Their name should start with a sequence number that
+    indicates the ordering in which they should be applied.
+    \begin{block}{ls package/nginx/*.patch}
+      {\scriptsize
+\begin{verbatim}
+0001-auto-type-sizeof-rework-autotest-to-be-cross-compila.patch
+0002-auto-feature-add-mechanism-allowing-to-force-feature.patch
+0003-auto-set-ngx_feature_run_force_result-for-each-featu.patch
+0004-auto-lib-libxslt-conf-allow-to-override-ngx_feature_.patch
+0005-auto-unix-make-sys_nerr-guessing-cross-friendly.patch
+\end{verbatim}}
+      \end{block}
+    \item Each patch should contain a description of what the patch
+      does, and if possible its upstream status.
+    \item Each patch should contain a \code{Signed-off-by} that
+      identifies the author of the patch.
+    \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Patch example}
+
+\begin{block}{}
+{\tiny
+\begin{verbatim}
+From 81289d1d1adaf5a767a4b4d1309c286468cfd37f Mon Sep 17 00:00:00 2001
+From: Samuel Martin <s.martin49@gmail.com>
+Date: Thu, 24 Apr 2014 23:27:32 +0200
+Subject: [PATCH 1/5] auto/type/sizeof: rework autotest to be cross-compilation
+ friendly
+
+Rework the sizeof test to do the checks at compile time instead of at
+runtime. This way, it does not break when cross-compiling for a
+different CPU architecture.
+
+Signed-off-by: Samuel Martin <s.martin49@gmail.com>
+---
+ auto/types/sizeof | 42 ++++++++++++++++++++++++++++--------------
+ 1 file changed, 28 insertions(+), 14 deletions(-)
+
+diff --git a/auto/types/sizeof b/auto/types/sizeof
+index 9215a54..c2c3ede 100644
+--- a/auto/types/sizeof
++++ b/auto/types/sizeof
+@@ -14,7 +14,7 @@ END
+ 
+ ngx_size=
+ 
+-cat << END > $NGX_AUTOTEST.c
++cat << _EOF > $NGX_AUTOTEST.c
+[...]
+\end{verbatim}}
+\end{block}
+
+\end{frame}
+
+\begin{frame}{Global patch directories}
+  \begin{itemize}
+  \item You can include patches for the different packages in their
+    package directory, \code{package/<pkg>/}.
+  \item However, doing this involves changing the Buildroot sources
+    themselves, which may not be appropriate for some highly specific
+    patches.
+  \item The {\em global patch directories} mechanism allows to specify
+    additional locations where Buildroot will look for patches to
+    apply on packages.
+  \item \code{BR2_GLOBAL_PATCH_DIR} specifies a space-separated list
+    of directories containing patches.
+  \item These directories must contain sub-directories named after the
+    packages, themselves containing the patches to be applied.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Global patch directory example}
+
+\begin{block}{Patching {\em strace}}
+{\tiny
+\begin{verbatim}
+$ ls package/strace/*.patch
+0001-linux-aarch64-add-missing-header.patch
+
+$ find ~/patches/
+~/patches/
+~/patches/strace/
+~/patches/strace/0001-Demo-strace-change.patch
+
+$ grep ^BR2_GLOBAL_PATCH_DIR .config
+BR2_GLOBAL_PATCH_DIR="$(HOME)/patches"
+
+$ make strace
+[...]
+>>> strace 4.10 Patching
+
+Applying 0001-linux-aarch64-add-missing-header.patch using patch: 
+patching file linux/aarch64/arch_regs.h
+
+Applying 0001-Demo-strace-change.patch using patch: 
+patching file README
+[...]
+\end{verbatim}}
+\end{block}
+
+\end{frame}
+
+\begin{frame}{Generating patches}
+  \begin{itemize}
+  \item To generate the patches against a given package source code,
+    there are typically two possibilities.
+  \item Use the upstream version control system, often {\em Git}
+  \item Use a tool called \code{quilt}
+    \begin{itemize}
+    \item Useful when there is no version control system provided by
+      the upstream project
+    \item \url{http://savannah.nongnu.org/projects/quilt}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Generating patches: with Git}
+
+  Needs to be done outside of Buildroot: you cannot use the Buildroot
+  package build directory.
+
+  \begin{enumerate}
+  \item Clone the upstream Git repository\\
+    \code{git clone git://...}
+  \item Create a branch starting on the tag marking the stable
+    release of the software as packaged in Buildroot\\
+    \code{git checkout -b buildroot-changes v3.2}
+  \item Import existing Buildroot patches (if any)\\
+    \code{git am /path/to/buildroot/package/<foo>/*.patch}
+  \item Make your changes and commit them\\
+    \code{git commit -s -m ``this is a change''}
+  \item Generate the patches\\
+    \code{git format-patch v3.2}
+  \end{enumerate}
+
+\end{frame}
+
+\begin{frame}{Generating patches: with Quilt}
+
+  \begin{enumerate}
+  \item Extract the package source code:
+    \code{tar xf /path/to/dl/<foo>-<version>.tar.gz>}
+  \item Inside the package source code, reate a directory for patches\\
+    \code{mkdir patches}
+  \item Import existing Buildroot patches\\
+    \code{quilt import /path/to/buildroot/package/<foo>/*.patch}
+  \item Apply existing Buildroot patches\\
+    \code{quilt push -a}
+  \item Create a new patch\\
+    \code{quilt new 0001-fix-header-inclusion.patch}
+  \item Edit a file\\
+    \code{quilt edit main.c}
+  \item Refresh the patch\\
+    \code{quilt refresh}
+  \end{enumerate}
+
+\end{frame}
+
 \subsection{User, permission and device tables}
 
 \begin{frame}[fragile]{Package-specific users}
