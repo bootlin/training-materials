@@ -1,4 +1,4 @@
-\subchapter{Filesystems - Flash file systems}{Objective: Understand flash file systems usage and their integration on the target}
+\subchapter{Filesystems - Flash file systems}{Objective: Understand flash and flash file systems usage and their integration on the target}
 
 After this lab, you will be able to:
 \begin{itemize}
@@ -9,18 +9,27 @@ After this lab, you will be able to:
 \section{Setup}
 
 Stay in \code{$HOME/embedded-linux-labs/tinysystem}. Install the
-\code{mtd-utils} package, which will be useful to create JFFS2
-filesystem images.
+\code{mtd-utils} package, which will be useful to create UBIFS and
+UBI images.
 
 \section{Goals}
 
 Instead of using an external MMC card as in the previous lab, we will
 make our system use its internal flash storage.
 
-The root filesystem will still be in a read-only filesystem, put on an
-MTD partition.  Read/write data will be stored in a JFFS2 filesystem
-in another MTD partition. The layout of the internal NAND flash will
-be:
+Create an MTD partition to be attached to the UBI layer (the partitions
+previously used to store the kernel image and the DTB should be merged
+with this UBI partition).
+
+The kernel and DTB images will be stored in two separate {\em static}
+(read-only) UBI volumes.
+
+The root filesystem will be a UBI volume storing a UBIFS filesystem
+mounted read-only, the web server upload data will be stored in
+another UBI volume storing a UBIFS filesystem mounted
+read/write. These volumes will be {\em dynamic} volumes.
+
+Which gives the following layout:
 
 \begin{center}
   \includegraphics[width=\textwidth]{labs/sysdev-flash-filesystems/flash-map.pdf}
@@ -28,66 +37,116 @@ be:
 
 \section{Enabling NAND flash and filesystems}
 
-First, recompile your kernel with support for JFFS2 and for support
-for MTD partitions specified in the kernel command line
+First, recompile your kernel with support for UBI and UBIFS, and enable
+the option allowing us to pass the partition table through the cmdline:
 (\code{CONFIG_MTD_CMDLINE_PARTS}).
-
-Last but not least, disable \code{CONFIG_PROVE_LOCKING}. This option
-is currently causing problems with the JFFS2 filesystem. This option
-is in \code{Kernel Hacking} $\rightarrow$ \code{Lock debugging: prove
-  locking correctness}.
 
 Recompile your kernel, and we will update your kernel image on flash
 in the next section.
 
 \section{Filesystem image preparation}
 
-Find the erase block size of the NAND flash device in your board.
+Find the erase block size of the NAND flash device soldered on your
+board.
 
-Prepare a JFFS2 filesystem image from the \code{/www/upload/files}
+Prepare a UBIFS filesystem image from the \code{/www/upload/files}
 directory from the previous lab.
 
 Now, we will get back to the root filesystem contents in the
-\code{nfsroot} directory, and will generate a JFFS2 image from them.
+\code{nfsroot} directory, and will generate a UBIFS image from them.
 
-In this directory, modify the \code{/etc/init.d/rcS} file to
-mount a JFFS2 filesystem on the eighth flash partition
-(we will declare flash partitions in the next section),
-instead of an ext3 filesystem on the third MMC disk partition.
+Now, modify the \code{/etc/init.d/rcS} file to mount a UBIFS filesystem
+on the \code{data} volume (we will declare UBI volumes in the next
+section), instead of an ext3 filesystem on the third MMC disk partition.
 
-Create a JFFS2 image for your root filesystem, with the same options
-as for the data filesystem.
+Once done, create a UBIFS image for your root filesystem, with the same
+options as for the data filesystem.
+
+\section{UBI image preparation}
+
+Create a ubinize config file where you will define the 4 volumes
+described above, then use the \code{ubinize} tool to generate your
+UBI image.
+
+Warning: do not use the autoresize flag (\code{vol_flags=autoresize}):
+U-Boot corrupts the UBI metadata when trying to expand the volume.
+
+Remember that some of these volumes are static (read-only) and some are
+not.
+
+%Creating UBIFS images:
+%
+%mkfs.ubifs -d <rootfs-directory-path> -o <rootfs-image-path> -e 124KiB -m 2048 -c 1024
+%mkfs.ubifs -d <data-directory-path> -o <data-image-path> -e 124KiB -m 2048 -c 1024
+%
+
+%
+% ubi config file content
+%
+%[kernel]
+%mode=ubi
+%image=<zImage-path>
+%vol_id=1
+%vol_type=static
+%vol_name=kernel
+%vol_alignment=1
+%
+%[dtb]
+%mode=ubi
+%image=<dtb-path>
+%vol_id=2
+%vol_type=static
+%vol_name=dtb
+%vol_alignment=1
+%
+%[root]
+%mode=ubi
+%image=<rootfs-image-path>
+%vol_id=3
+%vol_type=dynamic
+%vol_size=10MiB
+%vol_name=root
+%vol_alignment=1
+%
+%[data]
+%mode=ubi
+%image=<data-image-path>
+%vol_id=4
+%vol_type=dynamic
+%vol_name=data
+%vol_alignment=1
+%
+
+%
+% Creating UBI images:
+%
+% # ubinize -o test.ubi -p 128KiB -m 2048 ubi.ini
+%
 
 \section{MTD partitioning and flashing}
 
-Look at the way default flash partitions are defined in the board
-Device Tree sources
-(\code{arch/arm/boot/dts/at91-sama5d3_xplained.dts}).
+Look at the way the default flash partitions are defined in the board
+Device Tree source (\code{arch/arm/boot/dts/at91-sama5d3_xplained.dts}
+in your kernel tree).
 
 However, they do not match the way we wish to organize our flash
 storage. Therefore, we will define our own partitions at boot time,
 on the kernel command line.
 
-Enter the U-Boot shell and erase NAND flash, from offset \code{0x160000},
-up to the end of the NAND flash storage. You'll have to compute the
-remaining size of the flash, from \code{0x160000} to the end. Remember
-that you can look at U-Boot booting messages to find what the size of
-the NAND flash is.
+Redefine the partition in U-Boot using the \code{mtdids} and
+\code{mtdparts} environment variables.
+Once done, execute the \code{mtdparts} command and check the partition
+definitions.
 
-The DTB (device tree blob) has been already written in the NAND flash
-and it didn't change so we keep it.
+You can now safely erase the UBI partition without risking any
+corruption on other partitions.
 
-Using the \code{tftp} command, download and flash the new kernel
-image at the correct location.
+Download the UBI image (using \code{tftp}) you have created in the
+previous section and flash it on the UBI partition.
 
-Using the \code{tftp} command, download and flash the JFFS2 image
-of the root filesystem the correct location.
-
-Using the \code{tftp} command, download and flash the JFFS2 image of
-the data filesystem at the correction location.
-
-Use the \code{trimffs} version of the command \code{nand write} for
-the JFFS2 image. \footnote{The command \code{nand write.trimffs} skips
+When flashing the UBI image, use the \code{trimffs} version of the
+command \code{nand write}.
+\footnote{The command \code{nand write.trimffs} skips
   the blank sectors instead of writing them. It is needed because the
   algorithm used by the hardware ECC for the SAMA5D3 SoC generates a
   checksum with bytes different of 0xFF if the page is blank. Linux
@@ -96,25 +155,112 @@ the JFFS2 image. \footnote{The command \code{nand write.trimffs} skips
   not recommended writing more than one time on a page and its OOB
   even if the page is blank.}
 
-Don't forget that you can write U-Boot scripts to automate these
-procedures. This is very handy to avoid mistakes when typing commands!
+\section{Loading kernel and DTB images from UBI and booting it}
+
+From Linux (still booting from the external MMC), attach the UBI
+partition to the UBI layer and verify that all the UBI volumes are
+present.
+
+Now back in U-Boot, retrieve the kernel and DTB images from their
+respective UBI volumes and try to boot them. If it works, you can
+modify your \code{bootcmd} accordingly.
 
 Set the \code{bootargs} variable so that:
 
 \begin{itemize}
-\item You define the 8 MTD partitions, as detailed previously
+\item The \code{mtdparts} environment variable content is passed to
+  the kernel through cmdline
+\footnote{Remember you can tweak your bootargs using u-boot env
+  variables before booting the kernel. To achieve that, create a
+  \code{bootargs_base} variable where you will store all the kernel
+  parameters except the mtdparts one. Then modify your \code{bootcmd}
+  to append the \code{mtdparts} definition to \code{bootargs_base}
+  before calling \code{bootz}:
+  \code{setenv bootargs $bootargs_base $mtdparts}}
+\item The UBI partition is automatically attached to the UBI layer at
+  boot time
 \item The root filesystem is mounted from the 7\textsuperscript{th}
   partition, and is mounted read-only (kernel parameter
   \code{ro}).
-  \begin{itemize}
-  \item \bf{Important: even if this partition is mounted read-only,
-      the MTD partition itself must be declared as read-write.
-      Otherwise, Linux won't be able to perform ECC checks on it,
-      which involve both reading and writing.}
-  \end{itemize}
 \end{itemize}
 
-Boot the target, check that MTD partitions are well configured, and
-that your system still works as expected. Your root filesystem should
-be mounted read-only, while the data filesystem should be mounted
-read-write, allowing you to upload data using the web server.
+Boot the target, check that the MTD partitions and UBI volumes are
+correctly configured, and that your system still works as
+expected. Your root filesystem should be mounted read-only, while the
+data filesystem should be mounted read-write, allowing you to upload
+data using the web server.
+
+%Useful u-boot environment variables
+%mtdids=nand0=atmel_nand
+%mtdparts=mtdparts=atmel_nand:256k(bootstrap),512k(u-boot),256k(u-boot-env1),256k(u-boot-env2),-(UBI)
+%bootargs_base=console=ttyS0,115200 rootfstype=ubifs root=ubi0:root ip=dhcp ubi.mtd=4 ro
+%bootcmd=mtdparts; ubi part UBI; ubi readvol 0x21000000 kernel; ubi readvol 0x22000000 dtb; setenv bootargs $bootargs_base $mtdparts; bootz 0x21000000 - 0x22000000
+%flash=mtdparts; nand erase.part UBI; tftp 0x21000000 test.ubi; nand write.trimffs 0x21000000 UBI $filesize
+
+\section{Going further}
+
+\subsection{Resizing an existing volume and creating a new one}
+
+In some cases you might need to adapt your NAND partitioning without
+re-flashing everything. Thanks to UBI this is possible.
+
+From Linux, resize the \code{data} volume to occupy the remaining
+50MiB, and then create a new \code{log} volume of 16MiB. Mount this
+volume as a UBIFS filesystem and see what happens.
+
+Update your init script to mount the UBI \code{log} volume on \code{/var/log}.
+Reboot your system and check that the \code{log} is correcly mounted.
+
+% Hints:
+%
+%ubirsvol /dev/ubi0 -n 4 -s 50MiB
+%ubimkvol /dev/ubi0 -N log -s 16MiB
+%mount -t ubifs ubi0:log /var/log
+%
+
+\subsection{Atomic update}
+
+UBI also provides an atomic update feature, which is particularly useful
+if you need to safely upgrade sensitive parts of your system (kernel,
+DTB or rootfs).
+
+Duplicate the kernel volume and create a U-Boot script to fallback on
+the second kernel volume if the first one is corrupted:
+\begin{itemize}
+  \item First create a new static volume to store your kernel backup
+  \item Flash a valid kernel on the backup volume
+  \item Modify your \code{bootcmd} to fallback to the backup volume if the first one
+    is corrupted
+  \item Now try to update the kernel volume and interrupt the process before
+    it has finished and see what happens (unplug the platform)
+  \item Create a shell script to automate kernel updates (executed in Linux).
+    Be careful, this script should also handle the case where the backup
+    volume has been corrupted (copy the content of the kernel volume into
+    the backup one)
+\end{itemize}
+
+%TODO: provide a correction
+
+\subsection{Using {\em squashfs} for the root filesystem}
+
+Root filesystems are often a sensitive part of your system, and you don't
+want it to be corrupted, hence some people decide to use read-only
+file system for their rootfs and use another file system to store their
+auxiliary data.
+
+\code{squashfs} is one of these read-only file systems. However,
+\code{squashfs} expects to be mounted on a block device.
+
+Use the {\em ubiblk} layer to emulate a read-only block device on top
+of a static UBI volume to mount a {\em squashfs} filesystem as the
+root filesystem:
+
+\begin{itemize}
+  \item First create a {\em squashfs} image with your rootfs content
+  \item Then create a new static volume to store your squashfs and update it with
+    your squashfs image
+  \item Enable and setup the {\em ubiblk} layer
+  \item Boot on your new rootfs
+\end{itemize}
+
+%TODO: provide a correction
