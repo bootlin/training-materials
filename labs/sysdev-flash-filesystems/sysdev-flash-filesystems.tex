@@ -49,18 +49,12 @@ in the next section.
 Find the erase block size of the NAND flash device soldered on your
 board.
 
-Prepare a UBIFS filesystem image from the \code{/www/upload/files}
-directory from the previous lab.
+Prepare a UBIFS filesystem image containing the files stored in the
+\code{/www/upload/files} directory.
 
-Now, we will get back to the root filesystem contents in the
-\code{nfsroot} directory, and will generate a UBIFS image from them.
-
-Now, modify the \code{/etc/init.d/rcS} file to mount a UBIFS filesystem
-on the \code{data} volume (we will declare UBI volumes in the next
-section), instead of an ext3 filesystem on the third MMC disk partition.
-
-Once done, create a UBIFS image for your root filesystem, with the same
-options as for the data filesystem.
+Modify the \code{/etc/init.d/rcS} file to mount the \code{data} volume
+on /var/www/files.
+Once done, create a UBIFS image of your root filesystem.
 
 \section{UBI image preparation}
 
@@ -157,13 +151,9 @@ command \code{nand write}.
 
 \section{Loading kernel and DTB images from UBI and booting it}
 
-From Linux (still booting from the external MMC), attach the UBI
-partition to the UBI layer and verify that all the UBI volumes are
-present.
-
-Now back in U-Boot, retrieve the kernel and DTB images from their
-respective UBI volumes and try to boot them. If it works, you can
-modify your \code{bootcmd} accordingly.
+From U-Boot, retrieve the kernel and DTB images from their respective
+UBI volumes and try to boot them. If it works, you can modify your
+\code{bootcmd} accordingly.
 
 Set the \code{bootargs} variable so that:
 
@@ -179,9 +169,8 @@ Set the \code{bootargs} variable so that:
   \code{setenv bootargs $bootargs_base $mtdparts}}
 \item The UBI partition is automatically attached to the UBI layer at
   boot time
-\item The root filesystem is mounted from the 7\textsuperscript{th}
-  partition, and is mounted read-only (kernel parameter
-  \code{ro}).
+\item The root filesystem is mounted from the root volume, and is mounted
+  read-only (kernel parameter \code{ro}).
 \end{itemize}
 
 Boot the target, check that the MTD partitions and UBI volumes are
