@@ -268,7 +268,7 @@ Creating 5 MTD partitions on "omap2-nand.0":
   \begin{itemize}
   \item Example:\\
   \code{mtdids=nand0=omap2-nand.0}
-  \code{mtdparts=omap2-nand.0:512k(X-Loader)ro,1536k(U-Boot)ro,512k(Environment),4m(Kernel),-(RootFS)}
+  \code{mtdparts=mtdparts=omap2-nand.0:512k(X-Loader)ro,1536k(U-Boot)ro,512k(Environment),4m(Kernel),-(RootFS)}
   \item We've just defined 5 partitions in the \code{omap2-nand.0} device:
     \begin{itemize}
     \item \code{1st stage bootloader} (512 KiB, read-only)
@@ -632,7 +632,7 @@ vol_alignment=1
 [rootfs-volume]
 mode=ubi
 image=rootfs.squashfs
-vol_id=1
+vol_id=2
 vol_type=static
 vol_name=rootfs
 vol_alignment=1
@@ -643,7 +643,7 @@ vol_alignment=1
 [data-volume]
 mode=ubi
 image=data.ubifs
-vol_id=1
+vol_id=3
 vol_size=30MiB
 vol_type=dynamic
 vol_name=data
@@ -747,6 +747,17 @@ vol_alignment=1
 \end{frame}
 
 \begin{frame}
+  \frametitle{Linux: UBIFS target tools}
+  \begin{itemize}
+  \item No specific tools are required to manipulate a UBIFS filesystem
+  \item Mounting a UBIFS filesystem is done with \code{mount}:\\
+    \code{mount -t ubifs <ubi-device-id>:<volume-name> <mount-point>}
+  \item Example:\\
+    \code{mount -t ubifs ubi0:data /data}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
   \frametitle{Linux: UBI image creation workflow}
   \begin{center}
     \includegraphics[scale=0.3]{slides/sysdev-flash-filesystems/ubi-creation-workflow.pdf}
@@ -766,7 +777,7 @@ vol_alignment=1
 \end{frame}
 
 \begin{frame}
-  \frametitle{Linux: Booting a UBIFS filesystem as a rootfs}
+  \frametitle{Linux: Using a UBIFS filesystem as a rootfs}
   \begin{itemize}
   \item You just have to pass the following information on the kernel
     cmdline:
