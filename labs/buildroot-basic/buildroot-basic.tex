@@ -320,7 +320,20 @@ Our SD card needs to be formatted in two partitions:
 
 \end{itemize}
 
-To achieve this, do the following steps:
+First, let's identify under what name your SD card is identified in
+your system: look at the output of \code{cat /proc/partitions} and
+find your SD card. In general, if you use the internal SD card reader
+of a laptop, it will be \code{mmcblk0}, while if you use an external
+USB SD card reader, it will be \code{sdX} (i.e\code{sdb}, \code{sdc},
+etc.). {\bf Be careful: \code{/dev/sda} is generally the hard drive of
+  your machine!}.
+
+If your SD card is \code{/dev/mmcblk0}, then the partitions inside the
+SD card are named \code{mmcblk0p1}, \code{mmc0blkp2}, etc. If your SD
+card is \code{/dev/sdc}, then the partitions inside are named
+\code{/dev/sdc1}, \code{/dev/sdc2}, etc.
+
+To format our SD card, do the following steps:
 
 \begin{enumerate}
 
@@ -329,7 +342,8 @@ To achieve this, do the following steps:
 
 \item Erase the beginning of the SD card to ensure that the existing
   partitions are not going to be mistakenly detected:\\
-  \code{sudo dd if=/dev/zero of=/dev/mmcblk0 bs=1M count=16}.
+  \code{sudo dd if=/dev/zero of=/dev/mmcblk0 bs=1M count=16}. Use
+  \code{sdc} or \code{sdb} instead of \code{mmcblk0} if needed.
 
 \item Create the two partitions.
 
@@ -351,10 +365,12 @@ To achieve this, do the following steps:
   \end{itemize}
 
 \item Format the first partition as a {\em FAT16} filesystem:\\
-  \code{sudo mkfs.vfat -F 16 -n boot /dev/mmcblk0p1}.
+  \code{sudo mkfs.vfat -F 16 -n boot /dev/mmcblk0p1}. Use \code{sdc1}
+  or \code{sdb1} instead of \code{mmcblk0p1} if needed.
 
 \item Format the second partition as an {\em ext4} filesystem:\\
-  \code{sudo mkfs.ext4 -L rootfs -E nodiscard /dev/mmcblk0p2}.
+  \code{sudo mkfs.ext4 -L rootfs -E nodiscard /dev/mmcblk0p2}. Use
+  \code{sdc2} or \code{sdb2} instead of \code{mmcblk0p2} if needed.
 
 \end{enumerate}
 
