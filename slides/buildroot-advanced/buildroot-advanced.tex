@@ -10,10 +10,39 @@
     \item Makes it harder to upgrade Buildroot
     \end{itemize}
   \item The \code{BR2_EXTERNAL} mechanism allows to store your own
-    package recipes, {\em defconfigs} and other artefacts outside of
-    the Buildroot tree.
+    package recipes, {\em defconfigs} and other artefacts {\bf
+      outside} of the Buildroot source tree.
   \item Note: can only be used to add new packages, not to override
     existing Buildroot packages
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{{\tt BR2\_EXTERNAL}: example organization}
+
+  \begin{itemize}
+  \item \code{project/}
+    \begin{itemize}
+    \item \code{buildroot/}
+      \begin{itemize}
+      \item The Buildroot source code, cloned from Git, or extracted
+        from a release tarball.
+      \end{itemize}
+    \item \code{external/}
+      \begin{itemize}
+      \item Your {\em external tree}, with your own custom packages
+        and {\em defconfigs}
+      \end{itemize}
+    \item \code{output-build1/}
+    \item \code{output-build2/}
+      \begin{itemize}
+      \item Several {\em output} directories, to build various configurations
+      \end{itemize}
+    \item \code{custom-app/}
+    \item \code{custom-lib/}
+      \begin{itemize}
+      \item The source code of your custom applications and libraries.
+      \end{itemize}
+    \end{itemize}
   \end{itemize}
 \end{frame}
 
@@ -124,6 +153,36 @@ make BR2_EXTERNAL=/path/to/external
     if relative, important to remember that it's relative to the
     Buildroot source directory
   \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Use {\tt BR2\_EXTERNAL} in your configuration}
+
+  \begin{itemize}
+  \item In your Buildroot configuration, don't use absolute paths for
+    the {\em rootfs overlay}, the {\em post-build scripts}, {\em
+      global patch directories}, etc.
+  \item If they are located in your
+    \code{BR2_EXTERNAL}, you can use
+    \code{$(BR2_EXTERNAL)} in your Buildroot configuration options.
+  \item With the recommended structure shown before, a Buildroot
+    configuration would look like:
+    \begin{block}{}
+{\tiny
+\begin{verbatim}
+BR2_GLOBAL_PATCH_DIR="$(BR2_EXTERNAL)/board/<company>/<boardname>/patches/"
+...
+BR2_ROOTFS_OVERLAY="$(BR2_EXTERNAL)/board/<company>/<boardname>/rootfs_overlay/"
+...
+BR2_ROOTFS_POST_BUILD_SCRIPT="$(BR2_EXTERNAL)/board/<company>/<boardname>/post_build.sh"
+BR2_ROOTFS_POST_IMAGE_SCRIPT="$(BR2_EXTERNAL)/board/<company>/<boardname>/post_image.sh"
+...
+BR2_LINUX_KERNEL_USE_CUSTOM_CONFIG=y
+BR2_LINUX_KERNEL_CUSTOM_CONFIG_FILE="$(BR2_EXTERNAL)/board/<company>/<boardname>/linux.config"
+\end{verbatim}
+}
+    \end{block}
+  \end{itemize}
+
 \end{frame}
 
 \begin{frame}{Package-specific targets: basics}
