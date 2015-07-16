@@ -57,36 +57,45 @@ Now connect the nunchuk pins:
 \includegraphics[width=12cm]{labs/kernel-i2c-device-model/bbb-connect-nunchuk.pdf}
 \end{center}
 
-\section{Update the board device tree}
+\section{Create a custom device tree}
 
-To let the Linux kernel handle a new device, the first thing is to add a
-description for it in the board device tree.
+To let the Linux kernel handle a new device, we need to add a
+description of this device in the board device tree.
 
-We will have to do two things:
+As the Beaglebone Black device tree is provided by the kernel community,
+and will continue to evolve on its own, we don't want to make changes
+directly to the device tree file for this board. The best solution is
+to create a custom device tree for your board with the new device.
+After all, it is like a custom board!
+
+So, reusing code from the Beaglebone Black DTS, create an
+am335x-customboneblack.dts file. At this stage, all you will need
+will be the DTS includes and the definitions of the \code{model}
+and \code{compatible} properties. All the rest can go away.
+
+Now, modify the corresponding \code{Makefile} to make sure the
+new DTS is compiled automatically.
+
+In this new file, we will have to do two things:
 
 \begin{enumerate}
-\item Add a node declaring a second I2C bus (\code{i2c1}).
+\item Enable and configure the second I2C bus (\code{i2c1}).
 \item Add a child node to this bus, corresponding to the Nunchuk device.
 \end{enumerate}
 
-\subsection{Declare a second I2C bus}
+\subsection{Enable the second I2C bus}
 
-First, find in which DTS file the first I2C bus (\code{i2c0}) for the
-BeagleBone Black is instantiated and in which file it is defined.
+First, find the DT definitions for (\code{i2c1}).
 
-Find the definitions for \code{i2c1}. What is the base address of its
-registers? Also find the same address in the processor datasheet
-\footnote{Tip: to do your search, put an underscore character in the middle
-of the address, as in \code{FFFF_FFFF}... that's how addresses are written in the
+What is the base address of its registers? Also find the same address in
+the processor datasheet \footnote{Tip: to do your search, put an
+underscore character in the middle of the address, as in
+\code{FFFF_FFFF}... that's how addresses are written in the
 TI datasheet).}.
 
-Then, imitating the definitions found for \code{i2c0},
-modify the \code{arch/arm/boot/dts/am335x-boneblack.dts}
-file to instantiate \code{i2c1}, functioning at 100 KHz.
-For the moment, comment out the \code{pinctrl-} properties.
-They correspond to pin muxing settings for \code{i2c1}. We will define
-these settings in the next lab, and they are not defined in
-any \code{.dtsi} file anyway.
+Then, make a reference to this definition in your custom DTS and
+enable this bus. Also configure it to function at 100 KHz. That's
+enough so far!
 
 \subsection{Declare the Nunchuk device}
 
@@ -98,15 +107,16 @@ addressed is enforced by the device itself. You can't change it.}.
 
 \subsection{Checking the device tree on the running system}
 
-Now that you have modified the board device tree, recompile your
-DTB:
+Now, just compile your DTB by asking the kernel Makefile to recompile
+only DTBs:
 
 \begin{verbatim}
 make dtbs
 \end{verbatim}
 
-Copy the updated version to the tftp server home directory and boot the
-board.
+Now, copy the new DTB to the tftp server home directory, change the DTB
+file name in the U-Boot configuration\footnote{Tip: you just need to run
+\code{editenv bootargs} and \code{saveenv}.}, and boot the board.
 
 Through the \code{/proc/device-tree} directory, it is possible to check
 the Device Tree settings that your system has loaded. That's useful when
