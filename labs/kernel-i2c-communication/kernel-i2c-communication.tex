@@ -93,17 +93,25 @@ Control Module Registers is defined. Look for \code{pinctrl-single} in
 \code{arch/arm/boot/dts/am33xx.dtsi}:
 
 \begin{verbatim}
-am33xx_pinmux: pinmux@44e10800 {
-        compatible = "pinctrl-single";
-        reg = <0x44e10800 0x0238>;
-        #address-cells = <1>;
-        #size-cells = <0>;
-        pinctrl-single,register-width = <32>;
-        pinctrl-single,function-mask = <0x7f>;
+am33xx_pinmux: pinmux@800 {
+	compatible = "pinctrl-single";
+	reg = <0x800 0x238>;
+	#address-cells = <1>;
+	#size-cells = <0>;
+	pinctrl-single,register-width = <32>;
+	pinctrl-single,function-mask = <0x7f>;
 };
 \end{verbatim}
 
-The base address is \code{0x44e10800} instead of \code{0x44e10000} in
+We first have to compute the absolute address of the above node. It is
+at offset \code{800} inside node \code{scm@210000} inside node
+\code{l4_wkup@44c00000}. So, the absolute address is:
+
+\begin{verbatim}
+0x44c00000 + 0x210000 + 0x800 = 0x44e10800
+\end{verbatim}
+
+So, the base address is \code{0x44e10800} instead of \code{0x44e10000} in
 the datasheet! The value in the DTS is \code{0x800} greater, which
 matches the difference in the offsets.
 
