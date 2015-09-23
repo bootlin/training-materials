@@ -3,7 +3,7 @@
 
 # Needed tools
 INKSCAPE = inkscape
-PDFLATEX = pdflatex
+PDFLATEX = xelatex
 DIA      = dia
 EPSTOPDF = epstopdf
 
