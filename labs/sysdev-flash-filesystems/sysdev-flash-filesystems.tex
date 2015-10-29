@@ -76,7 +76,7 @@ not.
 %
 
 %
-% ubi config file content
+% ubi config file contents
 %
 %[kernel]
 %mode=ubi
@@ -141,7 +141,7 @@ When flashing the UBI image, use the \code{trimffs} version of the
 command \code{nand write}\footnote{The command \code{nand write.trimffs} skips
   the blank sectors instead of writing them. It is needed because the
   algorithm used by the hardware ECC for the SAMA5D3 SoC generates a
-  checksum with bytes different of 0xFF if the page is blank. Linux
+  checksum with bytes different from \code{0xFF} if the page is blank. Linux
   only checks the page, and if it is blank it doesn't erase it, but as
   the OOB is not blank it leads to ECC errors. More generally it is
   not recommended writing more than one time on a page and its OOB
@@ -159,9 +159,9 @@ UBI volumes and try to boot them. If it works, you can modify your
 Set the \code{bootargs} variable so that:
 
 \begin{itemize}
-\item The \code{mtdparts} environment variable content is passed to
-  the kernel through cmdline\footnote{Remember you can tweak your
-  \code{bootargs} using u-boot env variables before booting the kernel.
+\item The \code{mtdparts} environment variable contents are passed to
+  the kernel through \code{cmdline}\footnote{Remember you can tweak your
+  \code{bootargs} using U-Boot environment variables before booting the kernel.
   To achieve that, create a \code{bootargs_base} variable where you
   will store all the kernel parameters except the \code{mtdparts}
   one. Then modify your \code{bootcmd} to append the \code{mtdparts}
@@ -180,11 +180,11 @@ data filesystem should be mounted read-write, allowing you to upload
 data using the web server.
 
 %Useful u-boot environment variables
-%mtdids=nand0=atmel_nand
-%mtdparts=mtdparts=atmel_nand:256k(bootstrap),512k(u-boot),256k(u-boot-env1),256k(u-boot-env2),-(UBI)
-%bootargs_base=console=ttyS0,115200 rootfstype=ubifs root=ubi0:root ip=dhcp ubi.mtd=4 ro
-%bootcmd=mtdparts; ubi part UBI; ubi readvol 0x21000000 kernel; ubi readvol 0x22000000 dtb; setenv bootargs $bootargs_base $mtdparts; bootz 0x21000000 - 0x22000000
-%flash=mtdparts; nand erase.part UBI; tftp 0x21000000 test.ubi; nand write.trimffs 0x21000000 UBI $filesize
+%setenv mtdids nand0=atmel_nand
+%setenv mtdparts mtdparts=atmel_nand:256k(bootstrap),512k(u-boot),256k(u-boot-env1),256k(u-boot-env2),-(UBI)
+%setenv bootargs_base console=ttyS0,115200 rootfstype=ubifs root=ubi0:root ip=dhcp ubi.mtd=4 ro
+%setenv bootcmd 'mtdparts; ubi part UBI; ubi readvol 0x21000000 kernel; ubi readvol 0x22000000 dtb; setenv bootargs $bootargs_base $mtdparts; bootz 0x21000000 - 0x22000000'
+%setenv flash 'mtdparts; nand erase.part UBI; tftp 0x21000000 test.ubi; nand write.trimffs 0x21000000 UBI $filesize'
 
 \section{Going further}
 
@@ -193,8 +193,8 @@ data using the web server.
 In some cases you might need to adapt your NAND partitioning without
 re-flashing everything. Thanks to UBI this is possible.
 
-From Linux, resize the \code{data} volume to occupy the remaining
-space, and then create a new \code{log} volume of 16MiB. Mount this
+From Linux, resize the \code{data} volume to occupy 128 MiB,
+and then create a new \code{log} volume of 16MiB. Mount this
 volume as a UBIFS filesystem and see what happens.
 
 Update your init script to mount the UBI \code{log} volume on \code{/var/log}.
@@ -202,7 +202,7 @@ Reboot your system and check that the \code{log} is correcly mounted.
 
 % Hints:
 %
-%ubirsvol /dev/ubi0 -n 4 -s 50MiB
+%ubirsvol /dev/ubi0 -n 4 -s 128MiB
 %ubimkvol /dev/ubi0 -N log -s 16MiB
 %mount -t ubifs ubi0:log /var/log
 %
@@ -224,7 +224,7 @@ the second kernel volume if the first one is corrupted:
     it has finished and see what happens (unplug the platform)
   \item Create a shell script to automate kernel updates (executed in Linux).
     Be careful, this script should also handle the case where the backup
-    volume has been corrupted (copy the content of the kernel volume into
+    volume has been corrupted (copy the contents of the kernel volume into
     the backup one)
 \end{itemize}
 
@@ -233,7 +233,7 @@ the second kernel volume if the first one is corrupted:
 \subsection{Using {\em squashfs} for the root filesystem}
 
 Root filesystems are often a sensitive part of your system, and you don't
-want it to be corrupted, hence some people decide to use read-only
+want it to be corrupted, hence some people decide to use a read-only
 file system for their rootfs and use another file system to store their
 auxiliary data.
 
@@ -245,7 +245,7 @@ of a static UBI volume to mount a {\em squashfs} filesystem as the
 root filesystem:
 
 \begin{itemize}
-  \item First create a {\em squashfs} image with your rootfs content
+  \item First create a {\em squashfs} image with your rootfs contents
   \item Then create a new static volume to store your squashfs and update it with
     your squashfs image
   \item Enable and setup the {\em ubiblk} layer

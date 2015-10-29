@@ -237,7 +237,7 @@
     specified by the \code{mtdids} and \code{mtdparts} variables
   \item Use flash specific commands (depends on your flash device type),
     and pass partition names instead of numerical offsets
-  \item Example: \code{nand erase <partname>}
+  \item Example: \code{nand erase.part <partname>}
   \end{itemize}
 \end{frame}
 
@@ -279,8 +279,8 @@ setenv mtdparts mtdparts=omap2-nand.0:512k(X-Loader)ro,1536k(U-Boot)ro,512k(Env)
     \item \code{Kernel} (4 MiB)
     \item \code{Root filesystem} (Remaining space)
     \end{itemize}
-  \item Partition sizes must be multiple of the erase block size.\\
-    You can use sizes in hexadecimal too. Remember the below sizes:\\
+  \item Partition sizes must be multiple of the erase block size.
+    You can use sizes in hexadecimal too. Remember the below sizes:
     \code{0x20000} = 128k, \code{0x100000} = 1m, \code{0x1000000} = 16m
   \item \code{ro} lists the partition as read only
   \item \code{-} is used to use all the remaining space.
@@ -669,8 +669,8 @@ vol_alignment=1
       volume information if the \code{layout} string is passed
     \item \code{ubi check <vol-name>} check if a volume exists
     \item \code{ubi readvol <dest-addr> <vol-name> [<size>]} read volume
-      content
-    \item U-Boot also provides tools to update the UBI device content
+      contents
+    \item U-Boot also provides tools to update the UBI device contents
     \item Using them is highly discouraged (the U-Boot UBI implementation
       is not entirely stable, and using commands that do not touch the UBI
       metadata is safer)
@@ -710,13 +710,26 @@ vol_alignment=1
     \item \code{ubirmvol /dev/ubi<UBI-device-id> -N <name>} delete an UBI
       volume
     \item \code{ubiupdatevol /dev/ubi<UBI-device-id>_<UBI-vol-id> [-s <size>] <vol-image-file>}
-      update volume content
+      update volume contents
     \item \code{ubirsvol /dev/ubi<UBI-device-id> -N <name> -s <size>}
       resize an UBI volume
     \item \code{ubirename /dev/ubi<UBI-device-id>_<UBI-vol-id> <old-name> <new-size>}
       rename a UBI volume
     \end{itemize}
 \end{frame}
+
+\begin{frame}
+  \frametitle{Linux tools: BusyBox UBI limitations}
+  Beware that the implementation of UBI commands in BusyBox is still
+  incomplete. For example:
+  \begin{itemize}
+    \item \code{ubirsvol} doesn't support \code{-N <name>}. You have
+      to use specify the volume to resize by its id (\code{-n num}):\\
+      \code{ubirsvol /dev/ubi0 -n 4 -s 64 MiB}
+    \item Same constraint for \code{ubirmvol}:\\
+      \code{ubirmvol /dev/ubi0 -n 4}
+    \end{itemize}
+\end{frame} 
 
 \begin{frame}
   \frametitle{Linux: UBIFS host tools}
@@ -854,7 +867,7 @@ vol_alignment=1
     for data retention and wear leveling issues, while MTD does not)
   \item The \code{ubiblock} layer creates {\bf read-only} block devices
     on demand
-  \item The user specifies which static volumes he would like to attach
+  \item The user specifies which static volumes (s)he would like to attach
     to \code{ubiblock}
     \begin{itemize}
     \item Through the \code{cmdline}: by passing
