@@ -158,24 +158,26 @@
 
 \begin{frame}
   \frametitle{U-Boot: manipulating NAND devices}
+  U-Boot provides a set of commands to manipulate NAND devices,
+  grouped under the \code{nand} command
   \begin{itemize}
-  \item U-Boot provides a set of commands to manipulate NAND devices
-  \item Grouped under the \code{nand} command
+  \item \code{nand info}\\
+    Show available NAND devices and characteristics
+  \item \code{nand device [dev]}\\
+    Select or display the active NAND device
+  \item \code{nand read[.option] <addr> <offset|partname> <size>}\\
+    Read data from NAND
+  \item \code{nand write[.option] <addr> <offset|partname> <size>}\\
+    Write data on NAND
     \begin{itemize}
-    \item \code{nand info}: show available NAND devices and their
-      characteristics
-    \item \code{nand device [dev]}: select or display the active NAND
-      device
-    \item \code{nand read[.option] <addr> <offset|part> <size>} read
-      data from the NAND
-    \item \code{nand write[.option] <addr> <offset|part> <size>} write
-      data on the NAND
-    \item Use \code{nand write.trimffs} to avoid writing empty pages
+      \item Use \code{nand write.trimffs} to avoid writing empty pages
       (those filled with \code{0xff})
-    \item \code{nand erase <offset> <size>} erase a NAND region
-    \item \code{nand erase.part <part>} erase a NAND partition
-    \item More commands for debugging purpose
     \end{itemize}
+  \item \code{nand erase <offset> <size>}\\
+    Erase a NAND region
+  \item \code{nand erase.part <partname>}\\
+    Erase a NAND partition
+  \item More commands for debugging purposes
   \end{itemize}
 \end{frame}
 
@@ -337,7 +339,7 @@ setenv mtdparts mtdparts=omap2-nand.0:512k(X-Loader)ro,1536k(U-Boot)ro,512k(Env)
   \item U-Boot and Linux are using the same syntax to describe the MTD
     partitions
   \item Directly pass the \code{mtdparts} environment variable defined in
-    U-Boot to the kernel cmdline
+    U-Boot to the kernel command line
   \item Be careful: when modifying the partition layout you might impact
     MTD users which have already stored data on existing partitions: e.g.
     a file system might complain about data corruption if you change
@@ -368,7 +370,7 @@ setenv mtdparts mtdparts=omap2-nand.0:512k(X-Loader)ro,1536k(U-Boot)ro,512k(Env)
 \begin{frame}
   \frametitle{Flash wear leveling (1)}
   \begin{itemize}
-  \item Wear leveling consists in distributing writes over the whole
+  \item Wear leveling consists in distributing erases over the whole
     flash device to avoid quickly reaching the maximum number of erase
     cycles on blocks that are written really often
   \item Can be done in:
@@ -758,7 +760,7 @@ vol_alignment=1
   \frametitle{Linux: Using a UBIFS filesystem as a rootfs}
   \begin{itemize}
   \item You just have to pass the following information on the kernel
-    cmdline:
+    command line:
     \begin{itemize}
     \item \code{ubi.mtd=1}: attach \code{/dev/mtd1} to the UBI layer and
       create \code{ubi0}
@@ -815,7 +817,7 @@ vol_alignment=1
   \item The user specifies which static volumes (s)he would like to attach
     to \code{ubiblock}
     \begin{itemize}
-    \item Through the \code{cmdline}: by passing
+    \item Through the kernel command line: by passing
       \code{ubi.block=<ubi-dev-id>,<volume-name>}
     \item Using the \code{ubiblock} utility provided by \code{mtd-utils}:
       \code{ubiblock --create <ubi-volume-dev-file>}
