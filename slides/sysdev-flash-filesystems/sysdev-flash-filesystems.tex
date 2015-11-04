@@ -305,9 +305,9 @@ setenv mtdparts mtdparts=omap2-nand.0:512k(X-Loader)ro,1536k(U-Boot)ro,512k(Env)
 
 
 \begin{frame}[fragile]
-  \frametitle{Linux: definition of MTD partitions (1)}
+  \frametitle{Linux: definition of MTD partitions}
   The Device Tree is the standard place to define MTD partitions
-  for boards with Device Tree support.\\
+  for platforms with Device Tree support.\\
   Example from \kpath{arch/arm/boot/dts/omap3-igep.dtsi}:
 \begin{minted}[fontsize=\scriptsize]{perl}
         nand@0,0 {
@@ -330,43 +330,14 @@ setenv mtdparts mtdparts=omap2-nand.0:512k(X-Loader)ro,1536k(U-Boot)ro,512k(Env)
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{Linux: definition of MTD partitions (2)}
-  For boards or platforms that do not use the Device Tree,
-  MTD partitions can be defined in the kernel.
-  Legacy example from
-\kpathversion{arch/arm/mach-omap2/board-igep0020.c}{3.12}
-  (removed in 3.13):
-\begin{minted}[fontsize=\scriptsize]{c}
-static struct mtd_partition igep2_flash_partitions[] = {
-    {
-        .name   = "X-Loader",
-        .offset = 0,
-        .size   = 2 * (64*(2*2048))
-    },
-    {
-        .name   = "U-Boot",
-        .offset = MTDPART_OFS_APPEND,
-        .size   = 6 * (64*(2*2048)),
-    },
-    [...]
-    {
-        .name   = "File System",
-        .offset = MTDPART_OFS_APPEND,
-        .size   = MTDPART_SIZ_FULL,
-    },
-};
-\end{minted}
-\end{frame}
-
-\begin{frame}[fragile]
-  \frametitle{Linux: modifying MTD partitions (3)}
+  \frametitle{Linux: modifying MTD partitions}
   \begin{itemize}
   \item MTD partitions can fortunately be defined through the kernel
     command line.
   \item U-Boot and Linux are using the same syntax to describe the MTD
     partitions
   \item Directly pass the \code{mtdparts} environment variable defined in
-    u-boot to the kernel cmdline
+    U-Boot to the kernel cmdline
   \item Be careful: when modifying the partition layout you might impact
     MTD users which have already stored data on existing partitions: e.g.
     a file system might complain about data corruption if you change
@@ -402,7 +373,7 @@ static struct mtd_partition igep2_flash_partitions[] = {
     cycles on blocks that are written really often
   \item Can be done in:
     \begin{itemize}
-    \item the filesystem layer (JFFS2, YAFFS/YAFFS2, ...)
+    \item the filesystem layer (JFFS2, YAFFS2, ...)
     \item an intermediate layer dedicated to wear leveling (UBI)
     \end{itemize}
   \item The wear leveling implementation is what makes your flash
