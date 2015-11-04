@@ -1,7 +1,5 @@
-# Required packages (tested on Ubuntu 14.04):
-# inkscape texlive-latex-base texlive-font-utils dia python-pygments
+# See the README file for usage instructions
 
-# Needed tools
 INKSCAPE = inkscape
 PDFLATEX = xelatex
 DIA      = dia
