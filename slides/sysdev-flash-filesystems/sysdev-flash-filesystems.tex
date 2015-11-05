@@ -55,7 +55,7 @@
     \item Far less reliable than NOR flash
     \item Reliability depends on the NAND flash technology (SLC, MLC)
     \item Require additional mechanisms to recover from bit flips: ECC
-      (Error Corrector Code)
+      (Error Correcting Code)
     \item ECC information stored in the OOB (Out-of-band area)
     \end{itemize}
   \item Lifetime
@@ -139,6 +139,7 @@
     \end{itemize}
   \item Unlike block devices, which contains their own partition
     table, the partitioning of MTD devices is described externally
+    (don't want to put it in a flash sector which could become bad)
     \begin{itemize}
     \item Specified in the board Device Tree
     \item Hard-coded into the kernel code (if no Device Tree)
@@ -154,6 +155,135 @@
       belongs to) is not exposed in \code{/dev}
     \end{itemize}
   \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{U-Boot: defining MTD partitions (1)}
+  \begin{itemize}
+  \item U-Boot provides a way to define MTD partitions on top of flash
+    devices
+  \item Named partitions are easier to use, and much less error prone than using offsets.
+  \item U-Boot partition definitions can also be used by Linux too,
+    eliminating the risk of mismatches between Linux and U-Boot. 
+  \item Use flash specific commands (detailed soon),
+    and pass partition names instead of numerical offsets
+  \item Example: \code{nand erase.part <partname>}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{U-Boot: defining MTD partitions (2)}
+  \begin{itemize}
+  \item Example:
+  {\tiny
+  \begin{verbatim}
+setenv mtdids nand0=omap2-nand.0
+setenv mtdparts mtdparts=omap2-nand.0:512k(X-Loader)ro,1536k(U-Boot)ro,512k(Env),4m(Kernel),-(RootFS)
+  \end{verbatim}
+  }
+  \item This defines 5 partitions in the \code{omap2-nand.0} device:
+    \begin{itemize}
+    \item \code{1st stage bootloader} (512 KiB, read-only)
+    \item \code{U-Boot} (1536 KiB, read-only)
+    \item \code{U-Boot environment} (512 KiB)
+    \item \code{Kernel} (4 MiB)
+    \item \code{Root filesystem} (Remaining space)
+    \end{itemize}
+  \item Partition sizes must be multiple of the erase block size.
+    You can use sizes in hexadecimal too. Remember the below sizes:
+    \code{0x20000} = 128k, \code{0x100000} = 1m, \code{0x1000000} = 16m
+  \item \code{ro} lists the partition as read only
+  \item \code{-} is used to use all the remaining space.
+  \end{itemize}
+\end{frame}
+
+
+\begin{frame}[fragile]
+  \frametitle{U-Boot: defining MTD partitions (3)}
+  Details about the two environment variables needed by U-Boot:
+  \begin{itemize}
+  \item \code{mtdids} attaches an {\em mtdid} to a flash device.\\
+    \code{setenv mtdids <devid>=<mtdid>[,<devid>=<mtdid>]}
+    \begin{itemize}
+    \item \code{devid}: device identifier retrieved with
+      \code{nand info} or \code{flinfo}
+    \item \code{mtdid}: mtd identifier (should match Linux MTD device
+      name). It is displayed when booting the Linux kernel:
+\tiny
+\begin{verbatim}
+NAND device: Manufacturer ID: 0x2c, Chip ID: 0xbc (Micron NAND 512MiB 1,8V 16-bit)
+Creating 5 MTD partitions on "omap2-nand.0":
+0x000000000000-0x000000080000 : "X-Loader"
+0x000000080000-0x000000200000 : "U-Boot"
+0x000000200000-0x000000280000 : "Environment"
+0x000000280000-0x000000580000 : "Kernel"
+0x000000580000-0x000020000000 : "File System"
+\end{verbatim}
+    \end{itemize}
+  \item \code{mtdparts} defines partitions for the different devices\\
+  \code{setenv mtdparts <mtdid>:<partition>[,partition]}\\
+  \code{partition} format: \code{<size>[@offset](<name>)[ro]}
+  \end{itemize}
+  Use the \code{mtdparts} command to setup the configuration
+  specified by the \code{mtdids} and \code{mtdparts} variables
+\end{frame}
+
+\begin{frame}
+  \frametitle{Linux: MTD devices interface with user space}
+  \begin{itemize}
+  \item MTD devices are visible in \code{/proc/mtd}
+  \item The user space only see MTD partitions, not the flash device
+    under those partitions
+  \item The {\bf mtdchar} driver creates a character device for each
+    MTD device/partition of the system
+    \begin{itemize}
+    \item Usually named \code{/dev/mtdX} or \code{/dev/mtdXro}
+    \item Provide \code{ioctl()} to erase and manage the flash
+    \item Used by the {\em mtd-utils} utilities
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+
+\begin{frame}[fragile]
+  \frametitle{Linux: definition of MTD partitions}
+  The Device Tree is the standard place to define MTD partitions
+  for platforms with Device Tree support.\\
+  Example from \kpath{arch/arm/boot/dts/omap3-igep.dtsi}:
+\begin{minted}[fontsize=\scriptsize]{perl}
+        nand@0,0 {
+                linux,mtd-name= "micron,mt29c4g96maz";
+		[...]
+                partition@0 {
+                        label = "SPL";
+                        reg = <0 0x100000>;
+                };
+                partition@0x80000 {
+                        label = "U-Boot";
+                        reg = <0x100000 0x180000>;
+                };
+		[...]
+                partition@0x780000 {
+                        label = "Filesystem";
+                        reg = <0x680000 0x1f980000>;
+                };
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Linux: modifying MTD partitions}
+  \begin{itemize}
+  \item MTD partitions can fortunately be defined through the kernel
+    command line.
+  \item U-Boot and Linux are using the same syntax to describe the MTD
+    partitions
+  \item Directly pass the \code{mtdparts} environment variable defined in
+    U-Boot to the kernel command line
+  \item Be careful: when modifying the partition layout you might impact
+    MTD users which have already stored data on existing partitions: e.g.
+    a file system might complain about data corruption if you change
+    your partition layout after the file system initialization
+\end{itemize}
 \end{frame}
 
 \begin{frame}
@@ -214,137 +344,6 @@
     \item \code{sf update <addr> <offset> <len>} erase + write operation
     \end{itemize}
   \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{U-Boot: using MTD partitions}
-  \begin{itemize}
-  \item U-Boot provides a way to define MTD partitions on top of flash
-    devices
-  \item Using partitions eases the manipulation of flash devices, which might
-    be particularly error prone
-  \item Requires two environment variables:
-    \begin{itemize}
-    \item \code{mtdids} attaches an {\em mtdid} to a flash device.
-      Example: \code{setenv mtdids <devid>=<mtdid>[,<devid>=<mtdid>]}
-      \begin{itemize}
-      \item \code{devid}: device identifier retrieved with
-        \code{nand info} or \code{flinfo}
-      \item \code{mtdid}: mtd identifier (should match Linux MTD device
-        name). It is displayed when booting the Linux kernel.
-      \end{itemize}
-    \item \code{mtdparts} defines the partitions for the different devices
-    \end{itemize}
-  \item Use the \code{mtdparts} command to setup the configuration
-    specified by the \code{mtdids} and \code{mtdparts} variables
-  \item Use flash specific commands (depends on your flash device type),
-    and pass partition names instead of numerical offsets
-  \item Example: \code{nand erase.part <partname>}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}[fragile]
-  \frametitle{U-Boot: defining MTD partitions (1)}
-  \begin{itemize}
-  \item \code{mtdparts} format: \code{<mtdid>:<partition>[,partition]}
-  \item \code{partition} format: \code{<size>[@offset](<name>)[ro]}
-  \item \code{mtdid} is the MTD device name assigned by Linux. It
-    is displayed at boot time (and can be retrieved using \code{dmesg}):
-  \end{itemize}
-\tiny
-\begin{verbatim}
-NAND device: Manufacturer ID: 0x2c, Chip ID: 0xbc (Micron NAND 512MiB 1,8V 16-bit)
-Creating 5 MTD partitions on "omap2-nand.0":
-0x000000000000-0x000000080000 : "X-Loader"
-0x000000080000-0x000000200000 : "U-Boot"
-0x000000200000-0x000000280000 : "Environment"
-0x000000280000-0x000000580000 : "Kernel"
-0x000000580000-0x000020000000 : "File System"
-\end{verbatim}
-\end{frame}
-
-\begin{frame}[fragile]
-  \frametitle{U-Boot: defining MTD partitions (2)}
-  \begin{itemize}
-  \item Example:
-  {\tiny
-  \begin{verbatim}
-setenv mtdids nand0=omap2-nand.0
-setenv mtdparts mtdparts=omap2-nand.0:512k(X-Loader)ro,1536k(U-Boot)ro,512k(Env),4m(Kernel),-(RootFS)
-  \end{verbatim}
-  }
-  \item This defines 5 partitions in the \code{omap2-nand.0} device:
-    \begin{itemize}
-    \item \code{1st stage bootloader} (512 KiB, read-only)
-    \item \code{U-Boot} (1536 KiB, read-only)
-    \item \code{U-Boot environment} (512 KiB)
-    \item \code{Kernel} (4 MiB)
-    \item \code{Root filesystem} (Remaining space)
-    \end{itemize}
-  \item Partition sizes must be multiple of the erase block size.
-    You can use sizes in hexadecimal too. Remember the below sizes:
-    \code{0x20000} = 128k, \code{0x100000} = 1m, \code{0x1000000} = 16m
-  \item \code{ro} lists the partition as read only
-  \item \code{-} is used to use all the remaining space.
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Linux: MTD devices interface with user space}
-  \begin{itemize}
-  \item MTD devices are visible in \code{/proc/mtd}
-  \item The user space only see MTD partitions, not the flash device
-    under those partitions
-  \item The {\bf mtdchar} driver creates a character device for each
-    MTD device/partition of the system
-    \begin{itemize}
-    \item Usually named \code{/dev/mtdX} or \code{/dev/mtdXro}
-    \item Provide \code{ioctl()} to erase and manage the flash
-    \item Used by the {\em mtd-utils} utilities
-    \end{itemize}
-  \end{itemize}
-\end{frame}
-
-
-\begin{frame}[fragile]
-  \frametitle{Linux: definition of MTD partitions}
-  The Device Tree is the standard place to define MTD partitions
-  for platforms with Device Tree support.\\
-  Example from \kpath{arch/arm/boot/dts/omap3-igep.dtsi}:
-\begin{minted}[fontsize=\scriptsize]{perl}
-        nand@0,0 {
-                linux,mtd-name= "micron,mt29c4g96maz";
-		[...]
-                partition@0 {
-                        label = "SPL";
-                        reg = <0 0x100000>;
-                };
-                partition@0x80000 {
-                        label = "U-Boot";
-                        reg = <0x100000 0x180000>;
-                };
-		[...]
-                partition@0x780000 {
-                        label = "Filesystem";
-                        reg = <0x680000 0x1f980000>;
-                };
-\end{minted}
-\end{frame}
-
-\begin{frame}[fragile]
-  \frametitle{Linux: modifying MTD partitions}
-  \begin{itemize}
-  \item MTD partitions can fortunately be defined through the kernel
-    command line.
-  \item U-Boot and Linux are using the same syntax to describe the MTD
-    partitions
-  \item Directly pass the \code{mtdparts} environment variable defined in
-    U-Boot to the kernel command line
-  \item Be careful: when modifying the partition layout you might impact
-    MTD users which have already stored data on existing partitions: e.g.
-    a file system might complain about data corruption if you change
-    your partition layout after the file system initialization
-\end{itemize}
 \end{frame}
 
 \begin{frame}
