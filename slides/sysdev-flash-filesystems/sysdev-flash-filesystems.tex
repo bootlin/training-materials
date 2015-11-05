@@ -157,11 +157,36 @@
   \end{itemize}
 \end{frame}
 
+
+\begin{frame}[fragile]
+  \frametitle{Linux: definition of MTD partitions}
+  The Device Tree is the standard place to define MTD partitions
+  for platforms with Device Tree support.\\
+  Example from \kpath{arch/arm/boot/dts/omap3-igep.dtsi}:
+\begin{minted}[fontsize=\scriptsize]{perl}
+        nand@0,0 {
+                linux,mtd-name= "micron,mt29c4g96maz";
+		[...]
+                partition@0 {
+                        label = "SPL";
+                        reg = <0 0x100000>;
+                };
+                partition@0x80000 {
+                        label = "U-Boot";
+                        reg = <0x100000 0x180000>;
+                };
+		[...]
+                partition@0x780000 {
+                        label = "Filesystem";
+                        reg = <0x680000 0x1f980000>;
+                };
+\end{minted}
+\end{frame}
+
 \begin{frame}
   \frametitle{U-Boot: defining MTD partitions (1)}
   \begin{itemize}
-  \item U-Boot provides a way to define MTD partitions on top of flash
-    devices
+  \item U-Boot also provides a way to define MTD partitions on flash devices
   \item Named partitions are easier to use, and much less error prone than using offsets.
   \item U-Boot partition definitions can also be used by Linux too,
     eliminating the risk of mismatches between Linux and U-Boot. 
@@ -229,61 +254,17 @@ Creating 5 MTD partitions on "omap2-nand.0":
 \end{frame}
 
 \begin{frame}
-  \frametitle{Linux: MTD devices interface with user space}
+  \frametitle{U-Boot: sharing partition definitions with Linux}
+  Linux understands U-Boot's \code{mtdparts} partition definitions.\\
+  Here is a recommended way to pass them from U-Boot to Linux:
   \begin{itemize}
-  \item MTD devices are visible in \code{/proc/mtd}
-  \item The user space only see MTD partitions, not the flash device
-    under those partitions
-  \item The {\bf mtdchar} driver creates a character device for each
-    MTD device/partition of the system
-    \begin{itemize}
-    \item Usually named \code{/dev/mtdX} or \code{/dev/mtdXro}
-    \item Provide \code{ioctl()} to erase and manage the flash
-    \item Used by the {\em mtd-utils} utilities
-    \end{itemize}
+  \item Define a \code{bootargs_base} environment variable:\\
+    \code{setenv bootargs_base console=ttyS0 root=....} 
+  \item Define the final kernel command line (\code{bootargs})
+    through the \code{bootcmd} environment variable:
+    \code{setenv bootcmd 'setenv bootargs ${bootargs_base} ${mtdparts};
+<rest of bootcmd>'} 
   \end{itemize}
-\end{frame}
-
-
-\begin{frame}[fragile]
-  \frametitle{Linux: definition of MTD partitions}
-  The Device Tree is the standard place to define MTD partitions
-  for platforms with Device Tree support.\\
-  Example from \kpath{arch/arm/boot/dts/omap3-igep.dtsi}:
-\begin{minted}[fontsize=\scriptsize]{perl}
-        nand@0,0 {
-                linux,mtd-name= "micron,mt29c4g96maz";
-		[...]
-                partition@0 {
-                        label = "SPL";
-                        reg = <0 0x100000>;
-                };
-                partition@0x80000 {
-                        label = "U-Boot";
-                        reg = <0x100000 0x180000>;
-                };
-		[...]
-                partition@0x780000 {
-                        label = "Filesystem";
-                        reg = <0x680000 0x1f980000>;
-                };
-\end{minted}
-\end{frame}
-
-\begin{frame}[fragile]
-  \frametitle{Linux: modifying MTD partitions}
-  \begin{itemize}
-  \item MTD partitions can fortunately be defined through the kernel
-    command line.
-  \item U-Boot and Linux are using the same syntax to describe the MTD
-    partitions
-  \item Directly pass the \code{mtdparts} environment variable defined in
-    U-Boot to the kernel command line
-  \item Be careful: when modifying the partition layout you might impact
-    MTD users which have already stored data on existing partitions: e.g.
-    a file system might complain about data corruption if you change
-    your partition layout after the file system initialization
-\end{itemize}
 \end{frame}
 
 \begin{frame}
@@ -347,6 +328,22 @@ Creating 5 MTD partitions on "omap2-nand.0":
 \end{frame}
 
 \begin{frame}
+  \frametitle{Linux: MTD devices interface with user space}
+  \begin{itemize}
+  \item MTD devices are visible in \code{/proc/mtd}
+  \item The user space only see MTD partitions, not the flash device
+    under those partitions
+  \item The {\bf mtdchar} driver creates a character device for each
+    MTD device/partition of the system
+    \begin{itemize}
+    \item Usually named \code{/dev/mtdX} or \code{/dev/mtdXro}
+    \item Provide \code{ioctl()} to erase and manage the flash
+    \item Used by the {\em mtd-utils} utilities
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
   \frametitle{Linux: user space flash management tools}
   \begin{itemize}
   \item \code{mtd-utils} is a set of utilities to manipulate MTD devices
@@ -384,19 +381,17 @@ Creating 5 MTD partitions on "omap2-nand.0":
 
 \begin{frame}
   \frametitle{Flash wear leveling (2)}
+  Flash users should also take the limited lifetime of flash
+  devices into account by taking additional precautions
   \begin{itemize}
-  \item Flash users should also take the limited lifetime of flash
-    devices into account by taking additional precautions
-    \begin{itemize}
-    \item Do not use your flash storage as swap area (rare in embedded
-      systems anyway)
-    \item Mount your filesystems as read-only, or use read-only
-      filesystems (SquashFS), whenever possible.
-    \item Keep volatile files in RAM (tmpfs)
-    \item Don't use the \code{sync} mount option (commits writes
-      immediately). Use the \code{fsync()} system call for per-file
-      synchronization.
-    \end{itemize}
+  \item Do not use your flash storage as swap area (rare in embedded
+    systems anyway)
+  \item Mount your filesystems as read-only, or use read-only
+    filesystems (SquashFS), whenever possible.
+  \item Keep volatile files in RAM (tmpfs)
+  \item Don't use the \code{sync} mount option (commits writes
+    immediately). Use the \code{fsync()} system call for per-file
+    synchronization.
   \end{itemize}
 \end{frame}
 
@@ -621,9 +616,6 @@ vol_name=data
 vol_flags=autoresize
 \end{verbatim}
   \end{columns}
-  \begin{itemize}
-  \item Build systems like Buildroot can run \code{ubinize} automatically!
-  \end{itemize}
 \end{frame}
 
 \begin{frame}
@@ -702,12 +694,13 @@ vol_flags=autoresize
   \frametitle{Linux: UBIFS host tools}
   UBIFS filesystems images can be created using \code{mkfs.ubifs}
     \begin{itemize}
-    \item \code{mkfs.ubifs -m 4096 -e 252KiB -c 1000 -r rootfs/ ubifs.img}
+    \item \code{mkfs.ubifs -m 4096 -e 258048 -c 1000 -r rootfs/ ubifs.img}
       \begin{itemize}
       \item \code{-m 4096}, minimal I/O size\\
                  (see \code{/sys/class/mtd/mtdx/writesize}).
-      \item \code{-e 252KiB}, logical erase block size (smaller than
-                 PEB size, look at \code{dmesg})
+      \item \code{-e 258048}, logical erase block size (smaller than
+                 PEB size, can be found in the kernel log after running
+ 		 \code{ubiattach})
       \item \code{-c 1000}, maximum number of logical erase
         blocks. Details:
         {\tiny\url{http://linux-mtd.infradead.org/faq/ubifs.html\#L_max_leb_cnt}}
@@ -753,17 +746,39 @@ vol_flags=autoresize
 \end{frame}
 
 \begin{frame}
-  \frametitle{Linux: Using a UBIFS filesystem as a rootfs}
+  \frametitle{Linux: Using a UBIFS filesystem as root filesystem}
   \begin{itemize}
   \item You just have to pass the following information on the kernel
     command line:
     \begin{itemize}
-    \item \code{ubi.mtd=1}: attach \code{/dev/mtd1} to the UBI layer and
-      create \code{ubi0}
-    \item \code{rootfstype=ubifs root=ubi0:rootfs}: mount the
-      \code{rootfs} volume on ubi0 as a UBIFS filesystem
+    \item \code{ubi.mtd=1}\\
+      Attach \code{/dev/mtd1} to the UBI layer and create \code{ubi0}
+    \item \code{rootfstype=ubifs root=ubi0:rootfs}\\
+      Mount the \code{rootfs} volume on ubi0 as a UBIFS filesystem
     \end{itemize}
   \item Example: \code{rootfstype=ubifs ubi.mtd=1 root=ubi0:rootfs}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Summary: how to boot on a UBIFS filesystem}
+  In U-Boot:
+  \begin{itemize}
+  \item Define partitions:\\
+     \code{setenv mtids ...}\\
+     \code{setenv mtdparts ...}\\
+  \item Define the base Linux kernel bootargs, specifying booting
+     on UBIFS, the UBI volume used as root filesystem, and the MTD
+     partition attached to UBI:\\
+     \code{setenv base_bootargs console=ttyS0 rootfstype=ubifs
+root=ubi0:rootfs ubi.mtd=2 ...}
+  \item Define the boot command sequence, loading the U-Boot partition
+     definitions, loading kernel and DTB images from UBI partitions,
+     and adding \code{mtdparts} to the kernel command
+     line. Example:\\
+     \code{setenv bootargs 'mtdparts; ubi part UBI; ubi readvol
+0x81000000 kernel; ubi readvol 0x82000000 dtb; setenv bootargs
+${bootargs_base} ${mtdparts}; bootz 0x81000000 - 0x82000000'}
   \end{itemize}
 \end{frame}
 

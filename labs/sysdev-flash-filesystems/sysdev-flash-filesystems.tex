@@ -174,21 +174,14 @@ Set the \code{bootargs} variable so that:
 
 \begin{itemize}
 \item The \code{mtdparts} environment variable contents are passed to
-  the kernel through its command line\footnote{Remember you can tweak your
-  \code{bootargs} using U-Boot environment variables before booting the kernel.
-  To achieve that, create a \code{bootargs_base} variable where you
-  will store all the kernel parameters except the \code{mtdparts}
-  one. Then modify your \code{bootcmd} to append the \code{mtdparts}
-  definition to \code{bootargs_base} before calling \code{bootz}:
-  \code{setenv bootargs $bootargs_base $mtdparts}}.
+  the kernel through its command line. 
 \item The UBI partition is automatically attached to the UBI layer at
   boot time
 \item The root filesystem is mounted from the root volume, and is mounted
   read-only (kernel parameter \code{ro}).
 \end{itemize}
 
-Boot the target, check that the MTD partitions and UBI volumes are
-correctly configured, and that your system still works as
+Boot the target, and check that your system still works as
 expected. Your root filesystem should be mounted read-only, while the
 data filesystem should be mounted read-write, allowing you to upload
 data using the web server.
@@ -197,8 +190,9 @@ data using the web server.
 %setenv mtdids nand0=atmel_nand
 %setenv mtdparts mtdparts=atmel_nand:256k(bootstrap),512k(u-boot),256k(u-boot-env),-(UBI)
 %setenv bootargs_base console=ttyS0,115200 rootfstype=ubifs root=ubi0:root ip=dhcp ubi.mtd=3 ro
-%setenv bootcmd 'mtdparts; ubi part UBI; ubi readvol 0x21000000 kernel; ubi readvol 0x22000000 dtb; setenv bootargs $bootargs_base $mtdparts; bootz 0x21000000 - 0x22000000'
-%setenv flash 'mtdparts; nand erase.part UBI; tftp 0x21000000 test.ubi; nand write.trimffs 0x21000000 UBI $filesize'
+%setenv bootcmd 'mtdparts; ubi part UBI; ubi readvol 0x21000000 kernel;
+%ubi readvol 0x22000000 dtb; setenv bootargs ${bootargs_base} ${mtdparts}; bootz 0x21000000 - 0x22000000'
+%setenv flash 'mtdparts; nand erase.part UBI; tftp 0x21000000 test.ubi; nand write.trimffs 0x21000000 UBI ${filesize}'
 
 \section{Going further}
 
