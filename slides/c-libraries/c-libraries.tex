@@ -8,8 +8,10 @@
     \item Designed for performance, standards compliance and portability
     \item Found on all GNU / Linux host systems
     \item Of course, actively maintained
-    \item Quite big for small embedded systems: approx 2.5 MB on ARM
+    \item By default, quite big for small embedded systems: approx 2.5 MB on ARM
       (version 2.9 - \code{libc}: 1.5 MB, \code{libm}: 750 KB)
+    \item But some features not needed in embedded systems can be
+          configured out (merged from the old {\em eglibc} project).
     \item \url{http://www.gnu.org/software/libc/}
     \end{itemize}
     \column{0.3\textwidth}
@@ -18,31 +20,28 @@
 \end{frame}
 
 \begin{frame}
-  \frametitle{uClibc}
+  \frametitle{uClibc-ng (1)}
   \begin{itemize}
-  \item \url{http://www.uclibc.org/}
+  \item \url{http://uclibc-ng.org/}
+  \item A continuation of the old uClibc project
   \item License: LGPL
   \item Lightweight C library for small embedded systems
     \begin{itemize}
     \item High configurability: many features can be enabled or
       disabled through a menuconfig interface
-    \item Works only with Linux/uClinux, works on most embedded
-      architectures
+    \item Supports most embedded architectures
     \item No guaranteed binary compatibility. May need to
       recompile applications when the library configuration changes.
     \item Focus on size rather than performance
     \item Small compile time
     \end{itemize}
-  \item News: project revived by the {\em uClibc-ng} project, making
-        frequent releases again, and now supported by Buildroot
-        (see \url{http://uclibc-ng.org/}).
   \end{itemize}
 \end{frame}
 
 \begin{frame}
-  \frametitle{uClibc (2)}
+  \frametitle{uClibc-ng (2)}
   \begin{itemize}
-  \item Most of the applications compile with uClibc. This applies to
+  \item Most of the applications compile with uClibc-ng. This applies to
     all applications used in embedded systems.
   \item Size (arm): 4 times smaller than glibc!
     \begin{itemize}
@@ -51,43 +50,18 @@
     \item glibc 2.9: approx 2.5 MB
     \end{itemize}
   \item Some features not available or limited: priority-inheritance
-    mutexes, NPTL support is very new, fixed Name Service Switch
+    mutexes, NPTL support is relatively recent, fixed Name Service Switch
     functionality, etc.
   \item Used on a large number of production embedded products,
     including consumer electronic devices
-  \item Supported by all commercial embedded Linux providers (proof of
-        maturity).
 \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{eglibc}
-  \begin{columns}
-    \column{0.8\textwidth}
-    \begin{itemize}
-    \item {\em Embedded glibc}, LGPL license too
-    \item Was a variant of glibc, better adapted
-      to the needs of embedded systems, because of past
-      disagreement with glibc maintainers.
-    \item eglibc's goals included reduced footprint, configurable
-      components, better support for cross-compilation and
-      cross-testing.
-    \item Could be built without support for NIS, locales, IPv6, and many
-      other features.
-    \item Fortunately for eglibc, the glibc maintainer has changed
-      and its features are now included in glibc. Version 2.19
-      (Feb. 2014) was the last release.
-    \item {\fontsize{10}{15} \url{http://en.wikipedia.org/wiki/Embedded_GLIBC}}
-    \end{itemize}
-    \column{0.2\textwidth}
-    \includegraphics[width=\textwidth]{slides/c-libraries/eglibc.png}
-  \end{columns}
 \end{frame}
 
 \begin{frame}
   \frametitle{Honey, I shrunk the programs!}
   \begin{itemize}
   \item Executable size comparison on ARM, tested with {\em eglibc}
+  (now {\em glibc})
   2.15 and {\em uClibc} 0.9.33.2
   \item Plain ``hello world'' program (stripped): \\
     \begin{tabular}{| c || c | c |} \hline
@@ -107,15 +81,31 @@
 \end{frame}
 
 \begin{frame}
+  \frametitle{musl C library}
+  \url{http://www.musl-libc.org/}
+  \begin{itemize}
+  \item A lightweight, fast and simple library for embedded systems
+  \item Created while uClibc's development was stalled
+  \item In particular, great at making small static executables
+  \item Permissive license (MIT)
+  \item Compare features with other C libraries:
+    \url{http://www.etalabs.net/compare_libcs.html}
+  \item Supported by build systems such as Buildroot
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
   \frametitle{Other smaller C libraries}
   \begin{itemize}
   \item Several other smaller C libraries have been developed, but
     none of them have the goal of allowing the compilation of large
     existing applications
-  \item They need specially written programs and applications
+  \item They can run only relatively simple programs,
+	typically to make very small static executables and run
+	in very small root filesystems.
   \item Choices:
     \begin{itemize}
-    \item Dietlibc, \url{http://www.fefe.de/dietlibc/}. Approximately
+    \item Dietlibc, \url{http://fefe.de/dietlibc/}. Approximately
       70 KB.
     \item Newlib, \url{http://sourceware.org/newlib/}
     \item Klibc, \url{http://www.kernel.org/pub/linux/libs/klibc/},
