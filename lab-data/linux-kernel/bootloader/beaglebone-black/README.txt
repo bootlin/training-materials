@@ -42,6 +42,9 @@ sudo sfdisk --in-order --Linux --unit M /dev/mmcblk0 << EOF
 ,,,-
 EOF
 
+Remove the SD card and insert it again (to make sure new
+partitions are detected properly)
+
 Now, format the first partition in FAT format:
 
 sudo mkfs.vfat -F 16 /dev/mmcblk0p1 -n boot
