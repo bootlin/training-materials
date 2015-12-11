@@ -34,15 +34,13 @@
 
 
 \begin{frame}{Clock Framework (2)}
+  The common clock framework
   \begin{itemize}
-  \item The common clock framework
-    \begin{itemize}
-    \item Allows to declare the available clocks and their association
-      to devices in the Device Tree (preferred) or statically in the
-      source code (old method)
-    \item Provides a {\em debugfs} representation of the clock tree
-    \item Is implemented in \kpath{drivers/clk}
-    \end{itemize}
+  \item Allows to declare the available clocks and their association
+    to devices in the Device Tree (preferred) or statically in the
+    source code (old method)
+  \item Provides a {\em debugfs} representation of the clock tree
+  \item Is implemented in \kpath{drivers/clk}
   \end{itemize}
 \end{frame}
 
@@ -57,16 +55,16 @@
   \begin{itemize}
   \item Common Clock Framework core
     \begin{itemize}
-    \item Common definition of \code{struct clk}
+    \item Common definition of \kstruct{clk}
     \item Common implementation of the \code{clk.h} API (defined in
       \kpath{drivers/clk/clk.c})
-    \item \code{struct clk_ops}: operations invoked by the clk API
+    \item \kstruct{clk_ops}: operations invoked by the clk API
       implementation
     \item Not supposed to be modified when adding a new driver
     \end{itemize}
   \item Hardware-specific
     \begin{itemize}
-    \item Callbacks registered with \code{struct clk_ops} and the
+    \item Callbacks registered with \kstruct{clk_ops} and the
       corresponding hardware-specific structures
     \item Has to be written for each new hardware clock
     \end{itemize}
@@ -74,19 +72,17 @@
 \end{frame}
 
 \begin{frame}{Clock Framework (4)}
+  Hardware clock operations: device tree
   \begin{itemize}
-  \item Hardware clock operations: device tree
+  \item The \textbf{device tree} is the \textbf{mandatory way} to
+    declare a clock and to get its resources, as for any other
+    driver using DT we have to:
     \begin{itemize}
-    \item The \textbf{device tree} is the \textbf{mandatory way} to
-      declare a clock and to get its resources, as for any other
-      driver using DT we have to:
-      \begin{itemize}
-      \item \textbf{Parse} the device tree to \textbf{setup} the
-        clock: the resources but also the properties are retrieved.
-      \item Declare the \textbf{compatible} clocks and associate it
-        with an \textbf{initialization} function using
-        \code{CLK_OF_DECLARE}
-      \end{itemize}
+    \item \textbf{Parse} the device tree to \textbf{setup} the
+      clock: the resources but also the properties are retrieved.
+    \item Declare the \textbf{compatible} clocks and associate it
+      with an \textbf{initialization} function using
+      \ksym{CLK_OF_DECLARE}
     \end{itemize}
   \end{itemize}
 \end{frame}
@@ -107,7 +103,7 @@
     \item \code{suspend()} and \code{resume()} hooks in the
       \code{*_driver} structures (\kstruct{platform_driver},
       \kstruct{usb_driver}, etc.)
-    \item See \kpath{drivers/net/macb.c}
+    \item See \kpath{drivers/net/ethernet/cadence/macb.c}
     \end{itemize}
   \end{itemize}
 \end{frame}
@@ -196,64 +192,58 @@
 
 \begin{frame}
   \frametitle{Managing Idle}
+  Adding support for multiple idle levels
   \begin{itemize}
-  \item Adding support for multiple idle levels
+  \item Modern CPUs have several sleep states offering different
+    power savings with associated wake up latencies
+  \item Since 2.6.21, the dynamic tick feature allows to remove the
+    periodic tick to save power, and to know when the next event is
+    scheduled, for smarter sleeps.
+  \item CPUidle infrastructure to change sleep states
     \begin{itemize}
-    \item Modern CPUs have several sleep states offering different
-      power savings with associated wake up latencies
-    \item Since 2.6.21, the dynamic tick feature allows to remove the
-      periodic tick to save power, and to know when the next event is
-      scheduled, for smarter sleeps.
-    \item CPUidle infrastructure to change sleep states
-      \begin{itemize}
-      \item Platform-specific driver defining sleep states and
-        transition operations
-      \item Platform-independent governors (ladder and menu)
-      \item Available for x86/ACPI, not supported yet by all ARM cpus.
-        (look for \code{cpuidle*} files under \kpath{arch/arm/})
-      \item See \kerneldoc{cpuidle/} in kernel sources.
-      \end{itemize}
+    \item Platform-specific driver defining sleep states and
+      transition operations
+    \item Platform-independent governors (ladder and menu)
+    \item Available for x86/ACPI, not supported yet by all ARM cpus.
+      (look for \code{cpuidle*} files under \kpath{arch/arm/})
+    \item See \kerneldoc{cpuidle/} in kernel sources.
     \end{itemize}
   \end{itemize}
 \end{frame}
 
 \begin{frame}
   \frametitle{PowerTOP}
+  \url{https://01.org/powertop/}
   \begin{itemize}
-  \item \url{https://01.org/powertop/}
-    \begin{itemize}
-    \item With dynamic ticks, allows to fix parts of kernel code and
-      applications that wake up the system too often.
-    \item PowerTOP allows to track the worst offenders
-    \item Now available on ARM cpus implementing CPUidle
-    \item Also gives you useful hints for reducing power.
-    \end{itemize}
+  \item With dynamic ticks, allows to fix parts of kernel code and
+    applications that wake up the system too often.
+  \item PowerTOP allows to track the worst offenders
+  \item Now available on ARM cpus implementing CPUidle
+  \item Also gives you useful hints for reducing power.
   \end{itemize}
 \end{frame}
 
 \begin{frame}
   \frametitle{Frequency and Voltage Scaling (1)}
+  Frequency and voltage scaling possible through the
+  \code{cpufreq} kernel infrastructure.
   \begin{itemize}
-  \item Frequency and voltage scaling possible through the
-    \code{cpufreq} kernel infrastructure.
+  \item Generic infrastructure: \kpath{drivers/cpufreq/cpufreq.c} and
+    \kpath{include/linux/cpufreq.h}
+  \item Generic governors, responsible for deciding frequency and
+    voltage transitions
     \begin{itemize}
-    \item Generic infrastructure: \kpath{drivers/cpufreq/cpufreq.c} and
-      \kpath{include/linux/cpufreq.h}
-    \item Generic governors, responsible for deciding frequency and
-      voltage transitions
-      \begin{itemize}
-      \item \code{performance}: maximum frequency
-      \item \code{powersave}: minimum frequency
-      \item \code{ondemand}: measures CPU consumption to adjust frequency
-      \item \code{conservative}: often better than
-        \code{ondemand}. Only increases frequency gradually when the
-        CPU gets loaded.
-      \item \code{userspace}: leaves the decision to a user space
-        daemon.
-      \end{itemize}
-    \item This infrastructure can be controlled from
-      \code{/sys/devices/system/cpu/cpu<n>/cpufreq/}
+    \item \code{performance}: maximum frequency
+    \item \code{powersave}: minimum frequency
+    \item \code{ondemand}: measures CPU consumption to adjust frequency
+    \item \code{conservative}: often better than
+      \code{ondemand}. Only increases frequency gradually when the
+      CPU gets loaded.
+    \item \code{userspace}: leaves the decision to a user space
+      daemon.
     \end{itemize}
+  \item This infrastructure can be controlled from
+    \code{/sys/devices/system/cpu/cpu<n>/cpufreq/}
   \end{itemize}
 \end{frame}
 
@@ -309,31 +299,26 @@
     \item Machine interface for board configuration
     \item sysfs interface for user space
     \end{itemize}
-  \item Merged in Linux 2.6.27.
   \item See \kerneldoc{power/regulator/} in kernel sources.
-  \item See Liam Girdwood's presentation at ELC 2008
-    \url{http://free-electrons.com/blog/elc-2008-report\#girdwood}
   \end{itemize}
 \end{frame}
 
 \begin{frame}
   \frametitle{BSP Work for a New Board}
+  In case you just need to create a BSP for your board, and your
+  CPU already has full PM support, you should just need to:
   \begin{itemize}
-  \item In case you just need to create a BSP for your board, and your
-    CPU already has full PM support, you should just need to:
-    \begin{itemize}
-    \item Create clock definitions and bind your devices to them.
-    \item Implement PM handlers (suspend, resume) in the drivers for
-      your board specific devices.
-    \item Implement runtime PM handlers in your drivers.
-    \item Implement board specific power management if needed (mainly
-      battery management)
-    \item Implement regulator framework hooks for your board if
-      needed.
-    \item All other parts of the PM infrastructure should be already
-      there: suspend / resume, cpuidle, cpu frequency and voltage
-      scaling.
-    \end{itemize}
+  \item Create clock definitions and bind your devices to them.
+  \item Implement PM handlers (suspend, resume) in the drivers for
+    your board specific devices.
+  \item Implement runtime PM handlers in your drivers.
+  \item Implement board specific power management if needed (mainly
+    battery management)
+  \item Implement regulator framework hooks for your board if
+    needed.
+  \item All other parts of the PM infrastructure should be already
+    there: suspend / resume, cpuidle, cpu frequency and voltage
+    scaling.
   \end{itemize}
 \end{frame}
 
