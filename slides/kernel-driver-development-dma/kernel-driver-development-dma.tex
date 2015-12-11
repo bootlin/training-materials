@@ -67,41 +67,37 @@
 
 \begin{frame}
   \frametitle{Memory Synchronization Issues}
+  Memory caching could interfere with DMA
   \begin{itemize}
-  \item Memory caching could interfere with DMA
+  \item Before DMA to device
     \begin{itemize}
-    \item Before DMA to device
-      \begin{itemize}
-      \item Need to make sure that all writes to DMA buffer are
-        committed.
-      \end{itemize}
-    \item After DMA from device
-      \begin{itemize}
-      \item Before drivers read from DMA buffer, need to make sure
-        that memory caches are flushed.
-      \end{itemize}
-    \item Bidirectional DMA
-      \begin{itemize}
-      \item Need to flush caches before and after the DMA transfer.
-      \end{itemize}
+    \item Need to make sure that all writes to DMA buffer are
+      committed.
+    \end{itemize}
+  \item After DMA from device
+    \begin{itemize}
+    \item Before drivers read from DMA buffer, need to make sure
+      that memory caches are flushed.
+    \end{itemize}
+  \item Bidirectional DMA
+    \begin{itemize}
+    \item Need to flush caches before and after the DMA transfer.
     \end{itemize}
   \end{itemize}
 \end{frame}
 
 \begin{frame}
   \frametitle{Linux DMA API}
+  The kernel DMA utilities can take care of:
   \begin{itemize}
-  \item The kernel DMA utilities can take care of:
-    \begin{itemize}
-    \item Either allocating a buffer in a cache coherent area,
-    \item Or making sure caches are flushed when required,
-    \item Managing the DMA mappings and IOMMU (if any).
-    \item See \kerneldoc{DMA-API.txt} for details about the
-      Linux DMA generic API.
-    \item Most subsystems (such as PCI or USB) supply their own DMA
-      API, derived from the generic one. May be sufficient for most
-      needs.
-    \end{itemize}
+  \item Either allocating a buffer in a cache coherent area,
+  \item Or making sure caches are flushed when required,
+  \item Managing the DMA mappings and IOMMU (if any).
+  \item See \kerneldoc{DMA-API.txt} for details about the
+    Linux DMA generic API.
+  \item Most subsystems (such as PCI or USB) supply their own DMA
+    API, derived from the generic one. May be sufficient for most
+    needs.
   \end{itemize}
 \end{frame}
 
@@ -131,9 +127,7 @@
 
 \begin{frame}[fragile]
   \frametitle{Allocating Coherent Mappings}
-  \begin{itemize}
-  \item The kernel takes care of both buffer allocation and mapping
-  \end{itemize}
+  The kernel takes care of both buffer allocation and mapping
 \begin{minted}[fontsize=\small]{c}
 #include <asm/dma-mapping.h>
 
@@ -152,9 +146,7 @@ void dma_free_coherent(struct device *dev,
 
 \begin{frame}[fragile]
   \frametitle{Setting up streaming mappings}
-  \begin{itemize}
-  \item Works on buffers already allocated by the driver
-  \end{itemize}
+  Works on buffers already allocated by the driver
 \begin{minted}[fontsize=\small]{c}
 #include <linux/dmapool.h>
 
@@ -224,7 +216,7 @@ void dma_unmap_single(struct device *dev, dma_addr_t handdle,
     \end{enumerate}
   \item Of course, this needs to be done in addition to the DMA
     mapping seen previously
-  \item Some framework abstract it away from you, such as \code{SPI}
+  \item Some frameworks abstract it away from you, such as \code{SPI}
     and \code{ASoC}
   \end{itemize}
 \end{frame}
