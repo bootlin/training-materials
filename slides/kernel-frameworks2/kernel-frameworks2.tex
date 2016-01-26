@@ -1,0 +1,609 @@
+\subsection{Character drivers}
+
+\begin{frame}
+  \frametitle{A character driver in the kernel}
+  \begin{itemize}
+  \item From the point of view of an application, a {\em character
+      device} is essentially a {\bf file}.
+  \item The driver of a character device must therefore implement {\bf
+      operations} that let applications think the device is a file:
+    \code{open}, \code{close}, \code{read}, \code{write}, etc.
+  \item In order to achieve this, a character driver must implement
+    the operations described in the \kstruct{file_operations}
+    structure and register them.
+  \item The Linux filesystem layer will ensure that the driver's
+    operations are called when a user space application makes the
+    corresponding system call.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{From user space to the kernel: character devices}
+  \begin{center}
+    \includegraphics[width=\textwidth]{slides/kernel-frameworks2/user-kernel-exchanges.pdf}
+  \end{center}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{File operations}
+  \begin{itemize}
+  \item Here are the most important operations for a character
+    driver. All of them are optional.
+  \end{itemize}
+\begin{minted}[fontsize=\footnotesize]{c}
+#include <linux/fs.h>
+
+struct file_operations {
+    ssize_t (*read) (struct file *, char __user *,
+        size_t, loff_t *);
+    ssize_t (*write) (struct file *, const char __user *,
+        size_t, loff_t *);
+    long (*unlocked_ioctl) (struct file *, unsigned int,
+        unsigned long);
+    int (*mmap) (struct file *, struct vm_area_struct *);
+    int (*open) (struct inode *, struct file *);
+    int (*release) (struct inode *, struct file *);
+};
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{open() and release()}
+  \begin{itemize}
+  \item \mint{c}+int foo_open(struct inode *i, struct file *f)+
+    \begin{itemize}
+    \item Called when user space opens the device file.
+    \item \kstruct{inode} is a structure that uniquely represents a file
+      in the system (be it a regular file, a directory, a symbolic
+      link, a character or block device)
+    \item \kstruct{file} is a structure created every time a file is
+      opened. Several file structures can point to the same
+      \code{inode} structure.
+      \begin{itemize}
+      \item Contains information like the current position, the
+        opening mode, etc.
+      \item Has a \code{void *private_data} pointer that one can
+        freely use.
+      \item A pointer to the \ksym{file} structure is passed to all other
+        operations
+      \end{itemize}
+    \end{itemize}
+  \item \mint{c}+int foo_release(struct inode *i, struct file *f)+
+    \begin{itemize}
+    \item Called when user space closes the file.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{read()}
+  \begin{itemize}
+  \item \mint{c}+ssize_t foo_read(struct file *f, char __user *buf,+
+    \mint{c}+size_t sz, loff_t *off)+
+    \begin{itemize}
+    \item Called when user space uses the \code{read()} system call on
+      the device.
+    \item Must read data from the device, write at most \code{sz}
+      bytes in the user space buffer \code{buf}, and update the
+      current position in the file \code{off}. \code{f} is a pointer
+      to the same file structure that was passed in the \code{open()}
+      operation
+    \item Must return the number of bytes read.
+    \item On UNIX, \code{read()} operations typically block when there
+      isn't enough data to read from the device
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{write()}
+  \begin{itemize}
+  \item \mint{c}+ssize_t foo_write(struct file *f,+
+    \mint{c}+const char __user *buf, size_t sz, loff_t *off)+
+    \begin{itemize}
+    \item Called when user space uses the \code{write()} system call
+      on the device
+    \item The opposite of \code{read}, must read at most \code{sz}
+      bytes from \code{buf}, write it to the device, update \code{off}
+      and return the number of bytes written.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Exchanging data with user space 1/3}
+  \begin{itemize}
+  \item Kernel code isn't allowed to directly access user space
+    memory, using \kfunc{memcpy} or direct pointer dereferencing
+    \begin{itemize}
+    \item Doing so does not work on some architectures
+    \item If the address passed by the application was invalid, the
+      application would segfault.
+    \end{itemize}
+  \item To keep the kernel code portable and have proper error
+    handling, your driver must use special kernel functions to
+    exchange data with user space.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Exchanging data with user space 2/3}
+  \begin{itemize}
+  \item A single value
+    \begin{itemize}
+    \item \code{get_user(v, p);}
+      \begin{itemize}
+      \item The kernel variable \code{v} gets the value pointed by the
+        user space pointer \code{p}
+      \end{itemize}
+    \item \code{put_user(v, p);}
+      \begin{itemize}
+      \item The value pointed by the user space pointer \code{p} is
+        set to the contents of the kernel variable \code{v}.
+      \end{itemize}
+    \end{itemize}
+  \item A buffer
+    \begin{itemize}
+    \item \mint{c}+unsigned long copy_to_user(void __user *to,+
+      \mint{c}+const void *from, unsigned long n);+
+    \item \mint{c}+unsigned long copy_from_user(void *to,+
+      \mint{c}+const void __user *from, unsigned long n);+
+    \end{itemize}
+  \item The return value must be checked. Zero on success, non-zero on
+    failure. If non-zero, the convention is to return \code{-}\ksym{EFAULT}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+ \frametitle{Exchanging data with user space 3/3}
+ \begin{center}
+    \includegraphics[width=0.95\textwidth]{slides/kernel-frameworks2/copy-to-from-user.pdf}
+ \end{center}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Zero copy access to user memory}
+  \begin{itemize}
+  \item Having to copy data to or from an intermediate kernel buffer
+    can become expensive when the amount of data to transfer is
+    large (video).
+  \item \emph{Zero copy} options are possible:
+    \begin{itemize}
+    \item \code{mmap()} system call to allow user space to directly
+      access memory mapped I/O space. See our \code{mmap()} chapter.
+    \item \kfunc{get_user_pages_fast} to get a mapping to user pages
+      without having to copy them. See \url{http://j.mp/1sML7lP}
+      (Kernel API doc). This API is more complex to use though.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{unlocked\_ioctl()}
+  \begin{itemize}
+  \item \mint{c}+long unlocked_ioctl(struct file *f,+
+    \mint{c}+unsigned int cmd, unsigned long arg)+
+    \begin{itemize}
+    \item Associated to the \code{ioctl()} system call.
+    \item Called unlocked because it didn't hold the Big Kernel Lock
+      (gone now).
+    \item Allows to extend the driver capabilities beyond the limited
+      read/write API.
+    \item For example: changing the speed of a serial port, setting
+      video output format, querying a device serial number...
+    \item \code{cmd} is a number identifying the operation to perform
+    \item \code{arg} is the optional argument passed as third argument
+      of the \code{ioctl()} system call. Can be an integer, an
+      address, etc.
+    \item The semantic of \code{cmd} and \code{arg} is
+      driver-specific.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{ioctl() example: kernel side}
+\begin{minted}[fontsize=\tiny]{c}
+static long phantom_ioctl(struct file *file, unsigned int cmd,
+    unsigned long arg)
+{
+    struct phm_reg r;
+    void __user *argp = (void __user *)arg;
+
+    switch (cmd) {
+    case PHN_SET_REG:
+        if (copy_from_user(&r, argp, sizeof(r)))
+            return -EFAULT;
+        /* Do something */
+        break;
+    case PHN_GET_REG:
+        if (copy_to_user(argp, &r, sizeof(r)))
+            return -EFAULT;
+        /* Do something */
+        break;
+    default:
+        return -ENOTTY;
+    }
+
+    return 0; }
+\end{minted}
+Selected excerpt from \kpath{drivers/misc/phantom.c}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Ioctl() Example: Application Side}
+\begin{minted}{c}
+int main(void)
+{
+    int fd, ret;
+    struct phm_reg reg;
+
+    fd = open("/dev/phantom");
+    assert(fd > 0);
+
+    reg.field1 = 42;
+    reg.field2 = 67;
+
+    ret = ioctl(fd, PHN_SET_REG, & reg);
+    assert(ret == 0);
+
+    return 0;
+}
+\end{minted}
+\end{frame}
+
+\subsection{The concept of kernel frameworks}
+
+\begin{frame}
+  \frametitle{Beyond character drivers: kernel frameworks}
+  \begin{itemize}
+  \item Many device drivers are not implemented directly as character
+    drivers
+  \item They are implemented under a \emph{framework}, specific to a
+    given device type (framebuffer, V4L, serial, etc.)
+    \begin{itemize}
+    \item The framework allows to factorize the common parts of
+      drivers for the same type of devices
+    \item From user space, they are still seen as character devices by
+      the applications
+    \item The framework allows to provide a coherent user space
+      interface (\code{ioctl}, etc.) for every type of device,
+      regardless of the driver
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Kernel Frameworks}
+  \begin{center}
+    \includegraphics[width=\textwidth]{slides/kernel-frameworks2/frameworks.pdf}
+  \end{center}
+\end{frame}
+
+\subsection{Example of the framebuffer framework}
+
+\begin{frame}
+  \frametitle{Example: Framebuffer Framework}
+  \begin{itemize}
+  \item Kernel option \code{CONFIG_FB}
+    \begin{itemize}
+    \item \code{menuconfig FB}
+      \begin{itemize}
+      \item \code{tristate "Support for frame buffer devices"}
+      \end{itemize}
+    \end{itemize}
+  \item Implemented in \kpath{drivers/video/}
+    \begin{itemize}
+    \item \code{fb.c}, \code{fbmem.c}, \code{fbmon.c},
+      \code{fbcmap.c}, \code{fbsysfs.c}, \code{modedb.c},
+      \code{fbcvt.c}
+    \end{itemize}
+  \item Implements a single character driver and defines the
+    user/kernel API
+    \begin{itemize}
+    \item First part of \kpath{include/linux/fb.h}
+    \end{itemize}
+  \item Defines the set of operations a framebuffer driver must
+    implement and helper functions for the drivers
+    \begin{itemize}
+    \item \kstruct{fb_ops}
+    \item Second part of \kpath{include/linux/fb.h}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Framebuffer Driver Skeleton}
+  \begin{itemize}
+  \item Skeleton driver in \kpath{drivers/video/skeletonfb.c}
+  \item Implements the set of framebuffer specific operations defined
+    by the \kstruct{fb_ops} structure
+  \end{itemize}
+  \begin{columns}
+    \column{0.45\textwidth}
+    \begin{itemize}
+    \item \code{xxxfb_open()}
+    \item \code{xxxfb_read()}
+    \item \code{xxxfb_write()}
+    \item \code{xxxfb_release()}
+    \item \code{xxxfb_checkvar()}
+    \item \code{xxxfb_setpar()}
+    \item \code{xxxfb_setcolreg()}
+    \item \code{xxxfb_blank()}
+    \item \code{xxxfb_pan_display()}
+    \end{itemize}
+    \column{0.45\textwidth}
+    \begin{itemize}
+    \item \code{xxxfb_fillrect()}
+    \item \code{xxxfb_copyarea()}
+    \item \code{xxxfb_imageblit()}
+    \item \code{xxxfb_cursor()}
+    \item \code{xxxfb_rotate()}
+    \item \code{xxxfb_sync()}
+    \item \code{xxxfb_ioctl()}
+    \item \code{xxxfb_mmap()}
+    \end{itemize}
+  \end{columns}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Framebuffer Driver Skeleton}
+  \begin{itemize}
+  \item After the implementation of the operations, definition of a
+    \kstruct{fb_ops} structure
+  \begin{minted}[fontsize=\scriptsize]{c}
+static struct fb_ops xxxfb_ops = {
+    .owner = THIS_MODULE,
+    .fb_open = xxxfb_open,
+    .fb_read = xxxfb_read,
+    .fb_write = xxxfb_write,
+    .fb_release = xxxfb_release,
+    .fb_check_var = xxxfb_check_var,
+    .fb_set_par = xxxfb_set_par,
+    .fb_setcolreg = xxxfb_setcolreg,
+    .fb_blank = xxxfb_blank,
+    .fb_pan_display = xxxfb_pan_display,
+    .fb_fillrect = xxxfb_fillrect,   /* Needed !!! */
+    .fb_copyarea = xxxfb_copyarea,   /* Needed !!! */
+    .fb_imageblit = xxxfb_imageblit, /* Needed !!! */
+    .fb_cursor = xxxfb_cursor,       /* Optional !!! */
+    .fb_rotate = xxxfb_rotate,
+    .fb_sync = xxxfb_sync,
+    .fb_ioctl = xxxfb_ioctl,
+    .fb_mmap = xxxfb_mmap,
+};
+  \end{minted}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Framebuffer Driver Skeleton}
+  \begin{itemize}
+  \item In the \code{probe()} function, registration of the
+    framebuffer device and operations
+  \begin{minted}[fontsize=\footnotesize]{c}
+static int xxxfb_probe (struct pci_dev *dev,
+    const struct pci_device_id *ent)
+{
+    struct fb_info *info;
+    [...]
+    info = framebuffer_alloc(sizeof(struct xxx_par), device);
+    [...]
+    info->fbops = &xxxfb_ops;
+    [...]
+    if (register_framebuffer(info) > 0)
+        return -EINVAL;
+    [...]
+}
+  \end{minted}
+  \item \kfunc{register_framebuffer} will create the character device
+    that can be used by user space applications with the generic
+    framebuffer API.
+\end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Driver-specific Data Structure}
+  \begin{itemize}
+  \item Each \emph{framework} defines a structure that a device driver
+    must register to be recognized as a device in this framework
+    \begin{itemize}
+    \item \kstruct{uart_port} for serial ports, \kstruct{netdev} for network
+      devices, \kstruct{fb_info} for framebuffers, etc.
+    \end{itemize}
+  \item In addition to this structure, the driver usually needs to
+    store additional information about its device
+  \item This is typically done
+    \begin{itemize}
+    \item By subclassing the appropriate framework structure
+    \item By storing a reference to the appropriate framework
+      structure
+    \item Or by including your information in the framework structure
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Driver-specific Data Structure Examples 1/2}
+  \begin{itemize}
+  \item i.MX serial driver: \kstruct{imx_port} is a subclass of
+    \kstruct{uart_port}
+  \begin{minted}[fontsize=\scriptsize]{c}
+struct imx_port {
+    struct uart_port port;
+    struct timer_list timer;
+    unsigned int old_status;
+    int txirq, rxirq, rtsirq;
+    unsigned int have_rtscts:1;
+    [...]
+};
+  \end{minted}
+  \item ds1305 RTC driver: \kstruct{ds1305} has a reference to
+    \kstruct{rtc_device}
+  \begin{minted}[fontsize=\scriptsize]{c}
+struct ds1305 {
+    struct spi_device       *spi;
+    struct rtc_device       *rtc;
+    [...]
+};
+  \end{minted}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Driver-specific Data Structure Examples 2/2}
+  \begin{itemize}
+  \item rtl8150 network driver: \kstruct{rtl8150} has a reference to
+    \kstruct{net_device} and is allocated within that framework structure.
+  \begin{minted}[fontsize=\scriptsize]{c}
+struct rtl8150 {
+    unsigned long flags;
+    struct usb_device *udev;
+    struct tasklet_struct tl;
+    struct net_device *netdev;
+    [...]
+};
+  \end{minted}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Link Between Structures 1/4}
+  \begin{itemize}
+  \item The framework typically contains a \kstruct{device} \code{*}
+    pointer that the driver must point to the corresponding
+    \kstruct{device}
+    \begin{itemize}
+    \item It's the relation between the logical device (for example a
+      network interface) and the physical device (for example the USB
+      network adapter)
+    \end{itemize}
+  \item The device structure also contains a \code{void *} pointer
+    that the driver can freely use.
+    \begin{itemize}
+    \item It's often used to link back the device to the higher-level
+      structure from the framework.
+    \item It allows, for example, from the \kstruct{platform_device}
+      structure, to find the structure describing the logical device
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Link Between Structures 2/4}
+  \begin{columns}
+    \column{0.7\textwidth}
+    \begin{minted}[fontsize=\tiny]{c}
+static int serial_imx_probe(struct platform_device *pdev)
+{
+    struct imx_port *sport;
+    [...]
+    /* setup the link between uart_port and the struct
+     * device inside the platform_device */
+    sport->port.dev = &pdev->dev;
+    [...]
+    /* setup the link between the struct device inside
+     * the platform device to the imx_port structure */
+    platform_set_drvdata(pdev, sport);
+    [...]
+    uart_add_one_port(&imx_reg, &sport->port);
+}
+
+static int serial_imx_remove(struct platform_device *pdev)
+{
+    /* retrieve the imx_port from the platform_device */
+    struct imx_port *sport = platform_get_drvdata(pdev);
+    [...]
+    uart_remove_one_port(&imx_reg, &sport->port);
+    [...]
+}
+    \end{minted}
+    \column{0.3\textwidth}
+    \begin{center}
+      \includegraphics[width=\textwidth]{slides/kernel-frameworks2/link-structures-imx.pdf}
+    \end{center}
+  \end{columns}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Link Between Structures 3/4}
+  \begin{columns}
+    \column{0.7\textwidth}
+    \begin{minted}[fontsize=\tiny]{c}
+static int ds1305_probe(struct spi_device *spi)
+{
+    struct ds1305                   *ds1305;
+
+    [...]
+
+    /* set up driver data */
+    ds1305 = devm_kzalloc(&spi->dev, sizeof(*ds1305), GFP_KERNEL);
+    if (!ds1305)
+            return -ENOMEM;
+    ds1305->spi = spi;
+    spi_set_drvdata(spi, ds1305);
+
+    [...]
+
+    /* register RTC ... from here on, ds1305->ctrl needs locking */
+    ds1305->rtc = devm_rtc_device_register(&spi->dev, "ds1305",
+                    &ds1305_ops, THIS_MODULE);
+
+    [...]
+}
+
+static int ds1305_remove(struct spi_device *spi)
+{
+    struct ds1305 *ds1305 = spi_get_drvdata(spi);
+
+    [...]
+}
+    \end{minted}
+    \column{0.3\textwidth}
+    \begin{center}
+      \includegraphics[height=0.8\textheight]{slides/kernel-frameworks2/link-structures-rtc.pdf}
+    \end{center}
+  \end{columns}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Link Between Structures 4/4}
+  \begin{columns}
+    \column{0.7\textwidth}
+    \begin{minted}[fontsize=\tiny]{c}
+static int rtl8150_probe(struct usb_interface *intf,
+    const struct usb_device_id *id)
+{
+    struct usb_device *udev = interface_to_usbdev(intf);
+    rtl8150_t *dev;
+    struct net_device *netdev;
+
+    netdev = alloc_etherdev(sizeof(rtl8150_t));
+    dev = netdev_priv(netdev);
+
+    [...]
+
+    dev->udev = udev;
+    dev->netdev = netdev;
+
+    [...]
+
+    usb_set_intfdata(intf, dev);
+    SET_NETDEV_DEV(netdev, &intf->dev);
+
+    [...]
+}
+
+static void rtl8150_disconnect(struct usb_interface *intf)
+{
+    rtl8150_t *dev = usb_get_intfdata(intf);
+
+    [...]
+}
+    \end{minted}
+    \column{0.3\textwidth}
+    \begin{center}
+      \includegraphics[height=0.8\textheight]{slides/kernel-frameworks2/link-structures-netdev.pdf}
+    \end{center}
+  \end{columns}
+\end{frame}

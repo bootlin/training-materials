@@ -45,6 +45,8 @@ KERNEL_SLIDES = \
 		kernel-i2c \
 		kernel-pinmuxing \
 		kernel-frameworks \
+		sysdev-device-files \
+		kernel-frameworks2 \
 		kernel-input \
 		kernel-driver-development-memory \
 		kernel-driver-development-io-memory \
@@ -112,6 +114,7 @@ SYSDEV_SLIDES = \
 		initramfs \
 		sysdev-root-filesystem-contents \
 		sysdev-root-filesystem-device-files \
+		sysdev-device-files \
 		sysdev-root-filesystem-virtual-fs \
 		sysdev-root-filesystem-minimal \
 		boot-sequence-initramfs \
