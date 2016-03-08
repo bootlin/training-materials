@@ -125,25 +125,23 @@ MODULE_AUTHOR("William Shakespeare");
 
 \begin{frame}
   \frametitle{Compiling a Module}
+  Two solutions
   \begin{itemize}
-  \item Two solutions
+  \item \emph{Out of tree}
     \begin{itemize}
-    \item \emph{Out of tree}
-      \begin{itemize}
-      \item When the code is outside of the kernel source tree, in a
-        different directory
-      \item Advantage: Might be easier to handle than modifications to
-        the kernel itself
-      \item Drawbacks: Not integrated to the kernel
-        configuration/compilation process, needs to be built
-        separately, the driver cannot be built statically
-      \end{itemize}
-    \item Inside the kernel tree
-      \begin{itemize}
-      \item Well integrated into the kernel configuration/compilation
-        process
-      \item Driver can be built statically if needed
-      \end{itemize}
+    \item When the code is outside of the kernel source tree, in a
+      different directory
+    \item Advantage: Might be easier to handle than modifications to
+      the kernel itself
+    \item Drawbacks: Not integrated to the kernel
+      configuration/compilation process, needs to be built
+      separately, the driver cannot be built statically
+    \end{itemize}
+  \item Inside the kernel tree
+    \begin{itemize}
+    \item Well integrated into the kernel configuration/compilation
+       process
+    \item Driver can be built statically if needed
     \end{itemize}
   \end{itemize}
 \end{frame}
@@ -172,12 +170,7 @@ endif
 }
 
 \begin{itemize}
-\item For \code{KDIR}, you can either set:
-  \begin{itemize}
-  \item full kernel source directory\\
-        (configured + \code{make modules_prepare})
-  \item or just kernel headers directory (\code{make headers_install})
-  \end{itemize}
+\item \code{KDIR}: kernel source or headers directory (see next slides)
 \end{itemize}
 \end{frame}
 
@@ -187,12 +180,12 @@ endif
     \includegraphics[height=0.4\textheight]{slides/kernel-driver-development-modules/out-of-tree.pdf}
   \end{center}
   \begin{itemize}
-  \item The module Makefile is interpreted with \code{KERNELRELEASE}
-    undefined, so it calls the kernel Makefile, passing the module
+  \item The module \code{Makefile} is interpreted with \code{KERNELRELEASE}
+    undefined, so it calls the kernel \code{Makefile}, passing the module
     directory in the \code{M} variable
-  \item The kernel Makefile knows how to compile a module, and thanks
-    to the \code{M} variable, knows where the Makefile for our module
-    is. The module Makefile is interpreted with \code{KERNELRELEASE}
+  \item The kernel \code{Makefile} knows how to compile a module, and thanks
+    to the \code{M} variable, knows where the \code{Makefile} for our module
+    is. This module \code{Makefile} is then interpreted with \code{KERNELRELEASE}
     defined, so the kernel sees the \code{obj-m} definition.
   \end{itemize}
 \end{frame}
@@ -206,8 +199,10 @@ endif
   \item Two solutions
     \begin{itemize}
     \item Full kernel sources
+      (configured + \code{make modules_prepare})
     \item Only kernel headers (\code{linux-headers-*} packages in
-      Debian/Ubuntu distributions)
+      Debian/Ubuntu distributions, or directory created by \code{make
+      headers_install})
     \end{itemize}
   \item The sources or headers must be configured
     \begin{itemize}
