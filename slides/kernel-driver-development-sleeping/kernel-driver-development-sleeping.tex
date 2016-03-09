@@ -35,25 +35,23 @@ init_waitqueue_head(&queue);
 
 \begin{frame}[fragile]
   \frametitle{How to sleep 2/3}
+  Several ways to make a kernel process sleep
   \begin{itemize}
-  \item Several ways to make a kernel process sleep
+  \item \mint{c}+void wait_event(queue, condition);+
     \begin{itemize}
-    \item \mint{c}+void wait_event(queue, condition);+
-      \begin{itemize}
-      \item Sleeps until the task is woken up and the given C
-        expression is true. Caution: can't be interrupted (can't kill
-        the user space process!)
-      \end{itemize}
-    \item \mint{c}+int wait_event_killable(queue, condition);+
-      \begin{itemize}
-      \item Can be interrupted, but only by a \emph{fatal} signal
-        (\ksym{SIGKILL}). Returns \code{-}\ksym{ERESTARSYS} if interrupted.
-      \end{itemize}
-    \item \mint{c}+int wait_event_interruptible(queue, condition);+
-      \begin{itemize}
-      \item Can be interrupted by any signal. Returns
-        \code{-}\ksym{ERESTARTSYS} if interrupted.
-      \end{itemize}
+    \item Sleeps until the task is woken up and the given C
+      expression is true. Caution: can't be interrupted (can't kill
+      the user space process!)
+    \end{itemize}
+  \item \mint{c}+int wait_event_killable(queue, condition);+
+    \begin{itemize}
+    \item Can be interrupted, but only by a \emph{fatal} signal
+      (\ksym{SIGKILL}). Returns \code{-}\ksym{ERESTARSYS} if interrupted.
+    \end{itemize}
+  \item \mint{c}+int wait_event_interruptible(queue, condition);+
+    \begin{itemize}
+    \item Can be interrupted by any signal. Returns
+      \code{-}\ksym{ERESTARTSYS} if interrupted.
     \end{itemize}
   \end{itemize}
 \end{frame}
@@ -93,19 +91,17 @@ if (ret)
 
 \begin{frame}
   \frametitle{Waking up!}
+  Typically done by interrupt handlers when data sleeping
+  processes are waiting for become available.
   \begin{itemize}
-  \item Typically done by interrupt handlers when data sleeping
-    processes are waiting for become available.
+  \item \code{wake_up(&queue);}
     \begin{itemize}
-    \item \code{wake_up(&queue);}
-      \begin{itemize}
-      \item Wakes up all processes in the wait queue
-      \end{itemize}
-    \item \code{wake_up_interruptible(&queue);}
-      \begin{itemize}
-      \item Wakes up all processes waiting in an interruptible sleep
-        on the given queue
-      \end{itemize}
+    \item Wakes up all processes in the wait queue
+    \end{itemize}
+  \item \code{wake_up_interruptible(&queue);}
+    \begin{itemize}
+    \item Wakes up all processes waiting in an interruptible sleep
+      on the given queue
     \end{itemize}
   \end{itemize}
 \end{frame}

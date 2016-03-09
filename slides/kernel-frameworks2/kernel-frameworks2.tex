@@ -88,7 +88,9 @@ struct file_operations {
       current position in the file \code{off}. \code{f} is a pointer
       to the same file structure that was passed in the \code{open()}
       operation
-    \item Must return the number of bytes read.
+    \item Must return the number of bytes read.\\
+	  \code{0} is usually interpreted by userspace as the end of
+          the file.
     \item On UNIX, \code{read()} operations typically block when there
       isn't enough data to read from the device
     \end{itemize}
@@ -119,10 +121,14 @@ struct file_operations {
     \item Doing so does not work on some architectures
     \item If the address passed by the application was invalid, the
       application would segfault.
+    \item {\bf Never} trust user space. A malicious application could
+      pass a kernel address which you could overwrite with device data
+      (\code{read} case), or which you could dump to the device
+      (\code{write} case). 
     \end{itemize}
-  \item To keep the kernel code portable and have proper error
-    handling, your driver must use special kernel functions to
-    exchange data with user space.
+  \item To keep the kernel code portable, secure, and have proper
+    error handling, your driver must use special kernel functions
+    to exchange data with user space.
   \end{itemize}
 \end{frame}
 

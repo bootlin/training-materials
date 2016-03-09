@@ -178,29 +178,27 @@
 
 \begin{frame}
   \frametitle{Page Allocator Flags}
+  The most common ones are:
   \begin{itemize}
-  \item The most common ones are:
+  \item \ksym{GFP_KERNEL}
     \begin{itemize}
-    \item \ksym{GFP_KERNEL}
-      \begin{itemize}
-      \item Standard kernel memory allocation. The allocation may
-        block in order to find enough available memory. Fine for most
-        needs, except in interrupt handler context.
-      \end{itemize}
-    \item \ksym{GFP_ATOMIC}
-      \begin{itemize}
-      \item RAM allocated from code which is not allowed to block
-        (interrupt handlers or critical sections). Never blocks,
-        allows to access emergency pools, but can fail if no free
-        memory is readily available.
-      \end{itemize}
-    \item \ksym{GFP_DMA}
-      \begin{itemize}
-      \item Allocates memory in an area of the physical memory usable
-        for DMA transfers. See our DMA chapter.
-      \end{itemize}
-    \item Others are defined in \kpath{include/linux/gfp.h}
+    \item Standard kernel memory allocation. The allocation may
+      block in order to find enough available memory. Fine for most
+      needs, except in interrupt handler context.
     \end{itemize}
+  \item \ksym{GFP_ATOMIC}
+    \begin{itemize}
+    \item RAM allocated from code which is not allowed to block
+      (interrupt handlers or critical sections). Never blocks,
+      allows to access emergency pools, but can fail if no free
+      memory is readily available.
+    \end{itemize}
+  \item \ksym{GFP_DMA}
+    \begin{itemize}
+    \item Allocates memory in an area of the physical memory usable
+      for DMA transfers. See our DMA chapter.
+    \end{itemize}
+  \item Others are defined in \kpath{include/linux/gfp.h}
   \end{itemize}
 \end{frame}
 
@@ -243,11 +241,11 @@
     \item SLOB: much simpler. More space efficient but doesn't scale
       well. Saves a few hundreds of KB in small systems (depends on
       \code{CONFIG_EXPERT}) \\
-      Linux 3.17 on ARM: used in 5 \code{defconfig} files
+      Linux 4.4 on ARM: used in 5 \code{defconfig} files
     \item SLUB: more recent and simpler than
       SLAB, scaling much better (in particular for huge systems) and
       creating less fragmentation.\\
-      Linux 3.17 on ARM: used in 0 \code{defconfig} files
+      Linux 4.4 on ARM: used in 0 \code{defconfig} files
     \end{itemize}
   \end{itemize}
   \begin{center}
@@ -328,14 +326,15 @@ kfree(work);
 
 \begin{frame}[fragile]
   \frametitle{devm\_ kmalloc functions}
+  \footnotesize
   \begin{itemize}
   \item Automatically free the allocated buffers when the
         corresponding device or module is unprobed.
   \item Need to have a reference to a \kstruct{device}.
-  \item {\footnotesize \mint{c}+void *devm_kmalloc(struct device *dev, size_t size, int flags);+}
-  \item {\footnotesize \mint{c}+void *devm_kzalloc(struct device *dev, size_t size, int flags);+}
-  \item {\scriptsize \mint{c}+void *devm_kcalloc(struct device *dev, size_t n, size_t size, gfp_t flags);+}
-  \item {\small \mint{c}+void *devm_kfree(struct device *dev, void *p);+}
+  \item \mint{c}+void *devm_kmalloc(struct device *dev, size_t size, int flags);+
+  \item \mint{c}+void *devm_kzalloc(struct device *dev, size_t size, int flags);+
+  \item \mint{c}+void *devm_kcalloc(struct device *dev, size_t n, size_t size, gfp_t flags);+
+  \item \mint{c}+void *devm_kfree(struct device *dev, void *p);+
         \begin{itemize}
         \item Useful to immediately free an allocated buffer
         \end{itemize}
@@ -357,6 +356,7 @@ kfree(work);
     since physical memory fragmentation is not an issue, but areas
     cannot be used for DMA, as DMA usually requires physically
     contiguous buffers.
+  \item Example use: to allocate kernel buffers to load module code.
   \item API in \kpath{include/linux/vmalloc.h}
     \begin{itemize}
     \item \mint{c}+void *vmalloc(unsigned long size);+
