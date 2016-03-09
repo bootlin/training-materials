@@ -371,7 +371,7 @@ dtb-$(CONFIG_ARCH_MXS) += imx28-cfa10036.dtb \
     370/XP.
   \item For this platform, the core of the SoC support is located in
     \kpath{arch/arm/mach-mvebu}
-  \item The \code{armada-370-xp.c} (see code on the next slide)
+  \item The \code{board-v7.c} file (see code on the next slide)
     contains the "{\em entry point}" of the SoC definition, the
     \code{DT_MACHINE_START} .. \code{MACHINE_END} definition:
     \begin{itemize}
@@ -389,25 +389,30 @@ dtb-$(CONFIG_ARCH_MXS) += imx28-cfa10036.dtb \
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{{\tt arch/arm/mach-mvebu/armada-370-xp.c}}
+  \frametitle{{\tt arch/arm/mach-mvebu/board-v7.c}}
   \begin{block}{}
     \begin{minted}[fontsize=\tiny]{c}
-static void __init armada_370_xp_dt_init(void)
+static void __init mvebu_dt_init(void)
 {
+        if (of_machine_is_compatible("marvell,armadaxp"))
+                i2c_quirk();
+
         of_platform_populate(NULL, of_default_bus_match_table, NULL, NULL);
 }
 
-static const char * const armada_370_xp_dt_compat[] = {
+static const char * const armada_370_xp_dt_compat[] __initconst = {
         "marvell,armada-370-xp",
         NULL,
 };
 
-DT_MACHINE_START(ARMADA_XP_DT, "Marvell Armada 370/XP (Device Tree)")
+DT_MACHINE_START(ARMADA_370_XP_DT, "Marvell Armada 370/XP (Device Tree)")
+        .l2c_aux_val    = 0,
+        .l2c_aux_mask   = ~0,
         .smp            = smp_ops(armada_xp_smp_ops),
-        .init_machine   = armada_370_xp_dt_init,
-        .map_io         = armada_370_xp_map_io,
-        .init_time      = armada_370_xp_timer_and_clk_init,
+        .init_machine   = mvebu_dt_init,
+        .init_irq       = mvebu_init_irq,
         .restart        = mvebu_restart,
+        .reserve        = mvebu_memblock_reserve,
         .dt_compat      = armada_370_xp_dt_compat,
 MACHINE_END
   \end{minted}
@@ -420,7 +425,7 @@ MACHINE_END
   \footnotesize
   \begin{itemize}
   \item An SoC {\em entry point} file,
-    \kpath{arch/arm/mach-mvebu/armada-370-xp.c}
+    \kpath{arch/arm/mach-mvebu/board-v7.c}
   \item At least one SoC \code{.dtsi} DT and one board \code{.dts} DT,
     in \kpath{arch/arm/boot/dts}
   \item A interrupt controller driver,
@@ -463,7 +468,7 @@ MACHINE_END
   Once the core pieces of the SoC support have been implemented, the
   remaining part is to add drivers for the different hardware blocks:
   \begin{itemize}
-  \item Ethernet driver, in \kpath{drivers/net/ethernet/mvneta.c}
+  \item Ethernet driver, in \kpath{drivers/net/ethernet/marvell/mvneta.c}
   \item SATA driver, in \kpath{drivers/ata/sata_mv.c}
   \item I2C driver, in \kpath{drivers/i2c/busses/i2c-mv64xxx.c}
   \item SPI driver, in \kpath{drivers/spi/spi-orion.c}

@@ -331,16 +331,19 @@ static int rtl8150_probe(struct usb_interface *intf,
   \frametitle{Implementation of a Platform Driver}
   \begin{itemize}
   \item The driver implements a \kstruct{platform_driver}
-    structure (example taken from \kpath{drivers/serial/imx.c})
+    structure (example taken from \kpath{drivers/tty/serial/imx.c},
+    simplified)
     \begin{block}{}
     \begin{minted}[fontsize=\scriptsize]{c}
 static struct platform_driver serial_imx_driver = {
-    .probe = serial_imx_probe,
-    .remove = serial_imx_remove,
-    .driver = {
-        .name = "imx-uart",
-        .owner = THIS_MODULE,
-    },
+        .probe          = serial_imx_probe,
+        .remove         = serial_imx_remove,
+        .id_table       = imx_uart_devtype,
+        .driver         = {
+                .name   = "imx-uart",
+                .of_match_table = imx_uart_dt_ids,
+                .pm     = &imx_serial_port_pm_ops,
+        },
 };
 \end{minted}
 \end{block}
@@ -372,8 +375,8 @@ static void __exit imx_serial_cleanup(void) {
       most ARM platforms) from which \kstruct{platform_device}
       structures are created
     \end{itemize}
-  \item Example on ARM, where the instantiation is done in
-    \kpath{arch/arm/mach-imx/mx1ads.c}
+  \item Example on ARM, where the instantiation was done in
+    \kpathversion{arch/arm/mach-imx/mx1ads.c}{2.6.30}
     \begin{block}{}
 \begin{minted}[fontsize=\scriptsize]{c}
 static struct platform_device imx_uart1_device = {
@@ -393,7 +396,7 @@ static struct platform_device imx_uart1_device = {
 \begin{frame}[fragile]
   \frametitle{Platform device instantiation: old style (2/2)}
   \begin{itemize}
-  \item The device is part of a list
+  \item The device was part of a list
     \begin{block}{}
   \begin{minted}[fontsize=\scriptsize]{c}
 static struct platform_device *devices[] __initdata = {
@@ -403,7 +406,7 @@ static struct platform_device *devices[] __initdata = {
 };
   \end{minted}
   \end{block}
-  \item And the list of devices is added to the system during
+  \item And the list of devices was added to the system during
     board initialization
     \begin{block}{}
   \begin{minted}[fontsize=\scriptsize]{c}
@@ -437,7 +440,7 @@ MACHINE_END
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{Declaring resources}
+  \frametitle{Declaring resources (old style)}
   \begin{block}{}
   \begin{minted}[fontsize=\footnotesize]{c}
 static struct resource imx_uart1_resources[] = {
@@ -457,11 +460,11 @@ static struct resource imx_uart1_resources[] = {
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{Using Resources}
+  \frametitle{Using Resources (old style)}
   \begin{itemize}
-  \item When a \kstruct{platform_device} is added to the system using
+  \item When a \kstruct{platform_device} was added to the system using
     \kfunc{platform_add_device}, the \code{probe()} method of the
-    platform driver gets called
+    platform driver was called
   \item This method is responsible for initializing the hardware,
     registering the device to the proper framework (in our case, the
     serial driver framework)
@@ -477,14 +480,14 @@ sport->rxirq = platform_get_irq(pdev, 0);
 \end{frame}
 
 \begin{frame}
-  \frametitle{platform\_data Mechanism}
+  \frametitle{platform\_data Mechanism (old style)}
   \begin{itemize}
   \item In addition to the well-defined resources, many drivers
     require driver-specific information for each platform device
-  \item Such information can be passed using the \code{platform_data}
+  \item Such information could be passed using the \code{platform_data}
     field of \kstruct{device} (from which
     \kstruct{platform_device} inherits)
-  \item As it is a \code{void *} pointer, it can be used to pass any
+  \item As it is a \code{void *} pointer, it could be used to pass any
     type of information.
     \begin{itemize}
     \item Typically, each driver defines a structure to pass
@@ -511,7 +514,7 @@ struct imxuart_platform_data {
 };
   \end{minted}
   \end{block}
-  \item The MX1ADS board code instantiates such a structure
+  \item The MX1ADS board code instantiated such a structure
     \begin{block}{}
   \begin{minted}[fontsize=\footnotesize]{c}
 static struct imxuart_platform_data uart1_pdata = {
@@ -525,9 +528,9 @@ static struct imxuart_platform_data uart1_pdata = {
 \begin{frame}[fragile]
   \frametitle{platform\_data Example 2/2}
   \begin{itemize}
-  \item The \code{uart_pdata} structure is associated to the
-    \kstruct{platform_device} structure in the MX1ADS board file (the real code is
-    slightly more complicated)
+  \item The \code{uart_pdata} structure was associated to the
+    \kstruct{platform_device} structure in the MX1ADS board file (the
+    real code was slightly more complicated)
     \begin{block}{}
   \begin{minted}[fontsize=\scriptsize]{c}
 struct platform_device mx1ads_uart1 = {
