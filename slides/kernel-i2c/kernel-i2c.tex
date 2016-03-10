@@ -158,35 +158,34 @@ void board_init(void)
 \end{frame}
 
 \begin{frame}[fragile]{Registering an I2C device, DT example (1/2)}
-  \begin{block}{Definition of the I2C controller, .dtsi file}
+  \begin{block}{Definition of the I2C controller, \code{sun7i-a20.dtsi} file}
     \begin{minted}[fontsize=\footnotesize]{perl}
-i2c@7000c000 {
-        compatible = "nvidia,tegra20-i2c";
-        reg = <0x7000c000 0x100>;
-        interrupts = <GIC_SPI 38 IRQ_TYPE_LEVEL_HIGH>;
+i2c0: i2c@01c2ac00 {
+        compatible = "allwinner,sun7i-a20-i2c",
+                     "allwinner,sun4i-a10-i2c";
+        reg = <0x01c2ac00 0x400>;
+        interrupts = <GIC_SPI 7 IRQ_TYPE_LEVEL_HIGH>;
+        clocks = <&apb1_gates 0>;
+        status = "disabled";
         #address-cells = <1>;
         #size-cells = <0>;
-        clocks = <&tegra_car TEGRA20_CLK_I2C1>,
-                 <&tegra_car TEGRA20_CLK_PLL_P_OUT3>;
-        clock-names = "div-clk", "fast-clk";
-        status = "disabled";
 };
     \end{minted}
   \end{block}
 \end{frame}
 
 \begin{frame}[fragile]{Registering an I2C device, DT example (2/2)}
-  \begin{block}{Definition of the I2C device, .dts file}
+  \begin{block}{Definition of the I2C device, \code{sun7i-a20-bananapi.dts} file}
     \begin{minted}[fontsize=\footnotesize]{perl}
-i2c@7000c000 {
+&i2c0 {
+        pinctrl-names = "default";
+        pinctrl-0 = <&i2c0_pins_a>;
         status = "okay";
-        clock-frequency = <400000>;
 
-        alc5632: alc5632@1e {
-                compatible = "realtek,alc5632";
-                reg = <0x1e>;
-                gpio-controller;
-                #gpio-cells = <2>;
+        axp209: pmic@34 {
+                reg = <0x34>;
+                interrupt-parent = <&nmi_intc>;
+                interrupts = <0 IRQ_TYPE_LEVEL_LOW>;
         };
 };
     \end{minted}
