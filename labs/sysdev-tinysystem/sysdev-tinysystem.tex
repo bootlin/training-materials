@@ -132,11 +132,11 @@ filesystem and finally make it usable.
 
 \section{Root filesystem with Busybox}
 
-Download the sources of the latest BusyBox 1.23.x release.
+Download the sources of the latest BusyBox 1.24.x release.
 
 To configure BusyBox, we won't be able to use \code{make xconfig},
-which is currently broken for BusyBox in Ubuntu 14.04, because of Qt
-library dependencies.
+which is currently broken for BusyBox in Ubuntu (14.04 and 16.04),
+because of Qt library dependencies.
 
 We are going to use \code{make gconfig} this time. Before doing this,
 install the required packages:
@@ -199,6 +199,36 @@ startup script declared in \code{/etc/inittab}. In this startup
 script, mount the \code{/proc} and \code{/sys} filesystems.
 
 Any issue after doing this?
+
+\section{Starting the shell in a proper terminal}
+
+Before the shell prompt, you probably noticed the below warning message:
+
+\begin{verbatim}
+/bin/sh: can't access tty; job control turned off
+\end{verbatim}
+
+This happens because the shell specified in the \code{/etc/inittab} file
+in started by default in \code{/dev/console}:
+
+\begin{verbatim}
+::askfirst:/bin/sh
+\end{verbatim}
+
+When nothing is specified before the leading \code{::}, \code{/dev/console}
+is used. However, while this device is fine for a simple shell, it is
+not elaborate enough to support things such as job control
+(\code{[Ctrl][c]} and \code{[Ctrl][z]}), allowing to interrupt and
+suspend jobs. 
+
+So, to get rid of the warning message, we need \code{init} to run
+\code{/bin/sh} in a real terminal device:
+
+\begin{verbatim}
+ttyS0::askfirst:/bin/sh
+\end{verbatim}
+
+Reboot the system and the message will be gone!
 
 \section{Switching to shared libraries}
 
