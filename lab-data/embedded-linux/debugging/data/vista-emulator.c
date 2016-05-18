@@ -9,7 +9,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
- 
+#include <unistd.h>
+
 int cycles = 0;
 
 void bsod (char *msg)
@@ -34,15 +35,15 @@ int file_exists(const char * filename)
 void log_activity (void *buffer)
 {
 	/* Look for traces of "Premium" content in system memory */
-	
+
 	if (strstr(buffer, "Mickey Mouse"))
 	{
-		bsod("Found unencrypted media on your system. Calling the cops\n"); 
+		bsod("Found unencrypted media on your system. Calling the cops\n");
 	}
 
- 	++cycles;	
+	++cycles;
 }
- 
+
 int init_resources (void)
 {
 	void *buffer;
@@ -66,7 +67,7 @@ int main (void)
 
 		/* Now, start gathering system resources */
 
-		for (i=0; i < 10000; i++) 
+		for (i=0; i < 10000; i++)
 		{
 			init_resources();
 		}
