@@ -26,8 +26,20 @@ directory, which we will progressively adapt to use block filesystems.
 
 Recompile your kernel with support for SquashFS and ext3\footnote{Basic
 configuration options for these filesystems will be sufficient. No need
-for things like extended attributes.}. Update your
-kernel image in NAND flash.
+for things like extended attributes.}.
+
+Here are other kernel configuration settings to change:
+\begin{itemize}
+\item Disable \code{CONFIG_REGULATOR_FIXED_VOLTAGE}, which
+   can cause an abrupt reset when an MMC card is inserted or removed.
+\item Enable \code{CONFIG_AT_HDMAC}, without which MMC events
+   won't be detected.
+\end{itemize}
+
+Fixes for these issues have been submitted by us for inclusion in the
+next versions of the Linux kernel.
+
+Update your kernel image in NAND flash.
 
 Boot your board with this new kernel and on the NFS filesystem you
 used in this previous lab.
@@ -41,63 +53,40 @@ We're going to use an MMC card for our block device.
 
 Plug the MMC card your instructor gave you on your workstation. Type
 the \code{dmesg} command to see which device is used by your
-workstation. In case the device is \code{/dev/sdb}, you will see
+workstation. In case the device is \code{/dev/mmcblk0}, you will see
 something like
 
 \begin{verbatim}
-sd 3:0:0:0: [sdb] 3842048 512-byte hardware sectors: (1.96 GB/1.83 GiB)
+[46939.425299] mmc0: new high speed SDHC card at address 0007
+[46939.427947] mmcblk0: mmc0:0007 SD16G 14.5 GiB
 \end{verbatim}
 
-If your PC has an internal MMC/SD card reader, the device may also
-been seen as \code{/dev/mmcblk0}, and the first partition as
-\code{mmcblk0p1}\footnote{This is not always the case with internal
-  MMC/SD card readers. On some PCs, such devices are behind an
-  internal USB bus, and thus are visible in the same way external card
-  readers are}. You will see that the MMC/SD card is seen in the same
-way by the board.
+The device file name may be different (such as \code{/dev/sdb}
+if the card reader is connected to a USB bus (either inside your PC
+or using a USB card reader).
 
 In the following instructions, we will assume that your MMC/SD card
-is seen as \code{/dev/sdb} by your PC workstation.
-
-\fbox{
-  \begin{minipage}{\textwidth}
-    {\bfseries Caution: read this carefully before proceeding. You
-      could destroy existing partitions on your PC!
-
-      Do not make the confusion between the device that is used by
-      your board to represent your MMC/SD disk (probably
-      \code{/dev/sda}), and the device that your workstation uses when
-      the card reader is inserted (probably \code{/dev/sdb}).
-
-      So, don't use the \code{/dev/sda} device to reflash your MMC
-      disk from your workstation. People have already destroyed their
-      Windows partition by making this mistake.}
-  \end{minipage}
-}
-
-You can also run \code{cat /proc/partitions} to list all block devices
-in your system. Again, make sure to distinguish the SD/MMC card from
-the hard drive of your development workstation!
+is seen as \code{/dev/mmcblk0} by your PC workstation.
 
 Type the \code{mount} command to check your currently mounted
 partitions. If MMC/SD partitions are mounted, unmount them:
 
 \begin{verbatim}
-$ sudo umount /dev/sdb*
+$ sudo umount /dev/mmcblk0*
 \end{verbatim}
 
 Then, clear possible MMC/SD card contents remaining from previous
-training sessions:
+training sessions (only the first megabytes matter):
 
 \begin{verbatim}
-$ sudo dd if=/dev/zero of=/dev/sdb bs=1M count=256
+$ sudo dd if=/dev/zero of=/dev/mmcblk0 bs=1M count=256
 \end{verbatim}
 
 Now, let's use the \code{cfdisk} command to create the partitions that
 we are going to use:
 
 \begin{verbatim}
-$ sudo cfdisk /dev/sdb
+$ sudo cfdisk /dev/mmcblk0
 \end{verbatim}
 
 In the \code{cfdisk} interface, delete existing partitions, then
@@ -131,12 +120,22 @@ workstation, remove the MMC card and insert it again.
 \section{Data partition on the MMC disk}
 
 Using the \code{mkfs.ext3} create a journaled file system on the
-third partition of the MMC disk (Caution: one again, make sure
-you're not touching hard disk partitions instead of the MMC ones!).
-Remember that you can use the \code{-L} option to set a volume name
-for the partition. Move the contents of the \code{/www/upload/files}
-directory (in your target root filesystem) into this new partition.
-The goal is to use the third partition of the MMC card as the storage
+third partition of the MMC disk:
+
+\begin{verbatim}
+sudo mkfs.ext3 -L data -E nodiscard /dev/mmcblk0p3
+\end{verbatim}
+
+\begin{itemize}
+\item \code{-L} assigns a volume name to the partition
+\item \code{-E nodiscard} disables bad block discarding. While this
+      should be a useful option for cards with bad blocks, skipping
+      this step saves long minutes in MMC/SD cards. 
+\end{itemize}
+
+Now, mount this new partition and move the contents of the
+\code{/www/upload/files} directory (in your target root filesystem) into
+it. The goal is to use the third partition of the MMC card as the storage
 for the uploaded images.
 
 Connect the MMC disk to your board. You should see the MMC partitions
@@ -198,11 +197,6 @@ Check that your system still works. Congratulations if it does!
 
 \section{Store the kernel image and DTB on the MMC card}
 
-Finally, copy the \code{zImage} kernel image and DTB to the first
-partition of the MMC card and adjust the \code{bootcmd} of U-Boot so
-that it loads the kernel and DTB from the MMC card instead of loading
-them from the NAND.
-
 You'll first need to format the first partition, using:
 \begin{verbatim}
 sudo mkfs.vfat -F 16 -n boot /dev/sdb1
@@ -211,6 +205,11 @@ sudo mkfs.vfat -F 16 -n boot /dev/sdb1
 It will create a new FAT16 partition, called \code{boot}. Remove and
 plug the MMC card. You can now copy the kernel image and Device Tree
 to it.
+
+You can now copy the \code{zImage} kernel image and DTB to the first
+partition of the MMC card and adjust the \code{bootcmd} of U-Boot so
+that it loads the kernel and DTB from the MMC card instead of loading
+them from the NAND.
 
 In U-boot, you can load a file from a FAT filesystem using a command
 like
