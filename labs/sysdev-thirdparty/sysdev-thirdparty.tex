@@ -121,7 +121,7 @@ Make your board boot from this new directory through NFS.
 
 \code{alsa-lib} is a library supposed to handle the interaction with
 the ALSA subsystem. It is available at
-\url{http://alsa-project.org}. Download version 1.1.0, and extract it
+\url{http://alsa-project.org}. Download version 1.1.1, and extract it
 in \code{$HOME/embedded-linux-labs/thirdparty/}.
 
 By looking at the \code{configure} script, we see that it has
@@ -155,7 +155,7 @@ Quickly, you should get an error saying:
 
 \footnotesize
 \begin{verbatim}
-checking whether we are cross compiling... configure: error: in `.../thirdparty/alsa-lib-1.1.0':
+checking whether we are cross compiling... configure: error: in `.../thirdparty/alsa-lib-1.1.1':
 configure: error: cannot run C compiled programs.
 If you meant to cross compile, use `--host'.
 See `config.log' for more details
@@ -354,7 +354,7 @@ And we're done with alsa-lib!
 \section{Alsa-utils}
 
 Download alsa-utils from the ALSA offical webpage. We tested the lab
-with version 1.1.0.
+with version 1.1.1.
 
 Once uncompressed, we quickly discover that the alsa-utils build
 system is based on the {\em autotools}, so we will work once again
@@ -664,9 +664,9 @@ And install only the required files in the {\em target} space:
 \begin{verbatim}
 cd ..
 cp -a staging/usr/lib/libvorbis.so.0* target/usr/lib/
-arm-linux-strip target/usr/lib/libvorbis.so.0.4.7
+arm-linux-strip target/usr/lib/libvorbis.so.0.4.8
 cp -a staging/usr/lib/libvorbisfile.so.3* target/usr/lib/
-arm-linux-strip target/usr/lib/libvorbisfile.so.3.3.6
+arm-linux-strip target/usr/lib/libvorbisfile.so.3.3.7
 \end{verbatim}
 
 And we're done with {\em libvorbis}!
@@ -912,6 +912,49 @@ cp -a staging/usr/bin/ogg* target/usr/bin
 arm-linux-strip target/usr/bin/ogg*
 \end{verbatim}
 
+
 You can now test that everything works! Run \code{ogg123} on the
-sample file found in \code{thirdparty/data}, and everything should
-work fine (after copying a few extra C library objects if needed)!
+sample file found in \code{thirdparty/data}.
+
+There should still be one missing C library object. Copy it, and you
+should get:
+
+\begin{verbatim}
+ERROR: Failed to load plugin /usr/lib/ao/plugins-4/libalsa.so => dlopen() failed
+=== Could not load default driver and no driver specified in config file. Exiting.
+\end{verbatim} 
+
+This error message is unfortunately not sufficient to figure out what's going wrong.
+It's a good opportunity to use the \code{strace} utility to get more details about
+what's going on. To do so, copy \code{strace} that was built inside the toolchain
+to \code{target/usr/bin}.
+
+You can now run \code{ogg123} through \code{strace}:
+\begin{verbatim}
+strace ogg123 /sample.ogg
+\end{verbatim}
+
+You can see that the command fails to open the \code{ld-uClibc.so.1} file:
+\begin{verbatim}
+open("/lib/ld-uClibc.so.1", O_RDONLY)   = -1 ENOENT (No such file or directory)
+open("/lib/ld-uClibc.so.1", O_RDONLY)   = -1 ENOENT (No such file or directory)
+open("/usr/lib/ld-uClibc.so.1", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/X11R6/lib/ld-uClibc.so.1", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/home/tux/embedded-linux-labs/thirdparty/staging/usr/lib/ld-uClibc.so.1", O_RDONLY) = -1 ENOENT (No such file or directory)
+write(2, "ERROR: Failed to load plugin ", 29ERROR: Failed to load plugin ) = 29
+write(2, "/usr/lib/ao/plugins-4/libalsa.so", 32/usr/lib/ao/plugins-4/libalsa.so) = 32
+write(2, " => dlopen() failed\n", 20 => dlopen() failed
+\end{verbatim}
+
+Now, look for \code{ld-uClibc.so.1} in the toolchain. You can see that both \code{ld-uClibc.so.1}
+and \code{ld-uClibc.so.0} are symbolic links to the same file. So, create the missing
+link under \code{target/lib} and run \code{ogg123} again.
+
+Everything should work fine now. Enjoy the sound sample!
+
+To finish this lab completely, and to be consistent with what we've done before,
+let's strip the libraries in \code{target/lib}:
+
+\begin{verbatim}
+arm-linux-strip target/lib/*
+\end{verbatim}
