@@ -9,7 +9,8 @@ After this lab, you will:
 \item Be able to build a real-time application against the standard
 POSIX real-time API, and against Xenomai's POSIX skin.
 \item Have compared scheduling latency on your system, between a
-  standard kernel and a kernel with Xenomai.
+  standard kernel, a kernel with \code{PREEMPT_RT} and a kernel
+  with Xenomai.
 \end{itemize}
 
 \section{Setup}
@@ -28,7 +29,7 @@ supports Xenomai.
 
 Let's build this with Buildroot.
 
-Reuse and extract the Buildroot 2014.11 sources. Configure Buildroot
+Reuse and extract the Buildroot 2016.02 sources. Configure Buildroot
 with the following settings, using the \code{/} command in \code{make
   menuconfig} to find parameters by their name:
 
@@ -41,12 +42,11 @@ with the following settings, using the \code{/} command in \code{make
 \item In \code{Toolchain}:
    \begin{itemize}
    \item \code{Toolchain type}: \code{External toolchain}
-   \item \code{Toolchain}: \code{Sourcery CodeBench ARM 2013.11}
+   \item \code{Toolchain}: \code{Sourcery CodeBench ARM 2014.05}
    \end{itemize}
 \item In \code{System configuration}:
    \begin{itemize}
-   \item \code{/dev management}: \code{Dynamic using devtmpfs only}
-   \item in \code{getty options},  \code{TTY port}: \code{ttyS0}
+   \item in \code{Run a getty (login prompt) after boot},  \code{TTY port}: \code{ttyS0}
    \end{itemize}
 \item In \code{Target packages}:
    \begin{itemize}
@@ -60,12 +60,22 @@ with the following settings, using the \code{/} command in \code{make
    \item In \code{Real-Time}, enable \code{Xenomai Userspace}:
          \begin{itemize}
          \item Enable \code{Install testsuite}
-	 \item Make sure that \code{POSIX skin library} is enabled.
+	 \item Make sure that \code{POSIX skin library} and
+	       \code{Native skin library}\footnote{Needed by
+	       the Xenomai testsuite.} are enabled.
   	 \end{itemize}
    \end{itemize}
 \end{itemize}
 
 Now, build your root filesystem.
+
+If you are running an x86 64 bit distribution, Buildroot should ask
+you to install 32 bit compatibility packages to be able to execute the
+Sourcery CodeBench external toolchain:
+
+\begin{verbatim}
+sudo apt-get install libc6-i386 lib32stdc++6 lib32z1
+\end{verbatim}
 
 At the end of the build job, extract the
 \code{output/images/rootfs.tar} archive in the \code{nfsroot}
@@ -80,7 +90,7 @@ cp data/* nfsroot/root
 
 \section{Compile a standard Linux kernel}
 
-Reusing the kernel we previously compiled, make sure that you disable
+Reusing the 4.6 kernel we previously compiled, make sure that you disable
 \code{CONFIG_PROVE_LOCKING}, \code{CONFIG_DEBUG_LOCK_ALLOC},
 \code{CONFIG_DEBUG_MUTEXES} and \code{CONFIG_DEBUG_SPINLOCK}.
 
@@ -104,8 +114,7 @@ Let's configure our \code{PATH} to use this toolchain:
 
 \scriptsize
 \begin{verbatim}
-export
-PATH=$HOME/embedded-linux-labs/realtime/rttest/buildroot-XXXX.YY/output/host/usr/bin:$PATH
+export PATH=$HOME/embedded-linux-labs/realtime/rttest/buildroot-YYYY.MM/output/host/usr/bin:$PATH
 \end{verbatim}
 \normalsize
 
@@ -121,6 +130,9 @@ arm-none-linux-gnueabi-gcc -o rttest rttest.c -lrt
 Execute the program on the board. Is the clock resolution good or bad?
 Compare it to the timer tick of your system, as defined by
 \code{CONFIG_HZ}.
+
+Copy the results in a file, in order to be able to compare them
+with further results.
 
 Obviously, this resolution will not provide accurate sleep times, and
 this is because our kernel doesn't use high-resolution timers. So
@@ -156,11 +168,22 @@ spinlocks).
 Run the simple tests again with this new preemptible kernel and compare
 the results.
 
+\section{Compiling and testing the PREEMPT_RT kernel}
+
+Download the latest \code{PREEMPT_RT} kernel patch and apply it to
+your kernel sources.
+
+Configure your kernel with \code{CONFIG_PREEMPT_RT_FULL} and boot it.
+
+Repeat the tests and compare the results again. You should see a massive
+improvement in the maximum latency.
+
 \section{Testing Xenomai scheduling latency}
 
 Stay in \code{$HOME/embedded-linux-labs/realtime/rttest}.
 
-Download the latest 2.6.x release of Xenomai, and extract it.
+Download the latest 2.6.x release of Xenomai (that's what our version of
+Buildroot supports by default), and extract it.
 
 As you can see in the \code{ksrc/arch/arm/patches} directory,
 the most recent Linux kernel version supported by Xenomai for ARM is
@@ -188,23 +211,27 @@ enabled, taking your time to read their description:
 \item \code{CONFIG_XENO_HW_UNLOCKED_SWITCH}
 \end{itemize}
 
-In order to build our application against the Xenomai libraries, we
-will need {\em pkg-config} built by Buildroot. So go in your Buildroot
-source directory, and force Buildroot to build the host variant of
-{\em pkg-config}:
+Compile your kernel, using the same Sourcery CodeBench compiler
+as earlier in the lab\footnote{Your own toolchain is too recent
+for the 3.14 kernel, which doesn't support compiling with gcc5 yet. The
+Sourcery CodeBench gcc version is 4.8.x.}. 
+
+While the kernel compiles, we can start to build our application against
+the Xenomai libraries. We will need {\em pkg-config} built by Buildroot.
+So go in your Buildroot source directory, and force Buildroot to build
+the host variant of {\em pkg-config}:
 
 \begin{verbatim}
-cd $HOME/embedded-linux-labs/realtime/rttest/buildroot-2014.11/
+cd $HOME/embedded-linux-labs/realtime/rttest/buildroot-YYYY.MM/
 make host-pkgconf
 \end{verbatim}
 
-Compile your kernel, and in the meantime,
-compile \code{rttest} for the Xenomai POSIX skin:
+We can now compile \code{rttest} for the Xenomai POSIX skin:
 
 \scriptsize
 \begin{verbatim}
 cd $HOME/embedded-linux-labs/realtime/rttest/nfsroot/root
-export PATH=$HOME/embedded-linux-labs/realtime/rttest/buildroot-2014.11/output/host/usr/bin:$PATH
+export PATH=$HOME/embedded-linux-labs/realtime/rttest/buildroot-YYYY.MM/output/host/usr/bin:$PATH
 arm-none-linux-gnueabi-gcc -o rttest rttest.c \
   $(pkg-config --libs --cflags libxenomai_posix)
 \end{verbatim}
