@@ -237,7 +237,7 @@ setenv mtdparts mtdparts=omap2-nand.0:512k(X-Loader)ro,1536k(U-Boot)ro,512k(Env)
     \includegraphics[width=0.85\textwidth]{slides/sysdev-flash-filesystems/kernel-mtd-log.pdf}\\
     \end{itemize}
   \item \code{mtdparts} defines partitions for the different devices\\
-  \code{setenv mtdparts <mtdid>:<partition>[,partition]}\\
+  \code{setenv mtdparts mtdparts=<mtdid>:<partition>[,partition]}\\
   \code{partition} format: \code{<size>[@offset](<name>)[ro]}
   \end{itemize}
   Use the \code{mtdparts} command to setup the configuration
@@ -353,9 +353,11 @@ setenv mtdparts mtdparts=omap2-nand.0:512k(X-Loader)ro,1536k(U-Boot)ro,512k(Env)
     \item Flash filesystem image creation tools: \code{mkfs.jffs2},
       \code{mkfs.ubifs}, \code{ubinize}, etc.
     \end{itemize}
-  \item Usually available as the \code{mtd-utils} package in your distribution
-  \item Most commands now also available in BusyBox
-  \item See \url{http://www.linux-mtd.infradead.org/}
+  \item On your workstation: usually available as the \code{mtd-utils}
+      package in your distribution.
+  \item On your embedded target: most commands now also available
+      in BusyBox.
+  \item See \url{http://www.linux-mtd.infradead.org/}.
   \end{itemize}
 \end{frame}
 
@@ -456,8 +458,8 @@ setenv mtdparts mtdparts=omap2-nand.0:512k(X-Loader)ro,1536k(U-Boot)ro,512k(Env)
       \item Add some flexibility
       \item Focus on scalability, performance and reliability
       \end{itemize}
-    \item Drawback: introduces noticeable overhead, especially when
-      used on small devices or partitions
+    \item Drawback: introduces noticeable space overhead,
+      especially when used on small devices or partitions.
     \end{itemize}
     \column{0.3\textwidth}
     \includegraphics[width=\textwidth]{slides/sysdev-flash-filesystems/ubifs.pdf}
@@ -553,7 +555,7 @@ setenv mtdparts mtdparts=omap2-nand.0:512k(X-Loader)ro,1536k(U-Boot)ro,512k(Env)
 \end{frame}
 
 \begin{frame}
-  \frametitle{Linux: UBI host tools (1)}
+  \frametitle{Linux: UBI host tools}
   \begin{itemize}
   \item \code{ubinize} is the only host tool for the UBI layer
   \item Creates a UBI image to be flashed on an MTD partition
@@ -569,15 +571,16 @@ setenv mtdparts mtdparts=omap2-nand.0:512k(X-Loader)ro,1536k(U-Boot)ro,512k(Env)
 	Subpage size, only needed if both your flash and your
 	flash controller are supporting subpage writes
     \item The last argument is a path to a UBI image description file
+	  (see next page for an example)
     \end{itemize}
   \item Example: \code{ubinize -o ubi.img -p 16KiB -m 512 -s 256 cfg.ini}
   \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{Linux: UBI host tools (2)}
+  \frametitle{ubinize configuration file}
   \begin{itemize}
-  \item \code{ubinize} config file can contain several sections
+  \item Can contain several sections
   \item Each section is describing a UBI volume
   \item Example:
   \end{itemize}
@@ -735,18 +738,6 @@ vol_flags=autoresize
 \end{frame}
 
 \begin{frame}
-  \frametitle{Linux: flashing UBI/UBIFS howtos}
-  \begin{itemize}
-  \item See
-    \url{http://free-electrons.com/blog/creating-flashing-ubi-ubifs-images/}
-    for details about creating UBI and UBIFS images.
-  \item See
-    \url{http://www.linux-mtd.infradead.org/doc/ubi.html\#L_flasher_algo}
-    for what is required when flashing UBI images.
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
   \frametitle{Linux: Using a UBIFS filesystem as root filesystem}
   \begin{itemize}
   \item You just have to pass the following information on the kernel
@@ -787,20 +778,11 @@ ${bootargs_base} ${mtdparts}; bootz 0x81000000 - 0x82000000'}
   \frametitle{Linux: Block emulation layers}
   \begin{itemize}
   \item Sometimes we need block devices to re-use existing block
-    filesystems
-  \item Particularly useful for read-only block filesystems like squashfs
+    filesystems, especially read-only ones like SquashFs
   \item Linux provides two block emulation layers:
     \begin{itemize}
     \item \code{mtdblock}: block devices emulated on top of MTD devices
     \item \code{ubiblock}: block devices emulated on top of UBI volumes
-    \end{itemize}
-  \item For read access, using emulated block devices is exactly the same
-    as using regular block devices
-  \item Even if supported through the \code{mtdblock} emulation layer,
-    writing on emulated block devices is highly discouraged
-    \begin{itemize}
-    \item the emulation layer does not properly deal with wear
-      leveling and data retention issues occurring on the flash media
     \end{itemize}
   \end{itemize}
 \end{frame}
@@ -811,17 +793,18 @@ ${bootargs_base} ${mtdparts}; bootz 0x81000000 - 0x82000000'}
   \item The \code{mtdblock} layer creates a block device for each MTD
     device of the system
   \item Usually named \code{/dev/mtdblockX}.
-  \item Allows read/write block-level access. But bad blocks are not
+  \item Allows read/write block-level access. However bad blocks are not
     handled, and no wear leveling is done for writes.
-  \item For historical reasons JFFS2 filesystems require a block device
-    to be mounted
-  \item {\bf Do not write on mtdblock devices}
+  \item For historical reasons, JFFS2 and YAFFS2 filesystems require a
+    block device for the \code{mount} command.
+  \item {\bf Do not write on \code{mtdblock} devices}
   \end{itemize}
 \end{frame}
 
 \begin{frame}
   \frametitle{Linux: ubiblock}
   \begin{itemize}
+  \item Implemented by Ezequiel Garcia from Free Electrons.
   \item Preferred over \code{mtdblock} if UBI is available (UBI accounts
     for data retention and wear leveling issues, while MTD does not)
   \item The \code{ubiblock} layer creates {\bf read-only} block devices
@@ -834,7 +817,6 @@ ${bootargs_base} ${mtdparts}; bootz 0x81000000 - 0x82000000'}
     \item Using the \code{ubiblock} utility provided by \code{mtd-utils}:
       \code{ubiblock --create <ubi-volume-dev-file>}
     \end{itemize}
-
    \item Usually named \code{/dev/ubiblockX_Y}, where X is the UBI device
      id and Y is the UBI volume id
   \end{itemize}
@@ -847,6 +829,8 @@ ${bootargs_base} ${mtdparts}; bootz 0x81000000 - 0x82000000'}
     \url{http://free-electrons.com/blog/managing-flash-storage-with-linux/}
   \item Documentation on the linux-mtd website:\\
     \url{http://www.linux-mtd.infradead.org/}
+  \item Details about creating UBI and UBIFS images:\\
+    \url{http://free-electrons.com/blog/creating-flashing-ubi-ubifs-images/}
   \end{itemize}
 \end{frame}
 
