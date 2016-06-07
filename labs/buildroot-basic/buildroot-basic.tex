@@ -42,18 +42,18 @@ git clone http://git.buildroot.net/git/buildroot.git
 \end{verbatim}
 
 In the worst case, if neither work, you can download the Buildroot
-tarball \code{buildroot-2015.08.1.tar.bz2} from
+tarball \code{buildroot-2016.5.tar.bz2} from
 \code{http://buildroot.org/downloads/} and extract it. However in this
 case, you won't be able to use {\em Git} to visualize your changes and
 keep track of them.
 
 Go into the newly created \code{buildroot} directory.
 
-We're going to start a branch from the {\em 2015.08.1} Buildroot
+We're going to start a branch from the {\em 2016.05} Buildroot
 release, with which this training has been tested.
 
 \begin{verbatim}
-git checkout -b felabs 2015.08.1
+git checkout -b felabs 2016.05
 \end{verbatim}
 
 \section{Configuring Buildroot}
@@ -93,7 +93,8 @@ Now, let's do the configuration:
   \item On ARM two {\em Application Binary Interfaces} are available:
     \code{EABI} and \code{EABIhf}. Unless you have backward
     compatibility concerns with pre-built binaries, \code{EABIhf} is
-    more efficient, so make this choice as the \code{Target ABI}.
+    more efficient, so make this choice as the \code{Target ABI}
+    (which should already be the default anyway).
 
   \item The other parameters can be left to their default value:
     \code{ELF} is the only available \code{Target Binary Format},
@@ -121,10 +122,12 @@ Now, let's do the configuration:
     hesitate however to look at the available options when you select
     \code{Buildroot toolchain} as the \code{Toolchain type}.
 
-  \item Select \code{Linaro 2014.09} as the
+  \item Select \code{Linaro 2016.02} as the
     \code{Toolchain}. Buildroot can either use pre-defined toolchains
     such as the Linaro one, or custom toolchains (either downloaded
-    from a given location, or pre-installed on your machine).
+    from a given location, or pre-installed on your machine). Note
+    that the Linaro toolchain version might be different if your
+    development machine is x86 32 bits and not x86 64 bits.
 
   \end{itemize}
 
@@ -149,8 +152,8 @@ Now, let's do the configuration:
 
   \item By default, the most recent Linux kernel version available at
     the time of the Buildroot release is used. In our case, we want to
-    use a specific version: \code{4.2}. So select \code{Custom
-      version} as the \code{Kernel version}, and enter \code{4.2} in
+    use a specific version: \code{4.6}. So select \code{Custom
+      version} as the \code{Kernel version}, and enter \code{4.6} in
     the \code{Kernel version} text field that appears.
 
   \item Now, we need to define which kernel configuration to
@@ -158,7 +161,7 @@ Now, let's do the configuration:
     the kernel sources themselves, called a {\em defconfig}. To
     identify which {\em defconfig} to use, you can look in the kernel
     sources directly, at
-    \url{http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/arch/arm/configs/?id=v4.2}. In
+    \url{http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/arch/arm/configs/?id=v4.6}. In
     practice, for this platform, it is not trivial to find which one
     to use: the AM335x processor is supported in the Linux kernel as
     part of the support for many other Texas Instruments processors:
@@ -171,17 +174,17 @@ Now, let's do the configuration:
     \code{omap2plus} in the \code{Defconfig name} option.
 
   \item The \code{Kernel binary format} is the next option. Since we
-    are going to use a recent U-Boot bootloader, we'll select the
-    \code{zImage} format. The \code{uImage} format used to be the norm
-    on ARM platforms, but everybody is now transitioning to the
-    \code{zImage} format.
+    are going to use a recent U-Boot bootloader, we'll keep the
+    default of the \code{zImage} format. The \code{uImage} format used
+    to be the norm on ARM platforms, but everybody is now
+    transitioning to the \code{zImage} format.
 
   \item On ARM, most of the platforms now use the {\em Device Tree} to
     describe the hardware. The BeagleBone Black is in this situation,
     so you'll have to enable the \code{Build a Device Tree Blob}
     option. At
-    \url{http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/arch/arm/boot/dts/?id=v4.2},
-    you can see the list of all Device Tree files available in the 4.2
+    \url{http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/arch/arm/boot/dts/?id=v4.6},
+    you can see the list of all Device Tree files available in the 4.6
     Linux kernel (note: the Device Tree files for boards use the
     \code{.dts} extension). The one for the BeagleBone Black is
     \code{am335x-boneblack.dts}. Even if talking about Device Tree is
@@ -194,12 +197,12 @@ Now, let's do the configuration:
   \end{itemize}
 
 \item \code{Target packages} menu. This is probably the most important
-  menu, as this is the one where you can select amongst the 1600+
+  menu, as this is the one where you can select amongst the 1800+
   available Buildroot packages which ones should be built and
   installed in your system. For our basic system, enabling
-  \code{Busybox} is sufficient, but feel free to explore the available
-  packages. We'll have the opportunity to enable some more packages in
-  the next labs.
+  \code{Busybox} is sufficient and is already enabled by default, but
+  feel free to explore the available packages. We'll have the
+  opportunity to enable some more packages in the next labs.
 
 \item \code{Filesystem images} menu. For now, keep only the \code{tar
     the root filesystem} option enabled. We'll take care separately of
@@ -212,14 +215,21 @@ Now, let's do the configuration:
   \item We'll use the most popular ARM bootloader, {\em U-Boot}, so
     enable it in the configuration.
 
+  \item Select \code{Kconfig} as the \code{Build system}. U-Boot is
+    transitioning from a situation where all the hardware platforms
+    were described in C header files to a system where U-Boot re-uses
+    the Linux kernel configuration logic. Since we are going to use a
+    recent enough U-Boot version, we are going to use the latter,
+    called {\em Kconfig}.
+
+  \item You can keep using the default \code{2016.03} version as the
+    U-Boot version.
+
   \item Look at
     \url{http://git.denx.de/?p=u-boot.git;a=tree;f=configs} to
     identify the available U-Boot configuration. The one matching the
     BeagleBone Black is \code{am335x_boneblack_defconfig}, so type
-    \code{am335x_boneblack} in \code{U-Boot board name}.
-
-  \item Use \code{2015.04} as the U-Boot version, by using the
-    \code{Custom version} option.
+    \code{am335x_boneblack} in \code{Board defconfig}.
 
   \item U-Boot on AM335x is split in two parts: the first stage
     bootloader called \code{MLO} and the second stage bootloader
@@ -246,16 +256,6 @@ make 2>&1 | tee build.log
 
 While the build is on-going, please go through the following sections
 to prepare what will be needed to test the build results.
-
-If you're running on a x86\_64 Linux installation, you will very
-quickly get a message {\em Cannot execute cross-compiler: ...}. This
-is because the pre-built toolchain selected in the configuration has
-been built for x86 32 bits, not x86 64 bits. In this case, we need to
-install the 32 bits libraries used by the toolchain:
-
-\begin{verbatim}
-apt-get install libc6:i386 libstdc++6:i386 zlib1g:i386
-\end{verbatim}
 
 \section{Prepare the BeagleBone Black}
 
@@ -300,8 +300,8 @@ the \code{dialout} group:
 sudo adduser $USER dialout
 \end{verbatim}
 
-You now need to log out and log in again to make the new group visible
-everywhere.
+You now need to log out and log in again so that the system actually
+sees your user as being part of the {\em dialout} group.
 
 Now, you can run \code{picocom -b 115200 /dev/ttyUSB0}, to start
 serial communication on \code{/dev/ttyUSB0}, with a baudrate of
@@ -313,18 +313,18 @@ powered up yet.
 
 \section{Prepare the SD card}
 
-Our SD card needs to be formatted in two partitions:
+Our SD card needs to be split in two partitions:
 
 \begin{itemize}
 
-\item The first partition for the bootloader. It needs to comply with
+\item A first partition for the bootloader. It needs to comply with
   the requirements of the AM335x so that it can find the bootloader in
   this partition. It should be a FAT16 partition. We will store the
   bootloader (\code{MLO} and \code{u-boot.img}), the kernel image
   (\code{zImage}), the Device Tree (\code{am335x-boneblack.dtb}) and a
   special U-Boot script for the boot.
 
-\item The second partition for the root filesystem. It can use
+\item A second partition for the root filesystem. It can use
   whichever filesystem type you want, but for our system, we'll use
   {\em ext4}.
 
@@ -364,11 +364,11 @@ To format our SD card, do the following steps:
 
   \item Chose the {\em dos} partition table type
 
-  \item Create a first small partition (16 MB or 32 MB) with type \code{e}
-    ({\em W95 FAT16}) and mark it bootable
+  \item Create a first small partition (16 MB or 32 MB), primary, with
+    type \code{e} ({\em W95 FAT16}) and mark it bootable
 
-  \item Create a second partition with the rest of the available space,
-    with type \code{83} ({\em Linux}).
+  \item Create a second partition, also primary, with the rest of the
+    available space, with type \code{83} ({\em Linux}).
 
   \item Exit \code{cfdisk}
 
@@ -422,6 +422,8 @@ uenvcmd=run loadimage;run loadramdisk;run findfdt;run loadfdt;run mmcloados
 
 \end{itemize}
 
+Cleanly unmount the two SD card partitions, and eject the SD card.
+
 \section{Boot the system}
 
 Insert the SD card in the BeagleBone Black. Push the S2 button
@@ -433,7 +435,10 @@ You should see your system booting. Make sure that the U-Boot SPL and
 U-Boot version and build dates match with the current date. Do the
 same check for the Linux kernel.
 
-Login as \code{root} on the BeagleBone Black, and explore the system.
+Login as \code{root} on the BeagleBone Black, and explore the
+system. Run \code{ps} to see which processes are running, and look at
+what Buildroot has generated in \code{/bin}, \code{/lib}, \code{/usr}
+and \code{/etc}.
 
 Note: if your system doesn't boot as expected, make sure to reset the
 U-Boot environment by running the following U-Boot commands:
