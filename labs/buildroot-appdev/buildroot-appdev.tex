@@ -4,7 +4,7 @@
   \begin{itemize}
   \item Build and run your own application
   \item Remote debug your application
-  \item Use \code{<pkg>_OVERRIDE_SRCDIR}
+  \item Create a package for your application
   \item Set up Eclipse for Buildroot application development
   \end{itemize}
 }
@@ -114,12 +114,6 @@ do:
 make toolchain-external-reinstall all
 \end{verbatim}
 
-Note that due to a minor bug in Buildroot 2015.02, you need to apply
-the patch
-\code{0001-toolchain-external-fix-rebuild-reinstall-for-Linaro-.patch}
-provided in this lab's data directory, for this
-\code{toolchain-external-reinstall} command to work.
-
 You can reflash your system, or alternatively, just copy
 \code{output/target/usr/bin/gdbserver} to the target \code{/usr/bin/}
 directory using \code{scp}.
@@ -159,16 +153,9 @@ arm-linux-gnueabihf-gdb myapp
 
 We need to tell \code{gdb} where the libraries can be found:
 
-{\scriptsize
 \begin{verbatim}
-(gdb) set solib-search-path output/staging/lib:output/staging/lib/arm-linux-gnueabihf/: \
-   output/staging/usr/lib:output/staging/usr/lib/arm-linux-gnueabihf/
+(gdb) set sysroot output/staging
 \end{verbatim}
-}
-
-  (Note: this should be on one line, without spaces between each
-  library path. We only had to cut the line here to make it fit in the
-  document.)
 
 And then connect to the target:
 
@@ -206,71 +193,39 @@ you are in the function \code{config_init} called by \code{main}:
 Note that if you want \code{gdbserver} to stop on the target, you need
 to run the {\em gdb} command \code{monitor exit}.
 
-\section{Use {\tt <pkg>\_OVERRIDE\_SRCDIR}}
+\section{Create a package for your application}
 
-Now, let's say we have a more realistic application than a single
-source file application: this application will have its own build
-system ({\em Makefile}, {\em autotools}, etc.) and will also be
-packaged in Buildroot because the application is part of the final
-system.
+Building manually your own application is not desirable, we obviously
+want to create a Buildroot package for it. A useful mechanism to
+package your own applications is to use the
+\code{local} {\em site method}, which tells Buildroot that the source
+code of your application is available locally.
 
-The \code{<pkg>_OVERRIDE_SRCDIR} mechanism allows to tell Buildroot to
-not use the download location indicated in the \code{.mk} file, but a
-custom, local, directory instead.
+Create a new package called \code{myapp} in your \code{BR2_EXTERNAL}
+tree, and by using the \code{local} {\em site method}, make it use
+directly the \code{myapp} source code from
+\code{$HOME/felabs/myapp}. Remember that you can use \code{$(TOPDIR)}
+to reference the top-level directory of the Buildroot sources.
 
-In the {\em Advanced packaging} lab, we created a package for an
-application called \code{bar}. Our \code{bar} package downloads the
-application source code as a tarball from an HTTP server, and builds
-it.
+For now, directly call \code{gcc} in the build commands. Of course, if
+your application becomes more complicated, you should start using a
+proper build system (Makefile, autotools, CMake, etc.).
 
-However, since we now want to do some active development on this
-application, we want to tell Buildroot to use a custom location. In
-the same lab, you did a Git clone of the \code{bar} Git repository, so
-we will simply point Buildroot to this clone location. In your
-Buildroot external tree (\code{BR2_EXTERNAL}), create a file called
-\code{local.mk} that contains:
+When the package builds, you should see as the first step being done
+that the \code{myapp} source code gets {\em rsynced} from
+\code{$(HOME)/felabs/myapp}:
 
 \begin{verbatim}
-BAR_OVERRIDE_SRCDIR = $(HOME)/bar
+>>> myapp custom Syncing from source dir /home/thomas/felabs/myapp
 \end{verbatim}
-
-Now, adjust the \code{BR2_PACKAGE_OVERRIDE_FILE} configuration option
-to \code{$(BR2_EXTERNAL)/local.mk} so that Buildroot reads your
-\code{local.mk} file from your \code{BR2_EXTERNAL} tree.
-
-Then, force the complete rebuild of the \code{bar} package:
-
-\begin{verbatim}
-make bar-dirclean all
-\end{verbatim}
-
-You should see as the first step being done that the \code{bar} source
-code, instead of being extracted from a tarball, gets {\em rsynced}
-from \code{$(HOME)/bar}:
-
-\begin{verbatim}
->>> bar custom Syncing from source dir /home/thomas/bar
-\end{verbatim}
-
-However, the {\em configure} step fails, because the Git repository
-doesn't contain a pre-generated configure script. So go to
-\code{$HOME/bar} and run \code{autoreconf -i}.
-
-Restart the compilation of the \code{bar} package from the {\em
-  configure} step by running \code{make bar-reconfigure}. Notice how
-it {\em rsyncs} the code again.
 
 The build should now proceed to the end. Now, make a stupid but
-visible change to \code{src/main.c}, such as:
+visible change to the source code in \code{myapp.c}.
 
-\begin{verbatim}
--               printf("%d\n", result);
-+               printf("==> %d\n", result);
-\end{verbatim}
-
-Restart the build of \code{bar} using \code{make bar-rebuild}, and
-then scp the file \code{output/target/usr/bin/bar} to
-\code{192.168.0.2:/usr/bin} and run \code{bar} again on the target.
+Restart the build of \code{bar} using \code{make myapp-rebuild}, you
+will see that Buildroot automatically {\em rsyncs} again the source
+code. Then scp the file \code{output/target/usr/bin/myapp} to
+\code{192.168.0.2:/usr/bin} and run \code{myapp} again on the target.
 
 As you can see you can now develop your applications and libraries,
 using your normal version control system and relying on Buildroot to
