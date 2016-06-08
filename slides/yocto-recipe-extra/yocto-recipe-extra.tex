@@ -110,3 +110,72 @@ PACKAGECONFIG ??= "                                                       \
       \end{block}
   \end{itemize}
 \end{frame}
+
+\subsection{Root filesystem creation}
+
+\begin{frame}[fragile]
+  \frametitle{Files and directories selection}
+  \begin{itemize}
+    \item The \code{FILES} variable controls the list of files and
+      directories to be placed into packages.
+    \item It must be package specific (e.g. with \code{_${PN}}).
+    \item In Poky, defaults to:
+  \end{itemize}
+  \begin{block}{}
+    \begin{minted}[fontsize=\scriptsize]{sh}
+FILES_${PN} = \
+           "${bindir}/* ${sbindir}/* ${libexecdir}/* ${libdir}/lib*${SOLIBS} \
+            ${sysconfdir} ${sharedstatedir} ${localstatedir} \
+            ${base_bindir}/* ${base_sbindir}/* \
+            ${base_libdir}/*${SOLIBS} \
+            ${base_prefix}/lib/udev/rules.d ${prefix}/lib/udev/rules.d \
+            ${datadir}/${BPN} ${libdir}/${BPN}/* \
+            ${datadir}/pixmaps ${datadir}/applications \
+            ${datadir}/idl ${datadir}/omf ${datadir}/sounds \
+            ${libdir}/bonobo/servers"
+    \end{minted}
+  \end{block}
+  \begin{itemize}
+    \item To prevent configuration files to be overwritten during the
+      Package Management System update process, use \code{CONFFILES}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Root filesystem generation}
+  \begin{itemize}
+    \item Image generation overview:
+      \begin{enumerate}
+        \item The rootfs is created using packages.
+        \item One or more images files are created, depending on the
+          \code{IMAGE_FSTYPES} value.
+      \end{enumerate}
+    \item The rootfs creation is specific to the \code{IMAGE_PKGTYPE}
+      value. It should be defined in the image recipe, otherwise the
+      first valid package type defined in \code{PACKAGE_CLASSES} is
+      used.
+    \item All the magic is done in
+      \code{meta/classes/rootfs_${IMAGE_PKGTYPE}.bbclass}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Example: rootfs creation with .deb packages}
+  \begin{block}{}
+    \begin{minted}{sh}
+rootfs_deb_do_rootfs () {
+    [...]
+
+    export INSTALL_ROOTFS_DEB="${IMAGE_ROOTFS}"
+
+    [...]
+
+    apt-get update
+    apt-get ${APT_ARGS} install ${package_to_install}  \
+        --force-yes --allow-unauthenticated
+
+    [...]
+}
+    \end{minted}
+  \end{block}
+\end{frame}
