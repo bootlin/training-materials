@@ -102,7 +102,7 @@
 \end{frame}
 
 \begin{frame}
-  \frametitle{The source locations 1/3}
+  \frametitle{The source locations: overview}
   \begin{itemize}
     \item We need to retrieve both the raw sources from an official
       location and the resources needed to configure, patch or install
@@ -110,70 +110,118 @@
     \item \code{SRC_URI} defines where and how to retrieve the
       needed elements. It is a set of URI schemes pointing to the
       resource locations (local or remote).
-      \begin{itemize}
-        \item URI scheme syntax: \code{scheme://url;param1;param2}
-        \item \code{file://joystick-support.patch}
-        \item
-          \code{${SOURCEFORGE_MIRROR}/<project-name>/${PN}-${PV}.tar.gz}
-          %stopzone
-        \item
-          \code{git://<url>;protocol=<protocol>;branch=<branch>}
-          When using git, it is necessary to also define
-          \code{SRCREV}. If \code{SRCREV} is a hash or a tag not
-          present in master, the branch parameter is mandatory. When
-          the tag is not in any branch, it is possible to use
-          \code{nobranch=1}
-      \end{itemize}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{The source locations 2/3}
-  \begin{itemize}
-    \item For the local files, the searched paths are defined in the
-      \code{FILESPATH} variable, custom ones can be added using
-      \code{FILESEXTRAPATHS}. BitBake will also search in subfolders
-      listed in the \code{OVERRIDES} variables in those paths.
-    \item Prepend the paths, as the order matters.
-    \item All local files found in \code{SRC_URI} are copied into the
-      package's working directory, in \code{build/tmp/work/}.
-    \item Files ending in \code{.patch}, \code{.diff} or having the
-      \code{apply=yes} parameter will be applied after the sources are
-      retrieved and extracted.
-    \item Patches are applied in the order they are found.
-    \item \code{LIC_FILES_CHKSUM} defines the URI pointing to the
-      license file in the source code as well as its checksum. This
-      allows to track any license update: if the license changes, the
-      build will trigger a failure as the checksum won't be valid
-      anymore.
-      \begin{itemize}
-        \item \code{LIC_FILES_CHKSUM = "file://gpl.txt;md5=393a5ca..."}
-      \end{itemize}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{The source locations 3/3}
-  \begin{itemize}
-    \item When the sources are provided in a tarball:
-      \begin{itemize}
-        \item An md5 or an sha256 sum must be provided:
-          \begin{itemize}
-            \item \code{SRC_URI[md5sum] = "97b2c3fb082241ab5c56ab728522622b"}
-            \item \code{SRC_URI[sha256sum] = "..."}
-          \end{itemize}
-        \item BitBake expects to find the extracted sources in a
-          directory called \code{<package-name>-<version>}. This is
-          controlled by the \code{S} variable. If the directory has
-          another name, you must explicitly define \code{S}.
-      \end{itemize}
+    \item URI scheme syntax: \code{scheme://url;param1;param2}
+    \item \code{scheme} can describe a local file using \code{file://}
+      or remote locations with \code{https://}, \code{git://},
+      \code{svn://}, \code{hg://}, \code{ftp://}\dots
     \item By default, sources are fetched in
       \code{$BUILDDIR/downloads}. Change it with the \code{DL_DIR}
       variable in \code{conf/local.conf}
     \item Use the \code{PREMIRRORS} and \code{MIRRORS} variables if
       you want to use local mirrors or fallback mirrors.
-    \item To ensure no network access will be done when building, use
-      \code{BB_NO_NETWORK = "1"}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{The source locations: remote code}
+  \begin{itemize}
+    \item The \code{git} scheme:
+      \begin{itemize}
+        \item \code{git://<url>;protocol=<protocol>;branch=<branch>}
+        \item When using git, it is necessary to also define
+          \code{SRCREV}. If \code{SRCREV} is a hash or a tag not
+          present in master, the branch parameter is mandatory. When
+          the tag is not in any branch, it is possible to use
+          \code{nobranch=1}
+      \end{itemize}
+    \item The \code{http}, \code{https} and \code{ftp} schemes:
+      \begin{itemize}
+        \item \code{https://example.com/package-1.0.tar.bz2}
+        \item A few variables are available to help pointing to remote
+          locations: \code{${SOURCEFORGE_MIRROR}},
+          \code{${GNU_MIRROR}}, \code{${KERNELORG_MIRROR}}\dots
+        \item Example:
+          \code{${SOURCEFORGE_MIRROR}/<project-name>/${PN}-${PV}.tar.gz}
+        \item See \code{meta/conf/bitbake.conf}
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{The source locations: local files}
+  \begin{itemize}
+    \item All local files found in \code{SRC_URI} are copied into the
+      package's working directory, in \code{build/tmp/work/}.
+    \item The searched paths are defined in the \code{FILESPATH}
+      variable.
+  \end{itemize}
+  \begin{block}{}
+  \begin{minted}{sh}
+FILESPATH = "${@base_set_filespath([
+                "${FILE_DIRNAME}/${PN}",
+                "${FILE_DIRNAME}/${PN}-${PV}",
+                "${FILE_DIRNAME}/files"], d)}"
+
+FILESOVERRIDES = "${MACHINEOVERRIDES}:${DISTROOVERRIDES}"
+  \end{minted}
+  \end{block}
+  \begin{itemize}
+    \item The \code{base_set_filespath(path)} function uses its
+      \code{path} parameter,  \code{FILESEXTRAPATHS} and
+      \code{FILESOVERRIDES} to fill the \code{FILESPATH} variable.
+    \item Custom paths and files can added using
+      \code{FILESEXTRAPATHS} and \code{FILESOVERRIDES}.
+    \item Prepend the paths, as the order matters.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{The source locations: patches}
+  \begin{itemize}
+    \item Files ending in \code{.patch}, \code{.diff} or having the
+      \code{apply=yes} parameter will be applied after the sources are
+      retrieved and extracted.
+      \begin{itemize}
+        \item \code{file://joystick-support.patch}
+        \item \code{file://smp-fixes.diff}
+      \end{itemize}
+    \item Patches are applied in the order they are listed.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{The source locations: tarball specificities}
+  \begin{itemize}
+    \item An md5 or an sha256 sum must be provided:
+      \begin{itemize}
+        \item \code{SRC_URI[md5sum] = "97b2c3fb082241ab5c56ab728522622b"}
+        \item \code{SRC_URI[sha256sum] = "..."}
+      \end{itemize}
+    \item BitBake expects to find the extracted sources in a
+      directory called \code{<package-name>-<version>}. This is
+      controlled by the \code{S} variable. If the directory has
+      another name, you must explicitly define \code{S}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{The source locations: license files}
+  \begin{itemize}
+    \item License files must have their own checksum.
+    \item \code{LIC_FILES_CHKSUM} defines the URI pointing to the
+      license file in the source code as well as its checksum.
+  \end{itemize}
+  \begin{block}{}
+    \begin{minted}{sh}
+LIC_FILES_CHKSUM = "file://gpl.txt;md5=393a5ca..."
+LIC_FILES_CHKSUM =  \
+    "file://main.c;beginline=3;endline=21;md5=58e..."
+    \end{minted}
+  \end{block}
+  \begin{itemize}
+    \item This allows to track any license update: if the license
+      changes, the build will trigger a failure as the checksum won't
+      be valid anymore.
   \end{itemize}
 \end{frame}
 
