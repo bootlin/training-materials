@@ -357,6 +357,82 @@ test         8000  wheel   -1    =          -         /bin/sh -           Test u
   \end{itemize}
 \end{frame}
 
+\begin{frame}{Deploying the images: genimage}
+  \begin{itemize}
+  \item \code{genimage} allows to create the complete image of a block
+    device (SD card, USB key, hard drive), including multiple
+    partitions and filesystems.
+  \item For example, allows to create an image with two partition: one
+    FAT partition for bootloader and kernel, one ext4 partition for
+    the root filesystem.
+  \item Also allows to place the bootloader at a fixed offset in the
+    image if required.
+  \item Can be called in a {\em post-image} script.
+  \item More and more widely used in Buildroot default configurations
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Deploying the images: genimage example}
+\begin{columns}
+  \column{0.5\textwidth}
+\begin{block}{genimage-raspberrypi.cfg}
+{\tiny
+  \begin{verbatim}
+image boot.vfat {
+  vfat {
+    files = {
+      "bcm2708-rpi-b.dtb",
+      "bcm2708-rpi-b-plus.dtb",
+      "bcm2708-rpi-cm.dtb",
+      "rpi-firmware/bootcode.bin",
+      "rpi-firmware/cmdline.txt",
+      [...]
+      "kernel-marked/zImage"
+    }
+  }
+  size = 32M
+}
+
+image sdcard.img {
+  hdimage {
+  }
+  partition boot {
+    partition-type = 0xC
+    bootable = "true"
+    image = "boot.vfat"
+  }
+  partition rootfs {
+    partition-type = 0x83
+    image = "rootfs.ext4"
+  }
+}
+ \end{verbatim}
+}
+\end{block}
+  \column{0.5\textwidth}
+\begin{block}{post-image script}
+{\tiny
+  \begin{verbatim}
+#!/bin/sh
+
+BOARD_DIR="$(dirname $0)"
+GENIMAGE_CFG="${BOARD_DIR}/genimage-raspberrypi.cfg"
+GENIMAGE_TMP="${BUILD_DIR}/genimage.tmp"
+
+rm -rf "${GENIMAGE_TMP}"
+
+genimage \
+        --rootpath "${TARGET_DIR}"     \
+        --tmppath "${GENIMAGE_TMP}"    \
+        --inputpath "${BINARIES_DIR}"  \
+        --outputpath "${BINARIES_DIR}" \
+        --config "${GENIMAGE_CFG}"
+ \end{verbatim}
+}
+\end{block}
+\end{columns}
+\end{frame}
+
 \begin{frame}{Deploying the image: NFS booting}
   \begin{itemize}
   \item Many people try to use \code{$(O)/target} directly for NFS booting
