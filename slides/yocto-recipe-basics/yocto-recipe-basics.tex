@@ -123,7 +123,7 @@
 \end{frame}
 
 \begin{frame}
-  \frametitle{The source locations: remote code}
+  \frametitle{The source locations: remote files 1/2}
   \begin{itemize}
     \item The \code{git} scheme:
       \begin{itemize}
@@ -148,6 +148,34 @@
 \end{frame}
 
 \begin{frame}[fragile]
+  \frametitle{The source locations: remote files 2/2}
+  \begin{itemize}
+    \item An md5 or an sha256 sum must be provided when the protocol
+      used to retrieve the file(s) does not guarantee their integrity.
+      This is the case for \code{https}, \code{http} or \code{ftp}.
+  \end{itemize}
+  \begin{block}{}
+    \begin{minted}{sh}
+SRC_URI[md5sum] = "97b2c3fb082241ab5c56ab728522622b"
+SRC_URI[sha256sum] = "..."
+    \end{minted}
+  \end{block}
+  \begin{itemize}
+    \item It's possible to use checksums for more than one file, using
+      the \code{name} parameter:
+  \end{itemize}
+  \begin{block}{}
+    \begin{minted}{sh}
+SRC_URI = "http://example.com/src.tar.bz2;name=tarball \
+           http://example.com/fixes.patch;name=patch"
+
+SRC_URI[tarball.md5sum] = "97b2c3fb082241ab5c56..."
+SRC_URI[patch.md5sum]   = "b184acf9eb39df794ffd..."
+    \end{minted}
+  \end{block}
+\end{frame}
+
+\begin{frame}[fragile]
   \frametitle{The source locations: local files}
   \begin{itemize}
     \item All local files found in \code{SRC_URI} are copied into the
@@ -169,38 +197,22 @@ FILESOVERRIDES = "${MACHINEOVERRIDES}:${DISTROOVERRIDES}"
     \item The \code{base_set_filespath(path)} function uses its
       \code{path} parameter,  \code{FILESEXTRAPATHS} and
       \code{FILESOVERRIDES} to fill the \code{FILESPATH} variable.
-    \item Custom paths and files can added using
+    \item Custom paths and files can be added using
       \code{FILESEXTRAPATHS} and \code{FILESOVERRIDES}.
     \item Prepend the paths, as the order matters.
   \end{itemize}
 \end{frame}
 
 \begin{frame}
-  \frametitle{The source locations: patches}
+  \frametitle{The source locations: tarballs}
   \begin{itemize}
-    \item Files ending in \code{.patch}, \code{.diff} or having the
-      \code{apply=yes} parameter will be applied after the sources are
-      retrieved and extracted.
-      \begin{itemize}
-        \item \code{file://joystick-support.patch}
-        \item \code{file://smp-fixes.diff}
-      \end{itemize}
-    \item Patches are applied in the order they are listed.
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{The source locations: tarball specificities}
-  \begin{itemize}
-    \item An md5 or an sha256 sum must be provided:
-      \begin{itemize}
-        \item \code{SRC_URI[md5sum] = "97b2c3fb082241ab5c56ab728522622b"}
-        \item \code{SRC_URI[sha256sum] = "..."}
-      \end{itemize}
-    \item BitBake expects to find the extracted sources in a
-      directory called \code{<package-name>-<version>}. This is
-      controlled by the \code{S} variable. If the directory has
-      another name, you must explicitly define \code{S}.
+    \item When extracting a tarball, BitBake expects to find the
+      extracted files in a directory named
+      \code{<package-name>-<version>}. This is controlled by the
+      \code{S} variable. If the directory has another name, you must
+      explicitly define \code{S}.
+    \item If the scheme is \code{git}, \code{S} must be set to
+      \code{${WORKDIR}/git}
   \end{itemize}
 \end{frame}
 
@@ -364,6 +376,50 @@ do_mkimage () {
 addtask mkimage after do_compile before do_install
     \end{minted}
   \end{block}
+\end{frame}
+
+\subsection{Applying patches}
+
+\begin{frame}[fragile]
+  \frametitle{The source locations: patches}
+  \begin{itemize}
+    \item Files ending in \code{.patch}, \code{.diff} or having the
+      \code{apply=yes} parameter will be applied after the sources are
+      retrieved and extracted, during the \code{do_patch} task.
+  \end{itemize}
+  \begin{block}{}
+    \begin{minted}{sh}
+SRC_URI += "file://joystick-support.patch \
+            file://smp-fixes.diff \
+           "
+    \end{minted}
+  \end{block}
+  \begin{itemize}
+    \item Patches are applied in the order they are listed in
+      \code{SRC_URI}.
+    \item It is possible to select which tool will be used to apply
+      the patches listed in \code{SRC_URI} variable with
+      \code{PATCHTOOL}.
+    \item By default, \code{PATCHTOOL = 'quilt'} in Poky.
+    \item Possible values: \code{git}, \code{patch} and \code{quilt}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Resolving conflicts}
+  \begin{itemize}
+    \item The \code{PATCHRESOLVE} variable defines how to handle
+    conflicts when applying patches.
+    \item It has two valid values:
+      \begin{itemize}
+        \item \code{noop}: the build fails if a patch cannot be
+          successfully applied.
+        \item \code{user}: a shell is launched to resolve manually the
+          conflicts.
+      \end{itemize}
+    \item By default, \code{PATCHRESOLVE = "noop"} in
+      \code{meta-yocto}.
+  \end{itemize}
 \end{frame}
 
 \subsection{Example of a recipe}
