@@ -100,69 +100,106 @@ $ ./configure --host=arm-linux
   \end{itemize}
 \end{frame}
 
-\begin{frame}{The {\tt <pkg>\_OVERRIDE\_SRCDIR} mechanism}
+\begin{frame}{Building during development}
   \begin{itemize}
-  \item Very often, you don't build packages manually: Buildroot
-    builds them for you.
-  \item But Buildroot also downloads them for you, and keeps the
-    source code in the package build directory.
-  \item Not very practical during development:
+  \item Buildroot is mainly a {\em final integration} tool: it is
+    aimed at downloading and building {\bf fixed} versions of software
+    components, in a reproducible way.
+  \item When doing active development of a software component, you
+    need to be able to quickly change the code, build it, and deploy
+    it on the target.
+  \item The package build directory is temporary, and removed on
+    \code{make clean}, so making changes here is not practical
+  \item Buildroot does not automatically ``update'' your source code
+    when the package is fetched from a version control system.
+  \item Three solutions:
     \begin{itemize}
-    \item The build directory is temporary, gets removed when doing a
-      \code{make clean} or \code{make <pkg>-dirclean}
-    \item The build directory isn't checked out from your version
-      control system.
+    \item Build your software component outside of Buildroot during
+      development. Doable for software components that are easy to
+      build.
+    \item Use the \code{local} \code{SITE_METHOD} for your package
+    \item Use the \code{<pkg>_OVERRIDE_SRCDIR} mechanism
     \end{itemize}
-  \item Buildroot should, for certain packages, pick up the source
-    from a local directory.
-  \item This is exactly what \code{<pkg>_OVERRIDE_SRCDIR} allows to
-    do.
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Without {\tt <pkg>\_OVERRIDE\_SRCDIR}}
+\begin{frame}[fragile]{{\tt local} site method}
   \begin{itemize}
-  \item The normal package build process, when
-    \code{<pkg>_OVERRIDE_SRCDIR} is not used, is:
-    \begin{enumerate}
-    \item Package gets downloaded as a tarball, or from a VCS
-      repository (in which case a tarball is generated)
-    \item The tarball is extracted in
-      \code{$(O)/build/<pkg>-<version>}
-    \item Then the configure, build and installs steps are executed
-    \end{enumerate}
-  \item \code{$(O)/build/<pkg>-<version>/} does not contain any VCS
-    metadata, and is a temporary directory.
-  \item Running \code{make <pkg>-reconfigure}, \code{make
-      <pkg>-rebuild}, \code{make <pkg>-reinstall} only restarts the
-    build process from one of the corresponding steps.
+  \item Allows to tell Buildroot that the source code for a package is
+    already available locally
+  \item Allows to keep your source code under version control,
+    separately, and have Buildroot always build your latest changes.
+  \item Typical project organization:
+    \begin{itemize}
+    \item \code{buildroot/}, the Buildroot source code
+    \item \code{external/}, your \code{BR2_EXTERNAL} tree
+    \item \code{custom-app/}, your custom application code
+    \item \code{custom-lib/}, your custom library
+    \end{itemize}
+  \item In your package \code{.mk} file, use:
+    \begin{block}{}
+\begin{verbatim}
+<pkg>_SITE = $(TOPDIR)/../custom-app
+<pkg>_SITE_METHOD = local
+\end{verbatim}
+    \end{block}
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Effect of {\tt <pkg>\_OVERRIDE\_SRCDIR}}
+\begin{frame}{Effect of {\tt local} site method}
   \begin{itemize}
-  \item For each package, you can define a
-    \code{<pkg>_OVERRIDE_SRCDIR} variable that points to a local
-    directory containing the source code for this package.
-  \item Instead of downloading and extracting the original source,
-    Buildroot will {\em rsync} the source from the specified directory
-    to the build directory.
-  \item Invoking \code{make <pkg>-reconfigure}, \code{make
-      <pkg>-rebuild}, \code{make <pkg>-reinstall} will retrigger a
-    {\em rsync}.
+  \item For the first build, the source code of your package is {\em
+      rsync'ed} from \code{<pkg>_SITE} to the build directory, and
+    built there.
+  \item After making changes to the source code, you can run:
+    \begin{itemize}
+    \item \code{make <pkg>-reconfigure}
+    \item \code{make <pkg>-rebuild}
+    \item \code{make <pkg>-reinstall}
+    \end{itemize}
+  \item Buildroot will first {\em rsync} again the package source code
+    (copying only the modified files) and restart the build from the
+    requested step.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{{\tt local} site method workflow}
+  \begin{center}
+    \includegraphics[height=0.8\textheight]{slides/buildroot-appdev/local-site-method.pdf}
+  \end{center}
+\end{frame}
+
+\begin{frame}{{\tt <pkg>\_OVERRIDE\_SRCDIR}}
+  \begin{itemize}
+  \item The \code{local} site method solution is appropriate when the
+    package uses this method for all developers
+    \begin{itemize}
+    \item Requires that all developers fetch locally the source code
+      for all custom applications and libraries
+    \end{itemize}
+  \item An alternate solution is that packages for custom applications
+    and libraries fetch their source code from version control systems
+    \begin{itemize}
+    \item Using the \code{git}, \code{svn}, \code{cvs}, etc. fetching
+      methods
+    \end{itemize}
+  \item Then, locally, a user can {\bf override} how the package is
+    fetched using \code{<pkg>_OVERRIDE_SRCDIR}
+    \begin{itemize}
+    \item It tells Buildroot to not {\em download} the package source
+      code, but to copy it from a local directory.
+    \end{itemize}
+  \item The package then behaves as if it was using the \code{local}
+    site method.
   \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]{Passing {\tt <pkg>\_OVERRIDE\_SRCDIR}}
   \begin{itemize}
-  \item \code{<pkg>_OVERRIDE_SRCDIR} can be specified:
-    \begin{itemize}
-    \item In the package \code{.mk} file itself. Not ideal solution,
-      and identical to \code{<pkg>_SITE_METHOD = local}
-    \item In a {\em package override file}, configured in
-      \code{BR2_PACKAGE_OVERRIDE_FILE}, by default
-      \code{$(CONFIG_DIR)/local.mk.}
-    \end{itemize}
+  \item \code{<pkg>_OVERRIDE_SRCDIR} values are specified in a {\em
+      package override file}, configured in
+    \code{BR2_PACKAGE_OVERRIDE_FILE}, by default
+    \code{$(CONFIG_DIR)/local.mk.}
   \end{itemize}
 
   \begin{block}{Example \code{local.mk}}
@@ -171,12 +208,6 @@ LIBPNG_OVERRIDE_SRCDIR = $(HOME)/projects/libpng
 LINUX_OVERRIDE_SRCDIR = $(HOME)/projects/linux
 \end{minted}
   \end{block}
-\end{frame}
-
-\begin{frame}{{\tt <pkg>\_OVERRIDE\_SRCDIR} workflow}
-  \begin{center}
-    \includegraphics[height=0.8\textheight]{slides/buildroot-appdev/override-srcdir.pdf}
-  \end{center}
 \end{frame}
 
 \begin{frame}{Debugging: debugging symbols and stripping}
