@@ -19,10 +19,9 @@ BR2_CONFIG = $(CONFIG_DIR)/.config
 
 $(BUILD_DIR)/buildroot-config/%onf:
         mkdir -p $(@D)/lxdialog
-        $(MAKE) ... -C $(CONFIG) -f Makefile.br $(@F)
+        ... $(MAKE) ... -C $(CONFIG) -f Makefile.br $(@F)
 
 menuconfig: $(BUILD_DIR)/buildroot-config/mconf outputmakefile
-        @mkdir -p $(BUILD_DIR)/buildroot-config
         @$(COMMON_CONFIG_ENV) $< $(CONFIG_CONFIG_IN)
 \end{minted}
 \end{block}
@@ -54,7 +53,7 @@ define inner-generic-package
 $(2)_KCONFIG_VAR = BR2_PACKAGE_$(2)
  ...
 ifeq ($$($$($(2)_KCONFIG_VAR)),y)
-TARGETS += $(1)
+PACKAGES += $(1)
 endif # $(2)_KCONFIG_VAR
 
 endef # inner-generic-package
@@ -63,11 +62,9 @@ endef # inner-generic-package
 
 \begin{itemize}
 \item Adds the lowercase name of an enabled package as a make target
-  to the \code{$(TARGETS)} variable
+  to the \code{$(PACKAGES)} variable
 \item \code{package/pkg-generic.mk} is really the core of the package
   infrastructure
-\item Note: as of Buildroot 2015.05, \code{TARGETS} has been renamed
-  to \code{PACKAGES}
 \end{itemize}
 
 \end{frame}
@@ -77,14 +74,14 @@ endef # inner-generic-package
 \begin{itemize}
 \item The \code{package/pkg-generic.mk} file is divided in two main
   parts:
-  \begin{itemize}
+  \begin{enumerate}
   \item Definition of the actions done in each step of a package build
     process. Done through {\em stamp file targets}.
   \item Definition of the \code{inner-generic-package},
     \code{generic-package} and \code{host-generic-package} macros,
     that define the sequence of actions, as well as all the variables
     needed to handle the build of a package.
-  \end{itemize}
+  \end{enumerate}
 \end{itemize}
 
 \end{frame}
@@ -154,15 +151,7 @@ $(BUILD_DIR)/%/.stamp_target_installed:
 $(BUILD_DIR)/%/.stamp_downloaded:
         $(foreach hook,$($(PKG)_PRE_DOWNLOAD_HOOKS),$(call $(hook))$(sep))
         [...]
-        $(if $($(PKG)_SOURCE),$(call DOWNLOAD,$($(PKG)_SITE:/=)/$($(PKG)_SOURCE)))
-        $(foreach p,$($(PKG)_EXTRA_DOWNLOADS),$(call DOWNLOAD,$($(PKG)_SITE:/=)/$(p))$(sep))
-        $(foreach p,$($(PKG)_PATCH),\
-                $(if $(findstring ://,$(p)),\
-                        $(call DOWNLOAD,$(p)),\
-                        $(call DOWNLOAD,$($(PKG)_SITE:/=)/$(p))\
-                )\
-        $(sep))
-        $(foreach hook,$($(PKG)_POST_DOWNLOAD_HOOKS),$(call $(hook))$(sep))
+	$(foreach p,$($(PKG)_ALL_DOWNLOADS),$(call DOWNLOAD,$(p))$(sep))
         $(Q)mkdir -p $(@D)
         $(Q)touch $@
 \end{minted}
@@ -174,7 +163,8 @@ $(BUILD_DIR)/%/.stamp_downloaded:
   name of the package. So when used for Busybox,
   \code{$($(PKG)_SOURCE)} is the value of \code{BUSYBOX_SOURCE}.
 \item {\em Hooks}: make macros called before and after each step.
-\item Downloads the files mentioned in \code{<pkg>_SOURCE},
+\item \code{<pkg>_ALL_DOWNLOADS} lists all the files to be downloaded,
+  which includes the ones listed in \code{<pkg>_SOURCE},
   \code{<pkg>_EXTRA_DOWNLOADS} and \code{<pkg>_PATCH}.
 \end{itemize}
 
@@ -733,7 +723,7 @@ endif
 
 \begin{frame}{Root filesystem image generation}
   \begin{itemize}
-  \item Once all the targets in \code{$(TARGETS)} have been built,
+  \item Once all the targets in \code{$(PACKAGES)} have been built,
     it's time to create the root filesystem images
   \item First, the \code{target-finalize} target does some cleanup of
     \code{$(TARGET_DIR)} by removing documentation, headers, static
