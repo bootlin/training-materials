@@ -276,6 +276,7 @@ YOCTO_SLIDES    = \
 		yocto-sdk-eclipse-lab \
 		yocto-licensing \
 		yocto-recipe-extra \
+		yocto-runtime-package-management \
 		yocto-resources \
 		last-slides
 
