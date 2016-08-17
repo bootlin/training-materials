@@ -26,10 +26,10 @@ following command as root:
 dpkg-reconfigure dash
 \end{verbatim}
 
-\section{Donwload Eclipse}
+\section{Download Eclipse}
 
-Download the Juno version of Eclipse on the official website:
-\url{https://eclipse.org/downloads/packages/eclipse-classic-422/junosr2}.
+Download the Luna version of Eclipse on the official website:
+\url{http://www.eclipse.org/downloads/download.php?file=/technology/epp/downloads/release/luna/SR2/eclipse-cpp-luna-SR2-linux-gtk-x86_64.tar.gz}.
 Then uncompress the tarball and launch Eclipse. Ubuntu has a known bug, and
 you need to run the following command from the extracted Eclipse directory to be
 able to use it properly:
@@ -41,17 +41,21 @@ UBUNTU_MENUPROXY=0 ./eclipse
 
 First, you need to download a few packages to fulfill the Yocto
 Eclipse plugin requirements. Open \code{Install New Software} in the
-\code{Help} menu. Select the \code{Juno -
-http://download.eclipse.org/releases/juno} repository and install:
+\code{Help} menu. Select the \code{Luna - http://download.eclipse.org/releases/luna}
+ repository and install:
 \begin{itemize}
-  \item LTTng - Linux Tracing Toolkit
-  \item C/C++ Remote Launch
+  \item Linux Tools LTTng Tracer Control
+  \item Linux Tools LTTng Userspace Analysis
+  \item LTTng Kernel Analysis
+  \item C/C++ Remote (over TCF/TE) Run/Debug Launcher
   \item Remote System Explorer End-user Runtime
   \item Remote System Explorer User Actions
-  \item Target Management Terminal
+  \item Target Management Terminal (Core SDK)
   \item TCF Remote System Explorer add-in
   \item TCF Target Explorer
 \end{itemize}
+
+If the selections do not appear in the menu, it means it is already installed.
 
 You can then either choose to download the already built Eclipse Yocto Project
 plugin or to build your own by first downloading its source repository. We will
@@ -59,7 +63,7 @@ here download the latest plugin available on the Yocto Project website directly
 from Eclipse.
 
 First add the Yocto Project Eclipse Update site to the available software sites:
-\url{http://downloads.yoctoproject.org/releases/eclipse-plugin/1.6.1/juno}.
+\url{http://downloads.yoctoproject.org/releases/eclipse-plugin/2.1/luna/}.
 Then download:
 \begin{itemize}
   \item Yocto Project ADT Plug-in
@@ -74,7 +78,8 @@ Location} to your build directory and the \code{Sysroot Location} to the
 \code{tmp/sysroot/beaglebone} directory of your build directory. Then select the
 \code{Target Architecture}. Apply and close, the plugin is set up!
 
-\section{Build a Poky image from Eclipse}
+%\section{Build a Poky image from Eclipse} % [Mylene] titre modifié
+\section{Create a project under Eclipse}
 
 The Eclipse Yocto Project plugin allows, in addition to compiling an application
 to the right target architecture, to build a Poky image. We will here configure
@@ -83,23 +88,44 @@ create a build environment from scratch.
 
 Select \code{New} in the \code{File} menu. Then double click on \code{New Yocto
 Project} in the \code{Yocto Project Bitbake Commander} category. In the new
-window, choose \code{Local} as the \code{Remote service provider} and
-\code{local} as the connection name. Uncheck the \code{Clone from Yocto Project
-Git Repository into new location}, this option is only used when starting a
-vanilla project. The directory used by Eclipse will be \code{Location/Project
+window, the directory used by Eclipse will be \code{Location/Project
 name}, you need to fill the form with this in mind: use the path of the
 directory containing your previously used \code{poky} root directory and put
 the name of this directory as the project name. Then click on \code{Finish}.
 The new project is now visible in the \code{Project Explorer} panel.
 
-In order to build a target image, you need to launch Hob, the graphical
-interface for BitBake. You can find this tool under the \code{Project} menu. In
-the Hob window, select the right target machine. You will then be able to select
-our previously created image recipe. Have a look at the \code{Advanced
-configuration} menu, and then start a build.
+% [Mylene] Est-ce qu'on continue à montrer le build en utilisant toaster ?
+% J'ajoute comment installer Toaster mais en commentaires seulement
 
-Once the build completed, you will see useful information about the image built
-in the Hob window.
+%In order to build a target image, you need to launch Toaster, the web
+%interface for BitBake.
+%Toaster is using a web serveur that need to be executed. To do that, you must
+%installed the toaster's dependencies:
+%\begin{itemize}
+%  \item Install \code{pip} tool:\\
+%    \code{$ sudo apt install python-pip}
+%  \item Install Toaster's dependencies:\\
+%    \code{$ sudo pip install -r bitbake/toaster-requirements.txt}
+%  \item Go under your build folder:\\
+%    \code{$ source oe-init-build-env}
+%  \item Start toaster:\\
+%    \code{$ source toaster start}
+%\end{itemize}
+%Once Toaster has been launched, you will be able to use the web interface.
+%On a web browser, go to toaster: \url{http://localhost:8000}
+
+%On Eclipse, you can find this tool under the \code{Project} menu, \code{Launch Toaster}.
+%It will ask you the server URL and use the above localhost's one.
+%The web browser should open the Toaster main page.
+
+%[Mylene] TODO: Ajouter comment configurer toaster pour construire une image.
+% Il y a quelques étapes à suivre donc je ne suis pas sûr que ça soit bien de
+% garder le build dans Eclipse. Peut-être seulement faire la création du projet
+% + création d'une recette ?
+% Si on veut garder le build via Eclipse (et donc Toaster), il faudrait prévoir
+% une section spéciale qui indique les pas à suivre, sachant qu'il faut tout
+% reconfigurer l'environement de build en utilisant l'interface Toaster.
+% Personnelement, je ne trouve pas ça très intéressant pour l'utilisateur.
 
 \section{Create a recipe}
 
