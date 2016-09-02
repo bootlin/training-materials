@@ -4,19 +4,51 @@
 
 \section{Setup}
 
-Go back to the \code{$HOME/embedded-linux-labs/buildroot} directory.
+Go to the \code{$HOME/embedded-linux-labs/debugging} directory.
+Create an \code{nfsroot} directory.
 
 \section{Debugging setup}
 
-Boot your ARM board over NFS on the filesystem produced in the {\em
-  Using a build system, example with Buildroot} lab, with the same kernel.
+Reuse the Buildroot 2016.02 sources:
+\begin{verbatim}
+cp -a $HOME/embedded-linux-labs/buildroot/buildroot-2016.02 .
+\end{verbatim}
+Instead of using the toolchain we compiled, we are going to use an
+external toolchain from Linaro. Indeed gdb is buggy when built with
+the toolchain we created: it uses a too old version of uClibc.
+
+From the directory
+\code{$HOME/embedded-linux-labs/debugging/buildroot-2016.02},
+configure buildroot with the following modification:
+
+\begin{itemize}
+\item In \code{Toolchain}:
+   \begin{itemize}
+   \item \code{Toolchain type}: \code{External toolchain}
+   \item \code{Toolchain}: \code{Linaro ARM 2015.11}
+   \item \code{Toolchain origin}: \code{Toolchain to be downloaded and installed}
+   \end{itemize}
+\end{itemize}
+
+Now, build your root filesystem.
+
+Go back to the \code{$HOME/embedded-linux-labs/debugging} directory
+and extract the \code{buildroot-2016.02/output/images/rootfs.tar}
+archive in the \code{nfsroot} directory.
+
+Update the \code{/etc/export} file and restart the
+\code{nfs-kernel-server}.
+
+Boot your ARM board over NFS on the filesystem produced with the same
+kernel.
 
 \section{Setting up gdbserver, strace and ltrace}
 
 \code{gdbserver}, \code{strace} and \code{ltrace} have already been
 compiled for your target architecture as part of the cross-compiling
 toolchain. \code{gdbserver} has already been copied in your target
-filesystem thanks to the \code{Copy gdb server to the Target} Buildroot option.
+filesystem thanks to the \code{Copy gdb server to the Target}
+Buildroot option.
 
 So you just need to find the \code{strace} and \code{ltrace} in
 your toolchain installation directory and copy them into your
@@ -93,7 +125,7 @@ your workstation. This is done by setting the \code{gdb} \code{sysroot}
 variable (on one line):
 
 \begin{verbatim}
-(gdb) set sysroot /home/<user>/embedded-linux-labs/buildroot/
+(gdb) set sysroot /home/<user>/embedded-linux-labs/debugging/
 buildroot-XXXX.YY/output/staging
 \end{verbatim}
 
@@ -101,13 +133,6 @@ And tell \code{gdb} to connect to the remote system:
 \begin{verbatim}
 (gdb) target remote <target-ip-address>:2345
 \end{verbatim}
-
-If at this point you received timeout or packet error messages and if
-the gdbserver is stuck, then you will have to remove
-\code{/lib/libthread_db.so.1} from the target. This library allows
-multithread debugging but this library is currently buggy for our
-configuration. Fortunately we don't have to debug a multithread
-application.
 
 Then, use \code{gdb} as usual to set breakpoints, look at the source
 code, run the application step by step, etc. Graphical versions of
