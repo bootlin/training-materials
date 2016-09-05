@@ -79,3 +79,71 @@ MAINTAINER = "..."
     \item Toolchains can be built by the build system or external.
   \end{itemize}
 \end{frame}
+
+\begin{frame}
+  \frametitle{Sample files}
+  \begin{itemize}
+    \item A distro layer often contains \code{sample files}, used as
+      templates to build key configurations files.
+    \item Example of \code{sample files}:
+      \begin{itemize}
+        \item \code{bblayers.conf.sample}
+        \item \code{local.conf.sample}
+      \end{itemize}
+    \item In \code{Poky}, they are in \code{meta-poky/conf/}.
+    \item The \code{TEMPLATECONF} variable controls where to find the
+      samples.
+    \item It is set in \code{${OEROOT}/.templateconf}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Distribute the distribution}
+  \begin{itemize}
+    \item A good way to distribute a distribution (Poky, custom
+      layers, BSP, \code{.templateconf}\dots) is to use Google's
+      \code{repo}.
+    \item \code{Repo} is used in Android to distribute its source
+      code, which is split into many \code{git} repositories. It's a
+      wrapper to handle several \code{git} repositories at once.
+    \item The only requirement is to use \code{git}.
+    \item The \code{repo} configuration is stored in \code{manifest}
+      file, usually available in its own \code{git} repository.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Manifest example}
+  \begin{minted}[fontsize=\small]{xml}
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+  <remote name="yocto-project" fetch="git.yoctoproject.org" />
+  <remote name="private" fetch="git.example.net" />
+
+  <default revision="krogoth" remote="private" />
+
+  <project name="poky" remote="yocto-project" />
+  <project name="meta-ti" remote="yocto-project" />
+  <project name="meta-custom" />
+  <project name="meta-custom-bsp" />
+  <project path="meta-custom-distro" name="distro">
+    <copyfile src="templateconf" dest="poky/.templateconf" />
+  </project>
+</manifest>
+  \end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Retrieve the project using \code{repo}}
+  \begin{minted}{sh}
+$ mkdir my-project; cd my-project
+$ repo init -u https://git.example.net/manifest.git
+$ repo sync -j4
+  \end{minted}
+  \begin{itemize}
+    \item \code{repo init} uses the \code{default.xml} manifest in the
+    repository, unless specified otherwise.
+    \item You can see the full \code{repo} documentation at
+      \url{https://source.android.com/source/using-repo.html}.
+  \end{itemize}
+\end{frame}
