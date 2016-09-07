@@ -113,6 +113,62 @@ PACKAGECONFIG ??= "                                                       \
   \end{itemize}
 \end{frame}
 
+\subsection{Python tasks}
+
+\begin{frame}
+  \frametitle{Tasks in Python}
+  \begin{itemize}
+    \item Tasks can be written in Python when using the keyword
+      \code{python}.
+    \item The \code{d} variable is accessible, and represents the
+      BitBake datastore (where variables are stored).
+    \item Two modules are automatically imported:
+      \begin{itemize}
+        \item \code{bb}: to access BitBake's internal functions.
+        \item \code{os}: Python's operating system interfaces.
+      \end{itemize}
+    \item You can import other modules using the keyword
+      \code{import}.
+    \item Anonymous Python functions are executed during parsing.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Accessing the datastore with Python}
+  \begin{itemize}
+    \item The \code{d} variable is accessible within Python tasks.
+  \end{itemize}
+  \begin{description}
+    \item[\code{d.getVar("X", expand=False)}] Returns the value of
+      \code{X}.
+    \item[\code{d.setVar("X", "value")}] Set \code{X}.
+    \item[\code{d.appendVar("X", "value")}] Append \code{value} to
+      \code{X}.
+    \item[\code{d.prependVar("X", "value")}] Prepend \code{value} to
+      \code{X}.
+    \item[\code{d.expand(expression)}] Expend variables in
+      \code{expression}.
+  \end{description}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Python task example}
+  \begin{minted}{python}
+# Anonymous function
+python () {
+    if d.getVar("FOO", True) == "example":
+        d.setVar("BAR", "Hello, World.")
+}
+
+# Task
+python do_settime() {
+    import time
+
+    d.setVar("TIME", time.strftime('%Y%m%d', time.gmtime()))
+}
+  \end{minted}
+\end{frame}
+
 \subsection{Root filesystem creation}
 
 \begin{frame}[fragile]
