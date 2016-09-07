@@ -273,7 +273,6 @@ YOCTO_SLIDES    = \
 		yocto-image-lab \
 		yocto-sdk \
 		yocto-sdk-lab \
-		yocto-sdk-eclipse-lab \
 		yocto-licensing \
 		yocto-recipe-extra \
 		yocto-runtime-package-management \
