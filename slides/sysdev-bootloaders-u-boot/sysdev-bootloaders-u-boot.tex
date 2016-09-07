@@ -23,66 +23,53 @@
   \frametitle{U-Boot configuration}
   \begin{itemize}
   \item Get the source code from the website, and uncompress it
-  \item The \code{include/configs/} directory contains one
-    configuration file for each supported board
+  \item The \code{configs/} directory contains one configuration file
+    for each supported board
     \begin{itemize}
     \item It defines the CPU type, the peripherals and their configuration, the
       memory mapping, the U-Boot features that should be compiled in, etc.
-    \item It is a simple \code{.h} file that sets C pre-processor
-      constants. See the \code{README} file for the documentation of
-      these constants. This file can also be adjusted to add or remove
-      features from U-Boot (commands, etc.).
     \end{itemize}
-  \item Assuming that your board is already supported by U-Boot, there
-    should be one entry corresponding to your board in the
-    \code{boards.cfg} file.
-  \item Or just look in the \code{configs/} directory.
+  \item Note: U-Boot is migrating from board configuration defined in
+    header files (\code{include/configs/}) to {\em defconfig} like in
+    the Linux kernel (\code{configs/})
+    \begin{itemize}
+    \item Not all boards have been converted to the new configuration
+      system.
+    \item Older U-Boot releases provided by hardware vendors may not
+      yet use this new configuration system.
+    \end{itemize}
   \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{U-Boot configuration file excerpt}
-  \begin{columns}
-    \column{0.5\textwidth}
-    \scriptsize
+  \frametitle{U-Boot configuration file}
+\begin{block}{CHIP\_defconfig}
+{\tiny
 \begin{verbatim}
-/* CPU configuration */
-#define CONFIG_ARMV7 1
-#define CONFIG_OMAP 1
-#define CONFIG_OMAP34XX 1
-#define CONFIG_OMAP3430 1
-#define CONFIG_OMAP3_IGEP0020 1
-[...]
-/* Memory configuration */
-#define CONFIG_NR_DRAM_BANKS 2
-#define PHYS_SDRAM_1 OMAP34XX_SDRC_CS0
-#define PHYS_SDRAM_1_SIZE (32 <<  20)
-#define PHYS_SDRAM_2 OMAP34XX_SDRC_CS1
-[...]
-/* USB configuration */
-#define CONFIG_MUSB_UDC 1
-#define CONFIG_USB_OMAP3 1
-#define CONFIG_TWL4030_USB 1
-[...]
-\end{verbatim}
-    \column{0.5\textwidth}
-    \scriptsize
-\begin{verbatim}
-/* Available commands and features */
-#define CONFIG_CMD_CACHE
-#define CONFIG_CMD_EXT2
-#define CONFIG_CMD_FAT
-#define CONFIG_CMD_I2C
-#define CONFIG_CMD_MMC
-#define CONFIG_CMD_NAND
-#define CONFIG_CMD_NET
-#define CONFIG_CMD_DHCP
-#define CONFIG_CMD_PING
-#define CONFIG_CMD_NFS
-#define CONFIG_CMD_MTDPARTS
-[...]
-\end{verbatim}
-  \end{columns}
+CONFIG_ARM=y
+CONFIG_ARCH_SUNXI=y
+CONFIG_MACH_SUN5I=y
+CONFIG_DRAM_TIMINGS_DDR3_800E_1066G_1333J=y
+# CONFIG_MMC is not set
+CONFIG_USB0_VBUS_PIN="PB10"
+CONFIG_VIDEO_COMPOSITE=y
+CONFIG_DEFAULT_DEVICE_TREE="sun5i-r8-chip"
+CONFIG_SPL=y
+CONFIG_SYS_EXTRA_OPTIONS="CONS_INDEX=2"
+# CONFIG_CMD_IMLS is not set
+CONFIG_CMD_DFU=y
+CONFIG_CMD_USB_MASS_STORAGE=y
+CONFIG_AXP_ALDO3_VOLT=3300
+CONFIG_AXP_ALDO4_VOLT=3300
+CONFIG_USB_MUSB_GADGET=y
+CONFIG_USB_GADGET=y
+CONFIG_USB_GADGET_DOWNLOAD=y
+CONFIG_G_DNL_MANUFACTURER="Allwinner Technology"
+CONFIG_G_DNL_VENDOR_NUM=0x1f3a
+CONFIG_G_DNL_PRODUCT_NUM=0x1010
+CONFIG_USB_EHCI_HCD=y
+\end{verbatim}}
+\end{block}
 \end{frame}
 
 \begin{frame}
@@ -91,10 +78,10 @@
   \item U-Boot must be configured before being compiled
     \begin{itemize}
     \item \code{make BOARDNAME_defconfig}
-    \item Where \code{BOARDNAME} is the name of the board, as visible
-      in the \code{boards.cfg} file (first column).
-    \item New: you can now run \code{make menuconfig} to further
-      edit U-Boot's configuration!
+    \item Where \code{BOARDNAME} is the name of a configuration, as
+      visible in the \code{configs/} directory.
+    \item You can then run \code{make menuconfig} to further customize
+      U-Boot's configuration!
     \end{itemize}
   \item Make sure that the cross-compiler is available in \code{PATH}
   \item Compile U-Boot, by specifying the cross-compiler prefix.\\
@@ -166,8 +153,9 @@ Hit any key to stop autoboot:  0
 
 \begin{frame}[fragile]
   \frametitle{Information commands}
-\scriptsize
-  {\bf Flash information (NOR and SPI flash)}
+
+\begin{block}{Flash information (NOR and SPI flash)}
+{\tiny
 \begin{verbatim}
 U-Boot> flinfo
 DataFlash:AT45DB021
@@ -178,20 +166,28 @@ Logical address: 0xC0000000
 Area 0: C0000000 to C0001FFF (RO) Bootstrap
 Area 1: C0002000 to C0003FFF Environment
 Area 2: C0004000 to C0041FFF (RO) U-Boot
-\end{verbatim}
-  {\bf NAND flash information}
+\end{verbatim}}
+\end{block}
+
+\begin{block}{NAND flash information}
+{\tiny
 \begin{verbatim}
 U-Boot> nand info
 Device 0: nand0, sector size 128 KiB
   Page size      2048 b
   OOB size         64 b
   Erase size   131072 b
-\end{verbatim}
-  {\bf Version details}
+\end{verbatim}}
+\end{block}
+
+\begin{block}{Version details}
+{\tiny
 \begin{verbatim}
 U-Boot> version
 U-Boot 2016.05 (May 17 2016 - 12:41:15 -0400)
-\end{verbatim}
+\end{verbatim}}
+\end{block}
+
 \end{frame}
 
 \begin{frame}
@@ -237,10 +233,15 @@ U-Boot 2016.05 (May 17 2016 - 12:41:15 -0400)
 \end{frame}
 
 \begin{frame}
-  \frametitle{Environment variables commands (1)}
+  \frametitle{Environment variables: principle}
   \begin{itemize}
-  \item U-Boot can be configured through environment variables, which
-    affect the behavior of the different commands.
+  \item U-Boot can be configured through environment variables
+    \begin{itemize}
+    \item Some specific environment variables affect the behavior of
+      the different commands
+    \item Custom environment variables can be added, and used in
+      scripts
+    \end{itemize}
   \item Environment variables are loaded from flash to RAM at U-Boot
     startup, can be modified and saved back to flash for persistence
   \item There is a dedicated location in flash (or in MMC storage)
