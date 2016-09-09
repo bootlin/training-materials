@@ -19,7 +19,11 @@ the toolchain we created: it uses a too old version of uClibc.
 
 From the directory
 \code{$HOME/embedded-linux-labs/debugging/buildroot-2016.02},
-configure buildroot with the following modification:
+cleanup the binaries:
+\begin{verbatim}
+make clean
+\end{verbatim}
+then configure buildroot with the following modification:
 
 \begin{itemize}
 \item In \code{Toolchain}:
@@ -27,6 +31,15 @@ configure buildroot with the following modification:
    \item \code{Toolchain type}: \code{External toolchain}
    \item \code{Toolchain}: \code{Linaro ARM 2015.11}
    \item \code{Toolchain origin}: \code{Toolchain to be downloaded and installed}
+   \item Select \code{Copy gdb server to the Target}
+   \end{itemize}
+ \item \code{Target packages}
+   \begin{itemize}
+   \item \code{Debugging, profiling and benchmark}
+     \begin{itemize}
+     \item Select \code{ltrace}
+     \item Select \code{strace}
+     \end{itemize}
    \end{itemize}
 \end{itemize}
 
@@ -50,10 +63,6 @@ toolchain. \code{gdbserver} has already been copied in your target
 filesystem thanks to the \code{Copy gdb server to the Target}
 Buildroot option.
 
-So you just need to find the \code{strace} and \code{ltrace} in
-your toolchain installation directory and copy them into your
-root filesystem (typically in \code{/usr/bin}).
-
 \section{Using strace}
 
 Now, go to the \code{$HOME/embedded-linux-labs/debugging} directory.
@@ -64,10 +73,18 @@ accessing time, etc. When something goes wrong in your application,
 strace is an invaluable tool to see what it actually does, even when
 you don't have the source code.
 
+
+Update the PATH:
+\footnotesize
+\begin{verbatim}
+export PATH=$HOME/embedded-linux-labs/buildroot/buildroot-2016.02/output/host/usr/bin:$PATH
+\end{verbatim}
+\normalsize
+
 With your cross-compiling toolchain, compile the
-\code{data/vista-emulator.c} program, strip it with \code{arm-linux-strip},
-and copy the resulting binary to the \code{/root} directory of the root
-filesystem.
+\code{data/vista-emulator.c} program, strip it with
+\code{arm-linux-gnueabihf-strip}, and copy the resulting binary to the
+\code{/root} directory of the root filesystem.
 
 Back to target system, try to run the \code{/root/vista-emulator}
 program. It should hang indefinitely!
@@ -106,14 +123,14 @@ connection from \code{gdb}, and will control the execution of
 gdbserver localhost:2345 vista-emulator
 \end{verbatim}
 
-On the host side, run \code{arm-linux-gdb} (also found in your toolchain):
+On the host side, run \code{arm-linux-gnueabihf-gdb} (also found in your toolchain):
 \begin{verbatim}
-arm-linux-gdb vista-emulator
+arm-linux-gnueabihf-gdb vista-emulator
 \end{verbatim}
 
 You can also start the debugger through the \code{ddd} interface:
 \begin{verbatim}
-ddd --debugger arm-linux-gdb vista-emulator
+ddd --debugger arm-linux-gnueabihf-gdb vista-emulator
 \end{verbatim}
 
 \code{gdb} starts and loads the debugging information from the
