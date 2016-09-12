@@ -74,15 +74,17 @@ FILES_kdump = "${sbindir}/kdump"
   \begin{minted}{sh}
 PACKAGECONFIG ??= "wifi openvpn"
 
-PACKAGECONFIG[wifi] = "--enable-wifi,            \
-                       --disable-wifi,           \
+PACKAGECONFIG[wifi] = "--enable-wifi,                 \
+                       --disable-wifi,                \
+                       wpa-supplicant,                \
                        wpa-supplicant"
-PACKAGECONFIG[bluetooth] = "--enable-bluetooth,  \
-                            --disable-bluetooth, \
-                            bluez4"
-PACKAGECONFIG[openvpn] = "--enable-openvpn ,     \
-                          --disable-openvpn,     \
-                          ,                      \
+PACKAGECONFIG[bluez] = "--enable-bluetooth,           \
+                        --disable-bluetooth,          \
+                        bluez5,                       \
+                        bluez5"
+PACKAGECONFIG[openvpn] = "--enable-openvpn,           \
+                          --disable-openvpn,          \
+                          ,                           \
                           openvpn"
   \end{minted}
   \end{block}
@@ -109,6 +111,85 @@ PACKAGECONFIG ??= "                                                       \
       \end{minted}
       \end{block}
   \end{itemize}
+\end{frame}
+
+\subsection{Python tasks}
+
+\begin{frame}
+  \frametitle{Tasks in Python}
+  \begin{itemize}
+    \item Tasks can be written in Python when using the keyword
+      \code{python}.
+    \item The \code{d} variable is accessible, and represents the
+      BitBake datastore (where variables are stored).
+    \item Two modules are automatically imported:
+      \begin{itemize}
+        \item \code{bb}: to access BitBake's internal functions.
+        \item \code{os}: Python's operating system interfaces.
+      \end{itemize}
+    \item You can import other modules using the keyword
+      \code{import}.
+    \item Anonymous Python functions are executed during parsing.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Accessing the datastore with Python}
+  \begin{itemize}
+    \item The \code{d} variable is accessible within Python tasks.
+  \end{itemize}
+  \begin{description}
+    \item[\code{d.getVar("X", expand=False)}] Returns the value of
+      \code{X}.
+    \item[\code{d.setVar("X", "value")}] Set \code{X}.
+    \item[\code{d.appendVar("X", "value")}] Append \code{value} to
+      \code{X}.
+    \item[\code{d.prependVar("X", "value")}] Prepend \code{value} to
+      \code{X}.
+    \item[\code{d.expand(expression)}] Expend variables in
+      \code{expression}.
+  \end{description}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Python task example}
+  \begin{minted}{python}
+# Anonymous function
+python () {
+    if d.getVar("FOO", True) == "example":
+        d.setVar("BAR", "Hello, World.")
+}
+
+# Task
+python do_settime() {
+    import time
+
+    d.setVar("TIME", time.strftime('%Y%m%d', time.gmtime()))
+}
+  \end{minted}
+\end{frame}
+
+\subsection{Variable flags}
+
+\begin{frame}[fragile]
+  \frametitle{Variable flags}
+  \begin{itemize}
+    \item {\em Variable flags} are used to control task
+      functionalities.
+    \item A number of these tasks are already used by BitBake:
+      \begin{itemize}
+        \item \code{dirs}: directories that should be created before the
+          task runs. The last one becomes the work directory for the
+          task.
+        \item \code{noexec}: disable the execution of the task.
+        \item \code{nostamp}: do not create a {\em stamp} file when
+          running the task. The task will always be executed.
+      \end{itemize}
+  \end{itemize}
+  \begin{minted}{sh}
+do_settime[noexec] = "1"
+do_compile[nostamp] = "1"
+  \end{minted}
 \end{frame}
 
 \subsection{Root filesystem creation}

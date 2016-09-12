@@ -48,40 +48,6 @@ You can use \code{255.255.255.0} as \code{Netmask}, and leave the
 will have to type a valid IP address, otherwise you won't be apply to
 click on the \code{Apply} button).
 
-Now, configure the network on the board in U-Boot by setting the \code{ipaddr}
-and \code{serverip} environment variables:
-
-\begin{verbatim}
-setenv ipaddr 192.168.0.100
-setenv serverip 192.168.0.1
-\end{verbatim}
-
-The first time you use your board, you also need to send the MAC address
-in U-boot:
-
-\begin{verbatim}
-setenv ethaddr 12:34:56:ab:cd:ef
-\end{verbatim}
-
-In case the board was previously configured in a different way, we
-also turn off automatic booting after commands that can be used to
-copy a kernel to RAM:
-
-\begin{verbatim}
-setenv autostart no
-\end{verbatim}
-
-To make these settings permanent, save the environment:
-
-\begin{verbatim}
-saveenv
-\end{verbatim}
-
-Now switch your board off and on again\footnote{Power cycling your
-board is needed to make your \code{ethaddr} permanent, for obscure
-reasons. If you don't, U-boot will complain that \code{ethaddr} is not
-set.}.
-
 \section{Set up the NFS server}
 
 First install the NFS server on the training computer and create the root NFS
@@ -143,9 +109,19 @@ In our case, we can see the \code{linux-ti-staging} provides the
 \code{virtual/kernel} functionality:
 \small
 \begin{verbatim}
-NOTE: selecting linux-ti-staging to satisfy virtual/kernel due to PREFERRED_PROVIDER
+NOTE: selecting linux-ti-staging to satisfy virtual/kernel due to PREFERRED_PROVIDERS
 \end{verbatim}
 \normalsize
+
+% [Mylene] NOTE : With krogoth branch, the meta-yocto-bsp adds also the support
+% for the beaglebone. In this case, there is a concurency between meta-ti and
+% meta-yocto-bsp abour the PREFERRED_PROVIDERS for Linux Kernel.
+% In case the meta-ti is added after the meta-yocto-bsp in bblayers.conf, the
+% default PREFERRED_PROVIDER for the kernel will the "linux-yocto" as it will
+% take the first occurence of this variable. To have "linux-ti-staging", the
+% "meta-ti" layer must be added before "meta-yocto-bsp" in conf/bblayers.conf
+% This is currently the only solution found, we should investiguate how handle
+% it in a better way than just "order" layers !
 
 We can force Yocto to select another \code{kernel} by explicitly
 defining which one to use in our local configuration. Try switching

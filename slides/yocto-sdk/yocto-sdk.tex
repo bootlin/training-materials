@@ -1,6 +1,22 @@
-\section{Creating and using an SDK}
+\section{Application development workflow}
 
-\subsection{Introduction to the SDK}
+\begin{frame}
+  \frametitle{Recommended workflows}
+  \begin{itemize}
+    \item Different development workflows are possible given the
+      needs:
+      \begin{itemize}
+        \item Low-level application development (bootloader, kernel).
+        \item Application development.
+        \item Temporary modifications on an external project (bug
+          fixes, security fixes).
+      \end{itemize}
+    \item Three workflows exists for theses needs: the \code{SDK},
+      \code{devtool} and \code{quilt}.
+  \end{itemize}
+\end{frame}
+
+\subsection{The Yocto Project SDK}
 
 \begin{frame}
   \frametitle{Overview}
@@ -40,7 +56,7 @@
 \end{frame}
 
 \begin{frame}
-  \frametitle{The Poky SDK}
+  \frametitle{The Yocto Project SDK}
   \begin{itemize}
     \item The Poky reference system is used to generate images, by
       building many applications and doing a lot configuration work.
@@ -49,9 +65,9 @@
           application itself.
         \item We want to be able to develop, test and debug easily.
       \end{itemize}
-    \item The Poky SDK is an application development SDK, which can be
-      generated to provide a full environment compatible with the
-      target.
+    \item The Yocto Project SDK is an application development SDK,
+      which can be generated to provide a full environment compatible
+      with the target.
     \item It includes a toolchain, libraries headers and all the
       needed tools.
     \item This SDK can be installed on any computer and is
@@ -59,8 +75,6 @@
       to fully work.
   \end{itemize}
 \end{frame}
-
-\subsection{Generating an SDK}
 
 \begin{frame}
   \frametitle{Available SDKs}
@@ -106,7 +120,7 @@
       \begin{itemize}
         \item \code{build/tmp/deploy/sdk}
         \item Example:
-          \code{poky-eglibc-x86_64-meta-toolchain-i586-toolchain-1.5.3.sh}
+          \code{poky-glibc-x86_64-meta-toolchain-cortexa8hf-neon-toolchain-2.1.sh}
       \end{itemize}
     \item The SDK will be configured to be compatible with the
       specified \code{MACHINE}.
@@ -131,14 +145,12 @@
       \begin{itemize}
         \item \code{build/tmp/deploy/sdk}
         \item Example:
-          \code{poky-eglibc-x86_64-core-image-minimal-i586-toolchain-1.5.3.sh}
+          \code{poky-glibc-x86_64-core-image-minimal-cortexa8hf-neon-toolchain-2.1.sh}
       \end{itemize}
     \item The SDK will be configured to be compatible with the
       specified \code{MACHINE}.
   \end{itemize}
 \end{frame}
-
-\subsection{Use the SDK}
 
 \begin{frame}[fragile]
   \frametitle{SDK format}
@@ -151,15 +163,20 @@
       \begin{itemize}
         \item The script asks where to install the SDK. Defaults to
           \code{/opt/poky/<version>}
-        \item Example: \code{/opt/poky/1.5.3}
+        \item Example: \code{/opt/poky/2.1}
         \begin{block}{}
           \begin{minted}[fontsize=\scriptsize]{console}
-$ ./poky-eglibc-x86_64-meta-toolchain-i586-toolchain-1.5.3.sh
-Enter target directory for SDK (default: /opt/poky/1.5.3):
-You are about to install the SDK to "/opt/poky/1.5.3". Proceed[Y/n]?
-Extracting SDK...done
+$ ./poky-glibc-x86_64-meta-toolchain-cortexa8hf-neon-toolchain-2.1.sh
+Poky (Yocto Project Reference Distro) SDK installer version 2.1
+===============================================================
+Enter target directory for SDK (default: /opt/poky/2.1):
+You are about to install the SDK to "/opt/poky/2.1". Proceed[Y/n]?
+Extracting SDK.................done
 Setting it up...done
 SDK has been successfully set up and is ready to be used.
+Each time you wish to use the SDK in a new shell session, you need to source
+the environment setup script e.g.
+ $ . /opt/poky/2.1/environment-setup-cortexa8hf-neon-poky-linux-gnueabi
           \end{minted}
         \end{block}
       \end{itemize}
@@ -172,9 +189,9 @@ SDK has been successfully set up and is ready to be used.
     \item To use the SDK, a script is available to set up the
       environment:
       \begin{block}{}
-        \begin{minted}{console}
-$ cd /opt/poky/1.5.3
-$ source ./environment-setup-i586-poky-linux
+        \begin{minted}[fontsize=\scriptsize]{console}
+$ cd /opt/poky/2.1
+$ source ./environment-setup-cortexa8hf-neon-poky-linux-gnueabi
         \end{minted}
       \end{block}
     \item The \code{PATH} is updated to take into account the binaries
@@ -186,13 +203,13 @@ $ source ./environment-setup-i586-poky-linux
 \begin{frame}
   \frametitle{SDK installation}
   \begin{description}
-    \item[environment-setup-i586-poky-linux] Exports environment
+    \item[environment-setup-cortexa8hf-neon-poky-linux-gnueabi] Exports environment
       variables.
-    \item[site-config-i586-poky-linux] Variables used during the
+    \item[site-config-cortexa8hf-neon-poky-linux-gnueabi] Variables used during the
       toolchain creation
     \item[sysroots] SDK binaries, headers and libraries. Contains
       one directory for the host and one for the target.
-    \item[version-i586-poky-linux] Version information.
+    \item[version-cortexa8hf-neon-poky-linux-gnueabi] Version information.
   \end{description}
 \end{frame}
 
@@ -239,38 +256,106 @@ $ make
   \end{itemize}
 \end{frame}
 
-\subsection{Eclipse integration}
+\subsection{Devtool}
 
 \begin{frame}
-  \frametitle{The Yocto Project ADT}
+  \frametitle{Overview}
   \begin{itemize}
-    \item Eclipse can be used as a graphical interface to the Yocto
-      SDK.
+    \item \code{Devtool} is a set of utilities to ease the integration
+    and the development of OpenEmbedded recipes.
+    \item It can be used to:
       \begin{itemize}
-        \item To modify and develop recipes and applications.
-        \item To compile packages and build images.
-        \item To debug the system.
+        \item Generate a recipe for a given upstream package.
+        \item Modify an existing recipe and its package sources.
+        \item Upgrade an existing recipe to use a newer upstream
+          package.
       \end{itemize}
-    \item This is done thanks to an Eclipse Yocto plugin.
-    \item The SDK and the Eclipse plugin is called the Yocto
-      Application Development Toolkit.
+    \item \code{Devtool} adds a new layer, automatically managed, in
+      \code{$BUILDDIR/workspace/}.
+    \item It then adds or appends recipes to this layer so that the
+      recipes point to a local path for their sources. In
+      \code{$BUILDDIR/workspace/sources/}.
+      \begin{itemize}
+        \item Local sources are managed by \code{git}.
+        \item All modifications made locally should be commited.
+      \end{itemize}
   \end{itemize}
 \end{frame}
 
 \begin{frame}
-  \frametitle{Installation}
+  \frametitle{\code{devtool} usage 1/3}
+  There are three ways of creating a new \code{devtool} project:
   \begin{itemize}
-    \item The Eclipse Yocto plugin can be installed from a pre-built
-      version available at:
+    \item To create a new recipe:
+      \code{devtool add <recipe> <fetchuri>}
       \begin{itemize}
-        \item
-        \code{http://downloads.yoctoproject.org/releases/eclipse-plugin/1.6.1/juno}
+        \item Where \code{recipe} is the recipe's name.
+        \item \code{fetchuri} can be a local path or a remote {\em
+          uri}.
       \end{itemize}
-    \item Or it can be compiled from the official repository:
+    \item To modify an existing recipe: \code{devtool modify <recipe>}
+    \item To upgrade a given recipe:
+      \code{devtool upgrade -V <version> <recipe>}
       \begin{itemize}
-        \item \code{git://git.yoctoproject.org/eclipse-poky-juno}
+        \item Where \code{version} is the new version of the upstream
+          package.
       \end{itemize}
-    \item The full explanations to install and use the Eclipse Yocto
-      plugin are given in the labs.
   \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{\code{devtool} usage 2/3}
+  Once a \code{devtool} project is started, commands can be issued:
+  \begin{itemize}
+    \item \code{devtool edit <recipe>}: edit \code{recipe} in a text
+      editor (as defined by the \code{EDITOR} environment variable).
+    \item \code{devtool build <recipe>}: build the given
+      \code{recipe}.
+    \item \code{devtool build-image <image>}: build \code{image} with
+      the additional \code{devtool} recipes' packages.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{\code{devtool} usage 3/3}
+  \begin{itemize}
+    \item \code{devtool deploy-target <recipe> <target>}: upload the
+      \code{recipe}'s package on \code{target}, which is a live
+      running target with an SSH server running (\code{user@address}).
+    \item \code{devtool update-recipe <recipe>}: generate patches from
+      git commits made locally.
+    \item \code{devtool reset <recipe>}: remove \code{recipe} from the
+      control of \code{devtool}. Standard layers and remote sources
+      are used again as usual.
+  \end{itemize}
+\end{frame}
+
+\subsection{Quilt}
+
+\begin{frame}
+  \frametitle{Overview}
+  \begin{itemize}
+    \item Quilt is an utility to manage patches which can be used
+      without having a clean source tree.
+    \item It can be used to create patches for packages already
+      available in the build system.
+    \item Be careful when using this workflow: the modifications won't
+      persist across builds!
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Using Quilt}
+  \begin{enumerate}
+    \item Find the recipe working directory in
+      \code{$BUILDDIR/tmp/work/}.
+    \item Create a new \code{Quilt} patch:
+      \code{$ quilt new topic.patch}
+    \item Add files to this patch: \code{$ quilt add file0.c file1.c}
+    \item Make the modifications by editing the files.
+    \item Test the modifications:
+      \code{$ bitbake -c compile -f package}
+    \item Generate the patch file: \code{$ quilt refresh}
+    \item Move the generated patch into the recipe's directory.
+  \end{enumerate}
 \end{frame}

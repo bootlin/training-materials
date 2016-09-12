@@ -250,9 +250,8 @@ inherits autotools
           functionality, avoiding conflicts by renaming the binaries.
     \item Four variables are used to configure the class:
     \begin{description}
-      \item[ALTERNATIVE\_NAME] The name of the binary.
-      \item[ALTERNATIVE\_LINK] The path of the resulting binary.
-      \item[ALTERNATIVE\_PATH] The path of the real binary.
+      \item[ALTERNATIVE] The name of the binary.
+      \item[ALTERNATIVE\_LINK\_NAME] The path of the resulting binary.
       \item[ALTERNATIVE\_PRIORITY] The alternative priority.
     \end{description}
     \item The command with the highest priority will be used.
@@ -315,6 +314,54 @@ do_install() {
     \item Set the \code{LICENSE} to \code{CLOSED}.
     \item Use the \code{do_install} task to copy the binaries into the
       root file system.
+  \end{itemize}
+\end{frame}
+
+\subsection{BitBake file inclusions}
+
+\begin{frame}
+  \frametitle{Locate files in the build system}
+  \begin{itemize}
+    \item Metadata can be shared using included files.
+    \item \code{BitBake} uses the \code{BBPATH} to find the files to
+      be included. It also looks into the current directory.
+    \item Three keywords can be used to include files from recipes,
+      classes or other configuration files:
+      \begin{itemize}
+        \item \code{inherit}
+        \item \code{include}
+        \item \code{require}
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{The \code{inherit} keyword}
+  \begin{itemize}
+    \item \code{inherit} can be used in recipes or classes, to inherit
+      the functionalities of a class.
+    \item To inherit the functionalities of the \code{kernel} class,
+      use: \code{inherit kernel}
+    \item \code{inherit} looks for files ending in \code{.bbclass}, in
+      \code{classes} directories found in \code{BBPATH}.
+    \item It is possible to include a class conditionally using a
+      variable: \code{inherit ${FOO}}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{The \code{include} and \code{require} keywords}
+  \begin{itemize}
+    \item \code{include} and \code{require} can be used in all files,
+      to insert the content of another file at that location.
+    \item If the path specified on the \code{include} (or
+      \code{require}) path is relative, BitBake will insert the first
+      file found in \code{BBPATH}.
+    \item \code{include} does not produce an error when a file cannot
+      be found, whereas \code{require} raises a parsing error.
+    \item To include a local file: \code{include ninvaders.inc}
+    \item To include a file from another location (which could be
+      in another layer): \code{include path/to/file.inc}
   \end{itemize}
 \end{frame}
 
