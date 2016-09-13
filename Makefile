@@ -717,7 +717,7 @@ ALL_TRAININGS = \
 	buildroot \
 	kernel \
 	sysdev \
-	sysdev_4d \
+	sysdev-4d \
 	yocto
 
 all: $(foreach p,$(ALL_TRAININGS),full-$(p)-slides.pdf full-$(p)-labs.pdf $(p)-agenda.pdf)
