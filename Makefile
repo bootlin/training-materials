@@ -127,6 +127,54 @@ SYSDEV_SLIDES = \
 		sysdev-references \
 		last-slides
 
+SYSDEV_4D_SLIDES = \
+		first-slides \
+		about-us \
+		course-information-title \
+		xplained-board \
+		sysdev-shopping-list \
+		course-information \
+		sysdev-intro \
+		sysdev-dev-environment \
+		setup-lab \
+		sysdev-toolchains-title \
+		sysdev-toolchains-definition \
+		sysdev-toolchains-c-libraries-title \
+		c-libraries \
+		sysdev-toolchains-options \
+		sysdev-toolchains-obtaining \
+		sysdev-toolchains-lab \
+		sysdev-bootloaders-title \
+		sysdev-bootloaders-sequence \
+		sysdev-bootloaders-u-boot \
+		sysdev-bootloaders-lab \
+		sysdev-linux-intro-title \
+		sysdev-linux-intro-features \
+		sysdev-linux-intro-versioning \
+		sysdev-linux-intro-sources \
+		sysdev-linux-tarballs-and-patches \
+		sysdev-linux-intro-lab-sources \
+		sysdev-linux-intro-configuration \
+		sysdev-linux-intro-compilation \
+		sysdev-linux-intro-cross-compilation \
+		sysdev-linux-intro-lab-cross-compilation \
+		sysdev-linux-intro-modules \
+		sysdev-root-filesystem-title \
+		sysdev-root-filesystem-principles \
+		initramfs \
+		sysdev-root-filesystem-contents \
+		sysdev-root-filesystem-device-files \
+		sysdev-device-files \
+		sysdev-root-filesystem-virtual-fs \
+		sysdev-root-filesystem-minimal \
+		boot-sequence-initramfs \
+		sysdev-busybox \
+		sysdev-block-filesystems \
+		sysdev-embedded-linux \
+		sysdev-application-development \
+		sysdev-references \
+		last-slides
+
 ANDROID_SLIDES = \
 		first-slides \
 		about-us \
@@ -331,6 +379,18 @@ SYSDEV_LABS   = setup \
 		sysdev-application-development \
 		sysdev-application-debugging \
 		sysdev-real-time \
+
+SYSDEV_4D_LABS = setup \
+		sysdev-toolchain \
+		sysdev-u-boot \
+		sysdev-kernel-fetch-and-patch \
+		sysdev-kernel-cross-compiling \
+		sysdev-tinysystem \
+		sysdev-block-filesystems \
+		sysdev-thirdparty \
+		sysdev-buildroot \
+		sysdev-application-development \
+		sysdev-application-debugging \
 
 KERNEL_LABS   = setup \
 		kernel-sources-download \
@@ -658,6 +718,7 @@ ALL_TRAININGS = \
 	buildroot \
 	kernel \
 	sysdev \
+	sysdev_4d \
 	yocto
 
 all: $(foreach p,$(ALL_TRAININGS),full-$(p)-slides.pdf full-$(p)-labs.pdf $(p)-agenda.pdf)
