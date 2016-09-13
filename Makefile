@@ -519,10 +519,10 @@ ifdef SLIDES
 # Compute the set of chapters to build depending on the name of the
 # PDF file that was requested.
 ifeq ($(firstword $(subst -, , $(SLIDES))),full)
-SLIDES_TRAINING      = $(lastword $(subst -, , $(SLIDES)))
+SLIDES_TRAINING      = $(strip $(subst -slides, , $(subst full-, , $(SLIDES))))
 SLIDES_COMMON_BEFORE = common/slide-header.tex \
 		       common/$(SLIDES_TRAINING)-title.tex
-SLIDES_CHAPTERS      = $($(call UPPERCASE, $(SLIDES_TRAINING))_SLIDES)
+SLIDES_CHAPTERS      = $($(call UPPERCASE, $($(subst  -,_, $(SLIDES_TRAINING))))_SLIDES)
 SLIDES_COMMON_AFTER  = common/slide-footer.tex
 else
 SLIDES_TRAINING      = $(firstword $(subst -, ,  $(SLIDES)))
@@ -541,7 +541,6 @@ SLIDES_COMMON_AFTER  = common/slide-footer.tex
 endif
 
 TRAINING = $(SLIDES_TRAINING)
-
 ifeq ($(SLIDES_CHAPTERS),)
 $(error "No chapter to build, maybe you're building a single chapter whose name doesn't start with a training session name")
 endif
@@ -587,10 +586,10 @@ endif
 
 ifdef LABS
 ifeq ($(firstword $(subst -, , $(LABS))),full)
-LABS_TRAINING      = $(lastword $(subst -, , $(LABS)))
+LABS_TRAINING      = $(strip $(subst -labs, , $(subst full-, , $(LABS))))
 LABS_HEADER        = common/labs-header.tex
 LABS_VARSFILE      = common/$(LABS_TRAINING)-labs-vars.tex
-LABS_CHAPTERS      = $($(call UPPERCASE, $(LABS_TRAINING))_LABS)
+LABS_CHAPTERS      = $($(call UPPERCASE, $($(subst  -,_, $(LABS_TRAINING))))_LABS)
 LABS_FOOTER        = common/labs-footer.tex
 else
 LABS_TRAINING      = $(firstword $(subst -, , $(LABS)))
