@@ -16,6 +16,7 @@ dd if=/dev/zero of=$1 bs=1M count=16
 if [ "$2" == "--compatibility" ]; then
   sfdisk --in-order --L --unit M $1 <<EOF
 1,48,0xE,*
+,,,-
 EOF
 else
   sfdisk $1 <<EOF
