@@ -37,9 +37,8 @@ depending on how the system sees the media card device.
 Now type the below command to partition the micro-SD card
 (we assume that the card is seen as '/dev/mmcblk0'):
 
-sudo sfdisk --in-order --Linux --unit M /dev/mmcblk0 << EOF
-1,48,0xE,*
-,,,-
+sudo sfdisk /dev/mmcblk0 << EOF
+1,,0xE,*
 EOF
 
 Remove the SD card and insert it again (to make sure new
@@ -47,7 +46,7 @@ partitions are detected properly)
 
 Now, format the first partition in FAT format:
 
-sudo mkfs.vfat -F 16 /dev/mmcblk0p1 -n boot
+sudo mkfs.vfat -F 32 /dev/mmcblk0p1 -n boot
 
 Remove the card and insert it again. It should automatically be mounted
 on '/media/$USER/boot'.
