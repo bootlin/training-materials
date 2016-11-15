@@ -522,7 +522,7 @@ ifeq ($(firstword $(subst -, , $(SLIDES))),full)
 SLIDES_TRAINING      = $(strip $(subst -slides, , $(subst full-, , $(SLIDES))))
 SLIDES_COMMON_BEFORE = common/slide-header.tex \
 		       common/$(SLIDES_TRAINING)-title.tex
-SLIDES_CHAPTERS      = $($(call UPPERCASE, $($(subst  -,_, $(SLIDES_TRAINING))))_SLIDES)
+SLIDES_CHAPTERS      = $($(call UPPERCASE, $(subst  -,_, $(SLIDES_TRAINING)))_SLIDES)
 SLIDES_COMMON_AFTER  = common/slide-footer.tex
 else
 SLIDES_TRAINING      = $(firstword $(subst -, ,  $(SLIDES)))
@@ -589,7 +589,7 @@ ifeq ($(firstword $(subst -, , $(LABS))),full)
 LABS_TRAINING      = $(strip $(subst -labs, , $(subst full-, , $(LABS))))
 LABS_HEADER        = common/labs-header.tex
 LABS_VARSFILE      = common/$(LABS_TRAINING)-labs-vars.tex
-LABS_CHAPTERS      = $($(call UPPERCASE, $($(subst  -,_, $(LABS_TRAINING))))_LABS)
+LABS_CHAPTERS      = $($(call UPPERCASE, $(subst  -,_, $(LABS_TRAINING)))_LABS)
 LABS_FOOTER        = common/labs-footer.tex
 else
 LABS_TRAINING      = $(firstword $(subst -, , $(LABS)))
