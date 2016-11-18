@@ -94,8 +94,9 @@ from the \code{miscdevice} structure itself, accessible through the
 \code{private_data} field of the open file structure (\code{file}).
 
 At the time we registered our {\em misc} device, we didn't keep any
-pointer to the \code{feserial_dev} structure. However, the
-\code{miscdevice} structure is accessible, and being a member of the
+pointer to the \code{feserial_dev} structure. However, as the
+\code{miscdevice} structure is accessible through
+\code{file->private_data}, and is a member of the
 \code{feserial_dev} structure, we can use a magic macro to compute
 the address of the parent structure:
 
@@ -106,6 +107,10 @@ struct feserial_dev *dev =
 
 See \url{http://linuxwell.com/2012/11/10/magical-container_of-macro/}
 for interesting implementation details about this macro.
+
+This wouldn't have been possible if the \code{miscdevice} structure
+was allocated separately and was just referred to by a pointer in
+\code{feserial_dev}, instead of being a member of it.
 
 Now, add code that copies (in a secure way) each character from the
 user space buffer to the UART device.
