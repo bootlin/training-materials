@@ -16,13 +16,13 @@ static int __init hello_init(void)
 {
     int i;
     for (i = 0; i < howmany; i++)
-    	pr_debug("(%d) Hello, %s\n", i, whom);
+	pr_alert("(%d) Hello, %s\n", i, whom);
     return 0;
 }
 
 static void __exit hello_exit(void)
 {
-    pr_debug("Goodbye, cruel %s\n", whom);
+    pr_alert("Goodbye, cruel %s\n", whom);
 }
 
 module_init(hello_init);
