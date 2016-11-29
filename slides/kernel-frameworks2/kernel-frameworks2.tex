@@ -492,6 +492,45 @@ static int serial_imx_remove(struct platform_device *pdev)
   \end{columns}
 \end{frame}
 
+\begin{frame}
+  \frametitle{Device Model: per device allocations (1)}
+  \begin{itemize}
+  \item With the Device Model, structures need to be allocated
+  {\bf for each new device}.
+  \item Such structures then need to be released:
+  \begin{itemize}
+	\item When the module is removed,
+	\item When devices are removed (on a bus
+ 	      which can detect this),
+	\item In the \code{probe()} routine, before
+	      returning after a failure.
+  \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Device Model: per device allocations (2)}
+  \code{devm_()} functions have been introduced
+  to help managing such allocations.
+  \begin{itemize}
+  \item They now exist in many parts of the kernel
+  \item Allocations are now attached to a \code{struct device}
+	structure.
+  \item Example: call to \kfunc{devm_kzalloc} in the
+	previous example.
+  \item Before each device is destroyed, the resources attached to it
+        are automatically freed. This is not limited to memory
+	allocation. This can also apply to registration of interrupts,
+        for example.
+  \item This greatly simplifies \code{remove()} functions and
+	error management code.
+  \item We will see many \code{devm_} functions in the subsystems
+	that we will study.
+  \end{itemize}
+  See \kerneldoc{driver-model/devres.txt} for implementation details
+  and available functions.
+\end{frame}
+
 \begin{frame}[fragile]
   \frametitle{Link Between Structures 3/4}
   \begin{columns}

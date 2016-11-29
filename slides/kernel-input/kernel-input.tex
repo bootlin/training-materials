@@ -57,11 +57,10 @@
 \end{frame}
 
 \begin{frame}[fragile]{Input subsystem API 1/3}
-  \begin{itemize}
-  \item An {\em input device} is described by a very long
-    \kstruct{input_dev} structure, an excerpt is:
-    \begin{block}{}
-    \begin{minted}[fontsize=\tiny]{c}
+  An {\em input device} is described by a very long
+  \kstruct{input_dev} structure, an excerpt is:
+  \begin{block}{}
+  \begin{minted}[fontsize=\tiny]{c}
 struct input_dev {
     const char *name;
     [...]
@@ -79,11 +78,9 @@ struct input_dev {
 };
 \end{minted}
 \end{block}
-\item Before being used this struct must be allocated and initialized:
-  \code{struct input_dev *input_allocate_device(void);}
-\item After unregistering \kstruct{input_dev}, it must be freed:
-  \code{void input_free_device(struct input_dev *dev);}
-  \end{itemize}
+  Before being used it, this structure must be allocated and
+  initialized, typically with:
+  \code{struct input_dev *devm_input_allocate_device(struct device *dev);}
 \end{frame}
 
 \begin{frame}[fragile]{Input subsystem API 2/3}
@@ -157,12 +154,8 @@ struct input_polled_dev {
 
 \begin{frame}[fragile]{Polled input subsystem API}
   \begin{itemize}
-  \item Allocating/freeing the \kstruct{input_polled_dev} structure is
-    done using
-    \begin{itemize}
-    \item \kfunc{input_allocate_polled_device}
-    \item \kfunc{input_free_polled_device}
-    \end{itemize}
+  \item Allocating the \kstruct{input_polled_dev} structure is
+    done using \kfunc{devm_input_allocate_polled_device}
   \item Among the handlers of the \kstruct{input_polled_dev} only the
     \code{poll()} method is mandatory, this function polls the device
     and posts input events.
