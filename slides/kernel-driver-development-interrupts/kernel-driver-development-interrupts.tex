@@ -1,4 +1,4 @@
-\subsection{Interrupt Management}
+/\subsection{Interrupt Management}
 
 \begin{frame}[fragile]
   \frametitle{Registering an interrupt handler 1/2}
@@ -20,10 +20,11 @@ int devm_request_irq(struct device *dev,
         interrupt number.
   \item \code{handler} is a pointer to the IRQ handler
   \item \code{irq_flags} are option masks (see next slide)
-  \item \code{devname} is the registered name
-  \item {\small \code{dev_id} is a pointer to some data. It cannot be NULL
-        as it is used as an identifier for \kfunc{free_irq} when using
-      shared IRQs.}
+  \item \code{devname} is the registered name (for
+	\code{/proc/interrupts})
+  \item {\small \code{dev_id} is a pointer to per-device data.
+        It cannot be NULL as it is used as an identifier for
+	\kfunc{devm_free_irq} when using shared IRQs.}
   \end{itemize}
 \end{frame}
 
@@ -48,7 +49,10 @@ void devm_free_irq(struct device *dev,
      \item \ksym{IRQF_SHARED}
      \begin{itemize}
         \item The interrupt channel can be shared by several
-        devices. Requires a hardware status register telling whether
+        devices.
+	\item When an interrupt is received, all the interrupt
+	handlers registered on the same interrupt line are called.
+	\item This requires a hardware status register telling whether
         an IRQ was raised or not.
      \end{itemize}
   \end{itemize}
@@ -71,32 +75,40 @@ void devm_free_irq(struct device *dev,
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{{\tt /proc/interrupts} on a Panda board}
+  \frametitle{/proc/interrupts on Raspberry Pi 2 (ARM, Linux 4.1)}
 \begin{block}{}
-  \footnotesize
+  \tiny
 \begin{verbatim}
-        CPU0    CPU1
-39:     4       0       GIC     TWL6030-PIH
-41:     0       0       GIC     l3-dbg-irq
-42:     0       0       GIC     l3-app-irq
-43:     0       0       GIC     prcm
-44:     20294   0       GIC     DMA
-52:     0       0       GIC     gpmc
-...
-IPI0:   0       0       Timer broadcast interrupts
-IPI1:   23095   25663   Rescheduling interrupts
-IPI2:   0       0       Function call interrupts
-IPI3:   231     173     Single function call interrupts
-IPI4:   0       0       CPU stop interrupts
-LOC:    196407  136995  Local timer interrupts
-Err:    0
+           CPU0       CPU1       CPU2       CPU3
+ 16:          0          0          0          0   ARMCTRL  16 Edge bcm2708_fb dma
+ 32: 1660065960          0          0          0   ARMCTRL  32 Edge dwc_otg, dwc_otg_pcd, dwc_otg_hcd:usb1
+ 49:          0          0          0          0   ARMCTRL  49 Edge 3f200000.gpio:bank0
+ 50:          0          0          0          0   ARMCTRL  50 Edge 3f200000.gpio:bank1
+ 65:      77339          0          0          0   ARMCTRL  65 Edge 3f00b880.mailbox
+ 66:          2          0          0          0   ARMCTRL  66 Edge VCHIQ doorbell
+ 75:          1          0          0          0   ARMCTRL  75 Edge
+ 77:     825261          0          0          0   ARMCTRL  77 Edge DMA IRQ
+ 82:     819926          0          0          0   ARMCTRL  82 Edge mmc0
+ 83:          6          0          0          0   ARMCTRL  83 Edge uart-pl011
+ 96:          0          0          0          0   ARMCTRL  96 Edge arch_timer
+ 97:   45040705   26523650   16191929   47339273   ARMCTRL  97 Edge arch_timer
+FIQ:              usb_fiq
+IPI0:          0          0          0          0  CPU wakeup interrupts
+IPI1:          0          0          0          0  Timer broadcast interrupts
+IPI2:   34944338   35870609   37410637   12127900  Rescheduling interrupts
+IPI3:          9         10          9         11  Function call interrupts
+IPI4:          3          3          1          1  Single function call interrupts
+IPI5:          0          0          0          0  CPU stop interrupts
+IPI6:          0          0          0          0  IRQ work interrupts
+IPI7:          0          0          0          0  completion interrupts
+Err:          0
+
 \end{verbatim}
 \end{block}
   \footnotesize
   Note: interrupt numbers shown on the left-most column are virtual
   numbers when the Device Tree is used. The real physical interrupt
-  numbers are either shown as an additional column, or can be seen in
-  \code{/sys/kernel/debug/irq_domain_mapping}.
+  numbers can be seen in \code{/sys/kernel/debug/irq_domain_mapping}.
 \end{frame}
 
 \begin{frame}[fragile]
@@ -105,14 +117,14 @@ Err:    0
   \item \mint{c}+irqreturn_t foo_interrupt(int irq, void *dev_id)+
     \begin{itemize}
     \item \code{irq}, the IRQ number
-    \item \code{dev_id}, the opaque pointer that was passed to
-      \kfunc{devm_request_irq}
+    \item \code{dev_id}, the per-device pointer that was
+      passed to \kfunc{devm_request_irq}
     \end{itemize}
   \item Return value
     \begin{itemize}
     \item \ksym{IRQ_HANDLED}: recognized and handled interrupt
     \item \ksym{IRQ_NONE}: not on a device managed by the
-      module. Useful to share interrupt channels and/or report
+      device. Useful to share interrupt channels and/or report
       spurious interrupts to the kernel.
     \end{itemize}
   \end{itemize}
@@ -125,9 +137,9 @@ Err:    0
     interrupts will be generated, or the interrupt will keep firing
     over and over again)
   \item Read/write data from/to the device
-  \item Wake up any waiting process waiting for the completion of an
-    operation, typically using wait queues
-    \code{wake_up_interruptible(&module_queue);}
+  \item Wake up any process waiting for such data, on a per-device
+    wait queue:\\
+    \code{wake_up_interruptible(&device_queue);}
 \end{itemize}
 \end{frame}
 
@@ -158,23 +170,21 @@ int devm_request_threaded_irq(
 
 \begin{frame}
   \frametitle{Top half and bottom half processing}
+  Splitting the execution of interrupt handlers in 2 parts
   \begin{itemize}
-  \item Splitting the execution of interrupt handlers in 2 parts
+  \item Top half
     \begin{itemize}
-    \item Top half
-      \begin{itemize}
-      \item This is the real interrupt handler, which should complete
-        as quickly as possible since all interrupts are disabled. If
-        possible, take the data out of the device and schedule a
-        bottom half to handle it.
-      \end{itemize}
-    \item Bottom half
-      \begin{itemize}
-      \item Is the general Linux name for various mechanisms which
-        allow to postpone the handling of interrupt-related
-        work. Implemented in Linux as softirqs, tasklets or
-        workqueues.
-      \end{itemize}
+    \item This is the real interrupt handler, which should complete
+      as quickly as possible since all interrupts are disabled. If
+      possible, take the data out of the device and schedule a
+      bottom half to handle it.
+    \end{itemize}
+  \item Bottom half
+    \begin{itemize}
+    \item Is the general Linux name for various mechanisms which
+      allow to postpone the handling of interrupt-related
+      work. Implemented in Linux as softirqs, tasklets or
+      workqueues.
     \end{itemize}
   \end{itemize}
 \end{frame}
@@ -214,13 +224,10 @@ int devm_request_threaded_irq(
   \item Tasklets are executed within the \code{HI} and \code{TASKLET}
     softirqs. They are executed with all interrupts enabled, but a
     given tasklet is guaranteed to execute on a single CPU at a time.
-  \item A tasklet can be declared statically with the
-    \kfunc{DECLARE_TASKLET} macro or dynamically with the
-    \kfunc{tasklet_init} function. A tasklet is simply implemented as
-    a function. Tasklets can easily be used by individual device
-    drivers, as opposed to softirqs.
-  \item The interrupt handler can schedule the execution of a tasklet
-    with
+  \item Tasklets are created with \kfunc{tasklet_init} function.
+    A tasklet is simply implemented as a function. Tasklets can easily
+    be used by individual device drivers, as opposed to softirqs.
+  \item The interrupt handler can schedule tasklet execution with:
     \begin{itemize}
     \item \kfunc{tasklet_schedule} to get it executed in the
       \code{TASKLET} softirq
@@ -290,25 +297,22 @@ somewhere function(...) {
   \begin{itemize}
   \item Device driver
     \begin{itemize}
-    \item When the device file is first opened, register an interrupt
-      handler for the device's interrupt channel.
+    \item In the \code{probe()} function, for each device,
+      use \kfunc{devm_request_irq} to register an interrupt handler
+      for the device's interrupt channel.
     \end{itemize}
   \item Interrupt handler
     \begin{itemize}
     \item Called when an interrupt is raised.
     \item Acknowledge the interrupt
-    \item If needed, schedule a tasklet taking care of handling
-      data. Otherwise, wake up processes waiting for the data.
-    \end{itemize}
-  \item Tasklet
-    \begin{itemize}
-    \item Process the data
-    \item Wake up processes waiting for the data
+    \item If needed, schedule a per-device tasklet taking care of handling
+      data.
+    \item Wake up processes waiting for the data on a per-device queue
     \end{itemize}
   \item Device driver
     \begin{itemize}
-    \item When the device is no longer opened by any process,
-      unregister the interrupt handler.
+    \item In the \code{remove()} function, for each device, the
+      interrupt handler is automatically unregistered.
     \end{itemize}
   \end{itemize}
 \end{frame}
