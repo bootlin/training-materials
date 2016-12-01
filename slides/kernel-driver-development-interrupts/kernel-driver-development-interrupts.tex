@@ -2,7 +2,7 @@
 
 \begin{frame}[fragile]
   \frametitle{Registering an interrupt handler 1/2}
-  The "managed" API is recommended:
+  When handling multiple devices, the {\em managed} API is preferred:
   \begin{minted}[fontsize=\small]{c}
 int devm_request_irq(struct device *dev,
                      unsigned int irq,
@@ -12,7 +12,6 @@ int devm_request_irq(struct device *dev,
                      void *dev_id);
   \end{minted}
   \begin{itemize}
-  \item Register an interrupt handler.
   \item \code{device} for automatic freeing at device or module
         release time.
   \item \code{irq} is the requested IRQ channel. For platform
@@ -22,9 +21,10 @@ int devm_request_irq(struct device *dev,
   \item \code{irq_flags} are option masks (see next slide)
   \item \code{devname} is the registered name (for
 	\code{/proc/interrupts})
-  \item {\small \code{dev_id} is a pointer to per-device data.
-        It cannot be NULL as it is used as an identifier for
-	\kfunc{devm_free_irq} when using shared IRQs.}
+  \item \code{dev_id} is an opaque pointer. It can typically
+        be used to pass a pointer to a per-device data structure.
+        It cannot be \code{NULL} as it is used as an identifier for
+        freeing interrupts on a shared line.
   \end{itemize}
 \end{frame}
 
@@ -123,9 +123,9 @@ Err:          0
   \item Return value
     \begin{itemize}
     \item \ksym{IRQ_HANDLED}: recognized and handled interrupt
-    \item \ksym{IRQ_NONE}: not on a device managed by the
-      device. Useful to share interrupt channels and/or report
-      spurious interrupts to the kernel.
+    \item \ksym{IRQ_NONE}: the interrupt was not triggered by a device
+     managed by this driver. Useful to share interrupt channels and/or
+     report spurious interrupts to the kernel.
     \end{itemize}
   \end{itemize}
 \end{frame}
@@ -137,8 +137,8 @@ Err:          0
     interrupts will be generated, or the interrupt will keep firing
     over and over again)
   \item Read/write data from/to the device
-  \item Wake up any process waiting for such data, on a per-device
-    wait queue:\\
+  \item Wake up any process waiting for such data, typically on a
+    per-device wait queue:\\
     \code{wake_up_interruptible(&device_queue);}
 \end{itemize}
 \end{frame}
@@ -175,9 +175,9 @@ int devm_request_threaded_irq(
   \item Top half
     \begin{itemize}
     \item This is the real interrupt handler, which should complete
-      as quickly as possible since all interrupts are disabled. If
-      possible, take the data out of the device and schedule a
-      bottom half to handle it.
+      as quickly as possible since all interrupts are disabled.
+      It takes the data out of the device and if substantial
+      post-processing is needed, schedule a bottom half to handle it. 
     \end{itemize}
   \item Bottom half
     \begin{itemize}
@@ -224,8 +224,10 @@ int devm_request_threaded_irq(
   \item Tasklets are executed within the \code{HI} and \code{TASKLET}
     softirqs. They are executed with all interrupts enabled, but a
     given tasklet is guaranteed to execute on a single CPU at a time.
-  \item Tasklets are created with \kfunc{tasklet_init} function.
-    A tasklet is simply implemented as a function. Tasklets can easily
+  \item Tasklets are typically created with the \kfunc{tasklet_init}
+    function, when your driver manages multiple devices, otherwise
+    statically with \kfunc{TASKLET_INIT}. A tasklet is simply
+    implemented as a function. Tasklets can easily
     be used by individual device drivers, as opposed to softirqs.
   \item The interrupt handler can schedule tasklet execution with:
     \begin{itemize}
