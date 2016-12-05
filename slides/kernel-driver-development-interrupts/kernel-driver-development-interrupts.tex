@@ -2,7 +2,7 @@
 
 \begin{frame}[fragile]
   \frametitle{Registering an interrupt handler 1/2}
-  When handling multiple devices, the {\em managed} API is preferred:
+  The {\em managed} API is recommended:
   \begin{minted}[fontsize=\small]{c}
 int devm_request_irq(struct device *dev,
                      unsigned int irq,
@@ -123,9 +123,9 @@ Err:          0
   \item Return value
     \begin{itemize}
     \item \ksym{IRQ_HANDLED}: recognized and handled interrupt
-    \item \ksym{IRQ_NONE}: the interrupt was not triggered by a device
-     managed by this driver. Useful to share interrupt channels and/or
-     report spurious interrupts to the kernel.
+    \item \ksym{IRQ_NONE}: used by the kernel to detect spurious
+	interrupts, and disable the interrupt line if none of the
+	interrupt handlers has handled the interrupt.
     \end{itemize}
   \end{itemize}
 \end{frame}
@@ -226,7 +226,7 @@ int devm_request_threaded_irq(
     given tasklet is guaranteed to execute on a single CPU at a time.
   \item Tasklets are typically created with the \kfunc{tasklet_init}
     function, when your driver manages multiple devices, otherwise
-    statically with \kfunc{TASKLET_INIT}. A tasklet is simply
+    statically with \kfunc{DECLARE_TASKLET}. A tasklet is simply
     implemented as a function. Tasklets can easily
     be used by individual device drivers, as opposed to softirqs.
   \item The interrupt handler can schedule tasklet execution with:
