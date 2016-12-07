@@ -12,24 +12,29 @@
 \begin{frame}[fragile]
   \frametitle{How to sleep 1/3}
   \begin{itemize}
-  \item Must declare a wait queue
-  \item A wait queue will be used to store the list of threads waiting for an event
-    \begin{itemize}
-    \item Static queue declaration
+  \item Must declare a wait queue, which will be used to store the list of threads
+        waiting for an event
+  \item Dynamic queue declaration:
       \begin{itemize}
-      \item useful to declare as a global variable
+      \item Typically one queue per device managed by the driver
+      \item It's convenient to embed the wait queue inside a per-device data
+        structure.
+      \item Example from \kpath{drivers/net/ethernet/marvell/mvmdio.c}:
+\begin{minted}{c}
+struct orion_mdio_dev {
+        ...
+        wait_queue_head_t smi_busy_wait;
+};
+struct orion_mdio_dev *dev;
+...
+init_waitqueue_head(&dev->smi_busy_wait);
+\end{minted}
+    \end{itemize}
+    \item Static queue declaration:
+      \begin{itemize}
+      \item Using a global variable when a global resource is sufficient
       \item \mint{c}+DECLARE_WAIT_QUEUE_HEAD(module_queue);+
       \end{itemize}
-    \item Or dynamic queue declaration
-      \begin{itemize}
-      \item Useful to embed the wait queue inside another data
-        structure
-\begin{minted}{c}
-wait_queue_head_t queue;
-init_waitqueue_head(&queue);
-\end{minted}
-      \end{itemize}
-    \end{itemize}
   \end{itemize}
 \end{frame}
 
@@ -46,7 +51,7 @@ init_waitqueue_head(&queue);
   \item \mint{c}+int wait_event_killable(queue, condition);+
     \begin{itemize}
     \item Can be interrupted, but only by a \emph{fatal} signal
-      (\ksym{SIGKILL}). Returns \code{-}\ksym{ERESTARSYS} if interrupted.
+      (\ksym{SIGKILL}). Returns \code{-}\ksym{ERESTARTSYS} if interrupted.
     \end{itemize}
   \item \mint{c}+int wait_event_interruptible(queue, condition);+
     \begin{itemize}
