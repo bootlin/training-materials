@@ -68,77 +68,16 @@ situations properly.
 
 \section{Implement the remove() function}
 
-We now need to unregister and release the resources allocated
+In this function, we need to unregister and release the resources allocated
 and registered in the \code{probe()} routine.
 
-Releasing will be done automatically when the device structures
-are destroyed when the module is removed, thanks to the use
-of the \code{devm_} allocation functions,
-
-However, unregistration will not be trivial in the way we
-implemented the \code{probe()} routine.  As we have to support
-multiple devices, we chose not to use global variables, and as a
-consequence, we can't use such global variables to access the
-corresponding resources.
-
-This raises a very important aspect of the device model: the need to
-keep pointers between {\em physical} devices (devices as handled by the
-physical bus, I2C in our case) and {\em logical} devices (devices handled by subsystems,
-like the input subsystem in our case).
-
-This way, when the \code{remove()} routine is called (typically if the
-bus detects the removal of a device), we can find out which logical
-device to unregister. Conversely, when we have an event on the logical
-side (such as opening or closing an input device for the first time),
-we can find out which i2c slave this corresponds to, to do the specific
-things with the hardware.
-
-This need is typically implemented by creating a {\em private} data
-structure to manage our device and implement such pointers between
-the physical and logical worlds.
-
-Add the below definition to your code:
-
-\begin{verbatim}
-struct nunchuk_dev {
-        struct input_polled_dev *polled_input;
-        struct i2c_client *i2c_client;
-};
-\end{verbatim}
-
-Now, in your \code{probe()} routine, declare an instance of
-this structure:
-
-\begin{verbatim}
-struct nunchuk_dev *nunchuk;
-\end{verbatim}
-
-Then allocate one such instead for each new device:
-
-\sourcecode{labs/kernel-i2c-input-interface/private-data-alloc.c}
-
-Note that we haven't seen kernel memory allocator routines and flags
-yet.
-
-We haven't explained the \code{dev_*} logging routines yet either
-(they are basically used to tell which device a given log message is
-associated to).  For the moment, just use the above code. You will get
-all the details later.
-
-Now implement the pointers:
-
-\sourcecode{labs/kernel-i2c-input-interface/device-pointers.c}
-
-Make sure you add this code before registering the input device. You
-don't want to enable a device with incomplete information or when it is
-not completely yet (there could be race conditions).
-
-With all this in place, you now have everything you need to implement
-the \code{remove()} routine. Look at the I2C and input slides for
-examples, or directly find your examples in the Linux kernel code!
+Fortunately, in our case, there's nothing to do, as everything
+was allocated with \code{devm_} functions. Even the unregistration
+of the \code{input_polled_dev} structure is automated. 
 
 Recompile your module, and load it and remove it multiple times, to
-make sure that everything is properly registered and unregistered.
+make sure that everything is properly registered and automatically
+unregistered.
 
 \section{Add proper input device registration information}
 
@@ -166,6 +105,63 @@ at a regular interval.
 
 Create a \code{nunchuck_poll()} function with the right prototype (find
 it by looking at the definition of the \code{input_polled_dev} structure.
+
+In this function, you will have to read the nunchuk registers. However,
+as you can see, the prototype of the \code{poll()} routine doesn't
+carry any information about the \code{i2c_client} structure you will
+need to communicate with the device. That's normal as the input
+subsystem is generic, and can't be bound to any specific bus.
+
+This raises a very important aspect of the device model: the need to
+keep pointers between {\em physical} devices (devices as handled by the
+physical bus, I2C in our case) and {\em logical} devices (devices
+handled by subsystems, like the input subsystem in our case).
+
+This way, when the \code{remove()} routine is called, we can find out
+which logical device to unregister (though that's not necessary in our
+case as logical device unregistration is automatic). Conversely, when we
+have an event on the logical side (such as running the polling
+function), we can find out which i2c slave this corresponds to,
+to communicate with the hardware.
+
+This need is typically implemented by creating a {\em private} data
+structure to manage our device and implement such pointers between
+the physical and logical worlds.
+
+Add the below global definition to your code:
+
+\begin{verbatim}
+struct nunchuk_dev {
+        struct i2c_client *i2c_client;
+};
+\end{verbatim}
+
+Now, in your \code{probe()} routine, declare an instance of
+this structure:
+
+\begin{verbatim}
+struct nunchuk_dev *nunchuk;
+\end{verbatim}
+
+Then allocate one such instead for each new device:
+
+\sourcecode{labs/kernel-i2c-input-interface/private-data-alloc.c}
+
+Note that we haven't seen kernel memory allocator routines and flags
+yet.
+
+We haven't explained the \code{dev_*} logging routines yet either
+(they are basically used to tell which device a given log message is
+associated to).  For the moment, just use the above code. You will get
+all the details later.
+
+Now implement the pointers that we need:
+
+\sourcecode{labs/kernel-i2c-input-interface/device-pointers.c}
+
+Make sure you add this code before registering the input device. You
+don't want to enable a device with incomplete information or when it is
+not completely yet (there could be race conditions).
 
 First, add lines retrieving the I2C physical device from the
 \code{input_polled_dev} structure. That's where you will need your
