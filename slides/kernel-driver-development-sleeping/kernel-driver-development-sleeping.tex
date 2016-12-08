@@ -136,26 +136,21 @@ if (ret)
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{Sleeping and waking up - Implementation 1/2}
-  \begin{center}
-    \includegraphics[height=0.8\textheight]{slides/kernel-driver-development-sleeping/wait-event.pdf}\\
-  \end{center}
+  \frametitle{Sleeping and waking up - Implementation}
+  \begin{columns}
+    \column{0.5\textwidth}
+      \includegraphics[height=0.8\textheight]{slides/kernel-driver-development-sleeping/wait-event.pdf}\\
+    \column{0.5\textwidth}
+       The scheduler doesn't keep evaluating the sleeping condition!
+       \begin{itemize}
+       \item \mint{c}+wait_event(queue, cond);+
+         The process is put in the \ksym{TASK_UNINTERRUPTIBLE} state.
+       \item \mint{c}+wake_up(&queue);+
+         All processes waiting in \code{queue} are woken up, so they get
+         scheduled later and have the opportunity to evaluate the
+         condition again and go back to sleep if it is not met.
+       \end{itemize}
+       See \kpath{include/linux/wait.h} for implementation details.
+  \end{columns}
 \end{frame}
 
-\begin{frame}[fragile]
-  \frametitle{Sleeping and waking up - Implementation 2/2}
-  The scheduler doesn't keep evaluating the sleeping condition!\\
-  \begin{itemize}
-  \item \mint{c}+wait_event(queue, condition);+
-    \begin{itemize}
-    \item The process is put in the \ksym{TASK_UNINTERRUPTIBLE} state.
-    \end{itemize}
-  \item \mint{c}+wake_up(&queue);+
-    \begin{itemize}
-    \item All processes waiting in \code{queue} are woken up, so they get
-      scheduled later and have the opportunity to evaluate the
-      condition again and go back to sleep if it is not met.
-    \end{itemize}
-  \end{itemize}
-  See \kpath{include/linux/wait.h} for implementation details.
-\end{frame}
