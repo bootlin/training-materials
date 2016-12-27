@@ -108,9 +108,9 @@ available either.
 Should you need more standard tools, you may boot the board with
 an MMC card with Debian on it (see http://beagleboard.org/latest-images).
 
-===============================
-How the binaries where compiled
-===============================
+==============================
+How the binaries were compiled
+==============================
 
 Caution: instructions for people already familiar with embedded Linux.
 See our Embedded Linux course (http://free-electrons.com/training/embedded-linux/)
