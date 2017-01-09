@@ -240,37 +240,49 @@ int devm_request_threaded_irq(
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{Tasklet Example: simplified atmel\_serial.c 1/2}
+  \frametitle{Tasklet Example: drivers/crypto/atmel-sha.c 1/2}
 \begin{minted}[fontsize=\small]{c}
 /* The tasklet function */
-static void atmel_tasklet_func(unsigned long data) {
-        struct uart_port *port = (struct uart_port *)data;
+static void atmel_sha_done_task(unsigned long data)
+{
+        struct atmel_sha_dev *dd = (struct atmel_sha_dev *)data;
         [...]
 }
 
-/* Registering the tasklet */
-init function(...) {
+/* Probe function: registering the tasklet */
+static int atmel_sha_probe(struct platform_device *pdev)
+{
+        struct atmel_sha_dev *sha_dd;
         [...]
-        tasklet_init(&atmel_port->tasklet,
-            atmel_tasklet_func, (unsigned long)port);
+        platform_set_drvdata(pdev, sha_dd);
+        [...]
+        tasklet_init(&sha_dd->done_task, atmel_sha_done_task,
+                                        (unsigned long)sha_dd);
         [...]
 }
 \end{minted}
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{Tasklet Example: simplified atmel\_serial.c 2/2}
+  \frametitle{Tasklet Example: drivers/crypto/atmel-sha.c 2/2}
 \begin{minted}[fontsize=\small]{c}
-/* Removing the tasklet */
-cleanup function(...) {
+/* Remove function: removing the tasklet */
+static int atmel_sha_remove(struct platform_device *pdev)
+{
+        static struct atmel_sha_dev *sha_dd;
+        sha_dd = platform_get_drvdata(pdev);
         [...]
-        tasklet_kill(&atmel_port->tasklet);
+        tasklet_kill(&sha_dd->done_task);
         [...]
 }
 
-/* Triggering execution of the tasklet */
-somewhere function(...) {
-        tasklet_schedule(&atmel_port->tasklet);
+/* Interrupt handler: triggering execution of the tasklet */
+static irqreturn_t atmel_sha_irq(int irq, void *dev_id)
+{
+        struct atmel_sha_dev *sha_dd = dev_id;
+        [...]
+        tasklet_schedule(&sha_dd->done_task);
+        [...]
 }
 \end{minted}
 \end{frame}
