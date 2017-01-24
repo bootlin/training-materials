@@ -367,6 +367,97 @@ static int xxxfb_probe (struct pci_dev *dev,
 \end{itemize}
 \end{frame}
 
+\subsection{Device-managed allocations}
+
+\begin{frame}
+  \frametitle{Device managed allocations}
+  \begin{itemize}
+  \item The \code{probe()} function is typically responsible for
+    allocating a significant number of resources: memory, mapping I/O
+    registers, registering interrupt handlers, etc.
+  \item These resource allocations have to be properly freed:
+    \begin{itemize}
+    \item In the \code{probe()} function, in case of failure
+    \item In the \code{remove()} function
+    \end{itemize}
+  \item This required a lot of failure handling code that was rarely
+    tested
+  \item To solve this problem, {\em device managed} allocations have
+    been introduced.
+  \item The idea is to associate resource allocation with the
+    \code{struct device}, and automatically release those resources
+    \begin{itemize}
+    \item When the device disappears
+    \item When the device is unbound from the driver
+    \end{itemize}
+  \item Functions prefixed by \code{devm_}
+  \item See \kerneldoctext{driver-model/devres.txt} for details
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Device managed allocations: memory allocation example}
+  \begin{itemize}
+  \item Normally done with \code{kmalloc(size_t, gfp_t)}, released
+    with \code{kfree(void *)}
+  \item Device managed with \code{devm_kmalloc(struct device *,
+      size_t, gfp_t)}
+  \end{itemize}
+
+  \begin{columns}
+    \column{0.5\textwidth}
+    \begin{block}{Without devm functions}
+\fontsize{6}{6}\selectfont
+    \begin{minted}{c}
+int foo_probe(struct platform_device *pdev)
+{
+        foo_t *foo;
+
+        foo = kmalloc(sizeof(struct foo_t),
+                      GFP_KERNEL);
+        ...
+        if (failure) {
+                kfree(foo);
+                return -EBUSY;
+        }
+        ...
+        platform_set_drvdata(pdev, foo);
+        return 0;
+}
+
+void foo_remove(struct platform_device *pdev)
+{
+        foo_t *foo = platform_get_drvdata(pdev);
+        kfree(foo);
+}
+    \end{minted}
+  \end{block}
+    \column{0.5\textwidth}
+    \begin{block}{With devm functions}
+\fontsize{6}{6}\selectfont
+    \begin{minted}{c}
+int foo_probe(struct platform_device *pdev)
+{
+        foo_t *foo;
+
+        foo = devm_kmalloc(&pdev->dev,
+                           sizeof(struct foo_t),
+                           GFP_KERNEL);
+        ...
+        if (failure)
+                return -EBUSY;
+        ...
+        platform_set_drvdata(pdev, foo);
+        return 0;
+}
+    \end{minted}
+  \end{block}
+\end{columns}
+
+\end{frame}
+
+\subsection{Driver data structures and links}
+
 \begin{frame}
   \frametitle{Driver-specific Data Structure}
   \begin{itemize}
@@ -490,45 +581,6 @@ static int serial_imx_remove(struct platform_device *pdev)
       \includegraphics[width=\textwidth]{slides/kernel-frameworks2/link-structures-imx.pdf}
     \end{center}
   \end{columns}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Device Model: per device allocations (1)}
-  \begin{itemize}
-  \item With the Device Model, structures need to be allocated
-  {\bf for each new device}.
-  \item Such structures then need to be released:
-  \begin{itemize}
-	\item When the module is removed,
-	\item When devices are removed (on a bus
- 	      which can detect this),
-	\item In the \code{probe()} routine, before
-	      returning after a failure.
-  \end{itemize}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Device Model: per device allocations (2)}
-  \code{devm_()} functions have been introduced
-  to help managing such allocations.
-  \begin{itemize}
-  \item They now exist in many parts of the kernel
-  \item Allocations are now attached to a \code{struct device}
-	structure.
-  \item Example: call to \kfunc{devm_kzalloc} in the
-	previous example.
-  \item Before each device is destroyed, the resources attached to it
-        are automatically freed. This is not limited to memory
-	allocation. This can also apply to registration of interrupts,
-        for example.
-  \item This greatly simplifies \code{remove()} functions and
-	error management code.
-  \item We will see many \code{devm_} functions in the subsystems
-	that we will study.
-  \end{itemize}
-  See \kerneldoctext{driver-model/devres.txt} for implementation details
-  and available functions.
 \end{frame}
 
 \begin{frame}[fragile]
