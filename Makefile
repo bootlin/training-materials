@@ -302,8 +302,7 @@ YOCTO_SLIDES    = \
 		yocto-course-outline \
 		course-information \
 		setup-lab \
-		yocto-introduction-title \
-		yocto-introduction-distributions \
+		buildroot-yocto-introduction \
 		yocto-overview \
 		yocto-basics \
 		yocto-build-lab \
@@ -334,6 +333,7 @@ BUILDROOT_SLIDES = \
 		beagleboneblack-board \
 		course-information \
 		setup-lab \
+		buildroot-yocto-introduction \
 		buildroot-introduction \
 		buildroot-build \
 		buildroot-tree \
