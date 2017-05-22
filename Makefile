@@ -318,10 +318,10 @@ YOCTO_SLIDES    = \
 		yocto-layer-distro \
 		yocto-image \
 		yocto-image-lab \
-		yocto-sdk \
-		yocto-sdk-lab \
 		yocto-licensing \
 		yocto-recipe-extra \
+		yocto-sdk \
+		yocto-sdk-lab \
 		yocto-runtime-package-management \
 		yocto-resources \
 		last-slides
