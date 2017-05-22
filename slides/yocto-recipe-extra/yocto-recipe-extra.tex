@@ -1,40 +1,5 @@
 \section{Writing recipes - going further}
 
-\subsection{Splitting packages}
-
-\begin{frame}
-  \frametitle{Benefits}
-  \begin{itemize}
-    \item Packages can be split.
-    \item Useful when a single remote repository provides multiple
-      binaries or libraries.
-    \item The list of packages to provide is defined by the
-      \code{PACKAGES} variable.
-  \end{itemize}
-\end{frame}
-
-\begin{frame}[fragile]
-  \frametitle{Example}
-  \begin{itemize}
-    \item The \code{kexec tools} provides \code{kexec} and \code{kdump}:
-    \begin{block}{}
-    \begin{minted}{sh}
-require kexec-tools.inc
-export LDFLAGS = "-L${STAGING_LIBDIR}"
-EXTRA_OECONF = " --with-zlib=yes"
-
-SRC_URI[md5sum] = "b9f2a3ba0ba9c78625ee7a50532500d8"
-SRC_URI[sha256sum] = "..."
-
-PACKAGES =+ "kexec kdump"
-
-FILES_kexec = "${sbindir}/kexec"
-FILES_kdump = "${sbindir}/kdump"
-    \end{minted}
-    \end{block}
-  \end{itemize}
-\end{frame}
-
 \subsection{Packages features}
 
 \begin{frame}
@@ -205,15 +170,15 @@ do_compile[nostamp] = "1"
   \begin{block}{}
     \begin{minted}[fontsize=\scriptsize]{sh}
 FILES_${PN} = \
-           "${bindir}/* ${sbindir}/* ${libexecdir}/* ${libdir}/lib*${SOLIBS} \
-            ${sysconfdir} ${sharedstatedir} ${localstatedir} \
-            ${base_bindir}/* ${base_sbindir}/* \
-            ${base_libdir}/*${SOLIBS} \
-            ${base_prefix}/lib/udev/rules.d ${prefix}/lib/udev/rules.d \
-            ${datadir}/${BPN} ${libdir}/${BPN}/* \
-            ${datadir}/pixmaps ${datadir}/applications \
-            ${datadir}/idl ${datadir}/omf ${datadir}/sounds \
-            ${libdir}/bonobo/servers"
+    "${bindir}/* ${sbindir}/* ${libexecdir}/* ${libdir}/lib*${SOLIBS} \
+     ${sysconfdir} ${sharedstatedir} ${localstatedir} \
+     ${base_bindir}/* ${base_sbindir}/* \
+     ${base_libdir}/*${SOLIBS} \
+     ${base_prefix}/lib/udev/rules.d ${prefix}/lib/udev/rules.d \
+     ${datadir}/${BPN} ${libdir}/${BPN}/* \
+     ${datadir}/pixmaps ${datadir}/applications \
+     ${datadir}/idl ${datadir}/omf ${datadir}/sounds \
+     ${libdir}/bonobo/servers"
     \end{minted}
   \end{block}
   \begin{itemize}
@@ -259,4 +224,67 @@ rootfs_deb_do_rootfs () {
 }
     \end{minted}
   \end{block}
+\end{frame}
+
+\subsection{Splitting packages}
+
+\begin{frame}
+  \frametitle{Benefits}
+  \begin{itemize}
+    \item Packages can be split.
+    \item Useful when a single remote repository provides multiple
+      binaries or libraries.
+    \item The list of packages to provide is defined by the
+      \code{PACKAGES} variable.
+    \item The \code{FILE} variable is often used to split the output
+      into packages.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Example}
+  \begin{itemize}
+    \item The \code{kexec tools} provides \code{kexec} and \code{kdump}:
+    \begin{block}{}
+    \begin{minted}{sh}
+require kexec-tools.inc
+export LDFLAGS = "-L${STAGING_LIBDIR}"
+EXTRA_OECONF = " --with-zlib=yes"
+
+SRC_URI[md5sum] = \
+    "b9f2a3ba0ba9c78625ee7a50532500d8"
+SRC_URI[sha256sum] = "..."
+
+PACKAGES =+ "kexec kdump"
+
+FILES_kexec = "${sbindir}/kexec"
+FILES_kdump = "${sbindir}/kdump"
+    \end{minted}
+    \end{block}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Default packages}
+  \begin{itemize}
+    \item By default several packages are produced automatically:
+    \begin{block}{}
+    \begin{minted}{sh}
+PACKAGES = "${PN}-dbg ${PN}-staticdev \
+    ${PN}-dev ${PN}-doc ${PN}-locale ${PN}"
+    \end{minted}
+    \end{block}
+    \item For each of these packages a \code{FILE} variable is defined
+      in \code{meta/conf/bitbake.conf}:
+    \begin{block}{}
+    \begin{minted}[fontsize=\scriptsize]{sh}
+FILES_${PN}-dev = \
+    "${includedir} ${FILES_SOLIBSDEV} ${libdir}/*.la \            
+     ${libdir}/*.o ${libdir}/pkgconfig ${datadir}/pkgconfig \        
+     ${datadir}/aclocal ${base_libdir}/*.o \                         
+     ${libdir}/${BPN}/*.la ${base_libdir}/*.la"
+FILES_${PN}-dbg = "/usr/lib/debug /usr/src/debug"
+    \end{minted}
+    \end{block}
+  \end{itemize}
 \end{frame}
