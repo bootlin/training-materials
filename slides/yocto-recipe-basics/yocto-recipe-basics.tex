@@ -11,7 +11,7 @@
 \begin{frame}
   \frametitle{Basics}
   \begin{itemize}
-    \item Recipes describe how to handle a given package.
+    \item Recipes describe how to handle a given application.
     \item A recipe is a set of instructions to describe how to
       retrieve, patch, compile, install and generate binary packages
       for a given application.
@@ -19,7 +19,7 @@
       required.
     \item The recipes are parsed by the BitBake build engine.
     \item The format of a recipe file name is
-      \code{<package-name>_<version>.bb}
+      \code{<application-name>_<version>.bb}
   \end{itemize}
 \end{frame}
 
@@ -31,7 +31,7 @@
     \item It also contains functions that can be run (fetch,
       configure, compile\dots) which are called {\bf tasks}.
     \item Tasks provide a set of actions to perform.
-    \item Remember the \code{bitbake -c <task> <package>} command?
+    \item Remember the \code{bitbake -c <task> <target>} command?
   \end{itemize}
 \end{frame}
 
@@ -46,8 +46,7 @@
           name
         \item[PR] package release, defaults to \code{r0}
       \end{description}
-    \item The recipe name and version usually match the upstream
-      package ones.
+    \item The recipe name and version usually match the upstream ones.
     \item When using the recipe \code{bash_4.2.bb}:
       \begin{itemize}
         \item \code{${PN} = "bash"}
@@ -67,14 +66,14 @@
 \begin{frame}
   \frametitle{Organization of a recipe}
   \begin{itemize}
-    \item Many packages have more than one recipe, to support
+    \item Many applications have more than one recipe, to support
       different versions. In that case the common metadata is
       included in each version specific recipe and is in a \code{.inc}
       file:
       \begin{itemize}
-        \item \code{<package>.inc}: version agnostic metadata.
-        \item \code{<package>_<version>.bb}: \code{require
-          <package>.inc} and version specific metadata.
+        \item \code{<application>.inc}: version agnostic metadata.
+        \item \code{<application>_<version>.bb}: \code{require
+          <application>.inc} and version specific metadata.
       \end{itemize}
     \item We can divide a recipe into three main parts:
       \begin{itemize}
@@ -88,13 +87,13 @@
 \begin{frame}
   \frametitle{The header}
   \begin{itemize}
-    \item Configuration variables to describe the package:
+    \item Configuration variables to describe the application:
       \begin{description}
         \item[DESCRIPTION] describes what the software is about
         \item[HOMEPAGE] URL to the project's homepage
         \item[PRIORITY] defaults to \code{optional}
         \item[SECTION] package category (e.g. \code{console/utils})
-        \item[LICENSE] the package's license
+        \item[LICENSE] the application's license
       \end{description}
   \end{itemize}
 \end{frame}
@@ -104,7 +103,7 @@
   \begin{itemize}
     \item We need to retrieve both the raw sources from an official
       location and the resources needed to configure, patch or install
-      the package.
+      the application.
     \item \code{SRC_URI} defines where and how to retrieve the
       needed elements. It is a set of URI schemes pointing to the
       resource locations (local or remote).
@@ -132,7 +131,7 @@
       \end{itemize}
     \item The \code{http}, \code{https} and \code{ftp} schemes:
       \begin{itemize}
-        \item \code{https://example.com/package-1.0.tar.bz2}
+        \item \code{https://example.com/application-1.0.tar.bz2}
         \item A few variables are available to help pointing to remote
           locations: \code{${SOURCEFORGE_MIRROR}},
           \code{${GNU_MIRROR}}, \code{${KERNELORG_MIRROR}}\dots
@@ -175,7 +174,7 @@ SRC_URI[patch.md5sum]   = "b184acf9eb39df794ffd..."
   \frametitle{The source locations: local files}
   \begin{itemize}
     \item All local files found in \code{SRC_URI} are copied into the
-      package's working directory, in \code{build/tmp/work/}.
+      recipe's working directory, in \code{build/tmp/work/}.
     \item The searched paths are defined in the \code{FILESPATH}
       variable.
   \end{itemize}
@@ -204,7 +203,7 @@ FILESOVERRIDES = "${MACHINEOVERRIDES}:${DISTROOVERRIDES}"
   \begin{itemize}
     \item When extracting a tarball, BitBake expects to find the
       extracted files in a directory named
-      \code{<package-name>-<version>}. This is controlled by the
+      \code{<application>-<version>}. This is controlled by the
       \code{S} variable. If the directory has another name, you must
       explicitly define \code{S}.
     \item If the scheme is \code{git}, \code{S} must be set to
@@ -238,33 +237,32 @@ LIC_FILES_CHKSUM =  \
 \begin{frame}
   \frametitle{Dependencies 1/2}
   \begin{itemize}
-    \item A package can have dependencies during the build or at
+    \item A recipe can have dependencies during the build or at
           runtime. To reflect these requirements in the recipe, two
           variables are used:
     \begin{description}
-      \item[DEPENDS] List of the package build-time dependencies.
+      \item[DEPENDS] List of the recipe build-time dependencies.
       \item[RDEPENDS] List of the package runtime
         dependencies. Must be package specific (e.g. with
         \code{_${PN}}).
     \end{description}
-    \item \code{DEPENDS = "package-b"}: the local \code{do_configure}
-      task depends on the \code{do_populate_sysroot} task of package
-      b.
-    \item \code{RDEPENDS_${PN} = "package-b"}: the local
+    \item \code{DEPENDS = "recipe-b"}: the local \code{do_configure}
+      task depends on the \code{do_populate_sysroot} task of recipe-b.
+    \item \code{RDEPENDS_${PN} = "recipe-b"}: the local
       \code{do_build} task depends on the
-      \code{do_package_write_<archive-format>} task of package b.
+      \code{do_package_write_<archive-format>} task of recipe b.
   \end{itemize}
 \end{frame}
 
 \begin{frame}
   \frametitle{Dependencies 2/2}
   \begin{itemize}
-    \item Sometimes a package have dependencies on specific versions
-      of another package.
+    \item Sometimes a recipe have dependencies on specific versions
+      of another recipe.
     \item BitBake allows to reflect this by using:
     \begin{itemize}
-      \item \code{DEPENDS = "package-b (>= 1.2)"}
-      \item \code{RDEPENDS_${PN} = "package-b (>= 1.2)"}
+      \item \code{DEPENDS = "recipe-b (>= 1.2)"}
+      \item \code{RDEPENDS_${PN} = "recipe-b (>= 1.2)"}
     \end{itemize}
     \item The following operators are supported: \code{=}, \code{>},
       \code{<}, \code{>=} and \code{<=}.
@@ -301,7 +299,7 @@ LIC_FILES_CHKSUM =  \
       \begin{description}
         \item[D] The destination directory (root directory of where
           the files are installed, before creating the image).
-        \item[WORKDIR] the package's working directory
+        \item[WORKDIR] the recipe's working directory
       \end{description}
     \item Syntax of a task:
   \end{itemize}
