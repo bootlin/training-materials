@@ -8,8 +8,9 @@
     \item Designed for performance, standards compliance and portability
     \item Found on all GNU / Linux host systems
     \item Of course, actively maintained
-    \item By default, quite big for small embedded systems: approx 2.5 MB on ARM
-      (version 2.9 - \code{libc}: 1.5 MB, \code{libm}: 750 KB)
+    \item By default, quite big for small embedded systems.
+      On armv7hf, version 2.23: \code{libc}: 1.5 MB, \code{libm}: 492
+      KB, source: \url{http://toolchains.free-electrons.com}
     \item But some features not needed in embedded systems can be
           configured out (merged from the old {\em eglibc} project).
     \item \url{http://www.gnu.org/software/libc/}
@@ -20,7 +21,7 @@
 \end{frame}
 
 \begin{frame}
-  \frametitle{uClibc-ng (1)}
+  \frametitle{uClibc-ng)}
   \begin{itemize}
   \item \url{http://uclibc-ng.org/}
   \item A continuation of the old uClibc project
@@ -28,68 +29,51 @@
   \item Lightweight C library for small embedded systems
     \begin{itemize}
     \item High configurability: many features can be enabled or
-      disabled through a menuconfig interface
-    \item Supports most embedded architectures
-    \item Supports no-MMU architectures (ARM Cortex-M, Blackfin, etc.)
+      disabled through a menuconfig interface.
+    \item Supports most embedded architectures, including MMU-less
+          ones (ARM Cortex-M, Blackfin, etc.)
     \item No guaranteed binary compatibility. May need to
       recompile applications when the library configuration changes.
+    \item Some glibc features may not be implemented yet (real-time,
+          floating-point operations...)
     \item Focus on size rather than performance
-    \item Small compile time
+    \item Size on armv7hf, version 1.0.24:
+      \code{libc}: 652 KB, source: \url{http://toolchains.free-electrons.com}
     \end{itemize}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{uClibc-ng (2)}
-  \begin{itemize}
-  \item Most of the applications compile with uClibc-ng. This applies to
-    all applications used in embedded systems.
-  \item Size (arm): 3.5 times smaller than glibc!
-    \begin{itemize}
-    \item uClibc-ng 1.0.14: approx. 716kB (libuClibc: 282kB, libm:
-      73kB)
-    \item glibc 2.22: approx 2.5 MB
-    \end{itemize}
-  \item Some features not available or limited: priority-inheritance
-    mutexes, fixed Name Service Switch functionality, etc.
-  \item Used on a large number of production embedded products,
-    including consumer electronic devices
-\end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Honey, I shrunk the programs!}
-  \begin{itemize}
-  \item Executable size comparison on ARM, tested with {\em glibc}
-  2.22 and {\em uClibc-ng} 1.0.14
-  \item Plain ``hello world'' program (stripped): \\
-    \begin{tabular}{| c || c | c |} \hline
-    helloworld & static & dynamic \\ \hline
-    {\em uClibc} & 33.4kB & 2.5kB \\
-    {\em uClibc} with Thumb-2 & 25.4kB & 2.5kB \\
-    {\em eglibc} with Thumb-2 & 479kB & 2.7kB \\ \hline
-    \end{tabular} \\
-  \item Busybox (stripped): \\
-    \begin{tabular}{| c || c | c |} \hline
-    busybox & static & dynamic \\ \hline
-    {\em uClibc} & 818kB & 664kB \\
-    {\em uClibc} with Thumb-2 & 602kB & 504kB \\
-    {\em eglibc} with Thumb-2 & 1206kB & 503kB \\ \hline
-    \end{tabular}
   \end{itemize}
 \end{frame}
 
 \begin{frame}
   \frametitle{musl C library}
-  \url{http://www.musl-libc.org/}
+  \begin{columns}
+    \column{0.85\textwidth}
+      \url{http://www.musl-libc.org/}
+      \begin{itemize}
+      \item A lightweight, fast and simple library for embedded systems
+      \item Created while uClibc's development was stalled
+      \item In particular, great at making small static executables
+      \item Permissive license (MIT)
+      \item Compare features with other C libraries:
+        \url{http://www.etalabs.net/compare_libcs.html}
+      \item Supported by build systems such as Buildroot
+      \item Used by the Alpine Linux distribution
+        (\url{https://www.alpinelinux.org/}), fitting in about 130 MB of storage.
+      \end{itemize}
+    \column{0.15\textwidth}
+    \includegraphics[width=\textwidth]{slides/c-libraries/musl.png}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{glibc vs uclibc-ng vs musl - small static executables}
+  Let's compile and strip a \code{hello.c} program {\bf statically} and
+compare the size
   \begin{itemize}
-  \item A lightweight, fast and simple library for embedded systems
-  \item Created while uClibc's development was stalled
-  \item In particular, great at making small static executables
-  \item Permissive license (MIT)
-  \item Compare features with other C libraries:
-    \url{http://www.etalabs.net/compare_libcs.html}
-  \item Supported by build systems such as Buildroot
+    \item With gcc 6.3, armel, musl 1.1.16:\\
+          {\bf 7300} bytes
+    \item With gcc 6.3, armel, uclibc-ng 1.0.22 :\\
+          {\bf 67204} bytes.
+    \item With gcc 6.2, armel, glibc:\\
+          {\bf 492792} bytes
   \end{itemize}
 \end{frame}
 
