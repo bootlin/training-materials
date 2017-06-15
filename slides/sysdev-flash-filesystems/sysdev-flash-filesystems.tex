@@ -160,26 +160,29 @@
 
 \begin{frame}[fragile]
   \frametitle{Linux: definition of MTD partitions}
-  The Device Tree is the standard place to define MTD partitions
+  \small
+  The Device Tree is the standard place to define {\em default} MTD partitions
   for platforms with Device Tree support.\\
-  Example from \kfile{arch/arm/boot/dts/omap3-igep.dtsi}:
+  Example from \kfile{arch/arm/boot/dts/omap3-overo-base.dtsi}:
 \begin{minted}[fontsize=\scriptsize]{perl}
         nand@0,0 {
                 linux,mtd-name= "micron,mt29c4g96maz";
                 [...]
+                ti,nand-ecc-opt = "bch8"
+                [...]
                 partition@0 {
                         label = "SPL";
-                        reg = <0 0x100000>;
+                        reg = <0 0x80000>; /* 512KiB */
                 };
-                partition@0x80000 {
+                partition@80000 {
                         label = "U-Boot";
-                        reg = <0x100000 0x180000>;
+                        reg = <0x80000 0x1C0000>; /* 1792KiB */
+                };
+                partition@1c0000 {
+                        label = "Environment";
+                        reg = <0x240000 0x40000>; /* 256KiB */
                 };
                 [...]
-                partition@0x780000 {
-                        label = "Filesystem";
-                        reg = <0x680000 0x1f980000>;
-                };
 \end{minted}
 \end{frame}
 
