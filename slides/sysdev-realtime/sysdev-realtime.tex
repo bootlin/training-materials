@@ -131,8 +131,6 @@
     \begin{itemize}
     \item The duration of these critical sections is unbounded
     \end{itemize}
-  \item Other possible source: shared interrupts (not a real problem:
-        mustn't be used for time-critical interrupt-sources anyway).
   \end{itemize}
   \begin{center}
     \includegraphics[width=0.9\textwidth]{slides/sysdev-realtime/spinlock.pdf}
@@ -211,17 +209,22 @@
 
 \begin{frame}
   \frametitle{Other non-deterministic mechanisms}
+  Outside of the critical path detailed previously, other
+  non-deterministic mechanisms of Linux can affect the execution
+  time of real-time tasks
   \begin{itemize}
-  \item Outside of the critical path detailed previously, other
-    non-deterministic mechanisms of Linux can affect the execution
-    time of real-time tasks
   \item Linux is highly based on virtual memory, as provided by an
     MMU, so that memory is allocated on demand. Whenever an
     application accesses code or data for the first time, it is loaded
     on demand, which can creates huge delays.
   \item Many C library services or kernel services are not designed
     with real-time constraints in mind.
+  \item To avoid such sources of non-determinism, your system should allocate
+    all the resources it needs ahead of time, before it is ready to react
+    to events in a real-time way. For the virtual memory needs, it will
+    be done through the \code{mlock{}} and \code{mlockall()} system calls.
   \end{itemize}
+  Issues can be addressed with a correct system design!
 \end{frame}
 
 \begin{frame}
@@ -348,7 +351,7 @@
     reaction to user input.
   \item Adds explicit rescheduling points throughout kernel code.
   \item Minor impact on throughput.
-  \item Used in: Ubuntu Desktop 15.04, Ubuntu Server 14.04
+  \item Still used in: Ubuntu Desktop 17.04
   \end{itemize}
 \end{frame}
 
@@ -435,8 +438,8 @@
   \item Oct. 2015: the Linux Foundation at last got funding
         for mainlining the patchset into the Linux kernel (see
         \url{http://lwn.net/Articles/659193/}).
-  \item There's at last a good chance for the patchset to be merged
-        by the end of 2016.
+  \item Since then, the patchset has reduced in size, but hasn't
+        been fully merged yet.
   \end{itemize}
 \end{frame}
 
@@ -1182,6 +1185,8 @@ cat /sys/kernel/debug/tracing/tracing_max_latency
   \item See Xenomai's \code{examples} directory.
   \item Installation details may be found in the \code{README.INSTALL}
     guide.
+  \item Build systems such as Buildroot can compile the Xenomai user space
+    for you.
   \end{itemize}
 \end{frame}
 
@@ -1374,9 +1379,7 @@ ARCH-gcc $CFL -o rttest rttest.c $LDF
     \column{0.8\textwidth}
     {\bf Building Embedded Linux Systems, O'Reilly}\\
     \vspace{0.5cm}
-    By Karim Yaghmour, Jon Masters,\\
-    Gilad Ben-Yossef, Philippe Gerum and others\\
-    (including Michael Opdenacker), August 2008\\
+    By multiple authors, August 2008\\
     \vspace{1cm}
     A nice coverage of Xenomai (Philippe Gerum)\\
     and the RT patch (Steven Rostedt)\\
@@ -1410,7 +1413,7 @@ ARCH-gcc $CFL -o rttest rttest.c $LDF
   \item Build a real-time application against the standard POSIX
         real-time API, and against Xenomai’s POSIX skin
   \item Compare scheduling latency on your system, between a standard
-        kernel and a kernel with Xenomai.
+        kernel, a kernel with PREEMPT\_RT and a kernel with Xenomai.
   \end{itemize}
 }
 
