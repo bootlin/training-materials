@@ -13,21 +13,49 @@
   \item The base of a Linux root filesystem: Unix directory hierarchy,
     a few configuration files and scripts in \code{/etc}. No programs
     or libraries.
-  \item First thing to get copied to \code{$(TARGET_DIR)} at the
-    beginning of the build.
-  \item By default (\code{BR2_ROOTFS_SKELETON_DEFAULT=y}), the one in
-    \code{system/skeleton} is used.
+  \item All target packages depend on the
+    \code{skeleton} package, so it is essentially the first thing copied
+    to \code{$(TARGET_DIR)} at the beginning of the build.
+  \item \code{skeleton} is a virtual package that will depend on:
+    \begin{itemize}
+    \item \code{skeleton-init-{sysv,systemd,none}} depending on the
+      init system being selected
+    \item \code{skeleton-custom} when a custom skeleton is selected
+    \end{itemize}
+  \item All of \code{skeleton-init-{sysv,systemd,none}} depend on
+    \code{skeleton-init-common}
+    \begin{itemize}
+    \item Copies \code{system/skeleton/*} to \code{$(TARGET_DIR)}
+    \end{itemize}
+  \item \code{skeleton-init-{sysv,systemd}} install additional files
+    specific to those {\em init systems}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Custom root filesystem skeleton}
+  \begin{itemize}
   \item A custom {\em skeleton} can be used, through the
     \code{BR2_ROOTFS_SKELETON_CUSTOM} and
     \code{BR2_ROOTFS_SKELETON_CUSTOM_PATH} options.
+  \item In this case: \code{skeleton} depends on
+    \code{skeleton-custom}
+  \item Completely replaces \code{skeleton-init-*}, so the custom
+    skeleton must provide everything.
+  \item Not recommended though:
     \begin{itemize}
-    \item Not recommended though: the {\em skeleton} is only copied
-      once at the beginning of the build, and the base is usually good
-      for most projects.
-    \item Use {\em rootfs overlays} or {\em post-build scripts} for
-      customization.
+    \item the base is usually good for most projects.
+    \item skeleton only copied at the beginning of the build, so a
+      skeleton change needs a full rebuild
     \end{itemize}
+  \item Use {\em rootfs overlays} or {\em post-build scripts} for
+    root filesystem customization (covered later)
   \end{itemize}
+\end{frame}
+
+\begin{frame}{Skeleton packages dependencies}
+  \begin{center}
+    \includegraphics[width=\textwidth]{slides/buildroot-rootfs/skeleton.pdf}
+  \end{center}
 \end{frame}
 
 \begin{frame}{Installation of packages}
@@ -168,6 +196,8 @@ BR2_ROOTFS_POST_BUILD_SCRIPT="board/myproject/post-build.sh"
     \begin{itemize}
     \item Allows to fake being root so that permissions and ownership
       can be modified, device files can be created, etc.
+    \item Advanced: possibility of running a custom script inside {\em
+        fakeroot}, see \code{BR2_ROOTFS_POST_FAKEROOT_SCRIPT}.
     \end{itemize}
   \end{itemize}
 \end{frame}
@@ -328,6 +358,8 @@ test         8000  wheel   -1    =          -         /bin/sh -           Test u
       setups, use an {\em overlay})
     \item {\bf root password}
     \item {\bf timezone} installation and selection
+    \item {\bf locale} files installation and filtering (to install
+      translations only for a subset of languages, or none at all)
     \end{itemize}
   \end{itemize}
 \end{frame}
@@ -367,40 +399,45 @@ test         8000  wheel   -1    =          -         /bin/sh -           Test u
     the root filesystem.
   \item Also allows to place the bootloader at a fixed offset in the
     image if required.
-  \item Can be called in a {\em post-image} script.
+  \item The helper script \code{support/scripts/genimage.sh} can be
+    used as a {\em post-image} script to call {\em genimage}
   \item More and more widely used in Buildroot default configurations
   \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]{Deploying the images: genimage example}
-\begin{columns}
-  \column{0.5\textwidth}
 \begin{block}{genimage-raspberrypi.cfg}
+\begin{columns}
+  \column{0.4\textwidth}
 {\tiny
   \begin{verbatim}
 image boot.vfat {
   vfat {
     files = {
       "bcm2708-rpi-b.dtb",
-      "bcm2708-rpi-b-plus.dtb",
-      "bcm2708-rpi-cm.dtb",
       "rpi-firmware/bootcode.bin",
       "rpi-firmware/cmdline.txt",
-      [...]
       "kernel-marked/zImage"
+      [...]
     }
   }
   size = 32M
 }
-
+\end{verbatim}
+}
+\column{0.4\textwidth}
+{\tiny
+\begin{verbatim}
 image sdcard.img {
   hdimage {
   }
+
   partition boot {
     partition-type = 0xC
     bootable = "true"
     image = "boot.vfat"
   }
+
   partition rootfs {
     partition-type = 0x83
     image = "rootfs.ext4"
@@ -408,29 +445,26 @@ image sdcard.img {
 }
  \end{verbatim}
 }
+\end{columns}
 \end{block}
-  \column{0.5\textwidth}
-\begin{block}{post-image script}
+
+\begin{block}{defconfig}
 {\tiny
   \begin{verbatim}
-#!/bin/sh
-
-BOARD_DIR="$(dirname $0)"
-GENIMAGE_CFG="${BOARD_DIR}/genimage-raspberrypi.cfg"
-GENIMAGE_TMP="${BUILD_DIR}/genimage.tmp"
-
-rm -rf "${GENIMAGE_TMP}"
-
-genimage \
-        --rootpath "${TARGET_DIR}"     \
-        --tmppath "${GENIMAGE_TMP}"    \
-        --inputpath "${BINARIES_DIR}"  \
-        --outputpath "${BINARIES_DIR}" \
-        --config "${GENIMAGE_CFG}"
- \end{verbatim}
+BR2_ROOTFS_POST_IMAGE_SCRIPT="support/scripts/genimage.sh"
+BR2_ROOTFS_POST_SCRIPT_ARGS="-c board/raspberrypi/genimage-raspberrypi.cfg"
+\end{verbatim}
 }
 \end{block}
-\end{columns}
+
+\begin{block}{flash}
+{\tiny
+  \begin{verbatim}
+dd if=output/images/sdcard.img of=/dev/sdb
+\end{verbatim}
+}
+\end{block}
+
 \end{frame}
 
 \begin{frame}{Deploying the image: NFS booting}
