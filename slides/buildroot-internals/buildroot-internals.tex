@@ -454,7 +454,7 @@ xzcat /home/thomas/dl/zlib-1.2.8.tar.xz | tar ...
 
 >>> zlib 1.2.8 Installing to staging directory
 /usr/bin/make -j1 -C /home/thomas/projets/buildroot/output/build/zlib-1.2.8
-  DESTDIR=/home/thomas/projets/buildroot/output/host/usr/arm-buildroot-linux-uclibcgnueabi/sysroot
+  DESTDIR=/home/thomas/projets/buildroot/output/host/arm-buildroot-linux-uclibcgnueabi/sysroot
   LDCONFIG=true install
 
 >>> zlib 1.2.8 Installing to target
@@ -573,8 +573,8 @@ ifndef $(2)_CONFIGURE_CMDS
 ifeq ($(4),target)
 define $(2)_CONFIGURE_CMDS
     (cd $$($$(PKG)_BUILDDIR) && \
-     $$($$(PKG)_CONF_ENV) $$(HOST_DIR)/usr/bin/cmake $$($$(PKG)_SRCDIR) \
-         -DCMAKE_TOOLCHAIN_FILE="$$(HOST_DIR)/usr/share/buildroot/toolchainfile.cmake" \
+     $$($$(PKG)_CONF_ENV) $$(HOST_DIR)/bin/cmake $$($$(PKG)_SRCDIR) \
+         -DCMAKE_TOOLCHAIN_FILE="$$(HOST_DIR)/share/buildroot/toolchainfile.cmake" \
          ...
          $$($$(PKG)_CONF_OPT) \
     )
@@ -678,9 +678,9 @@ endif
   \item Build starts with utility host tools and libraries needed for
     gcc (\code{host-m4}, \code{host-mpc}, \code{host-mpfr},
     \code{host-gmp}). Installed in
-    \code{$(HOST_DIR)/usr/{bin,include,lib}}
+    \code{$(HOST_DIR)/{bin,include,lib}}
   \item Build goes on with the cross binutils, \code{host-binutils},
-    installed in \code{$(HOST_DIR)/usr/bin}
+    installed in \code{$(HOST_DIR)/bin}
   \item Then the first stage compiler, \code{host-gcc-initial}
   \item We need the \code{linux-headers}, installed in
     \code{$(STAGING_DIR)/usr/include}
@@ -688,7 +688,7 @@ endif
     in \code{$(STAGING_DIR)/lib}, \code{$(STAGING_DIR)/usr/include}
     and of course \code{$(TARGET_DIR)/lib}
   \item We build the final compiler \code{host-gcc-final}, installed
-    in \code{$(HOST_DIR)/usr/bin}
+    in \code{$(HOST_DIR)/bin}
   \end{itemize}
   \column{0.3\textwidth}
   \includegraphics[width=\textwidth]{slides/buildroot-internals/internal-toolchain-graph-depends.pdf}
@@ -711,7 +711,7 @@ endif
       kernel headers) to \code{$(STAGING_DIR)/usr/{include,lib}}
     \item Copy the toolchain libraries to \code{$(TARGET_DIR)/usr/lib}
     \item Create symbolic links or wrappers for the compiler, linker,
-      debugger, etc from \code{$(HOST_DIR)/usr/bin/<tuple>-<tool>} to
+      debugger, etc from \code{$(HOST_DIR)/bin/<tuple>-<tool>} to
       \code{$(HOST_DIR)/opt/ext-toolchain/bin/<tuple>-<tool>}
     \item A wrapper program is used for certain tools (gcc, ld, g++,
       etc.) in order to ensure a certain number of compiler flags are
@@ -751,11 +751,11 @@ $$(BINARIES_DIR)/rootfs.$(1): target-finalize $$(ROOTFS_$(2)_DEPENDENCIES)
         $$(foreach hook,$$(ROOTFS_$(2)_PRE_GEN_HOOKS),$$(call $$(hook))$$(sep))
         ...
         echo "chown -h -R 0:0 $$(TARGET_DIR)" >> $$(FAKEROOT_SCRIPT)
-        echo "$$(HOST_DIR)/usr/bin/makedevs -d $$(FULL_DEVICE_TABLE) $$(TARGET_DIR)" >> \
+        echo "$$(HOST_DIR)/bin/makedevs -d $$(FULL_DEVICE_TABLE) $$(TARGET_DIR)" >> \
               $$(FAKEROOT_SCRIPT)
         echo "$$(ROOTFS_$(2)_CMD)" >> $$(FAKEROOT_SCRIPT)
         chmod a+x $$(FAKEROOT_SCRIPT)
-        PATH=$$(BR_PATH) $$(HOST_DIR)/usr/bin/fakeroot -- $$(FAKEROOT_SCRIPT)
+        PATH=$$(BR_PATH) $$(HOST_DIR)/bin/fakeroot -- $$(FAKEROOT_SCRIPT)
         ...
 
 rootfs-$(1): $$(BINARIES_DIR)/rootfs.$(1) $$(ROOTFS_$(2)_POST_TARGETS)
@@ -789,7 +789,7 @@ UBIFS_OPTS += $(call qstrip,$(BR2_TARGET_ROOTFS_UBIFS_OPTS))
 ROOTFS_UBIFS_DEPENDENCIES = host-mtd
 
 define ROOTFS_UBIFS_CMD
-        $(HOST_DIR)/usr/sbin/mkfs.ubifs -d $(TARGET_DIR) $(UBIFS_OPTS) -o $@
+        $(HOST_DIR)/sbin/mkfs.ubifs -d $(TARGET_DIR) $(UBIFS_OPTS) -o $@
 endef
 
 $(eval $(call ROOTFS_TARGET,ubifs))
