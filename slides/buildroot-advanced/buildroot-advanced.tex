@@ -12,6 +12,8 @@
   \item The \code{BR2_EXTERNAL} mechanism allows to store your own
     package recipes, {\em defconfigs} and other artefacts {\bf
       outside} of the Buildroot source tree.
+  \item It is possible to use several \code{BR2_EXTERNAL} trees, to
+    further separate various aspects of your project.
   \item Note: can only be used to add new packages, not to override
     existing Buildroot packages
   \end{itemize}
@@ -27,10 +29,10 @@
       \item The Buildroot source code, cloned from Git, or extracted
         from a release tarball.
       \end{itemize}
-    \item \code{external/}
+    \item \code{external1/}
+    \item \code{external2/}
       \begin{itemize}
-      \item Your {\em external tree}, with your own custom packages
-        and {\em defconfigs}
+      \item Two external trees
       \end{itemize}
     \item \code{output-build1/}
     \item \code{output-build2/}
@@ -48,15 +50,17 @@
 
 \begin{frame}{{\tt BR2\_EXTERNAL}: mechanism}
   \begin{itemize}
-  \item Specify \code{BR2_EXTERNAL} on the command line when building.
-  \item Buildroot will:
+  \item Specify, as a colon-separated list, the {\em external}
+    directories in \code{BR2_EXTERNAL}
+  \item Each {\em external} directory must contain:
     \begin{itemize}
-    \item include \code{$(BR2_EXTERNAL)/Config.in} in the
-      configuration menu, under a new menu called \code{User-provided
-        options}
-    \item include \code{$(BR2_EXTERNAL)/external.mk} in the make logic
-    \item include \code{$(BR2_EXTERNAL)/configs/} in the list of {\em defconfigs}
+    \item \code{external.desc}, which provides a name and description
+    \item \code{Config.in}, configuration options that will be
+      included in {\em menuconfig}
+    \item \code{external.mk}, will be included in the make logic
     \end{itemize}
+  \item If \code{configs} exists, it will be used when listing all
+    {\em defconfigs}
   \end{itemize}
 \end{frame}
 
@@ -77,10 +81,8 @@
 |           |   +-- etc/
 |           |   +-- <some file>
 |           +-- patches/
-|               +-- foo/
-|               |   +-- <some patch>
 |               +-- libbar/
-|                   +-- <some other patches>
+|                   +-- <some patches>
 |
 +-- configs/
 |   +-- <boardname>_defconfig
@@ -96,39 +98,65 @@
 |
 +-- Config.in
 +-- external.mk
++-- external.desc
 \end{verbatim}
     }
   \end{block}
 
 \end{frame}
 
-\begin{frame}[fragile]{{\tt BR2\_EXTERNAL/Config.in}}
+\begin{frame}[fragile]{{\tt BR2\_EXTERNAL}: {\tt external.desc}}
+
+  \begin{itemize}
+  \item File giving metadata about the {\em external tree}
+  \item Mandatory
+    \code{name} field, using characters in the set
+    \code{[A-Za-z0-9_]}. Will be used to define
+    \code{BR2_EXTERNAL_<NAME>_PATH} available in
+    \code{Config.in} and \code{.mk} files, pointing
+    to the external tree directory.
+  \item Optional
+    \code{desc} field, giving a free-form description of the external tree. Should be reasonably short.
+  \item Example
+    \begin{block}{}
+\begin{verbatim}
+name: FOOBAR
+desc: Foobar Company
+\end{verbatim}
+    \end{block}
+  \end{itemize}
+
+\end{frame}
+
+\begin{frame}[fragile]{{\tt BR2\_EXTERNAL}: main {\tt Config.in}}
 
   \begin{itemize}
   \item Custom configuration options
-  \item Configuration options for the \code{BR2_EXTERNAL} packages
-  \item The \code{$BR2_EXTERNAL} variable is available
+  \item Configuration options for the external packages
+  \item The
+    \code{$BR2_EXTERNAL_<NAME>_PATH} variable is available, where
+    \code{NAME} is defined in \code{external.desc}
   \end{itemize}
 
-  \begin{block}{Example \code{$(BR2_EXTERNAL)/Config.in}}
+  \begin{block}{Example \code{Config.in}}
 \begin{verbatim}
-source "$BR2_EXTERNAL/package/package1/Config.in"
-source "$BR2_EXTERNAL/package/package2/Config.in"
+source "$BR2_EXTERNAL_<NAME>_PATH/package/package1/Config.in"
+source "$BR2_EXTERNAL_<NAME>_PATH/package/package2/Config.in"
 \end{verbatim}
   \end{block}
 
 \end{frame}
 
-\begin{frame}[fragile]{{\tt BR2\_EXTERNAL/external.mk}}
+\begin{frame}[fragile]{{\tt BR2\_EXTERNAL}: {\tt external.mk}}
 
   \begin{itemize}
   \item Can include custom {\em make} logic
   \item Generally only used to include the package \code{.mk} files
   \end{itemize}
 
-  \begin{block}{Example \code{$(BR2_EXTERNAL)/external.mk}}
+  \begin{block}{Example \code{external.mk}}
 \begin{minted}[fontsize=\scriptsize]{make}
-include $(sort $(wildcard $(BR2_EXTERNAL)/package/*/*.mk))
+include $(sort $(wildcard $(BR2_EXTERNAL_<NAME>_PATH)/package/*/*.mk))
 \end{minted}
   \end{block}
 \end{frame}
@@ -139,10 +167,10 @@ include $(sort $(wildcard $(BR2_EXTERNAL)/package/*/*.mk))
     to be passed on the command line
     \begin{block}{}
 \begin{verbatim}
-make BR2_EXTERNAL=/path/to/external
+make BR2_EXTERNAL=/path/to/external1:/path/to/external2
 \end{verbatim}
     \end{block}
-  \item {\bf Automatically saved} in the hidden \code{.br-external}
+  \item {\bf Automatically saved} in the hidden \code{.br-external.mk}
     file in the output directory
     \begin{itemize}
     \item no need to pass \code{BR2_EXTERNAL} at every make invocation
@@ -161,23 +189,23 @@ make BR2_EXTERNAL=/path/to/external
   \item In your Buildroot configuration, don't use absolute paths for
     the {\em rootfs overlay}, the {\em post-build scripts}, {\em
       global patch directories}, etc.
-  \item If they are located in your
-    \code{BR2_EXTERNAL}, you can use
-    \code{$(BR2_EXTERNAL)} in your Buildroot configuration options.
+  \item If they are located in an external tree, you can use
+    \code{$(BR2_EXTERNAL_<NAME>_PATH)} in your Buildroot configuration
+    options.
   \item With the recommended structure shown before, a Buildroot
     configuration would look like:
     \begin{block}{}
 {\tiny
 \begin{verbatim}
-BR2_GLOBAL_PATCH_DIR="$(BR2_EXTERNAL)/board/<company>/<boardname>/patches/"
+BR2_GLOBAL_PATCH_DIR="$(BR2_EXTERNAL_<NAME>_PATH)/board/<company>/<boardname>/patches/"
 ...
-BR2_ROOTFS_OVERLAY="$(BR2_EXTERNAL)/board/<company>/<boardname>/rootfs_overlay/"
+BR2_ROOTFS_OVERLAY="$(BR2_EXTERNAL_<NAME>_PATH)/board/<company>/<boardname>/rootfs_overlay/"
 ...
-BR2_ROOTFS_POST_BUILD_SCRIPT="$(BR2_EXTERNAL)/board/<company>/<boardname>/post_build.sh"
-BR2_ROOTFS_POST_IMAGE_SCRIPT="$(BR2_EXTERNAL)/board/<company>/<boardname>/post_image.sh"
+BR2_ROOTFS_POST_BUILD_SCRIPT="$(BR2_EXTERNAL_<NAME>_PATH)/board/<company>/<boardname>/post_build.sh"
+BR2_ROOTFS_POST_IMAGE_SCRIPT="$(BR2_EXTERNAL_<NAME>_PATH)/board/<company>/<boardname>/post_image.sh"
 ...
 BR2_LINUX_KERNEL_USE_CUSTOM_CONFIG=y
-BR2_LINUX_KERNEL_CUSTOM_CONFIG_FILE="$(BR2_EXTERNAL)/board/<company>/<boardname>/linux.config"
+BR2_LINUX_KERNEL_CUSTOM_CONFIG_FILE="$(BR2_EXTERNAL_<NAME>_PATH)/board/<company>/<boardname>/linux.config"
 \end{verbatim}
 }
     \end{block}
