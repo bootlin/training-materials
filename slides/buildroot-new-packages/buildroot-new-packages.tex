@@ -25,7 +25,7 @@
   \item A \code{<pkg>.mk} file, written in {\em make}, describing where to
     fetch the source, how to build and install it, etc.
   \item An optional \code{<pkg>.hash} file, providing hashes to check
-    the integrity of the downloaded tarballs.
+    the integrity of the downloaded tarballs and license files.
   \item Optionally, \code{.patch} files, that are applied on the
     package source code before building.
   \item Optionally, any additional file that might be useful for the
@@ -595,9 +595,10 @@ PERL_EXTRA_DOWNLOADS = $(PERL_CROSS_SITE)/$(PERL_CROSS_SOURCE)
 
   \begin{itemize}
 
-  \item In order to validate the integrity of downloaded files, and
-    make sure the user uses the version which was tested by the
-    Buildroot developers, {\em cryptographic hashes} are used
+  \item In order to validate the integrity of downloaded files and
+    license files, and make sure the user uses the version which was
+    tested by the Buildroot developers, {\em cryptographic hashes} are
+    used
 
   \item Each package may contain a file named \code{<package>.hash},
     which gives the hashes of the files downloaded by the package.
@@ -605,29 +606,44 @@ PERL_EXTRA_DOWNLOADS = $(PERL_CROSS_SITE)/$(PERL_CROSS_SOURCE)
   \item When present, the hashes for {\bf all} files downloaded by the
     package must be documented.
 
+  \item The {\em hash file} can also contain the hashes for the
+    license files listed in \code{<pkg>_LICENSE_FILES}. This allows to
+    detect changes in the license files.
+
   \item The syntax of the file is:
-\begin{block}{}
-{\tiny
+    \begin{block}{}
+      {\tiny
 \begin{verbatim}
 <hashtype> <hash> <file>
 \end{verbatim}
-}
-\end{block}
+      }
+    \end{block}
+  \end{itemize}
+\end{frame}
 
-  \item Example:
-
-\begin{block}{}
-{\tiny
+\begin{frame}[fragile]{Hash file examples}
+  \begin{block}{package/perl/perl.hash}
+    {\tiny
 \begin{verbatim}
 # Locally computed
-sha256 2ee80bd0634a61a...3530396cccc09 unionfs-1.0.tar.gz
-sha256 c8526f80448f344...03bcd713d9de2 0001-include-asm-ioctl.h-for-_IOC_SIZE.patch
+sha256 b25dd465ef32ed... perl-5.24.2.tar.xz
+sha256 2b3b88f54d85be... perl-cross-1.1.6.tar.gz
 \end{verbatim}
-}
-\end{block}
+    }
+  \end{block}
 
-  \end{itemize}
-
+  \begin{block}{package/perl/perl.hash}
+    {\tiny
+\begin{verbatim}
+# From http://ftp.netfilter.org/pub/ipset/ipset-6.34.tar.bz2.md5sum.txt
+md5 51bd03f976a1501fd45e1d71a1e2e6bf ipset-6.34.tar.bz2
+# Calculated based on the hash above
+sha256 d70e831b670b7aa25dde81fd99... ipset-6.34.tar.bz2
+# Locally calculated
+sha256 231f7edcc7352d7734a96eef0b... COPYING
+\end{verbatim}
+    }
+  \end{block}
 \end{frame}
 
 \begin{frame}[fragile]{Describing dependencies}
