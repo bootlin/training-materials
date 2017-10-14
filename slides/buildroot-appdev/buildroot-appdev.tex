@@ -5,14 +5,14 @@
 \begin{frame}{Building code for Buildroot}
   \begin{itemize}
   \item The Buildroot cross-compiler is installed in
-    \code{$(HOST_DIR)/usr/bin}
+    \code{$(HOST_DIR)/bin}
   \item It is already set up to:
     \begin{itemize}
     \item generate code for the configured architecture
     \item look for libraries and headers in \code{$(STAGING_DIR)}
     \end{itemize}
   \item Other useful tools that may be built by Buildroot are
-    installed in \code{$(HOST_DIR)/usr/bin}:
+    installed in \code{$(HOST_DIR)/bin}:
     \begin{itemize}
     \item \code{pkg-config}, to find libraries. Beware that it is
       configured to return results for {\em target} libraries: it
@@ -22,7 +22,7 @@
     \item \code{autoconf}, \code{automake}, \code{libtool}, to use
       versions independent from the host system.
     \end{itemize}
-  \item Adding \code{$(HOST_DIR)/usr/bin} to your \code{PATH} when
+  \item Adding \code{$(HOST_DIR)/bin} to your \code{PATH} when
     cross-compiling is the easiest solution.
   \end{itemize}
 \end{frame}
@@ -41,7 +41,7 @@ foobar: ELF 64-bit LSB executable, x86-64, version 1...
 \begin{block}{Building a C program for the target}
 {\small
   \begin{verbatim}
-$ export PATH=$(pwd)/output/host/usr/bin:$PATH
+$ export PATH=$(pwd)/output/host/bin:$PATH
 $ arm-linux-gcc -o foobar foobar.c
 $ file foobar
 foobar: ELF 32-bit LSB executable, ARM, EABI5 version 1...
@@ -66,19 +66,19 @@ $ pkg-config --libs libpng
   \begin{block}{Using the Buildroot \code{pkg-config}}
 {\small
 \begin{verbatim}
-$ export PATH=$(pwd)/output/host/usr/bin:$PATH
+$ export PATH=$(pwd)/output/host/bin:$PATH
 
 $ pkg-config --cflags libpng
--I.../output/host/usr/arm-buildroot-linux-uclibcgnueabi/
+-I.../output/host/arm-buildroot-linux-uclibcgnueabi/
     sysroot/usr/include/libpng16
 
 $ pkg-config --libs libpng
--L.../output/host/usr/arm-buildroot-linux-uclibcgnueabi/
+-L.../output/host/arm-buildroot-linux-uclibcgnueabi/
     sysroot/usr/lib -lpng16
 \end{verbatim}}
   \end{block}
 
-{\tiny Note: too long lines have been splitted.}
+{\tiny Note: too long lines have been split.}
 
 \end{frame}
 
@@ -89,7 +89,7 @@ $ pkg-config --libs libpng
     \begin{block}{}
 {\small
 \begin{verbatim}
-$ export PATH=.../buildroot/output/host/usr/bin/:$PATH
+$ export PATH=.../buildroot/output/host/bin/:$PATH
 $ ./configure --host=arm-linux
 \end{verbatim}}
 \end{block}
@@ -323,23 +323,19 @@ LINUX_OVERRIDE_SRCDIR = $(HOME)/projects/linux
     can generate a SDK.
   \item To achieve this:
     \begin{itemize}
-    \item Customize the \code{BR2_HOST_DIR} option to a path like
-      \code{/opt/project-sdk/}.
-    \item Do a full build from scratch. Due to the value of
-      \code{BR2_HOST_DIR}, the cross-compiler and the sysroot with all
-      its libraries will be installed in \code{/opt/project-sdk/}
-      instead of the normal \code{$(O)/host}.
-    \item Tarball the \code{/opt/project-sdk/} and share it with the
-      developers.
+    \item Run \code{make sdk}, which prepares the SDK to be
+      relocatable
+    \item Tarball the contents of the {\em host} directory, i.e
+      \code{output/host}
+    \item Share the tarball with your application developers
+    \item They must uncompress it, and run the \code{relocate-sdk.sh}
+      script
     \end{itemize}
-  \item Warnings:
-    \begin{itemize}
-    \item The SDK is not relocatable: it must remain in
-      \code{/opt/project-sdk/}
-    \item The SDK must remain in sync with the root filesystem running
-      on the target, otherwise applications built with the SDK may not
-      run properly.
-    \end{itemize}
+  \item {\bf Warning}: the SDK must remain in sync with the root
+    filesystem running on the target, otherwise applications built
+    with the SDK may not run properly.
+  \item Note: the relocatability of the SDK is a new feature in
+    Buildroot 2017.08.
   \end{itemize}
 \end{frame}
 
@@ -357,6 +353,8 @@ LINUX_OVERRIDE_SRCDIR = $(HOME)/projects/linux
   \item See
     \url{https://github.com/mbats/eclipse-buildroot-bundle/wiki} for
     download, installation and usage details.
+  \item Last Eclipse version supported: {\em Luna}. Support for later
+    versions in progress.
   \end{itemize}
 \end{frame}
 
