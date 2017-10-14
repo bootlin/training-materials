@@ -1173,7 +1173,7 @@ $(eval $(python-package))
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Target vs. host in the package infrastructure (1)}
+\begin{frame}{Target vs. host: package name and variable prefixes}
   \begin{itemize}
   \item Each package infrastructure provides a \code{<foo>-package}
     macro and a \code{host-<foo>-package} macro.
@@ -1188,27 +1188,24 @@ $(eval $(python-package))
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Target vs. host in the package infrastructure (2)}
+\begin{frame}{Target vs. host: variable inheritance}
   \begin{itemize}
   \item For many variables, when \code{HOST_BAZ_<var>} is not defined,
-    the package infrastructure uses \code{BAZ_<var>} instead: source,
-    site, version, license, etc.
+    the package infrastructure {\em inherits} from \code{BAZ_<var>}
+    instead.
     \begin{itemize}
-    \item E.g. defining \code{<PKG>_SITE} once is sufficient.
+    \item True for \code{<PKG>_SOURCE}, \code{<PKG>_SITE},
+      \code{<PKG>_VERSION}, \code{<PKG>_LICENSE},
+      \code{<PKG>_LICENSE_FILES}, etc.
+    \item Defining \code{<PKG>_SITE} is sufficient, defining
+      \code{HOST_<PKG>_SITE} is not needed.
+    \item It is still possible to override the value specifically for
+      the host variant, but this is rarely needed.
     \end{itemize}
   \item But not for all variables, especially commands
     \begin{itemize}
     \item E.g. \code{HOST_<PKG>_BUILD_CMDS} is not inherited
       from \code{<PKG>_BUILD_CMDS}
-    \end{itemize}
-  \item \code{HOST_<PKG>_DEPENDENCIES} is handled specially:
-    \begin{itemize}
-    \item Derived automatically from \code{<PKG>_DEPENDENCIES}, after
-      prepending \code{host-} to all dependencies.
-    \item \code{FOO_DEPENDENCIES = bar host-baz} $\rightarrow$
-      \code{HOST_FOO_DEPENDENCIES = host-bar host-baz}.
-    \item Can be overridden if the dependencies of the host variant are
-      different than the ones of the target variant.
     \end{itemize}
   \end{itemize}
 \end{frame}
