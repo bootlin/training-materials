@@ -448,3 +448,35 @@ log:
 make 2>&1 | tee build.log
 \end{verbatim}
 
+\section{Going further}
+
+If you have some time left, let's improve our setup to use TFTP and
+NFS, in order to avoid having to reflash the SD card for every
+test. What you need to do is:
+
+\begin{enumerate}
+
+\item Install a TFTP server (package \code{tftpd-hpa}) and a NFS
+  server (package \code{nfs-kernel-server}) on your system. Configure
+  the NFS server, in \code{/etc/exports} to export
+  \code{/home/<user>/nfsroot} over NFS.
+
+\item Copy the Linux kernel image and Device Tree to
+  \code{/var/lib/tftpboot} so that they are made available by the TFTP
+  server.
+
+\item Extract (as root) \code{rootfs.tar} to
+  \code{/home/<user>/nfsroot}.
+
+\item Change the U-Boot \code{bootcmd} to load the kernel image and
+  the Device Tree over TFTP.
+
+\item Change the U-Boot \code{bootargs} variable to tell the Linux
+  kernel that the root filesystem should be mounted over NFS:
+  \code{root=/dev/nfs ip=<IP of board> nfsroot=<IP of
+    PC>:/home/<user>/nfsroot}.
+
+\end{enumerate}
+
+See the training materials of our {\em Embedded Linux system
+  development} course for details!
