@@ -90,8 +90,8 @@ If you wish to exit \code{picocom}, press \code{[Ctrl][a]} followed by
 \section{AT91Bootstrap Setup}
 
 The boot process is done in two steps with the ROM monitor trying to
-execute a first piece of software, called \code{AT91Bootstrap}, from
-its internal SRAM, that will initialize the DRAM, load \code{U-Boot}
+execute a first piece of software, called \em{AT91Bootstrap}, from
+its internal SRAM, that will initialize the DRAM, load \em{U-Boot}
 that will in turn load Linux and execute it.
 
 As far as bootloaders are concerned, the layout of the NAND flash will
@@ -196,7 +196,6 @@ Download U-Boot:
 wget ftp://ftp.denx.de/pub/u-boot/u-boot-2017.09.tar.bz2
 \end{verbatim}
 
-
 More recent versions may also work, but we have not tested them.
 
 Extract the source archive and get an understanding of U-Boot's
@@ -229,6 +228,44 @@ sudo apt-get install device-tree-compiler
 \item Finally, run \code{make}, which should build U-Boot.
 
 \end{itemize}
+
+\section{Shrinking U-Boot}
+
+Look at the size of the \code{u-boot.bin} binary. According to the above
+flash layout, the U-Boot binary is supposed to fit between flash offset
+\code{0x40000} and offset \code{0xc00000}, corresponding to a maximum
+size of \code{524288} bytes. Is \code{u-boot.bin} bigger than this
+maximum?
+
+The first offset is what AT91Bootstrap expects
+(though it can be changed in AT91Bootstrap's configuration.
+The second one, corresponding to where U-Boot stores its environment
+settings, is board dependent but but apparently cannot be changed
+through \code{make menuconfig}. 
+
+To avoid recompiling AT91Bootstrap, we propose to compile U-Boot with
+less features, to make its binary small. That's probably something you
+will do too during real-life projects.
+
+So, in U-Boot sources, run \code{make menuconfig}, look for and disable
+the below options:
+
+\begin{itemize}
+\item \code{ext4} options
+\item \code{nfs} options
+\item \code{EFI} options
+\item \code{imxtract} support
+\item \code{bootelf} command
+\item Regular expression support
+\item \code{dm} support
+\item \code{loadb} support
+\item \code{mii} commands
+\end{itemize}
+
+Now, recompile U-Boot and check that \code{u-boot.bin} is smaller
+than our maximum size.
+
+\section{Flashing U-Boot}
 
 Now, in \code{sam-ba}, in the \code{Send File Name} field, set the path to
 the \code{u-boot.bin} that was just compiled, and set the address to
