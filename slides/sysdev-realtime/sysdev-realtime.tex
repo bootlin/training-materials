@@ -256,10 +256,10 @@
 \begin{frame}
   \frametitle{The PREEMPT\_RT project}
   \begin{itemize}
-  \item Long-term project lead by Linux kernel developers Ingo Molnar,
-    Thomas Gleixner and Steven Rostedt
+  \item Long-term project lead by Linux kernel developers
+    such as Thomas Gleixner, Steven Rostedt and Ingo Molnar
     \begin{itemize}
-    \item \url{https://rt.wiki.kernel.org}
+    \item \url{https://wiki.linuxfoundation.org/realtime/}
     \end{itemize}
   \item The goal is to gradually improve the Linux kernel regarding
     real-time requirements and to get these improvements merged into
@@ -279,46 +279,23 @@
 \end{frame}
 
 \begin{frame}
-  \frametitle{Improvements in the mainline kernel}
-  \begin{columns}[T]
-    \column{0.5\textwidth}
-    From the PREEMPT\_RT project
-    \begin{itemize}
-    \item Since the beginning of 2.6
-      \begin{itemize}
-      \item O(1) scheduler
-      \item Kernel preemption
-      \item Better POSIX real-time API support
-      \end{itemize}
-    \item Since 2.6.18
-      \begin{itemize}
-      \item Priority inheritance support for mutexes
-      \end{itemize}
-    \end{itemize}
-    \column{0.5\textwidth}
-    \begin{itemize}
-    \item Since 2.6.21
-      \begin{itemize}
-      \item High-resolution timers
-      \end{itemize}
-    \end{itemize}
-    \begin{itemize}
-    \item Since 2.6.30
-      \begin{itemize}
-      \item Threaded interrupts
-      \end{itemize}
-    \item Since 2.6.33
-      \begin{itemize}
-      \item Spinlock annotations
-      \end{itemize}
-    \end{itemize}
-  \end{columns}
-  \vspace{0.5cm}
+  \frametitle{Improvements to the mainline kernel}
+  Brought by PREEMPT\_RT project since its beginning
+  \begin{itemize}
+  \item O(1) scheduler
+  \item Kernel preemption
+  \item Better POSIX real-time API support
+  \item {\em ftrace} kernel function tracer
+  \item Priority inheritance support for mutexes
+  \item High-resolution timers
+  \item Threaded interrupts
+  \item Spinlock annotations
+  \end{itemize}
 \end{frame}
 
 \begin{frame}
-  \frametitle{New preemption options in Linux 2.6}
-  2 new preemption models offered by standard Linux 2.6:
+  \frametitle{Preemption options}
+  Preemption models offered by the mainline kernel:
   \begin{center}
     \includegraphics[width=0.9\textwidth]{slides/sysdev-realtime/kernel-config-preemption.png}
   \end{center}
@@ -334,7 +311,7 @@
     throughput is key.
   \item Best to reduce task switching to maximize CPU and cache usage
     (by reducing context switching).
-  \item Still benefits from some Linux 2.6 improvements: O(1)
+  \item Still benefits from some Linux real-time improvements: O(1)
     scheduler, increased multiprocessor safety (work on RT preemption
     was useful to identify hard to find SMP bugs).
   \item Can also benefit from a lower timer frequency (100 Hz instead
@@ -378,7 +355,7 @@
   \item One classical solution to the priority inversion problem is
     called priority inheritance
     \includegraphics[width=0.9\textwidth]{slides/sysdev-realtime/priority-inheritance.pdf}
-  \item In Linux, since 2.6.18, mutexes support priority inheritance
+  \item In the Linux kernel, mutexes support priority inheritance
   \item In user space, priority inheritance must be explicitly enabled
     on a per-mutex basis.
   \end{itemize}
@@ -396,8 +373,8 @@
     \item Increasing the regular system tick frequency is not an
       option as it would consume too many resources
     \end{itemize}
-  \item The high-resolution timers infrastructure, merged in 2.6.21,
-    allows to use the available hardware timers to program interrupts
+  \item The high-resolution timers infrastructure allows to use
+    the available hardware timers to program interrupts
     at the right moment.
     \begin{itemize}
     \item Hardware timers are multiplexed, so that a single hardware
@@ -421,7 +398,7 @@
     thread
   \item The idea of threaded interrupts also allows to use sleeping
     spinlocks (see later)
-  \item Merged since 2.6.30, the conversion of interrupt handlers to
+  \item The conversion of interrupt handlers to
     threaded interrupts is not automatic: drivers must be modified
   \item In PREEMPT\_RT, all interrupt handlers are switched to
     threaded interrupts
@@ -429,7 +406,7 @@
 \end{frame}
 
 \begin{frame}
-  \frametitle{The future of the PREEMPT\_RT patchset}
+  \frametitle{Ongoing work on the PREEMPT\_RT patchset}
   \begin{itemize}
   \item Before Oct. 2015: project stalled because of the lack of funding.
         Thomas Gleixner still the maintainer but lacked time for further
@@ -438,8 +415,8 @@
   \item Oct. 2015: the Linux Foundation at last got funding
         for mainlining the patchset into the Linux kernel (see
         \url{http://lwn.net/Articles/659193/}).
-  \item Since then, the patchset has reduced in size, but hasn't
-        been fully merged yet.
+  \item Since then, the mainlining effort continues and further kernel
+        releases are supported.
   \end{itemize}
 \end{frame}
 
@@ -460,7 +437,9 @@
     \item Works well with threaded interrupts, since threads can
       block, while usual interrupt handlers could not.
     \item Some core, carefully controlled, kernel spinlocks remain as
-      normal spinlocks.
+      normal spinlocks ({\em spinlock annotations}: differentiation
+      now in mainline between spinning spinlocks and those that can be
+      converted to sleeping spinlocks).
     \end{itemize}
   \end{itemize}
 \end{frame}
@@ -474,28 +453,14 @@
     \item An interrupt can occur at any time, when returning from the
       interrupt handler, the woken up process can start immediately.
     \end{itemize}
-  \item This is the last big part of PREEMPT\_RT that isn't fully in
-    the mainline kernel yet
-    \begin{itemize}
-    \item Part of it has been merged in 2.6.33: the spinlock
-      annotations. The spinlocks that must remain as spinning
-      spinlocks are now differentiated from spinlocks that can be
-      converted to sleeping spinlocks. This has reduced a lot the
-      PREEMPT\_RT patch size!
-    \end{itemize}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Threaded interrupts}
-  \begin{itemize}
   \item The mechanism of threaded interrupts in PREEMPT\_RT is still
     different from the one merged in mainline
-  \item In PREEMPT\_RT, all interrupt handlers are unconditionally
-    converted to threaded interrupts.
-  \item This is a temporary solution, until interesting drivers in
-    mainline get gradually converted to the new threaded interrupt API
-    that has been merged in 2.6.30.
+    \begin{itemize}
+      \item In PREEMPT\_RT, all interrupt handlers are unconditionally
+        converted to threaded interrupts.
+      \item However, this is a temporary solution, until interesting drivers in
+    	mainline get gradually converted to the threaded interrupt API.
+    \end{itemize}
   \end{itemize}
 \end{frame}
 
@@ -512,7 +477,7 @@
       some adaptations
     \end{itemize}
   \item Not all releases of the Linux kernel are supported.
-      Most recent: 3.10, 3.12, 3.14, 3.18, 4.0, 4.1, 4.4, 4.6, 4.8, 4.9
+      Most recent: 4.0, 4.1, 4.4, 4.6, 4.8, 4.9, 4.11, 4.13
   \item Quick set up:
     \begin{itemize}
     \item Download the latest PREEMPT\_RT patch\\
@@ -648,13 +613,16 @@ pthread_join(pthread_t *thread, void **value_ptr);
       by the {\em nice} value, which ranges from -20 (highest) to 19
       (lowest). Can be set using the \code{nice} or \code{renice} commands
     \end{itemize}
-  \item The real-time classes \code{SCHED_FIFO} and \code{SCHED_RR}
+  \item The real-time classes \code{SCHED_FIFO}, \code{SCHED_RR} and
+         \code{SCHED_DEADLINE}
     \begin{itemize}
     \item The highest priority process gets all the CPU time, until it
       blocks.
     \item In \code{SCHED_RR}, round-robin scheduling between the
       processes of the same priority. All must block before lower
       priority processes get CPU time.
+    \item In \code{SCHED_DEADLINE}: guarantees that an RT task
+      will be given an exact amount of cpu time every period.
     \item Priorities ranging from 0 (lowest) to 99 (highest)
     \end{itemize}
   \end{itemize}
@@ -950,12 +918,15 @@ cat /sys/kernel/debug/tracing/tracing_max_latency
   \frametitle{Useful reading}
   About real-time support in the standard Linux kernel
   \begin{itemize}
+  \item The Status of the Preempt-RT Patch - Sebastian Siewior, Linutronix, ELCE 2017\\
+	\url{https://elinux.org/images/7/71/2017_rt_status_2.pdf}\\
+	Video: \url{http://bit.ly/2xLPBO1}
+  \item Using SCHED\_DEADLINE - Steven Rostedt, Red Hat, ELCE 2016
+	\url{https://elinux.org/images/f/fe/Using_SCHED_DEADLINE.pdf}
+	Video: \url{https://youtu.be/TDR-rgWopgM}
   \item Inside the RT patch, Steven Rostedt, Red Hat, ELC 2013\\
-    \url{http://elinux.org/images/b/ba/Elc2013_Rostedt.pdf}\\
-    Video: \url{http://j.mp/1apUtu6}
-  \item The Real-Time Linux Wiki: \url{http://rt.wiki.kernel.org}\\
-    “The Wiki Web for the CONFIG\_PREEMPT\_RT community, and real-time Linux in general.”\\
-    Contains nice and useful documents!
+    	\url{http://elinux.org/images/b/ba/Elc2013_Rostedt.pdf}\\
+    	Video: \url{http://j.mp/1apUtu6}
   \item See also our books page.
   \end{itemize}
 \end{frame}
