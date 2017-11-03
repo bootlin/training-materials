@@ -29,9 +29,13 @@ supports Xenomai.
 
 Let's build this with Buildroot.
 
-Reuse and extract the Buildroot 2016.02 sources. Configure Buildroot
-with the following settings, using the \code{/} command in \code{make
-  menuconfig} to find parameters by their name:
+Download and extract the Buildroot 2016.02 sources. As the latest
+version of Xenomai doesn't seem to work on the Xplained board (yet),
+we need an older version of Buildroot that will build Xenomai 2.6.
+
+Configure Buildroot with the following settings,
+using the \code{/} command in \code{make
+menuconfig} to find parameters by their name:
 
 \begin{itemize}
 \item In \code{Target}:
@@ -88,11 +92,31 @@ tests:
 cp data/* nfsroot/root
 \end{verbatim}
 
+\section{Downloading sources and patches}
+
+We will use a kernel version that is supported by the PREEMPT\_RT
+patchset.
+
+So, go to
+\url{https://www.kernel.org/pub/linux/kernel/projects/rt/4.13/},
+download the latest patch available in a single file.
+
+Then go to \url{http://kernel.org} and download the exact version
+corresponding to the patch you downloaded. At the time of this writing,
+this version was 4.13.10.
+
 \section{Compile a standard Linux kernel}
 
-Reusing the 4.6 kernel we previously compiled, make sure that you disable
+Extract the sources of your 4.13.x kernel but don't apply the
+PREEMPT\_RT patches yet.
+
+Configure your kernel for your Xplained board, and then make sure
+that the below settings are disabled:
 \code{CONFIG_PROVE_LOCKING}, \code{CONFIG_DEBUG_LOCK_ALLOC},
 \code{CONFIG_DEBUG_MUTEXES} and \code{CONFIG_DEBUG_SPINLOCK}.
+
+Also, for the moment, disable the \code{CONFIG_HIGH_RES_TIMERS}
+option which impact we want to measure.
 
 Boot the Xplained board by mounting the root filesystem that you
 built. As usual, login as \code{root}, there is no password.
@@ -136,7 +160,7 @@ with further results.
 
 Obviously, this resolution will not provide accurate sleep times, and
 this is because our kernel doesn't use high-resolution timers. So
-let's enable the \code{CONFIG_HIGH_RES_TIMERS} option in the kernel
+let's add back the \code{CONFIG_HIGH_RES_TIMERS} option in the kernel
 configuration.
 
 Recompile your kernel, boot your Xplained with the new version, and
@@ -180,7 +204,7 @@ improvement in the maximum latency.
 
 \section{Testing Xenomai scheduling latency}
 
-Stay in \code{$HOME/embedded-linux-labs/realtime/rttest}.
+Stay in \code{$HOME/embedded-linux-labs/realtime}.
 
 Download the 2.6.4 release of Xenomai (that's what our version of
 Buildroot supports by default), and extract it.
@@ -195,7 +219,7 @@ and extract them.
  
 Now, prepare our kernel for Xenomai compilation:
 \begin{verbatim}
-cd $HOME/embedded-linux-labs/realtime/rttest
+cd $HOME/embedded-linux-labs/realtime
 ./xenomai-2.6.4/scripts/prepare-kernel.sh --arch=arm \
 --linux=linux-3.14.17 \
 --adeos=xenomai-2.6.4/ksrc/arch/arm/patches/ipipe-core-3.14.17-arm-4.patch
@@ -222,7 +246,7 @@ So go in your Buildroot source directory, and force Buildroot to build
 the host variant of {\em pkg-config}:
 
 \begin{verbatim}
-cd $HOME/embedded-linux-labs/realtime/rttest/buildroot-YYYY.MM/
+cd $HOME/embedded-linux-labs/realtime/buildroot-YYYY.MM/
 make host-pkgconf
 \end{verbatim}
 
@@ -230,8 +254,8 @@ We can now compile \code{rttest} for the Xenomai POSIX skin:
 
 \scriptsize
 \begin{verbatim}
-cd $HOME/embedded-linux-labs/realtime/rttest/nfsroot/root
-export PATH=$HOME/embedded-linux-labs/realtime/rttest/buildroot-YYYY.MM/output/host/usr/bin:$PATH
+cd $HOME/embedded-linux-labs/realtime/nfsroot/root
+export PATH=$HOME/embedded-linux-labs/realtime/buildroot-YYYY.MM/output/host/usr/bin:$PATH
 arm-none-linux-gnueabi-gcc -o rttest rttest.c \
   $(pkg-config --libs --cflags libxenomai_posix)
 \end{verbatim}
