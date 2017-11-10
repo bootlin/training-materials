@@ -1236,108 +1236,19 @@ ret = bind(s, (struct sockaddr *)&saddr, sizeof(saddr));
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{The native API (1)}
+  \frametitle{The native API}
+  Xenomai proposes its own API for developing real-time tasks
   \begin{itemize}
-  \item A Xenomai specific API for developing real-time tasks
-    \begin{itemize}
-    \item {\small
-      \url{http://xenomai.org/documentation/branches/v2.4.x/pdf/Native-API-Tour-rev-C.pdf}}
-    \item Usable both in user space and kernel space. Development of
-      tasks in user space is the preferred way.
-    \item More coherent and more flexible API than the POSIX
-      API. Easier to learn and understand. Certainly the way to go for
-      new applications.
-    \end{itemize}
-  \item Applications should include \code{<native/service.h>}, where
-    \code{service} can be \code{alarm}, \code{buffer}, \code{cond},
-    \code{event}, \code{heap}, \code{intr}, \code{misc}, \code{mutex},
-    \code{pipe}, \code{queue}, \code{sem}, \code{task}, \code{timer}
-  \item To compile applications:
-    \begin{block}{}
-\small
-\begin{verbatim}
-CFL=`pkg-config --cflags libxenomai_native`
-LDF=`pkg-config --libs libxenomai_native`
-ARCH-gcc $CFL -o rttest rttest.c $LDF
-\end{verbatim}
-\normalsize
-    \end{block}
+  \item {\small
+    \url{http://xenomai.org/documentation/branches/v2.4.x/pdf/Native-API-Tour-rev-C.pdf}}
+  \item Usable both in user space and kernel space. Development of
+    tasks in user space is the preferred way.
+  \item Xenomai developers find it a more coherent and more flexible API
+    than the POSIX API, and easier to learn and understand.
+  \item However, beware that programming with the POSIX API is much
+    more portable (ability to use regular Linux, Linux with PREEMPT_RT, Xenomai
+    and other POSIX operating systems).
   \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{The native API (2)}
-  \begin{itemize}
-  \item Task management services
-    \begin{itemize}
-    \item \code{rt_task_create()}, \code{rt_task_start()},
-      \code{rt_task_suspend()}, \code{rt_task_resume()},
-      \code{rt_task_delete()}, \code{rt_task_join()}, etc.
-    \end{itemize}
-  \item Counting semaphore services
-    \begin{itemize}
-    \item \code{rt_sem_create()}, \code{rt_sem_delete()},
-      \code{rt_sem_p()}, \code{rt_sem_v()}, etc.
-    \end{itemize}
-  \item Message queue services
-    \begin{itemize}
-    \item \code{rt_queue_create()}, \code{rt_queue_delete()},
-      \code{rt_queue_alloc()}, \code{rt_queue_free()},
-      \code{rt_queue_send()}, \code{rt_queue_receive()}, etc.
-    \end{itemize}
-  \item Mutex services
-    \begin{itemize}
-    \item \code{rt_mutex_create()}, \code{rt_mutex_delete()},
-      \code{rt_mutex_acquire()}, \code{rt_mutex_release()}, etc.
-    \end{itemize}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{The native API (3)}
-  \begin{itemize}
-  \item Alarm services
-    \begin{itemize}
-    \item \code{rt_alarm_create()}, \code{rt_alarm_delete()},
-      \code{rt_alarm_start()}, \code{rt_alarm_stop()},
-      \code{rt_alarm_wait()}, etc.
-    \end{itemize}
-  \item Memory heap services
-    \begin{itemize}
-    \item Allows to share memory between processes and/or to
-      pre-allocate a pool of memory
-    \item \code{rt_heap_create()}, \code{rt_heap_delete()},
-      \code{rt_heap_alloc()}, \code{rt_heap_bind()}
-    \end{itemize}
-  \item Condition variable services
-    \begin{itemize}
-    \item \code{rt_cond_create()}, \code{rt_cond_delete()},
-      \code{rt_cond_signal()}, \code{rt_cond_broadcast()},
-      \code{rt_cond_wait()}, etc.
-    \end{itemize}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Xenomai and normal task communication}
-  \begin{itemize}
-  \item Using {\em rt\_pipes}
-  \item In the native Xenomai application, use the Pipe API
-    \begin{itemize}
-    \item \code{rt_pipe_create()}, \code{rt_pipe_delete()},
-      \code{rt_pipe_receive()}, \code{rt_pipe_send()},
-      \code{rt_pipe_alloc()}, \code{rt_pipe_free()}
-    \end{itemize}
-  \item In the normal Linux application
-    \begin{itemize}
-    \item Open the corresponding \code{/dev/rtpX} file, the minor is specified at
-      \code{rt_pipe_create()} time
-    \item Then, just \code{read()} and \code{write()} to the opened file
-    \end{itemize}
-  \end{itemize}
-  \begin{center}
-    \includegraphics[width=0.9\textwidth]{slides/sysdev-realtime/rtpipe.pdf}
-  \end{center}
 \end{frame}
 
 \begin{frame}
