@@ -96,7 +96,7 @@ i2c@11000 {
 
 \begin{frame}[fragile]{Example on OMAP/AM33xx}
   \begin{columns}
-    \column{0.5\textwidth}
+    \column{0.45\textwidth}
     \begin{itemize}
       \small
     \item On OMAP/AM33xx, the \code{pinctrl-single} driver is used. It
@@ -110,29 +110,34 @@ i2c@11000 {
     \item To know the correct values, one must use the SoC and board
       datasheets.
     \end{itemize}
-    \column{0.5\textwidth}
+    \column{0.55\textwidth}
     \begin{minted}[fontsize=\tiny]{perl}
-am33xx_pinmux: pinmux@44e10800 {
-    i2c0_pins: pinmux_i2c0_pins {
-        pinctrl-single,pins = <
-                /* i2c0_sda.i2c0_sda */
-                0x188 (PIN_INPUT_PULLUP | MUX_MODE0)
-                /* i2c0_scl.i2c0_scl */
-                0x18c (PIN_INPUT_PULLUP | MUX_MODE0)
-        >;
-    };
+/* Excerpt from am335x-boneblue.dts */
+
+&am33xx_pinmux {
+   ...
+   i2c2_pins: pinmux_i2c2_pins {
+      pinctrl-single,pins = <
+         AM33XX_IOPAD(0x978, PIN_INPUT_PULLUP | MUX_MODE3)
+         /* (D18) uart1_ctsn.I2C2_SDA */
+         AM33XX_IOPAD(0x97c, PIN_INPUT_PULLUP | MUX_MODE3)
+         /* (D17) uart1_rtsn.I2C2_SCL */
+      >;
+   };
 };
 
-i2c0: i2c@44e0b000 {
-        pinctrl-names = "default";
-        pinctrl-0 = <&i2c0_pins>;
+&i2c2 {
+   pinctrl-names = "default";
+   pinctrl-0 = <&i2c2_pins>;
 
-        status = "okay";
-        clock-frequency = <400000>;
+   status = "okay";
+   clock-frequency = <400000>;
+   ...
 
-        tps: tps@2d {
-                reg = <0x2d>;
-        };
+   pressure@76 {
+      compatible = "bosch,bmp280";
+      reg = <0x76>;
+   };
 };
     \end{minted}
   \end{columns}
