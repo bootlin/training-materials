@@ -1,7 +1,7 @@
-\section{Kernel Debugging}
+\section{Kernel debugging}
 
 \begin{frame}[fragile]
-  \frametitle{Debugging Using Messages (1)}
+  \frametitle{Debugging using messages (1)}
   Three APIs are available
   \begin{itemize}
   \item The old \kfunc{printk}, no longer recommended for new debugging
@@ -27,7 +27,7 @@ pr_info("Booting CPU %d\n", cpu);
 
 
 \begin{frame}[fragile]
-  \frametitle{Debugging Using Messages (2)}
+  \frametitle{Debugging using messages (2)}
   \begin{itemize}
   \item The \code{dev_*()} family of functions: \kfunc{dev_emerg},
     \kfunc{dev_alert}, \kfunc{dev_crit}, \kfunc{dev_err},
@@ -63,7 +63,7 @@ dev_info(&pdev->dev, "in probe\n");
     then these messages can dynamically be enabled on a per-file,
     per-module or per-message basis
     \begin{itemize}
-    \item See \kerneldochtml{admin-guide/dynamic-debug-howto} for details
+    \item Details in \kerneldochtml{admin-guide/dynamic-debug-howto}
     \item Very powerful feature to only get the debug messages you're
       interested in.
     \end{itemize}
@@ -74,10 +74,11 @@ dev_info(&pdev->dev, "in probe\n");
 \end{frame}
 
 \begin{frame}
-  \frametitle{Configuring The Priority}
+  \frametitle{Configuring the priority}
   \begin{itemize}
   \item Each message is associated to a priority, ranging from \code{0} for
-    emergency to \code{7} for debug.
+    emergency to \code{7} for debug, as specified in
+    \kfile{include/linux/kern_levels.h}.
   \item All the messages, regardless of their priority, are stored in
     the kernel log ring buffer
     \begin{itemize}
@@ -87,13 +88,12 @@ dev_info(&pdev->dev, "in probe\n");
     their priority and the configuration of
     \begin{itemize}
     \item The \code{loglevel} kernel parameter, which defines the
-      priority above which messages are displayed on the console. See
-      \kerneldochtml{admin-guide/kernel-parameters} in kernel
-      documentation for details.
+      priority above which messages are displayed on the console.
+      Details in \kerneldochtml{admin-guide/kernel-parameters}.
     \item The value of \code{/proc/sys/kernel/printk}, which allows to
       change at runtime the priority above which messages are
-      displayed on the console. See
-      \kerneldoctext{sysctl/kernel.txt} for details.
+      displayed on the console. Details in
+      \kerneldoctext{sysctl/kernel.txt}
     \end{itemize}
   \end{itemize}
 \end{frame}
@@ -102,7 +102,7 @@ dev_info(&pdev->dev, "in probe\n");
   \frametitle{DebugFS}
   A virtual filesystem to export debugging information to user space.
   \begin{itemize}
-  \item Kernel configuration: \code{DEBUG_FS}
+  \item Kernel configuration: \code{CONFIG_DEBUG_FS}
     \begin{itemize}
     \item \code{Kernel hacking -> Debug Filesystem}
     \end{itemize}
@@ -114,9 +114,8 @@ dev_info(&pdev->dev, "in probe\n");
     \end{itemize}
   \item First described on \url{http://lwn.net/Articles/115405/}
   \item API documented in the Linux Kernel Filesystem API:
-    \begin{itemize}
-    \item \kerneldocbook{filesystems/}
-    \end{itemize}
+    \kerneldochtmlsection{filesystems}{the-debugfs-filesystem}
+    {The debugfs filesystem}
   \end{itemize}
 \end{frame}
 
@@ -128,14 +127,14 @@ dev_info(&pdev->dev, "in probe\n");
     \item \mint{c}+struct dentry *debugfs_create_dir(const char *name,+
       \mint{c}+struct dentry *parent);+
     \end{itemize}
-  \item Expose an integer as a file in DebugFS:
+  \item Expose an integer as a file in DebugFS. Example:
     \begin{itemize}
-    \item \mint{c}+struct dentry *debugfs_create_{u,x}{8,16,32}+
+    \item \mint{c}+struct dentry *debugfs_create_u8+
       \mint{c}+(const char *name, mode_t mode, struct dentry *parent,+
       \mint{c}+u8 *value);+
       \begin{itemize}
-      \item \code{u} for decimal representation
-      \item \code{x} for hexadecimal representation
+      \item \code{u8}, \code{u16}, \code{u32}, \code{u64} for decimal representation
+      \item \code{x8}, \code{x16}, \code{x32}, \code{x64} for hexadecimal representation
       \end{itemize}
     \end{itemize}
   \item Expose a binary blob as a file in DebugFS:
@@ -151,7 +150,7 @@ dev_info(&pdev->dev, "in probe\n");
 \end{frame}
 
 \begin{frame}
-  \frametitle{Deprecated Debugging Mechanisms}
+  \frametitle{Deprecated debugging mechanisms}
   Some additional debugging mechanisms, whose usage is now
   considered deprecated
   \begin{itemize}
@@ -172,8 +171,8 @@ dev_info(&pdev->dev, "in probe\n");
   \item Allows to run multiple debug / rescue commands even when the
     kernel seems to be in deep trouble
     \begin{itemize}
-    \item On PC: press \code{[Alt]} + \code{[SysRq]} + \code{<character>}
-	  simultaneously
+    \item On PC: press \code{[Alt]} + \code{[Prnt Scrn]} + \code{<character>}
+	  simultaneously (\code{[SysRq]} = \code{[Alt]} + \code{[Prnt Scrn]})
     \item On embedded: in the console, send a break character
       (Picocom: press \code{[Ctrl]} + \code{a} followed by \code{[Ctrl]}
       + \code{\ }), then press \code{<character>}
@@ -193,7 +192,7 @@ dev_info(&pdev->dev, "in probe\n");
 \end{frame}
 
 \begin{frame}
-  \frametitle{kgdb - A Kernel Debugger}
+  \frametitle{kgdb - A kernel debugger}
   \begin{itemize}
   \item The execution of the kernel is fully controlled by \code{gdb}
     from another machine, connected through a serial line.
@@ -207,7 +206,7 @@ dev_info(&pdev->dev, "in probe\n");
   \frametitle{Using kgdb 1/2}
   \begin{itemize}
   \item Details available in the kernel documentation:
-    \kerneldocbook{kgdb/}
+    \kerneldochtml{dev-tools/kgdb}
   \item Recommended to turn on \code{CONFIG_FRAME_POINTER} to aid in
     producing more reliable stack backtraces in \code{gdb}.
   \item You must include a kgdb I/O driver. One of them is \code{kgdb} over
@@ -227,10 +226,11 @@ dev_info(&pdev->dev, "in probe\n");
   \item Then also pass \code{kgdbwait} to the kernel: it makes
     \code{kgdb} wait for a debugger connection.
   \item Boot your kernel, and when the console is initialized,
-    interrupt the kernel with \code{Alt} + \code{SysRq} + \code{g}.
+    interrupt the kernel with a break character and then \code{g}
+    in the serial console (see our {\em Magic SysRq} explanations).
   \item On your workstation, start \code{gdb} as follows:
     \begin{itemize}
-    \item \code{gdb ./vmlinux}
+    \item \code{arm-linux-gdb ./vmlinux}
     \item \code{(gdb) set remotebaud 115200}
     \item \code{(gdb) target remote /dev/ttyS0}
     \end{itemize}
@@ -240,7 +240,7 @@ dev_info(&pdev->dev, "in probe\n");
 \end{frame}
 
 \begin{frame}
-  \frametitle{Debugging with a JTAG Interface}
+  \frametitle{Debugging with a JTAG interface}
   Two types of JTAG dongles
   \begin{itemize}
   \item The ones offering a \code{gdb} compatible interface, over a
@@ -264,7 +264,7 @@ dev_info(&pdev->dev, "in probe\n");
 \end{frame}
 
 \begin{frame}
-  \frametitle{More Kernel Debugging Tips}
+  \frametitle{More kernel debugging tips}
   \begin{itemize}
   \item Make sure \code{CONFIG_KALLSYMS_ALL} is enabled
     \begin{itemize}
