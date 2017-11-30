@@ -1,7 +1,7 @@
 \subsection{DMA}
 
 \begin{frame}
-  \frametitle{DMA Integration}
+  \frametitle{DMA integration}
   \begin{center}
     \includegraphics[width=\textwidth]{slides/kernel-driver-development-dma/dma-integration.pdf}
   \end{center}
@@ -15,7 +15,7 @@
 \end{frame}
 
 \begin{frame}
-  \frametitle{DMA Controllers}
+  \frametitle{DMA controllers}
   \begin{center}
     \includegraphics[width=\textwidth]{slides/kernel-driver-development-dma/dma-controller.pdf}
   \end{center}
@@ -28,7 +28,7 @@
   \end{center}
 \end{frame}
 
-\subsection{DMA Usage}
+\subsection{DMA usage}
 
 \begin{frame}
   \frametitle{Constraints with a DMA}
@@ -53,7 +53,7 @@
 \end{frame}
 
 \begin{frame}
-  \frametitle{DMA Memory Constraints}
+  \frametitle{DMA memory constraints}
   \begin{itemize}
   \item Need to use contiguous memory in physical space.
   \item Can use any memory allocated by \kfunc{kmalloc} (up to 128 KB)
@@ -66,7 +66,7 @@
 \end{frame}
 
 \begin{frame}
-  \frametitle{Memory Synchronization Issues}
+  \frametitle{Memory synchronization issues}
   Memory caching could interfere with DMA
   \begin{itemize}
   \item Before DMA to device
@@ -102,7 +102,7 @@
 \end{frame}
 
 \begin{frame}
-  \frametitle{Coherent or Streaming DMA Mappings}
+  \frametitle{Coherent or streaming DMA mappings}
   \begin{itemize}
   \item Coherent mappings
     \begin{itemize}
@@ -126,7 +126,7 @@
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{Allocating Coherent Mappings}
+  \frametitle{Allocating coherent mappings}
   The kernel takes care of both buffer allocation and mapping
 \begin{minted}[fontsize=\small]{c}
 #include <asm/dma-mapping.h>
@@ -165,7 +165,7 @@ void dma_unmap_single(struct device *dev, dma_addr_t handdle,
 \end{frame}
 
 \begin{frame}
-  \frametitle{DMA Streaming Mapping Notes}
+  \frametitle{DMA streaming mapping notes}
   \begin{itemize}
   \item When the mapping is active: only the device should access the
     buffer (potential cache issues otherwise).
@@ -195,9 +195,8 @@ void dma_unmap_single(struct device *dev, dma_addr_t handdle,
 \end{frame}
 
 \begin{frame}
-  \frametitle{DMAEngine Slave API}
-  \begin{itemize}
-  \item In order to start a DMA transfer, you need to call the
+  \frametitle{DMAEngine slave API (1)}
+    In order to start a DMA transfer, you need to call the
     following functions from your driver
     \begin{enumerate}
     \item Request a channel for exclusive use with
@@ -214,9 +213,16 @@ void dma_unmap_single(struct device *dev, dma_addr_t handdle,
     \item And finally ask the driver to process all pending
       transactions using \kfunc{dma_async_issue_pending}
     \end{enumerate}
-  \item Of course, this needs to be done in addition to the DMA
+\end{frame}
+
+\begin{frame}
+  \frametitle{DMAEngine slave API (2)}
+  \begin{itemize}
+  \item Of course, all this needs to be done in addition to the DMA
     mapping seen previously
-  \item Some frameworks abstract it away from you, such as {\em SPI}
+  \item Some frameworks abstract it away, such as {\em SPI}
     and {\em ASoC}
   \end{itemize}
+  Details in kernel documentation: \kerneldochtml{driver-api/dmaengine/client}
 \end{frame}
+
