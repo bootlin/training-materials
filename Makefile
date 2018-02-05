@@ -461,7 +461,7 @@ PDFLATEX_ENV = TEXINPUTS=.:$(PWD)/common:
 PDFLATEX_OPT = -shell-escape -file-line-error -halt-on-error
 
 # The common slide stylesheet
-STYLESHEET = common/beamerthemeFreeElectrons.sty
+STYLESHEET = common/beamerthemeBootlin.sty
 
 #
 # === Picture lookup ===

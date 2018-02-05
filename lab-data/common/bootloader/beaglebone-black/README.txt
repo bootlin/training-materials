@@ -2,7 +2,7 @@
 Install U-boot 2013.10 on the Beagle Bone's internal flash storage (eMMC)
 =========================================================================
 
-This is needed for some aspects of Free Electrons' kernel and Android labs,
+This is needed for some aspects of Bootlin's kernel and Android labs,
 such as saving U-Boot environment settings to eMMC storage.
 
 Tested on the following board revisions:
@@ -113,7 +113,7 @@ How the binaries were compiled
 ==============================
 
 Caution: instructions for people already familiar with embedded Linux.
-See our Embedded Linux course (http://free-electrons.com/training/embedded-linux/)
+See our Embedded Linux course (http://bootlin.com/training/embedded-linux/)
 if you are not comfortable with these instructions.
 
 Toolchain
@@ -180,7 +180,7 @@ After cloning this tree, we followed the instructions on the 'README.md'
 file to produce a modified Linux 3.12 source tree.
 
 The resulting source archive can be found on:
-http://free-electrons.com/labs/sources/linux-3.12-bone-black.tar.xz
+http://bootlin.com/labs/sources/linux-3.12-bone-black.tar.xz
 
 Extract these sources and compile them as follows:
 - Set environment variables:

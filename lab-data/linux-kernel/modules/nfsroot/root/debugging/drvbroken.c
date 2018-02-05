@@ -1,5 +1,5 @@
 /* Voluntarily broken driver
- * Copyright Thomas Petazzoni <thomas.petazzoni@free-electrons.com>
+ * Copyright Thomas Petazzoni <thomas.petazzoni@bootlin.com>
  * License: GNU General Public License 2.0 or later
  * Permission to break this driver even further!
  */

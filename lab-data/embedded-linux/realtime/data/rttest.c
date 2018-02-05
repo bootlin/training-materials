@@ -1,8 +1,8 @@
 /* Small program to test high-resolution timers
  * and scheduling latency in Unix / Linux
  *
- * Copyright (c) 2007-2008, Free Electrons
- * http://free-electrons.com/labs/solutions/cypfig/rttest.c
+ * Copyright (c) 2007-2008, Bootlin
+ * http://bootlin.com/labs/solutions/cypfig/rttest.c
  *
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 as published by
