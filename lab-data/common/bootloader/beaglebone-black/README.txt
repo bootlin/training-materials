@@ -122,7 +122,7 @@ Toolchain
 Tested on Ubuntu 13.10
 
 Install the Linaro toolchain:
-sudo apt-get install gcc-arm-linux-gnueabi
+sudo apt install gcc-arm-linux-gnueabi
 (the version at the time of our testing was 4:4.7.2-1)
 
 Compiling U-Boot
