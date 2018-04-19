@@ -53,21 +53,21 @@ card during the previous lab. We will get back to the filesystem sources
 that you have in \code{$HOME/embedded-linux-labs/tinysystem/nfsroot}.
 
 To run \code{mkfs.ubifs}, you will need to find the Logical Erase
-Block (LEB) size that UBI will use.
+Block (LEB) size that UBI will use. To find out this information,
+simply run \code{nand info} in U-Boot:
 
-A solution to get such information is to list default MTD partitions
-on the target (\code{cat /proc/mtd}), and attach the last partition
-to UBI. In case, the last partition is \code{mtd5}, you will run:
+\begin{itemize}
 
-\begin{verbatim}
-ubiattach -m 5 /dev/ubi_ctrl
-\end{verbatim}
+\item The \code{Erase size} is 128KB, which is the size of the {\em
+    Physical Erase Block}
 
-Doing this, you will get details in the kernel log about the MTD minimum
-I/O size and the LEB size that UBI will use\footnote{Note that this command
-could fail if you accidently wrote to the corresponding flash blocks.
-If this happens, go back to U-Boot and erase NAND sectors from the
-starting offset of this partition: \code{nand erase 0x660000 0xF9A0000}}.
+\item Both the \code{Page size} and \code{subpagesize} are 2KB, which
+  means this NAND doesn't support sub-pages.
+
+\end{itemize}
+
+Therefore, the size of one {\em LEB} is the size of the {\em PEB}
+minus the size of two pages: 128 KB - 2 * 2 KB, i.e {\bf 124 KB}.
 
 Knowing that the \code{data} and \code{rootfs} UBI volumes will be 16
 MiB big, you can now divide their total size by the LEB size, to compute
