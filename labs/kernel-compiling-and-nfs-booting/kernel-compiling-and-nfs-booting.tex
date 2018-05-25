@@ -44,7 +44,7 @@ Install packages needed for configuring, compiling and booting
 the kernel for your board:
 
 \begin{verbatim}
-sudo apt install qt5-default g++ pkg-config
+sudo apt install qt5-default g++ pkg-config libssl-dev
 \end{verbatim}
 
 \code{qt5-default} and \code{g++} are needed for \code{make xconfig}.
@@ -73,6 +73,14 @@ belongs to. Don't forget to set the \code{ARCH} and
 \code{CROSS_COMPILE} definitions for the \code{arm} platform and to
 use your cross-compiler.
 
+For the BeagleBone Black Wireless board, add the below options:
+\begin{itemize}
+  \item \code{CONFIG_USB_GADGET=y}
+  \item \code{CONFIG_USB_ETH=y}
+  \item \code{CONFIG_USB_ETH_EEM=y}
+  \item \code{CONFIG_USB_ETH_RNDIS=y}
+\end{itemize}
+
 Make sure that this configuration has \code{CONFIG_ROOT_NFS=y} (support
 booting on an NFS exported root directory).
 
@@ -85,7 +93,8 @@ Compile your kernel and generate the Device Tree Binaries (DTBs)
 make -j 4 
 \end{verbatim}
 
-Now, copy the \code{zImage} and \code{am335x-boneblack.dtb} files
+Now, copy the \code{zImage} and \code{am335x-boneblack.dtb}
+or \code{am335x-boneblack-wireless.dtb}files
 to the TFTP server home directory (\code{/var/lib/tftpboot}).
 
 \section{Setting up the NFS server}
@@ -126,8 +135,15 @@ Do this by setting U-boot's \code{bootargs} environment variable (all in
 just one line, pay attention to the \code{O} character, like "OMAP", in
 \code{ttyO0}):
 
+For the BeagleBone Back board:
 \begin{verbatim}
 setenv bootargs root=/dev/nfs rw ip=192.168.0.100 console=ttyO0
+  nfsroot=192.168.0.1:/home/<user>/linux-kernel-labs/modules/nfsroot
+\end{verbatim}
+
+For the BeagleBone Back Wireless board:
+\begin{verbatim}
+setenv bootargs root=/dev/nfs rw ip=192.168.0.100:::::sit0 console=ttyO0,115200n8
   nfsroot=192.168.0.1:/home/<user>/linux-kernel-labs/modules/nfsroot
 \end{verbatim}
 
@@ -155,7 +171,7 @@ tftp 0x81000000 zImage
 You'll also need to download the device tree blob:
 
 \begin{verbatim}
-tftp 0x82000000 am335x-boneblack.dtb
+tftp 0x82000000 <board>.dtb
 \end{verbatim}
 
 Now, boot your kernel:
@@ -203,7 +219,7 @@ environment variable:
 
 {\scriptsize
 \begin{verbatim}
-setenv bootcmd 'tftp 0x81000000 zImage; tftp 0x82000000 am335x-boneblack.dtb; bootz 0x81000000 - 0x82000000'
+setenv bootcmd 'tftp 0x81000000 zImage; tftp 0x82000000 <board>.dtb; bootz 0x81000000 - 0x82000000'
 saveenv
 \end{verbatim}
 }
