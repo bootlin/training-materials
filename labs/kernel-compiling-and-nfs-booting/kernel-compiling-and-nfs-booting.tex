@@ -76,9 +76,16 @@ use your cross-compiler.
 For the BeagleBone Black Wireless board, add the below options:
 \begin{itemize}
   \item \code{CONFIG_USB_GADGET=y}
-  \item \code{CONFIG_USB_ETH=y}
-  \item \code{CONFIG_USB_ETH_EEM=y}
-  \item \code{CONFIG_USB_ETH_RNDIS=y}
+  \item \code{CONFIG_USB_MUSB_HDRC} {\em Driver for the USB OTG
+        controller}
+  \item \code{CONFIG_USB_MUSB_GADGET} {\em Use the USB OTG controller
+	in device (gadget) mode} 
+  \item \code{CONFIG_MUSB_DSPS}=y
+  \item Check the dependencies of \code{CONFIG_AM335X_PHY_USB}
+        and find the way to set \code{CONFIG_AM335X_PHY_USB=y}
+  \item Find the "USB Gadget precomposed configurations" menu
+        and set it to {\em static} instead of {\em module}
+	so that \code{CONFIG_USB_ETH=y}
 \end{itemize}
 
 Make sure that this configuration has \code{CONFIG_ROOT_NFS=y} (support
@@ -94,7 +101,7 @@ make -j 4
 \end{verbatim}
 
 Now, copy the \code{zImage} and \code{am335x-boneblack.dtb}
-or \code{am335x-boneblack-wireless.dtb}files
+or \code{am335x-boneblack-wireless.dtb} files
 to the TFTP server home directory (\code{/var/lib/tftpboot}).
 
 \section{Setting up the NFS server}
@@ -148,9 +155,6 @@ setenv bootargs root=/dev/nfs rw ip=192.168.0.100:::::usb0
   console=ttyO0,115200n8
   nfsroot=192.168.0.1:/home/<user>/linux-kernel-labs/modules/nfsroot
 \end{verbatim}
-
-Of course, you need to adapt the IP addresses to your exact network
-setup.
 
 Now save this definition:
 \begin{verbatim}
