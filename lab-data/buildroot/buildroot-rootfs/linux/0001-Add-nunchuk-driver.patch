@@ -30,7 +30,7 @@ index 56eb471..5b7fba7 100644
 +	help
 +	  Say Y here if you have a Nintendo Wiimote extension connector
 +	  attached directly to an i2c bus, like the Sparcfun Wiichuck adapter
-+	  board.  This driver supports both the Nunchuck and the Classic
++	  board.  This driver supports both the Nunchuk and the Classic
 +	  Controller extensions.
 +
 +	  To compile this driver as a module, choose M here: the
@@ -60,7 +60,7 @@ index 0000000..ea7a1e0
 +/*
 + * i2c Wiichuck driver (Nintendo Wiimote accessory connector)
 + *
-+ * This driver supports Nintendo Wiimote accessories like the Nunchuck and
++ * This driver supports Nintendo Wiimote accessories like the Nunchuk and
 + * the Classic Controller connected to an i2c bus.
 + *
 + * Copyright (c) 2011 Secret Lab Technologies Ltd.
@@ -82,7 +82,7 @@ index 0000000..ea7a1e0
 + * the polling frequency back to 1 second.
 + *
 + * A callback is implemented for each supported devices, currently the
-+ * Nunchuck and the Classic Controller.  Wii Motion Plus has yet to be
++ * Nunchuk and the Classic Controller.  Wii Motion Plus has yet to be
 + * added.
 + */
 +
@@ -164,7 +164,7 @@ index 0000000..ea7a1e0
 +	return 0;
 +}
 +
-+static int wiichuck_process_nunchuck(struct wiichuck_device *wiichuck)
++static int wiichuck_process_nunchuk(struct wiichuck_device *wiichuck)
 +{
 +	struct input_dev *input_dev = wiichuck->poll_dev->input;
 +	uint8_t *b = wiichuck->buf;
@@ -188,7 +188,7 @@ index 0000000..ea7a1e0
 +	input_sync(input_dev);
 +
 +	dev_dbg(&wiichuck->i2c_client->dev,
-+		"nunchuck: j=%.3i,%.3i a=%.3x,%.3x,%.3x c,z=%i,%i\n",
++		"nunchuk: j=%.3i,%.3i a=%.3x,%.3x,%.3x c,z=%i,%i\n",
 +		b[0],b[1], ax,ay,az, WIIBTN(b[5], 1), WIIBTN(b[5], 0));
 +	return 0;
 +};
@@ -274,10 +274,10 @@ index 0000000..ea7a1e0
 +		id = (wiichuck->buf[0] << 8) | wiichuck->buf[1];
 +
 +		switch (id) {
-+			case 0x0000: /* Nunchuck */
-+				wiichuck->process = wiichuck_process_nunchuck;
++			case 0x0000: /* Nunchuk */
++				wiichuck->process = wiichuck_process_nunchuk;
 +				dev_info(&wiichuck->i2c_client->dev,
-+					 "Connected Nunchuck\n");
++					 "Connected Nunchuk\n");
 +				break;
 +
 +			case 0x0101: /* Classic Controller */
@@ -373,7 +373,7 @@ index 0000000..ea7a1e0
 +	__set_bit(EV_ABS, input_dev->evbit);
 +	__set_bit(EV_KEY, input_dev->evbit);
 +
-+	/* Nunchuck ranges */
++	/* Nunchuk ranges */
 +	__set_bit(ABS_X, input_dev->absbit); /* joystick */
 +	__set_bit(ABS_Y, input_dev->absbit);
 +	input_set_abs_params(input_dev, ABS_X, 30, 220, 4, 8);
@@ -386,7 +386,7 @@ index 0000000..ea7a1e0
 +	input_set_abs_params(input_dev, ABS_RY, 0, 0x3ff, 4, 8);
 +	input_set_abs_params(input_dev, ABS_RZ, 0, 0x3ff, 4, 8);
 +
-+	/* Nunchuck buttons */
++	/* Nunchuk buttons */
 +	__set_bit(BTN_C, input_dev->keybit);
 +	__set_bit(BTN_Z, input_dev->keybit);
 +
