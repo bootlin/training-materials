@@ -4,26 +4,26 @@
 
 /* Add your code here */
 
-static int feserial_probe(struct platform_device *pdev)
+static int serial_probe(struct platform_device *pdev)
 {
-	pr_info("Called feserial_probe\n");
+	pr_info("Called serial_probe\n");
 	return 0;
 }
 
-static int feserial_remove(struct platform_device *pdev)
+static int serial_remove(struct platform_device *pdev)
 {
-	pr_info("Called feserial_remove\n");
+	pr_info("Called serial_remove\n");
         return 0;
 }
 
-static struct platform_driver feserial_driver = {
+static struct platform_driver serial_driver = {
         .driver = {
-                .name = "feserial",
+                .name = "serial",
                 .owner = THIS_MODULE,
         },
-        .probe = feserial_probe,
-        .remove = feserial_remove,
+        .probe = serial_probe,
+        .remove = serial_remove,
 };
 
-module_platform_driver(feserial_driver);
+module_platform_driver(serial_driver);
 MODULE_LICENSE("GPL");

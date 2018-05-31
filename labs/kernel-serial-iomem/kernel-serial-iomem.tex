@@ -78,7 +78,7 @@ Compile and update your DTB.
 \section{Operate a platform device driver}
 
 Go to the \code{~/linux-kernel-labs/modules/nfsroot/root/serial/} directory.
-You will find a \code{feserial.c} file which already provides a platform
+You will find a \code{serial.c} file which already provides a platform
 driver skeleton.
 
 Add the code needed to match the driver with the devices which you have
@@ -127,7 +127,7 @@ each device (obtained through \code{ioremap()}), let's declare this
 structure as follows:
 
 \begin{verbatim}
-struct feserial_dev {
+struct serial_dev {
         void __iomem *regs;
 };
 \end{verbatim}
@@ -140,9 +140,9 @@ automatically taken care of when we use the \code{devm_} functions.
 So, add the below line to your code:
 
 \begin{verbatim}
-struct feserial_dev *dev;
+struct serial_dev *dev;
 ...
-dev = devm_kzalloc(&pdev->dev, sizeof(struct feserial_dev), GFP_KERNEL);
+dev = devm_kzalloc(&pdev->dev, sizeof(struct serial_dev), GFP_KERNEL);
 \end{verbatim}
 
 You can now get a virtual address for your device's base physical
@@ -172,7 +172,7 @@ devices. Of course, this will be done in the \code{probe()} routine.
 
 As we will have multiple registers to read, create a \code{reg_read()}
 routine, returning an \code{unsigned int} value, and  taking a \code{dev}
-pointer to an \code{feserial_dev} structure and an \code{offset} integer
+pointer to an \code{serial_dev} structure and an \code{offset} integer
 offset.
 
 In this function, read from a 32 bits register at the base virtual
@@ -189,7 +189,7 @@ the device base virtual address. The following code samples are using
 the \code{writel()} convention of passing the value first, then the
 offset. Your prototype should look like:
 \begin{verbatim}
-static void reg_write(struct feserial_dev *dev, int val, int off);
+static void reg_write(struct serial_dev *dev, int val, int off);
 \end{verbatim}
 
 In the next sections, we will tell you what register offsets to use
@@ -234,7 +234,7 @@ better what we are doing here.
 
 \section{Standalone write routine}
 
-Implement a C routine taking a pointer to an \code{feserial_dev}
+Implement a C routine taking a pointer to an \code{serial_dev}
 structure and one character as parameters, and writing
 this character to the serial port, using the following steps:
 

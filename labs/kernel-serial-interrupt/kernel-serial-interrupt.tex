@@ -31,10 +31,10 @@ hardware interrupt number. This virtual number is created through the
 \code{irqdomain} mechanism. The hardware IRQ number to use is found in
 the device tree.
 
-First, add an \code{irq} field to your \code{feserial_dev} structure:
+First, add an \code{irq} field to your \code{serial_dev} structure:
 
 \begin{verbatim}
-struct feserial_dev {
+struct serial_dev {
         struct miscdevice miscdev;
         void __iomem *regs;
         int irq;
@@ -95,7 +95,7 @@ receive the characters from the serial port.
 First, we need a communication mechanism between the interrupt handler
 and the \code{read()} operation. We will implement a very simple
 circular buffer. So let's add a device-specific buffer to our
-\code{feserial_dev} structure.
+\code{serial_dev} structure.
 
 Let's also add two integers that will contain the next location
 in the circular buffer that we can write to, and the next location
@@ -104,7 +104,7 @@ we can read from:
 \begin{verbatim}
 #define SERIAL_BUFSIZE 16
 
-struct feserial_dev {
+struct serial_dev {
         void __iomem *regs;
         struct miscdevice miscdev;
         int irq;
@@ -131,7 +131,7 @@ Now, what happens in our \code{read()} function if no character is
 available for reading (i.e, if \code{serial_buf_wr} is equal to
 \code{serial_buf_rd})? We should put the process to sleep!
 
-To do so, add a wait queue to our \code{feserial_dev} structure,
+To do so, add a wait queue to our \code{serial_dev} structure,
 named for example \code{serial_wait}. In the \code{read()} function,
 keep things simple by directly using \code{wait_event_interruptible()}
 right from the start, to wait until \code{serial_buf_wr}
@@ -144,7 +144,7 @@ Last but not least, in the interrupt handler,
 after storing the received characters in the circular buffer, use
 \code{wake_up()} to wake up all processes waiting on the wait queue.
 
-Compile and load your driver. Run \code{cat /dev/feserial-48024000}
+Compile and load your driver. Run \code{cat /dev/serial-48024000}
 on the target, and then in \code{picocom} on the development
 workstation side, type some characters. They should appear on the
 remote side if everything works correctly!
