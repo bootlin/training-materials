@@ -134,6 +134,30 @@ You'll quickly discover that newlines do not work properly. To fix
 this, when the user space application sends \verb+"\n"+, you must send
 \verb+"\n\r"+ to the serial port.
 
+\section{Module reference counting}
+
+Start an application in the background that writes nothing to the
+UART:
+
+\begin{verbatim}
+cat > /dev/serial-48024000 &
+\end{verbatim}
+
+Now, with \code{lsmod}, look at the reference count of your module: it
+is still 0, even though an application has your device opened. This
+means that you can \code{rmmod} your module even when an application
+is using it, which is not correct and can quickly cause a kernel
+crash.
+
+To fix this, we need to tell the kernel that our module is in charge
+of this character device. This is done by setting the \code{.owner}
+field of \code{struct file_operations} to the special value
+\code{THIS_MODULE}.
+
+After changing this, make sure the reference counter of your module,
+visible through \code{lsmod}, gets incremented when you run an
+application that uses the UART.
+
 \section{Going further: ioctl operation}
 
 Do it only if you finish ahead of the crowd!
