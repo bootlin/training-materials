@@ -19,34 +19,29 @@ to the network, your instructor will provide you with a USB Ethernet
 adapter. A new network interface, probably \code{eth1} or \code{eth2},
 should appear on your Linux system.
 
-To configure this network interface on the workstation side, click on
-the {\em Network Manager} tasklet on your desktop, and select {\em
-Edit Connections}.
+To configure your network interface on the workstation side, we need
+to know the name of the network interface connected to your board.
 
-\begin{center}
-\includegraphics[width=8cm]{../labs/yocto-advanced-configuration/network-config-1.png}
-\end{center}
+\begin{itemize}
+   \item If you have the BeagleBone Black board, check the name
+      of your PC's Ethernet interface by running the \code{ifconfig -a}
+      command. It should be \code{eth<x>} or \code{eno<x>}.
+   \item If you have the BeagleBone Black Wireless board, you won't
+      be able to see the network interface corresponding to the Ethernet
+      over USB device connection yet, because it's only active when
+      the board turns it on, from U-Boot or from Linux. When this
+      happens, the network interface name will be \code{enx<macaddr>}.
+      Given the value we gave to \code{usbnet_hostaddr}, it will
+      therefore be \code{enxf8dc7a000001}.
+\end{itemize}
 
-Select the new {\em wired network connection}:
+Then, instead of configuring the host IP address from NetWork Manager's
+graphical interface, let's do it through its command line interface,
+which is so much easier to use:
 
-\begin{center}
-\includegraphics[width=8cm]{../labs/yocto-advanced-configuration/network-config-2.png}
-\end{center}
-
-In the \code{IPv4 Settings} tab, press the \code{Add} button
-and make the interface use a static IP
-address, like \code{192.168.0.1} (of course, make sure that this
-address belongs to a separate network segment from the one of the main
-company network).
-
-\begin{center}
-\includegraphics[width=8cm]{../labs/yocto-advanced-configuration/network-config-3.png}
-\end{center}
-
-You can use \code{255.255.255.0} as \code{Netmask}, and leave the
-\code{Gateway} field untouched (if you click on the \code{Gateway} box, you
-will have to type a valid IP address, otherwise you won't be allowed to
-click on the \code{Apply} button).
+\begin{verbatim}
+nmcli con add type ethernet ifname enxf8dc7a000001 ip4 192.168.0.1/24
+\end{verbatim}
 
 \section{Set up the NFS server}
 
