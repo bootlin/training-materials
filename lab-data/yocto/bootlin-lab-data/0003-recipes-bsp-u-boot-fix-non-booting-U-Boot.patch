@@ -1,0 +1,58 @@
+From 7f114b82c54bc6f9fda08cf5b490d1de8c2d1911 Mon Sep 17 00:00:00 2001
+From: Quentin Schulz <quentin.schulz@bootlin.com>
+Date: Wed, 25 Jul 2018 15:29:17 +0200
+Subject: [PATCH 3/4] recipes-bsp/u-boot: fix non-booting U-Boot
+
+Signed-off-by: Quentin Schulz <quentin.schulz@bootlin.com>
+---
+ recipes-bsp/u-boot/u-boot-ti-staging_2018.01.bb    |  2 ++
+ ...gpio-omap_gpio-Add-DM_FLAG_PRE_RELOC-flag.patch | 25 ++++++++++++++++++++++
+ 2 files changed, 27 insertions(+)
+ create mode 100644 recipes-bsp/u-boot/u-boot/0001-Revert-gpio-omap_gpio-Add-DM_FLAG_PRE_RELOC-flag.patch
+
+diff --git a/recipes-bsp/u-boot/u-boot-ti-staging_2018.01.bb b/recipes-bsp/u-boot/u-boot-ti-staging_2018.01.bb
+index 54122fb..23bb84c 100644
+--- a/recipes-bsp/u-boot/u-boot-ti-staging_2018.01.bb
++++ b/recipes-bsp/u-boot/u-boot-ti-staging_2018.01.bb
+@@ -1,5 +1,7 @@
+ require u-boot-ti.inc
+ 
++SRC_URI += "file://0001-Revert-gpio-omap_gpio-Add-DM_FLAG_PRE_RELOC-flag.patch"
++
+ PR = "r15"
+ 
+ BRANCH = "ti-u-boot-2018.01"
+diff --git a/recipes-bsp/u-boot/u-boot/0001-Revert-gpio-omap_gpio-Add-DM_FLAG_PRE_RELOC-flag.patch b/recipes-bsp/u-boot/u-boot/0001-Revert-gpio-omap_gpio-Add-DM_FLAG_PRE_RELOC-flag.patch
+new file mode 100644
+index 0000000..9890ba5
+--- /dev/null
++++ b/recipes-bsp/u-boot/u-boot/0001-Revert-gpio-omap_gpio-Add-DM_FLAG_PRE_RELOC-flag.patch
+@@ -0,0 +1,25 @@
++From 331cbed7181adc1e17f1e274f0ca3718165d4e87 Mon Sep 17 00:00:00 2001
++From: Quentin Schulz <quentin.schulz@bootlin.com>
++Date: Wed, 25 Jul 2018 14:57:16 +0200
++Subject: [PATCH] Revert "gpio: omap_gpio: Add DM_FLAG_PRE_RELOC flag"
++
++This reverts commit 211312cc33fb44d9aeba40436b284fd33c9010ae.
++---
++ drivers/gpio/omap_gpio.c | 1 -
++ 1 file changed, 1 deletion(-)
++
++diff --git a/drivers/gpio/omap_gpio.c b/drivers/gpio/omap_gpio.c
++index 559f29b801..7243100219 100644
++--- a/drivers/gpio/omap_gpio.c
+++++ b/drivers/gpio/omap_gpio.c
++@@ -345,7 +345,6 @@ U_BOOT_DRIVER(gpio_omap) = {
++ 	.bind	= omap_gpio_bind,
++ 	.probe	= omap_gpio_probe,
++ 	.priv_auto_alloc_size = sizeof(struct gpio_bank),
++-	.flags = DM_FLAG_PRE_RELOC,
++ };
++ 
++ #endif /* CONFIG_DM_GPIO */
++-- 
++2.14.1
++
+-- 
+2.7.4
+
