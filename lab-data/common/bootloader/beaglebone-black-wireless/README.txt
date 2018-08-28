@@ -111,7 +111,7 @@ How the binaries were compiled
 ==============================
 
 Caution: instructions for people already familiar with embedded Linux.
-See our Embedded Linux course (http://bootlin.com/training/embedded-linux/)
+See our Embedded Linux course (https://bootlin.com/training/embedded-linux/)
 if you are not comfortable with these instructions.
 
 Toolchain

@@ -113,7 +113,7 @@ How the binaries were compiled
 ==============================
 
 Caution: instructions for people already familiar with embedded Linux.
-See our Embedded Linux course (http://bootlin.com/training/embedded-linux/)
+See our Embedded Linux course (https://bootlin.com/training/embedded-linux/)
 if you are not comfortable with these instructions.
 
 Toolchain
@@ -180,7 +180,7 @@ After cloning this tree, we followed the instructions on the 'README.md'
 file to produce a modified Linux 3.12 source tree.
 
 The resulting source archive can be found on:
-http://bootlin.com/labs/sources/linux-3.12-bone-black.tar.xz
+https://bootlin.com/labs/sources/linux-3.12-bone-black.tar.xz
 
 Extract these sources and compile them as follows:
 - Set environment variables:
