@@ -121,7 +121,7 @@ Make your board boot from this new directory through NFS.
 
 \code{alsa-lib} is a library supposed to handle the interaction with
 the ALSA subsystem. It is available at
-\url{http://alsa-project.org}. Download version 1.1.4.1, and extract it
+\url{http://alsa-project.org}. Download version 1.1.6, and extract it
 in \code{$HOME/embedded-linux-labs/thirdparty/}.
 
 By looking at the \code{configure} script, we see that it has
@@ -155,7 +155,7 @@ Quickly, you should get an error saying:
 
 \footnotesize
 \begin{verbatim}
-checking whether we are cross compiling... configure: error: in `.../thirdparty/alsa-lib-1.1.1':
+checking whether we are cross compiling... configure: error: in `.../thirdparty/alsa-lib-1.1.6':
 configure: error: cannot run C compiled programs.
 If you meant to cross compile, use `--host'.
 See `config.log' for more details
@@ -202,12 +202,7 @@ CC=arm-linux-gcc ./configure --host=arm-linux
 \end{verbatim}
 
 The \code{configure} script should end properly now, and create a
-Makefile. Run the \code{make} command, and you should see that at some
-point it is failing because of a missing Python header.
-
-You can get rid of this error by disabling Python support in the
-\code{configure} script by using the \code{--disable-python} option. Start
-make again, and this time you should have the compilation ending fine.
+Makefile. Run the \code{make} command, which should run just fine.
 
 Look at the result of compiling in \code{src/.libs}: a set of object files
 and a set of \code{libasound.so*} files.
@@ -354,7 +349,7 @@ And we're done with alsa-lib!
 \section{Alsa-utils}
 
 Download alsa-utils from the ALSA offical webpage. We tested the lab
-with version 1.1.4.
+with version 1.1.6.
 
 Once uncompressed, we quickly discover that the alsa-utils build
 system is based on the {\em autotools}, so we will work once again
@@ -380,9 +375,9 @@ script is trying to do:
 
 \footnotesize
 \begin{verbatim}
-configure:7130: checking for libasound headers version >= 1.0.27
-configure:7192: arm-linux-gnueabihf-gcc -c -g -O2  conftest.c >&5
-conftest.c:15:28: fatal error: alsa/asoundlib.h: No such file or directory
+configure:7146: checking for libasound headers version >= 1.0.27
+configure:7208: arm-linux-gcc -c -g -O2  conftest.c >&5
+conftest.c:12:10: fatal error: alsa/asoundlib.h: No such file or directory
 \end{verbatim}
 \normalsize
 
@@ -474,7 +469,8 @@ The \code{DESTDIR} variable can be used with all Makefiles based on
 instead of being installed in the configuration prefix directory, the
 files will be installed in \code{DESTDIR/configuration-prefix}.
 
-Now, let's see what has been installed in \code{/tmp/alsa-utils/}:
+Now, let's see what has been installed in \code{/tmp/alsa-utils/} (run
+\code{tree /tmp/alsa-utils}):
 
 \begin{verbatim}
 ./lib/udev/rules.d/90-alsa-restore.rules
@@ -567,7 +563,7 @@ And we're finally done with {\em alsa-utils}!
 
 Now test that all is working fine by running the \code{speaker-test} util on
 your board, with the headset provided by your instructor plugged
-in. You will need to add the missing libraries from the toolchain
+in. You may need to add the missing libraries from the toolchain
 install directory.
 
 {\bf Caution}: don't copy the \code{dmix.conf} file. \code{speaker-test}
@@ -581,7 +577,7 @@ samples with \code{ogg123}.
 
 \section{libogg}
 
-Now, let's work on {\em libogg}. Download the 1.3.2 version from
+Now, let's work on {\em libogg}. Download the 1.3.3 version from
 \url{http://xiph.org} and extract it.
 
 Configuring {\em libogg} is very similar to the configuration of the
@@ -610,14 +606,14 @@ needed at runtime:
 \begin{verbatim}
 cd ..
 cp -a staging/usr/lib/libogg.so.0* target/usr/lib/
-arm-linux-strip target/usr/lib/libogg.so.0.8.2
+arm-linux-strip target/usr/lib/libogg.so.0.8.3
 \end{verbatim}
 
 Done with {\em libogg}!
 
 \section{libvorbis}
 
-{\em Libvorbis} is the next step. Grab the 1.3.5 version from
+{\em Libvorbis} is the next step. Grab the 1.3.6 version from
 \url{http://xiph.org} and uncompress it.
 
 Once again, the {\em libvorbis} build system is a nice example of what can
@@ -836,30 +832,14 @@ compilation:
 make
 \end{verbatim}
 
-It should fail rather quickly, complaining that the curl headers are
-missing. This is because the \code{configure} script, in curl's case, didn't
-actually test whether it was available or not, but just assumed it was.
-
-It may also fail with the following cryptic message:
+It should fail with the following cryptic message:
 \footnotesize
 \begin{verbatim}
-make[2]: Entering directory
-`/home/tux/embedded-linux-labs/thirdparty/vorbis-tools-1.4.0/ogg123'
-if arm-linux-gcc -DSYSCONFDIR=\"/usr/etc\"
--DLOCALEDIR=\"/usr/share/locale\" -DHAVE_CONFIG_H -I. -I. -I..
--I/usr/include -I../include -I../intl
--I/home/tux/embedded-linux-labs/thirdparty/staging/usr/include  -O2
--Wall -ffast-math -fsigned-char -g -O2 -MT audio.o -MD -MP -MF
-".deps/audio.Tpo" -c -o audio.o audio.c; \
-	then mv -f ".deps/audio.Tpo" ".deps/audio.Po"; else rm -f
-".deps/audio.Tpo"; exit 1; fi
-In file included from /usr/include/stdio.h:27:0,
-                 from audio.c:22:
-/usr/include/features.h:398:23: fatal error: gnu/stubs.h: No such file
-or directory
- #include <gnu/stubs.h>
-                       ^
-compilation terminated.
+make[2]: Entering directory '/home/tux/embedded-linux-labs/thirdparty/vorbis-tools-1.4.0/ogg123'
+if arm-linux-gcc -DSYSCONFDIR=\"/usr/etc\" -DLOCALEDIR=\"/usr/share/locale\" -DHAVE_CONFIG_H -I. -I. -I.. -I/usr/include -I../include -I../intl  -I/home/tux/embedded-linux-labs/thirdparty/staging/usr/include  -O2 -Wall -ffast-math -fsigned-char -g -O2 -MT audio.o -MD -MP -MF ".deps/audio.Tpo" -c -o audio.o audio.c; \
+then mv -f ".deps/audio.Tpo" ".deps/audio.Po"; else rm -f ".deps/audio.Tpo"; exit 1; fi
+In file included from audio.c:22:
+/usr/include/stdio.h:27:10: fatal error: bits/libc-header-start.h: No such file or directory
 \end{verbatim}
 \normalsize
 
