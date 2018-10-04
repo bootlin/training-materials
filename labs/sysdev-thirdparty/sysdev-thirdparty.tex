@@ -894,6 +894,53 @@ arm-linux-strip target/usr/bin/ogg*
 You can now test that everything works! Run \code{ogg123} on the
 sample file found in \code{thirdparty/data}.
 
+There should still be one missing C library object. Copy it, and you
+should get:
++
+\begin{verbatim}
+ERROR: Failed to load plugin /usr/lib/ao/plugins-4/libalsa.so => dlopen() failed
+=== Could not load default driver and no driver specified in config file. Exiting.
+\end{verbatim} 
+
+This error message is unfortunately not sufficient to figure out what's going wrong.
+It's a good opportunity to use the \code{strace} utility to get more details about
+what's going on. To do so, you can get a static version of this utility
+at
+\url{https://git.bootlin.com/users/michael-opdenacker/static-binaries/plain/strace/armel/strace-4.8}.
+
+You could have also had Crosstool-ng built it for you inside the
+toolchain in \code{target/usr/bin}.
+
+You can now run \code{ogg123} through \code{strace}:
+\begin{verbatim}
+strace ogg123 /sample.ogg
+\end{verbatim}
+
+You can see that the command fails to open the \code{ld-uClibc.so.1} file:
+\begin{verbatim}
+open("/lib/ld-uClibc.so.1", O_RDONLY)   = -1 ENOENT (No such file or directory)
+open("/lib/ld-uClibc.so.1", O_RDONLY)   = -1 ENOENT (No such file or directory)
+open("/usr/lib/ld-uClibc.so.1", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/usr/X11R6/lib/ld-uClibc.so.1", O_RDONLY) = -1 ENOENT (No such file or directory)
+open("/home/tux/embedded-linux-labs/thirdparty/staging/usr/lib/ld-uClibc.so.1", O_RDONLY) = -1 ENOENT (No such file or directory)
+write(2, "ERROR: Failed to load plugin ", 29ERROR: Failed to load plugin ) = 29
+write(2, "/usr/lib/ao/plugins-4/libalsa.so", 32/usr/lib/ao/plugins-4/libalsa.so) = 32
+write(2, " => dlopen() failed\n", 20 => dlopen() failed
+\end{verbatim}
+
+Now, look for \code{ld-uClibc.so.1} in the toolchain. You can see that both \code{ld-uClibc.so.1}
+and \code{ld-uClibc.so.0} are symbolic links to the same file. So, create the missing
+link under \code{target/lib} and run \code{ogg123} again.
+
+Everything should work fine now. Enjoy the sound sample!
+
+To finish this lab completely, and to be consistent with what we've done before,
+let's strip the libraries in \code{target/lib}:
+
+\begin{verbatim}
+arm-linux-strip target/lib/*
+\end{verbatim}
+
 Everything should work fine now. Enjoy the sound sample!
 
 To finish this lab completely, and to be consistent with what we've done before,
