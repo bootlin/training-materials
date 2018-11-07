@@ -308,7 +308,7 @@
   \frametitle{Preemption options}
   Preemption models offered by the mainline kernel:
   \begin{center}
-    \includegraphics[width=0.9\textwidth]{slides/sysdev-realtime/kernel-config-preemption.png}
+    \includegraphics[width=0.9\textwidth]{slides/sysdev-realtime/mainline-preempt-options.png}
   \end{center}
 \end{frame}
 
@@ -434,29 +434,41 @@
 \subsection{PREEMPT\_RT specifics}
 
 \begin{frame}
-  \frametitle{{\tt CONFIG\_PREEMPT\_RT} (1)}
+  \frametitle{New real-time preemption options}
+  The PREEMPT\_RT patchset adds two new levels of preemption:
   \begin{itemize}
-  \item The PREEMPT\_RT patch adds a new level of preemption, called
-    \code{CONFIG_PREEMPT_RT_FULL}
-  \item This level of preemption replaces all kernel spinlocks by
-    mutexes (or so-called sleeping spinlocks)
-    \begin{itemize}
-    \item Instead of providing mutual exclusion by disabling
-      interrupts and preemption, they are just normal locks: when
-      contention happens, the process is blocked and another one is
-      selected by the scheduler.
-    \item Works well with threaded interrupts, since threads can
-      block, while usual interrupt handlers could not.
-    \item Some core, carefully controlled, kernel spinlocks remain as
-      normal spinlocks ({\em spinlock annotations}: differentiation
-      now in mainline between spinning spinlocks and those that can be
-      converted to sleeping spinlocks).
-    \end{itemize}
+    \item \code{CONFIG_PREEMPT_RTB}:\\
+    Roughly all PREEMPT\_RT features except sleeping spinlocks.\\
+    Useful for debugging.
+    \item \code{CONFIG_PREEMPT_RT_FULL}:\\
+    All PREEMPT\_RT features
+  \end{itemize}
+  \begin{center}
+    \includegraphics[width=0.9\textwidth]{slides/sysdev-realtime/rt-preempt-options.png}
+  \end{center}
+  
+\end{frame}
+
+\begin{frame}
+  \frametitle{{\tt CONFIG\_PREEMPT\_RT\_FULL} (1)}
+  This level of preemption replaces all kernel spinlocks by
+  mutexes (or so-called sleeping spinlocks)
+  \begin{itemize}
+  \item Instead of providing mutual exclusion by disabling
+    interrupts and preemption, they are just normal locks: when
+    contention happens, the process is blocked and another one is
+    selected by the scheduler.
+  \item Works well with threaded interrupts, since threads can
+    block, while usual interrupt handlers could not.
+  \item Some core, carefully controlled, kernel spinlocks remain as
+    normal spinlocks ({\em spinlock annotations}: differentiation
+    now in mainline between spinning spinlocks and those that can be
+    converted to sleeping spinlocks).
   \end{itemize}
 \end{frame}
 
 \begin{frame}
-  \frametitle{{\tt CONFIG\_PREEMPT\_RT} (2)}
+  \frametitle{{\tt CONFIG\_PREEMPT\_RT\_FULL} (2)}
   \begin{itemize}
   \item With \code{CONFIG_PREEMPT_RT_FULL}, virtually all kernel code
     becomes preemptible
@@ -488,7 +500,7 @@
       some adaptations
     \end{itemize}
   \item Not all releases of the Linux kernel are supported.
-      Most recent: 4.11, 4.13, 4.14, 4.16, 4.18
+      Most recent: 4.11, 4.13, 4.14, 4.16, 4.18, 4.19
   \item Quick set up:
     \begin{itemize}
     \item Download the latest PREEMPT\_RT patch\\
