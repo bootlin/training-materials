@@ -169,100 +169,6 @@ SYSDEV_4D_SLIDES = \
 		sysdev-references \
 		last-slides
 
-ANDROID_SLIDES = \
-		first-slides \
-		about-us \
-		course-information-title \
-		beagleboneblack-board \
-		android-course-outline \
-		course-information \
-		setup-lab \
-		android-introduction-title \
-		android-introduction-features \
-		android-introduction-history \
-		android-introduction-architecture \
-		android-introduction-hardware \
-		android-introduction-lab \
-		android-source-title \
-		android-source-obtaining \
-		android-source-organization \
-		android-source-compilation \
-		android-source-contribute \
-		android-source-lab \
-		sysdev-linux-intro-title \
-		sysdev-linux-intro-features \
-		sysdev-linux-intro-versioning \
-		sysdev-kernel-building \
-		android-kernel-lab-compilation \
-		android-kernel-changes-title \
-		android-kernel-changes-wakelocks \
-		android-kernel-changes-binder \
-		android-kernel-changes-klogger \
-		android-kernel-changes-ashmem \
-		android-kernel-changes-timers \
-		android-kernel-changes-lmk \
-		android-kernel-changes-ion \
-		android-kernel-changes-network \
-		android-kernel-changes-misc \
-		android-kernel-changes-mainline \
-		android-bootloaders-title \
-		sysdev-bootloaders-sequence \
-		android-bootloaders-fastboot \
-		android-build-system-basics-title \
-		android-build-system-basics-basics \
-		android-build-system-basics-envsetup \
-		android-build-system-basics-configuration \
-		android-build-system-basics-results \
-		android-new-board-lab \
-		android-adb-title \
-		android-adb-introduction \
-		android-adb-use \
-		android-adb-examples \
-		android-adb-lab \
-		android-fs-title \
-		sysdev-root-filesystem-principles \
-		initramfs \
-		android-fs-contents \
-		sysdev-root-filesystem-device-files \
-		sysdev-root-filesystem-minimal \
-		android-build-system-advanced-title \
-		android-build-system-advanced-modules \
-		android-build-system-lab-library \
-		android-build-system-lab-binary \
-		android-build-system-advanced-product \
-		android-build-system-lab-product \
-		android-native-layer-title \
-		sysdev-toolchains-definition \
-		android-native-layer-bionic \
-		android-native-layer-toolbox \
-		android-native-layer-init \
-		android-native-layer-daemons \
-		android-native-layer-flingers \
-		android-native-layer-stagefright \
-		android-native-layer-dalvik \
-		android-native-layer-hal \
-		android-native-layer-jni \
-		android-native-layer-lab-jni \
-		android-framework-title \
-		android-framework-native-services \
-		android-framework-ipc \
-		android-framework-java-services \
-		android-framework-extend \
-		android-framework-lab \
-		android-application-title \
-		android-application-basics \
-		android-application-activities \
-		android-application-services \
-		android-application-providers \
-		android-application-intents \
-		android-application-processes \
-		android-application-resources \
-		android-application-storage \
-		android-application-apk \
-		android-application-lab \
-		android-resources \
-		last-slides
-
 BOOTTIME_SLIDES = \
 		first-slides \
 		thanks-atmel \
@@ -399,19 +305,6 @@ KERNEL_LABS   = setup \
 		kernel-locking \
 		kernel-debugging \
 		kernel-git \
-
-ANDROID_LABS  = setup \
-		android-source-code \
-		android-first-compilation \
-		android-boot \
-		android-new-board \
-		android-adb \
-		android-native-library \
-		android-native-app \
-		android-system-customization \
-		android-jni-library \
-		android-framework \
-		android-application \
 
 BOOTTIME_LABS = boottime-install \
 		boottime-getting-started \
@@ -703,7 +596,6 @@ clean:
 	$(RM) -rf $(OUTDIR) *.pdf *-labs *.xz
 
 ALL_TRAININGS = \
-	android \
 	autotools \
 	boottime \
 	buildroot \
