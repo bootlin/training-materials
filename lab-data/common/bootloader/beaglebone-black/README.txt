@@ -1,14 +1,12 @@
-=========================================================================
-Install U-boot 2013.10 on the Beagle Bone's internal flash storage (eMMC)
-=========================================================================
+=====================================================================================================
+Install U-boot 2018.05 on the BeagleBone Black (including BBB Wireless) internal flash storage (eMMC)
+=====================================================================================================
 
-This is needed for some aspects of Bootlin's kernel and Android labs,
+This is needed for some aspects of Bootlin's kernel, Yocto Project and Buildroot labs,
 such as saving U-Boot environment settings to eMMC storage.
 
 Tested on the following board revisions:
-- Rev A5C
-- Rev A6
-- Rev C
+- Original release of the board
 
 Caution: this procedure can erase data installed on the board eMMC.
 This won't make your board unusable though.
@@ -53,7 +51,13 @@ on '/media/$USER/boot'.
 
 Now, copy the below files to this partition:
 
-cp am335x-boneblack.dtb MLO MBR u-boot.img MLO.final u-boot.img.final uEnv.txt uImage /media/$USER/boot
+cp dtb MLO MLO.final u-boot.img u-boot.img.final MBR /media/$USER/boot
+
+Note that we're using two versions of U-Boot:
+- MLO, u-boot.img: just used for booting from external MMC and booting the kernel/rootfs
+  that will reflash U-Boot
+- MLO.final, u-boot.img.final: corresponding to U-Boot that we flash
+  on the board.
 
 Now, unmount '/media/$USER/boot' and you are done!
 
@@ -119,29 +123,29 @@ if you are not comfortable with these instructions.
 Toolchain
 ---------
 
-Tested on Ubuntu 13.10
+Tested on Ubuntu 18.04
 
-Install the Linaro toolchain:
+Install the cross compiling toolchain:
 sudo apt install gcc-arm-linux-gnueabi
-(the version at the time of our testing was 4:4.7.2-1)
+(the version at the time of our testing was 4:7.3.0-3ubuntu2)
 
 Compiling U-Boot
 ----------------
 
 Clone the mainline U-boot sources:
 git clone git://git.denx.de/u-boot.git
-git tag
-git checkout v2014.04
-
-Apply a special configuration to ignore the U-Boot environment in eMMC
-
-git checkout -b reflash-from-mmc
-git apply 0001-BBB-configuration-ignoring-eMMC.patch (file available in the src/ directory)
-
-export ARCH=arm
+git checkout v2018.05
 export CROSS_COMPILE=arm-linux-gnueabi-
-make distclean
-make am335x_boneblack_config
+make am335x_boneblack_defconfig
+
+To compile u-boot.img and MLO:
+Copy the src/u-boot/u-boot-2018.05.config file to .config
+make
+
+To compile u-boot.img.final and MLO.final:
+Copy the src/u-boot-final/u-boot-2018.05.config file to .config
+and the src/u-boot-final/uEnv.txt file to the U-boot toplevel source directory
+(this contains default environment settings)
 make
 
 This produces the MLO and u-boot.img files.
@@ -151,7 +155,9 @@ Root filesystem
 
 The root filesystem is available in src/rootfs.tar.xz
 
-To rebuild your kernel, extract the contents of this archive.
+To rebuild your kernel, extract the contents of this archive,
+as the kernel binary will contain the root filesystem (initramfs)
+too.
 
 This root filesystem just contains BusyBox utilities and a
 few custom scripts. It is very easy to update (you don't need
@@ -173,24 +179,21 @@ make install
 Linux kernel
 ------------
 
-When these instructions were prepared, Linux 3.13-rc1 didn't support
-access to the internal and external MMC devices. We had to apply
-particular patches from https://github.com/beagleboard/kernel.git.
-After cloning this tree, we followed the instructions on the 'README.md'
-file to produce a modified Linux 3.12 source tree.
+Clone the mainline git tree for the Linux kernel
+and checkout the v4.17 tag
 
-The resulting source archive can be found on:
-https://bootlin.com/labs/sources/linux-3.12-bone-black.tar.xz
-
-Extract these sources and compile them as follows:
-- Set environment variables:
-
+Now configure and compile the sources as follows
+(we are using the same toolchain as for compiling U-Boot)
 export ARCH=arm
 export CROSS_COMPILE=arm-linux-gnueabi-
+Copy the src/linux-4.17.config file to .config
+make -j 8
 
-- Configure Linux with src/linux-3.12-bone-black.config
-- Compile the kernel:
+This produces:
+arch/arm/boot/zImage
+arch/arm/boot/dts/am335x-boneblack-wireless.dtb
 
-make -j 8 LOADADDR=80008000 uImage
-
-This produces the uImage file, with the specified initramfs.
+Copy the arch/arm/boot/dts/am335x-boneblack-wireless.dtb to "dtb"
+(this dtb will work fine for both BeagleBone Black
+and BeagleBoneBlack Wireless, at least for the purpose of
+reflashing U-Boot).
