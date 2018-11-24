@@ -41,13 +41,13 @@ struct serial_dev {
 };
 \end{verbatim}
 
-Now, to retrieve the IRQ number to be used with \code{devm_request_irq()}:
+Now, to retrieve the IRQ number to be used with \kfunc{devm_request_irq}:
 
 \begin{verbatim}
 dev->irq = platform_get_irq(pdev, 0);
 \end{verbatim}
 
-Then, pass the interrupt number to \code{devm_request_irq()} along
+Then, pass the interrupt number to \kfunc{devm_request_irq} along
 with the interrupt handler to register your interrupt in the kernel.
 
 Then, in the interrupt handler, just print a message and return
@@ -133,16 +133,16 @@ available for reading (i.e, if \code{serial_buf_wr} is equal to
 
 To do so, add a wait queue to our \code{serial_dev} structure,
 named for example \code{serial_wait}. In the \code{read()} function,
-keep things simple by directly using \code{wait_event_interruptible()}
+keep things simple by directly using \kfunc{wait_event_interruptible}
 right from the start, to wait until \code{serial_buf_wr}
 is different from \code{serial_buf_rd}\footnote{A single test in the
-\code{wait_event_interruptible()} function is sufficient. If the
+\kfunc{wait_event_interruptible} function is sufficient. If the
 condition is met, you don't go to sleep and read one character right away.
 Otherwise, when you wake up, you can proceed to the reading part.}.
 
 Last but not least, in the interrupt handler,
 after storing the received characters in the circular buffer, use
-\code{wake_up()} to wake up all processes waiting on the wait queue.
+\kfunc{wake_up} to wake up all processes waiting on the wait queue.
 
 Compile and load your driver. Run \code{cat /dev/serial-48024000}
 on the target, and then in \code{picocom} on the development

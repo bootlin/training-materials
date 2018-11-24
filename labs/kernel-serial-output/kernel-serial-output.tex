@@ -35,11 +35,11 @@ The first thing to do is to create:
       body so far, to signal that there is something wrong with this
       function so far.
 \item Similarly, an \code{serial_read()} read file operation stub.
-\item A \code{file_operations} structure declaring these file
+\item A \ksym{file_operations} structure declaring these file
       operations.
 \end{itemize}
 
-The next step is to create a \code{miscdevice} structure and initialize
+The next step is to create a \ksym{miscdevice} structure and initialize
 it. However, we are facing the same usual constraint to handle multiple
 devices. Like in the Nunchuk driver, we have to add such a structure
 to our device specific private data structure:
@@ -53,20 +53,20 @@ struct serial_dev {
 
 To be able to access our private data structure in other parts of the
 driver, you need to attach it to the \code{pdev} structure using the
-\code{platform_set_drvdata()} function. Look for examples in the
+\kfunc{platform_set_drvdata} function. Look for examples in the
 source code to find out how to do it.
 
 Now, at the end of the \code{probe()} routine, when the device is fully ready
-to work, you can now initialize the \code{miscdevice} structure
+to work, you can now initialize the \ksym{miscdevice} structure
 for each found device:
 
 \begin{itemize}
 \item To get an automatically assigned minor number.
 \item To specify a name for the device file in {\em devtmpfs}. We
   propose to use {\tt devm\_kasprintf(\&pdev->dev, GFP\_KERNEL,
-  "serial-\%x", res->start)}. \code{devm_kasprintf()} allocates a
-  buffer and runs \code{ksprintf()} to fill its contents.
-\item To pass the file operations structure that you defined.
+  "serial-\%x", res->start)}. \kfunc{devm_kasprintf} allocates a
+  buffer and runs \kfunc{kasprintf} to fill its contents.
+\item To pass the \ksym{file_operations} structure that you defined.
 \end{itemize}
 
 See the lectures for details if needed!

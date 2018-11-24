@@ -33,19 +33,19 @@ The first thing to do is to add an input device to the system. Here are
 the steps to do it:
 
 \begin{itemize}
-\item Declare a pointer to an \code{input_polled_dev} structure in the
+\item Declare a pointer to an \ksym{input_polled_dev} structure in the
       \code{probe} routine. You can call it \code{polled_input}.
       You can't use a global variable because your driver needs to be
       able to support multiple devices.
 \item Allocate such a structure in the same function, using the
-      \code{devm_input_allocate_polled_device()} function.
-\item Also declare a pointer to an \code{input_dev} structure. You can
+      \kfunc{devm_input_allocate_polled_device} function.
+\item Also declare a pointer to an \ksym{input_dev} structure. You can
       call it \code{input}. We won't need to allocate it, because it
-      is already part of the \code{input_polled_dev} structure,
+      is already part of the \ksym{input_polled_dev} structure,
       and allocated at the same time.
       We will use this as a shortcut to keep the code simple.
 \item Still in the \code{probe()} function, add the input device to
-      the system by calling \code{input_register_polled_device()};
+      the system by calling \kfunc{input_register_polled_device};
 \end{itemize}
 
 At this stage, first make sure that your module compiles well (add
@@ -62,7 +62,7 @@ situations properly.
 \item In our case, we only allocated resources with \code{devm_}
       functions. Thanks to this, in case of failure, all the
       corresponding allocations are automatically released
-      before destroying the \code{device} structure for each
+      before destroying the \ksym{device} structure for each
       device. This greatly simplifies our error management code!
 \end{itemize}
 
@@ -73,7 +73,7 @@ and registered in the \code{probe()} routine.
 
 Fortunately, in our case, there's nothing to do, as everything
 was allocated with \code{devm_} functions. Even the unregistration
-of the \code{input_polled_dev} structure is automated. 
+of the \ksym{input_polled_dev} structure is automated. 
 
 Recompile your module, and load it and remove it multiple times, to
 make sure that everything is properly registered and automatically
@@ -81,7 +81,7 @@ unregistered.
 
 \section{Add proper input device registration information}
 
-We actually need to add more information to the input structure before
+We actually need to add more information to the \ksym{input} structure before
 registering it. That's why we are getting the below warnings:
 
 \begin{verbatim}
@@ -104,11 +104,11 @@ It's time to implement the routine which will poll the nunchuk registers
 at a regular interval.
 
 Create a \code{nunchuk_poll()} function with the right prototype (find
-it by looking at the definition of the \code{input_polled_dev} structure.
+it by looking at the definition of the \ksym{input_polled_dev} structure.
 
 In this function, you will have to read the nunchuk registers. However,
 as you can see, the prototype of the \code{poll()} routine doesn't
-carry any information about the \code{i2c_client} structure you will
+carry any information about the \ksym{i2c_client} structure you will
 need to communicate with the device. That's normal as the input
 subsystem is generic, and can't be bound to any specific bus.
 
@@ -164,7 +164,7 @@ don't want to enable a device with incomplete information or when it is
 not completely yet (there could be race conditions).
 
 First, add lines retrieving the I2C physical device from the
-\code{input_polled_dev} structure. That's where you will need your
+\ksym{input_polled_dev} structure. That's where you will need your
 private \code{nunchuk} structure.
 
 Now that you have a handle on the I2C physical device, you can move the
