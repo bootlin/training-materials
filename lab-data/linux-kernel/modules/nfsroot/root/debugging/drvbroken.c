@@ -10,23 +10,23 @@
 #include <linux/cdev.h>
 
 static dev_t broken_dev;
-static int broken_first_minor = 0;
+static int broken_first_minor;
 static int broken_count = 1;
 static struct cdev *broken_cdev;
 
 static ssize_t
-broken_write(struct file *file, const char __user * buf, size_t count,
+broken_write(struct file *file, const char __user *buf, size_t count,
 	     loff_t *ppos)
 {
-	printk(KERN_INFO "Writing %d bytes from %p to the device\n",
+	pr_info("Writing %d bytes from %p to the device\n",
 	      count, buf);
 	return 0;
 }
 
 static ssize_t
-broken_read(struct file *file, char __user * buf, size_t count, loff_t * ppos)
+broken_read(struct file *file, char __user *buf, size_t count, loff_t *ppos)
 {
-	printk(KERN_INFO "Writing %d bytes to %p from the device\n",
+	pr_info("Writing %d bytes to %p from the device\n",
 	count, buf);
 	return 0;
 }
@@ -41,19 +41,19 @@ int __init broken_init(void)
 {
 	if (alloc_chrdev_region(&broken_dev, broken_first_minor, 1, "broken") <
 	    0) {
-		printk(KERN_ERR "broken: unable to find free device numbers\n");
+		pr_err("broken: unable to find free device numbers\n");
 		return -EIO;
 	}
 
 	cdev_init(broken_cdev, &broken_fops);
 
 	if (cdev_add(broken_cdev, broken_dev, 1) < 0) {
-		printk(KERN_ERR "broken: unable to add a character device\n");
+		pr_err("broken: unable to add a character device\n");
 		unregister_chrdev_region(broken_dev, broken_count);
 		return -EIO;
 	}
 
-	printk(KERN_INFO "Loaded the broken driver: major = %d, minor = %d\n",
+	pr_info("Loaded the broken driver: major = %d, minor = %d\n",
 	       MAJOR(broken_dev), MINOR(broken_dev));
 
 	return 0;
@@ -63,7 +63,7 @@ void __exit broken_exit(void)
 {
 	cdev_del(broken_cdev);
 	unregister_chrdev_region(broken_dev, broken_count);
-	printk(KERN_INFO "Unloaded the broken driver!\n");
+	pr_info("Unloaded the broken driver!\n");
 }
 
 module_init(broken_init);
