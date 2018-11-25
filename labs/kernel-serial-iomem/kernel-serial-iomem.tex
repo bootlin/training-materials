@@ -143,6 +143,8 @@ So, add the below line to your code:
 struct serial_dev *dev;
 ...
 dev = devm_kzalloc(&pdev->dev, sizeof(struct serial_dev), GFP_KERNEL);
+if (!dev)
+	return -ENOMEM;
 \end{verbatim}
 
 You can now get a virtual address for your device's base physical
@@ -159,6 +161,10 @@ if (!dev->regs) {
 What's nice is that you won't ever have to release this resource,
 neither in the \code{remove()} routine, nor if there are failures
 in subsequent steps of the \code{probe()} routine.
+
+We haven't explained the \code{dev_*} logging routines yet.
+Before further explanations, they are basically used to tell which
+device a given log message is associated to. 
 
 Make sure that your updated driver compiles, loads and unloads well.
 
