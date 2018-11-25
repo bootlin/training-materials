@@ -7,13 +7,13 @@
 
 static int serial_probe(struct platform_device *pdev)
 {
-	pr_info("Called serial_probe\n");
+	pr_info("Called %s\n", __func__);
 	return 0;
 }
 
 static int serial_remove(struct platform_device *pdev)
 {
-	pr_info("Called serial_remove\n");
+	pr_info("Called %s\n", __func__);
         return 0;
 }
 
