@@ -1,3 +1,4 @@
+// SPDX-License-Identifier: GPL-2.0
 /* Voluntarily broken driver
  * Copyright Thomas Petazzoni <thomas.petazzoni@bootlin.com>
  * License: GNU General Public License 2.0 or later
