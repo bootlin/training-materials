@@ -424,11 +424,14 @@ int foo_probe(struct platform_device *pdev)
         }
         ...
         platform_set_drvdata(pdev, foo);
+        pm_runtime_enable(&pdev->dev);
+        pm_runtime_get_sync(&pdev->dev);
         return 0;
 }
 
 void foo_remove(struct platform_device *pdev)
 {
+        pm_runtime_disable(&pdev->dev);
         foo_t *foo = platform_get_drvdata(pdev);
         kfree(foo);
 }
@@ -450,7 +453,14 @@ int foo_probe(struct platform_device *pdev)
                 return -EBUSY;
         ...
         platform_set_drvdata(pdev, foo);
+        pm_runtime_enable(&pdev->dev);
+        pm_runtime_get_sync(&pdev->dev);
         return 0;
+}
+
+void foo_remove(struct platform_device *pdev)
+{
+        pm_runtime_disable(&pdev->dev);
 }
     \end{minted}
   \end{block}
