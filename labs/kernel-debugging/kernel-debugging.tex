@@ -16,8 +16,20 @@ that you added? Your kernel probably does not have
 \code{CONFIG_DYNAMIC_DEBUG} set and your driver is not compiled with
 \code{DEBUG} defined., so you shouldn't see any message.
 
-Now, recompile your kernel with \code{CONFIG_DYNAMIC_DEBUG} and reboot. The
-dynamic debug feature can be configured using \code{debugfs}, so you'll have
+Now, recompile your kernel with the following options:
+
+\begin{itemize}
+\item \code{CONFIG_DYNAMIC_DEBUG}: this will allow you to see
+  debugging messages.
+\item \code{CONFIG_DEBUG_INFO}: this option will make it
+  possible to see source code in disassembled kernel code.
+  We will need it in a later part of this lab, but enabling
+  it now will allow to avoid recompiling the whole kernel again.
+\end{itemize}
+
+Once this is done, boot your updated kernel.
+
+The dynamic debug feature can be configured using \code{debugfs}, so you'll have
 to mount the \code{debugfs} filesystem first. Then, after reading the dynamic
 debug documentation in the kernel sources, do the following things:
 
@@ -67,10 +79,6 @@ Make sure your kernel is built with the following options:
 
 \begin{itemize}
 
-\item The \code{CONFIG_DEBUG_INFO} configuration option,
-  (\code{Kernel Hacking} section) which makes it possible to see source
-  code in the disassembled kernel.
-
 \item The \code{CONFIG_ARM_UNWIND} configuration option
   (\code{Kernel Hacking} section) disabled. This option enables a
   new mechanism to handle stack backtraces, but this new mechanism is
@@ -98,7 +106,14 @@ probably be enough to help you understand and fix the issue.
 \section{Further analysis of the problem}
 
 If the function source code is not enough, then you can look at the
-disassembled version of the function, either using:
+disassembled version of the function.
+
+That's where we need a kernel compiled with \code{CONFIG_DEBUG_INFO}
+as we did at the beginning of this lab. This way, the kernel is
+compiled with \code{$(CROSSCOMPILE)gcc -g}, which keeps the source
+code inside the binaries.
+
+You can use either;
 
 \begin{verbatim}
 cd ~/linux-kernel-labs/src/linux/
