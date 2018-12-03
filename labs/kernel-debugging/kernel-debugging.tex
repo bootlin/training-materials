@@ -103,24 +103,32 @@ Using Elixir or the kernel source code, have a look at the definition of this
 function. This, with a careful review of the driver source code should
 probably be enough to help you understand and fix the issue.
 
-\section{Further analysis of the problem}
+\section{Locating the exact line where the error happens}
 
-If the function source code is not enough, then you can look at the
-disassembled version of the function.
+Even if you already found out which instruction caused the crash, it's
+useful to use information in the crash report.
+
+If you look again, the report tells you at what offset in the function
+this happens. Let's disassemble the code for this function to
+understand exactly where the issue happened.
 
 That's where we need a kernel compiled with \code{CONFIG_DEBUG_INFO}
 as we did at the beginning of this lab. This way, the kernel is
 compiled with \code{$(CROSSCOMPILE)gcc -g}, which keeps the source
 code inside the binaries.
 
-You can use either;
+You could disassemble the whole \code{vmlinux} file and work with
+the \code{PC} absolute address, but it is going to take a long time.
+
+Instead, using Elixir or \code{cscope}, find the \code{.c} source file where
+the function is implemented. In the kernel sources, you can then find
+and dissassemble the corresponding \code{.o} file:
 
 \begin{verbatim}
-cd ~/linux-kernel-labs/src/linux/
-arm-linux-gnueabi-objdump -S vmlinux > vmlinux.disasm
+arm-linux-gnueabi-objdump -S file.o > file.S
 \end{verbatim}
 
-or, using \code{gdb-multiarch}\footnote{gdb-multiarch is a new package
+For this need, you could also use {gdb-multiarch}\footnote{gdb-multiarch is a new package
 supporting multiple architectures at once. If you have a cross
 toolchain including gdb, you can also run arm-linux-gdb directly.}:
 
@@ -132,9 +140,16 @@ gdb-multiarch vmlinux
 (gdb) disassemble function_name
 \end{verbatim}
 
-Then find at which exact instruction the crash occurs. The offset is
-provided by the crash output, as well as a dump of the code around the
-crashing instruction.
+Then, in the disassembled code, find the start address of the
+function, and using an hexadecimal calculator, add the offset that
+was provided in the crash output. That's how you can find the
+exact assembly instruction where the crash occured, together
+with the C code it was compiled from.
 
-Of course, analyzing the disassembled version of the function requires
-some assembly skills on the architecture you are working on.
+A little understanding of assembly instructions on the architecture
+you are working on helps, but seeing the original C code should answer
+most questions.
+
+Note that the same technique works if the error comes directly from
+the code of a module. Just dissassemble the \code{.o} file from which
+the \code{.ko} file was generated from.
