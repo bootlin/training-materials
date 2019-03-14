@@ -51,7 +51,7 @@ on '/media/$USER/boot'.
 
 Now, copy the below files to this partition:
 
-cp dtb MLO MLO.final u-boot.img u-boot.img.final MBR /media/$USER/boot
+cp zImage dtb MLO MLO.final u-boot.img u-boot.img.final MBR /media/$USER/boot
 
 Note that we're using two versions of U-Boot:
 - MLO, u-boot.img: just used for booting from external MMC and booting the kernel/rootfs
