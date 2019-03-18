@@ -66,34 +66,36 @@
 \begin{frame}[fragile]{Registering an I2C device driver: example}
   \begin{block}{}
   \begin{minted}[fontsize=\tiny]{c}
-static const struct i2c_device_id <driver>_id[] = {
-        { "<device-name>", 0 },
+static const struct i2c_device_id adxl345_i2c_id[] = {
+        { "adxl345", ADXL345 },
+        { "adxl375", ADXL375 },
         { }
 };
-MODULE_DEVICE_TABLE(i2c, <driver>_id);
 
-#ifdef CONFIG_OF
-static const struct of_device_id <driver>_dt_ids[] = {
-        { .compatible = "<vendor>,<device-name>", },
-        { }
+MODULE_DEVICE_TABLE(i2c, adxl345_i2c_id);
+
+static const struct of_device_id adxl345_of_match[] = {
+        { .compatible = "adi,adxl345" },
+        { .compatible = "adi,adxl375" },
+        { },
 };
-MODULE_DEVICE_TABLE(of, <driver>_dt_ids);
-#endif
 
-static struct i2c_driver <driver>_driver = {
-        .probe          = <driver>_probe,
-        .remove         = <driver>_remove,
-        .id_table       = <driver>_id,
+MODULE_DEVICE_TABLE(of, adxl345_of_match);
+
+static struct i2c_driver adxl345_i2c_driver = {
         .driver = {
-                .name   = "<driver-name>",
-                .owner  = THIS_MODULE,
-                .of_match_table = of_match_ptr(<driver>_dt_ids),
+                .name	= "adxl345_i2c",
+                .of_match_table = adxl345_of_match,
         },
+        .probe		= adxl345_i2c_probe,
+        .remove		= adxl345_i2c_remove,
+        .id_table	= adxl345_i2c_id,
 };
 
-module_i2c_driver(<driver>_driver);
+module_i2c_driver(adxl345_i2c_driver);
 \end{minted}
 \end{block}
+From \kfile{drivers/iio/accel/adxl345_i2c.c}
 \end{frame}
 
 \begin{frame}{Registering an I2C device: non-DT}
@@ -115,26 +117,30 @@ module_i2c_driver(<driver>_driver);
 \begin{frame}[fragile]{Registering an I2C device, non-DT example}
   \begin{block}{}
     \begin{minted}[fontsize=\tiny]{c}
-static struct i2c_board_info <board>_i2c_devices[] __initdata = {
+static struct i2c_board_info __initdata em7210_i2c_devices[] = {
         {
-                I2C_BOARD_INFO("cs42l51", 0x4a),
+                I2C_BOARD_INFO("rs5c372a", 0x32),
         },
 };
 
-void board_init(void)
+...
+
+static void __init em7210_init_machine(void)
 {
-        /*
-         * Here should be the registration of all devices, including
-         * the I2C controller device.
-         */
+        register_iop32x_gpio();
+        platform_device_register(&em7210_serial_device);
+        platform_device_register(&iop3xx_i2c0_device);
+        platform_device_register(&iop3xx_i2c1_device);
+        platform_device_register(&em7210_flash_device);
+        platform_device_register(&iop3xx_dma_0_channel);
+        platform_device_register(&iop3xx_dma_1_channel);
 
-        i2c_register_board_info(0, <board>_i2c_devices,
-                                ARRAY_SIZE(<board>_i2c_devices));
-
-        /* More devices registered here */
+        i2c_register_board_info(0, em7210_i2c_devices,
+                ARRAY_SIZE(em7210_i2c_devices));
 }
     \end{minted}
   \end{block}
+  From \kfile{arch/arm/mach-iop32x/em7210.c}
 \end{frame}
 
 \begin{frame}{Registering an I2C device, in the DT}
@@ -158,7 +164,7 @@ void board_init(void)
 \end{frame}
 
 \begin{frame}[fragile]{Registering an I2C device, DT example (1/2)}
-  \begin{block}{Definition of the I2C controller, \code{sun7i-a20.dtsi} file}
+  \begin{block}{Definition of the I2C controller}
     \begin{minted}[fontsize=\footnotesize]{perl}
 i2c0: i2c@01c2ac00 {
         compatible = "allwinner,sun7i-a20-i2c",
@@ -172,10 +178,11 @@ i2c0: i2c@01c2ac00 {
 };
     \end{minted}
   \end{block}
+  From \kfile{arch/arm/boot/dts/sun7i-a20.dtsi}
 \end{frame}
 
 \begin{frame}[fragile]{Registering an I2C device, DT example (2/2)}
-  \begin{block}{Definition of the I2C device, \code{sun7i-a20-olinuxino-micro.dts} file}
+  \begin{block}{Definition of the I2C device}
     \begin{minted}[fontsize=\footnotesize]{perl}
 &i2c0 {
         pinctrl-names = "default";
@@ -194,6 +201,7 @@ i2c0: i2c@01c2ac00 {
 };
     \end{minted}
   \end{block}
+  From \kfile{arch/arm/boot/dts/sun7i-a20-olinuxino-micro.dts}
 \end{frame}
 
 \begin{frame}{\code{probe()} and \code{remove()}}
@@ -219,28 +227,45 @@ i2c0: i2c@01c2ac00 {
   \end{itemize}
 \end{frame}
 
-\begin{frame}[fragile]{Probe/remove example}
+\begin{frame}[fragile]{Probe example}
   \begin{block}{}
-    \begin{minted}[fontsize=\footnotesize]{c}
-static int <driver>_probe(struct i2c_client *client,
-                          const struct i2c_device_id *id)
+    \begin{minted}[fontsize=\scriptsize]{c}
+static int da311_probe(struct i2c_client *client,
+                       const struct i2c_device_id *id)
 {
-        /* initialize device */
-        /* register to a kernel framework */
-
-        i2c_set_clientdata(client, <private data>);
-        return 0;
-}
-
-static int <driver>_remove(struct i2c_client *client)
-{
-        <private data> = i2c_get_clientdata(client);
-        /* unregister device from kernel framework */
-        /* shut down the device */
-        return 0;
+        struct iio_dev *indio_dev;         // framework structure
+        da311_data *data;                  // per device structure
+        ...
+        // Allocate framework structure with per device struct inside
+        indio_dev = devm_iio_device_alloc(&client->dev, sizeof(*data));
+        data = iio_priv(indio_dev);
+        data->client = client;
+        i2c_set_clientdata(client, indio_dev);
+        // Prepare device and initialize indio_dev
+        ...
+        // Register device to framework
+        ret = iio_device_register(indio_dev);
+        ...
+        return ret;
 }
     \end{minted}
   \end{block}
+  From \kfile{drivers/iio/accel/da311.c}
+\end{frame}
+
+\begin{frame}[fragile]{Remove example}
+  \begin{block}{}
+    \begin{minted}[fontsize=\footnotesize]{c}
+static int da311_remove(struct i2c_client *client)
+{
+        struct iio_dev *indio_dev = i2c_get_clientdata(client);
+        // Unregister device from framework
+        iio_device_unregister(indio_dev);
+        return da311_enable(client, false);
+}
+    \end{minted}
+  \end{block}
+  From \kfile{drivers/iio/accel/da311.c}
 \end{frame}
 
 \setuplabframe
@@ -288,26 +313,34 @@ static int <driver>_remove(struct i2c_client *client)
 
 \begin{frame}[fragile]{I2C: message transfer example}
 \begin{block}{}
-  \begin{minted}[fontsize=\footnotesize]{c}
-struct i2c_msg msg[2];
-int error;
-u8 start_reg;
-u8 buf[10];
+  \begin{minted}[fontsize=\tiny]{c}
+static int st1232_ts_read_data(struct st1232_ts_data *ts)
+{
+        ...
+        struct i2c_client *client = ts->client;
+        struct i2c_msg msg[2];
+        int error;
+        ...
+        u8 start_reg = ts->chip_info->start_reg;
+        u8 *buf = ts->read_buf;
 
-msg[0].addr = client->addr;
-msg[0].flags = 0;
-msg[0].len = 1;
-msg[0].buf = &start_reg;
-start_reg = 0x10;
+        /* read touchscreen data */
+        msg[0].addr = client->addr;
+        msg[0].flags = 0;
+        msg[0].len = 1;
+        msg[0].buf = &start_reg;
 
-msg[1].addr = client->addr;
-msg[1].flags = I2C_M_RD;
-msg[1].len = sizeof(buf);
-msg[1].buf = buf;
+        msg[1].addr = ts->client->addr;
+        msg[1].flags = I2C_M_RD;
+        msg[1].len = ts->read_buf_len;
+        msg[1].buf = buf;
 
-error = i2c_transfer(client->adapter, msg, 2);
+        error = i2c_transfer(client->adapter, msg, 2);
+        ...
+}
 \end{minted}
 \end{block}
+From \kfile{drivers/input/touchscreen/st1232.c}
 \end{frame}
 
 \begin{frame}{SMBus calls}
