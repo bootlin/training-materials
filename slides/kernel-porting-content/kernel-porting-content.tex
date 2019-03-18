@@ -55,7 +55,7 @@
   \begin{itemize}
   \item Until 2011, the ARM architecture wasn't using the Device Tree,
     and a large portion of the SoC support was located in
-    \code{arch/arm/mach-<foo>}.
+    \code{arch/arm/mach-<soc>}.
   \item Each board supported by the kernel was associated to an unique
     {\em machine ID}.
   \item The entire list of {\em machine ID} can be downloaded at
@@ -67,6 +67,8 @@
   \item The bootloader had to pass the {\em machine ID} to the kernel
     in a specific ARM register.
   \end{itemize}
+  This way, the kernel knew what board it was booting on,
+  and which init callbacks he had to execute.
 \end{frame}
 
 \begin{frame}
@@ -78,14 +80,14 @@
     C code to describe SoCs and boards, a specialized language is
     used.
   \item Second, many driver infrastructures were created to replace
-    custom code in \code{arch/arm/mach-<foo>}:
+    custom code in \code{arch/arm/mach-<soc>}:
     \begin{itemize}
     \item The common clock framework in \kdir{drivers/clk}
     \item The pinctrl subsystem in \kdir{drivers/pinctrl}
     \item The irqchip subsystem in \kdir{drivers/irqchip}
     \item The clocksource subsystem in \kdir{drivers/clocksource}
     \end{itemize}
-  \item The amount of code in \code{mach-<foo>} has now significantly
+  \item The amount of code in \code{mach-<soc>} has now significantly
     reduced.
   \end{itemize}
 \end{frame}
@@ -145,8 +147,8 @@
       \mint[fontsize=\small]{perl}+model = "Crystalfontz CFA-10036 Board";+
     \end{block}
   \item A list of {\em compatible} strings, from the most specific one
-    to the most general one. Can be used by kernel code to do a SoC or
-    board-specific check.\\
+    to the most general one. Mandatory to execute the right SoC specific
+    initializations and board specific code.\\
     \begin{block}{}
       \mint[fontsize=\small]{perl}+compatible = "crystalfontz,cfa10036", "fsl,imx28";+
     \end{block}
