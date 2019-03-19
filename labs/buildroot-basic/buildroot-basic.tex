@@ -42,25 +42,25 @@ git clone https://git.buildroot.net/git/buildroot.git
 \end{verbatim}
 
 In the worst case, if neither work, you can download the Buildroot
-tarball \code{buildroot-2017.08.tar.bz2} from
+tarball \code{buildroot-2019.02.tar.bz2} from
 \code{https://buildroot.org/downloads/} and extract it. However in this
 case, you won't be able to use {\em Git} to visualize your changes and
 keep track of them.
 
 Go into the newly created \code{buildroot} directory.
 
-We're going to start a branch from the {\em 2017.08} Buildroot
+We're going to start a branch from the {\em 2019.02} Buildroot
 release, with which this training has been tested.
 
 \begin{verbatim}
-git checkout -b felabs 2017.08
+git checkout -b felabs 2019.02
 \end{verbatim}
 
 \section{Configuring Buildroot}
 
 If you look under \code{configs/}, you will see that there is a file
 named \code{beaglebone_defconfig}, which is a ready-to-use Buildroot
-configuration file to build a system for the BeagleBone Black
+configuration file to build a system for the BeagleBone Black Wireless
 platform. However, since we want to learn about Buildroot, we'll start
 our own configuration from scratch!
 
@@ -81,11 +81,11 @@ Now, let's do the configuration:
 
   \begin{itemize}
 
-  \item It is quite well known that the BeagleBone Black is an ARM based
-    platform, so select \code{ARM (little endian)} as the target
-    architecture.
+  \item It is quite well known that the BeagleBone Black Wireless is
+    an ARM based platform, so select \code{ARM (little endian)} as the
+    target architecture.
 
-  \item According to the BeagleBone Black website at
+  \item According to the BeagleBone Black Wireless website at
     \url{http://beagleboard.org/BLACK}, it uses a Texas Instruments
     AM335x, which is based on the ARM Cortex-A8 code. So select
     \code{cortex-A8} as the \code{Target Architecture Variant}.
@@ -122,10 +122,11 @@ Now, let's do the configuration:
     hesitate however to look at the available options when you select
     \code{Buildroot toolchain} as the \code{Toolchain type}.
 
-  \item Select \code{Linaro 2017.02} as the
+  \item Select \code{Arm ARM 2018.11} as the
     \code{Toolchain}. Buildroot can either use pre-defined toolchains
-    such as the Linaro one, or custom toolchains (either downloaded
-    from a given location, or pre-installed on your machine).
+    such as the ones provided by ARM, or custom toolchains (either
+    downloaded from a given location, or pre-installed on your
+    machine).
 
   \end{itemize}
 
@@ -150,8 +151,8 @@ Now, let's do the configuration:
 
   \item By default, the most recent Linux kernel version available at
     the time of the Buildroot release is used. In our case, we want to
-    use a specific version: \code{4.13}. So select \code{Custom
-      version} as the \code{Kernel version}, and enter \code{4.13} in
+    use a specific version: \code{4.19.29}. So select \code{Custom
+      version} as the \code{Kernel version}, and enter \code{4.19.29} in
     the \code{Kernel version} text field that appears.
 
   \item Now, we need to define which kernel configuration to
@@ -159,7 +160,7 @@ Now, let's do the configuration:
     the kernel sources themselves, called a {\em defconfig}. To
     identify which {\em defconfig} to use, you can look in the kernel
     sources directly, at
-    \url{https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/arch/arm/configs/?id=v4.13}. In
+    \url{https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/arch/arm/configs/?id=v4.19}. In
     practice, for this platform, it is not trivial to find which one
     to use: the AM335x processor is supported in the Linux kernel as
     part of the support for many other Texas Instruments processors:
@@ -177,25 +178,26 @@ Now, let's do the configuration:
     to be the norm on ARM platforms, but everybody is now
     transitioning to the \code{zImage} format.
 
-  \item On ARM, most of the platforms now use the {\em Device Tree} to
-    describe the hardware. The BeagleBone Black is in this situation,
-    so you'll have to enable the \code{Build a Device Tree Blob}
-    option. At
-    \url{http://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/arch/arm/boot/dts/?id=v4.13},
-    you can see the list of all Device Tree files available in the 4.13
-    Linux kernel (note: the Device Tree files for boards use the
-    \code{.dts} extension). The one for the BeagleBone Black is
-    \code{am335x-boneblack.dts}. Even if talking about Device Tree is
-    beyond the scope of this training, feel free to have a look at
-    this file to see what it contains. Back in Buildroot, use the
-    option \code{Use a device tree present in the kernel}, and type
-    \code{am335x-boneblack} as the \code{Device Tree Source file
-      names}.
+  \item On ARM, all modern platforms now use the {\em Device Tree} to
+    describe the hardware. The BeagleBone Black Wireless is in this
+    situation, so you'll have to enable the
+    \code{Build a Device Tree Blob} option. At
+    \url{https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/arch/arm/boot/dts/?id=v4.19},
+    you can see the list of all Device Tree files available in the
+    4.19 Linux kernel (note: the Device Tree files for boards use the
+    \code{.dts} extension). The one for the BeagleBone Black Wireless
+    is \code{am335x-boneblack-wireless.dts}. Even if talking about
+    Device Tree is beyond the scope of this training, feel free to
+    have a look at this file to see what it contains. Back in
+    Buildroot, use the option
+    \code{Use a device tree present in the kernel}, and type
+    \code{am335x-boneblack-wireless} as the \code{Device Tree Source
+      file names}.
 
   \end{itemize}
 
 \item \code{Target packages} menu. This is probably the most important
-  menu, as this is the one where you can select amongst the 2200+
+  menu, as this is the one where you can select amongst the 2500+
   available Buildroot packages which ones should be built and
   installed in your system. For our basic system, enabling
   \code{Busybox} is sufficient and is already enabled by default, but
@@ -220,14 +222,14 @@ Now, let's do the configuration:
     recent enough U-Boot version, we are going to use the latter,
     called {\em Kconfig}.
 
-  \item You can keep using the default \code{2017.07} version as the
-    U-Boot version.
+  \item Use the custom version of U-Boot \code{2019.01}.
 
   \item Look at
     \url{http://git.denx.de/?p=u-boot.git;a=tree;f=configs} to
     identify the available U-Boot configuration. The one matching the
-    BeagleBone Black is \code{am335x_boneblack_defconfig}, so type
-    \code{am335x_boneblack} in \code{Board defconfig}.
+    BeagleBone Black (including Wireless) is
+    \code{am335x_boneblack_defconfig}, so type \code{am335x_boneblack}
+    in \code{Board defconfig}.
 
   \item U-Boot on AM335x is split in two parts: the first stage
     bootloader called \code{MLO} and the second stage bootloader
@@ -255,7 +257,7 @@ make 2>&1 | tee build.log
 While the build is on-going, please go through the following sections
 to prepare what will be needed to test the build results.
 
-\section{Prepare the BeagleBone Black}
+\section{Prepare the BeagleBone Black Wireless}
 
 The BeagleBone Black is powered via the USB-A to mini-USB cable,
 connected to the mini-USB connector labeled \code{P4} on the back of
@@ -320,7 +322,7 @@ Our SD card needs to be split in two partitions:
 
 \item A first partition for the bootloader. It needs to comply with
   the requirements of the AM335x so that it can find the bootloader in
-  this partition. It should be a FAT16 partition. We will store the
+  this partition. It should be a FAT32 partition. We will store the
   bootloader (\code{MLO} and \code{u-boot.img}), the kernel image
   (\code{zImage}), the Device Tree (\code{am335x-boneblack.dtb}) and a
   special U-Boot script for the boot.
@@ -365,8 +367,8 @@ To format your SD card, do the following steps:
 
   \item Chose the {\em dos} partition table type
 
-  \item Create a first small partition (16 MB or 32 MB), primary, with
-    type \code{e} ({\em W95 FAT16}) and mark it bootable
+  \item Create a first small partition (128 MB), primary, with type
+    \code{e} ({\em W95 FAT16}) and mark it bootable
 
   \item Create a second partition, also primary, with the rest of the
     available space, with type \code{83} ({\em Linux}).
@@ -375,8 +377,8 @@ To format your SD card, do the following steps:
 
   \end{itemize}
 
-\item Format the first partition as a {\em FAT16} filesystem:\\
-  \code{sudo mkfs.vfat -F 16 -n boot /dev/mmcblk0p1}. Use \code{sdc1}
+\item Format the first partition as a {\em FAT32} filesystem:\\
+  \code{sudo mkfs.vfat -F 32 -n boot /dev/mmcblk0p1}. Use \code{sdc1}
   or \code{sdb1} instead of \code{mmcblk0p1} if needed.
 
 \item Format the second partition as an {\em ext4} filesystem:\\
@@ -400,8 +402,8 @@ on the SD card:
 \begin{itemize}
 
 \item Copy the \code{MLO}, \code{u-boot.img}, \code{zImage} and
-  \code{am335x-boneblack.dtb} files from \code{output/images/} to the
-  \code{boot} partition of the SD card.
+  \code{am335x-boneblack-wireless.dtb} files from
+  \code{output/images/} to the \code{boot} partition of the SD card.
 
 \item Extract the \code{rootfs.tar} file to the \code{rootfs}
   partition of the SD card, using:\\
