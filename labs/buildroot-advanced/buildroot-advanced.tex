@@ -81,20 +81,23 @@ We're going to create a Buildroot configuration, so create a file
 named \code{.config} and put the following contents:
 
 \begin{verbatim}
-BR2_TOOLCHAIN_BUILDROOT_LARGEFILE=y
-BR2_TOOLCHAIN_BUILDROOT_INET_IPV6=y
-BR2_TOOLCHAIN_BUILDROOT_WCHAR=y
+BR2_TOOLCHAIN_BUILDROOT_GLIBC=y
 BR2_TOOLCHAIN_BUILDROOT_CXX=y
+BR2_PACKAGE_MESA3D=y
+BR2_PACKAGE_MESA3D_DRI_DRIVER_SWRAST=y
+BR2_PACKAGE_MESA3D_OPENGL_EGL=y
+BR2_PACKAGE_MESA3D_OPENGL_ES=y
 BR2_PACKAGE_XORG7=y
 BR2_PACKAGE_XSERVER_XORG_SERVER=y
-BR2_PACKAGE_LIBGTK2=y
-BR2_PACKAGE_WEBKIT=y
+BR2_PACKAGE_LIBGTK3=y
+BR2_PACKAGE_WEBKITGTK=y
 \end{verbatim}
 
 It represents a configuration that builds an internal toolchain, with
-a X.org graphic server, the Gtk2 library, and the Webkit Web rendering
-engine. We're not going to build this configuration, as it would take
-quite a bit of time, but we will generate the dependency graph for it.
+a X.org graphic server, the Mesa3D OpenGL implementation, the Gtk3
+library, and the Webkit Web rendering engine. We're not going to build
+this configuration, as it would take quite a bit of time, but we will
+generate the dependency graph for it.
 
 First, let's run \code{make menuconfig} to expand this minimal
 configuration into a full configuration:
@@ -112,14 +115,14 @@ make graph-depends
 
 Look at \code{graphs/graph-depends.pdf} and how complex it is. Now,
 let's look at the dependencies of one specific package, let's say
-\code{libgtk2}:
+\code{libgtk3}:
 
 \begin{verbatim}
-make libgtk2-graph-depends
+make libgtk3-graph-depends
 \end{verbatim}
 
 Now, open the graph generated at
-\code{graphs/libgtk2-graph-depends.pdf}. As you can see, it is a lot
+\code{graphs/libgtk3-graph-depends.pdf}. As you can see, it is a lot
 more readable.
 
 Such dependencies graphs are very useful to understand why a package
@@ -188,9 +191,7 @@ following elements:
   the official Buildroot rather than kept in a \code{BR2_EXTERNAL}
   tree.
 
-\item The Linux kernel patch and Linux kernel configuration file. For
-  the Linux kernel patch, use \code{BR2_GLOBAL_PATCH_DIR} instead of
-  the Linux-specific \code{BR2_LINUX_KERNEL_PATCH} option.
+\item The Linux kernel patch and Linux kernel configuration file.
 
 \item The {\em rootfs overlay}
 
@@ -216,6 +217,8 @@ Your \code{BR2_EXTERNAL} tree should look like this:
 |               +-- etc
 |                   +-- network
 |                       +-- interfaces
+|                   +-- init.d
+|                       +-- S30usbgadget
 +-- package/
 |   +-- bar
 |       +-- 0001-Fix-missing-libconfig.h-include.patch
