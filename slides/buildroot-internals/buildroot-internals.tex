@@ -151,7 +151,8 @@ $(BUILD_DIR)/%/.stamp_target_installed:
 $(BUILD_DIR)/%/.stamp_downloaded:
         $(foreach hook,$($(PKG)_PRE_DOWNLOAD_HOOKS),$(call $(hook))$(sep))
         [...]
-	$(foreach p,$($(PKG)_ALL_DOWNLOADS),$(call DOWNLOAD,$(p))$(sep))
+        $(foreach p,$($(PKG)_ALL_DOWNLOADS),$(call DOWNLOAD,$(p))$(sep))
+	$(foreach hook,$($(PKG)_POST_DOWNLOAD_HOOKS),$(call $(hook))$(sep))
         $(Q)mkdir -p $(@D)
         $(Q)touch $@
 \end{minted}
@@ -181,8 +182,8 @@ $(BUILD_DIR)/%/.stamp_built::
         $(foreach hook,$($(PKG)_PRE_BUILD_HOOKS),$(call $(hook))$(sep))
         +$($(PKG)_BUILD_CMDS)
         $(foreach hook,$($(PKG)_POST_BUILD_HOOKS),$(call $(hook))$(sep))
-        $(Q)touch $@
         @$(call step_end,build)
+        $(Q)touch $@
 \end{minted}
 \end{block}
 
@@ -396,7 +397,7 @@ $$($(2)_TARGET_EXTRACT):        $$($(2)_TARGET_SOURCE)
 
 $(1)-source:            $$($(2)_TARGET_SOURCE)
 
-$$($(2)_TARGET_SOURCE): | dirs prepare
+$$($(2)_TARGET_SOURCE): | prepare
 $$($(2)_TARGET_SOURCE): | dependencies
 \end{minted}
 \end{block}
@@ -443,22 +444,18 @@ xzcat /home/thomas/dl/zlib-1.2.8.tar.xz | tar ...
 \end{verbatim}
 \end{frame}
 
-\begin{frame}[fragile]{Preparation work: dirs, prepare, dependencies}
+\begin{frame}[fragile]{Preparation work: prepare, dependencies}
 
   \begin{block}{pkg-generic.mk}
     \begin{minted}[fontsize=\tiny]{make}
-$$($(2)_TARGET_SOURCE): | dirs prepare
+$$($(2)_TARGET_SOURCE): | prepare
 $$($(2)_TARGET_SOURCE): | dependencies
     \end{minted}
   \end{block}
 
   \begin{itemize}
-  \item All packages have three targets in their dependencies:
+  \item All packages have two targets in their dependencies:
     \begin{itemize}
-    \item \code{dirs}: creates the main directories (\code{BUILD_DIR},
-      \code{TARGET_DIR}, \code{HOST_DIR}, etc.). As part of creating
-      \code{TARGET_DIR}, the root filesystem skeleton is copied into
-      it
     \item \code{prepare}: generates a kconfig-related \code{auto.conf}
       file
     \item \code{dependencies}: triggers the check of Buildroot system
@@ -506,7 +503,7 @@ $(1)-reconfigure:       $(1)-clean-for-reconfigure $(1)
   \item Specialized {\bf package infrastructures} were created to
     handle these packages, and reduce the amount of duplication
   \item For {\em autotools}, {\em CMake}, {\em Python}, {\em Perl},
-    {\em Lua} and {\em kconfig} packages
+    {\em Lua}, {\em Meson}, {\em Golang} and {\em kconfig} packages
   \end{itemize}
 \end{frame}
 
@@ -514,20 +511,19 @@ $(1)-reconfigure:       $(1)-clean-for-reconfigure $(1)
 
 \begin{block}{package/flann/flann.mk}
 \begin{minted}[fontsize=\tiny]{make}
-FLANN_VERSION = d0c04f4d290ebc3aa9411a3322992d298e51f5aa
+FLANN_VERSION = 1.9.1
 FLANN_SITE = $(call github,mariusmuja,flann,$(FLANN_VERSION))
 FLANN_INSTALL_STAGING = YES
 FLANN_LICENSE = BSD-3-Clause
 FLANN_LICENSE_FILES = COPYING
-FLANN_CONF_OPT = \
+FLANN_CONF_OPTS = \
         -DBUILD_C_BINDINGS=ON \
         -DBUILD_PYTHON_BINDINGS=OFF \
         -DBUILD_MATLAB_BINDINGS=OFF \
         -DBUILD_EXAMPLES=$(if $(BR2_PACKAGE_FLANN_EXAMPLES),ON,OFF) \
-        -DBUILD_TESTS=OFF \
-        -DBUILD_DOC=OFF \
         -DUSE_OPENMP=$(if $(BR2_GCC_ENABLE_OPENMP),ON,OFF) \
-        -DPYTHON_EXECUTABLE=OFF
+        -DPYTHON_EXECUTABLE=OFF \
+        -DCMAKE_DISABLE_FIND_PACKAGE_HDF5=TRUE
 
 $(eval $(cmake-package))
 \end{minted}
@@ -717,36 +713,59 @@ endif
   \end{itemize}
 \end{frame}
 
-\begin{frame}[fragile]{{\tt fs/common.mk}}
+\begin{frame}[fragile]{{\tt fs/common.mk}, part 1}
   \begin{block}{}
-    \begin{minted}[fontsize=\tiny]{make}
-define ROOTFS_TARGET_INTERNAL
+\begin{minted}[fontsize=\tiny]{make}
+ROOTFS_COMMON_DEPENDENCIES = \
+        host-fakeroot host-makedevs \
+        $(BR2_TAR_HOST_DEPENDENCY) \
+        $(if $(PACKAGES_USERS)$(ROOTFS_USERS_TABLES),host-mkpasswd)
 
-ROOTFS_$(2)_DEPENDENCIES += host-fakeroot host-makedevs \
-        $$(if $$(PACKAGES_USERS),host-mkpasswd)
+rootfs-common: $(ROOTFS_COMMON_DEPENDENCIES) target-finalize
+        @$(call MESSAGE,"Generating root filesystems common tables")
+        rm -rf $(FS_DIR)
+        mkdir -p $(FS_DIR)
+        $(call PRINTF,$(PACKAGES_USERS)) >> $(ROOTFS_FULL_USERS_TABLE)
+        cat $(ROOTFS_USERS_TABLES) >> $(ROOTFS_FULL_USERS_TABLE)
+        $(call PRINTF,$(PACKAGES_PERMISSIONS_TABLE)) > $(ROOTFS_FULL_DEVICES_TABLE)
+        cat $(ROOTFS_DEVICE_TABLES) >> $(ROOTFS_FULL_DEVICES_TABLE)
+\end{minted}
+  \end{block}
+\end{frame}
 
-$$(BINARIES_DIR)/rootfs.$(1): target-finalize $$(ROOTFS_$(2)_DEPENDENCIES)
-        @$$(call MESSAGE,"Generating root filesystem image rootfs.$(1)")
-        $$(foreach hook,$$(ROOTFS_$(2)_PRE_GEN_HOOKS),$$(call $$(hook))$$(sep))
-        ...
+\begin{frame}[fragile]{{\tt fs/common.mk}, part 2}
+  \begin{block}{}
+\begin{minted}[fontsize=\tiny]{make}
+define inner-rootfs
+ROOTFS_$(2)_IMAGE_NAME ?= rootfs.$(1)
+ROOTFS_$(2)_FINAL_IMAGE_NAME = $$(strip $$(ROOTFS_$(2)_IMAGE_NAME))
+ROOTFS_$(2)_DIR = $$(FS_DIR)/$(1)
+ROOTFS_$(2)_TARGET_DIR = $$(ROOTFS_$(2)_DIR)/target
+
+$$(BINARIES_DIR)/$$(ROOTFS_$(2)_FINAL_IMAGE_NAME): $$(ROOTFS_$(2)_DEPENDENCIES)
+        @$$(call MESSAGE,"Generating filesystem image $$(ROOTFS_$(2)_FINAL_IMAGE_NAME)")
+        [...]
+        mkdir -p $$(ROOTFS_$(2)_DIR)
+        rsync -auH \
+                --exclude=/$$(notdir $$(TARGET_DIR_WARNING_FILE)) \
+                $$(BASE_TARGET_DIR)/ \
+                $$(TARGET_DIR)
+        echo '#!/bin/sh' > $$(FAKEROOT_SCRIPT)
+        echo "set -e" >> $$(FAKEROOT_SCRIPT)
         echo "chown -h -R 0:0 $$(TARGET_DIR)" >> $$(FAKEROOT_SCRIPT)
-        echo "$$(HOST_DIR)/bin/makedevs -d $$(FULL_DEVICE_TABLE) $$(TARGET_DIR)" >> \
-              $$(FAKEROOT_SCRIPT)
-        echo "$$(ROOTFS_$(2)_CMD)" >> $$(FAKEROOT_SCRIPT)
+        PATH=$$(BR_PATH) $$(TOPDIR)/support/scripts/mkusers $$(ROOTFS_FULL_USERS_TABLE) $$(TARGET_DIR) >> $$(FAKEROOT_SCRIPT)
+        echo "$$(HOST_DIR)/bin/makedevs -d $$(ROOTFS_FULL_DEVICES_TABLE) $$(TARGET_DIR)" >> $$(FAKEROOT_SCRIPT)
+        [...]
+        $$(call PRINTF,$$(ROOTFS_$(2)_CMD)) >> $$(FAKEROOT_SCRIPT)
         chmod a+x $$(FAKEROOT_SCRIPT)
         PATH=$$(BR_PATH) $$(HOST_DIR)/bin/fakeroot -- $$(FAKEROOT_SCRIPT)
-        ...
-
-rootfs-$(1): $$(BINARIES_DIR)/rootfs.$(1) $$(ROOTFS_$(2)_POST_TARGETS)
-
+[...]
 ifeq ($$(BR2_TARGET_ROOTFS_$(2)),y)
 TARGETS_ROOTFS += rootfs-$(1)
 endif
 endef
 
-define ROOTFS_TARGET
-$(call ROOTFS_TARGET_INTERNAL,$(1),$(call UPPERCASE,$(1)))
-endef
+rootfs = $(call inner-rootfs,$(pkgname),$(call UPPERCASE,$(pkgname)))
     \end{minted}
   \end{block}
 \end{frame}
@@ -771,7 +790,7 @@ define ROOTFS_UBIFS_CMD
         $(HOST_DIR)/sbin/mkfs.ubifs -d $(TARGET_DIR) $(UBIFS_OPTS) -o $@
 endef
 
-$(eval $(call ROOTFS_TARGET,ubifs))
+$(eval $(rootfs))
     \end{minted}
   \end{block}
 \end{frame}
