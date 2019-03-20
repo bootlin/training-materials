@@ -32,51 +32,110 @@ Buildroot {\em output} tree, take some time to look inside
 
 \end{itemize}
 
+\section{Use a {\em rootfs overlay} to setup the network}
+
+The BeagleBone Black Wireless does not have any Ethernet interface, so
+we will use Ethernet over USB to provide network connectivity between
+our embedded system and the development PC. To achieve this we will
+need to:
+
+\begin{enumerate}
+\item Add an init script to setup network over USB
+\item Add a configuration file that configures the network interface
+  with the appropriate IP address
+\end{enumerate}
+
+\subsection{Init script for USB network setup}
+
+There are different mechanisms to configure {\em USB gadget} with
+Linux: we will use the {\em gadget configfs} interface, which allows
+from user-space to create USB devices providing an arbitrary set of
+functionalities\footnote{See
+  \url{https://elinux.org/images/e/ef/USB_Gadget_Configfs_API_0.pdf}
+  for more details}.
+
+Since the setup of such a {\em USB gadget} is not trivial, we provide
+a ready-to-use shell script that we will add to the {\em init scripts}
+of the Buildroot system. The script is called \code{S30usbgadget} and
+is available from this lab data directory at
+\code{$HOME/buildroot-labs/buildroot-rootfs/}.
+
+We could copy this script directly to our SD card, but this would mean
+that the next time we reflash the SD card with the root filesystem
+produced by Buildroot, we would lose those changes.
+
+In order to automate the addition of this script to the root
+filesystem as part of the Buildroot build, we will use the {\bf rootfs
+  overlay} mechanism. Since this {\em overlay} is specific to our
+project, we will create a custom directory for our project within the
+Buildroot sources: \code{board/felabs/beagleboneblack/}.
+
+Within this directory, create a \code{rootfs-overlay} directory, and
+in \code{menuconfig}, specify
+\code{board/felabs/beagleboneblack/rootfs-overlay} as the {\em rootfs
+  overlay} (option \code{BR2_ROOTFS_OVERLAY}).
+
+Copy the \code{S30usbgadget} script to your overlay so that it is
+located in
+\code{board/felabs/beagleboneblack/rootfs-overlay/etc/init.d/S30usbgadget}. At
+boot time, the default init system used by Buildroot will execute all
+scripts named \code{SXX*} in \code{/etc/init.d}.
+
+\subsection{IP address configuration}
+
+By default, Buildroot uses the \code{ifup} program from Busybox, which
+reads the \code{/etc/network/interfaces} file to configure network
+interfaces. So, in \code{board/felabs/beagleboneblack/rootfs-overlay},
+create a file named \code{etc/network/interfaces} with the following
+contents:
+
+\begin{verbatim}
+auto lo
+iface lo inet loopback
+
+auto usb0
+iface usb0 inet static
+      address 192.168.0.2
+      netmask 255.255.255.0
+\end{verbatim}
+
+Then, rebuild your system by running \code{make}. Here as well, we
+don't need to do a full rebuild, since the {\em rootfs overlays} are
+applied at the end of each build. You can check in
+\code{output/target/etc/init.d/} and \code{output/target/etc/network/}
+if both the init script and network configuration files were properly
+copied.
+
+Reflash the root filesystem on the SD card, and boot your BeagleBone
+Black. It should now have an IP address configured for \code{usb0} by
+default.
+
 \section{Configure the network on your host}
 
 In the next sections of this lab, we will want to interact with the
-BeagleBone Black over the network. So in this section, we'll configure
-an Ethernet interface on your host machine.
+BeagleBone Black over the network, through USB. So in this section,
+we'll configure your host machine to assign an appropriate IP address
+for the USB network interface.
 
-With a network cable, connect the Ethernet port of your board to the
-one of your computer. If the main wired Ethernet port of your computer
-is already used, your instructor will provide you with a USB Ethernet
-adapter. A new network interface, probably \code{eth1} or \code{eth2},
-should appear on your Linux system.
+On Ubuntu, the network interfaces corresponding to Ethernet-over-USB
+connections are named \code{enx<macaddr>}. The host MAC address is
+hardcoded in the \code{S30usbgadget} script to
+\code{f8:dc:7a:00:00:01}, so the interface will be name
+\code{enxf8dc7a000001}.
 
-To configure this network interface on the workstation side, click on
-the {\em Network Manager} tasklet on your desktop, and select {\em
-Edit Connections}.
+To configure an IP address for this interface on your host machine,
+we'll use NetworkManager and its command line interface:
 
-\begin{center}
-\includegraphics[width=8cm]{labs/buildroot-rootfs/network-config-1.png}
-\end{center}
-
-Select the new {\em wired network connection}:
-
-\begin{center}
-\includegraphics[width=8cm]{labs/buildroot-rootfs/network-config-2.png}
-\end{center}
-
-In the \code{IPv4 Settings} tab, press the \code{Add} button
-and make the interface use a static IP
-address, like \code{192.168.0.1} (of course, make sure that this
-address belongs to a separate network segment from the one of the main
-company network).
-
-\begin{center}
-\includegraphics[width=8cm]{labs/buildroot-rootfs/network-config-3.png}
-\end{center}
-
-You can use \code{255.255.255.0} as \code{Netmask}, and leave the
-\code{Gateway} field untouched (if you click on the \code{Gateway} box, you
-will have to type a valid IP address, otherwise you won't be apply to
-click on the \code{Apply} button).
+\begin{verbatim}
+nmcli con add type ethernet ifname enxf8dc7a000001 ip4 192.168.0.1/24
+\end{verbatim}
 
 {\em Note: using \code{ifconfig} in the command line is not
-recommended, because Network Manager will unconfigure and reconfigure
-the network interface each time the cable is unplugged or each time
-the board reboots.}
+recommended, because Network Manager will unconfigure and
+reconfigure the network interface each time the board is rebooted.}
+
+Once this is done, make sure you can communicate with your target
+using \code{ping}.
 
 \section{Add {\em dropbear} as an SSH server}
 
@@ -114,60 +173,8 @@ message:
 Starting dropbear sshd: OK
 \end{verbatim}
 
-Log in the system, and configure an IP address manually by doing
-\code{ifconfig eth0 192.168.0.2}. Now, from your host machine, you can
-connect over the network to the board by doing \code{ssh
-root@192.168.0.2}.
-
-However, configuring the IP address every time you boot the board is
-not very practical, so let's move to the next section, in which we
-will learn how to do this properly.
-
-\section{Use a {\em rootfs overlay} to configure the IP address}
-
-By default, Buildroot uses the \code{ifup} program from Busybox, which
-reads the \code{/etc/network/interfaces} file to configure network
-interfaces.
-
-So, we could write a \code{/etc/network/interfaces} file on our
-target, and reboot. However, the next time we will fully rebuild and
-reflash our system, such changes will have disappeared. It is
-important that our build process remains fully reproducible, so we
-want to ensure that the next build will include such custom
-configuration.
-
-To achieve this, the easiest way is to use the {\bf rootfs overlay}
-mechanism of Buildroot. Since this {\em overlay} is specific to our
-project, we will create a custom directory for our project within the
-Buildroot sources: \code{board/felabs/beagleboneblack/}.
-
-Within this directory, create a \code{rootfs-overlay} directory, and
-in \code{menuconfig}, specify
-\code{board/felabs/beagleboneblack/rootfs-overlay} as the {\em rootfs
-overlay} (option \code{BR2_ROOTFS_OVERLAY}).
-
-Then, in \code{board/felabs/beagleboneblack/rootfs-overlay}, create a
-file named \code{etc/network/interfaces} with the following contents:
-
-\begin{verbatim}
-auto lo
-iface lo inet loopback
-
-auto eth0
-iface eth0 inet static
-      address 192.168.0.2
-      netmask 255.255.255.0
-\end{verbatim}
-
-Then, rebuild your system by running \code{make}. Here as well, we
-don't need to do a full rebuild, since the {\em rootfs overlays} are
-applied at the end of each build. You can check in
-\code{output/target/etc/network/interfaces} if the contents of the
-file are good.
-
-Reflash the root filesystem on the SD card, and boot your BeagleBone
-Black. It should now have an IP address configured for \code{eth0} by
-default.
+From your host machine, you can connect over the network to the board
+by doing \code{ssh root@192.168.0.2}.
 
 \section{Use a post-build script}
 
@@ -194,7 +201,7 @@ will sit next to our {\em rootfs overlay} in our project-specific
 directory:
 
 \begin{verbatim}
-mkdir board/felabs/beagleboneblack/linux-patches/
+mkdir board/felabs/beagleboneblack/patches/linux/
 \end{verbatim}
 
 Copy in this directory the two patches that we provided with the data
@@ -202,7 +209,7 @@ of this lab, in \code{$HOME/buildroot-labs/buildroot-rootfs/linux/}:
 
 \begin{verbatim}
 cp $HOME/buildroot-labs/buildroot-rootfs/linux/*.patch \
-     board/felabs/beagleboneblack/linux-patches/
+     board/felabs/beagleboneblack/patches/linux/
 \end{verbatim}
 
 The first patch adds the driver, the second patch adjusts the Device
@@ -211,9 +218,9 @@ our training course {\em Embedded Linux kernel driver development},
 which precisely covers the development of this driver.
 
 Now, we need to tell Buildroot to apply these patches before building
-the kernel. To do so, run \code{menuconfig}, go the to the {\em
-Kernel} menu, and adjust the \code{Custom kernel patches} variable to
-\code{board/felabs/beagleboneblack/linux-patches/}.
+the kernel. To do so, run \code{menuconfig}, go the to the {\em Build
+  options} menu, and adjust the \code{Global patch directories} option
+to \code{board/felabs/beagleboneblack/patches/}.
 
 Let's now clean up completely the \code{linux} package so that its
 sources will be re-extracted and our patches applied the next time we
@@ -223,8 +230,8 @@ do a build:
 make linux-dirclean
 \end{verbatim}
 
-If you check in \code{output/build/}, the \code{linux-4.13} directory
-will have disappeared.
+If you check in \code{output/build/}, the \code{linux-4.19.29}
+directory will have disappeared.
 
 Now, we need to adjust our kernel configuration to enable the {\em Wii
 Nunchuk} driver. To start the Linux kernel configuration tool, run:
@@ -253,7 +260,7 @@ sure the \code{CONFIG_INPUT_EVDEV} option is enabled with \code{*} (by
 default it is enabled as a module).
 
 You can now exit the kernel \code{menuconfig}, and restart the build
-of kernel:
+of the kernel:
 
 \begin{verbatim}
 make
@@ -447,36 +454,3 @@ log:
 \begin{verbatim}
 make 2>&1 | tee build.log
 \end{verbatim}
-
-\section{Going further}
-
-If you have some time left, let's improve our setup to use TFTP and
-NFS, in order to avoid having to reflash the SD card for every
-test. What you need to do is:
-
-\begin{enumerate}
-
-\item Install a TFTP server (package \code{tftpd-hpa}) and a NFS
-  server (package \code{nfs-kernel-server}) on your system. Configure
-  the NFS server, in \code{/etc/exports} to export
-  \code{/home/<user>/nfsroot} over NFS.
-
-\item Copy the Linux kernel image and Device Tree to
-  \code{/var/lib/tftpboot} so that they are made available by the TFTP
-  server.
-
-\item Extract (as root) \code{rootfs.tar} to
-  \code{/home/<user>/nfsroot}.
-
-\item Change the U-Boot \code{bootcmd} to load the kernel image and
-  the Device Tree over TFTP.
-
-\item Change the U-Boot \code{bootargs} variable to tell the Linux
-  kernel that the root filesystem should be mounted over NFS:
-  \code{root=/dev/nfs ip=<IP of board> nfsroot=<IP of
-    PC>:/home/<user>/nfsroot}.
-
-\end{enumerate}
-
-See the training materials of our {\em Embedded Linux system
-  development} course for details!
