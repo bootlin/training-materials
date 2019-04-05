@@ -1,0 +1,140 @@
+\subchapter{Filesystems - Block file systems}{Objective: configure and
+  boot an embedded Linux system relying on block storage}
+
+After this lab, you will be able to:
+\begin{itemize}
+\item Manage partitions on block storage.
+\item Produce file system images.
+\item Configure the kernel to use these file systems
+\item Use the tmpfs file system to store temporary files
+\end{itemize}
+
+\section{Goals}
+
+After doing the {\em A tiny embedded system} lab, we are going to copy
+the filesystem contents to the SD card. The filesystem will be
+split into several partitions, and your Discovery kit will be booted
+with this SD card, without using NFS anymore.
+
+\section{Setup}
+
+Throughout this lab, we will continue to use the root filesystem we
+have created in the \code{$HOME/embedded-linux-labs/tinysystem/nfsroot}
+directory, which we will progressively adapt to use block filesystems.
+
+\section{Filesystem support in the kernel}
+
+Recompile your kernel with support for SquashFS and ext4\footnote{Basic
+configuration options for these filesystems will be sufficient. No need
+for things like extended attributes.}.
+
+Update your kernel image in the boot partition.
+
+Boot your board with this new kernel and on the NFS filesystem you
+used in this previous lab.
+
+Now, check the contents of \code{/proc/filesystems}. You should see
+ that ext4 and SquashFS are now supported.
+
+\section{Add partitions to the SD card}
+
+We're going to use the SD card for our block device.
+
+Plug the SD card in your workstation. If partitions are mounted,
+unmount them:
+
+\begin{verbatim}
+$ sudo umount /dev/mmcblk0*
+\end{verbatim}
+
+Using \code{parted}, add two partitions, starting from the beginning
+of the remaining space, with the following properties:
+
+\begin{itemize}
+
+\item One partition, 2 MB big.
+
+\item One partition, that fills the rest of the SD card, that will be
+  used for the data filesystem.
+
+\end{itemize}
+
+Use \code{quit} when you are done.
+
+\section{Data partition on the SD card}
+
+Using the \code{mkfs.ext4} create a journaled file system on the
+sixth partition of the SD card:
+
+\begin{verbatim}
+sudo mkfs.ext4 -L data -E nodiscard /dev/mmcblk0p6
+\end{verbatim}
+
+\begin{itemize}
+\item \code{-L} assigns a volume name to the partition
+\item \code{-E nodiscard} disables bad block discarding. While this
+      should be a useful option for cards with bad blocks, skipping
+      this step saves long minutes in SD cards.
+\end{itemize}
+
+Now, mount this new partition and move the contents of the
+\code{/www/upload/files} directory (in your target root filesystem) into
+it. The goal is to use the data partition of the SD card as the storage
+for the uploaded images.
+
+Insert the SD card in your board and boot. You should see the
+partitions in \code{/proc/partitions}.
+
+Mount this sixth partition on \code{/www/upload/files}.
+
+Once this works, modify the startup scripts in your root filesystem
+to do it automatically at boot time.
+
+Reboot your target system and with the mount command, check that
+\code{/www/upload/files} is now a mount point for the sixth SD card
+partition. Also make sure that you can still upload new images, and
+that these images are listed in the web interface.
+
+\section{Adding a tmpfs partition for log files}
+
+For the moment, the upload script was storing its log file in
+\code{/www/upload/files/upload.log}. To avoid seeing this log file in
+the directory containing uploaded files, let's store it in
+\code{/var/log} instead.
+
+Add the \code{/var/log/} directory to your root filesystem and modify
+the startup scripts to mount a \code{tmpfs} filesystem on this
+directory. You can test your \code{tmpfs} mount command line on the
+system before adding it to the startup script, in order to be sure
+that it works properly.
+
+Modify the \code{www/cgi-bin/upload.cfg} configuration file to store
+the log file in \code{/var/log/upload.log}. You will lose your log
+file each time you reboot your system, but that's OK in our
+system. That's what \code{tmpfs} is for: temporary data that you don't need
+to keep across system reboots.
+
+Reboot your system and check that it works as expected.
+
+\section{Making a SquashFS image}
+
+We are going to store the root filesystem in a SquashFS filesystem in
+the fifth partition of the SD card.
+
+In order to create SquashFS images on your host, you need to install
+the \code{squashfs-tools} package. Now create a SquashFS image of your
+NFS root directory.
+
+Finally, using the \code{dd} command, copy the file system image to
+the fifth partition of the SD card.
+
+\section{Booting on the SquashFS partition}
+
+In the U-boot shell, configure the kernel command line to use the
+fifth partition of the SD card as the root file system. Also add the
+\code{rootwait} boot argument, to wait for the SD card to be properly
+initialized before trying to mount the root filesystem. Since the SD
+cards are detected asynchronously by the kernel, the kernel might try
+to mount the root filesystem too early without \code{rootwait}.
+
+Check that your system still works. Congratulations if it does!

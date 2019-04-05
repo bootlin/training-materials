@@ -5,7 +5,7 @@ After this lab, you will be able to:
 \begin{itemize}
 \item Set up a cross-compiling environment
 \item Configure the kernel Makefile accordingly
-\item Cross compile the kernel for the Microchip SAMA5D3 Xplained ARM board
+\item Cross compile the kernel for the STM32MP157C-DK2 Discovery kit
 \item Use U-Boot to download the kernel
 \item Check that the kernel you compiled starts the system
 \end{itemize}
@@ -16,13 +16,17 @@ Go to the \code{$HOME/embedded-linux-labs/kernel} directory.
 
 \section{Target system}
 
-We are going to cross-compile and boot a Linux kernel for the Microchip
-SAMA5D3 Xplained board.
+We are going to cross-compile and boot a Linux kernel for the
+STM32MP157C-DK2 Discovery kit.
 
 \section{Kernel sources}
 
 We will re-use the kernel sources downloaded and patched in the
 previous lab.
+
+We need to add an other patch to get full support of the platform.
+Apply the patch named
+\code{$HOME/embedded-linux-labs/linux-stm32/stm31mp157_support.patch}
 
 \section{Cross-compiling environment setup}
 
@@ -45,11 +49,12 @@ Also, don't forget to either:
 
 \section{Linux kernel configuration}
 
-By running \code{make help}, find the proper Makefile target to
-configure the kernel for the Xplained board (hint: the default
-configuration is not named after the board, but after the SoC
-name). Once found, use this target to configure the kernel with the
-ready-made configuration.
+We could use the \code{multi_v7_defconfig} default configuration to
+build a working kernel but to save time and compile less code, we
+provide a minimal configuration file, named
+\code{stm31mp157_defconfig}. Copy it to \code{.config} and then run
+either \code{make olddefconfig} or \code{make oldconfig} if you want
+to get asked for all the possible choices.
 
 Don't hesitate to visualize the new settings by running
 \code{make xconfig} afterwards!
@@ -83,7 +88,7 @@ home directory.
 
 \section{Load and boot the kernel using U-Boot}
 
-We will use TFTP to load the kernel image on the Xplained board:
+We will use TFTP to load the kernel image on the Discovery kit:
 
 \begin{itemize}
 
@@ -91,14 +96,14 @@ We will use TFTP to load the kernel image on the Xplained board:
   directory exposed by the TFTP server.
 
 \item On the target (in the U-Boot prompt), load \code{zImage} from
-  TFTP into RAM at address 0x21000000:\\
-  \code{tftp 0x21000000 zImage}
+  TFTP into RAM at address 0xc0000000:\\
+  \code{tftp 0xc0000000 zImage}
 
-\item Now, also load the DTB file into RAM at address 0x22000000:\\
-  \code{tftp 0x22000000 at91-sama5d3_xplained.dtb}
+\item Now, also load the DTB file into RAM at address 0xc4000000:\\
+  \code{tftp 0xc4000000 stm32mp157c-dk2.dtb}
 
 \item Boot the kernel with its device tree:\\
-  \code{bootz 0x21000000 - 0x22000000}
+  \code{bootz 0xc0000000 - 0xc4000000}
 
 \end{itemize}
 
@@ -110,65 +115,36 @@ reset. Reset the board, and specify a different \code{bootcmd}:
 
 {\scriptsize
 \begin{verbatim}
-setenv bootcmd 'tftp 0x21000000 zImage; tftp 0x22000000 at91-sama5d3_xplained.dtb; bootz 0x21000000 - 0x22000000'
+setenv bootcmd 'tftp 0xc0000000 zImage; tftp 0xc4000000 stm32mp157c-dk2.dtb; bootz 0xc0000000 - 0xc4000000'
 saveenv
 \end{verbatim}
 }
 
-\section{Flashing the kernel and DTB in NAND flash}
+\section{Writing the kernel and DTB on the SD card}
 
 In order to let the kernel boot on the board autonomously, we can
-flash the kernel image and DTB in the NAND flash available on the
-Xplained board.
+copy the kernel image and DTB in the boot partition we created
+previously.
 
-After storing the first stage bootloader, U-boot and its environment
-variables, we will keep special areas in NAND flash for the DTB
-and Linux kernel images:
-
-\begin{center}
-  \includegraphics[width=\textwidth]{labs/sysdev-kernel-cross-compiling/flash-map.pdf}
-\end{center}
-
-So, let's start by erasing the corresponding 128 KiB of NAND flash
-for the DTB:
-
+Insert the SD card in your PC, it will get auto-mounted. Copy the
+kernel and device tree:
 \begin{verbatim}
-nand erase 0x140000 0x20000
-        (NAND offset) (size)
+sudo cp arch/arm/boot/dts/stm32mp157c-dk2.dtb arch/arm/boot/zImage /media/training/boot/
+sudo umount /dev/mmcblk0p4
 \end{verbatim}
 
-Then, let's erase the 5 MiB of NAND flash for the kernel image:
+Insert the SD card back in the board and reset it. You should now be
+able to load the DTB and kernel image from the SD card and boot with:
 
 \begin{verbatim}
-nand erase 0x160000 0x500000
+ext2load mmc 0:4 0xc0000000 zImage
+ext2load mmc 0:4 0xc4000000 stm32mp157c-dk2.dtb
+bootz 0xc0000000 - 0xc4000000
 \end{verbatim}
-
-Then, copy the DTB and kernel binaries from TFTP into memory, using the
-same addresses as before.
-
-Then, flash the DTB and kernel binaries:
-
-\begin{verbatim}
-nand write 0x22000000 0x140000 0x20000
-           (RAM addr) (NAND offset) (size)
-nand write 0x21000000 0x160000 0x500000
-\end{verbatim}
-
-Power your board off and on, to clear RAM contents. We should now be
-able to load the DTB and kernel image from NAND and boot with:
-
-\begin{verbatim}
-nand read 0x22000000 0x140000 0x20000
-          (RAM addr) (offset) (size)
-nand read 0x21000000 0x160000 0x500000
-bootz 0x21000000 - 0x22000000
-\end{verbatim}
-
-Write a U-Boot script that automates the DTB + kernel download
-and flashing procedure.
 
 You are now ready to modify \code{bootcmd} to boot the board
-from flash. But first, save the settings for booting from \code{tftp}:
+from SD card. But first, save the settings for booting from
+\code{tftp}:
 
 \begin{verbatim}
 setenv bootcmdtftp ${bootcmd}
@@ -177,13 +153,12 @@ setenv bootcmdtftp ${bootcmd}
 This will be useful to switch back to \code{tftp} booting mode
 later in the labs.
 
-Finally, using \code{editenv bootcmd}, 
-adjust \code{bootcmd} so that the Xplained board starts
-using the kernel in flash.
+Finally, using \code{editenv bootcmd}, adjust \code{bootcmd} so that
+the Discovery board starts using the kernel from the SD card.
 
-Now, reset the board to check that it boots
-in the same way from NAND flash. Check that this is really your own version of
-the kernel that's running\footnote{Look at the kernel log. You will find
-the kernel version number as well as the date when it was compiled.
+Now, reset the board to check that it boots in the same way from the
+SD card. Check that this is really your own version of the kernel
+that's running\footnote{Look at the kernel log. You will find the
+kernel version number as well as the date when it was compiled.
 That's very useful to check that you're not loading an older version
 of the kernel instead of the one that you've just compiled.}

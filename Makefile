@@ -127,8 +127,8 @@ SYSDEV_4D_SLIDES = \
 		first-slides \
 		about-us \
 		course-information-title \
-		xplained-board \
-		sysdev-shopping-list \
+		discovery-board \
+		sysdev-shopping-list-stm32 \
 		course-information \
 		sysdev-intro \
 		sysdev-dev-environment \
@@ -280,11 +280,11 @@ SYSDEV_LABS   = setup \
 
 SYSDEV_4D_LABS = setup \
 		sysdev-toolchain \
-		sysdev-u-boot \
+		sysdev-u-boot-stm32 \
 		sysdev-kernel-fetch-and-patch \
-		sysdev-kernel-cross-compiling \
+		sysdev-kernel-cross-compiling-stm32 \
 		sysdev-tinysystem \
-		sysdev-block-filesystems \
+		sysdev-block-filesystems-stm32 \
 		sysdev-thirdparty \
 		sysdev-buildroot \
 		sysdev-application-development \
