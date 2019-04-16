@@ -12,9 +12,9 @@ After this lab, you will be able to:
 \section{Goals}
 
 After doing the {\em A tiny embedded system} lab, we are going to copy
-the filesystem contents to the MMC flash drive. The filesystem will be
+the filesystem contents to the SD card. The filesystem will be
 split into several partitions, and your sama5d3 X-plained board will
-be booted with this MMC card, without using NFS anymore.
+be booted with this SD card, without using NFS anymore.
 
 \section{Setup}
 
@@ -36,11 +36,11 @@ used in this previous lab.
 Now, check the contents of \code{/proc/filesystems}. You should see
  that ext4 and SquashFS are now supported.
 
-\section{Prepare the MMC card}
+\section{Prepare the SD card}
 
-We're going to use an MMC card for our block device.
+We're going to use an SD card for our block device.
 
-Plug the MMC card your instructor gave you on your workstation. Type
+Plug the SD card your instructor gave you on your workstation. Type
 the \code{dmesg} command to see which device is used by your
 workstation. In case the device is \code{/dev/mmcblk0}, you will see
 something like
@@ -54,17 +54,17 @@ The device file name may be different (such as \code{/dev/sdb}
 if the card reader is connected to a USB bus (either inside your PC
 or using a USB card reader).
 
-In the following instructions, we will assume that your MMC/SD card
+In the following instructions, we will assume that your SD card
 is seen as \code{/dev/mmcblk0} by your PC workstation.
 
 Type the \code{mount} command to check your currently mounted
-partitions. If MMC/SD partitions are mounted, unmount them:
+partitions. If SD partitions are mounted, unmount them:
 
 \begin{verbatim}
 $ sudo umount /dev/mmcblk0*
 \end{verbatim}
 
-Then, clear possible MMC/SD card contents remaining from previous
+Then, clear possible SD card contents remaining from previous
 training sessions (only the first megabytes matter):
 
 \begin{verbatim}
@@ -100,7 +100,7 @@ following properties:
   but it does not matter. Keep the \code{Linux} type for the
   partition.
 
-\item One partition, that fills the rest of the MMC card, that will be
+\item One partition, that fills the rest of the SD card, that will be
   used for the data filesystem. Here also, keep the \code{Linux} type
   for the partition.
 
@@ -109,12 +109,12 @@ following properties:
 Press \code{Write} when you are done.
 
 To make sure that partition definitions are reloaded on your
-workstation, remove the MMC card and insert it again.
+workstation, remove the SD card and insert it again.
 
-\section{Data partition on the MMC disk}
+\section{Data partition on the SD card}
 
 Using the \code{mkfs.ext4} create a journaled file system on the
-third partition of the MMC disk:
+third partition of the SD card:
 
 \begin{verbatim}
 sudo mkfs.ext4 -L data -E nodiscard /dev/mmcblk0p3
@@ -124,15 +124,15 @@ sudo mkfs.ext4 -L data -E nodiscard /dev/mmcblk0p3
 \item \code{-L} assigns a volume name to the partition
 \item \code{-E nodiscard} disables bad block discarding. While this
       should be a useful option for cards with bad blocks, skipping
-      this step saves long minutes in MMC/SD cards. 
+      this step saves long minutes in SD cards.
 \end{itemize}
 
 Now, mount this new partition and move the contents of the
 \code{/www/upload/files} directory (in your target root filesystem) into
-it. The goal is to use the third partition of the MMC card as the storage
+it. The goal is to use the third partition of the SD card as the storage
 for the uploaded images.
 
-Connect the MMC disk to your board. You should see the MMC partitions
+Connect the SD card to your board. You should see the partitions
 in \code{/proc/partitions}.
 
 Mount this third partition on \code{/www/upload/files}.
@@ -141,7 +141,7 @@ Once this works, modify the startup scripts in your root filesystem
 to do it automatically at boot time.
 
 Reboot your target system and with the mount command, check that
-\code{/www/upload/files} is now a mount point for the third MMC disk
+\code{/www/upload/files} is now a mount point for the third SD card
 partition. Also make sure that you can still upload new images, and
 that these images are listed in the web interface.
 
@@ -169,27 +169,27 @@ Reboot your system and check that it works as expected.
 \section{Making a SquashFS image}
 
 We are going to store the root filesystem in a SquashFS filesystem in
-the second partition of the MMC disk.
+the second partition of the SD card.
 
 In order to create SquashFS images on your host, you need to install
 the \code{squashfs-tools} package. Now create a SquashFS image of your
 NFS root directory.
 
 Finally, using the \code{dd} command, copy the file system image to
-the second partition of the MMC disk.
+the second partition of the SD card.
 
 \section{Booting on the SquashFS partition}
 
 In the U-boot shell, configure the kernel command line to use the
-second partition of the MMC disk as the root file system. Also add the
-\code{rootwait} boot argument, to wait for the MMC disk to be properly
-initialized before trying to mount the root filesystem. Since the MMC
+second partition of the SD card as the root file system. Also add the
+\code{rootwait} boot argument, to wait for the SD card to be properly
+initialized before trying to mount the root filesystem. Since the SD
 cards are detected asynchronously by the kernel, the kernel might try
 to mount the root filesystem too early without \code{rootwait}.
 
 Check that your system still works. Congratulations if it does!
 
-\section{Store the kernel image and DTB on the MMC card}
+\section{Store the kernel image and DTB on the SD card}
 
 You'll first need to format the first partition, using:
 \begin{verbatim}
@@ -197,12 +197,12 @@ sudo mkfs.vfat -F 16 -n boot /dev/mmcblk0p1
 \end{verbatim}
 
 It will create a new FAT16 partition, called \code{boot}. Remove and
-plug the MMC card. You can now copy the kernel image and Device Tree
+plug the SD card. You can now copy the kernel image and Device Tree
 to it.
 
 You can now copy the \code{zImage} kernel image and DTB to the first
-partition of the MMC card and adjust the \code{bootcmd} of U-Boot so
-that it loads the kernel and DTB from the MMC card instead of loading
+partition of the SD card and adjust the \code{bootcmd} of U-Boot so
+that it loads the kernel and DTB from the SD card instead of loading
 them from the NAND.
 
 In U-boot, you can load a file from a FAT filesystem using a command
@@ -213,20 +213,20 @@ fatload mmc 0:1 0x21000000 filename
 \end{verbatim}
 
 Which will load the file named \code{filename} from the first
-partition of the first MMC device to the system memory at the address
-\code{0x21000000}.
+partition of the device handled by the first MMC controller to the
+system memory at the address \code{0x21000000}.
 
 \section{Going further}
 
 At this point our board still uses the bootloaders
 (\code{at91bootstrap} and \code{U-Boot}) stored in the NAND flash.
-Let's try to have everything on our MMC card.
+Let's try to have everything on our SD card.
 
-The ROM code can load the first stage bootloader from an SD card, from
-a file named \code{boot.bin} located in the first FAT partition of an
-MMC card. U-Boot will be stored as \code{u-boot.bin}.
+The ROM code can load the first stage bootloader from an MMC or SD
+card, from a file named \code{boot.bin} located in the first FAT
+partition. U-Boot will be stored as \code{u-boot.bin}.
 
 For this you will need to recompile \code{at91bootstrap} (you'll need
-to switch to version 3.8.12) to support booting from an MMC card.
+to switch to version 3.8.12) to support booting from an SD card.
 Then recompile U-Boot after reconfiguring it with its MMC configuration
 (we previously used the configuration for running from NAND flash).
