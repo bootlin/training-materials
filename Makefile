@@ -303,7 +303,7 @@ help:
 	$(foreach p,$(ALL_TRAININGS),\
 		@printf " %-30s %s\n" "$(p)-labs.tar.xz" "Lab data for the '$(p)' course"$(sep))
 	@echo
-	@echo " <some-chapter>-slides.pdf      Slides for a particular chapter in slides/"
-	@echo " <some-chapter>-labs.pdf        Labs for a particular chapter in labs/"
+	@printf " %-30s %s\n" "<some-chapter>-slides.pdf" "Slides for a particular chapter in slides/"
+	@printf " %-30s %s\n" "<some-chapter>-labs.pdf" "Labs for a particular chapter in labs/"
 	@echo
 	@printf " %-30s %s\n" "list-courses" "List all courses"
