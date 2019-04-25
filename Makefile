@@ -291,19 +291,21 @@ all: $(foreach p,$(ALL_TRAININGS),full-$(p)-slides.pdf full-$(p)-labs.pdf $(p)-a
 list-courses:
 	@echo $(ALL_TRAININGS)
 
+HELP_FIELD_FORMAT = " %-34s %s\n"
+
 help:
 	@echo "Available targets:"
 	@echo
 	$(foreach p,$(ALL_TRAININGS),\
-		@printf " %-30s %s\n" "full-$(p)-labs.pdf" "Complete labs for the '$(p)' course"$(sep))
+		@printf $(HELP_FIELD_FORMAT) "full-$(p)-labs.pdf" "Complete labs for the '$(p)' course"$(sep))
 	$(foreach p,$(ALL_TRAININGS),\
-		@printf " %-30s %s\n" "full-$(p)-slides.pdf" "Complete slides for the '$(p)' course"$(sep))
+		@printf $(HELP_FIELD_FORMAT) "full-$(p)-slides.pdf" "Complete slides for the '$(p)' course"$(sep))
 	$(foreach p,$(ALL_TRAININGS),\
-		@printf " %-30s %s\n" "$(p)-agenda.pdf" "Agenda for the '$(p)' course"$(sep))
+		@printf $(HELP_FIELD_FORMAT) "$(p)-agenda.pdf" "Agenda for the '$(p)' course"$(sep))
 	$(foreach p,$(ALL_TRAININGS),\
-		@printf " %-30s %s\n" "$(p)-labs.tar.xz" "Lab data for the '$(p)' course"$(sep))
+		@printf $(HELP_FIELD_FORMAT) "$(p)-labs.tar.xz" "Lab data for the '$(p)' course"$(sep))
 	@echo
-	@printf " %-30s %s\n" "<some-chapter>-slides.pdf" "Slides for a particular chapter in slides/"
-	@printf " %-30s %s\n" "<some-chapter>-labs.pdf" "Labs for a particular chapter in labs/"
+	@printf $(HELP_FIELD_FORMAT) "<some-chapter>-slides.pdf" "Slides for a particular chapter in slides/"
+	@printf $(HELP_FIELD_FORMAT) "<some-chapter>-labs.pdf" "Labs for a particular chapter in labs/"
 	@echo
-	@printf " %-30s %s\n" "list-courses" "List all courses"
+	@printf $(HELP_FIELD_FORMAT) "list-courses" "List all courses"
