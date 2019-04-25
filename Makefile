@@ -197,6 +197,20 @@ FORCE:
 endif
 
 #
+# Lab data archive generation
+#
+
+%-labs.tar.xz: LAB_DATA=$(patsubst %-labs.tar.xz,%,$@)
+%-labs.tar.xz: OUT_LAB_DATA=$(OUTDIR)/$(LAB_DATA)-labs
+%-labs.tar.xz:
+	rm -rf $(OUT_LAB_DATA)
+	rsync --exclude=.git -a -k --delete lab-data/$(LAB_DATA)/ $(OUT_LAB_DATA)
+	fakeroot common/process-lab-data.sh $(OUT_LAB_DATA)
+	find $(OUT_LAB_DATA) -name '*.xz' -exec unxz {} \;
+	(cd $(OUTDIR); tar Jcf $@ $(LAB_DATA)-labs)
+	mv $(OUTDIR)/$@ $@
+
+#
 # === Compilation of agendas ===
 #
 ifdef AGENDA
@@ -283,6 +297,8 @@ help:
 		@printf " %-30s %s\n" "full-$(p)-slides.pdf" "Complete slides for the '$(p)' course"$(sep))
 	$(foreach p,$(ALL_TRAININGS),\
 		@printf " %-30s %s\n" "$(p)-agenda.pdf" "Agenda for the '$(p)' course"$(sep))
+	$(foreach p,$(ALL_TRAININGS),\
+		@printf " %-30s %s\n" "$(p)-labs.tar.xz" "Lab data for the '$(p)' course"$(sep))
 	@echo
 	@echo " <some-chapter>-slides.pdf      Slides for a particular chapter in slides/"
 	@echo " <some-chapter>-labs.pdf        Labs for a particular chapter in labs/"
