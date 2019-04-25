@@ -288,6 +288,9 @@ ALL_TRAININGS = $(sort $(patsubst %.mk,%,$(notdir $(wildcard mk/*.mk))))
 
 all: $(foreach p,$(ALL_TRAININGS),full-$(p)-slides.pdf full-$(p)-labs.pdf $(p)-agenda.pdf)
 
+list-courses:
+	@echo $(ALL_TRAININGS)
+
 help:
 	@echo "Available targets:"
 	@echo
@@ -303,3 +306,4 @@ help:
 	@echo " <some-chapter>-slides.pdf      Slides for a particular chapter in slides/"
 	@echo " <some-chapter>-labs.pdf        Labs for a particular chapter in labs/"
 	@echo
+	@printf " %-30s %s\n" "list-courses" "List all courses"
