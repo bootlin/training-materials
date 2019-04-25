@@ -270,14 +270,7 @@ $(VARS): FORCE
 clean:
 	$(RM) -rf $(OUTDIR) *.pdf *-labs *.xz
 
-ALL_TRAININGS = \
-	autotools \
-	boottime \
-	buildroot \
-	kernel \
-	sysdev \
-	sysdev-4d \
-	yocto
+ALL_TRAININGS = $(sort $(patsubst %.mk,%,$(notdir $(wildcard mk/*.mk))))
 
 all: $(foreach p,$(ALL_TRAININGS),full-$(p)-slides.pdf full-$(p)-labs.pdf $(p)-agenda.pdf)
 
