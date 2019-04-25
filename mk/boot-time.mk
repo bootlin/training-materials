@@ -1,4 +1,4 @@
-BOOTTIME_SLIDES = \
+BOOT_TIME_SLIDES = \
 		first-slides \
 		thanks-atmel \
 		about-us \
@@ -20,7 +20,7 @@ BOOTTIME_SLIDES = \
 		boottime-bootloader \
 		boottime-hardware-init \
 
-BOOTTIME_LABS = boottime-install \
+BOOT_TIME_LABS = boottime-install \
 		boottime-getting-started \
 		boottime-measuring \
 		boottime-setup \

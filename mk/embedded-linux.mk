@@ -1,4 +1,4 @@
-SYSDEV_SLIDES = \
+EMBEDDED_LINUX_SLIDES = \
 		first-slides \
 		about-us \
 		course-information-title \
@@ -46,7 +46,7 @@ SYSDEV_SLIDES = \
 		sysdev-references \
 		last-slides
 
-SYSDEV_LABS   = setup \
+EMBEDDED_LINUX_LABS   = setup \
 		sysdev-toolchain \
 		sysdev-u-boot \
 		sysdev-kernel-fetch-and-patch \

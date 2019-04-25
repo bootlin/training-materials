@@ -1,4 +1,4 @@
-KERNEL_SLIDES = \
+LINUX_KERNEL_SLIDES = \
 		first-slides \
 		about-us \
 		course-information-title \
@@ -58,7 +58,7 @@ KERNEL_SLIDES = \
 		kernel-git-content \
 		kernel-git-lab
 
-KERNEL_LABS   = setup \
+LINUX_KERNEL_LABS   = setup \
 		kernel-sources-download \
 		kernel-sources-exploring \
 		kernel-board-setup \
