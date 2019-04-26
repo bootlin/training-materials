@@ -222,11 +222,7 @@ AGENDA_PICTURES = $(COMMON_PICTURES) $(call PICTURES,agenda)
 	rm -f $(OUTDIR)/$(basename $@).tex
 	cp $(filter %.tex,$^) $(OUTDIR)/$(basename $@).tex
 	(cd $(OUTDIR); $(PDFLATEX_ENV) $(PDFLATEX) $(basename $@).tex)
-	# Using ps2pdf instead of cat to address a size issue in the generated PDF
-	# Otherwise, the agenda file is almost as big as the slides document (just half the size)
-	# This divides the agenda size by more than 10
-	# This was needed in 2019. This may be fixed by later versions of LaTeX.
-	ps2pdf $(OUTDIR)/$@ $@
+	cat $(OUTDIR)/$@ > $@
 else
 FORCE:
 %-agenda.pdf: FORCE
