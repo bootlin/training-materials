@@ -22,7 +22,6 @@ BOOT_TIME_SLIDES = \
 
 BOOT_TIME_LABS = setup \
 		boot-time-board-setup \
-		boottime-setup \
 		boottime-init-scripts \
 		boottime-application \
 		boottime-kernel \
