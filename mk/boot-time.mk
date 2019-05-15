@@ -21,6 +21,7 @@ BOOT_TIME_SLIDES = \
 		boottime-hardware-init \
 
 BOOT_TIME_LABS = setup \
+		boot-time-sources-download \
 		boot-time-board-setup \
 		boottime-init-scripts \
 		boottime-application \
