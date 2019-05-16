@@ -24,6 +24,7 @@ BOOT_TIME_LABS = boot-time-goals \
 		setup \
 		boot-time-sources-download \
 		boot-time-board-setup \
+		boot-time-build-system \
 		boottime-init-scripts \
 		boottime-application \
 		boottime-kernel \
