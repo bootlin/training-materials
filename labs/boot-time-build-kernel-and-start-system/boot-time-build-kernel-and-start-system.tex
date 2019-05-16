@@ -1,0 +1,193 @@
+\subchapter{Build the kernel and boot the system}{Objective: configure, compile and install the
+kernel, install the root file system and see the full system in action!}
+
+At the end of the lab, you'll have your system completely up and
+running.
+
+\section{Setup}
+
+Go to the \code{~/boot-time-labs/kernel/linux/} directory.
+
+First, let's get the list of branches on our \code{stable} remote tree:
+
+\begin{verbatim}
+git branch -a
+\end{verbatim}
+
+As we will do our labs with the Linux 5.1 stable branch, the remote branch
+we are interested in is \code{remotes/stable/linux-5.1.y}.
+
+First, open the \code{Makefile} file just to check the Linux kernel
+version that you currently have.
+
+Now, let's create a local branch starting from that remote branch:
+\begin{verbatim}
+git checkout -b 5.1-beaglecam stable/linux-5.1.y
+\end{verbatim}
+
+This local branch will allow us to keep our modifications to the Linux
+kernel to support the LCD4 cape that we're using.
+
+Open \code{Makefile} again and make sure you now have a 5.1.y version.
+
+\section{Compiling environment}
+
+You need the same \code{PATH} and \code{CROSS_COMPILE} environment
+variables as when you compiled U-Boot, plus the \code{ARCH} one that
+corresponds to the target archicture.
+
+So, add the below line at the end of your \code{~/.bashrc} file:
+
+\begin{verbatim}
+export ARCH=arm
+\end{verbatim}
+
+Now source this file (\code{source ~/.bashrc})  in the current terminal,
+or start a new terminal to get all needed variables.
+
+\section{Adding support for the LCD4 cape}
+
+To support using the LCD4 cape, all we need to do is declare and
+configure the devices on this cape. This is typically done by
+customizing the board's {\em Device Tree} or by adding a {\em Device
+Tree Overlay}.
+
+So, to avoid messing with the standard DTS for our board, let's use a
+such a customized device tree through a separate file:
+
+\begin{verbatim}
+cp ~/boot-time-labs/kernel/data/am335x-boneblack-lcd4.dts arch/arm/boot/dts/
+\end{verbatim}
+
+You also have to modify \code{arch/arm/boot/dts/Makefile} so that
+the new DTS file gets compiled too.
+
+\section{Configuring the Linux kernel}
+
+First, lets pick the default kernel configuration for boards with a TI
+OMAP or AMxxxx SoC:
+
+\begin{verbatim}
+make help | grep omap
+\end{verbatim}
+
+What we need is the configuration for OMAP2 and later SoCs:
+\begin{verbatim}
+make omap2plus_defconfig
+\end{verbatim}
+
+Let's run \code{make menuconfig} or \code{make xconfig} and select the
+below options. Use the search capability of such configuration
+interfaces to find the corresponding parameters (remove \code{CONFIG_}
+when you search.
+
+To enable support for the framebuffer and the PWM backlight:
+\begin{itemize}
+\item \code{CONFIG_PWM_TIEHRPWM=y}
+\item \code{CONFIG_FB_SIMPLE=y}
+\item \code{CONFIG_BACKLIGHT_PWM=y}
+\item \code{CONFIG_DRM=y}
+\item \code{CONFIG_DRM_TILCDC=y}
+\item \code{CONFIG_DRM_TI_TFP410=y}
+\end{itemize}
+
+For USB support:
+\begin{itemize}
+\item \code{CONFIG_USB=y} 
+\item \code{CONFIG_USB_MUSB_HDRC=y}
+\item \code{CONFIG_USB_MUSB_DSPS=y}
+\item \code{CONFIG_MUSB_PIO_ONLY=y}
+\item \code{CONFIG_USB_GADGET=y}
+\item \code{CONFIG_NOP_USB_XCEIV=y}
+\item \code{CONFIG_AM335X_PHY_USB=y}
+\item \code{CONFIG_USB_GPIO_VBUS=y}
+\item \code{CONFIG_USB_GADGET_VBUS_DRAW=500}
+\item \code{CONFIG_USB_CONFIGFS_F_UVC=y}
+\end{itemize}
+
+For the webcam
+\begin{itemize}
+\item \code{CONFIG_MEDIA_SUPPORT=y} 
+\item \code{CONFIG_MEDIA_USB_SUPPORT=y}
+\item \code{CONFIG_USB_VIDEO_CLASS=y}
+\end{itemize}
+
+\section{Compiling the kernel}
+
+To compile the device tree, just run:
+\begin{verbatim}
+make dtbs
+\end{verbatim}
+
+To compile the kernel, just run:
+\begin{verbatim}
+make -j 8 zImage
+\end{verbatim}
+
+Note that the default \code{make} target would have worked too, but with
+just \code{zImage}, we avoid compiling many modules that are configured
+in the default configuration. This saves quite a lot of time!
+
+At the end, copy the kernel binary and DTB to the SD card's boot
+partition:
+
+\begin{verbatim}
+cp arch/arm/boot/zImage /media/<user>/boot/
+cp arch/arm/boot/dts/am335x-boneblack-lcd4.dtb /media/<user>/boot/dtb
+\end{verbatim}
+
+\section{Installing the root filesystem}
+
+We are also ready to install the root filesystem. Still with the SD card
+connected to your workstation:
+
+\begin{verbatim}
+cd ~/boot-time-labs/rootfs
+mkdir rootfs
+cd rootfs
+tar xf ../buildroot/output/images/rootfs.tar
+sudo rsync -aH --delete ./ /media/<user>/rootfs/
+sudo umount /media/<user>/rootfs
+sudo umount /media/<user>/boot
+\end{verbatim}
+
+Then insert the SD card in the board's slot.
+
+\section{Bootloader configuration}
+
+Back to the serial console for your board, let's define the default boot
+sequence, to load the kernel and DTB from the external SD card:
+
+\begin{verbatim}
+setenv bootcmd 'fatload mmc 0:1 81000000 zImage; fatload mmc 0:1 82000000 dtb; bootz 81000000 - 82000000'
+\end{verbatim}
+
+The last thing to do is to define the kernel command line:
+\begin{verbatim}
+setenv bootcmd 'fatload mmc 0:1 81000000 zImage; fatload mmc 0:1 82000000 dtb; bootz 81000000 - 82000000'
+setenv bootargs console=ttyO0,115200n8 root=/dev/mmcblk0p2 rootwait ro
+\end{verbatim}
+
+\begin{itemize}
+\item \code{rootwait} waits for the root device to be ready before
+attempting to mount it. You may have a kernel panic otherwise.
+\item \code{ro} mounts the root filesystem read-only, which is probably
+a good thing to do, as we shouldn't have manual changes to make, and as
+we are going to reset the board countless times. This should avoid
+having to (automatically) repair the filesystem at boot time and
+potentially disturb boot time.
+\end{itemize}
+
+Last but not least, save your changes:
+\begin{verbatim}
+saveenv
+\end{verbatim}
+
+\section{Testing time!}
+
+First, connect the USB webcam provided by your instructor, and point it
+to an interesting direction ;)
+
+Then, reset your board or power it on, and see it work as expected. If
+you don't get what you expected, check your serial console for errors,
+and if you're stuck, show your system to your instructor.
