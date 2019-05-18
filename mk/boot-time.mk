@@ -1,8 +1,8 @@
 BOOT_TIME_SLIDES = \
 		first-slides \
-		thanks-atmel \
 		about-us \
 		course-information-title \
+		boot-time-thanks \
 		sama5d3-board \
 		boottime-course-outline \
 		boottime-principles \
