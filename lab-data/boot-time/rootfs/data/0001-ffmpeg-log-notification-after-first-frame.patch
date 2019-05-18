@@ -1,0 +1,40 @@
+From 0f944b031028f1226cda114fc7338e944c7a7e2e Mon Sep 17 00:00:00 2001
+From: Michael Opdenacker <michael.opdenacker@bootlin.com>
+Date: Fri, 17 May 2019 19:41:49 +0200
+Subject: [PATCH] ffmpeg log notification after first frame
+
+This writes to the application log after the first frame
+has been decoded and displayed.
+
+Signed-off-by: Michael Opdenacker <michael.opdenacker@bootlin.com>
+---
+ fftools/ffmpeg.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/fftools/ffmpeg.c b/fftools/ffmpeg.c
+index 01f04103cf..787e98948a 100644
+--- a/fftools/ffmpeg.c
++++ b/fftools/ffmpeg.c
+@@ -4659,6 +4659,7 @@ static int transcode(void)
+     InputStream *ist;
+     int64_t timer_start;
+     int64_t total_packets_written = 0;
++    static int framecounter=0;
+ 
+     ret = transcode_init();
+     if (ret < 0)
+@@ -4696,6 +4697,11 @@ static int transcode(void)
+         }
+ 
+         /* dump report by using the output first video and audio streams */
++	// Bootlin hack to signal when the first frame has been decoded
++	if (framecounter++==0) {
++		// Log on console
++		av_log(NULL, AV_LOG_INFO, "First frame decoded!\n");
++	}
+         print_report(0, timer_start, cur_time);
+     }
+ #if HAVE_THREADS
+-- 
+2.17.1
+
