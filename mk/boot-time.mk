@@ -5,7 +5,7 @@ BOOT_TIME_SLIDES = \
 		boot-time-thanks \
 		beagleboneblack-board \
 		beaglecam \
-		boottime-course-outline \
+		boot-time-course-outline \
 		boottime-principles \
 		boottime-measuring \
 		boottime-filesystems \
