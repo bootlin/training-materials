@@ -13,16 +13,16 @@ BOOT_TIME_SLIDES = \
 		boot-time-measuring \
 		boot-time-application \
 		boot-time-init-scripts \
-		boottime-filesystems \
-		boottime-c-libraries-title \
+		boot-time-filesystems \
+		boot-time-c-libraries-title \
 		c-libraries \
-		boottime-init-scripts2 \
+		boot-time-init-scripts2 \
 		initramfs \
 		boot-sequence-initramfs \
-		boottime-init-scripts3 \
-		boottime-kernel \
-		boottime-bootloader \
-		boottime-hardware-init \
+		boot-time-init-scripts3 \
+		boot-time-kernel \
+		boot-time-bootloader \
+		boot-time-hardware-init \
 
 BOOT_TIME_LABS = boot-time-goals \
 		setup \
@@ -32,8 +32,8 @@ BOOT_TIME_LABS = boot-time-goals \
 		boot-time-build-bootloader \
 		boot-time-build-kernel-and-start-system \
 		boot-time-software-measurement \
-		boottime-init-scripts \
-		boottime-application \
-		boottime-kernel \
-		boottime-bootloader \
-		boottime-results
+		boot-time-application \
+		boot-time-init-scripts \
+		boot-time-kernel \
+		boot-time-bootloader \
+		boot-time-results
