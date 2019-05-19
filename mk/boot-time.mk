@@ -3,7 +3,8 @@ BOOT_TIME_SLIDES = \
 		about-us \
 		course-information-title \
 		boot-time-thanks \
-		sama5d3-board \
+		beagleboneblack-board \
+		beaglecam \
 		boottime-course-outline \
 		boottime-principles \
 		boottime-measuring \
