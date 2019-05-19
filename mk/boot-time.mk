@@ -1,13 +1,16 @@
 BOOT_TIME_SLIDES = \
 		first-slides \
 		about-us \
-		course-information-title \
 		boot-time-thanks \
+		boot-time-setup-and-download-sources \
+		course-information-title \
 		beagleboneblack-board \
 		beaglecam \
 		boot-time-course-outline \
-		boottime-principles \
-		boottime-measuring \
+		board-setup-lab \
+		boot-time-principles \
+		build-system-bootloader-kernel-lab \
+		boot-time-measuring \
 		boottime-filesystems \
 		boottime-init-scripts \
 		boottime-c-libraries-title \
