@@ -1,20 +1,20 @@
-\section{Applications}
+\section{Optimizing applications}
 
 \begin{frame}
-\frametitle{strace}
+\frametitle{Measuring: strace}
 \begin{itemize}
 	\item Allows to trace all the system calls made by an
               application and its children.
 	\item Useful to:
 	\begin{itemize}
 		\item Understand how time is spent in user space
- 		\item For example, easy to find file open attempts (\code{open()}),
+		\item For example, easy to find file open attempts (\code{open()}),
 		      file access (\code{read()}, \code{write()}), and
 		      memory allocations (\code{mmap2()}). Can be done
 		      without any access to source code!
 		\item Find the biggest time consumers
- 		      (low hanging fruit)
-  		\item Find unnecessary work done in applications
+		      (low hanging fruit)
+		\item Find unnecessary work done in applications
 		      and scripts. Example: opening the same file(s)
 		      multiple times, or trying to open files that
 		      do not exist.
@@ -102,24 +102,24 @@
 \begin{itemize}
 	\item {\em legacy} mode:
 	\begin{block}{}
-	\begin{verbatim}
-		opcontrol --vmlinux=/path/to/vmlinux # optional step
-		opcontrol --start
-		/my/command
-		opcontrol --stop
-	\end{verbatim}
+\begin{verbatim}
+opcontrol --vmlinux=/path/to/vmlinux # optional step
+opcontrol --start
+/my/command
+opcontrol --stop
+\end{verbatim}
 	\end{block}
 	\item {\em perf\_events} mode:
 	\begin{block}{}
-	\begin{verbatim}
-		operf --vmlinux=/path/to/vmlinux /my/command
-	\end{verbatim}
+\begin{verbatim}
+operf --vmlinux=/path/to/vmlinux /my/command
+\end{verbatim}
 	\end{block}
 	\item Get the results with:
 	\begin{block}{}
-	\begin{verbatim}
-		opreport
-	\end{verbatim}
+\begin{verbatim}
+opreport
+\end{verbatim}
 	\end{block}
 \end{itemize}
 \end{frame}
@@ -169,15 +169,15 @@ Profiling through timer interrupt
 		sources so it is always in sync with your kernel.
 	\item Usage:
 	\begin{block}{}
-	\begin{verbatim}
-		perf record /my/command
-	\end{verbatim}
+\begin{verbatim}
+perf record /my/command
+\end{verbatim}
 	\end{block}
 	\item Get the results with:
 	\begin{block}{}
-	\begin{verbatim}
-		perf report
-	\end{verbatim}
+\begin{verbatim}
+perf report
+\end{verbatim}
 	\end{block}
 \end{itemize}
 \end{frame}
@@ -221,21 +221,14 @@ Profiling through timer interrupt
 \end{frame}
 
 \begin{frame}
-\frametitle{Toolchains}
-Try to use an optimized toolchain for your platform. That is something
-you'll have to benchmark near the end of your project.
+\frametitle{Toolchains optimizations}
+Trying a newer toolchain for your platform may help.
 \begin{itemize}
-        \item gcc version 4.6.3 (Sourcery CodeBench Lite 2012.03-57: 9.63s
-        \item gcc version 4.7.3 20130226 (prerelease) (crosstool-NG
-        linaro-1.13.1-4.7-2013.03-20130313 - Linaro GCC 2013.03): 9.26s
+  \item Results may vary depending on the size/features of your root filesystem.
+  \item Compare binary size and execution speed. Expect only minor improvements
+        though.
+  \item On ARM, Thumb2 toolchains are worth trying too.
 \end{itemize}
-Results may vary depending on the size/features of your root filesystem.
-Here, we mainly benchmark the kernel performance as the root filesystem
-doesn't take much time. Note: Don't compare with a Buildroot toolchain as
-these are using {\em glibc} and not {\em uClibc} and then
-the initramfs has a quite different size. Compiling the kernel with a
-Linaro toolchain and using a Buildroot generated root filesystem yields
-the same results as compiling everything with Buildroot.
 \end{frame}
 
 \begin{frame}
@@ -291,14 +284,19 @@ Details:
       always loaded at the same address.
 \item Code and paper at
       \url{http://people.redhat.com/jakub/prelink/}
+\item Supports ARM but no release since 2013. Not supported in Buildroot
+      either. However, easy to try on x86.
 \end{itemize}
 \end{frame}
 
 \setuplabframe
-{Reducing time starting applications}
+{Optimizing the application}
 {
 \begin{itemize}
-\item Trace and profile the main application with \code{strace}
+\item Compile the video player with just the features needed at run
+      time.
+\item Trace and profile the video player with \code{strace}
+\item Observe size savings
 \end{itemize}
 }
 
