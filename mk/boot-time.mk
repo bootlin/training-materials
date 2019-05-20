@@ -11,11 +11,12 @@ BOOT_TIME_SLIDES = \
 		boot-time-principles \
 		build-system-bootloader-kernel-lab \
 		boot-time-measuring \
+		boot-time-toolchain \
+		c-libraries \
+		boot-time-toolchain2 \
 		boot-time-application \
 		boot-time-init-scripts \
 		boot-time-filesystems \
-		boot-time-c-libraries-title \
-		c-libraries \
 		boot-time-init-scripts2 \
 		initramfs \
 		boot-sequence-initramfs \
