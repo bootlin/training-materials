@@ -1,19 +1,146 @@
-\subchapter{Application optimization}{Optimize the startup time of your
-applications}
+\subchapter{Application optimization}{Optimize the size and startup time
+of your application}
 
 \section{Measuring}
 
-The general rule stays the same. You have to measure the time taken to
-execute the various pieces of code in your application.
+We have already measured application startup time in the previous lab.
 
-Here, except for possible compiler optimization, modifying the
-application is outside the scope of this workshop, because it requires
-a good knowledge about the application itself.
+\section{Remove unnecessary functionality}
 
-However, we are going to use a few techniques which should help you to
-improve your own application when you are back to real life.
+\subsection{Compiling ffmpeg with a reduced configuration}
 
-\subsection{Compiling utilities}
+In our system, we use a generic version of \code{ffmpeg} that was built
+with support for too many codecs and options that we actually do not
+need in our very special case.
+
+So, let's try to find out what the minimum requirements for
+\code{ffmpeg} are.
+
+A first thing to do is to look at the {\code ffmpeg} logs:
+
+\begin{verbatim}
+ Input #0, video4linux2,v4l2, from '/dev/video0':
+   Duration: N/A, start: 8.768660, bitrate: N/A
+     Stream #0:0: Video: mjpeg, yuvj422p(pc, bt470bg/unknown/unknown), 544x288, 30 fps, 30 tbr, 1000k tbn, 1000k tbc
+ Stream mapping:
+   Stream #0:0 -> #0:0 (mjpeg (native) -> rawvideo (native))
+ Press [q] to stop, [?] for help
+ [mjpeg @ 0xb6b00340] unable to decode APP fields: Invalid data found when processing input
+ [swscaler @ 0x8f650] deprecated pixel format used, make sure you did set range correctly
+ [swscaler @ 0x8f650] No accelerated colorspace conversion found from yuv422p to rgb565le.
+ Output #0, fbdev, to '/dev/fb0':
+   Metadata:
+     encoder         : Lavf57.83.100
+     Stream #0:0: Video: rawvideo (RGB[16] / 0x10424752), rgb565le, 544x288, q=2-31, 75202 kb/s, 30 fps, 30 tbn, 30 tbc
+     Metadata:
+       encoder         : Lavc57.107.100 rawvideo
+\end{verbatim}
+
+Here we see that \code{ffmpeg} is using:
+\begin{itemize}
+\item Input from a \code{video4linux} device, decoding an \code{mjpeg}
+stream.
+\item Encoding a \code{rawvideo} stream, written to an
+\code{fbdev} output device.
+\item A software scaler to resize the input video for our LCD screen
+\end{itemize}
+
+Let's check \code{ffmpeg}'s \code{configure} script, and see what its
+options are:
+
+\begin{verbatim}
+cd ~/boot-time-labs/rootfs/buildroot-arm/output/build/ffmpeg-3.4.5
+./configure --help
+\end{verbatim}
+
+We see that \code{configure} has precisely three interesting options:
+\code{--list-encoders}, \code{--list-decoders}, \code{--list-filters},
+\code{--list-outdevs} and \code{--list-indevs}.
+
+Run \code{configure} with each of those and recognize the features that
+we need to enable.
+
+Following these findings, here's how we are going to modify Buildroot's
+configuration for \code{ffmpeg}.
+
+This time, let's assume that the {\em Thumb2} build from the previous
+lab has completed. If that's the case, finish that lab (measuring and
+writing down size and performance), and come back here when you are done:
+
+\begin{verbatim}
+cd ~/boot-time-labs/rootfs/buildroot/
+make menuconfig
+\end{verbatim}
+
+In Buildroot's configuration interface:
+
+\begin{itemize}
+\item Set \code{Enabled encoders} to \code{rawvideo}
+\item Set \code{Enabled decoders} to \code{mjpeg}
+\item Empty the \code{Enabled muxers}, \code{Enabled demuxers},
+      \code{Enabled parsers}, \code{Enabled bitstreams} and \code{Enabled protocols} settings.
+\item Set \code{Enabled filters} to \code{scale}
+\item For \code{Enable output devices} and \code{Enable input devices},
+      individual device selection is not possible, so we will configure
+      devices manually in the next field. So, empty such settings.
+\item Set \code{Additional parameters for ./configure} to
+      \code{--enable-indev=v4l2 --enable-outdev=fbdev}
+\end{itemize}
+
+Now, let's get Buildroot to recompile \code{ffmpeg}, taking our new
+settings into account:
+
+\begin{verbatim}
+make ffmpeg-dirclean
+make
+\end{verbatim}
+
+You can now fill the below table, reusing data from the previous lab:
+
+\begin{tabular}{| l | l | r |}
+  \hline
+  & Total rootfs size & \code{/usr/bin/ffmpeg} size \\
+  \hline
+  \hline
+  Initial configuration & & \\
+  \hline
+  Reduced configuration  & & \\
+  \hline
+  Difference (percentage) & & \\
+  \hline
+\end{tabular}
+
+Do you expect to see differences in execution time, with a reduced
+configuration? Run the measures with \code{time} again, and compare with
+what you got during the previous lab.
+
+If the results surprise you, don't hesitate to show them to your
+instructor ask for her/his opinion.
+
+\subsection{Trying to remove further features}
+
+Looking at the \code{ffmpeg} log which displays enabled configuration
+settings, try to find further configuration switches which can be
+removed without breaking the player in our particular system.
+
+\subsection{Inspection of the whole root filesystem}
+
+Something that can help too is to inspect the whole root filesystem,
+looking for files that don't seem necessary.
+
+The easiest way is to do this on the workstation:
+\begin{verbatim}
+sudo apt install tree
+cd /media/$USER/rootfs
+tree
+\end{verbatim}
+
+The \code{tree} command really makes this task easier.
+For the moment, don't bother about Busybox and system files. They will
+be addressed later. Better focus on files and libraries related to
+\code{ffmpeg}.
+
+\subsection{Further analysis of the application}
 
 With a build system like Buildroot, it's easy to add performance
 analysis and debugging utilities.
@@ -23,16 +150,12 @@ filesystem. You will find the corresponding configuration option in
 \code{Package selection for the target} and then in \code{Debugging,
 profiling and benchmark}.
 
-Note that with this version of Buildroot and Linux 3.6.9, we didn't
-manage to compile the \code{perf} utility. We will try again when a
-newer stable kernel is available for this board.
-
 Run Buildroot and reflash your device as usual.
 
 \subsection{Tracing and profiling with strace}
 
 With \code{strace}'s help, you can already have a pretty good understanding
-of how your application spends it time. You can see all the system
+of how your application spends its time. You can see all the system
 calls that it makes and knowing the application, you can guess in which
 part of the code it is at a given time.
 
@@ -45,13 +168,14 @@ Once the board has booted, run \code{strace} on the video player
 application:
 
 \begin{verbatim}
-strace -tt -f -o strace.log /root/go.sh
+strace -tt -f -o strace.log ffmpeg -f video4linux2 -video_size 544x288 \
+-input_format mjpeg -i /dev/video0 -pix_fmt rgb565le -f fbdev /dev/fb0
 \end{verbatim}
 
 Also have \code{strace} generate a summary:
 
 \begin{verbatim}
-strace -c -f -o strace-summary.log /root/go.sh
+strace -c -f -o strace-summary.log ffmpeg ...
 \end{verbatim}
 
 Take some time to read \code{strace.log}\footnote{
@@ -61,35 +185,88 @@ becomes useful. See
 \url{https://bootlin.com/doc/command_memento.pdf} for a basic
 command summary. Otherwise, you can use the more rudimentary \code{more}
 command. You can also copy the files to your PC, using a USB drive, for
-example.}
-, and look for the time when the program opens the video file.
+example.}, and see everything that the program is doing. Don't hesitate
+to lookup the ioctl codes on the Internet to have an idea about what's
+going on between the player, he camera and the display.
 
 Also have a look at \code{strace-summary.log}. You will find the number
-of errors trying to open files that do not exist, for example. You can
-also count the number of memory allocations (using the \code{mmap2} system call).
-
-\section{Removing unnecessary functionality}
-
-Based on what you learned by tracing and profiling your application, you
-could recompile it to remove support for the features that you know are
-not used in your system. This should speed up its execution, at least
-slightly.
-
-In our case, we could recompile GStreamer with just the features
-and plugins required to play the exact video format and codec that we
-have.
-
-\section{Postponing, reordering}
-
-In our particular case, modifying \code{gst-launch} would be very
-difficult. It could make sense with your own application though, for
-which the code is familiar to you.
+of errors trying to open files that do not exist, and where most time is
+spent, for example. You can also count the number of memory allocations
+(using the \code{mmap2} system call).
 
 \section{Optimizing necessary functionality}
 
-In this particular case, \code{gst-launch} is far from being the most
-efficient way of opening the video. It is really meant to help creating
-a multimedia pipeline. Once it is well defined, the \code{GStreamer}
-developers recommend to directly program with the \code{GStreamer}
-API\footnote{See the details on
-\url{http://docs.gstreamer.com/display/GstSDK/Basic+tutorial+10\%3A+GStreamer+tools}}.
+At this stage, there is nothing more we can really do to further
+optimize \code{ffmpeg}, unless we are ready to dig into the code and
+make changes.
+
+However, if the player was your own application, I'm sure this would
+help to understand how it's actually behaving and how to improve it to
+make it even faster and smaller.
+
+\section{Putting things back together}
+
+Now that we have analyzed the execution of the video player, let's
+restore the normal configuration for the system:
+
+\begin{itemize}
+\item Remove support for \code{strace}
+\item Restore the
+      \code{0001-ffmpeg-log-notification-after-first-frame.patch} patch,
+      replacing the most recently applied patch.
+\item Restoring the automatic execution of \code{ffmpeg} in
+      \code{/etc/init.d/S50playvideo}.
+\end{itemize}
+
+Re-regenerate and update your root filesystem and then reboot.
+
+According to our tests, there should be an issue now: the video player
+is started even before the camera is ready, as you can see in the system
+console.
+
+To address this issue for the time being, let's modify \code{/etc/init.d/S50playvideo}
+by adding a loop waiting for the \code{/dev/video0} device to appear.
+So, let's add the following lines before the call to \code{echo
+"Starting ffmpeg"}:
+
+\begin{verbatim}
+if ! [ -e /dev/video0 ]
+then
+   echo "Waiting for /dev/video0 to be ready..."
+   while ! [ -e /dev/video0 ]
+   do
+       sleep 0.001
+   done
+fi
+\end{verbatim}
+
+Notes:
+\begin{itemize}
+\item It seems you can not run an empty \code{while} loop with Busybox
+      \code{sh}. That's why I had to put a real command (not a comment)
+      inside the looop.
+\item Fortunately, the \code{sleep} command supports subsecond waiting.
+      Did you know?
+\item When we optimize the kernel, we will try to address this camera
+      readiness issue. If we can't fix it, at least we will display
+      something on the screen to make the user wait.
+\end{itemize}
+
+Update and reboot your system through \code{grabeserial}. Fill the below table
+with updated figures (we don't expect earlier parts of system bootup to
+be impacted... scripts may run faster after being recompiled in
+\code{Thumb2}) 
+
+\begin{tabular}{| l | l | r |}
+  \hline
+  Step & Duration & Description \\
+  \hline
+  \hline
+  Init scripts & & Between \code{Run /sbin/init} and \code{Starting ffmpeg} \\
+  \hline
+  Application & & Between \code{Starting ffmpeg} and \code{First frame decoded} \\
+  \hline
+  \hline
+  Total boot time & & \\
+  \hline
+\end{tabular}
