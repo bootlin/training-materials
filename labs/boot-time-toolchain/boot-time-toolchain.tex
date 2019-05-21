@@ -1,0 +1,145 @@
+\subchapter{Toolchain optimization}{Get the best cross-compiling
+toolchain for your application and system}
+
+The goal of this lab is to find the best toolchain for your application,
+in terms of performance and code size. Smaller code can be faster to
+load, and save time when using in an initramfs (when the whole
+filesystem is loaded at once in RAM).
+
+In this lab, we will see how to test an alternative toolchain, measuring:
+\begin{itemize}
+ \item Application execution time
+ \item Application and total filesystem size
+\end{itemize}
+
+\section{Measuring application execution time}
+
+At this stage, measuring the total system boot time is not accurate
+enough. We need to time the execution of the application more precisely.
+
+Hence, we will call the \code{ffmpeg} player directly from the command
+line and temporarily apply a patch that will make \code{ffmpeg}
+exit after processing the first frame.
+
+To achieve this:
+\begin{itemize}
+\item Temporarily replace the
+\code{0001-ffmpeg-log-notification-after-first-frame.patch} patch
+by \code{0001-ffmpeg-exit-after-first-frame.patch} found in
+\code{~/boot-time-labs/rootfs/data/}.
+\item Edit the \code{S50playvideo} script to comment out the line
+starting \code{ffmpeg} automatically.
+\end{itemize}
+
+Now, rebuild the root filesystem:
+\begin{verbatim}
+make ffmpeg-dirclean
+make
+\end{verbatim}
+
+Let's measure the total root filesystem size and the size of the
+\code{ffmpeg} executable:
+
+\begin{verbatim}
+ls -l output/images/rootfs.tar
+tar tvf output/images/rootfs.tar ./usr/bin/ffmpeg
+make
+\end{verbatim}
+
+Write these two numbers in the first row of the below table:
+
+\begin{tabular}{| l | l | r |}
+  \hline
+  & Total rootfs size & \code{/usr/bin/ffmpeg} size \\
+  \hline
+  \hline
+  ARM toolchain & & \\
+  \hline
+  Thumb2 toolchain  & & \\
+  \hline
+  Difference (percentage) & & \\
+  \hline
+\end{tabular}
+
+Reflash the root filesystem on the SD card and reboot your board.
+On the serial console, log in and run the video player through the
+\code{time} command (copying and pasting the command from these
+instructions or from the \code{/etc/init.d/S50playvideo} file:
+
+\begin{verbatim}
+time ffmpeg -t 10 -f video4linux2 -video_size 544x288 -input_format mjpeg \
+-i /dev/video0 -pix_fmt rgb565le -f fbdev /dev/fb0
+\end{verbatim}
+
+Write down your first results in the below table (\code{total1},
+\code{user1} and \code{sys1} columns):
+
+\begin{tabular}{| l | l | l | l || l | l | l || l | l | l |}
+  \hline
+  & total1 & user1 & sys1 & total2 & user2 & sys2 & total3 & user3 & sys3 \\
+  \hline
+  \hline
+  ARM toolchain & & & & & & & & & \\
+  \hline
+  Thumb2 toolchain & & & & & & & & & \\
+  \hline
+\end{tabular}
+
+After the first run, the program and its shared libraries are now in the
+file cache. Lets run the command two more times and write down (in the
+\code{2} and \code{3} columns) how fast it can run in this ideal case.
+
+\section{Switching to a Thumb2 toolchain}
+
+Now, let's modify the Buildroot toolchain, so that it generates {\em
+Thumb2} code (instead of {\em ARM}) by default.
+
+Before we switch, let's make a backup of the \code{buildroot} directory,
+in case results are disappointing and we wish to revert the changes without
+having to go through a full build again. In our particular case, we will
+start the next lab using this backup, waiting for the new build to be
+complete.
+
+In case you didn't know, a time and disk space efficient way to do this is by using the
+\code{cp -al} command, which uses hard links instead of making new copies
+of each file:
+
+\begin{verbatim}
+cd ..
+cp -al buildroot buildroot-arm
+\end{verbatim}
+
+You can then check that the files correspond to the same inode:
+\begin{verbatim}
+ls -i buildroot/Makefile buildroot-arm/Makefile
+\end{verbatim}
+
+Back to the \code{buildroot} directory, run \code{make menuconfig}, and
+in \code{Target options}, set \code{ARM instruction set} to
+\code{Thumb2}.
+
+Save the changes and run the full toolchain and root filesystem build
+again:
+
+\begin{verbatim}
+make clean
+make
+\end{verbatim}
+
+This is probably going to run for at least 30 minutes. In the meantime,
+start working on the next lab.
+
+When the build is over:
+\begin{itemize}
+\item Measure the new rootfilesystem archive and \code{ffmpeg}
+executable size, write it down in the table, and compute the difference
+percentages vs. the ARM code.
+\item Update the SD card with the new filesystem, run the same time
+measurements, and write down the results to compare them with the ARM
+ones.
+\end{itemize}
+
+So, was it a good choice to switch to {\em Thumb2}? Where there any size
+and performance benefits?
+
+Don't hesitate to show your results to your instructor.

@@ -1,0 +1,41 @@
+From 2722d61aaa1f2604b3de5bd581b871c6f9d54d7e Mon Sep 17 00:00:00 2001
+From: Michael Opdenacker <michael.opdenacker@bootlin.com>
+Date: Fri, 17 May 2019 19:41:49 +0200
+Subject: [PATCH] ffmpeg - exit after first frame
+
+This writes to the application log and exits after the first frame
+has been decoded and displayed.
+
+Signed-off-by: Michael Opdenacker <michael.opdenacker@bootlin.com>
+---
+ fftools/ffmpeg.c | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/fftools/ffmpeg.c b/fftools/ffmpeg.c
+index 01f04103cf..e2f8785b7a 100644
+--- a/fftools/ffmpeg.c
++++ b/fftools/ffmpeg.c
+@@ -4659,6 +4659,7 @@ static int transcode(void)
+     InputStream *ist;
+     int64_t timer_start;
+     int64_t total_packets_written = 0;
++    static int framecounter=0;
+ 
+     ret = transcode_init();
+     if (ret < 0)
+@@ -4696,6 +4697,12 @@ static int transcode(void)
+         }
+ 
+         /* dump report by using the output first video and audio streams */
++	// Bootlin hack to signal when the first frame has been decoded
++	if (framecounter++==0) {
++		// Log on console and exit
++		av_log(NULL, AV_LOG_INFO, "First frame decoded!\n");
++		exit_program(1);
++	}
+         print_report(0, timer_start, cur_time);
+     }
+ #if HAVE_THREADS
+-- 
+2.17.1
+
