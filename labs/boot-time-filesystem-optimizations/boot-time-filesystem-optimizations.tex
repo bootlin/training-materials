@@ -1,0 +1,155 @@
+\subchapter{Filesystem optimizations}{See what best filesystem options
+are in terms of boot time}
+
+During this lab, we will compare 3 ways of accessing the root filesystem
+
+\begin{itemize}
+\item Booting from an {\em ext4} filesystem
+\item Booting from a {\em SquashFS} filesystem
+\item Booting from an {\em initramfs}
+\end{itemize}
+
+\section{Tests with ext4 and Squashfs}
+
+First, recompile your kernel with {\em SquashFS} support, and update it
+on the SD card.
+
+Write the size of the \code{zImage} file in the first row of the below table:
+
+\begin{tabular}{| l | l |}
+  \hline
+  Type & zImage size (bytes) \\
+  \hline
+  \hline
+  zImage without initramfs & \\
+  \hline
+  zImage with initramfs & \\
+  \hline
+\end{tabular}
+
+Go to \code{~/boot-time-labs/rootfs}. You should have a \code{rootfs}
+subdirectory where your root filesystem archive has been extracted.
+
+Boot your system with \code{grabserial} and start filling the
+table below:
+
+\begin{tabular}{| l | l | l | r |}
+  \hline
+  Filesystem & Time for \code{Run /playvideo} & Time for \code{First frame decoded} & Time difference\\
+  \hline
+  \hline
+  ext4 & & & \\
+  \hline
+  SquashFS & & & \\
+  \hline
+  Initramfs & & & \\
+  \hline
+\end{tabular}
+
+For {\em SquashFS}, you will have to create an image and copy it to the
+raw partition:
+
+\begin{verbatim}
+sudo apt install squashfs-tools
+cd ~/boot-time-labs/rootfs
+mksquashfs rootfs/ rootfs.sqfs -noappend
+sudo dd if=rootfs.sqfs of=/dev/mmcblk0p2
+\end{verbatim}
+
+Then remove the SD card and boot the board with it as usual, and record
+measurements.
+
+Note that we also made tests with {\em ext2}, but they were very close
+to {\em ext4} ones, at least for very small filesystems like this one.
+So we decided to skip this filesystem here, to save time.
+
+\section{Initramfs tests}
+
+Booting from an {\em initramfs} is completely different. The strong
+advantage here is that the root filesystem will be extracted from an
+archive inside the kernel binary. So instead of several reads from the
+MMC, we will just have one reading (though bigger) the kernel binary.
+This can work well with small root filesystems as ours.
+
+Booting the kernel should be faster too, as we won't need the MMC and
+filesystem drivers at all. So, let's configure the kernel accordingly.
+
+To switch to an initramfs, there are a few things to do though:
+\begin{itemize}
+\item In an initramfs, you cannot have the kernel mount the {\em
+devtmpfs} filesystem mounted automatically on \code{/dev}. We'll mount
+it from our \code{playvideo} script.
+So:
+   \begin{itemize}
+   \item Modify the Busybox configuration to add support for the
+   \code{mount} command (found in \code{Linux System Utilities}), without
+    any additional option.
+   \item Add the following line to the \code{/playvideo} file:\\
+   \code{mount -t devtmpfs nodev /dev}
+   \item Run \code{make} to update your root filesystem and then
+   extract it again in your \code{rootfs} directory.
+   \end{itemize}
+\item Go to the U-Boot command line on your board, and modify the
+kernel parameters:\\
+   \code{setenv bootargs console=ttyO0,115200n8 rdinit=/playvideo}\\
+   \code{root=} and \code{rootwait} are ignored when there is an
+   Initramfs and \code{init} is replaced by \code{rdinit=}.
+   Don't forget to run \code{saveenv}.
+\end{itemize}
+
+Go to \code{~/boot-time-labs/kernel/linux} and run the Linux
+configuration interface:
+
+\begin{itemize}
+  \item In \code{General setup}
+  \begin{itemize}
+     \item Fill \code{Initramfs source file(s)} with
+\code{../../rootfs/rootfs} (or the correct path to the directory
+containing your root filesystem)
+     \item Make sure you set \code{CONFIG_INITRAMFS_COMPRESSION_NONE=y}
+	   to avoid wasting space compressing the initramfs twice.
+  \end{itemize}
+  \item Disable \code{Enable the block layer}
+  \item Disable \code{MMC/SD/SDIO card support}
+  \item We won't have to disable block filesystems as they are no longer
+compiled when block support is disabled.
+\end{itemize}
+
+Rebuild your kernel binary:
+\begin{verbatim}
+make -j8 zImage
+\end{verbatim}
+
+Copy the new kernel image to your SD card and then boot the board. You
+will see that there is a new issue though: the messages from \code{echo}
+and \code{ffmpeg} don't go through. That's probably because
+\code{/dev/console} doesn't exit yet when the script is started.
+
+So, let's fix it in our script. We are redirecting the important
+messages to \code{/dev/console}:
+
+\begin{verbatim}
+#!/bin/sh
+mount -t devtmpfs nodev /dev
+if ! [ -e /dev/video0 ]
+then
+   echo "Waiting for /dev/video0 to be ready..." > /dev/console
+   while ! [ -e /dev/video0 ]
+   do
+       sleep 0.001
+   done
+fi
+echo "Starting ffmpeg" > /dev/console
+ffmpeg -t 10 -f video4linux2 -video_size 544x288 -input_format mjpeg -i /dev/video0 -pix_fmt rgb565le -f fbdev /dev/fb0 2> /dev/console
+/bin/sh
+\end{verbatim}
+
+Now, you should be able to extrat the measures and write them down in
+the table above. If your tests run the same way ours did, the
+initramfs approach should win by a few tens of milliseconds.
+
+Also measure the size of your \code{zImage} file at write it in the
+table at the top of this chapter, to compare with your initial kernel.
+
+Let's choose this solution with an initramfs. There are still many things we can
+accelerate during the execution of the bootloader and execution.

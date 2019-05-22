@@ -37,6 +37,7 @@ BOOT_TIME_LABS = boot-time-goals \
 		boot-time-toolchain \
 		boot-time-application \
 		boot-time-init-scripts \
+		boot-time-filesystem-optimizations \
 		boot-time-kernel \
 		boot-time-bootloader \
 		boot-time-results
