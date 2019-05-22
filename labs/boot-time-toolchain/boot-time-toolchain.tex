@@ -146,3 +146,47 @@ So, was it a good choice to switch to {\em Thumb2}? Where there any size
 and performance benefits?
 
 Don't hesitate to show your results to your instructor.
+
+\section{Generate a Buildroot SDK}
+
+With Buildroot, it's frequent to need to run \code{make clean} and
+thus make a full rebuild, typically after configuration changes.
+As you've seen, such rebuilds are expensive with our Buildroot
+configuration that builds the toolchain too.
+
+Now that we have finalized our toolchain, let's have Buildroot generate
+an SDK that we won't have to build from scratch every time we need a
+full rebuild.
+
+\begin{verbatim}
+make sdk
+cd ~/boot-time-labs/rootfs
+tar xf buildroot/output/images/arm-buildroot-linux-uclibcgnueabihf_sdk-buildroot.tar.gz
+cd arm-buildroot-linux-uclibcgnueabihf_sdk-buildroot
+./relocate-sdk.sh
+\end{verbatim}
+
+Let's then configure Buildroot to use this new toolchain:
+\begin{verbatim}
+cd ../buildroot/
+make menuconfig
+\end{verbatim}
+
+In the \code{Toolchain} menu:
+\begin{itemize}
+\item Set \code{Toolchain type} to \code{External toolchain}
+\item Set \code{Toolchain} to \code{Custom toolchain}
+\item Set \code{Toolchain origin} to \code{Pre-installed toolchain}
+\item Set \code{Toolchain path} to
+      \code{/home/<user>/boot-time-labs/rootfs/arm-buildroot-linux-uclibcgnueabihf_sdk-buildroot}
+\item Set \code{External toolchain kernel headers series} to \code{4.19.x}
+\item Set \code{External toolchain gcc version} to \code{7.x}
+\item Disable \code{Toolchain has threads debugging support?}
+\end{itemize}
+
+Now test that your settings are correct:
+
+\begin{verbatim}
+make clean
+make
+\end{verbatim}

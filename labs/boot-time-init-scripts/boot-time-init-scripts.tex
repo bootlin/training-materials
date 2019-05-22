@@ -9,14 +9,12 @@ time consumers.
 
 \subsection{Use bootchartd on the board}
 
-Add \code{bootchartd} to your \code{BusyBox} configuration\footnote{
-Hint: to find where \code{bootchartd} support can be
-added in the \code{BusyBox} configuration interface, press the \code{/}
-key (search command). This will tell you in which submenu the
-corresponding option can be found.}.
+Add \code{bootchartd} to your \code{BusyBox} configuration.
+Also add support for {\em gzip compression} in utilities like \code{tar}
+(\code{BR2_FEATURE_SEAMLESS_GZ}), which is needed by \code{bootchartd}.
 
 \begin{verbatim}
-cd /opt/boot-time-labs/buildroot/buildroot-at91/
+cd ~/boot-time-labs/rootfs/buildroot
 make busybox-menuconfig
 make
 \end{verbatim}
@@ -25,60 +23,47 @@ The above command should only take a few seconds to run.
 
 \subsection{Re-flash the root filesystem}
 
-Reflash your root filesystem in the same way you did it in the previous
-labs. Reboot it as usual to let it generate its SSH keys.
+Update your root filesystem on the SD card.
 
 The next thing to do is to use the \code{init} argument on the
 kernel command line (in \code{u-boot}, this is the \code{bootargs}
 environment variable) to boot using \code{bootchart} instead of using
 the \code{init} program provided by Busybox.
 
-To go to the \code{u-boot} prompt, go to the \code{picocom} window
-showing the boards's serial line, reset your board with \code{PB1}, and
-press a key before the timer expires.
+So, boot your board but stay in the U-Boot shell, by pressing the
+\code{Space} key before the timer expires.
 
-First, have a look at the current value of the \code{bootargs}
-environment variable:
-
-\begin{verbatim}
-U-Boot> printenv bootargs
-bootargs=console=ttyS0,115200
-mtdparts=atmel_nand:8M(bootstrap/uboot/kernel)ro,-(rootfs) rw
-rootfstype=ubifs ubi.mtd=1 root=ubi0:rootfs
-\end{verbatim}
-
-Now add the \code{init} kernel parameter as follows:
-
+Add \code{init=/sbin/bootchartd} to the bootargs variable:
 \begin{verbatim}
 U-Boot> setenv bootargs ${bootargs} init=/sbin/bootchartd
 U-Boot> saveenv
-U-Boot> boot
 \end{verbatim}
 
 This will make the system boot and the resulting bootlog will be located
-in \code{/var/log/bootlog.tgz}. Copy that file on your host. You can do
-this by inserting the USB disk provided by your instructor into one of
-the USB hosts ports of the board:
+in \code{/var/log/bootlog.tgz}. As \code{/var/log} is actually stored in
+RAM (through the {\em tmpfs} filesystem, copy it to the root filesystem
+storage and halt your board:
 
 \begin{verbatim}
-# mount /dev/sda1 /mnt
-# cp /var/log/bootlog.tgz /mnt
-# umount /mnt
+cp /var/log/bootlog.gz /root/
+halt
 \end{verbatim}
 
-\section{Analyse bootchart data on your workstation}
+Remove the SD card and copy that file to \code{~/boot-time-labs/rootfs/} on your host.
 
-To use \code{bootchart} on your workstation, you first need to
+\subsection{Analyse bootchart data on your workstation}
+
+To compile and use \code{bootchart} on your workstation, you first need to
 install a few Java packages:
 
 \begin{verbatim}
-sudo apt install ant openjdk-6-jdk
+sudo apt install ant openjdk-11-jdk
 \end{verbatim}
 
-Now, get the \code{bootchart} source code\footnote{The source
-code was originally found on
-\url{http://prdownloads.sourceforge.net/bootchart/bootchart-0.9.tar.bz2}.}
-\footnote{Don't try to get the \code{bootchart} package supplied by
+Note that \code{ant} is a Java based build tool like \code{make}.
+
+Now, get the \code{bootchart} source code for version 0.9 from
+\url{http://www.bootchart.org/}\footnote{Don't try to get the \code{bootchart} package supplied by
 Ubuntu instead. While it has similar functionality, it looks like a completely
 unrelated piece of software. To confirm this, it has no dependency
 whatsoever on Java packages.}
@@ -86,12 +71,10 @@ whatsoever on Java packages.}
 chart:
 
 \begin{verbatim}
-cd /opt/boot-time-labs/buildroot/
-cp /media/$USER/BootTime/downloads/bootchart-0.9.tar.bz2 .
 tar xf bootchart-0.9.tar.bz2
 cd bootchart-0.9
 ant
-java -jar bootchart.jar /media/$USER/BootTime/bootlog.tgz
+java -jar bootchart.jar ~/boot-time-labs/rootfs/bootlog.tgz 
 \end{verbatim}
 
 This produces the \code{bootlog.png} image which you can visualize to
@@ -108,236 +91,282 @@ it will run the particular image viewer available in that
 particular flavor.
 
 \begin{center}
-\includegraphics[width=8cm]{labs/boot-time-init-scripts/bootlog.png}
+\includegraphics[height=8cm]{labs/boot-time-init-scripts/bootlog.png}
 \end{center}
 
 \section{Remove unnecessary functionality}
 
-The above graph shows that there are \code{udev} processes running
-during the startup process, taking a significant amount of CPU time
-(the graph shows blue rectanges when the processes actually uses
-the CPU).
+\subsection{Getting Buildroot to generate less files}
 
-\code{udev} is pretty likely to be unnecessary in this system. Managing
-device files (even for hotplugged devices) is perfectly taken care
-of by the kernel's \code{devtmpfs} filesystem. \code{udev} might be
-needed to run specific programs to react to hotplugging events, but
-it has no visible usefulness in the basic demo usage scenario.
+The above graph shows several system processes running
+during the startup process, consuming CPU time, probably delaying
+the execution of our application (see the color bars showing when
+a task is using the CPU).
 
-So let's remove \code{udev}! To do so, disable it in the Buildroot
+In the general case, there will be services that you want to keep. At
+least, you could change the order according to which services are
+started, by changing the alphanumeric order of startup files (that's
+reordering / postponing work).
+
+Back to our case, we want to simplify our system as much as possible.
+In Buildroot's configuration interface, go to the \code{System
+Configuration} menu:
+
+\begin{itemize}
+\item Disable \code{Enable root login with password} and
+      \code{Run a getty (login prompt) after boot}.
+\item Disable \code{remount root filesystem read-write during boot}
+\item Disable \code{Purge unwanted locales}
+\end{itemize}
+
+Don't forget to remove \code{bootchartd} support as well and
+\code{BR2_FEATURE_SEAMLESS_GZ} which we added earlier.
+Also disable \code{ifupdown scripts} in \code{Networking applications}.
+This allows to remove the \code{/etc/init.d/S40network} script.
+
+Before we update the filesystem, let's make another experiment: boot
+your board, interrupt the video player, and unmount \code{/proc} and
+\code{/sys} manually. Then, run the video player command again, and
+you'll see that \code{ffmpeg} runs perfectly without these virtual
+filesystems mounted.
+
+This means we could directly run the video player as the {\em init}
+process! To keep the possibility to interact with the board through
+a command line shell, we're going to run a shell after the video player.
+
+So, let's remove \code{/etc/init.d/S50playvideo} from the root
+filesystem overlay and replace it by the \code{/playvideo} script
+provided in \code{~/boot-time-labs/rootfs/data/}.
+
+Regenerate your root filesystem:
+\begin{verbatim}
+make clean
+make
+\end{verbatim}
+
+Update and reflash your SD card. Reboot the board, but before booting,
+stop in U-Boot to update the {\em init} program:
+
+\begin{verbatim}
+setenv bootargs console=ttyO0,115200n8 root=/dev/mmcblk0p2 rootwait rw init=/playvideo
+saveenv
+boot
+\end{verbatim}
+
+Note that the \code{rw} setting is going to be important, as it will
+make Linux mount the root filesystem in read/write mode, which allows to
+record the access time of each file.
+
+\subsection{Detecting and eliminating unused files}
+
+If the video played ran fine as expected, you should now be in a shell
+in the serial console.
+
+Type the \code{sync} command to flush the filesystem, remove the SD card
+and insert it on your PC again. Go to \code{/media/$USER/rootfs} and run
+the below command:
+
+\begin{verbatim}
+find . -atime -100 -type f
+\end{verbatim}
+
+This lists the regular files that were not accessed during the boot
+sequence we've just executed:
+
+\begin{verbatim}
+./usr/lib/os-release
+./usr/share/ffmpeg/libvpx-720p50_60.ffpreset
+./usr/share/ffmpeg/libvpx-360p.ffpreset
+./usr/share/ffmpeg/libvpx-720p.ffpreset
+./usr/share/ffmpeg/ffprobe.xsd
+./usr/share/ffmpeg/libvpx-1080p.ffpreset
+./usr/share/ffmpeg/libvpx-1080p50_60.ffpreset
+./usr/share/udhcpc/default.script
+./bin/busybox
+./lib/libatomic.so.1.2.0
+./lib/libgcc_s.so.1
+./etc/hostname
+./etc/profile.d/umask.sh
+./etc/init.d/S02klogd
+./etc/init.d/S20urandom
+./etc/init.d/rcS
+./etc/init.d/rcK
+./etc/init.d/S01syslogd
+./etc/group
+./etc/protocols
+./etc/inittab
+./etc/passwd
+./etc/services
+./etc/fstab
+./etc/shadow
+./etc/hosts
+./etc/profile
+./etc/issue
+./etc/shells
+\end{verbatim}
+
+How does it work?
+
+\code{-atime -100} finds all the files which last access time is
+less than 100 minutes ago, actually when we extracted the archive.
+Why doesn't it find the files which were actually accessed during the
+boot sequence? That's because the board doesn't have a clock set and its
+date got back to January 1st, 1970. You can check the date of such a
+file:
+
+\begin{verbatim}
+stat etc/init.d/playvideo
+  File: etc/init.d/playvideo
+  Size: 300       	Blocks: 8          IO Block: 4096   regular file
+Device: b302h/45826d	Inode: 376         Links: 1
+Access: (0755/-rwxr-xr-x)  Uid: ( 1000/    mike)   Gid: ( 1000/    mike)
+Access: 1970-01-01 01:00:02.250000000 +0100
+Modify: 2019-05-21 22:29:21.348835786 +0200
+Change: 2019-05-21 22:29:21.748834877 +0200
+ Birth: -
+\end{verbatim}
+
+A limitation is that it doesn't work with symbolic links and directories, so we don't
+know whether a symbolic link or directory was accessed or not. That's why we're
+keeping only regular files (\code{-type f}).
+
+There's a discrepancy too with \code{/bin/busybox} which was for sure
+accessed, but through a symbolic link. We will have to remove it from
+the list.
+
+If we had a board with a correct date, we would have still been able to
+use this technique, but this time only looking for files last accessed more
+than a few minutes ago (\code{-atime +5}).
+
+We can now implement a Buildroot {\em Post build script} that will
+eliminate such files in the target directory. That's much easier than
+tweaking the recipes that generated these files, and this can be adapted
+to each case (each case is special, while recipes should be generic).
+
+So, in the Buildroot directory, create a
+\code{board/beaglecam/post-build.sh} script that removing all the above
+files (except \code{/bin/busybox}):
+
+\begin{verbatim}
+#!/bin/sh
+TARGET_DIR=$1
+cd $TARGET_DIR
+rm -rf \
+./usr/lib/os-release \
+./usr/share/ffmpeg/libvpx-720p50_60.ffpreset \
+./usr/share/ffmpeg/libvpx-360p.ffpreset \
+...
+\end{verbatim}
+
+Don't forget to make this script executable!
+
+The last thing to do is to configure \code{BR2_ROOTFS_POST_FAKEROOT_SCRIPT}
+to \code{board/beaglecam/post-fakeroot.sh}\footnote{We could have used
+Buildroot's post build scripts (\code{BR2_ROOTFS_POST_BUILD_SCRIPT}),
+but that would have been too early, as the \code{fakeroot} scripts make
+some customizations on files like \code{/etc/inittab}, which we want
+to remove.}.
+
+Rerun Buildroot and check that your root filesystem was simplified as
+expected:
+
+\begin{verbatim}
+make
+\end{verbatim}
+
+See what's left in the final archive. Actually, we propose to be more
+aggressive and directly remove the entire \code{/etc} directory which we
+shouldn't need any more. Do the same for \code{/root}, \code{/tmp},
+\code{/var}, \code{/media}, \code{/mnt}, \code{/opt}, \code{/run} and
+the \code{/lib32} link. We're keeping the \code{/proc} and \code{/sys}
+directories in case we need to mount the corresponding filesystems.
+
+Why doing this so aggressively for file we won't access? On an {\em
+ext4} filesystem, files that are not accessed may not do any harm if
+they are not used, except perhaps marginally in terms of mounting time
+(if the filesystem is unnecessarily big). However, if we store the root
+filesystem in an {\em Initramfs} embedded in the kernel binary,
+every byte counts as it will make the kernel to load bigger.
+
+Update your root filesystem, remove the \code{rw} kernel parameter from
+\code{bootargs} in U-Boot (better to keep the root filesystem mounted read-only as we don't
+cleanly shut down the system) and check that your system still boots fine.
+
+\subsection{Reducing BusyBox to the minimum}
+
+While we're simplifying the root filesystem, it's time to reduce the
+configuration of Busybox, to only contain the features we need in our
+system.
+
+Before we do this, check the size of the \code{busybox} executable in
+your root filesystem.
+
+Buildroot helps us to configure BusyBox by providing a \code{make
+busybox-menuconfig} command, but it will be tedious to use because we
+will have to unselect countless options.
+
+Here's another way. Go to \code{output/build/busybox-1.29.3/} and run
+\code{make allnoconfig}, followed by \code{make menuconfig}. You'll see
+that most options are unselected!
+
+Just select the below options, based on what we have in our
+\code{/playvideo} script:
+\begin{itemize}
+  \item In \code{Settings}:
+  \begin{itemize}
+     \item Enable \code{Support files > 2 GB}. Without this, BusyBox
+           will fail to compile (at least with our toolchain)
+  \end{itemize}
+  \item In \code{Shells}:
+  \begin{itemize}
+     \item Enable \code{Use internal glob() implementation}, even
+	   if you don't select \code{ash}. Otherwise, compiling
+           \code{hush} will fail. 
+     \item Select the \code{hush} shell
+     \item Keep only \code{Support if/then/elif/else/fi},
+           \code{Support for, while and until loops},
+           \code{echo builtin} and \code{test builtin}.
+  \end{itemize}
+  \item In \code{Coreutils}:
+  \begin{itemize}
+     \item Support for the \code{sleep} command, with support for fractional arguments.
+     \item Support for the \code{sync} command, without further options.
+           We need this utility if we make changes to the root filesystem.
+     \item Enable \code{test as [}
+     \item Disable \code{Extend test to 64 bit}
+  \end{itemize}
+\end{itemize}
+
+Now get back to the main Buildroot directory and copy this new
 configuration:
 
 \begin{verbatim}
-cd /opt/boot-time-labs/buildroot/buildroot-at91/
-make menuconfig
+cp output/build/busybox-1.29.3/.config board/beaglecam/busybox.config
 \end{verbatim}
 
-In \code{System configuration} and then in \code{/dev management},
-choose \code{Dynamic using devtmpfs only}.
+Then, run \code{make menuconfig} and set
+\code{BR2_PACKAGE_BUSYBOX_CONFIG} to this new file. In \code{System
+configuration}, also set \code{Init system} to \code{None}. Otherwise
+Buildroot will enable Busybox \code{init} into your configuration.
 
-The next step would be to re-run Buildroot. However, we're hitting one
-of the current limitations of Buildroot. To keep its design simple and
-efficient, Buildroot currently doesn't support removing software
-even if it has been removed from the configuration. The clean way
-{\em would} be to run \code{make clean} and then run \code{make}
-again.
+Run \code{make}, and update your SD card.
+Check the new size of \code{/bin/busybox}!
 
-This is usually fine, as Buildroot is pretty fast. In our case however,
-we made it Buildroot build its own toolchain, and doing this is the most
-time consuming part. We would lose a lot of time.
+Boot your system again.
 
-So, let's remove \code{udev} manually instead. Again, this is a quick
-and dirty trick to save time in a time limited workshop. Don't do this
-for a production project! It may have unexpected side effects.
+If everything works, it's time to boot the system again through
+\code{grabserial} and update the below table:
 
-\begin{verbatim}
-find output/target/ -name "*udev*"
-rm -r output/target/etc/udev/
-rm output/target/etc/init.d/S10udev
-rm output/target/usr/lib/libudev.so
-rm output/target/usr/bin/udevadm
-rm -r output/target/lib/udev/
-rm output/target/lib/libudev.so.0*
-\end{verbatim}
-
-Let's also take this opportunity to disable \code{bootchartd}
-compilation. Do this through \code{make busybox-menuconfig}, and remove
-the \code{output/target/sbin/bootchartd} file manually.
-
-Rebuild your root filesystem (run \code{make}) and reflash the device once again.
-You don't have to worry about removing \code{bootchartd} from the kernel
-command line as the flashing process got you back to the initial kernel
-command line.
-
-After the first reboot (as always for SSH key generation), reboot your
-board through \code{grabserial} and measure the time stamp for the
-\code{Done playing video} message.
-
-\section{Postpone services}
-
-If we get back to the bootchart that we generated, we can see that there
-are several other services which might be needed for the device to
-have all its features, but which should be run after the demo video,
-instead of before it. One example is the SSH server.
-
-Let's customize the \code{/etc/init.d/rcS} file which starts such
-services, in order to start the video player first, and the other services
-later.
-
-First, let's make a copy of what Buildroot generated:
-
-\begin{verbatim}
-cp output/target/etc/init.d/rcS board/atmel/sama5d3ek_demo/
-\end{verbatim}
-
-Then, add the below lines after the first line in this copy:
-
-\begin{verbatim}
-/root/go.sh &
-sleep 5
-\end{verbatim}
-
-The first added line corresponds to the contents of
-\code{/etc/init.d/S99demo}. We remove this executable, because
-we will continue to use the \code{S??*} wildcard to start the
-other services.
-
-According to the measures we have already made, the delay of 5 seconds
-should be more than enough to let the player play the 1 frame video.
-With this pessimistic delay, we make sure that the CPU will only be
-dedicated to the video player for 3 seconds.
-
-Now, let's copy this replacement \code{/etc/init.d/rcS} file by
-modifying \code{board/atmel/sama5d3ek_demo/post-build.sh} once again:
-
-\begin{itemize}
-\item By removing the code that creates \code{/etc/init.d/S99demo}
-\item By coping our new \code{rcS} file to the target filesystem.
-\end{itemize}
-
-The last thing to do before running \code{make} is to remove the
-\code{output/target/etc/init.d/S99demo} file manually. Remember that
-Buildroot doesn't clean the target directory!
-
-Now run \code{make} and make sure that
-\code{output/target/etc/init.d/rcS} has the new right contents.
-
-Reflash your system, and reboot it through \code{grabserial} to
-measure the new total boot time\footnote{Note that we are no longer
-bothered by SSH key generation,
-as it starts after our video is played. Therefore, one reboot
-after reflashing is now sufficient.}.
-
-Write down your results in the table at the end of this chapter.
-
-While the total boot time is now smaller, you can still notice
-that the time to run the player is slightly longer. It's not surprising.
-You can guess that the video player is sharing some libraries (mainly C
-library components) with the executables for the other services. Since
-the services are no longer started before itself, it must be the first
-one to load such libraries, which explains the longer time to start.
-
-\section{Optimize necessary functionality}
-
-It's now time to optimize the \code{go.sh} script that runs the video,
-by making this script as simple as possible.
-
-\subsection{Simplify shell programming}
-
-First, let's make a simple, one-time experiment that we won't keep.
-Directly on the board, modify \code{/root/go.sh}, replacing
-
-\begin{verbatim}
-while `ls /dev/fb0 > /dev/null 2>&1`
-\end{verbatim}
-
-by
-
-\begin{verbatim}
-while [ -e /dev/fb0 ]
-\end{verbatim}
-
-This is a much simpler test, with no output to manage. It is even
-very likely that the test command is a shell built-in, meaning that
-there is no sub-process to spawn (very costly).
-
-Run \code{halt} and then reboot the board with \code{grabserial},
-and measure how much time you saved by simplifying this test.
-In our own tests, we saved 34 ms! This is not negligible at all
-when similar cases accumulate and you are aiming at booting in just
-a few seconds.
-
-The lesson to learn is that the shell scripts should be programmed
-with very good care, to avoid complex constructs causing multiple
-children processes to be run while fewer would be sufficient.
-
-\subsection{Radical simplification of the launcher script}
-
-Now, let's make \code{/root/go.sh} as simple as possible:
-
-\begin{itemize}
-\item By removing the soc subtype check.
-      This check was very complex, and completely unnecessary
-      when you have the video capable SoC.
-\item By running the video player just once, instead of through
-      an endless \code{while} loop.
-\end{itemize}
-
-Simplify the contents of this file by removing lines
-in \code{board/atmel/sama5d3ek_demo/post-build.sh}.
-
-As usual, update your root filesystem, reflash it, measure the
-new results and store them in the table below.
-
-\subsection{Going further}
-
-If you are ahead of the others in the workshop, there are
-other thing you could try to do to start the video player earlier: You could
-
-\begin{itemize}
-\item Take the commands that are run before \code{/etc/init.d/rcS} in
-      \code{/etc/inittab}, and move them after starting the video in
-      \code{/etc/init.d/rcS}.
-\item In \code{/etc/init.d/rcS}, source \code{/root/go.sh} instead of
-      executing it. This way, this shell script will be interpreted
-      by the current shell, instead of having to spawn a child process
-      (another shell, this is expensive).
-\end{itemize}
-
-Last but not least, there's another thing we can simplify. We could
-recompile \code{BusyBox} with only the capabilities that are needed
-in this demo. It would make the \code{init} program and the other
-executables faster to load (being smaller) and run.
-
-However, we prefer to make such a simplification at the end, because
-it is convenient to interact with a full-featured set of UNIX commands
-when you experiment with your system.
-
-\section{Results}
-
-Fill the below table with the results from your experiments:
-
-\begin{tabular}{| l | c | c | r |}
+\begin{tabular}{| l | l | r |}
   \hline
-  Technique & Total time stamp & Difference with previous
-experiment \\
+  Step & Duration & Description \\
   \hline
   \hline
-  Original time & & N/A \\
+  Init scripts & & Between \code{Run /sbin/init} and \code{Starting ffmpeg} \\
   \hline
-  Remove \code{udev} & & \\
-  \hline
-  Postpone services & & \\
-  \hline
-  Optimize launcher & & \\
-  \hline
-  Other trick & & \\
-  \hline
-  Other trick & & \\
+  Application & & Between \code{Starting ffmpeg} and \code{First frame decoded} \\
   \hline
   \hline
-  \multicolumn{2}{| c |}{Total gain} & \\
+  Total boot time & & \\
   \hline
 \end{tabular}
-
-
