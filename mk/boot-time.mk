@@ -40,4 +40,3 @@ BOOT_TIME_LABS = boot-time-goals \
 		boot-time-filesystem-optimizations \
 		boot-time-kernel \
 		boot-time-bootloader \
-		boot-time-results
