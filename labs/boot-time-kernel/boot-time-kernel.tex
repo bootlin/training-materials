@@ -5,91 +5,44 @@ optimize the kernel boot time}
 
 We are going to use the kernel \code{initcall_debug} functionality.
 
-The first thing we need to do is to recompile the kernel to make sure
-it has the right options.
-
-So, let's get the kernel sources for our system. A source archive
-is available on your USB disk. We will need
-them to recompile our kernel in a few minutes anyway.
-
-Plug-in your USB disk and type the below commands:
-
-\begin{verbatim}
-cd /opt/boot-time-labs/kernel
-cp /media/$USER/BootTime/downloads/linux-3.6.9-at91.tar.xz .
-tar xf linux-3.6.9-at91.tar.xz
-source env.sh
-cd linux-3.6.9-at91
-make sama5d3_defconfig
-make xconfig
-\end{verbatim}
-
-Here are the contents of the \code{env.sh} file:
-
-\begin{verbatim}
-export ARCH=arm
-export CROSS_COMPILE=arm-buildroot-linux-uclibcgnueabi-
-export PATH=$PATH:/opt/boot-time-labs/buildroot/buildroot-at91/output/host/usr/bin/
-\end{verbatim}
-
-Now configure the kernel with the below settings:
+Our default kernel already has the configuration settings that we need:
 \begin{itemize}
-\item \code{CONFIG_LOG_BUF=16}. That's the size of the
-      kernel ring buffer. If we keep the default size (\code{14}),
-      the earliest kernel messages are overwritten by the
-      latest ones.
-\item Make sure that \code{CONFIG_PRINTK_TIME} is enabled
-      (it should already be)
+\item \code{CONFIG_PRINTK_TIME=y}, to add a timestamp to each kernel
+message.
+\item \code{CONFIG_LOG_BUF=16}, to have a big enough kernel ring buffer.
 \end{itemize}
 
-Save your configuration. We are ready to compile our kernel:
-\begin{verbatim}
-make -j 8 uImage
-\end{verbatim}
-
-Keep a backup copy of your original kernel image, and copy the new
-one\footnote{So far, we are lucky to have a kernel with most drivers
-compiled inside the kernel. If we had important drivers compiled
-as modules, we would need to compile the kernel with Buildroot,
-to put the updated modules in the root filesystem. We are also lucky
-not to have to update the Device Tree Binary, as we are using
-the same kernel sources as the demo.}:
+That's not sufficient. We also need the output of the \code{dmesg}
+command. Temporarily add support for this command in BusyBox,
+and add the below line after the \code{ffmpeg} file in the
+\code{playvideo} scripts:
 
 \begin{verbatim}
-cd ../../flashing/sama5d3xek-demo
-cp uImage uImage.orig
-cp ../../kernel/linux-3.6.9-at91/arch/arm/boot/uImage .
+dmesg > /dev/console
 \end{verbatim}
 
-Reflash your system and make it boots in the same way as before.
+Run Buildroot again, and update your
+\code{~/boot-time-labs/rootfs/rootfs} directory again. Compile your
+kernel again to to update the \code{zImage} with this root filesystem.
 
-Now, let's enable \code{initcall_debug}. Reboot your board and press
-a key to stop the U-boot countdown.
-
-In the U-boot command line, add settings to the kernel command
-line\footnote{Don't save these settings with \code{saveenv}. We
-will just need them once.}
-and boot your system:
+Now, let's enable \code{initcall_debug} in kernel parameters. Go to
+the U-Boot command line, and add the below settings to the kernel command line
+\footnote{Don't save these settings with \code{saveenv}. We
+will just need them once.}, and boot your system:
 \begin{verbatim}
 setenv bootargs ${bootargs} initcall_debug printk.time=1
 boot
 \end{verbatim}
 
-Once booted, you can store the debug information in a file:
+Boot the board with the new kernel image. If everything went well,
+you can now copy and paste the special \code{dmesg} output to
+a \code{~/boot-time-labs/kernel/initcall_debug.log} file on your workstation.
+
+In \code{~/boot-time-labs/kernel} (at least where the kernel sources
+are), run the following command to generate a boot graph:
 
 \begin{verbatim}
-dmesg > initcall_debug.log
-\end{verbatim}
-
-Copy this file to the USB disk.
-
-Let's use the kernel script to generate a nice boot graph
-from this debug information:
-
-\begin{verbatim}
-cd /opt/boot-time-labs/kernel
-cp /media/$USER/BootTime/initcall_debug.log .
-perl linux-3.6.9-at91/scripts/bootgraph.pl initcall_debug.log > boot.svg
+linux/scripts/bootgraph.pl initcall_debug.log > boot.svg
 \end{verbatim}
 
 You can view the boot graph with the \code{inkscape} vector graphics
@@ -101,7 +54,7 @@ inkscape boot.svg
 \end{verbatim}
 
 \begin{center}
-\includegraphics[width=\textwidth]{labs/boot-time-kernel/boot.png}
+\includegraphics[width=\textwidth]{labs/boot-time-kernel/boot.pdf}
 \end{center}
 
 Now review the longuest initcalls in detail. Each label is the name of
@@ -117,93 +70,17 @@ would explain the very long execution time: delay loops (look for
 \code{delay}, parameters which can reduce probe time but are not used,
 etc).
 
-Before going on, reboot your board through \code{grabserial} to measure
-the total boot time. The kernel rebuild could have modified it a little
-bit (in case the Microchip people preparing the demo didn't use exactly the same toolchain
-or kernel options as we do). Write down your result at the end of this
-chapter.
+Remove \code{dmesg} support from BusyBox and remove this command too
+from \code{playvideo}. Update your root filesystem and then kernel so
+that we get back to the original situation. We should just need to use
+\code{initcall_debug} once.
 
 \section{Reordering and postponing functionality}
 
-The boot graph revealed drivers which could be compiled as modules
-and loaded later.  Let's compile such drivers that you found as modules
-and install the corresponding modules in the root filesystem.
-
-Because of this requirement, we now need to compile the kernel with
-Buildroot.
-
-First let's prepare a kernel configuration in which the selected
-drivers are now compiled as modules:
-
-\begin{verbatim}
-cd /opt/boot-time-labs/kernel/linux-3.6.9-at91/
-make xconfig
-\end{verbatim}
-
-For each driver, you have to look for the parameter which enables it.
-If the parameter name is not trivial to find in the kernel configuration
-interface, already knowing the source file implementing
-the function in the boot chart, you can look at
-the \code{Makefile} file in the same directory, and find which
-parameter is used to compile the source file in a conditional way.
-
-Once you are done converting static drivers into modules,
-copy your configuration file:
-
-\begin{verbatim}
-cp .config ../config-3.6.9-at91-with-modules
-\end{verbatim}
-
-Now go back to the Buildroot directory:
-
-\begin{verbatim}
-cd ../../buildroot/buildroot-at91
-make menuconfig
-\end{verbatim}
-
-Go to the \code{Kernel} menu, and enable \code{Linux Kernel}. Now fill
-the kernel related settings:
-
-\begin{itemize}
-\item \code{Kernel version}: \code{Custom tarball}
-\item \code{URL of custom kernel tarball}:
-      \code{https://bootlin.com/labs/boot-time/downloads/linux-3.6.9-at91.tar.xz}
-\item \code{Kernel configuration}: \code{Using a custom config file}
-\item \code{Configuration file path}:
-      \code{/opt/boot-time-labs/kernel/config-3.6.9-at91-with-modules}
-\item Enable \code{Device tree support}
-\item \code{Device tree source}: \code{Use a device tree present in the kernel}
-\item \code{Device Tree Source file names}: \code{sama5d34ek}
-\end{itemize}
-
-To save download time, put the Linux sources in the Buildroot download
-directory. Then run Buildroot:
-
-\begin{verbatim}
-cp ../../kernel/linux-3.6.9-at91.tar.xz dl/
-\end{verbatim}
-
-Check that your modules have been added to the root filesystem:
-
-\begin{verbatim}
-find output/target -name *.ko
-\end{verbatim}
-
-The last thing to do is to load the necessary modules in a manual
-way\footnote{Oops, we don't have \code{udev} any more, and it would have
-done it for us. However, manually loading modules is no big deal, and a
-simpler solution for hotplug events can still be put in place anyway.}
-from the \code{/etc/init.d/rcS} file, before starting the services (SSH
-will need the network driver to be loaded, for example).
-
-Modify the \code{board/atmel/sama5d3ek_demo/rcS} file to run the
-\code{modprobe} command for each of the modules before starting the
-services (example: \code{modprobe macb}).
-
-Rerun Buildroot. Before reflashing your device, this time do not only
-copy \code{output/images/rootfs.ubi} but also
-\code{output/images/uImage}! Reflash your device, measure the new boot time
-and write it down at the end of this chapter.
+In our case, we are only going to keep kernel features that we will need
+to run our video player. However, in a real life system, the boot graph
+could reveal drivers which could be compiled as modules
+and loaded later.
 
 \section{Removing unnecessary functionality}
 
@@ -247,26 +124,4 @@ reduce the initialization time taken by these drivers.
 
 However, such investigation work could take days, unless you find
 obvious issues (such as big delay loops).
-
-\section{Results}
-
-Fill the below table with the results from your experiments:
-
-\begin{tabular}{| p{6cm} | c | r |}
-  \hline
-  Technique & Total time stamp & Difference with previous experiment \\
-  \hline
-  \hline
-  Original time & & N/A \\
-  \hline
-  Postpone functionality (drivers compiled as modules) & & \\
-  \hline
-  Remove unnecessary functionality (\code{quiet} option) & & \\
-  \hline
-  Remove unnecessary functionality (skip delay loop calibration) & & \\
-  \hline
-  \hline
-  \multicolumn{2}{| c |}{Total gain} & \\
-  \hline
-\end{tabular}
 

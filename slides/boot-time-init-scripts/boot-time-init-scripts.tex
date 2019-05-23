@@ -83,20 +83,29 @@ Starting as soon as possible after all the dependencies are started:
 How fast would we be if we could be the first started application?
 \end{frame}
 
-\begin{frame}
+\begin{frame}[fragile]
 \frametitle{Optimizing init scripts}
 \begin{itemize}
 	\item Start all your services directly from a single startup
 	      script (e.g. \code{/etc/init.d/rcS}). This eliminates multiple
 	      calls to \code{/bin/sh}.
-	\item Replace \code{udev} with \code{mdev}. \code{mdev} is part of
-	      BusyBox. It is not running as a daemon and you can either run it
-	      only once or have it handling hotplug events.
-	\item Remove \code{udev} (or \code{mdev}) if you just need it
-	      to create device files.  Use \code{devtmpfs}
-	      (\code{CONFIG_DEVTMPFS}) instead, automatically managed by the
-	      kernel, and cheaper.
+	\item You could mount your filesystems directly in the C code
+	      of your application:
 \end{itemize}
+\begin{block}{}
+\begin{minted}{c}
+#include <stdio.h>
+#include <sys/mount.h>
+
+int main (void)
+{
+        int ret;
+        ret = mount("sysfs", "/tmp/test", "sysfs", 0, NULL);
+        if(ret < 0)
+                perror("Can't mount sysfs\n");
+}
+\end{minted}
+\end{block}
 \end{frame}
 
 \begin{frame}[fragile]
@@ -155,30 +164,28 @@ system (200 MHz)!
 	\item Strip your executables and libraries, removing ELF sections
 		only needed for development and debugging. The \code{strip}
 		command is provided by your cross-compiling toolchain.
-		\code{BR2_STRIP_strip} in Buildroot.
+		That's done by default in Buildroot.
 	\item \code{superstrip}:
 		\url{http://muppetlabs.com/~breadbox/software/elfkickers.html}.
 		Goes beyond \code{strip} and can strip out a few more bits
 		that are not used by Linux to start an executable.
-		\code{BR2_STRIP_sstrip} in Buildroot.
+		Buildroot stopped supporting it because it can break
+	        executables. Try it only if saving a few bytes is
+		critical.
 \end{itemize}
 \end{frame}
 
 \begin{frame}
 \frametitle{Reduce size (2)}
+You may try \code{mklibs}, available at \url{http://packages.debian.org/sid/mklibs}.
 \begin{itemize}
-	\item use \code{mklibs}, available at
-		\url{http://packages.debian.org/sid/mklibs}.
-		\begin{itemize}
-		\item \code{mklibs} produces cut-down shared libraries that contain
-		only the routines required by a particular set of executables.
-		Really useful with big libraries like OpenGL and QT. It even
-		works without having the source code.
-		\item Available in Yocto, but not in Buildroot (at least
-                in 2013.11).
-                \item Limitation: \code{mklibs} could remove \code{dlopen}ed libraries
-                (loaded "manually" by applications) because it doesn't see them.
-		\end{itemize}
+	\item \code{mklibs} produces cut-down shared libraries that contain
+	only the routines required by a particular set of executables.
+	Really useful with big libraries like OpenGL and QT. It even
+	works without having the source code.
+	\item Available in Yocto, but not in Buildroot (2019.02 status).
+        \item Limitation: \code{mklibs} could remove \code{dlopen}ed libraries
+        (loaded "manually" by applications) because it doesn't see them.
 \end{itemize}
 \end{frame}
 

@@ -20,7 +20,7 @@ Here's what you get on the kernel log:
 ...
 \end{verbatim}
 \end{block}
-It is probably a good idea to increase the log buffer size with
+You might need to increase the log buffer size with
 \code{CONFIG_LOG_BUF_SHIFT} in your kernel configuration. You will
 also need \code{CONFIG_PRINTK_TIME} and \code{CONFIG_KALLSYMS}.
 \end{frame}
@@ -35,7 +35,7 @@ take most time to execute.
       the \code{dmesg} command to a file (let's call it \code{boot.log})
 \item On your workstation, run the \code{scripts/bootgraph.pl} script
       in the kernel sources: \\
-      \code{perl scripts/bootgraph.pl boot.log > boot.svg}
+      \code{scripts/bootgraph.pl boot.log > boot.svg}
 \item You can now open the boot graph with a vector graphics
       editor such as \code{inkscape}:
 \end{itemize}
@@ -56,8 +56,6 @@ function:
       \item Look for kernel parameters in C sources and Makefiles, starting
       with \code{CONFIG_}. Some settings for such parameters could help
       to remove code complexity or remove unnecessary features.
-      \item Find which module (if any) it belongs to. Loading this module
-            could be deferred.
       \end{itemize}
 \end{itemize}
 \end{frame}
@@ -101,10 +99,73 @@ First, we focus on reducing the size without removing features
 
 \begin{frame}
 \frametitle{Kernel Compression}
-\small
 Depending on the balance between your storage reading speed and your
 CPU power to decompress the kernel, you will need to benchmark
 different compression algorithms.
+\begin{center}
+    \includegraphics[width=\textwidth]{slides/boot-time-kernel/kernel-compression-options.pdf}
+\end{center}
+Note: \code{bzip2} legacy compression is also supported on some architectures,
+but is the slowest and not the best compression rate.
+\end{frame}
+
+\begin{frame}
+\frametitle{Kernel compression options}
+Results on TI AM335x (ARM), 1 GHz, Linux 3.13-rc4
+{\fontsize{7}{10}\selectfont
+\begin{tabular}{| l || c | c | c | c | c | c |}
+\hline
+Timestamp & gzip & lzma & xz & lzo & lz4 & uncompressed \\
+\hline
+Size & 4308200 & 3177528 & {\bf 3021928} & 4747560 & 5133224 & 8991104 \\
+Copy & 0.451 s & 0.332 s & {\bf 0.315 s} & 0.499 s & 0.526 s & 0.914 s \\
+Uncompress & 0.945 s & 2.329 s & 2.056 s & 0.861 s & {\bf 0.851 s} & {\bf 0.687 s} \\
+Total & {\bf 5.516 s} & 6.066 s & 5.678 s & 5.759 s & 6.017 s & 8.683 s \\
+\hline
+\end{tabular}
+}
+\vfill{}
+Results on Microchip AT91SAM9263 (ARM), 200 MHz, Linux 3.13-rc4
+{\fontsize{7}{10}\selectfont
+\begin{tabular}{| l || c | c | c | c | c | c |}
+\hline
+Timestamp & gzip & lzma & xz & lzo & lz4 & uncompressed \\
+\hline
+Size & 3016192 & 2270064 & {\bf 2186056} & 3292528 & 3541040 & 5775472 \\
+Copy & 4.105 s & 3.095 s & {\bf 2.981 s} & 4.478 s & 4.814 & 7.836 s \\
+Uncompress & 1.737 s & 8.691 s & 6.531 s & {\bf 1.073} s & 1.225 s & N/A \\
+Total & 8.795 s & 14.200 s & 11.865 s & {\bf 8.700 s} & 9.368 s & N/A \\
+\hline
+\end{tabular}
+}
+\newline\newline
+Results indeed depend on I/O and CPU performance!
+\end{frame}
+
+\begin{frame}
+\frametitle{Optimize kernel for size}
+\begin{itemize}
+\item \code{CONFIG_CC_OPTIMIZE_FOR_SIZE}: possibility to compile the kernel
+      with \code{gcc -Os} instead of \code{gcc -O2}.
+\item Such optimizations give priority to code size at
+      the expense of code speed.
+\item Results: the initial boot time is better (smaller
+      size), but the slower kernel code quickly offsets
+      the benefits. Your system will run slower!
+\end{itemize}
+Results on Microchip SAMA5D3 Xplained (ARM), Linux 3.10, gzip compression:
+\newline\newline
+\begin{tabular}{| l || c | c | c |}
+\hline
+Timestamp & O2 & Os & Diff \\
+\hline
+Starting kernel & 4.307 s & 4.213 s & -94 ms \\
+Starting init & 5.593 s & 5.549 s & -44 ms \\
+Login prompt & 21.085 s & 22.900 s & + 1.815 s \\
+\hline
+\end{tabular}
+\newline\newline
+\small
 \end{frame}
 
 \begin{frame}
@@ -115,7 +176,8 @@ different compression algorithms.
 \item Your kernel will not shrink but some initializations will be
       postponed. Once your critical application is ready, you can
       execute the remaining initcalls.
-\item See \url{http://elinux.org/Deferred_Initcalls}
+\item See \url{http://elinux.org/Deferred_Initcalls}\\
+      That's an old patch but you could update it.
 \end{itemize}
 \end{frame}
 
@@ -140,6 +202,7 @@ different compression algorithms.
     \end{tabular}
       \newline
 \item Less time will be saved on a reduced kernel, of course.
+\item Don't do it too early if you're using \code{grabserial}
 \end{itemize}
 \end{frame}
 
@@ -174,31 +237,20 @@ Calibrating delay loop (skipped) preset value.. 262.96 BogoMIPS (lpj=1314816)
     With \code{lpj} & 8 ms & -63 ms\\
     \hline
     \end{tabular}
-	\newline
-	\item This calculation was longer before 2.6.39 (about 200 ms).
 \end{itemize}
 \end{frame}
 
 \begin{frame}
-  \frametitle{Multiprocessor support (SMP)}
+  \frametitle{Multiprocessing support (SMP)}
   \begin{itemize}
 	  \item SMP is quite slow to initialize
-	  \item UP systems may be faster to boot
-	  \item What you can try is to hotplug the other cores after your critical application has started
+	  \item It is usually enabled in default configurations, even if
+		you have a single core CPU (default configurations
+		should support multiple systems).
+	  \item So make sure you disable it if you only have one CPU
+		core.
   \end{itemize}
 \end{frame}
-
-\setuplabframe
-{Reduce kernel boot time}
-{
-\begin{itemize}
-\item Recompile the kernel, switching to an initramfs
-\item Use \code{initcall_debug} to find the biggest
-      time consumers
-\item Reduce the number of modules
-\item Tune kernel command line parameters
-\end{itemize}
-}
 
 \begin{frame}
 \frametitle{Kernel: last milliseconds (1)}
@@ -211,6 +263,9 @@ unnecessary features:
               significantly smaller kernel though.
         \item Try \code{CONFIG_CC_OPTIMIZE_FOR_SIZE=y}. This will have
               an impact on performance, you will have to benchmark.
+	\item Compile your kernel in {\em Thumb2} mode:
+	      \code{CONFIG_THUMB2_KERNEL} (any ARM toolchain can do
+	      that).
 \end{itemize}
 \end{frame}
 
@@ -225,8 +280,20 @@ More features you could remove:
         \item Power management features
         \item \code{CONFIG_SYSFS_DEPRECATED}
         \item Input: keyboards / mice / touchscreens
-        \item \code{CONFIG_LEGACY_PTY_COUNT} or the
+        \item Reduce the \code{CONFIG_LEGACY_PTY_COUNT} value or set the
               \code{pty.legacy_count} kernel parameter
 \end{itemize}
 \end{frame}
+
+\setuplabframe
+{Reduce kernel boot time}
+{
+\begin{itemize}
+\item Recompile the kernel, switching to an initramfs
+\item Use \code{initcall_debug} to find the biggest
+      time consumers
+\item Remove unused features and drivers
+\item Tune kernel command line parameters
+\end{itemize}
+}
 

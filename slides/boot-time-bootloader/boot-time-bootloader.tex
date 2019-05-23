@@ -13,8 +13,6 @@
 \end{itemize}
 \end{frame}
 
-\subsection{U-Boot optimizations}
-
 \begin{frame}
 \frametitle{U-Boot - Remove unnecessary functionality}
 Recompile U-Boot to remove features not needed in production
@@ -45,17 +43,12 @@ Recompile U-Boot to remove features not needed in production
 \begin{frame}[fragile]
 \frametitle{U-Boot - Simplify scripts}
 Some boards have over-complicated scripts:
-\begin{block}{}
-\scriptsize
-\begin{verbatim}
-bootcmd=run bootf0
-bootf0=run ${args0}; setenv bootargs ${bootargs} \
-maximasp.kernel=maximasp_nand.0:kernel0; nboot 0x70007fc0 kernel0
-\end{verbatim}
-\end{block}
+\begin{center}
+    \includegraphics[width=\textwidth]{slides/boot-time-bootloader/u-boot-bad-scripts.pdf}
+\end{center}
 Let's replace this by:
 \begin{block}{}
-\tiny
+\footnotesize
 \begin{verbatim}
 setenv bootargs 'mem=128M console=tty0 consoleblank=0
 console=ttyS0,57600 \
@@ -110,7 +103,7 @@ This saved 56 ms on this ARM9 system (400 MHz)!
       }
 \end{itemize}
 \begin{center}
-    \includegraphics[width=\textwidth]{slides/boot-time-bootloader/u-boot-kernel-loading-no-memmove.pdf}
+    \includegraphics[height=0.5\textheight]{slides/boot-time-bootloader/u-boot-kernel-loading-no-memmove.pdf}
 \end{center}
 \end{frame}
 
@@ -161,18 +154,11 @@ Measured between \code{Booting kernel} and \code{Starting kernel ...}
       U-Boot with \code{CONFIG_SILENT_CONSOLE} and
       \code{setenv silent yes}.\\
       See \code{doc/README.silent} for details.
-\item Ultimate solution: use U-Boot's {\em Falcon} mode.\\
-      U-Boot is split in two parts: the SPL (Secondary Program Loader)
-      and the U-Boot image. U-Boot can then configure the SPL to load
-      the Linux kernel directly, instead of the U-Boot image.\\
-      See \code{doc/README.falcon} for details.
 \end{itemize}
 \end{frame}
 
-\subsection{Skipping the bootloader}
-
 \begin{frame}[fragile]
-\frametitle{Removing the bootloader}
+\frametitle{Skipping the bootloader}
 \begin{itemize}
 \item Principle: instead of loading the bootloader and then the kernel,
       load the kernel right away!
@@ -187,83 +173,22 @@ make
 \end{block}
       Full details on
       \url{https://bootlin.com/blog/starting-linux-directly-from-at91bootstrap3/}
-
-\item In our particular case, though, you will lose the
-      main advantages of using Barebox.  It uses the CPU caches
-      while loading the kernel.
 \end{itemize}
 \end{frame}
 
-\subsection{Kernel compression options}
-
-\begin{frame}
-\frametitle{Kernel compression and size optimizations}
-After optimizing the time to load the kernel in the
-bootloader, we are ready to experiment with kernel
-options impacting size:
+\begin{frame}[fragile]
+\frametitle{Skipping the bootloader - U-Boot Falcon mode}
+A generic solution!
 \begin{itemize}
-\item Kernel compression options
-\item Optimizing kernel code for size
+\item U-Boot is split in two parts: the SPL (Secondary Program Loader)
+      and the U-Boot image. U-Boot can then configure the SPL to load
+      the Linux kernel directly, instead of the U-Boot image.\\
+      See \code{doc/README.falcon} for details and
+      \url{http://schedule2012.rmll.info/IMG/pdf/LSM2012_UbootFalconMode_Babic.pdf}
+      for the original presentation.
+\item This is supported in the same way on all the boards with U-Boot
+support for SPL.
 \end{itemize}
-\end{frame}
-
-\begin{frame}
-\frametitle{Kernel compression options}
-Results on TI AM335x (ARM), 1 GHz, Linux 3.13-rc4
-{\fontsize{7}{10}\selectfont
-\begin{tabular}{| l || c | c | c | c | c | c |}
-\hline
-Timestamp & gzip & lzma & xz & lzo & lz4 & uncompressed \\
-\hline
-Size & 4308200 & 3177528 & {\bf 3021928} & 4747560 & 5133224 & 8991104 \\
-Copy & 0.451 s & 0.332 s & {\bf 0.315 s} & 0.499 s & 0.526 s & 0.914 s \\
-Uncompress & 0.945 s & 2.329 s & 2.056 s & 0.861 s & {\bf 0.851 s} & {\bf 0.687 s} \\
-Total & {\bf 5.516 s} & 6.066 s & 5.678 s & 5.759 s & 6.017 s & 8.683 s \\
-\hline
-\end{tabular}
-}
-\vfill{}
-Results on Microchip AT91SAM9263 (ARM), 200 MHz, Linux 3.13-rc4
-{\fontsize{7}{10}\selectfont
-\begin{tabular}{| l || c | c | c | c | c | c |}
-\hline
-Timestamp & gzip & lzma & xz & lzo & lz4 & uncompressed \\
-\hline
-Size & 3016192 & 2270064 & {\bf 2186056} & 3292528 & 3541040 & 5775472 \\
-Copy & 4.105 s & 3.095 s & {\bf 2.981 s} & 4.478 s & 4.814 & 7.836 s \\
-Uncompress & 1.737 s & 8.691 s & 6.531 s & {\bf 1.073} s & 1.225 s & N/A \\
-Total & 8.795 s & 14.200 s & 11.865 s & {\bf 8.700 s} & 9.368 s & N/A \\
-\hline
-\end{tabular}
-}
-\newline\newline
-Results indeed depend on I/O and CPU performance!
-\end{frame}
-
-\begin{frame}
-\frametitle{Optimize kernel for size}
-\begin{itemize}
-\item \code{CONFIG_CC_OPTIMIZE_FOR_SIZE}: possibility to compile the kernel
-      with \code{gcc -Os} instead of \code{gcc -O2}.
-\item Such optimizations give priority to code size at
-      the expense of code speed.
-\item Results: the initial boot time is better (smaller
-      size), but the slower kernel code quickly offsets
-      the benefits. Your system will run slower!
-\end{itemize}
-Results on Microchip SAMA5D3 Xplained (ARM), Linux 3.10, gzip compression:
-\newline\newline
-\begin{tabular}{| l || c | c | c |}
-\hline
-Timestamp & O2 & Os & Diff \\
-\hline
-Starting kernel & 4.307 s & 4.213 s & -94 ms \\
-Starting init & 5.593 s & 5.549 s & -44 ms \\
-Login prompt & 21.085 s & 22.900 s & + 1.815 s \\
-\hline
-\end{tabular}
-\newline\newline
-\small
 \end{frame}
 
 \setuplabframe
