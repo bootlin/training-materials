@@ -40,16 +40,16 @@ Boot Time Optimization Training\\
     Reducing kernel boot time \par
     Bootloader optimizations \par
     Advanced techniques and alternatives \par
-    Practical labs with ARM boards (SAMA5D3x evaluation kits from
-    Microchip).\\
+    Practical labs with ARM boards (Beagle Bone Black
+    boards).\\
     \hline
     {\bf Materials} &
-    Check that the course contents correspond to your needs:
+    Will soon be published on
     \newline \url{https://bootlin.com/doc/training/boot-time}. \\
     \hline
 
-    {\bf Duration} & {\bf One} day - 8 hours.
-    \newline 50\% of lectures, 50\% of practical labs. \\
+    {\bf Duration} & {\bf Two} days - 16 hours.
+    \newline 25\% of lectures, 75\% of practical labs. \\
     \hline
 
     {\bf Trainer} & One of the engineers listed on
@@ -85,7 +85,7 @@ Boot Time Optimization Training\\
     installed in a {\bf free partition of at least 30 GB. Using Linux
       in a virtual machine is not supported}, because of issues
     connecting to real hardware.
-    \item We need Ubuntu Desktop 12.04 (Xubuntu and other
+    \item We need Ubuntu Desktop 18.04 (Xubuntu and other
     variants are fine). We don't support other
     distributions, because we can't test all possible package versions.
     \item {\bf Connection to the Internet} (direct or through the
@@ -105,7 +105,7 @@ Boot Time Optimization Training\\
 \normalsize
 
 
-\section{Morning}
+\section{Day 1 - Morning}
 
 \feagendatwocolumn
 {Lecture - Principles}
@@ -115,53 +115,116 @@ Boot Time Optimization Training\\
   \item Main ideas
   \end{itemize}
 }
-{Lab - Measuring boot time}
+{Lab - Preparing the system}
 {
  \begin{itemize}
- \item Flashing the board and accessing its serial line
- \item Measure the initial boot time
+ \item Compiling the bootloader, kernel and root filesystem
+ \item Setting up the system, customizing the build system
+ \end{itemize}
+}
+
+\feagendaonecolumn
+{Lecture - Measuring time}
+{
+  \begin{itemize}
+  \item Generic software techniques
+  \item Hardware techniques
+  \item Specific solutions for each stage
+  \end{itemize}
+}
+
+
+\section{Day 1 - Afternoon}
+
+\feagendatwocolumn
+{Lab - Measuring time}
+{
+ \begin{itemize}
+ \item Modify the system to measure time at various steps
+ \item Measure total boot time by toggling a GPIO
+ \end{itemize}
+}
+{Lecture - Toolchain optimizations}
+{
+  \begin{itemize}
+  \item Introduction to toolchains
+  \item C libraries
+  \item Size information
+  \item Measuring executable performance with \code{time}
+  \end{itemize}
+}
+
+\feagendatwocolumn
+{Lecture - Application optimization}
+{
+  \begin{itemize}
+  \item Using \code{strace}
+  \item Other profiling techniques
+  \end{itemize}
+}
+{Lab - Application optimization}
+{
+ \begin{itemize}
+ \item Finding unnecessary configuration options in applications
+ \item Modifying configuration options through Buildroot
+ \item Experiements with \code{strace} to trace program execution
+ \end{itemize}
+}
+
+\section{Day 2- Morning}
+\feagendatwocolumn
+{Lecture - Optimizing system initialization}
+{
+  \begin{itemize}
+  \item Using Bootchart
+  \item Optimizing init scripts
+  \end{itemize}
+}
+{Lab - Optimizing system initialization}
+{
+ \begin{itemize}
+ \item Using Buildroot to remove unnecessary scripts and commands
+ \item Access-time based technique to identify  unused files
+ \item Simplifying BusyBox
+ \item Starting the application as the init program
  \end{itemize}
 }
 
 \feagendatwocolumn
-{Lecture - Userland optimizations}
+{Lecture - Filesystem optimizations}
 {
   \begin{itemize}
-  \item Methodology
-  \item Using bootchart
-  \item Optimize init scripts
-  \item Reduce size (C library, compiler optimizations...)
-  \item Use an initramfs
-  \item Toolchains
+  \item Available filesystems, performance and boot time aspects
+  \item Tweaks for reducing boot time
+  \item Booting on an initramfs
   \end{itemize}
 }
-{Lab - Reducing boot time in user space}
+{Lab - Filesystem optimizations}
 {
  \begin{itemize}
- \item Regenerate the root filesystem with Buildroot
- \item Use bootchart to measure boot time
- \item Simplify user space scripts
+ \item Trying and measuring two block filesystems: ext4 and SquashFS.
+ \item Trying and measuring the initramfs solution. Constraints
+       due to this solution.
  \end{itemize}
 }
 
-\section{Afternoon}
+\section{Day 2 - Afternoon}
+
 \feagendatwocolumn
 {Lecture - Kernel optimizations}
 {
   \begin{itemize}
-  \item Reducing kernel size
-  \item Choosing the right compression method
-  \item Reducing kernel initialization time
+  \item Using {\em Initcall debug} to generate a boot graph
+  \item Compression and size features
+  \item Tweaks to reduce boot time
   \end{itemize}
 }
-{Lab - Reducing kernel boot time}
+{Lab - Kernel optimizations}
 {
  \begin{itemize}
- \item Recompile the kernel, switching to an initramfs
- \item Use \code{initcall_debug} to find the biggest
-       time consumers
- \item Reduce the number of modules
- \item Tune kernel command line parameters
+ \item Generating and analyzing a boot graph for the kernel
+ \item Find and eliminate unnecessary kernel features
+ \item Find the best kernel compression solution for our system
  \end{itemize}
 }
 
@@ -169,29 +232,18 @@ Boot Time Optimization Training\\
 {Lecture - Bootloader optimizations}
 {
   \begin{itemize}
-  \item Reducing kernel image loading size
-  \item Removing bootloader features
+  \item Compiling U-Boot with less features
+  \item U-Boot configuration settings that impact boot time
+  \item Optimzing kernel loading
   \item Skipping the bootloader
   \end{itemize}
 }
-{Lab - Reducing bootloader time}
+{Lab - Bootloader optimizations}
 {
  \begin{itemize}
- \item Reduce boot time by using the Barebox bootloader
- \item Optimize Barebox
+ \item Using the above techniques to make the bootloader
+ as quick as possible.
  \end{itemize}
-}
-
-\feagendaonecolumn
-{Lecture - Advanced techniques}
-{
-  \begin{itemize}
-  \item More kernel tweaks
-  \item More user space techniques
-  \item Using strace
-  \item Using oprofile
-  \item Alternatives: suspend to RAM, hibernating, checkpointing
-  \end{itemize}
 }
 
 \end{document}
