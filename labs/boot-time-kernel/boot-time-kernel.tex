@@ -65,63 +65,135 @@ or through our on-line service to explore the Linux kernel sources:
 \url{https://elixir.bootlin.com}}, and what each driver corresponds
 to.
 
-Then, you can look the source code and try look for obvious causes which
+Then, you can look the source code and:
+\begin{itemize}
+\item See whether you need the corresponding driver or feature at all.
+If that's the case, just disable it.
+\item Otherwise, try look for obvious causes which
 would explain the very long execution time: delay loops (look for
 \code{delay}, parameters which can reduce probe time but are not used,
 etc).
+\item There could also be features than could be postponed.
+However, in our special case, we should
+only need to keep kernel features that we need to run our video player.
+However, in a real life system, the boot graph could indeed reveal
+drivers which could be compiled as modules and loaded later.
+\end{itemize}
 
-Remove \code{dmesg} support from BusyBox and remove this command too
+Recompile and reboot the kernel, updating the boot graph until there is
+nothing left that you can do.
+
+When you are done exploiting data from the boot graphs, you can remove
+\code{dmesg} support from BusyBox and remove this command too
 from \code{playvideo}. Update your root filesystem and then kernel so
-that we get back to the original situation. We should just need to use
-\code{initcall_debug} once.
-
-\section{Reordering and postponing functionality}
-
-In our case, we are only going to keep kernel features that we will need
-to run our video player. However, in a real life system, the boot graph
-could reveal drivers which could be compiled as modules
-and loaded later.
+that we get back to the original situation. We no longer need
+\code{initcall_debug}.
 
 \section{Removing unnecessary functionality}
 
-The boot graph that we generated doesn't show any obvious kernel
-driver that would consume a significant amount of time and could be
-taken away because it is completely useless.
+It's time to start simplifying the kernel by remove drivers and features
+that you won't need.
 
-Of course, there will be kernel features that we will be able to remove,
-in order to reduce the kernel size and make the kernel faster to load
-in the bootloader. However, this shouldn't have much impact on the
-kernel's execution time.
+Do this {\bf very progressively}. If you go too fast, you'll end up with a
+kernel that doesn't boot any more, but you won't be able to tell which
+parameter should have been kept.
 
-There's one thing we can remove though, and didn't appear on the boot
-graph: we can disable console output. Writing messages on the serial
-line can be very slow, especially as the serial line has a slow
-bandwidth.
+Also, don't disable \code{CONFIG_PRINTK} too early
+as you would lose all the kernel messages in the console.
 
-You can do this by adding the \code{quiet} parameter to the kernel
-command line. Since we reflash the device frequently, let's store
-the new setting in the flashing script.
+Also, for the moment, don't touch the options related to size and
+compression, including compiling the kernel with {\em Thumb2}, as the
+impact of each option could depend on the size of the kernel.
 
-Look for the \code{bootargs} setting in the
-\code{sama5d3x_demo_linux_nandflash.tcl} file and add the \code{quiet}
-parameter.
+Make sure you go through all the possibilities covered in the slides, in
+particular to enable \code{CONFIG_EMBEDDED} to allow to unselect further
+features that should be present on a general purpose
+system\footnote{Here we have a very specific system and we don't have
+to support programs that could be added in the future and could need
+more kernel features}.
 
-Reflash your device, measure boot time, and write in down in the summary
-table.
+At the end, you can disable \code{CONFIG_PRINTK}, and observe your
+total savings in terms of kernel size and boot time.
 
-There is another thing that is unnecessary too: the calibration of the
-delay loop, as explained in the lectures. Read the \code{lpj} value from
-a previous boot log, and pass this value on the kernel command line.
+Last but not least, try to find other ways of reducing the kernel size.
+Go through the \code{.config} file and the kernel build log and look for
+ideas to further reduce size and boot time.
 
-Measure the new boot time and write your result in the summary table.
+\section{Optimizing required functionality}
 
-\section{Optimizing necessary functionality}
+The time has come to make final optimizations on our kernel, mainly
+related to code size.
 
-The boot graph revealed the existence of drivers with initcalls taking a
-long time to execute. It would
-be worth spending time analysing their code, looking for opportunities to
-reduce the initialization time taken by these drivers.
+First, measure and write down your kernel size and the total boot time:
 
-However, such investigation work could take days, unless you find
-obvious issues (such as big delay loops).
+\begin{tabular}{| l | l | r |}
+  \hline
+  Kernel type & Kernel size & Total boot time \\
+  \hline
+  \hline
+  ARM & & \\
+  \hline
+  Thumb2 & & \\
+  \hline
+\end{tabular}
 
+Now, compile your kernel with \code{CONFIG_ARM_THUMB}. Before you do
+this, you could make a backup copy of your kernel source directory with
+\code{cp -al}, as a full rebuild of the kernel will be needed, and we
+may want to roll back later. Fortunately, thanks to our feature
+reduction work, the full rebuild should be faster than in the earlier labs.
+
+Write down the kernel size and total boot time in the above table,
+and keep whatever option works best for you.
+
+Then, continue by trying all the kernel compression schemes listed in
+the below table:
+
+\begin{tabular}{| l | l | r |}
+  \hline
+  Compression type & Kernel size & Total boot time \\
+  \hline
+  \hline
+  Gzip & & \\
+  \hline
+  LMZA & & \\
+  \hline
+  XZ & & \\
+  \hline
+  LZO & & \\
+  \hline
+  LZ4 & & \\
+  \hline
+  None & & \\
+  \hline
+\end{tabular}
+
+For the \code{None} row, there is no kernel configuration option, but
+all you have to do is take the \code{arch/arm/boot/Image} file, rename
+it to \code{zImage} on your SD card, and boot it. This option can make
+sense when the CPU is very slow and the storage is quite fast (like when
+you're booting Linux on a CPU emulated on an FPGA).
+
+At the end, keep the option that gives you the best boot time, and
+update the below table:
+
+\begin{tabular}{| l | l | r |}
+  \hline
+  Step & Duration & Description \\
+  \hline
+  \hline
+  U-Boot SPL & & Between \code{U-Boot SPL 2019.01} and \code{U-Boot 2019.01} \\
+  \hline
+  U-Boot & & Between \code{U-Boot 2019.01} and \code{Starting kernel} \\
+  \hline
+  Kernel + Init scripts & & Between \code{Starting kernel} and \code{Starting ffmpeg} \\
+  \hline
+  Application & & Between \code{Starting ffmpeg} and \code{First frame decoded} \\
+  \hline
+  \hline
+  Total & & \\
+  \hline
+\end{tabular}
+
+Note that we have merged the {\em Kernel} and {\em Init scripts} parts
+(the latter being very short anyway), because the kernel is now silent.
