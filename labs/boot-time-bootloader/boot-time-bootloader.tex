@@ -1,3 +1,135 @@
 \subchapter{Bootloader optimizations}{Reuce bootloader execution time}
 
-Instructions for this lab will be given separately.
+In this lab, we will run the final stage of boot time reduction:
+\begin{itemize}
+\item Improving the efficiency of the bootloader by optimizing its
+usage
+\item Recompiling the bootloader with the minimum set of options,
+and try to completely skip the second stage of the bootloader.
+\end{itemize}
+
+\section{Optimizing U-Boot usage}
+
+By following the indications given in the lectures, start by optimizing
+the way U-Boot is used.
+
+At last, you can start by eliminating the infamous 2-second boot delay, something
+you've surely been longing to do.
+
+\section{Recompiling the bootloader}
+
+It's now time to eliminate useless features in U-Boot. Go to
+\code{~/boot-time-labs/bootloader/u-boot/} and run \code{make
+menuconfig} to unselect features that we don't need in our system.
+
+For the moment, don't touch the \code{SPL / TPL} optipns, as we will try
+to use U-Boot's Falcon mode at the end.
+
+In the same way you did when you reduced the kernel configuration,
+do the changes {\bf progressively}, and even make backup copies of your
+intermediate configurations (\code{.config} file). You will be glad you
+did when you break U-Boot.
+
+Once you have reached the minimum set of features, please measure boot
+time and fill the below table:
+
+\begin{tabular}{| l | l | r |}
+  \hline
+  Step & Duration & Description \\
+  \hline
+  \hline
+  U-Boot SPL & & Between \code{U-Boot SPL 2019.01} and \code{U-Boot 2019.01} \\
+  \hline
+  U-Boot & & Between \code{U-Boot 2019.01} and \code{Starting kernel} \\
+  \hline
+  Kernel + Init scripts & & Between \code{Starting kernel} and \code{Starting ffmpeg} \\
+  \hline
+  Application & & Between \code{Starting ffmpeg} and \code{First frame decoded} \\
+  \hline
+  \hline
+  Total & & \\
+  \hline
+\end{tabular}
+
+\section{Using faster storage}
+
+A last minute surprise: your instructor will give you new SD cards with
+faster read performance, at least as fast as the Beagle Bone Black seems
+to be able to go.
+
+Why on earth didn't we use such SD cards right from the start of our
+labs?
+
+It's because slower storage acts as a magnifying glass (or as a slow
+motion device) making it easier to observe elapsed time and the benefits
+of our optimizations. If the storage was lightning fast, it would be
+harder to appreciate speedups due to a small initramfs, for example.
+
+So, edit the partition table of your new SD card, and create the
+first partition in the same way as when you prepared your original SD
+card. Then, copy the files over.
+
+You can now go ahead and make tests again, and fill the table with your
+latest results:
+
+\begin{tabular}{| l | l | r |}
+  \hline
+  Step & Duration & Description \\
+  \hline
+  \hline
+  U-Boot SPL & & Between \code{U-Boot SPL 2019.01} and \code{U-Boot 2019.01} \\
+  \hline
+  U-Boot & & Between \code{U-Boot 2019.01} and \code{Starting kernel} \\
+  \hline
+  Kernel + Init scripts & & Between \code{Starting kernel} and \code{Starting ffmpeg} \\
+  \hline
+  Application & & Between \code{Starting ffmpeg} and \code{First frame decoded} \\
+  \hline
+  \hline
+  Total & & \\
+  \hline
+\end{tabular}
+
+\section{Using U-Boot's Falcon mode}
+
+It's now time to try U-Boot's capability to directly load the
+Linux kernel from its first stage (SPL), instead of loading U-Boot.
+
+Your instructor will give you separate guidelines.
+
+When it works, update your table again:
+
+\begin{tabular}{| l | l | r |}
+  \hline
+  Step & Duration & Description \\
+  \hline
+  \hline
+  U-Boot SPL & & Between \code{U-Boot SPL 2019.01} and \code{Starting kernel} \\
+  \hline
+  Kernel + Init scripts & & Between \code{Starting kernel} and \code{Starting ffmpeg} \\
+  \hline
+  Application & & Between \code{Starting ffmpeg} and \code{First frame decoded} \\
+  \hline
+  \hline
+  Total & & \\
+  \hline
+\end{tabular}
+
+\section{Going further}
+
+There are several things we can do to try to further optimize things:
+
+\begin{itemize}
+\item As our storage is now faster, it can be interesting to explore the
+various kernel compression schemes again. The optimum solution may be a
+different one.
+\item Look for a solution to eliminate the delay detecting the USB
+webcam.
+\item If you don't manage to get rid of this delay, at least take
+advantage of this spare time to show signs of life on the screen, by
+implementing a splashscreen. You can even implement an animation.
+One thing you can do is use BusyBox's \code{fbsplash} tool, to first
+show an image on the framebuffer, and then even show a progress bar
+(knowing how much time you have to wait for the camera to be ready).
+\end{itemize}
+
