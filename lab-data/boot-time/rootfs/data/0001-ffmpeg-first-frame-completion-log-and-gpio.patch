@@ -1,0 +1,81 @@
+From 294c68c0d0a696ff997363e03dfc7fc430e04ed4 Mon Sep 17 00:00:00 2001
+From: Michael Opdenacker <michael.opdenacker@bootlin.com>
+Date: Fri, 17 May 2019 19:41:49 +0200
+Subject: [PATCH] ffmpeg: first frame completion log and gpio
+
+This writes to the application log  and toggles a GPIO
+after the first frame has been decoded and displayed.
+
+Signed-off-by: Michael Opdenacker <michael.opdenacker@bootlin.com>
+---
+ fftools/ffmpeg.c | 40 ++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 40 insertions(+)
+
+diff --git a/fftools/ffmpeg.c b/fftools/ffmpeg.c
+index 01f04103cf..6e093b843e 100644
+--- a/fftools/ffmpeg.c
++++ b/fftools/ffmpeg.c
+@@ -4648,6 +4648,37 @@ static int transcode_step(void)
+     return reap_filters(0);
+ }
+ 
++// Bootlin hack
++
++static int writefile(const char *filename, const char *s)
++{
++   FILE *f;
++   int r;
++
++   f=fopen(filename, "w");
++
++   if (f==NULL) {
++       av_log(NULL, AV_LOG_ERROR, "Cannot open file: %s\n", filename);
++       return 0;
++   }
++
++   r=fputs(s, f);
++
++   if (r==EOF) {
++       av_log(NULL, AV_LOG_ERROR, "Error writing to file: %s\n", filename);
++       return 0;
++   }
++
++   r=fclose(f);
++
++   if (r==EOF) {
++       av_log(NULL, AV_LOG_ERROR, "Error closing file: %s\n", filename);
++       return 0;
++  }
++
++  return 1;
++}
++
+ /*
+  * The following code is the main loop of the file converter
+  */
+@@ -4659,6 +4690,7 @@ static int transcode(void)
+     InputStream *ist;
+     int64_t timer_start;
+     int64_t total_packets_written = 0;
++    static int framecounter=0;
+ 
+     ret = transcode_init();
+     if (ret < 0)
+@@ -4696,6 +4728,14 @@ static int transcode(void)
+         }
+ 
+         /* dump report by using the output first video and audio streams */
++	// Bootlin hack to signal when the first frame has been decoded
++	if (framecounter++==0) {
++                // Toggle GPIO pin
++                if (writefile("/sys/class/gpio/export", "31\n") && writefile("/sys/class/gpio/gpio31/direction", "out\n"))
++                    writefile("/sys/class/gpio/gpio31/value", "1\n");
++		// Log on console
++		av_log(NULL, AV_LOG_INFO, "First frame decoded!\n");
++	}
+         print_report(0, timer_start, cur_time);
+     }
+ #if HAVE_THREADS
+-- 
+2.17.1
+

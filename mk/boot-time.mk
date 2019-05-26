@@ -34,6 +34,7 @@ BOOT_TIME_LABS = boot-time-goals \
 		boot-time-build-bootloader \
 		boot-time-build-kernel-and-start-system \
 		boot-time-software-measurement \
+		boot-time-hardware-measurement \
 		boot-time-toolchain \
 		boot-time-application \
 		boot-time-init-scripts \
