@@ -5,7 +5,7 @@ In this lab, we will run the final stage of boot time reduction:
 \item Improving the efficiency of the bootloader by optimizing its
 usage
 \item Recompiling the bootloader with the minimum set of options,
-and try to completely skip the second stage of the bootloader.
+and even completely skip the second stage of the bootloader.
 \end{itemize}
 
 \section{Optimizing U-Boot usage}
@@ -90,12 +90,102 @@ latest results:
   \hline
 \end{tabular}
 
-\section{Using U-Boot's Falcon mode}
+\section{Using U-Boot's {\em Falcon} mode}
 
 It's now time to try U-Boot's capability to directly load the
 Linux kernel from its first stage (SPL), instead of loading U-Boot.
 
-Your instructor will give you separate guidelines.
+What follows is based on U-Boot's own documentation in its sources:
+\begin{itemize}
+\item \code{doc/README.falcon} (generic details)
+\item \code{board/ti/am335x/README} (specific details for boards with
+      the am335x SoC)
+\end{itemize}
+
+The first thing to do is to generate a \code{uImage} file for the kernel
+binary. This image file contains information that U-Boot uses to know a
+few things about the kernel binary, most importantly the final load
+address, but also the type of file (binary, script, environment file),
+the target architecture and whether the binary is compressed or not.
+
+This is called a {\em legacy image} for U-Boot. As you already know,
+U-Boot can now boot a \code{zImage} file, but according to the Falcon
+mode documentation, it does need a \code{uImage} file for SPL loading.
+
+So, let's generate this file:
+\begin{verbatim}
+sudo apt install u-boot-tools
+cd ~/boot-time-labs/kernel/linux/
+make uImage LOADADDR=80008000
+\end{verbatim}
+
+Copy this \code{uImage} file to your SD card boot partition.
+
+To save time, we are also going to recompile U-Boot with support for
+loading the environment in the SPL file. Our own tests showed that this
+saves about 250 ms!
+
+So, in U-Boot's \code{menuconfig} file, go to the \code{SPL / TPL}
+menu and unselect \code{Support an environment}. Compile U-Boot again
+and copy the \code{u-boot.img} and \code{MLO} files to the boot
+partition too.
+
+Now, let's run the final preparation step. We will set the
+\code{bootargs} environment variable, load the kernel and DTB, and
+use U-Boot's \code{spl export} command to prepare a ready to boot record
+with the DTB contents, the \code{bootargs}, the kernel loading addreses
+and other information that Linux would need to boot. Note that the
+U-Boot SPL will still load the \code{uImage} file from the FAT
+filesystem in the first partition of the SD card.
+
+In the below command, you'll see that we can use U-Boot's ready made
+\code{loadaddr} and \code{fdtaddr} variables for addresses where to load
+the kernel and DTB. At least this works with U-Boot for our board.
+
+\begin{verbatim}
+load mmc 0:1 ${loadaddr} uImage
+load mmc 0:1 ${fdtaddr} dtb
+setenv bootargs console=ttyO0,115200n8 rdinit=/playvideo
+spl export fdt ${loadaddr} - ${fdtaddr}
+\end{verbatim}
+
+You can then that \code{spl export} prepared everything to boot the
+Linux kernel with the provided DTB, but didn't do it. At the end, it
+tells you where the exported data were stored in RAM:
+
+\begin{verbatim}
+## Booting kernel from Legacy Image at 82000000 ...
+   Image Name:   Linux-5.1.2-00001-gee667fd2c4d3
+   Created:      2019-05-27  14:48:08 UTC
+   Image Type:   ARM Linux Kernel Image (uncompressed)
+   Data Size:    4664952 Bytes = 4.4 MiB
+   Load Address: 80008000
+   Entry Point:  80008000
+   Verifying Checksum ... OK
+## Flattened Device Tree blob at 88000000
+   Booting using the fdt blob at 0x88000000
+   Loading Kernel Image ... OK
+   Loading Device Tree to 8ffee000, end 8ffffe57 ... OK
+subcommand not supported
+subcommand not supported
+   Loading Device Tree to 8ffd9000, end 8ffede57 ... OK
+Argument image is now in RAM: 0x8ffd9000
+WARN: FDT size > CMD_SPL_WRITE_SIZE
+\end{verbatim}
+
+The last thing to do is to store such information in an \code{args} file
+in the FAT partition on the MMC, using the starting RAM address provided
+above and its size (\code{0x8ffede57 - 0x8ffd9000}:
+
+\begin{verbatim}
+fatwrite mmc 0:1 0x8ffd9000 args 1de57
+\end{verbatim}
+
+You're ready to go and reboot your board with the SD card inside.
+You should not longer see the U-Boot second stage being loaded, but just
+the SPL and the kernel.
+
+If this doesn't work yet, please ask your instructor for advise and help.
 
 When it works, update your table again:
 
