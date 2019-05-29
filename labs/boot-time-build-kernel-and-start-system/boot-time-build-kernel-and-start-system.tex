@@ -6,7 +6,20 @@ running.
 
 \section{Setup}
 
-Go to the \code{~/boot-time-labs/kernel/linux/} directory.
+Go to the \code{~/boot-time-labs/kernel/linux/} directory and install a
+package to we will need to compile the Linux kernel:
+
+\begin{verbatim}
+sudo apt install libssl-dev
+\end{verbatim}
+
+First let's get the latest updates to the remote \code{stable} tree
+(that's needed if you started from a ready made archive of the Linux git
+repository):
+
+\begin{verbatim}
+git fetch stable
+\end{verbatim}
 
 First, let's get the list of branches on our \code{stable} remote tree:
 
@@ -28,7 +41,7 @@ git checkout -b 5.1-beaglecam stable/linux-5.1.y
 This local branch will allow us to keep our modifications to the Linux
 kernel to support the LCD4 cape that we're using.
 
-Open \code{Makefile} again and make sure you now have a 5.1.y version.
+Open \code{Makefile} again and make sure you now have a 5.1.<n> version.
 
 \section{Compiling environment}
 
@@ -171,15 +184,19 @@ Then insert the SD card in the board's slot.
 Back to the serial console for your board, let's define the default boot
 sequence, to load the kernel and DTB from the external SD card:
 
+{\footnotesize
 \begin{verbatim}
 setenv bootcmd 'fatload mmc 0:1 81000000 zImage; fatload mmc 0:1 82000000 dtb; bootz 81000000 - 82000000'
 \end{verbatim}
+}
 
+{\footnotesize
 The last thing to do is to define the kernel command line:
 \begin{verbatim}
 setenv bootcmd 'fatload mmc 0:1 81000000 zImage; fatload mmc 0:1 82000000 dtb; bootz 81000000 - 82000000'
 setenv bootargs console=ttyO0,115200n8 root=/dev/mmcblk0p2 rootwait
 \end{verbatim}
+}
 
 \begin{itemize}
 \item \code{rootwait} waits for the root device to be ready before
