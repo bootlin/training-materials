@@ -1188,4 +1188,74 @@
 \end{frame}
 
 \subsection{Kernel Aspects}
+
+\begin{frame}{Linux TTY subsystem introduction}
+  \begin{itemize}
+  \item The \textbf{TTY} subsystem handles teletypewriters to send/receive characters
+  \item Source code located at \code{drivers/tty} in Linux
+  \item Supports physical instances (e.g. UART, RS-232) and virtual ones
+  \item Virtual terminals/consoles (VTs/VCs) associate a distinct keyboard and display
+    \begin{itemize}
+    \item Many VTs are created by Linux, available under \code{/dev/tty*}
+    \item Only a single VT is active at a time, switched with \code{Ctrl + Alt + Fi}
+    \item Display grabbed using \textbf{fbcon} from the \textbf{fbdev} subsystem
+    \item Keyboard grabbed using the \textbf{input} subsystem
+    \item Can be used to show kernel messages (\code{console=tty1} in the cmdline)
+    \item Every program runs under a controlling tty (given by the \code{tty} command)
+    \end{itemize}
+  \item Pseudo-terminals also exist, for software-based I/O only
+    \begin{itemize}
+    \item Created by programs (e.g. terminal emulator) under \code{/dev/pts/*}
+    \item Unrelated to graphics topics
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Virtual terminals and graphics}
+  \begin{itemize}
+  \item With VTs, the kernel is \textbf{already using} the display and keyboard!
+  \item Display servers need to switch to \textbf{graphics mode} to release the display:
+  \begin{minted}[fontsize=\small]{console}
+ret = ioctl(tty_fd, KDSETMODE, KD_GRAPHICS);
+  \end{minted}
+  \item And disable \textbf{keyboard support} on the standard input:
+  \begin{minted}[fontsize=\small]{console}
+ret = ioctl(tty_fd, KDSKBMODE, K_OFF);
+  \end{minted}
+  \item The display device can then be used \textbf{exclusively}
+  \item Input is no longer interpreted (e.g. \code{Ctrl-C} is ignored)
+  \item Graphics and keyboard mode must be restored when leaving to keep the VT usable
+  \item Current modes can be queried with:
+  \begin{minted}[fontsize=\small]{console}
+short mode, kbmode;
+ret = ioctl(tty_fd, KDGETMODE, &mode);
+ret = ioctl(tty_fd, KDGKBMODE, &kbmode);
+  \end{minted}
+  \item More details on the \code{console_ioctl} man page
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Virtual terminals switching and graphics}
+  \begin{itemize}
+  \item However, the user might still want to switch VTs!
+  \item So the display device must be \textbf{released/reacquired} for VT switching
+  \item Unix signals are used to notify the application, configured with:
+  \begin{minted}[fontsize=\small]{console}
+struct vt_mode vt_mode;
+vt_mode.mode = VT_PROCESS;
+vt_mode.relsig = SIGUSR1;
+vt_mode.acqsig = SIGUSR2;
+ret = ioctl(tty_fd, VT_SETMODE, &vt_mode);
+  \end{minted}
+  \item VT switching must be acknowledged for the other VT to take over:
+  \begin{minted}[fontsize=\small]{console}
+ret = ioctl(tty_fd, VT_RELDISP, VT_ACKACQ); /* when entering VT */
+ret = ioctl(tty_fd, VT_RELDISP, 1); /* when leaving VT */
+  \end{minted}
+  \item Failure to acknowledge will cause a \textbf{system hang}
+  \end{itemize}
+\end{frame}
+
+% XXX: Add list of relevant code in wayland/xorg?
+
 \subsection{Userspace Aspects}
