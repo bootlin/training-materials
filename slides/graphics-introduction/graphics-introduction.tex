@@ -434,7 +434,7 @@
   \end{enumerate}
 \end{frame}
 
-\begin{frame}{Rendering hardware overview}
+\begin{frame}{Render hardware overview}
   \textbf{Rendering} hardware includes a wide range of aspects (usual cases below):
   \begin{itemize}
   \item \textbf{Basic} pixel processing:
@@ -1231,7 +1231,7 @@ short mode, kbmode;
 ret = ioctl(tty_fd, KDGETMODE, &mode);
 ret = ioctl(tty_fd, KDGKBMODE, &kbmode);
   \end{minted}
-  \item More details on the \code{console_ioctl} man page
+  \item More details in the \code{console_ioctl} man page
   \end{itemize}
 \end{frame}
 
@@ -1241,7 +1241,7 @@ ret = ioctl(tty_fd, KDGKBMODE, &kbmode);
   \item So the display device must be \textbf{released/reacquired} for VT switching
   \item Unix signals are used to notify the application, configured with:
   \begin{minted}[fontsize=\small]{console}
-struct vt_mode vt_mode;
+struct vt_mode vt_mode = { 0 };
 vt_mode.mode = VT_PROCESS;
 vt_mode.relsig = SIGUSR1;
 vt_mode.acqsig = SIGUSR2;
@@ -1253,6 +1253,138 @@ ret = ioctl(tty_fd, VT_RELDISP, VT_ACKACQ); /* when entering VT */
 ret = ioctl(tty_fd, VT_RELDISP, 1); /* when leaving VT */
   \end{minted}
   \item Failure to acknowledge will cause a \textbf{system hang}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{DRM devices}
+  \begin{itemize}
+  \item Unix-style devices are identified with major/minor numbers
+    \begin{itemize}
+    \item More details in the \code{makedev} manpage, using \code{dev_t} type
+    \item Minor/major can be retrieved with \code{stat/fstat}
+    \item DRM major in Linux is \textbf{226}
+    \end{itemize}
+  \item Two types of DRM devices exist:
+    \begin{itemize}
+    \item \textbf{Primary} nodes at \code{/dev/dri/card*} with minor \(< 128\)\\
+    Used for display operations with the KMS (mode) interface
+    \item \textbf{Render} nodes at \code{/dev/dri/renderD*} with minor \(\geq 128\)\\
+    Used for render operations with a driver-specific interface
+    \end{itemize}
+  \item DRM devices can also be used by the kernel directly (internal clients):
+    \begin{itemize}
+    \item \textbf{fbdev} compatibility layer to provide \code{/dev/fb*} nodes
+    \item Used by \textbf{fbcon} to provide virtual consoles
+    \end{itemize}
+  \item Userspace needs rights to open device nodes:
+    \begin{itemize}
+    \item Usually allowed via the \code{video} \textbf{group} or \textbf{Access Control Lists} (ACLs)
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{DRM driver identification and capabilities}
+  \begin{itemize}
+  \item Driver-specific \textbf{name and version} (major/minor/patchlevel) can be queried:%
+  \begin{minted}[fontsize=\small]{console}
+struct drm_version version = { ... };
+ret = ioctl(drm_fd, DRM_IOCTL_VERSION, &version);
+  \end{minted}
+  \item Drivers expose specific \textbf{capabilities}, that can be queried:
+  \begin{minted}[fontsize=\small]{console}
+struct drm_get_cap get_cap = { 0 };
+get_cap.capability = DRM_CAP_DUMB_BUFFER;
+ret = ioctl(drm_fd, DRM_IOCTL_GET_CAP, &get_cap);
+  \end{minted}
+  \item The kernel \textbf{must} be informed of client support for some features:
+  \begin{minted}[fontsize=\small]{console}
+struct drm_set_client_cap client_cap = { 0 };
+client_cap.capability = DRM_CLIENT_CAP_UNIVERSAL_PLANES;
+client_cap.value = 1;
+ret = ioctl(drm_fd, DRM_IOCTL_SET_CLIENT_CAP, &client_cap);
+  \end{minted}
+  \item Driver and client capabilities defined in Linux's \code{include/uapi/drm/drm.h}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{DRM master, magic and authentication}
+  \begin{itemize}
+  \item Multiple userspace clients can open the same primary device node
+  \item Only the \textbf{master} client is allowed to configure display (KMS)
+  \item Master is exclusive and can be \textbf{acquired} and \textbf{dropped} (VT switching):
+  \begin{minted}[fontsize=\small]{console}
+ret = ioctl(fd, DRM_IOCTL_SET_MASTER, NULL);
+ret = ioctl(fd, DRM_IOCTL_DROP_MASTER, NULL);
+  \end{minted}
+  \item Requires \code{CAP_SYS_ADMIN} Linux capability, see \code{capabilities} man page
+  \item Some operations can be allowed on trusted clients with \textbf{magic authentication}:
+  \begin{enumerate}
+  \item Client \textit{foo} gets its client-specific magic:
+  \begin{minted}[fontsize=\small]{console}
+struct drm_auth auth = { 0 };
+ret = ioctl(fd, DRM_IOCTL_GET_MAGIC, &auth);
+  \end{minted}
+  \item Client \textit{foo} sends \code{auth.magic} to master client \textit{bar} (via IPC)
+  \item Master client \textit{bar} authenticates client \textit{foo}:
+  \begin{minted}[fontsize=\small]{console}
+ret = ioctl(fd, DRM_IOCTL_AUTH_MAGIC, &auth);
+  \end{minted}
+  \end{enumerate}
+  \item Mostly for allocating buffers on another process
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{DRM memory management}
+  \begin{itemize}
+  \item The \textbf{Graphics Execution Manager} (GEM) handles memory in DRM
+  \item Used both by KMS and render drivers, with specific backends:
+    \begin{itemize}
+    \item \textbf{CMA}: Contiguous Memory Allocator (reserved area at boot)
+    \item \textbf{Shmem}: Shared system memory (anonymous pages)
+    \item \textbf{Vram}: Video RAM, using the \textbf{Translation Table Manager} (TTM)
+    \end{itemize}
+  \item Ensures buffers \textbf{coherency} on access (cache management)
+  \item Allocated buffers are identified with a unique \textbf{handle} number
+  \item In KMS, the \textbf{dumb buffer} API exposes memory operations:
+    \begin{itemize}
+    \item For memory used for \textbf{scanout framebuffers}
+    \item Drivers calculate aligned pitch/stride and size based on dimensions and bpp
+    \item Sometimes too limiting (e.g. multi-planar formats)
+    \end{itemize}
+  \item More details in the \textit{drm-memory} man page
+  \item Drivers sometimes expose extra \code{ioctls} for more advanced needs
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{DRM KMS dumb buffers}
+  \begin{itemize}
+  \item The \textbf{dumb buffer} generic API exposes memory operations:
+    \begin{itemize}
+    \item \textbf{Allocating} from \code{width}, \code{height} and \code{bpp}, returning \code{handle}, \code{pitch} and \code{size}:
+    \begin{minted}[fontsize=\small]{console}
+struct drm_mode_create_dumb create_dumb = { ... };
+ret = ioctl(drm_fd, DRM_IOCTL_MODE_CREATE_DUMB, &create_dumb);
+    \end{minted}
+    \item \textbf{Destroying} an allocated buffer:
+    \begin{minted}[fontsize=\small]{console}
+struct drm_mode_destroy_dumb destroy_dumb = { .handle = ..., };
+ret = ioctl(drm_fd, DRM_IOCTL_MODE_DESTROY_DUMB, &destroy_dumb);
+    \end{minted}
+    \item \textbf{Preparing a mapping} in user memory for a buffer, returning an \code{offset}:
+    \begin{minted}[fontsize=\small]{console}
+struct drm_mode_map_dumb map_dumb = { .handle = ..., };
+ret = ioctl(drm_fd, DRM_IOCTL_MODE_MAP_DUMB, &map_dumb);
+    \end{minted}
+    \item \textbf{Mapping memory} to userspace using the \code{offset}:
+    \begin{minted}[fontsize=\small]{console}
+map = mmap(NULL, create_dumb.size, PROT_READ | PROT_WRITE, MAP_SHARED,
+           drm_fd, map_dumb.offset);
+    \end{minted}
+    \item \textbf{Unmapping} memory after use:
+    \begin{minted}[fontsize=\small]{console}
+munmap(map, create_dumb.size);
+    \end{minted}
+    \end{itemize}
   \end{itemize}
 \end{frame}
 
