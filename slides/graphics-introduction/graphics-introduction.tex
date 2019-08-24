@@ -1710,19 +1710,102 @@ ret = ioctl(drm_fd, DRM_IOCTL_MODE_ATOMIC, &atomic);
 \end{frame}
 
 \begin{frame}[fragile]{DRM KMS atomic driver walkthrough}
-foo
+  \begin{itemize}
+  \item A state-of-the-art DRM KMS driver: \code{vc4} at \kdir{drivers/gpu/drm/vc4}\\
+  \textit{integrates both DRM KMS and render}
+  \item Entry point at \kfile{drivers/gpu/drm/vc4/vc4_drv.c}
+  \item Dedicated documentation: \url{https://dri.freedesktop.org/docs/drm/gpu/vc4.html}
+  \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]{DRM render generalities}
-bar
+  \begin{itemize}
+  \item DRM render drivers have their own \textbf{driver-specific API}\\
+    \textit{unlike KMS, render hardware abstraction is done in userspace}
+  \item Their API is exposed through custom \code{ioctls}
+  \item Can be associated with a KMS driver (e.g. \code{vc4}) or separate (e.g. \code{v3d})
+  \item Drivers handle memory, job submission and scheduling, interrupts
+  \item DRM has a common scheduler (from AMD) in \kdir{drivers/gpu/drm/scheduler}
+  \item Usual operations:
+    \begin{itemize}
+    \item Managing buffer objects (BOs) of different types (create, destroy, mmap)\\
+    \textit{using GEM under the hood}
+    \item Submitting job data structures for programming the GPU (command lists)\\
+    \textit{with a validation step to ensure its validity}
+    \item Waiting for operations to complete
+    \item Exposing performance-related information
+    \end{itemize}
+  \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]{DRM render driver walkthrough}
-baz
+  \begin{itemize}
+  \item A state-of-the-art DRM render driver: \code{v3d} at \kdir{drivers/gpu/drm/v3d}
+  \item Entry point at \kfile{drivers/gpu/drm/v3d/v3d_drv.c}
+  \item Dedicated documentation: \url{https://dri.freedesktop.org/docs/drm/gpu/v3d.html}
+  \end{itemize}
 \end{frame}
 
-\begin{frame}[fragile]{DRM zero-copy memory sharing and fencing}
-foo
+\begin{frame}[fragile]{DRM Prime zero-copy memory sharing (dma-buf)}
+  \begin{itemize}
+  \item Memory buffers often need to be shared between different devices\\
+    \textit{e.g. DRM KMS and DRM render but also concerns V4L2 for media devices}
+  \item The kernel-wide \code{dma-buf} API allows exporting and importing buffers
+  \item Buffers are represented as \textbf{file descriptors} in userspace\\
+    \textit{file descriptors can be shared between programs via IPC}
+  \item DRM exposes dma-buf via the \textbf{DRM Prime} API
+  \item DRM prime exports a GEM \code{handle} to a returned \code{fd}:
+  \begin{minted}[fontsize=\small]{console}
+struct drm_prime_handle prime_handle = { .handle = ... }
+ret = ioctl(drm_fd, DRM_IOCTL_PRIME_HANDLE_TO_FD, &prime_handle);
+  \end{minted}
+  \item And vice-versa:
+  \begin{minted}[fontsize=\small]{console}
+struct drm_prime_handle prime_handle = { .fd = ... }
+ret = ioctl(drm_fd, DRM_IOCTL_PRIME_FD_TO_HANDLE, &prime_handle);
+  \end{minted}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{DRM sync object fencing}
+  \begin{itemize}
+  \item In a multi-device pipeline with zero-copy, only scheduling is left to userspace\\
+  \textit{each device signals completion and userspace moves on to the next}
+  \item Fences were introduced to avoid the extra roundtrip in userspace:
+    \begin{itemize}
+    \item The flow of buffers between devices is usually known in advance
+    \item The kernel can coordinate internally and trigger the next device
+    \item Requires submitting all commands in advance with fences attached
+    \end{itemize}
+  \item DRM exposes fences via the \textbf{Sync object} API
+  \item Sync objects contain one fence, exposed as a file descriptor
+  \item The KMS atomic API and some render driver APIs take input fence fds
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{DRM sync object fencing}
+  \begin{itemize}
+  \item Sync objects are created and destroyed with a \code{handle}:
+  \begin{minted}[fontsize=\small]{console}
+struct drm_syncobj_create syncobj_create = { 0 }
+ret = ioctl(drm_fd, DRM_IOCTL_SYNCOBJ_CREATE, &syncobj_create);
+  \end{minted}
+  \begin{minted}[fontsize=\small]{console}
+struct drm_syncobj_destroy syncobj_destroy = { .handle = syncobj_create.handle }
+ret = ioctl(drm_fd, DRM_IOCTL_SYNCOBJ_DESTROY, &syncobj_destroy);
+  \end{minted}
+  \item An output fence's \code{fd} is exported from a device's sync object with:
+  \begin{minted}[fontsize=\small]{console}
+struct drm_syncobj_handle syncobj_handle = { .handle = handle, ... }
+ret = ioctl(drm_fd, DRM_IOCTL_SYNCOBJ_HANDLE_TO_FD, &syncobj_handle);
+  \end{minted}
+  \item An input fence's \code{fd} is imported to a device's sync object with:
+  \begin{minted}[fontsize=\small]{console}
+struct drm_syncobj_handle syncobj_handle = { .handle = handle, .fd = fd }
+ret = ioctl(drm_fd, DRM_IOCTL_SYNCOBJ_FD_TO_HANDLE, &syncobj_handle);
+  \end{minted}
+  \item Quite a recent feature, not yet available in V4L2 (media)
+  \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]{DRM debug and documentation}
