@@ -472,12 +472,12 @@
   \end{itemize}
   \item \textbf{2D vector} drawing:
   \begin{itemize}
-    \item From equations, parameters and data (e.g. points)
+    \item Rasterisation from equations, parameters and data (e.g. points)
     \item Either fixed-function or programmable hardware (custom), pipeline source
   \end{itemize}
   \item \textbf{3D scene} rendering:
   \begin{itemize}
-    \item From programs (shaders) and data (e.g. vertices, textures)
+    \item Rasterisation from programs (shaders) and data (e.g. vertices, lines, triangles textures)
     \item Programmable hardware (GPU), pipeline source
   \end{itemize}
   \item Rendering can \textbf{always fallback} to general-purpose CPU operations
@@ -965,6 +965,142 @@
   \includegraphics[height=6em]{slides/graphics-introduction/dp-dvi-bridge.jpg}\\
   \textit{\small A DP to DVI bridge}
   \end{center}
+\end{frame}
+
+\subsection{Render Hardware Specifics}
+
+\begin{frame}{Digital Signal Processors}
+  \begin{itemize}
+  \item Digital Signal Processors (DSPs) allow programmable image signal processing\\
+    \textit{can also be used for implementing 2D rendering primitives}
+  \item Using a dedicated Instruction Set Architectures (ISA)
+  \item Arithmetic implementations are either:
+    \begin{itemize}
+    \item \textbf{fixed-point}: simple hardware implementation, fixed range (usually 16.16)\\
+      \textit{16 bits for the integer part and 16 bits for the decimal part}
+    \item \textbf{floating-point}: complex implementations, trade-off between range and precision
+    \end{itemize}
+  \item Usually more power-efficient than general-purpose CPUs
+  \item Depending on the DSP, the software can be:
+    \begin{itemize}
+    \item A \textbf{standalone firmware}, usually developed from vendor libraries (C/C++/ASM)
+    \item A \textbf{real-time operating system} (RTOS) application (C/C++/...)
+    \end{itemize}
+  \item Can be used standalone in a video pipeline or to offload a CPU
+  \item Modern DSPs can be multi-core and feature various I/O controllers
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Dedicated hardware accelerators}
+  \begin{itemize}
+  \item Fixed-function hardware can be used for accelerating specific operations
+  \begin{itemize}
+    \item Implemented as hardware circuits in Systems on a Chip (SoCs) or DSPs
+    \item Implemented as logic configuration bitstream in FPGAs
+  \end{itemize}
+  \item Implement a configurable fixed pipeline for image operations
+  \item Accessed and configured through specific registers exposed via a bus
+    \begin{itemize}
+    \item Global configuration registers to build the pipeline between blocks
+    \item Configuration registers for each block
+    \item Kick and status registers
+    \end{itemize}
+  \item Usually very power-efficient and very fast
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Dedicated hardware accelerators (illustrated)}
+  \begin{center}
+    \includegraphics[width=0.7\textwidth]{slides/graphics-introduction/g2d-block.png}\\
+    \textit{A typical hardware pipeline for a 2D graphics block}\\
+  \end{center}
+\end{frame}
+
+\begin{frame}{Graphics Processing Unit}
+  \begin{itemize}
+  \item Graphics Processing Units (GPUs) are 3D rendering hardware implementations\\
+    \textit{the term no longer designates all graphics-processing hardware}
+  \item Renders lists of vertices (points) in 3D space with lighting and textures
+  \item Operates on graphics primitives: points (vertices), lines and triangles
+  \item GPU hardware architectures evolved over time:
+    \begin{itemize}
+    \item From \textbf{fixed-function} configurable hardware block pipelines
+    \item To pipelines with both fixed blocks and specialized \textbf{programmable} processing units
+    \end{itemize}
+  \item Shaders are programs that run at different steps of the pipeline:
+    \begin{itemize}
+    \item \textbf{vertex shaders}: define the position, texture coordinates and lighting of each vertex
+    \item \textbf{geometry shaders}: generate new primitives from the provided ones
+    \item \textbf{fragment/pixel shaders}: performs rasterisation for each output pixel
+    \end{itemize}
+  \item Using a \textbf{depth/z buffer} to keep track of the z-order for each output pixel
+  \item Rasterization is optimized by eliminating hidden elements as early as possible
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Graphics Processing Unit internals}
+  \begin{itemize}
+  \item Shader cores have highly-specialized ISAs adapted for geometry\\
+    \textit{vector operations, hardware trigonometric implementations}
+  \item Modern GPUs sometimes have a unified shader core
+  \item Shading cores are duplicated to work in parallel (especially rasterization)
+  \item Output is divided in tiles (clipping areas) and distributed to cores
+  \item Each rasterized tile is written to the output framebuffer separately
+  \item Extremely efficient compared to any general-purpose CPU\\
+    \textit{GPUs are also used for general-purpose computing: GPGPU}
+  \end{itemize}
+\end{frame}
+
+\subsection{System Integration, Memory and Performance}
+
+\begin{frame}{Graphics integration and memory}
+  \begin{itemize}
+  \item Graphics devices integrated in larger systems need two main interfaces:
+    \begin{itemize}
+    \item \textbf{Control interface} (low speed): to program the device from the main CPU
+    \item \textbf{Memory interface} (high speed): to read the source data and write their framebuffer
+    \end{itemize}
+  \item Other usual required elements: clocks, interrupts, reset
+  \item Both the graphics device and the CPU need to access the memory
+  \item Different types of memory used by graphics hardware:
+    \begin{itemize}
+    \item \textbf{graphics memory}: dedicated memory attached to the graphics device\\
+    \textit{the memory is made available to the CPU through the memory interface}
+    \item \textbf{dedicated system memory}: a reserved contiguous area of system memory\\
+    \textit{required when the device has no mapping unit}
+    \item \textbf{system memory pages}: any system memory page can be mapped for access\\
+    \textit{for devices with a dedicated IOMMU and graphics address remapping table (GART)}
+    \end{itemize}
+  \item Since the two parties access the same memory, cache can become incoherent
+  \item Cache must be \textbf{synchronized} before reading and after writing, or \textbf{disabled}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Graphics shared memory access}
+  \begin{itemize}
+  \item Concurrent access to memory can lead to trouble:
+    \begin{itemize}
+    \item Concurrent read-write accesses result in partially-updated data
+    \item Concurrent write-write accesses result in incoherent data
+    \end{itemize}
+  \item Common issue with display hardware: tearing
+    \begin{itemize}
+    \item The framebuffer is scanned out at a fixed rate (e.g. \(60~fps\))
+    \item Any modification during scan out will result in a partial update
+    \item Creates an unpleasant visual glitch effect
+    \end{itemize}
+\begin{center}
+\includegraphics[height=8em]{slides/graphics-introduction/tearing-glitch.jpg}
+\end{center}
+  \item Solved by using two buffers: double-buffering, switched with page flipping\\
+    \textit{using more buffers is possible if rendering can be done in advance}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Graphics memory constraints and performance}
+  \begin{itemize}
+  \item Memory alignment, stride, tiled modes
+  \end{itemize}
 \end{frame}
 
 \section{Software Aspects}
