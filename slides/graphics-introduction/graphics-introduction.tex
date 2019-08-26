@@ -1478,7 +1478,8 @@ ret = ioctl(drm_fd, DRM_IOCTL_SET_CLIENT_CAP, &client_cap);
 ret = ioctl(drm_fd, DRM_IOCTL_SET_MASTER, NULL);
 ret = ioctl(drm_fd, DRM_IOCTL_DROP_MASTER, NULL);
   \end{minted}
-  \item Requires \code{CAP_SYS_ADMIN} Linux capability, see \code{capabilities} man page
+  \item Requires \code{CAP_SYS_ADMIN} Linux capability, see \code{capabilities} man page\\
+    \textit{usually reserved to the root super user}
   \item Some operations can be allowed on trusted clients with \textbf{magic authentication}:
   \begin{enumerate}
   \item Client \textit{foo} gets its client-specific magic:
@@ -1970,3 +1971,152 @@ ret = ioctl(drm_fd, DRM_IOCTL_SYNCOBJ_FD_TO_HANDLE, &syncobj_handle);
 % XXX: Add list of relevant code in wayland/xorg?
 
 \subsection{Userspace Aspects}
+
+\begin{frame}{libdrm wrapper}
+  \begin{itemize}
+  \item Userspace access to DRM devices is wrapped with \textbf{libdrm}
+  \item Exposes convenience wrappers, helpers and some data structures around \code{ioctls}
+    \begin{itemize}
+    \item For KMS support in the \code{libdrm.so} library
+    \item For hardware-specific render drivers in dedicated libraries (e.g. \code{libdrm_nouveau.so})
+    \end{itemize}
+  \item Used by almost every userspace project dealing with DRM:\\
+    \textit{weston, mutter, Xorg, mesa, etc}
+  \end{itemize}
+
+  \begin{center}
+  \includegraphics[width=0.5\textwidth]{slides/graphics-introduction/libdrm-userspace.pdf}
+  \end{center}
+\end{frame}
+
+\begin{frame}{X11 protocol}
+  \begin{itemize}
+  \item X11 core protocol implemented by Xorg:
+    \begin{itemize}
+    \item Asynchronous packet-based system with different types:\\
+    \code{Request}, \code{Reply}, \code{Event} and \code{Error} packets
+    \item Can be used locally (UNIX socket) or over network (TCP/IP)
+    \end{itemize}
+  \item Clients fill the contents of \textbf{drawables}: pixmaps and windows
+  \item Displayed data is held by the server and must be uploaded by the client\\
+    \textit{but does not guarantee data retention and can ask for redraw}
+  \item Windows are represented as a tree:
+    \begin{itemize}
+    \item Starting with the root window created by X
+    \item Top-level windows and sub-windows can be created by clients
+    \end{itemize}
+  \item A graphics context (GC) allows requesting basic drawing and font rendering
+  \item The server provides input events to concerned clients:
+    \begin{itemize}
+    \item Mouse movements relative to window coordinates
+    \item Translated keycodes with a keymap, for local layout and combinations
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Xorg architecture}
+  \begin{itemize}
+  \item Xorg is divided between generic and hardware-specific parts
+  \item Device-Independent-X (DIX) concerns:
+    \begin{itemize}
+    \item X11 protocol implementation, client coordination
+    \item Software rendering fallback implementations
+    \item Main event loop and tasks scheduling
+    \end{itemize}
+  \item Device-Dependent-X (DDX) concerns:
+    \begin{itemize}
+    \item Input drivers (\code{xf86-input-...}) to grab events from the kernel
+    \item Video drivers (\code{xf86-video-...}) to provide mode setting and 2D acceleration
+    \end{itemize}
+  \item EXA provides a 2D acceleration architecture between DIX and DDX
+    \begin{itemize}
+    \item Efficient way for drivers to expose accelerated 2D operation primitives
+    \item Replaced the XFree86 Acceleration Architecture (XAA)
+    \item Reduces driver boilerplate
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Xorg drivers overview}
+  \begin{itemize}
+  \item Generic Xorg \textbf{input} drivers:
+    \begin{itemize}
+    \item \code{xf86-input-libinput}: using \code{libinput} to get input events
+    \item \code{xf86-input-evdev}: using the \code{evdev} kernel interface directly (\textbf{deprecated})
+    \end{itemize}
+  \item Specific Xorg \textbf{input} drivers:
+    \begin{itemize}
+    \item \code{xf86-input-synaptics}: for laptop touchpads
+    \item \code{xf86-input-wacom}: for Wacom drawing tablets
+    \item Specific drivers are deprecated in favor of \code{xf86-input-libinput}
+    \end{itemize}
+  \item Common Xorg \textbf{display} drivers:
+    \begin{itemize}
+    \item \code{xf86-video-modesetting}: for \textbf{DRM KMS}, without acceleration
+    \item \code{xf86-video-glamor}: for DRM KMS with \textbf{3D GPU-based acceleration}
+    \item \code{xf86-video-fbdev}: for the \textbf{fbdev} interface, without acceleration (legacy)
+    \end{itemize}
+  \item Specific Xorg \textbf{display} drivers:
+    \begin{itemize}
+    \item \code{xf86-video-[intel,nouveau,amdgpu]}: profiting from 2D acceleration blocks
+    \item Specific drivers are deprecated in favor of \code{xf86-video-glamor}\\
+      \textit{the trend is to accelerate everything via 3D rendering instead of 2D accelerators}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Xorg extensions}
+  \begin{itemize}
+  \item X11 has evolved over time through \textbf{extensions} to its main protocol
+  \item Provides updated interfaces to X clients, matching \textbf{new hardware features}
+  \item \textbf{XKB} and \textbf{Xinput2} extensions:
+    \begin{itemize}
+    \item XKB was added to support complex keyboard layouts
+    \item Xinput2 provides touchpad, touchscreen and multi-touch support
+    \end{itemize}
+  \item \textbf{XRandR} extension:
+    \begin{itemize}
+    \item Allows supporting and configuring (multiple) monitors
+    \item Configuration and hotplugging is possible without server restart
+    \end{itemize}
+  \item \textbf{Composite} extension:
+    \begin{itemize}
+    \item Provides reliable buffering of window contents (less redraw)
+    \item Exposes the window hierarchy and delegates window composition
+    \item Enables compositing window managers
+    \end{itemize}
+  \item \textbf{Xv} extension:
+    \begin{itemize}
+    \item Video output mechanism to offload colorspace conversion (CSC) and scaling
+    \item Involves buffer copies and lack synchronization (e.g. window move)
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Xorg usage, integration and configuration}
+  \begin{itemize}
+  \item Xorg can be started with the \code{startx} command (wrapping \code{xinit})
+    \begin{itemize}
+    \item Executes server script from \code{/etc/X11/xinit/xserverrc} or \code{$HOME/.xserverrc}
+    \item Executes client script from \code{/etc/X11/xinit/xinitrc} or \code{$HOME/.xinitrc}
+    \end{itemize}
+  \item An X \textbf{display manager} offers a login interface (e.g. KDM, LightDM)
+    \begin{itemize}
+    \item Runs under a Xorg server, with its own dedicated user
+    \item Starts Xorg for authenticated users from session files in \code{/usr/share/xsessions/}
+    \end{itemize}
+  \item Used to require \textbf{running the server as root} to access graphics devices\\
+    \textit{in particular, necessary to become DRM master}
+    \begin{itemize}
+    \item The \code{systemd-logind} login manager lifts the restriction
+    \item Opens the DRM KMS fd privileged and passes it to Xorg via IPC
+    \item Xorg can then drop privileges: details in the \code{Xorg.wrap} man page
+    \end{itemize}
+  \item Xorg is \textbf{configured} (both DIX and DDX) from \code{/etc/X11/xorg.conf}
+  \item The \code{DISPLAY} environment variable indicates which server connection to use\\
+    \begin{itemize}
+    \item Already set for X client applications and inherited
+    \item \code{export DISPLAY=:0} useful to launch programs from other TTYs
+    \end{itemize}
+  \end{itemize}
+\end{frame}
