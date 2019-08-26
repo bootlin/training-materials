@@ -745,7 +745,78 @@
 
 \begin{frame}{Graphics memory constraints and performance}
   \begin{itemize}
-  \item Memory alignment, stride, tiled modes
+  \item Fixed-pipeline 2D graphics hardware usually streams pixels through FIFOs
+  \item A DMA engine fetches pixel data from framebuffer memory
+  \item To simplify the logic and optimize memory access, memory constraints may apply:\\
+    \begin{itemize}
+    \item The start address of each line needs to be aligned to \(2^n\)
+    \item The byte size of each line needs to be aligned to \(2^n\)
+    \end{itemize}
+  \item The \textbf{stride} or \textbf{pitch} describes the line byte size
+    \begin{itemize}
+    \item Calculated as: \(ALIGN(width \times bpp / 8,~2^n)\)
+    \item The size of a framebuffer becomes (single-planar): \(stride \times height\)\\
+      \textit{memory may be over-allocated to satisfy alignment constraints}
+    \end{itemize}
+  \item Pixel order in memory may not follow raster order:
+    \begin{itemize}
+    \item Optimized depending on the hardware architecture
+    \item Optimized for efficient memory access
+    \item Tiled orders are frequent for parallel hardware
+    \item Framebuffer sizes are calculated with a specific formula
+    \end{itemize}
   \end{itemize}
 \end{frame}
 
+\begin{frame}{Tiled framebuffer format example}
+  \begin{minipage}{0.45\textwidth}
+    \centering
+    \textit{\small The Allwinner VPU tiled format}
+  \end{minipage}
+  \hfill
+  \begin{minipage}{0.45\textwidth}
+    \centering
+    \vspace{1em}
+    \includegraphics[width=0.35\textwidth]{slides/graphics-hardware/sunxi-tiled-format.png}\\
+  \end{minipage}
+  \vspace{2em}
+  \begin{minipage}[b]{0.45\textwidth}
+    \centering
+    \vspace{1em}
+    \includegraphics[width=\textwidth]{slides/graphics-hardware/sunxi-tiled-linear.png}
+    \textit{\small A tiled framebuffer read in raster order}
+  \end{minipage}
+  \hfill
+  \begin{minipage}[b]{0.45\textwidth}
+    \centering
+    \vspace{1em}
+    \includegraphics[width=\textwidth]{slides/graphics-hardware/sunxi-tiled.png}
+    \textit{\small The same framebuffer read properly}
+  \end{minipage}
+\end{frame}
+
+\begin{frame}{Graphics bottlenecks and optimizations}
+  \begin{itemize}
+  \item One major bottleneck in graphics pipelines is memory access:
+    \begin{itemize}
+    \item Memory copies must be avoided at all costs (zero-copy)
+    \item Chained elements in a pipeline should share the same buffer\\
+      \textit{hardware constraints are usually compatible in SoCs}
+    \end{itemize}
+  \item Offloading is not (always) a magical solution:
+    \begin{itemize}
+    \item Fixed setup costs must be significantly lower than CPU processing time\\
+      \textit{small operations are sometimes more efficient on-CPU}
+    \item Asynchronous interrupts can introduce latency compared to active polling\\
+      \textit{but blocking the whole system is not always an option}
+    \end{itemize}
+  \item However, offloading is often crucially needed:
+    \begin{itemize}
+    \item Video presentation at a given frame-rate, with CSC and scaling
+    \item 3D scene rendering at display refresh rate
+    \item Windows and cursor composition at display refresh rate
+    \end{itemize}
+  \item Graphics in operating systems is usually best-effort
+  \item DSPs can usually provide real-time guarantees
+  \end{itemize}
+\end{frame}
