@@ -388,7 +388,7 @@ ret = ioctl(drm_fd, DRM_IOCTL_GET_MAGIC, &auth);
 ret = ioctl(drm_fd, DRM_IOCTL_AUTH_MAGIC, &auth);
   \end{minted}
   \end{enumerate}
-  \item Mostly for allocating buffers on another process
+  \item Mostly used before render nodes or for allocating buffers on another process
   \end{itemize}
 \end{frame}
 
@@ -892,49 +892,101 @@ ret = ioctl(drm_fd, DRM_IOCTL_SYNCOBJ_FD_TO_HANDLE, &syncobj_handle);
     \code{Request}, \code{Reply}, \code{Event} and \code{Error} packets
     \item Can be used locally (UNIX socket) or over network (TCP/IP)
     \end{itemize}
-  \item Clients fill the contents of \textbf{drawables}: pixmaps and windows
-  \item Displayed data is held by the server and must be uploaded by the client\\
-    \textit{but does not guarantee data retention and can ask for redraw}
+  \item Exposes \textbf{drawables} for clients to transfer or draw pixel data to the server:
+    \begin{itemize}
+    \item \textbf{Windows}: area of the display buffer owned by the application\\
+      \textit{without backing storage, must be redrawn when occluded}
+    \item \textbf{Pixmaps}: off-display backing storage that can be copied to windows
+    \end{itemize}
   \item Windows are represented as a tree:
     \begin{itemize}
     \item Starting with the root window created by X
-    \item Top-level windows and sub-windows can be created by clients
+    \item Top-level windows and sub-windows created by clients
     \end{itemize}
   \item A graphics context (GC) allows requesting basic drawing and font rendering
-  \item The server provides input events to concerned clients:
+  \item The server provides \textbf{input events} to concerned clients:
     \begin{itemize}
     \item Mouse movements relative to window coordinates
-    \item Translated keycodes with a keymap, for local layout and combinations
+    \item Translated key symbols a from raw keycodes
     \end{itemize}
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Xorg architecture}
+\begin{frame}{X11 protocol extensions}
+  \begin{itemize}
+  \item X11 has evolved over time through \textbf{extensions} to its main protocol
+    \begin{itemize}
+    \item Additional interfaces for X clients, matching \textbf{new hardware features}
+    \end{itemize}
+  \item \textbf{XKB}: complex keyboard layouts
+  \item \textbf{Xinput2}: touchpad, touchscreen and multi-touch support
+  \item \textbf{XSHM}: shared client/server memory, avoiding extra transfers/copies\\
+    \textit{not\ possible to operate via the network}
+  \item \textbf{XRandR}: monitor configuration and hotplugging without server restart
+  \item \textbf{Composite}: delegates window composition to compositing window managers
+  \item \textbf{XRender}: 2D rendering API with with alpha composition, rasterization, transformations, filtering
+  \item \textbf{Xv}: video output colorspace conversion (CSC) and scaling offload in-DDX\\
+    \textit{involves buffer copies and lacks synchronization with window position}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{X11 and OpenGL acceleration: GLX and DRI2}
+  \begin{itemize}
+  \item Before DRM render nodes, there was a single device for KMS and render\\
+    \textit{correlates with the idea of a graphics card mixing both aspects}
+  \item The X server owns the graphics device \textbf{exclusively}
+  \item Clients using OpenGL need to access the device for rendering
+  \item The \textbf{GLX} API was introduced to perform \textbf{indirect rendering}:
+    \begin{enumerate}
+    \item Integrating OpenGL with the X Window API
+    \item Forwarding GL calls to the GL implementation via the X server (AIGLX)\\
+      \textit{introducing latency and performance issues}
+    \end{enumerate}
+  \item \textbf{The Direct Rendering Infastructure} (DRI/DRI2) was introduced next:
+    \begin{itemize}
+    \item The X server authenticates DRI2 clients with DRM magic/auth\\
+      \textit{allows them to access render features}
+    \item Buffers are allocated by the X server and passed by references (\textit{GEM flinks})
+    \item Rendering to buffers is done by the clients with the GL implementation
+    \end{itemize}
+  \item GLX is still used as a GL windowing API for X11
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{X11 and OpenGL acceleration: GLX and DRI2 (illustrated)}
+  \begin{center}
+  \includegraphics[width=0.4\textwidth]{slides/graphics-software/dri-data-flow.png}\\
+  \textit{Data flow in X11 for different types of clients}
+  \end{center}
+\end{frame}
+
+\begin{frame}{Xorg architecture and acceleration}
   \begin{itemize}
   \item Xorg is divided between generic and hardware-specific parts
-  \item Device-Independent-X (DIX) concerns:
+  \item \textbf{Device-Independent-X} (DIX) concerns:
     \begin{itemize}
     \item X11 protocol implementation, client coordination
-    \item Software rendering fallback implementations
-    \item Main event loop and tasks scheduling
+    \item Main event loop and event dispatching
+    \item Graphics operations logic, boilerplate and fallback implementations
     \end{itemize}
-  \item Device-Dependent-X (DDX) concerns:
+  \item \textbf{Device-Dependent-X} (DDX) concerns:
     \begin{itemize}
     \item Input drivers (\code{xf86-input-...}) to grab events from the kernel
     \item Video drivers (\code{xf86-video-...}) to provide mode setting and 2D acceleration
     \end{itemize}
-  \item EXA provides a 2D acceleration architecture between DIX and DDX
+  \item \textbf{EXA} provides a 2D acceleration architecture between DIX and DDX
     \begin{itemize}
     \item Efficient way for drivers to expose accelerated 2D operation primitives
     \item Replaced the XFree86 Acceleration Architecture (XAA)
     \item Reduces driver boilerplate
     \end{itemize}
+  \item \textbf{Glamor} provides 2D acceleration for the DDX using OpenGL 3D rendering
   \end{itemize}
 \end{frame}
 
 \begin{frame}{Xorg drivers overview}
   \begin{itemize}
-  \item Generic Xorg \textbf{input} drivers:
+  \item Generic Xorg \textbf{input} dri,lkvers:
     \begin{itemize}
     \item \code{xf86-input-libinput}: using \code{libinput} to get input events
     \item \code{xf86-input-evdev}: using the \code{evdev} kernel interface directly (\textbf{deprecated})
@@ -943,47 +995,19 @@ ret = ioctl(drm_fd, DRM_IOCTL_SYNCOBJ_FD_TO_HANDLE, &syncobj_handle);
     \begin{itemize}
     \item \code{xf86-input-synaptics}: for laptop touchpads
     \item \code{xf86-input-wacom}: for Wacom drawing tablets
-    \item Specific drivers are deprecated in favor of \code{xf86-input-libinput}
+    \item Specific drivers are \textbf{deprecated} in favor of \code{xf86-input-libinput}
     \end{itemize}
-  \item Common Xorg \textbf{display} drivers:
+  \item Generic Xorg \textbf{display} drivers:
     \begin{itemize}
-    \item \code{xf86-video-modesetting}: for \textbf{DRM KMS}, without acceleration
-    \item \code{xf86-video-glamor}: for DRM KMS with \textbf{3D GPU-based acceleration}
+    \item \code{xf86-video-modesetting}: for \textbf{DRM KMS}, can be accelerated using \textbf{glamor}
     \item \code{xf86-video-fbdev}: for the \textbf{fbdev} interface, without acceleration (legacy)
+    \item \code{xf86-video-vesa}: for the \textbf{Video BIOS Extension} (VBE) framebuffer (x86)
     \end{itemize}
   \item Specific Xorg \textbf{display} drivers:
     \begin{itemize}
     \item \code{xf86-video-[intel,nouveau,amdgpu]}: profiting from 2D acceleration blocks
-    \item Specific drivers are deprecated in favor of \code{xf86-video-glamor}\\
+    \item Specific drivers are deprecated in favor of \code{xf86-video-modesetting} and \textbf{glamor}\\
       \textit{the trend is to accelerate everything via 3D rendering instead of 2D accelerators}
-    \end{itemize}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}{Xorg extensions}
-  \begin{itemize}
-  \item X11 has evolved over time through \textbf{extensions} to its main protocol
-  \item Provides updated interfaces to X clients, matching \textbf{new hardware features}
-  \item \textbf{XKB} and \textbf{Xinput2} extensions:
-    \begin{itemize}
-    \item XKB was added to support complex keyboard layouts
-    \item Xinput2 provides touchpad, touchscreen and multi-touch support
-    \end{itemize}
-  \item \textbf{XRandR} extension:
-    \begin{itemize}
-    \item Allows supporting and configuring (multiple) monitors
-    \item Configuration and hotplugging is possible without server restart
-    \end{itemize}
-  \item \textbf{Composite} extension:
-    \begin{itemize}
-    \item Provides reliable buffering of window contents (less redraw)
-    \item Exposes the window hierarchy and delegates window composition
-    \item Enables compositing window managers
-    \end{itemize}
-  \item \textbf{Xv} extension:
-    \begin{itemize}
-    \item Video output mechanism to offload colorspace conversion (CSC) and scaling
-    \item Involves buffer copies and lack synchronization (e.g. window move)
     \end{itemize}
   \end{itemize}
 \end{frame}
@@ -1016,12 +1040,6 @@ ret = ioctl(drm_fd, DRM_IOCTL_SYNCOBJ_FD_TO_HANDLE, &syncobj_handle);
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Xorg, GLX and DRI2}
-  \begin{itemize}
-  \item The Xorg architecture with server-side buffers is unadapted to 3D rendering
-  \end{itemize}
-\end{frame}
-
 \begin{frame}{Xorg code structure and walkthrough}
   \begin{itemize}
   \item Xorg source code available at: \url{https://gitlab.freedesktop.org/xorg/xserver}
@@ -1047,6 +1065,31 @@ ret = ioctl(drm_fd, DRM_IOCTL_SYNCOBJ_FD_TO_HANDLE, &syncobj_handle);
   \end{itemize}
 \end{frame}
 
+\begin{frame}{Major issues with X11}
+  \begin{itemize}
+  \item The X11 core protocol and paradigm soon caused \textbf{various issues}:
+    \begin{itemize}
+    \item Based on buffer copies, transfers and frequent redraw\\
+      \textit{solved with XSHM and DRI2 extensions}
+    \item Immediate-mode drawing, with intermediate states scanned out\\
+      \textit{solved by drawing everything client-side instead}
+    \item Lack of synchronization/feedback interface\\
+      \textit{specified with the DRI3 and Present extensions}
+    \item Everything's a window with X... but not in practice (screensavers, popups)\\
+    \textit{specified with the DRI3 and Present extensions}
+    \item Heavy packet-based protocol causing \textbf{latency issues}
+    \end{itemize}
+  \item Because the core protocol did not evolve, \textbf{extensions proliferated}:
+    \begin{itemize}
+    \item Complicated server aspects got \textbf{delegated} through extensions\\
+      \textit{everything became more complicated than envisioned for X11}
+    \item Working around major design issues, not solving them in depth
+    \item In the end, the server mostly coordinates between other components
+    \end{itemize}
+  \item \textbf{Client-side rendering} became more common (raster, operations, fonts, etc)
+  \end{itemize}
+\end{frame}
+
 \begin{frame}[fragile]{Xorg debug and documentation}
   \begin{itemize}
   \item Xorg has a \textbf{logging system} for all its components:
@@ -1066,6 +1109,7 @@ ret = ioctl(drm_fd, DRM_IOCTL_SYNCOBJ_FD_TO_HANDLE, &syncobj_handle);
     \begin{itemize}
     \item Online wiki of the project: \url{https://www.x.org/wiki/Documentation/}
     \item Man pages: \code{X}, \code{Xserver}, \code{Xorg}, \code{xorg.conf}, \code{xinit} and more!
+    \item Extensions specification documents
     \end{itemize}
   \end{itemize}
 \end{frame}
