@@ -1157,11 +1157,11 @@ ret = ioctl(drm_fd, DRM_IOCTL_SYNCOBJ_FD_TO_HANDLE, &syncobj_handle);
   \item Improves \textbf{security} aspects:
     \begin{itemize}
     \item Isolates the input and output of each client
-    \item Only the compositor can access display buffers\\
-      \textit{only the compositor can provide screenshots}
+    \item Only the compositor can access display buffers \textit{(and provide screenshots)}
     \item Designed to avoid running the compositor as root
     \end{itemize}
   \item No network support (can be implemented by compositors)
+  \item \textbf{Weston} is the reference \textbf{Wayland} compositor
   \end{itemize}
 \end{frame}
 
@@ -1206,8 +1206,6 @@ ret = ioctl(drm_fd, DRM_IOCTL_SYNCOBJ_FD_TO_HANDLE, &syncobj_handle);
   \item Client-server protocol is implemented in \textbf{libwayland-client} and \textbf{libwayland-server}
   \item These libraries do not provide any interface implementation
   \end{itemize}
-
-% registry exposes available interfaces
 \end{frame}
 
 \begin{frame}{Wayland core protocol: global object interfaces}
@@ -1223,8 +1221,11 @@ ret = ioctl(drm_fd, DRM_IOCTL_SYNCOBJ_FD_TO_HANDLE, &syncobj_handle);
     \item \code{wl_shm}: exposes a shared memory interface
     \item \code{wl_data_device_manager}: support for copy/paste between clients
     \end{itemize}
-  \item Global object interfaces are bound with the registry before use\\
-    \textit{\code{wl_registry_bind} returns a pointer to a proxy object}
+  \item Global object interfaces are bound with the registry before use
+    \begin{itemize}
+    \item Using global \code{struct wl_interface} definitions
+    \item \code{wl_registry_bind} returns a pointer to a proxy object
+    \end{itemize}
   \item Global objects give access to other \textbf{specific objects}
   \end{itemize}
 \end{frame}
@@ -1261,37 +1262,105 @@ ret = ioctl(drm_fd, DRM_IOCTL_SYNCOBJ_FD_TO_HANDLE, &syncobj_handle);
 \end{frame}
 
 \begin{frame}{Wayland extra protocols}
-just what it allows, no details:
-- where to find them
-- how they are generated/distributed
-- time presentation protocol
-- XDG
-- IVI-shell
+  \begin{itemize}
+  \item Extra protocols (object interfaces) can be \textbf{exposed by the compositor}
+    \begin{itemize}
+    \item Protocols (including the core) are described as XML files
+    \item The \code{wayland-scanner} tool produces client and server C code and headers
+    \item Accepted additional protocol descriptions are available at:
+      \url{https://gitlab.freedesktop.org/wayland/wayland-protocols}
+    \item Some are considered stable and many unstable
+    \end{itemize}
+  \item Some widely-used \textbf{protocol extensions}:
+    \begin{itemize}
+    \item \textbf{XDG-Shell}: desktop shell integration
+      \begin{itemize}
+      \item Turns \code{wl_surfaces} to \code{xdg_surfaces} that can be resized, minimized, etc
+      \item Provides a popup/menu interface with \code{xdg_popup}
+      \end{itemize}
+    \item \textbf{IVI-Shell}: In-vehicule shell with surface layers
+    \item \textbf{Presentation time}: Precise timing and event feedback
+    \end{itemize}
+  \end{itemize}
 \end{frame}
 
 \begin{frame}{Wayland asynchronous interface}
-% A slide about async: polling, flushing, etc
-bla
+  \begin{itemize}
+  \item Wayland does not send requests on its own but buffers them
+  \item Buffered data is sent with \code{wl_display_flush} (non-blocking)
+  \item Received events for each object proxy are placed in a queue\\
+    \textit{a default queue is affected but a specific queue can be set}
+  \item \code{wl_display_dispatch} dispatches and tries a blocking read on empty queue
+  \item \code{wl_display_get_fd} returns a file descriptor for the display
+    \begin{itemize}
+    \item Can be polled directly with \code{wl_display_poll}
+    \item Main-loop \code{poll} integration is also possible
+    \item Calling \code{wl_display_dispatch} after polling is not thread-safe!\\
+      \textit{see the \code{wl_display_read_events} documentation}
+    \end{itemize}
+  \end{itemize}
 \end{frame}
 
 \begin{frame}{Wayland OpenGL integration}
-% woo SHM woo
-baz
+  \begin{itemize}
+    \item Wayland supports EGL for windowing integration with OpenGL
+    \item \code{eglGetDisplay} is called with a \code{struct wl_display}\\
+      \textit{mesa's \code{_eglNativePlatformDetectNativeDisplay} figures it out}
+    \item Mesa 3D implements Wayland EGL interface for OpenGL integration
+      \begin{itemize}
+      \item Needs to implement DRI2 for DRM authentication
+      \item \code{wl_drm} interface between the wayland EGL client and the compositor
+      \item Both sides are actually implemented in mesa
+      \item The interface is bound to the compositor with \code{eglBindWaylandDisplayWL}\\
+        \textit{using the compositor's EGL context as entry-point to mesa}
+      \item Allows sharing DRM GEM buffers with the compositor
+      \end{itemize}
+    \item Regular \code{wl_surfaces} can be bound to EGL:
+      \begin{itemize}
+      \item Converted to a \code{wl_egl_window} with \code{wl_egl_window_create}
+      \item Then converted to an \code{EGLSurface} with \code{eglCreateWindowSurface}
+      \end{itemize}
+    \end{itemize}
 \end{frame}
 
 \begin{frame}{Wayland status and adoption}
-foo
-% Talk about XWayland here
-% Major compositor libraries, constants about compositors: using libinput
+  \begin{itemize}
+  \item Wayland is now quite mature, robust, efficient and widely used
+    \begin{itemize}
+    \item Most toolkits have support for it: GTK 3, Qt 5, SDL, EFL
+    \item Major desktop environments support it: GNOME 3, KDE Plasme 5
+    \end{itemize}
+  \item X11 applications can be integrated using \textbf{XWayland}
+    \begin{itemize}
+    \item X server implementation registered as a Wayland client
+    \item Creates a \code{wl_surface} for each window, redirects output
+    \end{itemize}
+  \item Diverse compositor implementations have emerged
+    \begin{itemize}
+    \item Sometimes tied to a desktop environment: mutter, kwin
+    \item \textbf{libinput} was created to help with input aspects
+    \item \textbf{libweston} emerged from the \textbf{Weston} compositor core
+    \item \textbf{wlroots} emerged from the \textbf{Sway} compositor core
+    \end{itemize}
+  \end{itemize}
 \end{frame}
 
-\begin{frame}{Weston code structure and walkthrough}
-% esp tests and clients
-bar
-\end{frame}
-
-\begin{frame}{Wayland debug and documentation}
-% weston-info lists global object interfaces
-% WAYLAND_DEBUG=1
-foo
+\begin{frame}[fragile]{Wayland debug and documentation}
+  \begin{itemize}
+  \item Debugging tips:
+    \begin{itemize}
+    \item Supported global object interfaces can be listed with \code{weston-info}
+    \item The \code{WAYLAND_DEBUG} environment variable enables protocol tracing
+    \end{itemize}
+  \item \textbf{Community} contact:
+    \begin{itemize}
+    \item Mailing list: \code{wayland-devel@lists.freedesktop.org}
+    \item IRC channel: \code{#wayland} on the Freenode network
+    \end{itemize}
+  \item \textbf{Documentation} resources:
+    \begin{itemize}
+    \item Online wiki of the project: \url{https://wayland.freedesktop.org/}
+    \item Online documentation: \url{https://wayland.freedesktop.org/docs/html/}
+    \end{itemize}
+  \end{itemize}
 \end{frame}
