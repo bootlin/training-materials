@@ -667,7 +667,7 @@
   \item Graphics Processing Units (GPUs) are 3D rendering hardware implementations\\
     \textit{the term no longer designates all graphics-processing hardware}
   \item Renders lists of vertices (points) in 3D space with lighting and textures
-  \item Operates on graphics primitives: points (vertices), lines and triangles
+  \item Operates on graphics primitives: \textbf{points (vertices), lines and triangles}
   \item GPU hardware architectures evolved over time:
     \begin{itemize}
     \item From \textbf{fixed-function} configurable hardware block pipelines
@@ -679,16 +679,29 @@
     \item \textbf{geometry shaders}: generate new primitives from the provided ones
     \item \textbf{fragment/pixel shaders}: performs rasterisation for each output pixel
     \end{itemize}
-  \item Using a \textbf{depth/z buffer} to keep track of the z-order for each output pixel
+  \item Using a \textbf{depth/z buffer} to keep track of the z-order for each output pixel\\
+    \textit{other internal buffers can be involved to accelerate rendering}
   \item Rasterization is optimized by eliminating hidden elements as early as possible
   \end{itemize}
 \end{frame}
 
 \begin{frame}{Graphics Processing Unit internals}
   \begin{itemize}
-  \item Shader cores have highly-specialized ISAs adapted for geometry\\
-    \textit{vector operations, hardware trigonometric implementations}
-  \item Modern GPUs sometimes have a unified shader core
+  \item Shader cores have highly-specialized ISAs adapted for geometry:
+  \begin{minipage}[b]{0.45\textwidth}
+    \begin{itemize}
+    \item Vector operations, SIMD
+    \item Trigonometric operations
+    \end{itemize}
+  \end{minipage}
+  \begin{minipage}[b]{0.45\textwidth}
+    \begin{itemize}
+    \item Interpolation operations
+    \item Usually few conditionals
+    \end{itemize}
+  \end{minipage}
+  \item Modern GPUs sometimes have a \textbf{unified shader core}\\
+    \textit{allows efficient hardware ressources usage, with complex scheduling}
   \item Shading cores are duplicated to work in parallel (especially rasterization)
   \item Output is divided in tiles (clipping areas) and distributed to cores
   \item Each rasterized tile is written to the output framebuffer separately
@@ -732,15 +745,24 @@
   \item Common issue with display hardware: tearing
     \begin{itemize}
     \item The framebuffer is scanned out at a fixed rate (e.g. \(60~fps\))
-    \item Any modification during scan out will result in a partial update
-    \item Creates an unpleasant visual glitch effect
+    \item Any modification during scan out will result in a \textbf{partial update}
+    \item Causes an unpleasant \textbf{visual glitch} effect
     \end{itemize}
-\begin{center}
-\includegraphics[height=8em]{slides/graphics-hardware/tearing-glitch.jpg}
-\end{center}
-  \item Solved by using two buffers: double-buffering, switched with page flipping\\
-    \textit{using more buffers is possible if rendering can be done in advance}
+  \item Solved using (at least) \textbf{double-buffering}:
+    \begin{itemize}
+    \item The displayed buffer (\textbf{front buffer}) is kept intact
+    \item Another buffer (\textbf{back buffer}) is used for drawing the next contents
+    \item Front and back buffer are exchanged with \textbf{page flipping}, during vertical blanking
+    \item Using more buffers is possible if rendering can be done in advance
+    \end{itemize}
   \end{itemize}
+\end{frame}
+
+\begin{frame}{Graphics shared memory access (illustrated tearing)}
+  \begin{center}
+  \includegraphics[width=0.7\textwidth]{slides/graphics-hardware/tearing-glitch.jpg}\\
+  \textit{\small Tearing example: data is updated during scanout}
+  \end{center}
 \end{frame}
 
 \begin{frame}{Graphics memory constraints and performance}

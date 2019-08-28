@@ -106,7 +106,6 @@
     \item Provides memory management mechanisms (DRM GEM)
     \end{itemize}
   \end{itemize}
-
 \end{frame}
 
 \begin{frame}{Linux-compatible low-level userspace overview}
@@ -173,8 +172,7 @@
     \begin{itemize}
     \item Wayland is a \textbf{display protocol} (with a core and extensions), not an implementation
     \item Replaces X11 with a \textbf{less intrusive, more modern and minimal} paradigm
-    \item Server implementation is in charge of \textbf{input, composition and window management}
-    \item Window decorations can be drawn by the client or the server
+    \item Compositors (server-side) handle \textbf{input, windows, composition and display}
     \end{itemize}
   \end{itemize}
   \begin{minipage}[b]{0.8\textwidth}
@@ -184,7 +182,7 @@
     \item Using the \textbf{libwayland-server} base protocol library
     \item \textbf{Weston/libweston}: Reference implementation
     \item \textbf{Sway/wlroots}: Tiling window manager and base library
-    \item \textbf{Mutter}: GNOME compositor, expecting client-side decorations
+    \item \textbf{Mutter}: GNOME compositor
     \end{itemize}
   \item \textbf{Display client} libraries
     \begin{itemize}
@@ -244,7 +242,7 @@
   \end{minipage}
 \end{frame}
 
-\subsection{Kernel Aspects}
+\subsection{TTY Kernel Aspects}
 
 \begin{frame}{Linux TTY subsystem introduction}
   \begin{itemize}
@@ -266,6 +264,13 @@
     \item Unrelated to graphics topics
     \end{itemize}
   \end{itemize}
+\end{frame}
+
+\begin{frame}{Linux TTY (illustrated)}
+  \begin{center}
+    \includegraphics[width=0.6\textwidth]{slides/graphics-software/getty.jpg}\\
+    \textit{Getty running on \code{tty1} of a GNU/Linux system}\\
+  \end{center}
 \end{frame}
 
 \begin{frame}[fragile]{Virtual terminals and graphics}
@@ -312,6 +317,8 @@ ret = ioctl(tty_fd, VT_RELDISP, 1); /* when leaving VT */
   \item Failure to acknowledge will cause a \textbf{system hang}
   \end{itemize}
 \end{frame}
+
+\subsection{DRM Kernel Aspects}
 
 \begin{frame}{DRM devices}
   \begin{itemize}
@@ -863,9 +870,7 @@ ret = ioctl(drm_fd, DRM_IOCTL_SYNCOBJ_FD_TO_HANDLE, &syncobj_handle);
   \end{itemize}
 \end{frame}
 
-% XXX: Add list of relevant code in wayland/xorg?
-
-\subsection{Userspace Aspects}
+\subsection{DRM Userspace Aspects}
 
 \begin{frame}{libdrm wrapper}
   \begin{itemize}
@@ -884,7 +889,9 @@ ret = ioctl(drm_fd, DRM_IOCTL_SYNCOBJ_FD_TO_HANDLE, &syncobj_handle);
   \end{center}
 \end{frame}
 
-\begin{frame}{X11 protocol}
+\subsection{X Window Userspace Aspects}
+
+\begin{frame}{X11 protocol and architecture}
   \begin{itemize}
   \item X11 core protocol implemented by Xorg:
     \begin{itemize}
@@ -930,6 +937,58 @@ ret = ioctl(drm_fd, DRM_IOCTL_SYNCOBJ_FD_TO_HANDLE, &syncobj_handle);
   \end{itemize}
 \end{frame}
 
+\begin{frame}{Xorg architecture and acceleration}
+  \begin{itemize}
+  \item Xorg is divided between generic and hardware-specific parts
+  \item \textbf{Device-Independent-X} (DIX) concerns:
+    \begin{itemize}
+    \item X11 protocol implementation, client coordination
+    \item Main event loop and event dispatching
+    \item Graphics operations logic, boilerplate and fallback implementations
+    \end{itemize}
+  \item \textbf{Device-Dependent-X} (DDX) concerns:
+    \begin{itemize}
+    \item Input drivers (\code{xf86-input-...}) to grab events from the kernel
+    \item Video drivers (\code{xf86-video-...}) to provide mode setting and 2D acceleration
+    \end{itemize}
+  \item \textbf{EXA} provides a 2D acceleration architecture between DIX and DDX
+    \begin{itemize}
+    \item Efficient way for drivers to expose accelerated 2D operation primitives
+    \item Replaced the XFree86 Acceleration Architecture (XAA)
+    \item Reduces driver boilerplate
+    \end{itemize}
+  \item \textbf{Glamor} provides 2D acceleration for the DDX using OpenGL 3D rendering
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Xorg drivers overview}
+  \begin{itemize}
+  \item Generic Xorg \textbf{input} drivers:
+    \begin{itemize}
+    \item \code{xf86-input-libinput}: using \code{libinput} to get input events
+    \item \code{xf86-input-evdev}: using the \code{evdev} kernel interface directly (\textbf{deprecated})
+    \end{itemize}
+  \item Specific Xorg \textbf{input} drivers:
+    \begin{itemize}
+    \item \code{xf86-input-synaptics}: for laptop touchpads
+    \item \code{xf86-input-wacom}: for Wacom drawing tablets
+    \item Specific drivers are \textbf{deprecated} in favor of \code{xf86-input-libinput}
+    \end{itemize}
+  \item Generic Xorg \textbf{display} drivers:
+    \begin{itemize}
+    \item \code{xf86-video-modesetting}: for \textbf{DRM KMS}, can be accelerated using \textbf{glamor}
+    \item \code{xf86-video-fbdev}: for the \textbf{fbdev} interface, without acceleration (legacy)
+    \item \code{xf86-video-vesa}: for the \textbf{Video BIOS Extension} (VBE) framebuffer (x86)
+    \end{itemize}
+  \item Specific Xorg \textbf{display} drivers:
+    \begin{itemize}
+    \item \code{xf86-video-[intel,nouveau,amdgpu]}: profiting from 2D acceleration blocks
+    \item Specific drivers are deprecated in favor of \code{xf86-video-modesetting} and \textbf{glamor}\\
+      \textit{the trend is to accelerate everything via 3D rendering instead of 2D accelerators}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
 \begin{frame}{X11 and OpenGL acceleration: GLX and DRI2}
   \begin{itemize}
   \item Before DRM render nodes, there was a single device for KMS and render\\
@@ -960,58 +1019,6 @@ ret = ioctl(drm_fd, DRM_IOCTL_SYNCOBJ_FD_TO_HANDLE, &syncobj_handle);
   \end{center}
 \end{frame}
 
-\begin{frame}{Xorg architecture and acceleration}
-  \begin{itemize}
-  \item Xorg is divided between generic and hardware-specific parts
-  \item \textbf{Device-Independent-X} (DIX) concerns:
-    \begin{itemize}
-    \item X11 protocol implementation, client coordination
-    \item Main event loop and event dispatching
-    \item Graphics operations logic, boilerplate and fallback implementations
-    \end{itemize}
-  \item \textbf{Device-Dependent-X} (DDX) concerns:
-    \begin{itemize}
-    \item Input drivers (\code{xf86-input-...}) to grab events from the kernel
-    \item Video drivers (\code{xf86-video-...}) to provide mode setting and 2D acceleration
-    \end{itemize}
-  \item \textbf{EXA} provides a 2D acceleration architecture between DIX and DDX
-    \begin{itemize}
-    \item Efficient way for drivers to expose accelerated 2D operation primitives
-    \item Replaced the XFree86 Acceleration Architecture (XAA)
-    \item Reduces driver boilerplate
-    \end{itemize}
-  \item \textbf{Glamor} provides 2D acceleration for the DDX using OpenGL 3D rendering
-  \end{itemize}
-\end{frame}
-
-\begin{frame}{Xorg drivers overview}
-  \begin{itemize}
-  \item Generic Xorg \textbf{input} dri,lkvers:
-    \begin{itemize}
-    \item \code{xf86-input-libinput}: using \code{libinput} to get input events
-    \item \code{xf86-input-evdev}: using the \code{evdev} kernel interface directly (\textbf{deprecated})
-    \end{itemize}
-  \item Specific Xorg \textbf{input} drivers:
-    \begin{itemize}
-    \item \code{xf86-input-synaptics}: for laptop touchpads
-    \item \code{xf86-input-wacom}: for Wacom drawing tablets
-    \item Specific drivers are \textbf{deprecated} in favor of \code{xf86-input-libinput}
-    \end{itemize}
-  \item Generic Xorg \textbf{display} drivers:
-    \begin{itemize}
-    \item \code{xf86-video-modesetting}: for \textbf{DRM KMS}, can be accelerated using \textbf{glamor}
-    \item \code{xf86-video-fbdev}: for the \textbf{fbdev} interface, without acceleration (legacy)
-    \item \code{xf86-video-vesa}: for the \textbf{Video BIOS Extension} (VBE) framebuffer (x86)
-    \end{itemize}
-  \item Specific Xorg \textbf{display} drivers:
-    \begin{itemize}
-    \item \code{xf86-video-[intel,nouveau,amdgpu]}: profiting from 2D acceleration blocks
-    \item Specific drivers are deprecated in favor of \code{xf86-video-modesetting} and \textbf{glamor}\\
-      \textit{the trend is to accelerate everything via 3D rendering instead of 2D accelerators}
-    \end{itemize}
-  \end{itemize}
-\end{frame}
-
 \begin{frame}{Xorg usage, integration and configuration}
   \begin{itemize}
   \item Xorg can be started with the \code{startx} command (wrapping \code{xinit})
@@ -1040,6 +1047,49 @@ ret = ioctl(drm_fd, DRM_IOCTL_SYNCOBJ_FD_TO_HANDLE, &syncobj_handle);
   \end{itemize}
 \end{frame}
 
+\begin{frame}{Xorg architecture: input to display roundtrip}
+  \begin{minipage}{0.49\textwidth}
+    \centering
+    \includegraphics[height=0.8\textwidth]{slides/graphics-software/x-architecture-roundtrip.png}
+  \end{minipage}
+  \hfill
+  \begin{minipage}{0.49\textwidth}
+    \begin{enumerate}
+    \item An input event is read from the kernel by the server
+    \item The affected client is determined and receives the event
+    \item The client changes something and issues a rendering request
+    \item The server performs rendering (DDX) and notifies the compositor
+    \item The compositor updates the damaged regions in the back-buffer
+    \item The server updates the display buffer from the compositor buffer (page flip)
+    \end{enumerate}
+  \end{minipage}
+\end{frame}
+
+\begin{frame}{Major issues with X11}
+  \begin{itemize}
+  \item The X11 core protocol and paradigm soon caused \textbf{various issues}:
+    \begin{itemize}
+    \item Based on buffer \textbf{copies, transfers} and frequent \textbf{redraws}\\
+      \textit{solved with XSHM and DRI2 extensions}
+    \item Immediate-mode drawing, with intermediate states scanned out\\
+      \textit{solved by drawing everything client-side instead}
+    \item Lack of synchronization/feedback interface\\
+      \textit{specified with the DRI3 and Present extensions}
+    \item Everything's a window with X... but not in practice (screensavers, popups)\\
+    \textit{specified with the DRI3 and Present extensions}
+    \item Heavy packet-based protocol causing \textbf{latency issues}
+    \item \textbf{Security} concerns regarding client input/output isolation
+    \end{itemize}
+  \item Because the core protocol did not evolve, \textbf{extensions proliferated}:
+    \begin{itemize}
+    \item Complicated server aspects got \textbf{delegated} through extensions
+    \item Working around major design issues, not solving them in depth
+    \item In the end, the server mostly coordinates between other components
+    \end{itemize}
+  \item \textbf{Client-side rendering} became more common (raster, operations, fonts, etc)
+  \end{itemize}
+\end{frame}
+
 \begin{frame}{Xorg code structure and walkthrough}
   \begin{itemize}
   \item Xorg source code available at: \url{https://gitlab.freedesktop.org/xorg/xserver}
@@ -1065,31 +1115,6 @@ ret = ioctl(drm_fd, DRM_IOCTL_SYNCOBJ_FD_TO_HANDLE, &syncobj_handle);
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Major issues with X11}
-  \begin{itemize}
-  \item The X11 core protocol and paradigm soon caused \textbf{various issues}:
-    \begin{itemize}
-    \item Based on buffer copies, transfers and frequent redraw\\
-      \textit{solved with XSHM and DRI2 extensions}
-    \item Immediate-mode drawing, with intermediate states scanned out\\
-      \textit{solved by drawing everything client-side instead}
-    \item Lack of synchronization/feedback interface\\
-      \textit{specified with the DRI3 and Present extensions}
-    \item Everything's a window with X... but not in practice (screensavers, popups)\\
-    \textit{specified with the DRI3 and Present extensions}
-    \item Heavy packet-based protocol causing \textbf{latency issues}
-    \end{itemize}
-  \item Because the core protocol did not evolve, \textbf{extensions proliferated}:
-    \begin{itemize}
-    \item Complicated server aspects got \textbf{delegated} through extensions\\
-      \textit{everything became more complicated than envisioned for X11}
-    \item Working around major design issues, not solving them in depth
-    \item In the end, the server mostly coordinates between other components
-    \end{itemize}
-  \item \textbf{Client-side rendering} became more common (raster, operations, fonts, etc)
-  \end{itemize}
-\end{frame}
-
 \begin{frame}[fragile]{Xorg debug and documentation}
   \begin{itemize}
   \item Xorg has a \textbf{logging system} for all its components:
@@ -1112,4 +1137,161 @@ ret = ioctl(drm_fd, DRM_IOCTL_SYNCOBJ_FD_TO_HANDLE, &syncobj_handle);
     \item Extensions specification documents
     \end{itemize}
   \end{itemize}
+\end{frame}
+
+\subsection{Wayland Userspace Aspects}
+
+\subsubsection{Wayland}
+
+\begin{frame}{Wayland overview and paradigm}
+  \begin{itemize}
+  \item Wayland was started in 2008 as a modern replacement for the X Window system\\
+    \textit{solving issues in-depth with a clean implementation from scratch}
+  \item Drastic \textbf{simplification} of the stack and paradigm shift:
+    \begin{itemize}
+    \item The server and compositor are \textbf{unified} as the same component
+    \item \textbf{Clients} are expected to do all the rendering
+    \item Buffers are \textbf{shared} between client and server, no transfers
+    \item Window decorations can be added by the client or the server
+    \end{itemize}
+  \item Improves \textbf{security} aspects:
+    \begin{itemize}
+    \item Isolates the input and output of each client
+    \item Only the compositor can access display buffers\\
+      \textit{only the compositor can provide screenshots}
+    \item Designed to avoid running the compositor as root
+    \end{itemize}
+  \item No network support (can be implemented by compositors)
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Wayland architecture: input to display roundtrip}
+  \begin{minipage}{0.49\textwidth}
+    \centering
+    \includegraphics[height=0.8\textwidth]{slides/graphics-software/wayland-architecture-roundtrip.png}
+  \end{minipage}
+  \hfill
+  \begin{minipage}{0.49\textwidth}
+    \begin{enumerate}
+    \item An input event is read from the kernel by the compositor
+    \item The affected client is determined and receives the event
+    \item The client changes something, performs rendering and notifies the compositor
+    \item The compositor updates the damaged regions in the back-buffer and performs page flip
+    \end{enumerate}
+  \end{minipage}
+\end{frame}
+
+\begin{frame}{Wayland protocol and architecture}
+  \begin{itemize}
+  \item Wayland provides a client-server \textbf{low-level API}:
+    \begin{itemize}
+    \item Wayland \textbf{display connections} happen through local IPC
+    \item Display is identified with the \code{WAYLAND_DISPLAY} \textbf{environment variable}
+    \item \textbf{Asynchronous} and \textbf{object-oriented} protocol
+    \item \textbf{Objects} represent \textbf{resources} from the compositor
+    \item Objects implement specific \textbf{interfaces}, with requests and events
+      \begin{itemize}
+      \item \textbf{Requests} are messages sent by the client, 
+      \item \textbf{Events} are messages received from the server\\
+        \textit{errors are only specific types of events}
+      \end{itemize}
+    \end{itemize}
+  \item Some \textbf{implementation} details:
+    \begin{itemize}
+    \item IPC is a regular UNIX socket (allows passing file descriptors for zero-copy)
+    \item A proxy provides client-side object representations and message translation
+    \item Messages are serialized (marshalling) to the wire format
+    \item Messages are buffered and flushed/dispatched when asked
+    \end{itemize}
+  \item Client-server protocol is implemented in \textbf{libwayland-client} and \textbf{libwayland-server}
+  \item These libraries do not provide any interface implementation
+  \end{itemize}
+
+% registry exposes available interfaces
+\end{frame}
+
+\begin{frame}{Wayland core protocol: global object interfaces}
+  \begin{itemize}
+  \item \textbf{Global} core object interfaces:
+    \begin{itemize}
+    \item \code{wl_display}: manages server connection, exposes the registry
+    \item \code{wl_registry}: exposes available global object interfaces
+    \item \code{wl_output}: describes the output properties (mode, geometry)
+    \item \code{wl_seat}: exposes input device object capabilities and interfaces
+    \item \code{wl_compositor}: provides surfaces and regions for composition
+    \item \code{wl_subcompositor}: provides sub-surfaces for in-surface compositing
+    \item \code{wl_shm}: exposes a shared memory interface
+    \item \code{wl_data_device_manager}: support for copy/paste between clients
+    \end{itemize}
+  \item Global object interfaces are bound with the registry before use\\
+    \textit{\code{wl_registry_bind} returns a pointer to a proxy object}
+  \item Global objects give access to other \textbf{specific objects}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Wayland core protocol: specific object interfaces}
+  \begin{itemize}
+  \item \textbf{Input-related} (\code{wl_seat}) specific core object interfaces:
+    \begin{itemize}
+    \item \code{wl_pointer}: exposes mice events and cursor
+    \item \code{wl_keyboard}: exposes keyboard events and information
+    \item \code{wl_touch}: exposes touchscreen events
+    \end{itemize}
+  \item \textbf{Compositor-related} (\code{wl_compositor}) specific core object interfaces:
+    \begin{itemize}
+    \item \code{wl_region}: specifies any area
+    \item \code{wl_surface}: rectangular on-screen pixel area
+      \begin{itemize}
+      \item contents set to a \code{wl_buffer} (can be transformed)
+      \item configured with a \code{wl_region} for input
+      \item configured with a \code{wl_region} for area-based opacity
+      \item updated with buffer damage regions
+      \end{itemize}
+    \item \code{wl_subsurface}: converts \code{wl_surface} objects to positioned sub-surfaces
+    \end{itemize}
+  \item \textbf{Shared memory-related} (\code{wl_shm}) specific core object interfaces:
+    \begin{itemize}
+    \item \code{wl_shm_pool}: allows creating shared-memory buffers
+    \end{itemize}
+  \item \textbf{Memory-related} specific core object interfaces:
+    \begin{itemize}
+    \item \code{wl_buffer}: generic object for a \code{wl_surface}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Wayland extra protocols}
+just what it allows, no details:
+- where to find them
+- how they are generated/distributed
+- time presentation protocol
+- XDG
+- IVI-shell
+\end{frame}
+
+\begin{frame}{Wayland asynchronous interface}
+% A slide about async: polling, flushing, etc
+bla
+\end{frame}
+
+\begin{frame}{Wayland OpenGL integration}
+% woo SHM woo
+baz
+\end{frame}
+
+\begin{frame}{Wayland status and adoption}
+foo
+% Talk about XWayland here
+% Major compositor libraries, constants about compositors: using libinput
+\end{frame}
+
+\begin{frame}{Weston code structure and walkthrough}
+% esp tests and clients
+bar
+\end{frame}
+
+\begin{frame}{Wayland debug and documentation}
+% weston-info lists global object interfaces
+% WAYLAND_DEBUG=1
+foo
 \end{frame}
