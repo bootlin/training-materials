@@ -664,10 +664,13 @@
 
 \begin{frame}{Graphics Processing Unit}
   \begin{itemize}
-  \item Graphics Processing Units (GPUs) are 3D rendering hardware implementations\\
+  \item Graphics Processing Units (GPUs) are \textbf{3D rendering hardware} implementations\\
     \textit{the term no longer designates all graphics-processing hardware}
-  \item Renders lists of vertices (points) in 3D space with lighting and textures
-  \item Operates on graphics primitives: \textbf{points (vertices), lines and triangles}
+  \item Operates on 3D graphics primitives: \textbf{points (vertices), lines and triangles}
+    \begin{itemize}
+      \item Rendered to 2D space (rasterization) with \textbf{textures} and \textbf{lighting}
+      \item Not photo-realistic (not using ray tracing)
+    \end{itemize}
   \item GPU hardware architectures evolved over time:
     \begin{itemize}
     \item From \textbf{fixed-function} configurable hardware block pipelines
@@ -679,14 +682,51 @@
     \item \textbf{geometry shaders}: generate new primitives from the provided ones
     \item \textbf{fragment/pixel shaders}: performs rasterisation for each output pixel
     \end{itemize}
+  \item Expected to render at \textbf{display scanout rate} (pseudo real-time)
+  \item Extremely efficient compared to any general-purpose CPU\\
+    \textit{GPUs are also used for general-purpose computing: GPGPU}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Graphics Processing Unit techniques}
+  \begin{itemize}
+  \item \textbf{Interpolation} is key to apply textures/gradients in 3D space
+  \item \textbf{Texture sampling} can easily cause aliasing (at a distance)
+    \begin{itemize}
+    \item \textbf{Anisotropic filtering} provides good visual results
+    \item \textbf{Mip-maps} provide the same texture at different sizes
+    \item \textbf{Multi-Sample Anti-Aliasing} (MSAA) averages colors from multiple points
+    \end{itemize}
+  \item \textbf{Texture compression} reduces memory pressure (e.g. S3TC, ASTC)
+  \item \textbf{Normals mapping/bump maps} provide increase details with low vertex count\\
+    \textit{affects light path calculation}
+  \item Rasterization is optimized by eliminating hidden elements as early as possible
   \item Using a \textbf{depth/z buffer} to keep track of the z-order for each output pixel\\
     \textit{other internal buffers can be involved to accelerate rendering}
-  \item Rasterization is optimized by eliminating hidden elements as early as possible
   \end{itemize}
+\end{frame}
+
+\begin{frame}{Graphics Processing Unit techniques (illustrated)}
+  \begin{minipage}{0.45\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{slides/graphics-hardware/anisotropic-filtering.png}\\
+    \textit{Comparison of tri-linear and anisotropic anti-aliasing filtering}
+  \end{minipage}
+  \hfill
+  \begin{minipage}{0.45\textwidth}
+    \centering
+    \includegraphics[height=7em]{slides/graphics-hardware/mip-map.jpg}\\
+    \textit{A mip-mapped texture representation}
+  \end{minipage}
 \end{frame}
 
 \begin{frame}{Graphics Processing Unit internals}
   \begin{itemize}
+  \item Texure access is provided by a \textbf{Texture Mapping Unit} (TMU)
+    \begin{itemize}
+    \item Caching is used to reduce memory pressure
+    \end{itemize}
+  \item A \textbf{command stream} is parsed and used to configure the pipeline
   \item Shader cores have highly-specialized ISAs adapted for geometry:
   \begin{minipage}[b]{0.45\textwidth}
     \begin{itemize}
@@ -702,11 +742,12 @@
   \end{minipage}
   \item Modern GPUs sometimes have a \textbf{unified shader core}\\
     \textit{allows efficient hardware ressources usage, with complex scheduling}
-  \item Shading cores are duplicated to work in parallel (especially rasterization)
-  \item Output is divided in tiles (clipping areas) and distributed to cores
-  \item Each rasterized tile is written to the output framebuffer separately
-  \item Extremely efficient compared to any general-purpose CPU\\
-    \textit{GPUs are also used for general-purpose computing: GPGPU}
+  \item Shading cores are \textbf{duplicated} and work in parallel (especially rasterization)
+  \item Some architectures implement tiled processing:
+    \begin{itemize}
+    \item Output is divided in tiles (clipping areas) and distributed to cores
+    \item Each rasterized tile is written to the output framebuffer separately
+    \end{itemize}
   \end{itemize}
 \end{frame}
 
