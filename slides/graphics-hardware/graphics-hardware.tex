@@ -666,11 +666,26 @@
   \begin{itemize}
   \item Graphics Processing Units (GPUs) are \textbf{3D rendering hardware} implementations\\
     \textit{the term no longer designates all graphics-processing hardware}
-  \item Operates on 3D graphics primitives: \textbf{points (vertices), lines and triangles}
+  \item Operate on 3D graphics primitives: \textbf{points (vertices), lines and triangles}
+  \item Generate a 2D view (viewport) from a given perspective
     \begin{itemize}
-      \item Rendered to 2D space (rasterization) with \textbf{textures} and \textbf{lighting}
-      \item Not photo-realistic (not using ray tracing)
+      \item Objects are formed of interconnected triangles
+      \item A color can be applied to each vertex and interpolated
+      \item Textures can be applied to objects with texture element to vertex mapping
+      \item Lighting is applied from various sources
     \end{itemize}
+  \item Expected to render at \textbf{display scanout rate} (pseudo real-time)
+    \begin{itemize}
+    \item Usually not photo-realistic methods as ray tracing or photon mapping
+    \item Extremely efficient compared to any general-purpose CPU
+    \end{itemize}
+  \item GPUs are also used for general-purpose computing with GPGPU
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Graphics Processing Unit architectures}
+  \begin{itemize}
+  \item GPUs implement a pipeline of hacks accumulated since the 1970s
   \item GPU hardware architectures evolved over time:
     \begin{itemize}
     \item From \textbf{fixed-function} configurable hardware block pipelines
@@ -680,29 +695,32 @@
     \begin{itemize}
     \item \textbf{vertex shaders}: define the position, texture coordinates and lighting of each vertex
     \item \textbf{geometry shaders}: generate new primitives from the provided ones
-    \item \textbf{fragment/pixel shaders}: performs rasterisation for each output pixel
+    \item \textbf{tesselation shaders}: perform vertex sub-division (e.g. Catmull-Clark)
+    \item \textbf{fragment/pixel shaders}: perform rasterisation for each output pixel
     \end{itemize}
-  \item Expected to render at \textbf{display scanout rate} (pseudo real-time)
-  \item Extremely efficient compared to any general-purpose CPU\\
-    \textit{GPUs are also used for general-purpose computing: GPGPU}
+  \item Scenes can be rendered with multiple shaders
   \end{itemize}
 \end{frame}
 
 \begin{frame}{Graphics Processing Unit techniques}
   \begin{itemize}
-  \item \textbf{Interpolation} is key to apply textures/gradients in 3D space
+  \item GPUs are optimized for \textbf{performance} and \textbf{good-looking results}
   \item \textbf{Texture sampling} can easily cause aliasing (at a distance)
     \begin{itemize}
-    \item \textbf{Anisotropic filtering} provides good visual results
+    \item \textbf{Bilinear and trilinear filtering} is often used
+    \item \textbf{Anisotropic filtering} provides best visual results
     \item \textbf{Mip-maps} provide the same texture at different sizes
     \item \textbf{Multi-Sample Anti-Aliasing} (MSAA) averages colors from multiple points
     \end{itemize}
   \item \textbf{Texture compression} reduces memory pressure (e.g. S3TC, ASTC)
-  \item \textbf{Normals mapping/bump maps} provide increase details with low vertex count\\
+  \item \textbf{Normals mapping/bump maps} provide increased details with low vertex count\\
     \textit{affects light path calculation}
-  \item Rasterization is optimized by eliminating hidden elements as early as possible
-  \item Using a \textbf{depth/z buffer} to keep track of the z-order for each output pixel\\
-    \textit{other internal buffers can be involved to accelerate rendering}
+  \item Avoiding \textbf{useless rendering} operations:
+    \begin{itemize}
+    \item Occluded surfaces are not rendered (visible surface determination)
+    \item Using a \textbf{depth/z-buffer} to keep track of the z-order for each output pixel
+    \item Culling for early vertex removal: back-face, z-buffer
+    \end{itemize}
   \end{itemize}
 \end{frame}
 
@@ -722,10 +740,6 @@
 
 \begin{frame}{Graphics Processing Unit internals}
   \begin{itemize}
-  \item Texure access is provided by a \textbf{Texture Mapping Unit} (TMU)
-    \begin{itemize}
-    \item Caching is used to reduce memory pressure
-    \end{itemize}
   \item A \textbf{command stream} is parsed and used to configure the pipeline
   \item Shader cores have highly-specialized ISAs adapted for geometry:
   \begin{minipage}[b]{0.45\textwidth}
@@ -740,6 +754,10 @@
     \item Usually few conditionals
     \end{itemize}
   \end{minipage}
+  \item Texture access is provided by a \textbf{Texture Mapping Unit} (TMU)
+    \begin{itemize}
+    \item Caching is used to reduce memory pressure
+    \end{itemize}
   \item Modern GPUs sometimes have a \textbf{unified shader core}\\
     \textit{allows efficient hardware ressources usage, with complex scheduling}
   \item Shading cores are \textbf{duplicated} and work in parallel (especially rasterization)
@@ -858,13 +876,14 @@
   \end{minipage}
 \end{frame}
 
-\begin{frame}{Graphics bottleneck and offloading}
+\begin{frame}{Offloading graphics to hardware}
   \begin{itemize}
-  \item One major bottleneck in graphics pipelines is memory access:
+  \item Offloading graphics to hardware liberates significant CPU time
+  \item For many use cases, it is crucially needed:
     \begin{itemize}
-    \item Memory copies must be avoided at all costs (zero-copy)
-    \item Chained elements in a pipeline should share the same buffer\\
-      \textit{hardware constraints are usually compatible in SoCs}
+    \item Video presentation at a given frame-rate, with CSC and scaling
+    \item 3D scene rendering at display refresh rate
+    \item Windows and cursor composition at display refresh rate
     \end{itemize}
   \item Offloading is not (always) a magical solution:
     \begin{itemize}
@@ -873,11 +892,26 @@
     \item Asynchronous interrupts can introduce latency compared to active polling\\
       \textit{but blocking the whole system is not always an option}
     \end{itemize}
-  \item However, offloading is often crucially needed:
+  \item 2D hardware is usually more efficient and adapted than bringing up the GPU\\
+    \textit{the GPU is a power-hungry war machine that solves problems at a price}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Graphics performance tips}
+  \begin{itemize}
+  \item Making the most of hardware can help a lot\\
+    \textit{e.g. camera controllers can often provide CSC and scaling}
+  \item Generally reducing the number of devices in the graphics pipeline
+  \item One major bottleneck in graphics pipelines is memory access:
     \begin{itemize}
-    \item Video presentation at a given frame-rate, with CSC and scaling
-    \item 3D scene rendering at display refresh rate
-    \item Windows and cursor composition at display refresh rate
+    \item Memory buffer copies must be avoided at all costs (zero-copy)
+    \item Chained elements in a pipeline should share the same buffer\\
+      \textit{hardware constraints are usually compatible in SoCs}
+    \end{itemize}
+  \item Redrawing full frames should be avoided when possible
+    \begin{itemize}
+    \item Clipping should be used for localized operations
+    \item Buffer damage has to be accumulated in the multi-buffering case
     \end{itemize}
   \item Graphics in operating systems is usually best-effort
   \item DSPs can usually provide real-time guarantees
