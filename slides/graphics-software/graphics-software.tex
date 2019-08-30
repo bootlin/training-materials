@@ -853,9 +853,9 @@ ret = ioctl(drm_fd, DRM_IOCTL_SYNCOBJ_FD_TO_HANDLE, &syncobj_handle);
     \begin{itemize}
     \item Detailed in the \kfile{include/drm/drm_print.h} header
     \item \code{drm.debug=0x17} for core, KMS, driver and atomic debug messages
-    \item \code{drm.debug=0x3f} for all debug messages
     \end{itemize}
-  \item Current \textbf{state debug} in debugfs:\\\code{cat /sys/kernel/debug/dri/0/state}
+  \item Current \textbf{state debug} in debugfs: \code{cat /sys/kernel/debug/dri/0/state}
+  \item Drivers expose \textbf{specific debugfs entries}
   \item \textbf{Debug utility}: \code{modetest} from \code{libdrm}
   \item \textbf{Community} contact:
     \begin{itemize}
@@ -1384,31 +1384,50 @@ ret = ioctl(drm_fd, DRM_IOCTL_SYNCOBJ_FD_TO_HANDLE, &syncobj_handle);
 
 \subsection{Mesa 3D Userspace Aspects}
 
-\begin{frame}{Standardized 3D rendering APIs: OpenGL}
+\begin{frame}[t]{Standardized 3D rendering APIs: OpenGL}
   \begin{center}
   \includegraphics[height=4em]{slides/graphics-software/opengl-logo.pdf}
   \end{center}
 
   \begin{itemize}
-  \item 3D rendering API, optimized for GPU \textbf{hardware acceleration}
+  \item 3D rendering API, designed for GPU \textbf{hardware acceleration}
     \begin{itemize}
     \item Generic API but \textbf{hardware-specific implementations}
     \item Started by \textbf{Silicon Graphics} in 1992, now managed by the \textbf{Khronos Group}
     \end{itemize}
-  \item OpenGL version 1 targeted fixed-function pipeline GPUs
-  \item With version 2 and up, vertex and fragment shaders can be programmed
+  \item OpenGL provides a \textbf{high-level approach} to 3D graphics
     \begin{itemize}
-    \item Specifies the \textbf{GL Shading Language} (GLSL)
-    \item C-like source syntax with intrinsic functions (e.g. texture access)
-    \item Compiled on-the-fly by the GL implementation
+    \item Compromise between complexity and fine-grained control
+    \item Efficient abstraction, adapted to the hardware
+    \item Leaves most memory management to the implementation
     \end{itemize}
-  \item Next versions added more features and more types of shaders (\textit{geometry, tesselation})
   \item \textbf{Stateful} and \textbf{context-based} programming model
-  \item Supports \textbf{extensions} that can be queried, for extra rendering features
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Standardized 3D rendering APIs: OpenGL ES and EGL}
+\begin{frame}[t]{Standardized 3D rendering APIs: OpenGL}
+  \begin{center}
+  \includegraphics[height=4em]{slides/graphics-software/opengl-logo.pdf}
+  \end{center}
+
+  \begin{itemize}
+  \item OpenGL versions evolved with hardware features
+    \begin{itemize}
+    \item Version 1 targeted fixed-function pipeline GPUs
+    \item Version 2 and up allow programming \textbf{vertex and fragment shaders}
+    \item More shaders supported with new versions (\textit{geometry, tesselation})
+    \end{itemize}
+  \item OpenGL comes with the \textbf{GL Shading Language} (GLSL)
+    \begin{itemize}
+    \item Source code language for OpenGL shaders
+    \item C-like syntax with intrinsic functions (e.g. texture access)
+    \item Compiled on-the-fly by the GL implementation
+    \end{itemize}
+  \item Supports \textbf{extensions} that can be queried, for extra features
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[t]{Standardized 3D rendering APIs: OpenGL ES and EGL}
   \begin{minipage}[t]{0.49\textwidth}
     \centering
     \includegraphics[height=4em]{slides/graphics-software/opengl-es-logo.pdf}
@@ -1436,12 +1455,309 @@ ret = ioctl(drm_fd, DRM_IOCTL_SYNCOBJ_FD_TO_HANDLE, &syncobj_handle);
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Standardized 3D rendering APIs: Vulkan}
+\begin{frame}[t]{Standardized 3D rendering APIs: Vulkan}
   \begin{center}
   \includegraphics[height=4em]{slides/graphics-software/vulkan-logo.pdf}
   \end{center}
 
   \begin{itemize}
-  \item \textbf{Vulkan}
+  \item \textbf{Vulkan} is a \textbf{low-level} generic API for GPU access
+    \begin{itemize}
+    \item Started by the Khronos group in 2016 and widely adopted
+    \end{itemize}
+  \item Suitable for both \textbf{3D rendering} and \textbf{compute}
+  \item Uses \textbf{Standard Portable Intermediate Representation} (SPIR-V) shaders
+    \begin{itemize}
+    \item Unified intermediate representation from (adapted) GLSL/HLSL sources
+    \item Compiled with the program instead of on-the-fly (less overhead)
+    \item Translated to native GPU operations by implementations
+    \end{itemize}
+  \item \textbf{Direct programming} model, with low-level \textbf{memory management}
+  \item The API provides \textbf{window system integration} (WSI) for many platforms\\
+    \textit{e.g. for Wayland: \code{vkCreateWaylandSurfaceKHR}}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Mesa 3D overview}
+  \begin{itemize}
+  \item Mesa is the reference free software \textbf{3D graphics implementation}
+    \begin{itemize}
+    \item Started back in 1993, evolved with GPU implementations
+    \item Project works with the Khronos Group and develops extensions
+    \end{itemize}
+  \item Implements support for \textbf{rendering} APIs:
+    \begin{itemize}
+    \item \textbf{OpenGL} (up to 4.6) and \textbf{OpenGL ES} (up to 3.2)
+    \item \textbf{Vulkan} (up to 1.1)
+    \item \textbf{Direct 3D} (version 9 only)
+    \end{itemize}
+  \item Implements \textbf{windowing system} integration:
+    \begin{itemize}
+    \item \textbf{EGL} for Wayland, X11, Android, native DRM (GBM) and surface-less
+    \item \textbf{Vulkan WSI} for Wayland and X11 (XCB/Xlib)
+    \item \textbf{GLX} for X11
+    \end{itemize}
+  \item Also supports other \textbf{GPU-related features}:
+    \begin{itemize}
+    \item \textbf{Video decoding} acceleration via VDPAU, VAAPI, OMX
+    \item \textbf{Compute} (GPGPU) support via OpenCL (\code{clover})
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Mesa 3D implementation highlights}
+  \begin{itemize}
+  \item Unlike other devices, 3D hardware is \textbf{abstracted in userspace}
+    \begin{itemize}
+    \item 3D rendering is a very bad fit for in-kernel abstraction
+    \item Kernel drivers are much less complicated than GL implementations
+    \end{itemize}
+  \item Mesa implements driver-specific \textbf{DRM render} support\\
+    \begin{itemize}
+    \item Manages memory with the GEM and Prime DRM APIs
+    \item Manages DRI2 to allow direct rendering
+    \end{itemize}
+  \item \textbf{Virtual} drivers are also supported (for virtual machines):
+    \begin{itemize}
+    \item \textbf{vmwgfx}: VMware bridge (proprietary virtual hardware implementation)
+    \item \textbf{virgl}: Virtio bridge (standard for Linux and QEMU)
+    \end{itemize}
+  \item Also provides \textbf{software backends}:
+    \begin{itemize}
+    \item \textbf{softpipe}: Generic reference software renderer
+    \item \textbf{swr}: OpenSWR renderer (for x86 by Intel)
+    \item \textbf{llvmpipe}: LLVM-based renderer (high-performance)
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Mesa 3D internals: Gallium 3D}
+  \begin{itemize}
+  \item Classic mesa drivers have significant \textbf{code duplication}:
+    \begin{itemize}
+    \item API state tracking
+    \item Compiler implementation
+    \end{itemize}
+  \item The Gallium 3D interface splits things up instead:
+    \begin{itemize}
+    \item \textbf{API State trackers}: maintain the current state for the API in use
+    \item \textbf{Drivers}: implement shader compilation and hardware configuration
+    \item \textbf{Winsys}: implement low-level kernel interfaces
+    \end{itemize}
+  \item Gallium drivers implement a pipe interface:
+    \begin{itemize}
+    \item \code{struct pipe_screen}: textures, buffers and sync management
+    \item \code{struct pipe_state}: pipeline configuration and resources state
+    \item \code{struct pipe_context}: rendering operation functions
+    \end{itemize}
+  \item Pipe loaders (DRM or software) select the right pipe driver
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Mesa 3D internals: Gallium 3D (illustrated)}
+  \begin{center}
+  \includegraphics[width=0.5\textwidth]{slides/graphics-software/mesa-dri-gallium.pdf}\\
+  \textit{\small Driver integration in Mesa 3D}
+  \end{center}
+\end{frame}
+
+\begin{frame}{Mesa 3D internals: intermediate representations}
+  \begin{itemize}
+  \item Mesa is in charge of compiling shaders to the native shading ISA
+  \item \textbf{Intermediate representations} (IRs) are used for translation
+  \item \textbf{Input-level} IRs:
+    \begin{itemize}
+    \item \textbf{GLSL IR}: Internal GLSL shader representation
+    \item \textbf{SPIR-V}: Khronos's Standard Portable Intermediate Representation
+    \end{itemize}
+  \item \textbf{Internal} IRs:
+    \begin{itemize}
+    \item \textbf{TGSI IR}: Tungsten Graphics Shader Interface representation
+    \item \textbf{NIR}: New efficient internal representation for Mesa
+    \item \textbf{Mesa}: Historical implementation (deprecated)
+    \end{itemize}
+  \item \textbf{External} IR:
+    \begin{itemize}
+    \item \textbf{LLVM IR}: Used for LLVM interaction (e.g. with llvmpipe)
+    \end{itemize}
+  \item Drivers emit \textbf{native instructions} from an internal IR and lowering
+  \item Once ready, compiled shaders are \textbf{submitted to the GPU}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Mesa 3D internals: intermediate representations (illustrated)}
+  \begin{center}
+  \includegraphics[width=0.4\textwidth]{slides/graphics-software/mesa-ir.pdf}\\
+  \textit{\small The Mesa 3D internal representation pipeline}
+  \end{center}
+\end{frame}
+
+\begin{frame}[fragile]{Mesa 3D Generic Buffer Management}
+  \begin{itemize}
+  \item Mesa provides a Generic Buffer Management (GBM) interface:
+    \begin{itemize}
+    \item Buffer creation/destruction (supporting modifiers)
+    \item Buffer information (bpp, dimensions, planes, stride, modifiers)
+    \item Buffer mapping/unmapping
+    \item Buffer dma-buf import/unimport
+    \end{itemize}
+  \item Compatible with the EGL API:
+    \begin{itemize}
+    \item \code{struct gbm_device} as \code{EGLNativeDisplayType}
+    \item \code{struct gbm_surface} as \code{EGLNativeWindowType}
+    \item \code{struct gbm_bo} as \code{EGLNativePixmapType}
+    \end{itemize}
+  \item Provided with DRM KMS fd for DRI2 (used internally for most operations)\\
+  \begin{minted}[fontsize=\small]{console}
+struct gbm_device *device = gbm_create_device(drm_fd);
+  \end{minted}
+  \item Useful when using bare-metal DRM KMS
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Mesa 3D hardware support status: desktop}
+  \begin{itemize}
+  \item Updated Mesa per-driver support at \url{https://mesamatrix.net}
+  \item \textbf{Intel HD/Iris Graphics}
+    \begin{itemize}
+    \item Platforms: Intel only
+    \item Mesa driver: i965 (classic), iris (Gallium)
+    \item DRM driver: i915
+    \item Status: i965 is state-of-the art, iris in development
+    \end{itemize}
+  \item \textbf{Nvidia pre-NV110}
+    \begin{itemize}
+    \item Platforms: Tegra, any PCI-e compatible
+    \item Mesa driver: nouveau (Gallium)
+    \item DRM driver: nouveau
+    \item Status: reverse engineered, advanced
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Mesa 3D hardware support status: desktop}
+  \begin{itemize}
+  \item \textbf{AMD Radeon GCN-ish}
+    \begin{itemize}
+    \item Platforms: AMD, any PCI-e compatible
+    \item Mesa driver: radeonsi (Gallium)
+    \item DRM driver: amdgpu
+    \item Status: state-of-the art
+    \end{itemize}
+  \item \textbf{AMD Radeon R600+}
+    \begin{itemize}
+    \item Platform: AMD, any PCI-e compatible
+    \item Driver: r600 (Gallium)
+    \item DRM driver: radeon
+    \item Status: advanced
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Mesa 3D hardware support status: embedded}
+  \begin{itemize}
+  \item \textbf{Qualcomm Adreno}
+    \begin{itemize}
+    \item Platforms: Qualcomm Snapdragon
+    \item Mesa driver: freedredno (Gallium)
+    \item DRM driver: freedreno
+    \item Status: reverse engineered, advanced
+    \end{itemize}
+  \item \textbf{Vivante GCx000}
+    \begin{itemize}
+    \item Platforms: i.MX6, i.MX8, i.MX8M
+    \item Driver: etnaviv (Gallium)
+    \item DRM driver: etnaviv
+    \item Status: work in progress, usable
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Mesa 3D hardware support status: embedded}
+  \begin{itemize}
+  \item \textbf{ARM Mali Utgard}
+    \begin{itemize}
+    \item Platforms: Exynos, Allwinner, Amlogic
+    \item Mesa driver: lima (Gallium)
+    \item DRM driver: lima
+    \item Status: reverse engineered, early
+    \end{itemize}
+  \item \textbf{ARM Mali Midgard/Bifrost}
+    \begin{itemize}
+    \item Platforms: Rockchip, Exynos, Mediatek, Allwinner
+    \item Mesa driver: panfrost (Gallium)
+    \item DRM driver: panfrost
+    \item Status: reverse engineered, early (but moving fast)
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Mesa 3D versus proprietary implementations}
+  \begin{itemize}
+  \item 3D support is one of the most challenging parts of hardware integration
+  \item Proprietary implementations easily lead to various practical issues:
+    \begin{itemize}
+    \item Lack of support outside of prescribed environments
+    \item Lack of specific features or APIs
+    \item Lack of maintenance and updates
+    \item No adaptation possibility
+    \end{itemize}
+  \item Mesa provides a collectively-maintained base
+    \begin{itemize}
+    \item Constantly updated and improved by the community
+    \item Easier to manage: works out of the box with distributions
+    \end{itemize}
+  \item Mesa support is complex and often takes some time to bring performance\\
+    \textit{especially for drivers based on reverse-engineering}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Mesa 3D code structure and walkthrough}
+  \begin{itemize}
+  \item Mesa source code available at: \url{https://gitlab.freedesktop.org/mesa/mesa}
+  \item \textbf{Gallium 3D} components:
+    \begin{itemize}
+    \item Drivers under: \code{src/gallium/drivers/}
+    \item Winsys under: \code{src/gallium/winsys/}
+    \item API state trackers under: \code{src/gallium/state_trackers/}
+    \item Pipe loaders under: \code{src/gallium/auxiliary/pipe-loader/}
+    \end{itemize}
+  \item \textbf{Compilation and IR} components:
+    \begin{itemize}
+    \item IR compiler support under \code{src/compiler/{glsl,nir,spirv}}
+    \item TGSI support under \code{src/gallium/auxiliary/tgsi/}
+    \item State tracking between IRs under \code{src/mesa/state_tracker}
+    \end{itemize}
+  \item \textbf{Windowing and DRI2} components:
+    \begin{itemize}
+    \item EGL support under \code{src/egl/drivers/dri2/}
+    \item Vulkan WSI support under \code{src/vulkan/wsi/}
+    \end{itemize}
+  \item \textbf{Classic drivers} (DRI-1-style) under \code{src/mesa/drivers/dri/}
+  \item \textbf{GBM} support under \code{src/gbm/}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Mesa 3D hardware support: debug and documentation}
+  \begin{itemize}
+  \item Mesa is debugged with numerous \textbf{environment variables}
+    \begin{itemize}
+    \item Generic and per-driver, see \url{https://www.mesa3d.org/envvars.html}
+    \item Shader-related, see \url{https://www.mesa3d.org/shading.html}
+    \item \code{LIBGL_DEBUG=verbose} for OpenGL, \code{EGL_LOG_LEVEL=debug} for EGL
+    \end{itemize}
+  \item \code{eglinfo} and \code{glxinfo} show information about the implementation
+  \item \textbf{Community} contact:
+    \begin{itemize}
+    \item Mailing list: \code{dri-devel@lists.freedesktop.org}
+    \item IRC channel: \code{#dri-devel} on the Freenode network
+    \end{itemize}
+  \item \textbf{Documentation} resources:
+    \begin{itemize}
+    \item Online website: \url{https://www.mesa3d.org/}
+    \item Gallium 3D wiki: \url{https://www.freedesktop.org/wiki/Software/gallium/}
+    \item Gallium 3D documentation: \url{https://gallium.readthedocs.io/}
+    \item Source code reference: \url{https://elixir.bootlin.com/mesa/latest/source}
+    \end{itemize}
   \end{itemize}
 \end{frame}
