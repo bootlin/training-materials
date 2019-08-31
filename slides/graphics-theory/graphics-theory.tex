@@ -70,6 +70,92 @@
   \end{minipage}
 \end{frame}
 
+\begin{frame}{Sampling and frequency domain}
+  \begin{itemize}
+  \item Pixels are quantized/sampled representations of a \textbf{spatial domain}
+  \item The initial (continuous) domain has a corresponding \textbf{frequency spectrum}\\
+    \textit{high frequencies provide details in pictures}
+  \item A 2D \textbf{Fourier transform} translates from spatial \((x,y)\) to frequency \((u,v)\) domain
+\[
+F(u,v) = \int_{-\infty}^{+\infty} \int_{-\infty}^{+\infty} f(x,y)e^{-j2\pi(ux+uy)}dxdy
+\]
+  \item Adapted for discrete signals as \textbf{Discrete Fourier Transform}
+  \item Implemented with optimized algorithms as \textbf{Fast Fourier Transform} (FFT)
+  \item \textbf{Frequency domain analysis} is very useful for signal treatment\\
+    \textit{used at the roots of image compression}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Sampling and frequency domain (illustrated)}
+  \begin{center}
+  \begin{minipage}[b]{0.45\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{slides/graphics-theory/bricks.jpg}\\
+    \textit{\small A wall of bricks represented in the spatial domain}
+  \end{minipage}
+  \hfill
+  \begin{minipage}[b]{0.45\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{slides/graphics-theory/bricks-fft.jpg}\\
+    \textit{\small The wall of bricks represented in the frequency domain}
+  \end{minipage}
+
+  \end{center}
+\end{frame}
+
+\begin{frame}{Sampling and frequency domain (illustrated)}
+  \begin{minipage}[b]{0.45\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{slides/graphics-theory/bricks-rotation.jpg}\\
+    \textit{\small A wall of bricks rotated \(45^{\circ}\) represented in the spatial domain}
+  \end{minipage}
+  \hfill
+  \begin{minipage}[b]{0.45\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{slides/graphics-theory/bricks-fft-rotation.jpg}\\
+    \textit{\small The wall of bricks rotated \(45^{\circ}\) represented in the frequency domain}
+  \end{minipage}
+\end{frame}
+
+\begin{frame}{Sampling and aliasing}
+  \begin{itemize}
+  \item The spatial domain is quantized with a bi-dimensional \textbf{sampling resolution}
+  \item Matching \textbf{sampling frequencies} exist, for each axis: \((u_s,v_s)\)
+  \item They \textbf{limit the frequencies} that can be sampled from the initial domain
+  \item The \textbf{Shanon-Nyquist theorem} provides a sufficient condition for \((u_s,v_s)\):
+\[
+u_s > 2 \times u_max, ~v_s = 2 \times v_{max}
+\]
+  \item Frequencies such that \(f \geq \frac{u_s}{2}\) are \textbf{not correctly sampled}
+  \item Results in \textbf{incorrect frequencies} being introduced: \textbf{Moiré pattern} in 2D
+  \end{itemize}
+
+  \begin{center}
+  \includegraphics[width=0.35\textwidth]{slides/graphics-theory/aliasing-1d.pdf}\\
+  \textit{\small Aliasing in a uni-dimensional domain}
+  \end{center}
+\end{frame}
+
+\begin{frame}{Sampling and aliasing (illustrated)}
+  \begin{minipage}[b]{0.29\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{slides/graphics-theory/bricks-rich.jpg}\\
+    \textit{\small Another wall of bricks}
+  \end{minipage}
+  \hfill
+  \begin{minipage}[b]{0.29\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{slides/graphics-theory/bricks-alias.jpg}\\
+    \textit{\small Moiré on the bricks}
+  \end{minipage}
+  \hfill
+  \begin{minipage}[b]{0.29\textwidth}
+    \centering
+    \includegraphics[width=\textwidth]{slides/graphics-theory/moire.jpg}\\
+    \textit{\small Moiré on the garage door}
+  \end{minipage}
+\end{frame}
+
 \begin{frame}{Light representation, color quantization}
   \begin{minipage}[c]{0.75\textwidth}
     \begin{itemize}
@@ -329,26 +415,126 @@
     \begin{itemize}
     \item Colorspace in use
     \item Number of bits per channel and per pixel (bpp)
-    \item Bit attribution and byte order (endianness)
+    \item Bit attribution and byte order
     \item Per-channel sub-sampling ratios
-    \item Pixel data distribution in memory
+    \item Pixel data planes distribution in memory
     \end{itemize}
-  \item Often represented as a 4-character code called \textbf{FourCC} {\small(\url{https://fourcc.org/})}\\
+  \item Often represented as a 4-character code called \textbf{FourCC} {\small(\url{https://fourcc.org/})}
+  \item Not really standardized and implementation-specific:\\
+    \textit{DRM in Linux uses \code{XR24}, for \code{DRM_FORMAT_XRGB8888}}
   \textit{Not really standardized but widely used in various forms}
-  \item Example: \verb,DRM_FORMAT_XRGB8888, is defined with the \verb,XR24, FourCC
+  \item Scan order is specified separately with a \textbf{modifier}\\
+    \textit{assumed to be raster order if unspecified}
   \end{itemize}
-
 \end{frame}
 
-\subsection{Basic Drawing and Processing}
+\subsection{Pixel Drawing}
 
-\begin{frame}{Ideas}
-
-* how to draw pixels (XRGB32)
-* iterating a frame's pixels (h > w)
-* 
-
+\begin{frame}{Accessing pixel data}
+  \begin{itemize}
+  \item Pixel data is stored in memory, with a base address
+  \item CPU access is either byte or word-aligned
+    \begin{itemize}
+    \item Good fit for formats with \(bpp = 32\) (very common)
+    \item Good fit for formats with \(bpp = 8 \times n\)
+    \item Not always easy to manage otherwise
+    \end{itemize}
+  \item The size of each line is called \textbf{stride} or \textbf{pitch}
+    \begin{itemize}
+    \item Usually equals: \(stride = width \times bpp \div 8\)
+    \item Can contain an extra dead zone at the end
+    \item Needs to be specified explicitly
+    \end{itemize}
+  \item The address of a pixel at \((x,y)\) in raster order is:
+\[
+address = address_{base} + y \times stride + x \times bpp \div 8
+\]
+  \end{itemize}
 \end{frame}
 
-\subsection{Advanced Processing}
+\begin{frame}[fragile]{Iterating over pixel data}
+  \begin{itemize}
+  \item Pixel data can be access by iterating nested variables:
+  \begin{minted}[fontsize=\small]{c}
+for (y = 0; y < height; y++)
+  for (x = 0; x < width; x++)
+    data = base + y * stride + x * bpp / 8;
+  \end{minted}
+  \item Iterating over all pixels takes numerous CPU-cycles, tips:
+    \begin{itemize}
+    \item Incrementing the address instead of re-calculating it:
+  \begin{minted}[fontsize=\small]{c}
+data = base;
+for (y = 0; y < height; y++)
+  for (x = 0; x < width; x++)
+    data += bpp / 8;
+  data += stride - width * 8 / bpp;
+  \end{minted}
+    \item Iterating in y-major is also better for cache hits
+    \item Beware: C pointer arithmetic uses type size as unit
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Rectangle drawing}
+  \begin{itemize}
+  \item A rectangle is defined with two boundaries par axis:
+\[
+x_{min} \leq x \leq x_{max},~ y_{min} \leq y \leq y_{max}
+\]
+  \item Another expression involves a (top-left) start point and size:
+\[
+x_{start} \leq x \leq x_{start} + x_{size},~ y_{start} \leq y \leq y_{start} + y_{size}
+\]
+  \item Allows iterating in the rectangle area only
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Linear gradient drawing}
+  \begin{itemize}
+  \item Same base as drawing a rectangle
+  \item A linear gradient involves interpolation between two colors
+  \item Following one of the two axis as major
+  \item Involves weighting the two colors depending on the advancement
+  \item Equations in x-axis major:
+  \end{itemize}
+\begin{align*}
+r &= r_{start} + (r_{stop} - r_{start}) \frac{x - x_{start}}{x_{size}}\\
+g &= g_{start} + (g_{stop} - g_{start}) \frac{x - x_{start}}{x_{size}}\\
+b &= b_{start} + (b_{stop} - b_{start}) \frac{x - x_{start}}{x_{size}}
+\end{align*}
+\end{frame}
+
+\begin{frame}{Disk drawing}
+  \begin{itemize}
+  \item A disk is delimited with a radius test (\((0,0)\)-centered):
+\[
+\sqrt{x^2 + y^2} \leq radius
+\]
+  \item Given a center point \((x_c,y_c)\):
+\[
+\sqrt{(x - x_c)^2 + (y - y_c)^2} \leq radius
+\]
+  \item Requires iterating in:
+\[
+x_c - radius \leq x \leq x_c + radius,~ y_c - radius \leq y \leq y_c + radius
+\]
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Circular gradient drawing}
+  \begin{itemize}
+  \item Same base as drawing a disk
+  \item Interpolation between two colors using the radius as major:
+  \end{itemize}
+\begin{align*}
+d &= \sqrt{(x - x_c)^2 + (y - y_c)^2}\\
+r &= r_{start} + (r_{stop} - r_{start}) \frac{d}{radius}\\
+g &= g_{start} + (g_{stop} - g_{start}) \frac{d}{radius}\\
+b &= b_{start} + (b_{stop} - b_{start}) \frac{d}{radius}
+\end{align*}
+\end{frame}
+
+
+\subsection{Pixel Operations}
 
