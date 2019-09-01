@@ -41,16 +41,19 @@ and details may still change.}
 
     {\bf Overview} &
     Image and color representation \par
-    Basic drawing \par
-    Basic and advanced operations \par
-    Hardware aspects overview \par
-    Hardware for display \par
-    Hardware for rendering \par
-    Memory aspects \par
-    Performance aspects \par
-    Software aspects overview \par
-    Kernel components in Linux \par
-    Userspace components with Linux\\
+    Pixel Drawing \par
+    Pixel Operations \par
+    Pipeline Components Overview and Generalities \par
+    Display Hardware Specifics \par
+    Render Hardware Specifics \par
+    System Integration, Memory and Performance \par
+    Display Stack Overview \par
+    TTY Kernel Aspects \par
+    DRM Kernel Aspects \par
+    DRM Userspace Aspects \par
+    X Window Userspace Aspects \par
+    Wayland Userspace Aspects \par
+    Mesa 3D Userspace Aspects\\
     \hline
     {\bf Materials} &
      Materials for this course are still under development.
@@ -76,9 +79,10 @@ and details may still change.}
     \hline
 
     {\bf Prerequisites} &
-    {\bf Basic knowledge of concepts related to low-level hardware interaction
-    (e.g. registers, interrupts), kernel-level system management (e.g. virtual
-    memory mappings) and userspace interfaces (syscalls).
+    {\bf C programmig language, basic knowledge of concepts related to low-level
+    hardware interaction (e.g. registers, interrupts),
+    kernel-level system management (e.g. virtualm memory mappings) and
+    userspace interfaces (syscalls).
     Basic knowledge of concepts related to hardware interfaces
     (e.g. clocks, busses).}\\
     \hline
@@ -104,45 +108,48 @@ and details may still change.}
 \section{Day 1 - Morning}
 
 \feagendatwocolumn
-{Lecture - Image and color representation}
+{Lecture - Image and Color Representation}
 {
   \begin{itemize}
-  \item Pixels and quantization
-  \item Frames, framebuffers and dimensions
-  \item Color encoding and depth
-  \item Colorspaces
-  \item Sub-sampling
-  \item Alpha component
-  \item Pixel formats formalization
+  \item Light, pixels and pictures
+  \item Sampling, frequency domain, aliasing
+  \item Color quantization and representation
+  \item Colorspaces and channels, alpha
+  \item YUV and chroma sub-sampling
+  \item Pixel data planes, scan order
+  \item Pixel formats, FourCC codes, modifiers
   \end{itemize}
   \vspace{0.5em}
   {\em Introducing the basic notions used for representing color images in graphics.}
 }
-{Lecture - Basic drawing and operations}
+{Lecture - Pixel Drawing}
 {
   \begin{itemize}
-  \item Lines
-  \item Circles, ellipses and arcs
-  \item Gradients (linear and circular)
-  \item Format and colorspace conversion
-  \item Bit blitting
-  \item Alpha blending
-  \item Colorkeying
-  \item Clipping
-  \item Integer scaling
+  \item Accessing and itegrating over pixel data
+  \item Concepts about rasterization
+  \item Rectangle drawing
+  \item Linear gradient drawing
+  \item Disk drawing
+  \item Circular gradient drawing
+  \item Line drawing
+  \item Line and shape aliasing, sub-pixel drawing
+  \item Circles and polar coordinates
+  \item Parametric curves
   \end{itemize}
   \vspace{0.5em}
-  {\em Presenting how to draw basic shapes and perform basic operations on a framebuffer.}
+  {\em Presenting how to access pixel data in memory and draw basic shapes.}
 }
 \\
 \feagendatwocolumn
-{Lecture - Advanced operations}
+{Lecture - Pixel Operations}
 {
   \begin{itemize}
-  \item Filtering and convolution
-  \item Blur
-  \item Fractional scaling
-  \item Anti-aliasing
+  \item Region copy
+  \item Alpha blending
+  \item Color-keying
+  \item Scaling and interpolation
+  \item Linear filtering and convolution
+  \item Blur filters
   \item Dithering
   \end{itemize}
   \vspace{0.5em}
@@ -151,30 +158,23 @@ and details may still change.}
 {Demo - Drawing and operations}
 {
   \begin{itemize}
-  \item Drawing outlines for various shapes
-  \item Filling shapes with solid colors
-  \item Filling shapes with gradients
-  \item Compositing shapes without alpha
-  \item Compositing shapes with alpha
-  \item Compositing shapes with a color-key
-  \item RGB to YUV conversion
-  \item Blur
+  \item Examples of various shapes and region drawing
+  \item Examples of basic pixel operations
   \end{itemize}
   \vspace{0.5em}
-  {\em Illustrating the concepts presented so far.}
+  {\em Illustrating the concepts presented along the way.}
 }
 
 \section{Day 1 - Afternoon}
 
 \feagendatwocolumn
-{Lecture - Hardware components overview}
+{Lecture - Pipeline Components Overview and Generalities}
 {
   \begin{itemize}
-  \item Display hardware components
-  \item 2D processing hardware components
-  \item 2D rendering hardware components
-  \item 3D rendering hardware components
-  \item Video input hardware components
+  \item Types of graphics hardware implementations
+  \item Graphics memory and buffers
+  \item Graphics pipelines
+  \item Display, render and video hardware overview
   \end{itemize}
   \vspace{0.5em}
   {\em Presenting the hardware involved in graphics pipelines.}
@@ -182,10 +182,10 @@ and details may still change.}
 {Lecture - Display hardware}
 {
   \begin{itemize}
-  \item Frame streaming and timings
-  \item Side channels and additional data
-  \item Display interfaces
-  \item Transcoders
+  \item Visual display technologies: CRT, plasma, LCD, OLED, EPD
+  \item Display timings, modes and EDID
+  \item DIsplay interfaces: VGA, DVI, HDMI, DP, LVDS, DSI, DP
+  \item Bridges and transcoders
   \end{itemize}
   \vspace{0.5em}
   {\em Presenting the inner workings of display hardware.}
@@ -193,125 +193,155 @@ and details may still change.}
 \\
 
 \feagendatwocolumn
-{Lecture - Processing and rendering hardware}
+{Lecture - Render Hardware Specifics}
 {
   \begin{itemize}
-  \item ISPs and DSPs overview
-  \item Display engine processing
-  \item Vector processors overview
-  \item GPU architectures overview
+  \item Digital Signal Processors (DSPs)
+  \item Dedicated hardware accelerators
+  \item Graphics Processing Unit (GPUs)
   \end{itemize}
   \vspace{0.5em}
   {\em Describing the architecture of processing and rendering hardware.}
 }
-{Lecture - Memory management and constraints}
+{Lecture - System Integration, Memory and Performance}
 {
   \begin{itemize}
-  \item Tearing, artifacts and double-buffering
-  \item Alignment and tiling
-  \item Contiguity and IOMMUs
-  \item Cache coherency
+  \item Graphics integration and memory
+  \item Shared graphics memory access
+  \item Graphics memory constraints and performance
+  \item Offloading graphics to hardware
+  \item Graphics performance tips
   \end{itemize}
   \vspace{0.5em}
-  {\em Presenting all things related to managing framebuffer memory.}
-}
-\\
-
-\feagendatwocolumn
-{Lecture - Performance aspects}
-{
-  \begin{itemize}
-  \item Common bottlenecks
-  \item DMA operations
-  \item Zero-copy frame sharing
-  \item Costs and benefits of offloading
-  \end{itemize}
-  \vspace{0.5em}
-  {\em Presenting possible performance issues and how they are solved in hardware.}
-}
-{Demo - Pipelines debugging and performance}
-{
-  \begin{itemize}
-  \item Misconfiguration patterns
-  \item Tearing example
-  \item CPU rendering performance
-  \item Accelerated rendering performance
-  \item Zero-copy performance
-  \end{itemize}
-  \vspace{0.5em}
-  {\em Illustrating what can go wrong and what can be improved in a graphics pipeline.}
+  {\em Topics related to graphics integration, memory management and performance aspects.}
 }
 
 \section{Day 2 - Morning}
 
 \feagendatwocolumn
-{Lecture - Software aspects overview}
+{Lecture - Display Stack Overview}
 {
   \begin{itemize}
-  \item Complete display pipelines
-  \item Roles handled by the kernel
-  \item Roles handled by userspace
+  \item System-agnostic overview: kernel, display and render userspace
+  \item Linux kernel overview
+  \item Linux-compatible low-level userspace overview
+  \item X Window and Wayland overview
+  \item High-level graphics libraries and desktop environments overview
   \end{itemize}
   \vspace{0.5em}
-  {\em Showing what software components are required for modern computer graphics and how they are divided between kernel and userspace.}
+  {\em Presenting what software components are required for modern computer graphics and how they are divided between kernel and userspace.}
 }
-{Lecture - Linux kernel components}
+{Lecture - TTY Kernel Aspects}
 {
   \begin{itemize}
-  \item DRM/KMS subsystem for display
-  \item DRM/GEM subsystem for rendering
-  \item 2D hardware support
-  \item Legacy framebuffer interface
-  \item Framebuffer console, VT switching
+  \item Linux TTY subsystem introduction
+  \item Virtual terminals and graphics
+  \item Virtual terminals switching and graphics
   \end{itemize}
   \vspace{0.5em}
-  {\em How display and rendering is organized in the Linux kernel subsystems.}
+  {\em How TTYs interact with graphics in Linux.}
 }
 \\
-\feagendaonecolumn
-{Demo - Setting up a display with DRM/KMS}
+
+\feagendatwocolumn
+{Lecture - DRM Kernel Aspects}
 {
   \begin{itemize}
-  \item Legacy framebuffer interface
-  \item DRM initialization
-  \item Legacy DRM interface
-  \item Atomic DRM interface
-  \item Using planes
+  \item DRM devices
+  \item DRM driver identification and capabilities
+  \item DRM master, magic and authentication
+  \item DRM memory management
+  \item DRM KMS dumb buffer API
+  \item DRM FourCCs and modifiers
+  \item DRM KMS resources probing
+  \item DRM KMS modes
+  \item DRM KMS framebuffer management
+  \item DRM KMS legacy configuration and page flipping
+  \item DRM event notification
+  \item DRM KMS object properties
+  \item DRM KMS atomic
+  \item DRM render
+  \item DRM Prime zero-copy memory sharing (dma-buf)
+  \item DRM sync object fencing
+  \item DRM debug and documentation
   \end{itemize}
   \vspace{0.5em}
-  {\em Interacting with the kernel subsystems directly and showing related code paths.}
+  {\em An exaustive presentation of the DRM interface.}
 }
-
+{Demo - Kenrel Aspects}
+{
+  \begin{itemize}
+  \item Linux TTY and virtual terminals
+  \item DRM KMS mode-setting
+  \item DRM KMS driver walkthrough
+  \item DRM render driver walkthrough
+  \end{itemize}
+  \vspace{0.5em}
+  {\em Illustrating how kernel aspects work.}
+}
 
 \section{Day 2 - Afternoon}
 
-\feagendaonecolumn
-{Lecture - Userspace components}
+\feagendatwocolumn
+{Lecture - X Window Userspace Aspects}
 {
   \begin{itemize}
-  \item libdrm shim
-  \item Display servers: functionalities, Xorg and Wayland architectures
-  \item 3D acceleration with OpenGL and mesa
-  \item 2D acceleration though OpenGL
-  \item 2D rendering libraries: pixman, cairo
-  \item UI toolkits overview: Qt, GTK/GDK, SDL
+  \item X11 protocol and architecture
+  \item X11 protocol extensions
+  \item Xorg architecture and acceleration
+  \item Xorg drivers overview
+  \item X11 and OpenGL acceleration: GLX and DRI2
+  \item Xorg usage, integration and configuration
+  \item Major issues with X11
+  \item Xorg debug and documentation
   \end{itemize}
   \vspace{0.5em}
-  {\em Presenting each element involved in the userspace graphics stack.}
+  {\em Presenting all things related to X11 and Xorg.}
 }
-\\
-\feagendaonecolumn
-{Demo - Graphics libraries usage examples}
+{Lecture - Wayland Userspace Aspects}
 {
   \begin{itemize}
-  \item Direct Xorg usage
-  \item Direct Wayland usage
-  \item Basic cairo rendering
-  \item Basic OpenGL rendering
-  \item Basic SDL usage
+  \item Wayland overview and paradigm
+  \item Wayland protocol and architecture
+  \item Wayland core protocol detail
+  \item Wayland extra protocols
+  \item Wayland asynchronous interface
+  \item Wayland OpenGL integration
+  \item Wayland status and adoption
+  \item Wayland debug and documentation
   \end{itemize}
   \vspace{0.5em}
-  {\em Showing how to get started with userspace libraries.}
+  {\em An in-depth presentation of Wayland.}
+}\\
+
+\feagendatwocolumn
+{Lecture - Mesa 3D Userspace Aspects}
+{
+  \begin{itemize}
+  \item Standardized 3D rendering APIs: OpenGL, OpenGL ES, EGL and Vulkan
+  \item Mesa 3D overview
+  \item Mesa 3D implementation highlights
+  \item Mesa 3D internals: Gallium 3D
+  \item Mesa 3D internals: intermediate representations
+  \item Mesa 3D Generic Buffer Management (GBM)
+  \item Mesa 3D hardware support status
+  \item Mesa 3D versus proprietary implementations
+  \item Mesa 3D hardware support: debug and documentation
+  \end{itemize}
+  \vspace{0.5em}
+  {\em Presenting 3D APIs and the Mesa 3D implementation.}
+}
+{Demo - Userspace Aspects}
+{
+  \begin{itemize}
+  \item Xorg code walkthrough
+  \item Wayland compositor core walkthrough
+  \item Wayland client examples
+  \item Mesa code walk-through
+  \item OpenGL and EGL examples
+  \end{itemize}
+  \vspace{0.5em}
+  {\em Illustrating userspace aspects, client and server implementations.}
 }
 
 \end{document}
