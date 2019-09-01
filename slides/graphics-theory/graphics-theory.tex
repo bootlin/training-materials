@@ -79,6 +79,7 @@
 \[
 F(u,v) = \int_{-\infty}^{+\infty} \int_{-\infty}^{+\infty} f(x,y)e^{-j2\pi(ux+uy)}dxdy
 \]
+  \item The transform decomposes the domain in \textbf{periodic patterns}
   \item Adapted for discrete signals as \textbf{Discrete Fourier Transform}
   \item Implemented with optimized algorithms as \textbf{Fast Fourier Transform} (FFT)
   \item \textbf{Frequency domain analysis} is very useful for signal treatment\\
@@ -127,7 +128,7 @@ F(u,v) = \int_{-\infty}^{+\infty} \int_{-\infty}^{+\infty} f(x,y)e^{-j2\pi(ux+uy
 u_s > 2 \times u_max, ~v_s = 2 \times v_{max}
 \]
   \item Frequencies such that \(f \geq \frac{u_s}{2}\) are \textbf{not correctly sampled}
-  \item Results in \textbf{incorrect frequencies} being introduced: \textbf{Moiré pattern} in 2D
+  \item Can result in \textbf{incorrect frequencies} being introduced: \textbf{Moiré pattern} in 2D
   \end{itemize}
 
   \begin{center}
@@ -476,6 +477,30 @@ for (y = 0; y < height; y++)
   \end{itemize}
 \end{frame}
 
+\begin{frame}{Concepts about rasterization}
+  \begin{itemize}
+  \item Rasterization is the process of drawing vector shapes as discrete pixels
+    \begin{itemize}
+    \item Vector shapes are defined with mathematical equations
+    \item Converted from a continuous space domain: \(\mathbb{R}^2\) to a discrete domain
+    \item Results in a discretization/quantization error due to integer rounding
+    \item Also subject to aliasing-related trouble
+    \end{itemize}
+  \end{itemize}
+  \vspace{1em}
+  \begin{minipage}[b]{0.45\textwidth}
+    \centering
+    \includegraphics[width=0.8\textwidth]{slides/graphics-theory/raster-source.jpg}
+    \textit{\small Continuous source representation}
+  \end{minipage}
+  \hfill
+  \begin{minipage}[b]{0.45\textwidth}
+    \centering
+    \includegraphics[width=0.8\textwidth]{slides/graphics-theory/raster-destination.jpg}
+    \textit{\small Rasterized destination representation}
+  \end{minipage}
+\end{frame}
+
 \begin{frame}{Rectangle drawing}
   \begin{itemize}
   \item A rectangle is defined with two boundaries par axis:
@@ -535,6 +560,180 @@ b &= b_{start} + (b_{stop} - b_{start}) \frac{d}{radius}
 \end{align*}
 \end{frame}
 
+\begin{frame}{Line drawing}
+  \begin{itemize}
+  \item A line is defined as an affine function:
+\[
+y(x) = a \times x + b
+\]
+  \item Given start and end points, iterating in x-major:
+\begin{gather*}
+y(x) = y_{start} + (x - x_{start}) \times \frac{y_{end} - y_{start}}{x_{end} - x_{start}}\\
+x_{start} \leq x \leq x_{stop}
+\end{gather*}
+  \item Axis major depends on the largest per-axis span (\(axis_{stop} - axis_{start}\))
+    \begin{itemize}
+    \item Iterating with smaller-span axis-major results in visual holes
+    \item Iterating on both axis provides coherent results
+    \end{itemize}
+  \item Algorithms producing better-looking results:
+    \begin{itemize}
+    \item \textbf{Bresenham's} line algorithm, optimized for implementation
+    \item \textbf{Xiaolin Wu's} line algorithm, with sub-pixel rendering
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Line and shape aliasing, sub-pixel drawing}
+  \begin{itemize}
+  \item Lines are a often subject to aliasing:
+    \begin{itemize}
+    \item Sampled from the continuous domain with pixel sampling resolution
+    \item Selecting the best axis gives a better resolution
+    \item Limited display resolutions still make them look pixelated
+    \end{itemize}
+  \item Any geometric shape is concerned, especially fonts
+  \item Sub-pixel rendering is used to provide anti-alaised results:
+    \begin{itemize}
+    \item Surrounding pixels are given an intermediate value
+    \item Specific algorithms perform sub-pixel drawing
+    \item Also obtained with high-resolution rendering and anti-aliased downscaling
+    \end{itemize}
+  \end{itemize}
+
+  \begin{center}
+  \includegraphics[height=4em]{slides/graphics-theory/diamond-sub-pixel.png}
+  \includegraphics[height=4em]{slides/graphics-theory/line-sub-pixel.png}\\
+  \textit{\small Shapes rendered without and with sub-pixel anti-aliasing}
+  \end{center}
+\end{frame}
+
+\begin{frame}{Line and shape aliasing, sub-pixel drawing (illustrated)}
+  \begin{center}
+  \includegraphics[width=0.4\textwidth]{slides/graphics-theory/line-sub-pixel-rendering.pdf}\\
+  \textit{\small Pixel drawing versus sub-pixel drawing (x-axis major)}
+  \end{center}
+\end{frame}
+
+\begin{frame}{Circles and polar coordinates}
+  \begin{itemize}
+  \item Circles centered on \((x_c,y_c)\) are defined (Pythagoras theorem) as:
+\[
+(x - x_c)^2+(y - y_c)^2 = radius^2
+\]
+  \end{itemize}
+  \begin{minipage}{0.70\textwidth}
+  \begin{itemize}
+  \item Which is always verified with the expression:
+\begin{gather*}
+x = x_c + radius \times cos(\phi)\\
+y = y_c + radius \times sin(\phi)
+\end{gather*}
+  \item Corresponds to a translation in polar coordinates
+    \begin{itemize}
+    \item From a \((x,y)\) base to \((r,\phi)\)
+    \end{itemize}
+  \item Iteration on \(\phi\) with a specific range: \(\phi \in [0;2\pi]\)
+  \end{itemize}
+  \end{minipage}
+  \hfill
+  \begin{minipage}{0.25\textwidth}
+    \centering
+    \includegraphics[width=0.8\textwidth]{slides/graphics-theory/polar-coordinates.pdf}
+  \end{minipage}
+\end{frame}
+
+\begin{frame}{Parametric curves}
+  \begin{itemize}
+  \item Parametric curves generalize the idea of using independent parameters
+  \item Each curve has defining equations and ranges for parameters
+    \begin{itemize}
+    \item Equations allow calculating \((x,y)\) (or \((r,\phi)\))
+    \end{itemize}
+  \item Drawing is achieved by iterating over parameter values
+    \begin{itemize}
+    \item Sampling is done on the range to get a finite number of points
+    \item X/Y coordinates are calculated for each point
+    \item Line interpolation is used between consecutive points
+    \end{itemize}
+  \item Ellipse: \(\phi \in [0;2\pi]\)
+\begin{gather*}
+x = x_c + a cos(\phi)\\
+y = y_c + b cos(\phi)
+\end{gather*}
+  \item Many more parametric curves exist:
+    \begin{itemize}
+    \item Cycloid, Epicycloid, Epitrochoid, Hypocycloid, Hypotrochoid (spirograph)
+    \item Lissajous Curve, Rose curve, Butterfly curve
+    \end{itemize}
+  \end{itemize}
+\end{frame}
 
 \subsection{Pixel Operations}
 
+\begin{frame}{Region copy}
+  \begin{itemize}
+  \item Requirements for all pixel operations:
+    \begin{itemize}
+    \item The source and destination must use the same pixel format
+    \item Must be converted before any operation otherwise
+    \end{itemize}
+  \item Most basic operation on pixels: copying a region
+    \begin{itemize}
+    \item Also known as bit blit or BITBLT (in reference to the hardware opcode)
+    \end{itemize}
+  \item Implemented as a line-per-line copy (maximum memory-contiguous block)
+  \item Overwriting destination memory with source memory
+    \begin{itemize}
+    \item Copies within the same image are not always safe!
+    \item Destination must not overlap source
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Alpha blending}
+  \begin{itemize}
+  \item Various alpha-enabled pixel sources are composited with alpha blending
+  \item Results in a single picture aggregating sources
+    \begin{itemize}
+    \item Sources can be stacked with a priority (z-order)
+    \item Semi-transparent surfaces need to be merged together
+    \end{itemize}
+  \item Different alpha merging operations were defined by Porter and Duff:
+  \end{itemize}
+  \begin{center}
+  \includegraphics[width=0.5\textwidth]{slides/graphics-theory/porter-duff-compositing.pdf}
+  \end{center}
+\end{frame}
+
+\begin{frame}{Color-keying}
+  \begin{itemize}
+  \item Color-keying (or chroma-keying): replacing given colors with alpha
+  \item Specified with color ranges (3 RGB ranges)
+  \item Pixels either within or outside of the range are made transparent
+  \item Used in conjunction with alpha blending
+  \item The famous video green-screen method uses color-keying
+  \end{itemize}
+  \begin{center}
+  \includegraphics[width=0.5\textwidth]{slides/graphics-theory/chroma-key-blender.jpg}\\
+  \textit{\small Color-keying implemented in Blender}
+  \end{center}
+\end{frame}
+
+\begin{frame}{Scaling and interpolation}
+  \begin{itemize}
+  \item
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Filtering and convolution}
+
+\end{frame}
+
+\begin{frame}{Blur and anti-aliasing}
+
+\end{frame}
+
+\begin{frame}{Dithering}
+
+\end{frame}
