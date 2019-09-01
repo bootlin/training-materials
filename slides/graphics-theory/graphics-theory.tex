@@ -722,18 +722,125 @@ y = y_c + b cos(\phi)
 
 \begin{frame}{Scaling and interpolation}
   \begin{itemize}
-  \item
+  \item Scaling is a resizing operation on a pixel picture
+    \begin{itemize}
+    \item Involves a scaling factor (integer or real)
+    \item Values are resampled with a new resolution
+    \item Requires reconstructing the original signal
+    \end{itemize}
+  \item Implemented with some form of interpolation:
+    \begin{itemize}
+    \item nearest-neighbour: uses the nearest pixel value from the source
+\[
+x_{source} = x_{destination} \times scale
+\]
+  \item bilinear interpolation: sub-pixel linear weighting of neighbour colors
+  \item bicubic interpolation: smooth spline sub-pixel fitting with neighbour colors
+    \end{itemize}
+  \item Sub-pixel methods provide better visual results
+  \item Down-sampling:
+    \begin{itemize}
+    \item Reduces the maximum image frequency
+    \item Can cause aliasing: high frequencies need to be removed
+    \end{itemize}
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Filtering and convolution}
-
+\begin{frame}{Linear filtering and convolution}
+  \begin{itemize}
+  \item Filtering is a transformation of each pixel based on its neighbors
+  \item The pixel value is a linear sum of weighted neighboring values
+\[
+o_{x,y} = \alpha_0 i_{x,y} + \alpha_1 i_{x-1,y} + \alpha_2 i_{x+1,y} + ...
+\]
+  \item Weighting coefficients are represented in a 2D matrix, the filter kernel
+  \item Corresponds to a Convolution operation with the filter kernel \(\omega\):
+\[
+g(x,y)= \omega *f(x,y)=\sum_{s=-a}^a{\sum_{t=-b}^b{ \omega (s,t)f(x-s,y-t)}}
+\]
+  \item Runs for each pixel: optimizations are implemented
+  \item Very useful for 2D signal treatment
+  \end{itemize}
 \end{frame}
 
-\begin{frame}{Blur and anti-aliasing}
+\begin{frame}{Linear filtering and convolution (illustrated)}
+  \begin{center}
+  \includegraphics[width=0.4\textwidth]{slides/graphics-theory/convolution.png}\\
+  \textit{\small Linear filtering with the convolution operation}
+  \end{center}
+\end{frame}
 
+\begin{frame}{Blur filters}
+  \begin{itemize}
+  \item Blurring is a common example of linear filtering
+  \item Corresponds to a low-pass filter
+    \begin{itemize}
+    \item Removes high frequencies from the picture (details)
+    \item Good fit for pre-scaling anti-aliasing
+    \end{itemize}
+\begin{minipage}[b]{0.45\textwidth}
+  \item Implemented with different algorithms:
+    \vspace{-1.5em}
+    \begin{itemize}
+    \item Box blur: rough but easy to optimize
+\[
+\frac{1}{9}
+\left[
+\begin{matrix}
+1 & 1 & 1 \\
+1 & 1 & 1 \\
+1 & 1 & 1
+\end{matrix}
+\right]
+\]
+    \end{itemize}
+\end{minipage}
+\begin{minipage}[b]{0.45\textwidth}
+    \begin{itemize}
+    \item Gaussian blur: reference smooth blur
+\[
+\frac{1}{16}
+\left[
+\begin{matrix}
+1 & 2 & 1 \\
+2 & 4 & 2 \\
+1 & 2 & 1
+\end{matrix}
+\right]
+\]
+    \end{itemize}
+    \end{minipage}
+  \item A repeated box blur converges towards a gaussian (central-limit theorem)
+  \end{itemize}
 \end{frame}
 
 \begin{frame}{Dithering}
+  \begin{itemize}
+  \item Reducing the color depth can lead to visually-unpleasant results
+    \begin{itemize}
+    \item Corresponds to color-space down-sampling
+    \item Increases color quantization error
+    \end{itemize}
+  \item Floyd–Steinberg dithering is a method for improving quality with low depth
+  \item Quantization error is evaluated and distributed to neighbouring pixels
+  \item Used in hardware display engines and the GIF file format
+  \end{itemize}~\\
 
+  \begin{minipage}[t]{0.25\textwidth}
+    \centering
+    \includegraphics[width=0.9\textwidth]{slides/graphics-theory/cat-depth-initial.png}\\
+    \textit{\small Cat at initial depth}
+  \end{minipage}
+  \hfill
+  \begin{minipage}[t]{0.25\textwidth}
+    \centering
+    \includegraphics[width=0.9\textwidth]{slides/graphics-theory/cat-depth-low.png}\\
+    \textit{\small Cat at reduced depth without dithering}
+  \end{minipage}
+  \hfill
+  \begin{minipage}[t]{0.25\textwidth}
+    \centering
+    \includegraphics[width=0.9\textwidth]{slides/graphics-theory/cat-depth-dither.png}\\
+    \textit{\small Cat at reduced depth with dithering}
+  \end{minipage}
 \end{frame}
