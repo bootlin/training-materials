@@ -259,7 +259,8 @@ remove the USB power.*
 => setenv ethact usb_ether
 => setenv usbnet_devaddr f8:dc:7a:00:00:02
 => setenv usbnet_hostaddr f8:dc:7a:00:00:01
-=> saveenv
+=> 
+
 ```
 
 #### TFTP
@@ -297,7 +298,8 @@ cp <dtb-output-dir>/<machine>.dtb /var/lib/tftpboot/
 ##### TFTP test
 
 ```shell
-touch /var/lib/tftpboot/test 
+touch /var/lib/tftpboot/test
+touch /srv/tftp/test
 tftp localhost
 tftp> get test
 ```
@@ -329,6 +331,7 @@ cat /etc/exports
 #
 /srv/nfs *(rw,no_subtree_check,sync,no_root_squash,no_all_squash)
 ```
+/nfs 192.168.0.100(rw,no_root_squash,no_subtree_check)
 
 ```shell
 sudo mkdir -p /srv/nfs/rootfs
@@ -346,7 +349,7 @@ Export list for localhost:
 ```
 
 ```shell
-mount -t nfs localhost:/srv/nfs /mnt/
+mount -t nfs localhost:/srv/nfs /mnt/nfs
 ```
 
 #### Quick commands
