@@ -381,15 +381,20 @@ dtb-$(CONFIG_ARCH_MXS) += imx28-cfa10036.dtb \
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{{\tt arch/arm/mach-mvebu/board-v7.c}}
+  \frametitle{{\tt arch/arm/mach-mvebu/board-v7.c} (Linux 5.3)}
   \begin{block}{}
     \begin{minted}[fontsize=\tiny]{c}
 static void __init mvebu_dt_init(void)
 {
         if (of_machine_is_compatible("marvell,armadaxp"))
                 i2c_quirk();
+}
 
-        of_platform_populate(NULL, of_default_bus_match_table, NULL, NULL);
+static void __init armada_370_xp_dt_fixup(void)
+{
+#ifdef CONFIG_SMP
+        smp_set_ops(smp_ops(armada_xp_smp_ops));
+#endif
 }
 
 static const char * const armada_370_xp_dt_compat[] __initconst = {
@@ -400,12 +405,12 @@ static const char * const armada_370_xp_dt_compat[] __initconst = {
 DT_MACHINE_START(ARMADA_370_XP_DT, "Marvell Armada 370/XP (Device Tree)")
         .l2c_aux_val    = 0,
         .l2c_aux_mask   = ~0,
-        .smp            = smp_ops(armada_xp_smp_ops),
         .init_machine   = mvebu_dt_init,
         .init_irq       = mvebu_init_irq,
         .restart        = mvebu_restart,
         .reserve        = mvebu_memblock_reserve,
         .dt_compat      = armada_370_xp_dt_compat,
+        .dt_fixup       = armada_370_xp_dt_fixup,
 MACHINE_END
   \end{minted}
  \end{block}
