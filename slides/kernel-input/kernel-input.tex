@@ -107,9 +107,8 @@ struct input_dev {
   \end{itemize}
 \end{frame}
 
-\begin{frame}[fragile]{Input subsystem API 3/3}
-  \begin{itemize}
-  \item The events are sent by the driver to the event handler using
+\begin{frame}{Input subsystem API 3/3}
+    The events are sent by the driver to the event handler using
     \code{input_event(struct input_dev *dev, unsigned int type, unsigned int code, int value);}
     \begin{itemize}
     \item The event types are documented in \kerneldoctext{input/event-codes.txt}
@@ -122,7 +121,34 @@ struct input_dev {
     \item The input subsystem provides other wrappers such as
       \kfunc{input_report_key}, \kfunc{input_report_abs}, ...
     \end{itemize}
-  \end{itemize}
+\end{frame}
+
+
+\begin{frame}[fragile]{Example from drivers/hid/usbhid/usbmouse.c}
+  \begin{block}{}
+  \begin{minted}[fontsize=\scriptsize]{c}
+static void usb_mouse_irq(struct urb *urb)
+{
+        struct usb_mouse *mouse = urb->context;
+        signed char *data = mouse->data;
+        struct input_dev *dev = mouse->dev;
+        ...
+
+        input_report_key(dev, BTN_LEFT,   data[0] & 0x01);
+        input_report_key(dev, BTN_RIGHT,  data[0] & 0x02);
+        input_report_key(dev, BTN_MIDDLE, data[0] & 0x04);
+        input_report_key(dev, BTN_SIDE,   data[0] & 0x08);
+        input_report_key(dev, BTN_EXTRA,  data[0] & 0x10);
+
+        input_report_rel(dev, REL_X,     data[1]);
+        input_report_rel(dev, REL_Y,     data[2]);
+        input_report_rel(dev, REL_WHEEL, data[3]);
+
+        input_sync(dev);
+        ...
+}
+  \end{minted}
+  \end{block}
 \end{frame}
 
 \begin{frame}[fragile]{Polled input subclass}
