@@ -240,7 +240,7 @@ int devm_request_threaded_irq(
 
 \begin{frame}[fragile]
   \frametitle{Tasklet Example: drivers/crypto/atmel-sha.c 1/2}
-\begin{minted}[fontsize=\small]{c}
+\begin{minted}[fontsize=\scriptsize]{c}
 /* The tasklet function */
 static void atmel_sha_done_task(unsigned long data)
 {
@@ -258,13 +258,16 @@ static int atmel_sha_probe(struct platform_device *pdev)
         tasklet_init(&sha_dd->done_task, atmel_sha_done_task,
                                         (unsigned long)sha_dd);
         [...]
+        err = devm_request_irq(&pdev->dev, sha_dd->irq, atmel_sha_irq,
+                               IRQF_SHARED, "atmel-sha", sha_dd);
+        [...]
 }
 \end{minted}
 \end{frame}
 
 \begin{frame}[fragile]
   \frametitle{Tasklet Example: drivers/crypto/atmel-sha.c 2/2}
-\begin{minted}[fontsize=\small]{c}
+\begin{minted}[fontsize=\scriptsize]{c}
 /* Remove function: removing the tasklet */
 static int atmel_sha_remove(struct platform_device *pdev)
 {

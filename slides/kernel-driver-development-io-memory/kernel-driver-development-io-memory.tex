@@ -177,7 +177,7 @@ void iounmap(void __iomem *addr);
   \end{center}
 \end{frame}
 
-\begin{frame}
+\begin{frame}[fragile]
   \frametitle{Managed API}
   Using \kfunc{request_mem_region} and \kfunc{ioremap} in device
   drivers is now deprecated. You should use the below "managed"
@@ -188,6 +188,14 @@ void iounmap(void __iomem *addr);
   \item \kfunc{devm_ioremap_resource}
         \begin{itemize}
 	\item Takes care of both the request and remapping operations!
+	\item Example (\kfile{drivers/crypto/atmel-sha.c}):
+	\begin{block}{}
+	\begin{minted}{c}
+sha_res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+...
+sha_dd->io_base = devm_ioremap_resource(&pdev->dev, sha_res);
+	\end{minted}
+	\end{block}{}
 	\end{itemize}
   \end{itemize}
 \end{frame}
