@@ -1,6 +1,6 @@
-# lab history
-
-Linux Kernel and Driver Development Training
+title: Linux kernel
+description: Lab history for the Embedded Linux kernel and driver development Training offered by Bootlin
+hero: Embedded Linux kernel and driver development Training
 
 ## Training Setup
 
@@ -42,7 +42,7 @@ sudo apt-get install cscope
 ```shell
 cd linux-kernel-labs/src/linux/
 git checkout -b 4.19.y stable/linux-4.19.y
-cat Makefile | head 
+cat Makefile | head
 find ./ -iname mvneta*
 ./scripts/get_maintainer.pl -f ./drivers/net/ethernet/marvell/mvneta.c
 cscope -Rk
@@ -51,7 +51,7 @@ cscope -Rk
 > **Note**: If using `git@github.com:dagmcr/linux.git` then,
 `git checkout stable/linux-4.19.y`.
 
-#### cscope 
+#### cscope
 
 *  `[Tab]`: move the cursor between search results and commands
 *  `[Ctrl] [D]`: exit cscope
@@ -135,7 +135,7 @@ picocom -b 115200 /dev/ttyUSB0
 saveenv - save environment variables to persistent storage
 
 Usage:
-saveenv 
+saveenv
 ```
 
 ```
@@ -219,7 +219,7 @@ cp ../../../lab-data/common/bootloader/beaglebone-black/zImage /media/$USER/boot
 
 Unmount `/media/$USER/boot/`.
 
-> **Note**: 
+> **Note**:
 > *  `u-boot-2018.05.config`: `lab-data/common/bootloader/beaglebone-black/src/u-boot/u-boot-2018.05.config`.
 > *  final `u-boot-2018.05.config`: `lab-data/common/bootloader/beaglebone-black/src/u-boot-final/u-boot-2018.05.config`.
 > *  final `uEnv.txt`: `lab-data/common/bootloader/beaglebone-black/src/u-boot-final/uEnv.txt`.
@@ -259,7 +259,7 @@ remove the USB power.*
 => setenv ethact usb_ether
 => setenv usbnet_devaddr f8:dc:7a:00:00:02
 => setenv usbnet_hostaddr f8:dc:7a:00:00:01
-=> 
+=>
 
 ```
 
