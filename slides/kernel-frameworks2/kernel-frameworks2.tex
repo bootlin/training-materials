@@ -26,13 +26,9 @@
 
 \begin{frame}[fragile]
   \frametitle{File operations}
-  \begin{itemize}
-  \item Here are the most important operations for a character
-    driver. Many more exist. All of them are optional.
-  \end{itemize}
+  Here are the most important operations for a character
+  driver, from the definition of \kstruct{file_operations}:
 \begin{minted}[fontsize=\footnotesize]{c}
-#include <linux/fs.h>
-
 struct file_operations {
     struct module *owner;
     ssize_t (*read) (struct file *, char __user *,
@@ -44,8 +40,10 @@ struct file_operations {
     int (*mmap) (struct file *, struct vm_area_struct *);
     int (*open) (struct inode *, struct file *);
     int (*release) (struct inode *, struct file *);
+    ...
 };
 \end{minted}
+Many more operations exist. All of them are optional.
 \end{frame}
 
 \begin{frame}[fragile]
@@ -303,7 +301,7 @@ int main(void)
   \item Implemented in C files in \kdir{drivers/video/fbdev/core}
   \item Defines the user/kernel API
     \begin{itemize}
-    \item \kfile{include/uapi/linux/fb.h}
+    \item \kfile{include/uapi/linux/fb.h} (constants and structures)
     \end{itemize}
   \item Defines the set of operations a framebuffer driver must
     implement and helper functions for the drivers
@@ -480,7 +478,7 @@ void foo_remove(struct platform_device *pdev)
       devices, \kstruct{fb_info} for framebuffers, etc.
     \end{itemize}
   \item In addition to this structure, the driver usually needs to
-    store additional information about its device
+    store additional information about each device
   \item This is typically done
     \begin{itemize}
     \item By subclassing the appropriate framework structure
