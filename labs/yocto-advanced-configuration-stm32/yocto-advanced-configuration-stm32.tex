@@ -1,0 +1,192 @@
+\subchapter{Lab2: Advanced Yocto configuration}{Configure the build, customize the
+	output images and use NFS}
+
+During this lab, you will:
+\begin{itemize}
+  \item Customize the package selection
+  \item Configure the build system
+  \item Use the rootfs over NFS
+\end{itemize}
+
+\section{Set up the Ethernet communication and NFS on the board}
+
+It isn't practical at all to reflash the root filesystem on the target
+every time a change is made. Fortunately, it is possible to set up
+networking between the development workstation and the target. Then,
+workstation files can be accessed by the target through the network,
+using NFS.
+
+First we need to set the kernel boot arguments U-Boot will pass to the
+Linux kernel at boot time. For that, edit the
+\code{extlinux/extlinux.conf} file in the bootfs partition of the SD
+card and change the \code{APPEND} line for the
+\code{stm32mp157c-dk2-m4-examples-sdcard} configuration:
+
+\begin{verbatim}
+APPEND root=/dev/nfs rw console=ttySTM0,115200 nfsroot=192.168.0.1:/nfs ip=192.168.0.100:::::eth0
+\end{verbatim}
+
+\section{Set up the Ethernet communication on the workstation}
+
+With a network cable, connect the Ethernet port of your board to the
+one of your computer. If your computer already has a wired connection
+to the network, your instructor will provide you with a USB Ethernet
+adapter. A new network interface should appear on your Linux system.
+
+Find the name of this interface by typing:
+\begin{verbatim}
+ifconfig -a
+\end{verbatim}
+
+The network interface name is likely to be
+\code{enxxx}\footnote{Following the {\em Predictable Network Interface
+Names} convention:
+\url{https://www.freedesktop.org/wiki/Software/systemd/PredictableNetworkInterfaceNames/}}.
+If you have a pluggable Ethernet device, it's easy to identify as it's
+the one that shows up after pluging in the device.
+
+Then, instead of configuring the host IP address from NetWork Manager’s graphical interface,
+let’s do it through its command line interface, which is so much easier to use:
+
+\begin{verbatim}
+nmcli con add type ethernet ifname en... ip4 192.168.0.1/24
+\end{verbatim}
+
+\section{Set up the NFS server on the workstation}
+
+First install the NFS server on the training computer and create the root NFS
+directory:
+\begin{verbatim}
+sudo apt install nfs-kernel-server
+sudo mkdir -m 777 /nfs
+\end{verbatim}
+
+Then make sure this directory is used and exported by the NFS server by adding
+\code{/nfs *(rw,sync,no_root_squash,subtree_check)} to the
+\code{/etc/exports} file.
+
+Finally restart the service:
+\begin{verbatim}
+sudo service nfs-kernel-server restart
+\end{verbatim}
+
+\section{Add a package to the rootfs image}
+
+You can add packages to be built by editing the local configuration file
+\code{$BUILDDIR/conf/local.conf}. The \code{IMAGE_INSTALL} variable controls the
+packages included into the output image.
+
+To illustrate this, add the Dropbear SSH server to the list of enabled
+packages.
+
+Tip: do not override the default enabled package list, but append the Dropbear
+package instead.
+
+\section{Boot with the updated rootfs}
+
+First we need to put the rootfs under the NFS root directory so that it is
+accessible by NFS clients. Simply uncompress the archived output image in the
+previously created \code{/nfs} directory:
+\begin{verbatim}
+sudo tar xpf $BUILDDIR/tmp/deploy/images/stm32mp1-disco/\
+  core-image-minimal-stm32mp1-disco.tar.xz -C /nfs
+\end{verbatim}
+
+Then boot the board.
+
+The Dropbear SSH server was enabled a few steps before, and should now be
+running as a service on the BeagleBone Black. You can test it by accessing the
+board through SSH:
+\begin{verbatim}
+ssh root@192.168.0.100
+\end{verbatim}
+
+You should see the Discovery command line!
+
+\section{Choose a package variant}
+
+Dependencies of a given package are explicitly defined in its recipe.
+Some packages may need a specific library or piece of software but
+others only depend on a functionality. As an example, the kernel
+dependency is described by \code{virtual/kernel}.
+
+To see which kernel is used, dry-run BitBake:
+\begin{verbatim}
+bitbake -vn virtual/kernel
+\end{verbatim}
+
+In our case, we can see the \code{linux-stm32mp} provides the
+\code{virtual/kernel} functionality:
+\small
+\begin{verbatim}
+NOTE: selecting linux-stm32mp to satisfy virtual/kernel due to PREFERRED_PROVIDERS
+\end{verbatim}
+\normalsize
+
+We can force bitbake to select another \code{kernel} by explicitly
+defining which one to use in our local configuration. Try switching
+from \code{linux-stm32mp} to \code{linux-dummy} only using the
+local configuration.
+
+Then check the previous step worked by dry-running again BitBake.
+\begin{verbatim}
+bitbake -vn virtual/kernel
+\end{verbatim}
+
+You can now rebuild the whole Yocto project, with \code{bitbake
+core-image-minimal}
+
+Tip: you need to define the more specific information here to be sure it is the
+one used. The \code{MACHINE} variable can help here.
+
+As this was only to show how to select a preferred provider for a
+given package, you can now use \code{linux-stm32mp} again.
+
+\section{BitBake tips}
+
+BitBake is a powerful tool which can be used to execute specific commands. Here
+is a list of some useful ones, used with the \code{virtual/kernel} package.
+
+\begin{itemize}
+  \item The Yocto recipes are divided into numerous tasks, you can print them
+        by using: \code{bitbake -c listtasks virtual/kernel}.
+  \item BitBake allows to call a specific task only (and its dependencies)
+        with: \code{bitbake -c <task> virtual/kernel}. (\code{<task>} can be
+        \code{menuconfig} here).
+  \item You can force to rebuild a package by calling: \code{bitbake -f
+        virtual/kernel}
+  \item \code{world} is a special keyword for all packages. \code{bitbake
+        --runall=fetch world} will download all packages sources (and their
+        dependencies).
+  \item You can get a list of locally available packages and their current
+        version with: \\
+        \code{bitbake -s}
+  \item You can also find detailed information on available packages, their
+        current version, dependencies or the contact information of the
+        maintainer by visiting: \\
+        \url{http://recipes.yoctoproject.org/}
+\end{itemize}
+
+For detailed information, please run \code{bitbake -h}
+
+\section{Going further}
+
+If you have some time left, let's improve our setup to use TFTP, in
+order to avoid having to reflash the SD card for every test. What you
+need to do is:
+
+\begin{enumerate}
+
+\item Install a TFTP server (package \code{tftpd-hpa}) on your system. 
+
+\item Copy the Linux kernel image and Device Tree to
+  \code{/var/lib/tftpboot} so that they are made available by the TFTP
+  server.
+
+\item Change the U-Boot \code{bootcmd} to load the kernel image and
+  the Device Tree over TFTP.
+
+\end{enumerate}
+
+See the training materials of our {\em Embedded Linux system
+  development} course for details!

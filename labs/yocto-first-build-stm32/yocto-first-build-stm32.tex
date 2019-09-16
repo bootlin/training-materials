@@ -1,0 +1,141 @@
+\subchapter{Lab1: First Yocto Project build}{Your first dive into Yocto
+Project and its build mechanism}
+
+During this lab, you will:
+\begin{itemize}
+  \item Set up an OpenEmbedded environment
+  \item Configure the project and choose a target
+  \item Build your first Poky image
+\end{itemize}
+
+\section{Setup}
+
+Before starting this lab, make sure your home directory is not
+encrypted. OpenEmbedded cannot be used on top of an eCryptFS file
+system due to limitations in file name lengths.
+
+Go to the \code{$HOME/yocto-labs/} directory.
+
+Install the required packages:
+\begin{verbatim}
+sudo apt install bc build-essential chrpath cpio diffstat gawk git python texinfo wget
+\end{verbatim}
+
+\section{Download Yocto}
+
+Download the \code{thud} version of Poky:
+\begin{verbatim}
+git clone git://git.yoctoproject.org/poky.git
+cd $HOME/yocto-labs/poky
+git checkout -b thud-20.0.2 thud-20.0.2
+\end{verbatim}
+
+Return to your project root directory (\code{cd $HOME/yocto-labs/})
+and download the OpenEmbedded and STM32MP layers:
+\begin{verbatim}
+git clone -b thud git://git.openembedded.org/meta-openembedded
+git clone https://github.com/STMicroelectronics/meta-st-stm32mp.git
+cd meta-st-stm32mp/
+git checkout thud
+git am $HOME/yocto-labs/bootlin-lab-data/0001-u-boot-update-config.patch
+\end{verbatim}
+
+\section{Set up the build environment}
+
+Check you're using Bash. This is the default shell when using Ubuntu.
+
+Export all needed variables and set up the build directory:
+\begin{verbatim}
+cd $HOME/yocto-labs
+source poky/oe-init-build-env
+\end{verbatim}
+
+You must specify which machine is your target. By default it
+is \code{qemu}. We need to build an image for an \code{stm32mp1-disco}.
+Update the \code{MACHINE} configuration variable accordingly.
+
+Also, if you need to save disk space on your computer you can add \code{INHERIT
++= "rm_work"} in the previous configuration file. This will remove the
+package work directory once a package is built.
+
+Don't forget to make the configuration aware of the OpenEmbedded and
+STM32MP layer. Edit the layer configuration file
+(\code{$BUILDDIR/conf/bblayers.conf}) and append the full path to the
+\code{meta-openembedded} and \code{meta-st-stm32mp} directory to the
+\code{BBLAYERS} variable.
+
+\section{Build your first image}
+
+Now that you're ready to start the compilation, simply run:
+\begin{verbatim}
+bitbake core-image-minimal
+\end{verbatim}
+
+Once the build finished, you will find the output images under
+\code{$BUILDDIR/tmp/deploy/images/stm32mp1-disco}.
+
+\section{Set up the SD card}
+
+In this first lab we will use an SD card to store the bootloader, kernel and
+root filesystem files. To generate the final image, You will find scripts in
+\code{$BUILDDIR/tmp/deploy/images/stm32mp1-disco/scripts}.
+
+Execute it:
+\begin{verbatim}
+./create_sdcard_from_flashlayout.sh ../flashlayout_core-image-minimal/FlashLayout_sdcard_stm32mp157c-dk2-trusted.tsv
+\end{verbatim}
+
+Flash the SD card with that image:
+\begin{verbatim}
+umount /dev/mmcblk0*
+sudo dd if=../flashlayout_core-image-minimal/../flashlayout_core-image-minimal_FlashLayout_sdcard_stm32mp157c-dk2-trusted.raw of=/dev/mmcblk0 bs=8M conv=fdatasync status=progress
+\end{verbatim}
+
+\section{Setting up serial communication with the board}
+
+Plug the USB-A to micro USB-B cable on the Discovery board. There is
+only one micro USB port on the board, it is CN11, also named ST-LINK.
+This is a debug interface and exposes multiple debugging interfaces,
+including a serial interface. When plugged in your computer, a serial
+port should appear, \code{/dev/ttyACM0}.
+
+You can also see this device appear by looking at the output of
+\code{dmesg}.
+
+To communicate with the board through the serial port, install a
+serial communication program, such as \code{picocom}:
+
+\begin{verbatim}
+sudo apt install picocom
+\end{verbatim}
+
+You also need to make your user belong to the \code{dialout} group to be
+allowed to write to the serial console:
+
+\begin{verbatim}
+sudo adduser $USER dialout
+\end{verbatim}
+
+{\bf Important}: for the group change to be effective, in Ubuntu 18.04, you have to
+{\em completely reboot} the system \footnote{As explained on
+\url{https://askubuntu.com/questions/1045993/after-adding-a-group-logoutlogin-is-not-enough-in-18-04/}.}.
+A workaround is to run \code{newgrp dialout}, but it is not global.
+You have to run it in each terminal.
+
+Run \code{picocom -b 115200 /dev/ttyACM0}, to start serial
+communication on \code{/dev/ttyACM0}, with a baudrate of 115200.
+
+If you wish to exit \code{picocom}, press \code{[Ctrl][a]} followed by
+\code{[Ctrl][x]}.
+
+There should be nothing on the serial line so far, as the board is not
+powered up yet.
+
+\section{Boot}
+
+Insert the SD card in the dedicated slot on the Discovery.  You can
+now power-up the board by connecting the USB-C cable to the board, in
+CN6, \code{PWR_IN} and to your PC at the other end.  You should see
+boot messages on the console. Wait until the login prompt, then enter
+\code{root} as user.  Congratulations! The board has booted and you
+now have a shell.

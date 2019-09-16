@@ -20,7 +20,8 @@ extend some configuration variables of the original recipe.
 Try to create an appended recipe with the help of the online Yocto
 Project development documentation. You can find it at
 \url{https://www.yoctoproject.org/docs/2.5/dev-manual/dev-manual.html}. We here
-aim to extend the \code{linux-ti-staging} kernel recipe.
+aim to extend the \ifdefstring{\labboard}{discovery}{\code{linux-stm32mp}}
+{\code{linux-ti-staging}} kernel recipe.
 
 You can see available \code{bbappend} files and the recipe they apply to by
 using the \code{bitbake-layers} tool (again!):
@@ -30,14 +31,23 @@ bitbake-layers show-appends
 
 If the BitBake append file you just created is recognized by your Yocto
 environment, you should see:
+\if\defstring{\labboard}{discovery}
+\begin{verbatim}
+linux-stm32mp_4.19.bb:
+ $HOME/yocto-labs/meta-bootlinlabs/recipes-kernel/linux/linux-stm32mp_4.19.bbappend
+\end{verbatim}
+\else
 \begin{verbatim}
 linux-ti-staging_4.14.bb:
   $HOME/yocto-labs/meta-bootlinlabs/recipes-kernel/linux/linux-ti-staging_4.14.bbappend
 \end{verbatim}
+\fi
 
 \section{Add patches to apply in the recipe}
 
-We want our extended \code{linux-ti-staging} kernel to support the Nunchuk as
+We want our extended
+\ifdefstring{\labboard}{discovery}{\code{linux-stm32mp}}
+{\code{linux-ti-staging}} kernel to support the Nunchuk as
 a joystick input. We can add this by applying patches during the
 \code{do_patch} task. The needed patches are provided with this lab. You can
 find them under \code{~/yocto-labs/bootlin-lab-data/nunchuk/linux}. For more
@@ -54,11 +64,10 @@ list.
 Try adding the patches included in this lab to your BitBake append
 file. Do not forget to also add the \code{defconfig} file provided
 alongside the patches. This file contains the kernel configuration and
-is handled automatically in the \code{linux-ti-staging} original
-recipe.
+is handled automatically in the \ifdefstring{\labboard}{discovery}{\code{linux-stm32mp}}
+{\code{linux-ti-staging}} original recipe.
 
-You can now rebuild the \code{linux-ti-staging} kernel to take the new
-patches into account:
+You can now rebuild the kernel to take the new patches into account:
 \begin{verbatim}
 bitbake virtual/kernel
 \end{verbatim}
@@ -76,6 +85,20 @@ Identify the 4 pins of the Nunchuk connector:
 \includegraphics[width=4cm]{common/nunchuk-pinout.pdf}
 \end{center}
 
+\ifdefstring{\labboard}{discovery}{
+Connect the Nunchuk pins:
+\begin{itemize}
+\item The \code{GND} pin to CN16 pin 7 (\code{GND})
+\item The \code{PWR} pin to CN16 pin 8 (\code{3V3})
+\item The \code{DATA} pin to CN13 pin 9 (\code{D14})
+\item The \code{CLK} pin to CN13 pin 10 (\code{D15})
+\end{itemize}
+
+\begin{center}
+  TODO
+%\includegraphics[width=12cm]{common/dk2-connect-nunchuk.pdf}
+\end{center}
+}{
 Connect the Nunchuk pins:
 \begin{itemize}
 \item The \code{GND} pin to P9 pins 1 or 2 (\code{GND})
@@ -87,6 +110,7 @@ Connect the Nunchuk pins:
 \begin{center}
 \includegraphics[width=12cm]{common/bbb-connect-nunchuk.pdf}
 \end{center}
+}
 
 \section{Test the Nunchuk}
 

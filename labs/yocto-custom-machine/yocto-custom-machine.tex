@@ -10,13 +10,28 @@ During this lab, you will:
 \section{Create a custom machine}
 
 The machine file configures various hardware related settings. That's
-what we did in lab1, when we chose the \code{beaglebone} one. While it
+what we did in lab1, when we chose the \ifdefstring{\labboard}{discovery}
+{\code{stm32mp1-disco}} {\code{beaglebone}} one. While it
 is not necessary to make our custom machine image here, we'll create a
 new one to demonstrate the process.
 
 Add a new \code{bootlinlabs} machine to the previously created layer, which
-will make the BeagleBone Black board properly boot.
+will make the
+\ifdefstring{\labboard}{discovery}{Discovery}{BeagleBone} properly
+boot.
 
+\if\defstring{\labboard}{discovery}
+This machine describes a board using the \code{cortexa7thf-neon-vfpv4}
+tune and is a part of the \code{stm32mp} SoC family. Add the following
+lines to your machine configuration file:
+
+\begin{verbatim}
+include conf/machine/include/st-machine-common-stm32mp.inc
+
+DEFAULTTUNE = "cortexa7thf-neon-vfpv4"
+require conf/machine/include/tune-cortexa7.inc
+\end{verbatim}
+\else
 This machine describes a board using the \code{cortexa8thf-neon} tune
 and is a part of the \code{ti33x} SoC family. Add the following lines
 to your machine configuration file:
@@ -27,11 +42,22 @@ require conf/machine/include/ti-soc.inc
 DEFAULTTUNE = "armv7athf-neon"
 require conf/machine/include/tune-cortexa8.inc
 \end{verbatim}
-
+\fi
 \section{Populate the machine configuration}
 
 This \code{bootlinlabs} machine needs:
 
+\if\defstring{\labboard}{discovery}
+\begin{itemize}
+  \item To define a few variables to set to get the tooling from ST
+    Micro to work properly:
+\begin{verbatim}
+BOOTSCHEME_LABELS += "trusted"
+STM32MP_DT_FILES_DK += "stm32mp157c-dk2"
+ST_KERNEL_LOADADDR   = "0xC2000040"
+FLASHLAYOUT_CONFIG_LABELS += "sdcard"
+\end{verbatim}
+\else
 \begin{itemize}
   \item To select \code{linux-ti-staging} as the preferred provider
     for the kernel.
@@ -45,6 +71,7 @@ This \code{bootlinlabs} machine needs:
     address.
   \item To use a \code{zImage} kernel image type.
   \item To configure the serial console to \code{115200 ttyS0}
+\fi
   \item And to support some features:
     \begin{itemize}
       \item kernel26
@@ -56,7 +83,6 @@ This \code{bootlinlabs} machine needs:
       \item alsa
     \end{itemize}
 \end{itemize}
-
 \section{Build an image with the new machine}
 
 You can now update the \code{MACHINE} variable value in the local configuration
@@ -77,6 +103,7 @@ missing?
 You can now update your root filesystem, to use the newly
 generated image supporting our \code{bootlinlabs} machine!
 
+\if\defstring{\labboard}{beaglebone}
 \section{Going further}
 
 We chose a quite generic tune (\code{armv7athf-neon}). It's the same
@@ -85,3 +112,4 @@ what Bitbake did in \code{$BUILDDIR/tmp/work}.
 
 Now, we can change the tune to \code{cortexa8thf-neon}. Rebuild the
 image, and look at \code{$BUILDDIR/tmp/work}. What happened?
+\fi
