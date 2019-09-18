@@ -4,7 +4,7 @@
 
 \begin{frame}{System-agnostic overview: kernel}
   \begin{itemize}
-  \item The kernel coordinates access to the hardware from userspace
+  \item The kernel provides access to the hardware from userspace
   \item Handles register access, interrupts, etc
   \item Coordinates memory management with the rest of the system
   \item Exposes features to userspace through hardware-agnostic interfaces\\
@@ -20,7 +20,7 @@
 
 \begin{frame}{System-agnostic overview: display userspace}
   \begin{itemize}
-  \item Userspace needs to provide a way for applications to show buffers
+  \item The kernel provides \textbf{exclusive access} to display hardware
   \item Many applications need to show their buffers concurrently
   \item The \textbf{display server} is in charge of coordinating between applications:
     \begin{itemize}
@@ -32,6 +32,7 @@
   \item The \textbf{compositor} merges pixel buffers from applications into the final buffer
   \item The \textbf{window manager} defines stacking order, focus, decorations, etc
   \item Both can be part of the display server or distinct components
+  \item Serious security concerns: I/O isolation for applications, server privileges
   \end{itemize}
 \end{frame}
 
@@ -316,6 +317,78 @@ ret = ioctl(tty_fd, VT_RELDISP, 1); /* when leaving VT */
   \end{minted}
   \item Failure to acknowledge will cause a \textbf{system hang}
   \end{itemize}
+\end{frame}
+
+\subsection{Framebuffer Device Kernel Aspects}
+
+\begin{frame}{Fbdev overview}
+  \begin{itemize}
+  \item Fbdev is the \textbf{historical and legacy} display subsystem in Linux
+  \item Exposes a number of display-related features:
+    \begin{itemize}
+    \item Framebuffer access (pre-allocated for one or two frames)
+    \item Operation primitives (bit blit, solid fill, area copy, etc)
+    \item Cursor drawing
+    \item Power management (blank/unblank, power down)
+    \end{itemize}
+  \item Initial state can be configured with the \code{video} option of the \code{cmdline}
+  \item Available to userspace via \code{/dev/fb*} nodes:
+    \begin{itemize}
+    \item Generic base \code{ioctls} with driver-specific additions
+    \item Direct framebuffer memory mapping using \code{mmap}
+    \item Relatively simple and minimalistic interface
+    \end{itemize}
+  \item Used by the kernel to provide a graphical console with \textbf{fbcon}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Fbdev basic operations}
+  \begin{itemize}
+  \item \textbf{Fixed information} about the display is retrieved with:
+  \begin{minted}[fontsize=\small]{console}
+struct fb_fix_screeninfo fix_screeninfo = { 0 };
+ret = ioctl(fb_fd, FBIOGET_FSCREENINFO, &fix_screeninfo);
+  \end{minted}
+  \item \textbf{Variable information} (including mode) is retrieved and configured with:
+  \begin{minted}[fontsize=\small]{console}
+struct fb_var_screeninfo var_screeninfo = { 0 };
+ret = ioctl(fb_fd, FBIOGET_VSCREENINFO, &var_screeninfo);
+...
+ret = ioctl(fb_fd, FBIOPUT_VSCREENINFO, &var_screeninfo);
+  \end{minted}
+  \item \textbf{Power management} is operated with:
+  \begin{minted}[fontsize=\small]{console}
+ret = ioctl(fb_fd, FBIOBLANK, FB_BLANK_POWERDOWN);
+  \end{minted}
+  \item \textbf{Double-buffering} is sometimes supported (within the same buffer):
+  \begin{minted}[fontsize=\small]{console}
+var_screeninfo.yoffset = height;
+ret = ioctl(fb_fd, FBIOPAN_DISPLAY, &var_screeninfo);
+  \end{minted}
+  \item Blocking until the next \textbf{vblank} is possible with:
+  \begin{minted}[fontsize=\small]{console}
+int vsync = 0;
+ret = ioctl(fb_fd, FBIO_WAITFORVSYNC, &vsync);
+  \end{minted}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Fbdev limitations}
+  \begin{itemize}
+  \item Fbdev does not expose or allow configuration of the display pipeline
+  \item Output setup is mostly static (provided through the \code{cmdline})
+  \item Designed for simple cases (with a single output)
+  \item Buffer allocation and management is not available
+  \item No possibility of zero-copy import from other devices
+  \item Limited page flipping with no associated synchronization mechanism
+  \item Insufficient external synchronization interface (blocking wait)
+  \item Mixes display, operation primitives and power management
+  \end{itemize}
+
+  \begin{center}
+  \textbf{Fbdev is mostly adapted to display from the 1990s and 2000s}\\
+  \small please consider avoiding it at all costs!
+  \end{center}
 \end{frame}
 
 \subsection{DRM Kernel Aspects}
@@ -1335,14 +1408,15 @@ ret = ioctl(drm_fd, DRM_IOCTL_SYNCOBJ_FD_TO_HANDLE, &syncobj_handle);
   \item Wayland is now quite mature, robust, efficient and widely used
     \begin{itemize}
     \item Most toolkits have support for it: GTK 3, Qt 5, SDL, EFL
-    \item Major desktop environments support it: GNOME 3, KDE Plasme 5
+    \item Major desktop environments support it: GNOME 3, KDE Plasma 5
     \item Integrated sessions with login managers from \code{/usr/share/wayland-sessions}
+    \item Runs with user privileges with \code{systemd-logind}
     \end{itemize}
   \item X11 applications can be integrated using \textbf{XWayland}
     \begin{itemize}
     \item X server implementation registered as a Wayland client
     \item Wayland composer acts as X compositing window manager
-    \item Creates a \code{wl_surface} for each window, redirects output
+    \item Creates a \code{wl_surface} for each window, redirects input/output
     \end{itemize}
   \item Diverse compositor implementations have emerged
     \begin{itemize}
@@ -1563,7 +1637,7 @@ ret = ioctl(drm_fd, DRM_IOCTL_SYNCOBJ_FD_TO_HANDLE, &syncobj_handle);
 
 \begin{frame}{Mesa 3D internals: intermediate representations}
   \begin{itemize}
-  \item Mesa is in charge of compiling shaders to the native shading ISA
+  \item Mesa is in charge of \textbf{compiling shaders} to the native shading ISA
   \item \textbf{Intermediate representations} (IRs) are used for translation
   \item \textbf{Input-level} IRs:
     \begin{itemize}
@@ -1797,4 +1871,33 @@ struct gbm_device *device = gbm_create_device(drm_fd);
     \end{itemize}
   \end{itemize}
   \end{minipage}
+\end{frame}
+
+\begin{frame}{Graphics software illustrations attributions}
+  \small
+  \begin{itemize}
+  \item \href{https://commons.wikimedia.org/wiki/File:X11.svg}{X11 logo: public domain}
+  \item \href{https://commons.wikimedia.org/wiki/File:Wayland_Logo.svg}{Wayland logo: Kristian Høgsberg}
+  \item \href{https://commons.wikimedia.org/wiki/File:GTK_logo.svg}{GTK logo: Andreas Nilsson, CC BY-SA 3.0}
+  \item \href{https://commons.wikimedia.org/wiki/File:GTK_logo.svg}{Qt logo: Qt Project, public domain}
+  \item \href{https://commons.wikimedia.org/wiki/File:SDL_Logo.svg}{SDL logo: Arne Claus / SDL Project, public domain}
+  \item \href{https://commons.wikimedia.org/wiki/File:Gnomelogo.svg}{GNOME logo: GNOME Foundation, GNU LGPL 2.1+}
+  \item \href{https://commons.wikimedia.org/wiki/File:KDE_logo.svg}{KDE logo: KDE e.V., GNU LGPL 2.1+}
+  \item \href{https://commons.wikimedia.org/wiki/File:Xfce_logo.svg}{XFCE logo: Xfce Team, GNU LGPL 2.1+}
+  \item \href{https://commons.wikimedia.org/wiki/File:Enlightenment_logo_black.png}{Enlightenment logo: Carsten Haitzler and various contributors, BSD}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Graphics software illustrations attributions}
+  \small
+  \begin{itemize}
+  \item \href{https://commons.wikimedia.org/wiki/File:Devuan_GNU-Linux_-_tty_login_-_server_rack.jpg}{Devuan GNU-Linux - tty login - server rack: Francesco Magno, CC BY-SA 4.0}
+  \item \href{https://commons.wikimedia.org/wiki/File:DRM_architecture.svg}{DRM architecture: Javier Cantero CC BY-SA 4.0}
+  \item \href{https://wayland.freedesktop.org/architecture.html}{Wayland architecture: Wayland Developers, GNU GPL 2+}
+  \item \href{https://wayland.freedesktop.org/architecture.html}{X architecture: Wayland Developers, GNU GPL 2+}
+  \item \href{https://commons.wikimedia.org/wiki/File:Wayland_display_server_protocol.svg}{Wayland display server protocol: Shmuel Csaba Otto Traian, CC BY-SA 3.0}
+  \item \href{https://commons.wikimedia.org/wiki/File:The_Linux_Graphics_Stack_and_glamor.svg}{The Linux Graphics Stack and glamor: Shmuel Csaba Otto Traian, CC BY-SA 3.0}
+  \item \href{https://www.khronos.org/assets/utilities/retrieveFile.php?d=opengl&t=logopacks}{Khronos logo pack}
+  \item \href{https://commons.wikimedia.org/wiki/File:Gallium3D_vs_DRI_graphics_driver_model.svg}{Gallium3D vs DRI graphics driver model, CC BY-SA 3.0}
+  \end{itemize}
 \end{frame}

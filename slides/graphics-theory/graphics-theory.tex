@@ -1,3 +1,20 @@
+\begin{frame}
+\frametitle{Participate!}
+During the lectures...
+\begin{itemize}
+\item Don't hesitate to ask questions. Other people in the audience may have
+similar questions too.
+\item This helps the trainer to detect any explanation that wasn't clear or
+detailed enough.
+\item Don't hesitate to share your experience, for example to compare Linux
+with other operating systems used in your company.
+\item Your point of view is most valuable, because it can be similar to your
+colleagues' and different from the trainer's.
+\item Your participation can make our session more interactive and make the
+topics easier to learn.
+\end{itemize}
+\end{frame}
+
 \section{Base Theory and Concepts About Graphics}
 
 \subsection{Image and Color Representation}
@@ -133,7 +150,7 @@ u_s > 2 \times u_{max}, ~v_s = 2 \times v_{max}
 
   \begin{center}
   \includegraphics[width=0.35\textwidth]{slides/graphics-theory/aliasing-1d.pdf}\\
-  \textit{\small Aliasing in a uni-dimensional domain}
+  \textit{\small Aliasing example in a uni-dimensional domain}
   \end{center}
 \end{frame}
 
@@ -162,22 +179,25 @@ u_s > 2 \times u_{max}, ~v_s = 2 \times v_{max}
     \begin{itemize}
     \item Light itself must be quantized in digital representations\\
     \textit{distinct from and unrelated to spatial quantization}
-    \item Translating light information (colors) to numbers
-    \item The translation referential is called \textbf{colorspace}
-    \item The translated color has coordinates in the colorspace\\
-    \textit{e.g. 3 for a human-eye-alike referential: red, green, blue}
-    \item The color coordinates are quantized with:
+    \item Translating light information (colors) to numbers:
+      \begin{itemize}
+      \item Using a translation referential called \textbf{colorspace}
+      \item The translated color has \textbf{coordinates} in the colorspace\\
+      \textit{e.g. 3 for a human-eye-alike referential: red, green, blue}
+      \end{itemize}
+    \item Color coordinates are quantized with:
       \begin{itemize}
       \item A given \textbf{resolution}:
       \textit{the smallest possible color difference}
       \item A given \textbf{range}:
       \textit{the span of representable colors}
       \end{itemize}
-    \item Both aspects of color quantization depend on:
+    \item Different approaches exist for color quantization:
       \begin{itemize}
-      \item The colorspace taken as referential
-      \item The color depth or number of \textbf{bits per pixel} (bpp)
-      \item Implementation choices
+      \item \textbf{Uniform} quantization in the color range (most common)\\
+        \textit{values are attributed to colors with a regular step (resolution)}
+      \item \textbf{Irregular} quantization with indexed colors (palettes)\\
+        \textit{values are attributed to colors as needed}
       \end{itemize}
     \end{itemize}
   \end{minipage}
@@ -350,7 +370,7 @@ u_s > 2 \times u_{max}, ~v_s = 2 \times v_{max}
   \item The minimal size for a picture depends on:
     \begin{itemize}
     \item Dimensions (\(width\) and \(height\))
-    \item Color (and alpha) depth or bits per pixel (\(bpp\))
+    \item Number of bits per pixel (\(bpp\)): color (and alpha) depth and dead bits
     \item Roughly: \(width \times height \times bpp \div 8~bytes\)
     \item For 12 Mpixels with 16 Mcolors and alpha: \(4000 \times 3000 \times 32 \div 8 = 45.8 MiB\)
     \end{itemize}
@@ -373,10 +393,17 @@ u_s > 2 \times u_{max}, ~v_s = 2 \times v_{max}
   \end{itemize}
 
   \begin{center}
-  \includegraphics[width=0.7\textwidth]{slides/graphics-theory/yuv-sub-sampling.pdf}
+  \includegraphics[width=0.55\textwidth]{slides/graphics-theory/yuv-sub-sampling.pdf}
 
-  YUV 4:2:0 usual example:\\
-  {\small\(bpp_Y = 8,~bpp_U = 8 / 2 = 4,~bpp_V = 8 / 2 = 4 ~\Rightarrow~ bpp = 16~bits/pixel\)}
+  YUV 4:2:0 usual example:
+  {\small
+  \begin{equation*}
+  \begin{gathered}
+  bpp_Y = 8,~bpp_U = bpp_V = 8 \div 2 \div 2 = 2 \\
+  \Rightarrow~ bpp = bpp_Y + bpp_U + bpp_V = 12~bits/pixel
+  \end{gathered}
+  \end{equation*}
+  }
   \end{center}
 \end{frame}
 
@@ -433,33 +460,38 @@ u_s > 2 \times u_{max}, ~v_s = 2 \times v_{max}
 
 \begin{frame}{Accessing pixel data}
   \begin{itemize}
-  \item Pixel data is stored in memory, with a base address
+  \item Information required to access pixel data in memory:
+    \begin{itemize}
+    \item Pixel format (also modifier if not linear/raster order)
+    \item Dimensions (and total size)
+    \item Pointer to the base buffer address
+    \end{itemize}
+  \item The size of each line is called \textbf{stride} or \textbf{pitch}
+    \begin{itemize}
+    \item Usually equals: \(stride = width \times bpp \div 8\)
+    \item Can contain an extra dead zone at the end
+    \item Also needs to be specified explicitly
+    \end{itemize}
   \item CPU access is either byte or word-aligned
     \begin{itemize}
     \item Good fit for formats with \(bpp = 32\) (very common)
     \item Good fit for formats with \(bpp = 8 \times n\)
     \item Not always easy to manage otherwise
     \end{itemize}
-  \item The size of each line is called \textbf{stride} or \textbf{pitch}
-    \begin{itemize}
-    \item Usually equals: \(stride = width \times bpp \div 8\)
-    \item Can contain an extra dead zone at the end
-    \item Needs to be specified explicitly
-    \end{itemize}
-  \item The address of a pixel at \((x,y)\) in raster order is:
-\[
-address = address_{base} + y \times stride + x \times bpp \div 8
-\]
   \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]{Iterating over pixel data}
   \begin{itemize}
+  \item Selected format (slides and demos): \textbf{XRGB8888}
+    \begin{itemize}
+    \item \(bpp = 32 = 8 \times 4\), one byte per channel, one memory plane
+    \end{itemize}
   \item Pixel data can be access by iterating nested variables:
   \begin{minted}[fontsize=\small]{c}
 for (y = 0; y < height; y++)
   for (x = 0; x < width; x++)
-    data = base + y * stride + x * bpp / 8;
+    data = base + y * stride + x * 4;
   \end{minted}
   \item Iterating over all pixels takes numerous CPU-cycles, tips:
     \begin{itemize}
@@ -468,8 +500,8 @@ for (y = 0; y < height; y++)
 data = base;
 for (y = 0; y < height; y++)
   for (x = 0; x < width; x++)
-    data += bpp / 8;
-  data += stride - width * 8 / bpp;
+    data += 4;
+  data += stride - width * 4;
   \end{minted}
     \item Iterating in y-major is also better for cache hits
     \item Beware: C pointer arithmetic uses type size as unit
@@ -693,13 +725,19 @@ y = y_c + b cos(\phi)
 
 \begin{frame}{Alpha blending}
   \begin{itemize}
-  \item Various alpha-enabled pixel sources are composited with alpha blending
-  \item Results in a single picture aggregating sources
+  \item Compositing multiple alpha-enabled pixel sources into a single result
     \begin{itemize}
-    \item Sources can be stacked with a priority (z-order)
-    \item Semi-transparent surfaces need to be merged together
+    \item Simplest case: aggregating sources with z-ordered stacking
+    \item Equation for A over B (with \(\alpha\) the alpha and \(C\) the color component value):
     \end{itemize}
-  \item Different alpha merging operations were defined by Porter and Duff:
+\[
+C_o = \frac{C_a \alpha_a + C_b \alpha_b \left(1 - \alpha_a\right)}{\alpha_a + \alpha_b \left(1 - \alpha_a\right)}
+\]
+  \item With alpha available, many more operations become possible
+    \begin{itemize}
+    \item Shapes can be used as masks, with logic operators
+    \item Formalized by Porter and Duff in 1984
+    \end{itemize}
   \end{itemize}
   \begin{center}
   \includegraphics[width=0.5\textwidth]{slides/graphics-theory/porter-duff-compositing.pdf}
@@ -749,24 +787,30 @@ x_{source} = x_{destination} \times scale
 \begin{frame}{Linear filtering and convolution}
   \begin{itemize}
   \item Filtering is a transformation of each pixel based on its neighbors
-  \item The pixel value is a linear sum of weighted neighboring values
+  \item The pixel output value is a linear sum of weighted neighboring input values
 \[
 o_{x,y} = \alpha_0 i_{x,y} + \alpha_1 i_{x-1,y} + \alpha_2 i_{x+1,y} + ...
 \]
-  \item Weighting coefficients are represented in a 2D matrix, the filter kernel
-  \item Corresponds to a Convolution operation with the filter kernel \(\omega\):
-\[
-g(x,y)= \omega *f(x,y)=\sum_{s=-a}^a{\sum_{t=-b}^b{ \omega (s,t)f(x-s,y-t)}}
-\]
-  \item Runs for each pixel: optimizations are implemented
-  \item Very useful for 2D signal treatment
+  \item Weighting coefficients are represented in a 2D matrix: the \textbf{filter kernel}
+    \begin{itemize}
+    \item Comes with \(2n + 1\) columns and \(2m + 1\) rows
+    \item The coefficients are applied to each input pixel and its neighbors
+    \item The element at the kernel center weights the current input pixel
+    \end{itemize}
+  \item Corresponds to a \textbf{convolution} operation between pixels and the filter kernel
+  \item High computational cost (optimizations are implemented)
+  \item Allows many applications for 2D signal treatment
   \end{itemize}
 \end{frame}
 
 \begin{frame}{Linear filtering and convolution (illustrated)}
   \begin{center}
-  \includegraphics[width=0.4\textwidth]{slides/graphics-theory/convolution.png}\\
-  \textit{\small Linear filtering with the convolution operation}
+  \includegraphics[width=0.7\textwidth]{slides/graphics-theory/linear-filtering.pdf}\\
+  \textit{\small Linear filtering in application}
+\[
+g(x,y)= \omega *f(x,y)=\sum_{s=-n}^n{\sum_{t=-m}^m{ \omega (s,t)f(x-s,y-t)}}
+\]
+  \textit{\small Bi-dimensional convolution operation on \(f\) with the \(\omega\) kernel}
   \end{center}
 \end{frame}
 
@@ -863,7 +907,35 @@ g(x,y)= \omega *f(x,y)=\sum_{s=-a}^a{\sum_{t=-b}^b{ \omega (s,t)f(x-s,y-t)}}
     \item \href{https://en.wikipedia.org/wiki/Image_scaling}{Image scaling}
     \item \href{https://en.wikipedia.org/wiki/Kernel_(image_processing)}{Kernel (image processing)}
     \end{itemize}
+  \item \url{http://ssp.impulsetrain.com/porterduff.html}
   \item \url{https://magcius.github.io/xplain/article/regions.html}
   \item \url{https://magcius.github.io/xplain/article/rast1.html}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Graphics theory illustrations attributions}
+  \small
+  \begin{itemize}
+  \item \href{https://commons.wikimedia.org/wiki/File:View_from_the_Window_at_Le_Gras,_Joseph_Nic\%C3\%A9phore_Ni\%C3\%A9pce.jpg}{Point de vue du Gras: Joseph Nicéphore Niépce, public domain}
+  \item \href{https://commons.wikimedia.org/wiki/File:Pinball_Dot_Matrix_Display_-_Demolition_Man.JPG}{Pinball Dot Matrix Display: ElHeineken, CC BY 3.0}
+  \item \href{https://commons.wikimedia.org/wiki/File:Soderledskyrkan_brick_wall.jpg}{Soderledskyrkan brick wall: Xauxa, CC BY-SA 3.0}
+  \item \href{https://commons.wikimedia.org/wiki/File:AliasingSines.svg}{Aliasing Sines: Moxfyre, CC BY-SA 3.0}
+  \item \href{https://commons.wikimedia.org/wiki/File:Moire_pattern_of_bricks.jpg}{Moiré pattern of bricks: Colin M.L. Burnett, CC BY-SA 3.0}
+  \item \href{https://commons.wikimedia.org/wiki/File:Moire_pattern_of_bricks_small.jpg}{Moiré Pattern at Gardham Gap: Roger Gilbertson, CC BY-SA 2.0}
+  \item \href{https://commons.wikimedia.org/wiki/File:RGBCube_a.svg}{RGB cube: Datumizer, CC BY-SA 4.0}
+  \item \href{https://commons.wikimedia.org/wiki/File:Pair_of_Merops_apiaster_feeding.jpg}{Pair of Merops apiaster feeding: Pierre Dalous, CC BY-SA 3.0}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Graphics theory illustrations attributions}
+  \small
+  \begin{itemize}
+  \item \href{https://commons.wikimedia.org/wiki/File:Hsl-hsv_models_b.svg}{Hsl-hsv models: Datumizer, CC BY-SA 3.0}
+  \item \href{https://commons.wikimedia.org/wiki/File:Barns_grand_tetons.jpg}{Barns grand tetons: Jon Sullivan, public domain}
+  \item \href{https://commons.wikimedia.org/wiki/File:Top-left_triangle_rasterization_rule.gif}{Top-left triangle rasterization rule: Drummyfish, CC0 1.0}
+  \item \href{https://commons.wikimedia.org/wiki/File:Line_scan-conversion.svg}{Line scan-conversion: Phrood, CC BY-SA 3.0}
+  \item \href{https://commons.wikimedia.org/wiki/File:Alpha_compositing.svg}{Alpha compositing: Prometeusm, Wereon, public domain}
+  \item \href{https://commons.wikimedia.org/wiki/File:Blender3D_com_key_chroma.jpg}{Blender3D com key chroma: Toni Grappa, Blender Foundation, CC BY-2.5}
+  \item \href{https://en.wikipedia.org/wiki/File:Dithering_example_dithered_web_palette.png}{Dithering example: Jamelan, CC BY-SA 3.0}
   \end{itemize}
 \end{frame}
