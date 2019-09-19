@@ -3,4 +3,5 @@ GRAPHICS_SLIDES = \
 		about-us \
 		graphics-theory \
 		graphics-hardware \
-		graphics-software
+		graphics-software \
+		last-slides
