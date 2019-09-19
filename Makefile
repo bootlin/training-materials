@@ -23,7 +23,7 @@ VARS = $(OUTDIR)/vars
 
 # Environment for pdflatex, which allows it to find the stylesheet in the
 # common/ directory.
-PDFLATEX_ENV = TEXINPUTS=.:$(PWD)/common:
+PDFLATEX_ENV = TEXINPUTS=.:$(PWD)/common: texfot
 
 # Arguments passed to pdflatex
 PDFLATEX_OPT = -shell-escape -file-line-error -halt-on-error
