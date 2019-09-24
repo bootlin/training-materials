@@ -2,7 +2,7 @@ YOCTO_STM32_SLIDES    = \
 		first-slides \
 		about-us \
 		course-information-title \
-		discovery-board \
+		discovery-board-dk1 \
 		yocto-course-outline \
 		course-information \
 		setup-lab \
