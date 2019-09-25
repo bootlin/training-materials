@@ -2,7 +2,9 @@ YOCTO_SLIDES    = \
 		first-slides \
 		about-us \
 		course-information-title \
+		using-either-bbb-or-stm32 \
 		beagleboneblack-board \
+		discovery-board-dk1 \
 		yocto-course-outline \
 		course-information \
 		setup-lab \
