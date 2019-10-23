@@ -7,6 +7,8 @@ Remember that the first step in optimization work is measuring elapsed
 time. We need to know which parts of the init scripts are the biggest
 time consumers.
 
+Check and write down the initial size of the root filesystem archive.
+
 \subsection{Use bootchartd on the board}
 
 Add \code{bootchartd} to your \code{BusyBox} configuration:
@@ -292,6 +294,8 @@ Update your root filesystem, remove the \code{rw} kernel parameter from
 \code{bootargs} in U-Boot (better to keep the root filesystem mounted read-only as we don't
 cleanly shut down the system) and check that your system still boots fine.
 
+Check and write down the new size of the root filesystem archive.
+
 \subsection{Reducing BusyBox to the minimum}
 
 While we're simplifying the root filesystem, it's time to reduce the
@@ -330,8 +334,6 @@ Just select the below options, based on what we have in our
   \begin{itemize}
      \item Support for the \code{sleep} command, with support for fractional arguments.
      \item Support for the \code{echo} command, without additional options.
-     \item Support for the \code{sync} command, without further options.
-           We need this utility if we make changes to the root filesystem.
      \item Enable \code{test} and \code{test as [}
      \item Disable \code{Extend test to 64 bit}
   \end{itemize}
@@ -352,6 +354,24 @@ Buildroot will enable Busybox \code{init} into your configuration.
 Run \code{make}, and update your SD card.
 Check the new size of \code{/bin/busybox}!
 
+Also write down the new size of the root filesystem tar archive.
+
+\subsection{Switching to static executables}
+
+Since we now have only two executables (\code{busybox} and
+\code{ffmpeg}), let's explore the possibility to switch to static
+executables, hoping to reduce filesystem size by not having to copy
+the entire shared libraries.
+
+In Buildroot's configuration interface, find and set
+\code{BR2_STATIC_LIBS=y}.
+
+Run \code{make clean} and \code{make}.
+
+Again, write down the new size of the root filesystem tar archive.
+You should observe substancial space reduction. Let's keep this option!
+
+\subsection{Testing}
 Boot your system again.
 
 If everything works, it's time to boot the system again through
