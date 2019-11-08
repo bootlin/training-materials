@@ -31,7 +31,7 @@ With \code{initcall_debug}, you can generate a boot graph
 making it easy to see which kernel initialization functions
 take most time to execute.
 \begin{itemize}
-\item Copy and paste the console output or the output of
+\item Copy and paste the output of
       the \code{dmesg} command to a file (let's call it \code{boot.log})
 \item On your workstation, run the \code{scripts/bootgraph.pl} script
       in the kernel sources: \\
@@ -51,11 +51,14 @@ function:
 \begin{itemize}
 \item Look for its definition in the kernel source code. You can use
       Elixir (for example \url{https://elixir.bootlin.com}).
+\item Be careful: some function names don't exist, the names
+      correspond to {\em modulename}\code{_init}. Then, look for
+      initialization code in the corresponding module.
 \item Remove unnecessary functionality:
       \begin{itemize}
-      \item Look for kernel parameters in C sources and Makefiles, starting
-      with \code{CONFIG_}. Some settings for such parameters could help
-      to remove code complexity or remove unnecessary features.
+      \item Find which kernel configuration parameter
+      compiles the code, by looking at the Makefile in the corresponding
+      source directory.
       \end{itemize}
 \end{itemize}
 \end{frame}
@@ -102,59 +105,77 @@ First, we focus on reducing the size without removing features
 Depending on the balance between your storage reading speed and your
 CPU power to decompress the kernel, you will need to benchmark
 different compression algorithms.
+
+Also recommended to experiment with compression options at the
+end of the kernel optimization process, as the results may vary
+according to the kernel size.
 \begin{center}
     \includegraphics[width=\textwidth]{slides/boot-time-kernel/kernel-compression-options.pdf}
 \end{center}
-Note: \code{bzip2} legacy compression is also supported on some architectures,
-but is the slowest and not the best compression rate.
 \end{frame}
 
 \begin{frame}
 \frametitle{Kernel compression options}
-Results on TI AM335x (ARM), 1 GHz, Linux 3.13-rc4
+Results on TI AM335x (ARM), 1 GHz, Linux 5.1
 {\fontsize{7}{10}\selectfont
-\begin{tabular}{| l || c | c | c | c | c | c |}
+\begin{tabular}{| l || c | c | c | c | c |}
 \hline
-Timestamp & gzip & lzma & xz & lzo & lz4 & uncompressed \\
+Timestamp & gzip & lzma & xz & lzo & lz4 \\
 \hline
-Size & 4308200 & 3177528 & {\bf 3021928} & 4747560 & 5133224 & 8991104 \\
-Copy & 0.451 s & 0.332 s & {\bf 0.315 s} & 0.499 s & 0.526 s & 0.914 s \\
-Uncompress & 0.945 s & 2.329 s & 2.056 s & 0.861 s & {\bf 0.851 s} & {\bf 0.687 s} \\
-Total & {\bf 5.516 s} & 6.066 s & 5.678 s & 5.759 s & 6.017 s & 8.683 s \\
+Size & 2350336 & 1777000 & {\bf 1720120} & 2533872 & 2716752 \\
+Copy & 0.208 s & 0.158 s & {\bf 0.154 s} & 0.224 s & 0.241 s \\
+Time to userspace & 1.451 s & 2.167 s & 1.999s & {\bf 1.416 s} & 1.462 s \\
 \hline
 \end{tabular}
 }
 \vfill{}
-Results on Microchip AT91SAM9263 (ARM), 200 MHz, Linux 3.13-rc4
+Gzip is close. It's time to try with faster storage (SanDisk Extreme
+Class A1)
 {\fontsize{7}{10}\selectfont
-\begin{tabular}{| l || c | c | c | c | c | c |}
+\begin{tabular}{| l || c | c | c | c | c |}
 \hline
-Timestamp & gzip & lzma & xz & lzo & lz4 & uncompressed \\
+Timestamp & gzip & lzma & xz & lzo & lz4 \\
 \hline
-Size & 3016192 & 2270064 & {\bf 2186056} & 3292528 & 3541040 & 5775472 \\
-Copy & 4.105 s & 3.095 s & {\bf 2.981 s} & 4.478 s & 4.814 & 7.836 s \\
-Uncompress & 1.737 s & 8.691 s & 6.531 s & {\bf 1.073} s & 1.225 s & N/A \\
-Total & 8.795 s & 14.200 s & 11.865 s & {\bf 8.700 s} & 9.368 s & N/A \\
+Size & 2350336 & 1777000 & {\bf 1720120} & 2533872 & 2716752 \\
+Copy & 0.150 s & 0.114 s & {\bf 0.111 s} & 0.161 s & 0.173 s \\
+Time to userspace & 1.403 s & 2.132 s & 1.965 s & {\bf 1.363 s} & 1.404 s \\
 \hline
 \end{tabular}
 }
 \newline\newline
-Results indeed depend on I/O and CPU performance!
+Lzo and Gzip seem the best solutions. Always benchmark as the results
+depend on storage and CPU performance.
 \end{frame}
 
 \begin{frame}
-\frametitle{Optimize kernel for size}
+\frametitle{Optimize kernel for size (1)}
 \begin{itemize}
 \item \code{CONFIG_CC_OPTIMIZE_FOR_SIZE}: possibility to compile the kernel
       with \code{gcc -Os} instead of \code{gcc -O2}.
 \item Such optimizations give priority to code size at
       the expense of code speed.
 \item Results: the initial boot time is better (smaller
-      size), but the slower kernel code quickly offsets
-      the benefits. Your system will run slower!
+      size), but the slower kernel code can offset
+      the benefits. Your system will run a bit slower!
 \end{itemize}
-Results on Microchip SAMA5D3 Xplained (ARM), Linux 3.10, gzip compression:
+\end{frame}
+
+\begin{frame}
+\frametitle{Optimize kernel for size (2)}
+Results on BeagleBone Black, Linux 5.1, lzo compression
+\begin{tabular}{| l || c | c | c |}
+\hline
+& O2 & Os & Diff \\
+\hline
+Size & 2533872 & 2390608 & -5.7 \% \\
+Copy time &  0.161 s & 0.153 s & -8 ms \\
+Starting kernel & 0.912 s & 0.904 s & -8 ms \\
+Starting userspace & 1.363 s & 1.359 s & -4 ms \\
+Total boot time & 2.961 s & 2.957s & -4 ms \\
+\hline
+\end{tabular}
 \newline\newline
+Results on Microchip SAMA5D3 Xplained, Linux 3.10, gzip compression:
 \begin{tabular}{| l || c | c | c |}
 \hline
 Timestamp & O2 & Os & Diff \\
@@ -165,7 +186,6 @@ Login prompt & 21.085 s & 22.900 s & + 1.815 s \\
 \hline
 \end{tabular}
 \newline\newline
-\small
 \end{frame}
 
 \begin{frame}
@@ -210,48 +230,44 @@ Login prompt & 21.085 s & 22.900 s & + 1.815 s \\
 \begin{frame}[fragile]
 \frametitle{Preset loops per jiffy}
 \begin{itemize}
-	\item At each boot, the Linux kernel calibrates a delay loop (for
-	      the \kfunc{udelay} function). This measures a number of loops per
-	      jiffy ({\em lpj}) value. You just need to measure this once! Find
-	      the \code{lpj} value in the kernel boot messages:
+        \item At each boot, the Linux kernel calibrates a delay loop (for
+              the \kfunc{udelay} function). This measures a number of loops per
+              jiffy ({\em lpj}) value. You just need to measure this once! Find
+              the \code{lpj} value in the kernel boot messages:
 \begin{block}{}
-\tiny
+\small
 \begin{verbatim}
-Calibrating delay loop... 262.96 BogoMIPS (lpj=1314816)
+Calibrating delay loop... 996.14 BogoMIPS (lpj=4980736)
 \end{verbatim}
 \end{block}
-	\item Now, you can add \code{lpj=<value>} to the kernel command
-	      line:
+        \item Now, you can add \code{lpj=<value>} to the kernel command
+              line:
 \begin{block}{}
-\tiny
+\small
 \begin{verbatim}
-Calibrating delay loop (skipped) preset value.. 262.96 BogoMIPS (lpj=1314816)
+Calibrating delay loop (skipped) preset value.. 996.14 BogoMIPS (lpj=4980736)
 \end{verbatim}
 \end{block}
-	\item Tests on Microchip SAMA5D3 Xplained (ARM), Linux 3.10:
-      \newline\newline
-    \begin{tabular}{| l || c | c | c |}
-    \hline
-    & Time & Diff \\
-    \hline
-    Without \code{lpj} & 71 ms & \\
-    With \code{lpj} & 8 ms & -63 ms\\
-    \hline
-    \end{tabular}
+        \item Tests on BeagleBone Bloack (ARM), Linux 5.1: -82 ms\\
+        Time measured at the first kernel messages... the calibration
+        loop is run before the message is issued.
 \end{itemize}
 \end{frame}
 
 \begin{frame}
-  \frametitle{Multiprocessing support (SMP)}
+  \frametitle{Multiprocessing support (CONFIG\_SMP)}
   \begin{itemize}
-	  \item SMP is quite slow to initialize
-	  \item It is usually enabled in default configurations, even if
-		you have a single core CPU (default configurations
-		should support multiple systems).
-	  \item So make sure you disable it if you only have one CPU
-		core.
+          \item SMP is quite slow to initialize
+          \item It is usually enabled in default configurations, even if
+                you have a single core CPU (default configurations
+                should support multiple systems).
+          \item So make sure you disable it if you only have one CPU
+                core.
+          \item Results on BeagleBone Black:\\
+                Compressed kernel size: -188 KB
   \end{itemize}
 \end{frame}
+
 
 \begin{frame}
 \frametitle{Kernel: last milliseconds (1)}
