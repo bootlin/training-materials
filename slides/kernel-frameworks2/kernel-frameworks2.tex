@@ -567,11 +567,11 @@ static int serial_imx_probe(struct platform_device *pdev)
     [...]
     /* setup the link between uart_port and the struct
      * device inside the platform_device */
-    sport->port.dev = &pdev->dev;
+    sport->port.dev = &pdev->dev;                                // Arrow 1
     [...]
     /* setup the link between the struct device inside
      * the platform device to the imx_port structure */
-    platform_set_drvdata(pdev, sport);
+    platform_set_drvdata(pdev, sport);                           // Arrow 2
     [...]
     uart_add_one_port(&imx_reg, &sport->port);
 }
@@ -607,14 +607,13 @@ static int ds1305_probe(struct spi_device *spi)
     ds1305 = devm_kzalloc(&spi->dev, sizeof(*ds1305), GFP_KERNEL);
     if (!ds1305)
             return -ENOMEM;
-    ds1305->spi = spi;
-    spi_set_drvdata(spi, ds1305);
+    ds1305->spi = spi;                         // Arrow 1
+    spi_set_drvdata(spi, ds1305);              // Arrow 2
 
     [...]
 
-    /* register RTC ... from here on, ds1305->ctrl needs locking */
-    ds1305->rtc = devm_rtc_device_register(&spi->dev, "ds1305",
-                    &ds1305_ops, THIS_MODULE);
+    ds1305->rtc = devm_rtc_allocate_device(&spi->dev); 
+                                               // Arrows 3 and 4
 
     [...]
 }
@@ -650,13 +649,13 @@ static int rtl8150_probe(struct usb_interface *intf,
 
     [...]
 
-    dev->udev = udev;
-    dev->netdev = netdev;
+    dev->udev = udev;      // Arrow 1
+    dev->netdev = netdev;  // Arrow 2
 
     [...]
 
-    usb_set_intfdata(intf, dev);
-    SET_NETDEV_DEV(netdev, &intf->dev);
+    usb_set_intfdata(intf, dev);        // Arrow 3
+    SET_NETDEV_DEV(netdev, &intf->dev); // Arrow 4
 
     [...]
 }
