@@ -55,6 +55,7 @@ init_waitqueue_head(&dev->smi_busy_wait);
     \end{itemize}
   \item \mint{c}+int wait_event_interruptible(queue, condition);+
     \begin{itemize}
+    \item The most common variant
     \item Can be interrupted by any signal. Returns
       \code{-}\ksym{ERESTARTSYS} if interrupted.
     \end{itemize}
@@ -66,8 +67,9 @@ init_waitqueue_head(&dev->smi_busy_wait);
   \begin{itemize}
   \item \mint{c}+int wait_event_timeout(queue, condition, timeout);+
     \begin{itemize}
-    \item Also stops sleeping when the task is woken up and the
-      timeout expired. Returns \code{0} if the timeout elapsed, non-zero if
+    \item Also stops sleeping when the task is woken up {\bf or} the
+      timeout expired (a timer is used).
+    \item Returns \code{0} if the timeout elapsed, non-zero if
       the condition was met.
     \end{itemize}
   \item \begin{minted}{c}
@@ -75,7 +77,8 @@ int wait_event_interruptible_timeout(queue,
                          condition, timeout);
   \end{minted}
     \begin{itemize}
-    \item Same as above, interruptible. Returns \code{0} if the timeout
+    \item Same as above, interruptible.
+    \item Returns \code{0} if the timeout
       elapsed, \code{-}\ksym{ERESTARTSYS} if interrupted, positive value if
       the condition was met.
     \end{itemize}
@@ -85,13 +88,12 @@ int wait_event_interruptible_timeout(queue,
 \begin{frame}[fragile]
 \frametitle{How to Sleep - Example}
 \begin{minted}{c}
-ret = wait_event_interruptible
-        (sonypi_device.fifo_proc_list,
-         kfifo_len(sonypi_device.fifo) != 0);
-
-if (ret)
-        return ret;
+sig = wait_event_interruptible(ibmvtpm->wq,
+                               !ibmvtpm->tpm_processing_cmd);
+if (sig)
+        return -EINTR;
 \end{minted}
+From \kfile{char/tpm/tpm_ibmvtpm.c}
 \end{frame}
 
 \begin{frame}
