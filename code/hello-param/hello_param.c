@@ -6,11 +6,11 @@
 MODULE_LICENSE("GPL");
 
 static char *whom = "world";
-module_param(whom, charp, 0);
+module_param(whom, charp, 0644);
 MODULE_PARM_DESC(whom, "Recipient of the hello message");
 
 static int howmany = 1;
-module_param(howmany, int, 0);
+module_param(howmany, int, 0644);
 MODULE_PARM_DESC(howmany, "Number of greetings");
 
 static int __init hello_init(void)
