@@ -170,6 +170,7 @@
 \begin{frame}[fragile]
   \frametitle{Spinlock example}
   \begin{itemize}
+  \item From \kfile{drivers/tty/serial/uartlite.c}
   \item Spinlock structure embedded into \kstruct{uart_port}
     \begin{minted}{c}
 struct uart_port {
@@ -193,18 +194,16 @@ static unsigned int ulite_tx_empty
 
 \begin{frame}
   \frametitle{Deadlock Situations}
-  \begin{itemize}
-  \item They can lock up your system. Make sure they never happen!
-  \item Don't call a function that can try to get access to the same
-    lock
-    \begin{center}
-      \includegraphics[height=0.3\textheight]{slides/kernel-driver-development-concurrency/deadlock-same-lock.pdf}
-    \end{center}
-  \item Holding multiple locks is risky!
-    \begin{center}
-      \includegraphics[height=0.3\textheight]{slides/kernel-driver-development-concurrency/deadlock-two-locks.pdf}
-    \end{center}
-  \end{itemize}
+  They can lock up your system. Make sure they never happen!
+  \vspace{0.5cm}
+  \begin{columns}
+  \column[t]{0.5\textwidth}
+      Rule 1: don't call a function that can try to get access to the same lock
+      \includegraphics[width=0.9\textwidth]{slides/kernel-driver-development-concurrency/deadlock-same-lock.pdf}
+  \column[t]{0.5\textwidth}
+      Rule 2: if you need multiple locks, always acquire them in the same order!
+      \includegraphics[width=0.9\textwidth]{slides/kernel-driver-development-concurrency/deadlock-two-locks.pdf}
+  \end{columns}
 \end{frame}
 
 \begin{frame}
