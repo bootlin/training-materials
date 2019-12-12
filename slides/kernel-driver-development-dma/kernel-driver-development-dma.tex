@@ -53,8 +53,8 @@
       the cache than the bus)
     \item But the DMA does not access the CPU cache, so one needs to
       take care of cache coherency (cache content vs. memory content)
-    \item Either flush or invalidate the cache lines corresponding to
-      the buffer accessed by DMA and processor at strategic times
+    \item Either commit or invalidate the cache lines corresponding to
+      the buffer accessed by DMA and processor at the right times
     \end{itemize}
   \end{itemize}
 \end{frame}
@@ -78,17 +78,17 @@
   \begin{itemize}
   \item Before DMA to device
     \begin{itemize}
-    \item Need to make sure that all writes to DMA buffer are
+    \item Need to make sure that all writes to the DMA buffer are
       committed.
     \end{itemize}
   \item After DMA from device
     \begin{itemize}
-    \item Before drivers read from DMA buffer, need to make sure
-      that memory caches are flushed.
+    \item Before drivers read from a DMA buffer, need to make sure
+      that the corresponding memory cache lines are invalidated.
     \end{itemize}
   \item Bidirectional DMA
     \begin{itemize}
-    \item Need to flush caches before and after the DMA transfer.
+    \item Need to do both of the above operations
     \end{itemize}
   \end{itemize}
 \end{frame}
@@ -98,7 +98,7 @@
   The kernel DMA utilities can take care of:
   \begin{itemize}
   \item Either allocating a buffer in a cache coherent area,
-  \item Or making sure caches are flushed when required,
+  \item Or making sure caches are handled when required,
   \item Managing the DMA mappings and IOMMU (if any).
   \item See \kerneldoctext{DMA-API.txt} for details about the
     Linux DMA generic API.
