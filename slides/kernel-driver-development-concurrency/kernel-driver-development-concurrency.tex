@@ -35,7 +35,9 @@
   \frametitle{Linux mutexes}
   {\em mutex = {\bf mut}ual {\bf ex}clusion}
   \begin{itemize}
-  \item The kernel's main locking primitive
+  \item The kernel's main locking primitive. It's a {\em binary lock}.
+    Note that {\em counting locks} ({\em semaphores}) are also available,
+    but used 30x less frequently.
   \item The process requesting the lock blocks when the lock is
     already held.  Mutexes can therefore only be used in contexts
     where sleeping is allowed.
@@ -172,14 +174,17 @@
   \begin{itemize}
   \item From \kfile{drivers/tty/serial/uartlite.c}
   \item Spinlock structure embedded into \kstruct{uart_port}
-    \begin{minted}{c}
+    \begin{block}{}
+    \begin{minted}[fontsize=\small]{c}
 struct uart_port {
         spinlock_t lock;
         /* Other fields */
 };
     \end{minted}
+    \end{block}
   \item Spinlock taken/released with protection against interrupts
-    \begin{minted}{c}
+    \begin{block}{}
+    \begin{minted}[fontsize=\small]{c}
 static unsigned int ulite_tx_empty
     (struct uart_port *port) {
         unsigned long flags;
@@ -189,6 +194,7 @@ static unsigned int ulite_tx_empty
         spin_unlock_irqrestore(&port->lock, flags);
 }
     \end{minted}
+    \end{block}
   \end{itemize}
 \end{frame}
 
@@ -321,12 +327,23 @@ static unsigned int ulite_tx_empty
 
 \begin{frame}
   \frametitle{Kernel locking: summary and references}
-  \begin{itemize}
-  \item Use mutexes in code that is allowed to sleep
-  \item Use spinlocks in code that is not allowed to sleep (interrupts)
-    or for which sleeping would be too costly (critical sections)
-  \item Use atomic operations to protect integers or addresses
-  \end{itemize}
-  See \kerneldochtml{kernel-hacking/locking} in kernel documentation
-  for many details about kernel locking mechanisms.
+  \begin{columns}
+  \column[t]{0.65\textwidth}
+    \begin{itemize}
+    \item Use mutexes in code that is allowed to sleep
+    \item Use spinlocks in code that is not allowed to sleep (interrupts)
+      or for which sleeping would be too costly (critical sections)
+    \item Use atomic operations to protect integers or addresses
+    \end{itemize}
+    See \kerneldochtml{kernel-hacking/locking} in kernel documentation
+    for many details about kernel locking mechanisms.
+  \column[t]{0.35\textwidth}
+    \small
+    Further reading: see the classical
+    {\em \href{https://en.wikipedia.org/wiki/Dining_philosophers_problem}
+    {dining philosophers problem}} for a nice illustration of synchronization
+    and concurrency issues.
+    \includegraphics[width=\textwidth]{slides/kernel-driver-development-concurrency/An_illustration_of_the_dining_philosophers_problem.jpg}
+    \tiny Image source: Wikipedia (\url{https://frama.link/xg3Wnd0F})
+  \end{columns}
 \end{frame}
