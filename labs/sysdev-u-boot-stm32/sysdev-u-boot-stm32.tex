@@ -142,17 +142,23 @@ sudo apt install device-tree-compiler
 
 \section{Flashing U-Boot}
 
-The ROM monitor will look for {\em fsbl} in a partition named
-\code{fsbl1} if that fails, it will look at the partition named
-\code{fsbl2}. So, as far as bootloaders are concerned, the SD card
-partitioning will look like:
+The ROM monitor will look for the first stage bootloader in a
+partition named \code{fsbl1}. If it cannot find a valid bootloader in
+this partition, it will then try to load it from a partition named
+\code{fslb2}. This first stage bootloader (in our case the U-Boot SPL)
+will load the second bootloader (U-Boot itself) from the partition
+named \code{ssbl}. Finally, U-Boot will store its environment in the
+fourth partition, which we'll name \code{bootfs}.
+
+So, as far as bootloaders are concerned, the SD card partitioning will
+look like:
 
 \begin{verbatim}
 Number  Start   End      Size     File system  Name    Flags
  1      2048s   4095s    2048s                 fsbl1
- 2      4096s   8191s    4096s                 fsbl2
- 3      8192s   12287s   4096s                 ssbl
- 4      12288s  131071s  118784s               bootfs
+ 2      4096s   6143s    2048s                 fsbl2
+ 3      6144s   10239s   4096s                 ssbl
+ 4      10240s  131071s  120832s               bootfs
 \end{verbatim}
 
 Plug the SD card your instructor gave you on your workstation. Type
@@ -202,9 +208,9 @@ The ROM monitor handles {\em GPT} partition tables, let's create one:
 Then, the 4 partitions are created with:
 \begin{verbatim}
 (parted) mkpart fsbl1 0% 4095s
-(parted) mkpart fsbl2 4096s 8191s
-(parted) mkpart ssbl 8192s 12287s
-(parted) mkpart bootfs 12288s 131071s
+(parted) mkpart fsbl2 4096s 6143s
+(parted) mkpart ssbl 6144s 10239s
+(parted) mkpart bootfs 10240s 131071s
 \end{verbatim}
 
 You can verify everything looks right with:
