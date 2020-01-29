@@ -177,9 +177,8 @@ LABS_PICTURES = $(call PICTURES,$(foreach s,$(LABS_CHAPTERS),labs/$(s))) $(COMMO
 	rm -f $(OUTDIR)/$(basename $@).tex
 	echo "\input{$(VARS)}" >> $(OUTDIR)/$(basename $@).tex
 	for f in $(filter %.tex,$^) ; do \
-		echo -n "\input{../"          >> $(OUTDIR)/$(basename $@).tex ; \
-		echo -n $$f | sed 's%\.tex%%' >> $(OUTDIR)/$(basename $@).tex ; \
-		echo "}"                      >> $(OUTDIR)/$(basename $@).tex ; \
+		cp $$f $(OUTDIR)/`basename $$f` ; \
+		printf "\input{%s}\n" `basename $$f .tex` >> $(OUTDIR)/$(basename $@).tex ; \
 	done
 	(cd $(OUTDIR); $(PDFLATEX_ENV) $(PDFLATEX) $(basename $@).tex)
 # The second call to pdflatex is to be sure that we have a correct table of
