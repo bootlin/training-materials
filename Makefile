@@ -5,6 +5,14 @@ PDFLATEX = xelatex
 DIA      = dia
 EPSTOPDF = epstopdf
 
+INKSCAPE_IS_NEW = $(shell inkscape --version | grep -q "^Inkscape 1.0" && echo YES)
+
+ifeq ($(INKSCAPE_IS_NEW),YES)
+INKSCAPE_PDF_OPT = -o
+else
+INKSCAPE_PDF_OPT = -A
+endif
+
 # Needed macros
 UPPERCASE = $(shell echo $1 | tr "[:lower:]" "[:upper:]")
 
@@ -239,9 +247,9 @@ $(OUTDIR)/%.pdf: %.svg
 	@printf "%-15s%-20s->%20s\n" INKSCAPE $(notdir $^) $(notdir $@)
 	@mkdir -p $(dir $@)
 ifeq ($(V),)
-	$(INKSCAPE) -D -A $@ $< > /dev/null 2>&1
+	$(INKSCAPE) -D $(INKSCAPE_PDF_OPT) $@ $< > /dev/null 2>&1
 else
-	$(INKSCAPE) -D -A $@ $<
+	$(INKSCAPE) -D $(INKSCAPE_PDF_OPT) $@ $<
 endif
 
 $(OUTDIR)/%.pdf: $(OUTDIR)/%.eps
