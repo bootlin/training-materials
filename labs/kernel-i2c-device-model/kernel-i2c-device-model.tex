@@ -23,39 +23,10 @@ Now create a new \code{nunchuk} branch starting from the
 \code{5.5.y} branch,  for your upcoming work on the nunchuk
 driver.
 
-\section{Connecting the nunchuk}
-
-Take the nunchuk device provided by your instructor.
-
-We will connect it to the second I2C port of the CPU (\code{i2c1}),
-which pins are available on the \code{P9} connector.
-
-Download a useful document sharing useful details about the nunchuk
-and its connector:\\
-\url{https://bootlin.com/labs/doc/nunchuk.pdf}
-
-Now we can identify the 4 pins of the nunchuk connector:
-
-\begin{center}
-\includegraphics[width=4cm]{common/nunchuk-pinout.pdf}
-\end{center}
-
-Open the System Reference Manual that you downloaded earlier,
-and look for "connector P9" in the table of contents, and then
-follow the link to the corresponding section. Look at the table listing
-the pinout of the P9 connector.
-
-Now connect the nunchuk pins:
-\begin{itemize}
-\item The \code{GND} pin to P9 pins 1 or 2 (\code{GND})
-\item The \code{PWR} pin to P9 pins 3 or 4 (\code{DC_3.3V})
-\item The \code{SCL} pin to P9 pin 17 (\code{I2C1_SCL})
-\item The \code{SDA} pin to P9 pin 18 (\code{I2C1_SDA})
-\end{itemize}
-
-\begin{center}
-\includegraphics[width=12cm]{common/bbb-connect-nunchuk.pdf}
-\end{center}
+During this lab, we will start to implement a driver for a
+Nunchuk I2C device, but at this stage we won't need to connect
+it yet, as we will enable I2C on the right board pins in the
+next lab.
 
 \section{Create a custom device tree}
 
@@ -82,12 +53,8 @@ new DTS is compiled automatically.
 We are first going to enable and configure the second I2C bus
 (\code{i2c1}).
 
-First, find the DT definitions for (\code{i2c1}).
-
-What is the base address of its registers? Also find the same address in
-the big processor Technical Reference Manual\footnote{Tip: to do your search, put an
-underscore character in the middle of the address, as in
-\code{FFFF_FFFF}... that's how addresses are written in this document).}.
+First, as an exercise, find the DTS include file defining (\code{i2c1})
+for the SoC in our board.
 
 Then, make a reference to this definition in your custom DTS and
 enable this bus. Also configure it to function at 100 KHz. That's
@@ -121,21 +88,33 @@ you are not sure exactly which settings were actually loaded.
 For example, you can check the presence of a new \code{nunchuk} node in
 your device tree:
 
+{\small
 \begin{verbatim}
 # find /sys/firmware/devicetree -name "*nunchuk*"
-/sys/firmware/devicetree/base/ocp/i2c@4802a000/nunchuk@52
+/sys/firmware/devicetree/base/ocp/interconnect@48000000/segment@0/target-module@2a000/i2c@0/nunchuk@52
 \end{verbatim}
+}
 
-Using the Device Tree Compiler (\code{dtc}, which we put in the root
-filesystem), you can also check the whole Device Tree structure. That's
-better than checking the source files and includes in the source
-directory!
+As the base address of the I2C1 controller registers was not explicited
+in the DTSI file (at least not in the corresponding node), you can now
+compute this address from the above line: it's \code{0x8000000 + 0x2a000
+= 0x802a000}.
+
+Also find the same address in the big processor Technical Reference
+Manual\footnote{Tip: to do your search, put an underscore character
+in the middle of the address, as in \code{FFFF_FFFF}... that's how
+addresses are written in this document.}.
+
+Back to \code{/sys/firmware/devicetree/}, you can also check the whole
+structure of the loaded Device Tree, using the Device Tree Compiler
+(\code{dtc}, which we put in the root filesystem. That's better than
+checking the source files and includes in the source directory:
 
 \begin{verbatim}
-# dtc -I fs /sys/firmware/devicetree/base/
+# dtc -I fs /sys/firmware/devicetree/base/ > /tmp/dts
 \end{verbatim}
 
-Look for \code{i2c1} and \code{nunchuk} in the output of this command,
+Look for \code{i2c1} and \code{nunchuk} in the output file,
 and see where the nodes are instantiated. Don't hesitate to ask your
 instructor for questions!
 
