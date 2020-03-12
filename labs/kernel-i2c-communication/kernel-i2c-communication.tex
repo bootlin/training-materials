@@ -118,21 +118,26 @@ the Device Tree for the AM335x EVM board
 \code{i2c1} too. Look for \code{i2c1_pins}, and you will see how
 offsets are declared and what values they are given:
 
+{\small
 \begin{verbatim}
 i2c1_pins: pinmux_i2c1_pins {
-        pinctrl-single,pins = <
-                AM33XX_IOPAD(0x958, PIN_INPUT_PULLUP | MUX_MODE2) /* spi0_d1.i2c1_sda */
-                AM33XX_IOPAD(0x95c, PIN_INPUT_PULLUP | MUX_MODE2) /* spi0_cs0.i2c1_scl */
-        >;
+	pinctrl-single,pins = <
+		AM33XX_PADCONF(AM335X_PIN_SPI0_D1, PIN_INPUT_PULLUP, MUX_MODE2)	/* spi0_d1.i2c1_sda */
+		AM33XX_PADCONF(AM335X_PIN_SPI0_CS0, PIN_INPUT_PULLUP, MUX_MODE2)	/* spi0_cs0.i2c1_scl */
+	>;
 };
 \end{verbatim}
+}
 
 Here are details about the values:
 
 \begin{itemize}
-\item \code{MUX_MODE2} corresponds to muxing mode 2, as explained in the
+\item \ksym{AM335X_PIN_SPI0_D1} and \ksym{AM335X_PIN_SPI0_CS0} offsets
+      in the Pin Controller registers to control muxing on the
+      corresponding package pins.
+\item \ksym{MUX_MODE2} corresponds to muxing mode 2, as explained in the
       datasheet.
-\item \code{PIN_INPUT_PULLUP} puts the pin in pull-up mode (remember
+\item \ksym{PIN_INPUT_PULLUP} puts the pin in pull-up mode (remember
       that our pins support both pull-up and pull-down). It seems to
       be needed for I2C bus operation.
 \end{itemize}
@@ -234,9 +239,8 @@ In the probe routine (run every time a matching device is found):
       using. This could reveal communication issues.  Using Elixir, find
       examples of how to handle failures properly using the same
       function.
-\item Let the CPU wait for 1 ms by using the \kfunc{msleep} routine.
-      You may need to use Elixir again to find the right C headers to
-      include.
+\item Let the CPU wait for 1 ms by using the \kfunc{udelay} routine.
+      You may need to use Elixir again to find the right C headers to include.
 \item In the same way, send the \code{0xfb} and \code{0x00} bytes now.
       This completes the nunchuk initialization.
 \end{enumerate}
@@ -256,11 +260,15 @@ To keep the code simple and readable, let's create a
 In this function:
 
 \begin{enumerate}
-\item Start by putting a \code{10 ms} delay by calling the
-      \kfunc{msleep} routine\footnote{\kfunc{msleep} is nicer
-      than \kfunc{mdelay} because it is not making an active wait, and 
-      instead lets the CPU run other tasks in the meantime.}. That's needed
-      to add time between the previous i2c operation and the next one.
+\item Start by putting a \code{10 ms} delay by calling
+      \code{usleep_range(10, 20)}, guaranteed to sleep between 10 and 20
+      ms.\footnote{That's better than using \kfunc{udelay} because it is not making
+      an active wait, and instead lets the CPU run other tasks in the meantime.
+      You'll find interesting details on how to sleep or wait in kernel
+      code for specified durations in the kernel documentation:
+      \kerneldochtml{timers/timers-howto}.}
+      Such waiting time is needed to add time between the previous i2c
+      operation and the next one.
 \item Write \code{0x00} to the bus. That will allow us to read
       the device registers.
 \item Add another \code{10 ms} delay.
