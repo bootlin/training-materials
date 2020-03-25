@@ -309,8 +309,8 @@ help:
 		@printf $(HELP_FIELD_FORMAT) "full-$(p)-labs.pdf" "Complete labs for the '$(p)' course"$(sep))
 	$(foreach p,$(ALL_TRAININGS),\
 		@printf $(HELP_FIELD_FORMAT) "full-$(p)-slides.pdf" "Complete slides for the '$(p)' course"$(sep))
-	$(foreach p,$(ALL_TRAININGS),\
-		@printf $(HELP_FIELD_FORMAT) "$(p)-agenda.pdf" "Agenda for the '$(p)' course"$(sep))
+	$(foreach p,$(sort $(patsubst agenda/%.tex,%.pdf,$(wildcard agenda/*.tex))),\
+		@printf $(HELP_FIELD_FORMAT) "$(p)" "Agenda for the '$(patsubst %-agenda.pdf,%,$(p))' course"$(sep))
 	$(foreach p,$(ALL_TRAININGS),\
 		@printf $(HELP_FIELD_FORMAT) "$(p)-labs.tar.xz" "Lab data for the '$(p)' course"$(sep))
 	@echo
