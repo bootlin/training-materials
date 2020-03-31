@@ -110,15 +110,19 @@ code inside the binaries.
 You could disassemble the whole \code{vmlinux} file and work with
 the \code{PC} absolute address, but it is going to take a long time.
 
-Instead, using Elixir or \code{cscope}, find the \code{.c} source file where
-the function is implemented. In the kernel sources, you can then find
+Instead, using Elixir or \code{cscope}, you'll find that the crash
+happens in an function defined in assembly, called by a function
+implemented in C. Find the \code{.c} source file where
+the C function is implemented.
+
+In the kernel sources, you can then find
 and dissassemble the corresponding \code{.o} file:
 
 \begin{verbatim}
 arm-linux-gnueabi-objdump -S file.o > file.S
 \end{verbatim}
 
-For this need, you could also use {gdb-multiarch}\footnote{gdb-multiarch is a new package
+Another way to do this is to use {gdb-multiarch}\footnote{gdb-multiarch is a new package
 supporting multiple architectures at once. If you have a cross
 toolchain including gdb, you can also run arm-linux-gdb directly.}:
 
@@ -134,7 +138,10 @@ Then, in the disassembled code, find the start address of the
 function, and using an hexadecimal calculator, add the offset that
 was provided in the crash output. That's how you can find the
 exact assembly instruction where the crash occured, together
-with the C code it was compiled from.
+with the C code it was compiled from. Looking at the addresses
+handled by this code, you can now guess what is wrong in the
+data passed to the stack of kernel functions called by the
+broken module.
 
 A little understanding of assembly instructions on the architecture
 you are working on helps, but seeing the original C code should answer
