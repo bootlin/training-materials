@@ -519,6 +519,53 @@ $ make clean all
   \end{itemize}
 \end{frame}
 
+\begin{frame}{Support for top-level parallel build (1)}
+  \begin{itemize}
+  \item Buildroot normally builds packages {\bf sequentially}, one after the
+    other.
+  \item Calling Buildroot with \code{make -jX} has no effect
+  \item Parallel build is used {\em within} the build of each package:
+    Buildroot invokes each package build system with \code{make -jX}
+    \begin{itemize}
+    \item This level of parallelization is controlled by
+      \code{BR2_JLEVEL}
+    \item Defaults to 0, which means Buildroot auto-detects the number
+      of CPUs cores
+    \end{itemize}
+  \item Buildroot 2020.02 has introduced {\bf experimental} support
+    for top-level parallel build
+    \begin{itemize}
+    \item Allows to build multiple different packages in parallel
+    \item Of course taking into account their dependencies
+    \item Allows to better use multi-core machines
+    \item Reduces build time significantly
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Support for top-level parallel build (2)}
+  \begin{itemize}
+  \item To use this experimental support:
+    \begin{enumerate}
+    \item Enable \code{BR2_PER_PACKAGE_DIRECTORIES=y}
+    \item Build with \code{make -jX}
+    \end{enumerate}
+  \item The {\em per-package} option ensures that each package uses
+    its own \code{HOST_DIR}, \code{STAGING_DIR} and \code{TARGET_DIR}
+    so that different packages can be built in parallel with no
+    interference
+  \item See \code{$(O)/per-package/<pkg>/}
+  \item Limitations
+    \begin{itemize}
+    \item Not yet supported by all packages, e.g {\em Qt5}
+    \item Absolutely requires that packages do not overwrite/change
+      files installed by other packages
+    \item \code{<pkg>-reconfigure}, \code{<pkg>-rebuild},
+      \code{<pkg>-reinstall} not working
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
 \setuplabframe
 {Advanced aspects}
 {
