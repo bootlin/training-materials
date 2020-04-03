@@ -311,8 +311,8 @@ endif
   \item Buildroot does not re-invent the build system of each
     component, it simply uses it.
   \item Numerous build systems available: hand-written Makefiles or
-    shell scripts, {\em autotools}, {\em CMake} and also some specific
-    to languages: Python, Perl, Lua, Erlang, etc.
+    shell scripts, {\em autotools}, {\em Meson}, {\em CMake} and also
+    some specific to languages: Python, Perl, Lua, Erlang, etc.
   \item In order to avoid duplicating code, Buildroot has {\em package
       infrastructures} for well-known build systems.
   \item And a generic package infrastructure for software components
@@ -1239,51 +1239,51 @@ $(eval $(python-package))
   \item No \code{Config.in.host}, not visible in \code{menuconfig}.
   \end{itemize}
   \begin{block}{package/bison/bison.mk}
-    \begin{minted}[fontsize=\tiny]{make}
-BISON_VERSION = 3.0.4
+\begin{minted}[fontsize=\tiny]{make}
+BISON_VERSION = 3.4.2
 BISON_SOURCE = bison-$(BISON_VERSION).tar.xz
 BISON_SITE = $(BR2_GNU_MIRROR)/bison
 BISON_LICENSE = GPL-3.0+
 BISON_LICENSE_FILES = COPYING
+# parallel build issue in examples/c/reccalc/
+BISON_MAKE = $(MAKE1)
 HOST_BISON_DEPENDENCIES = host-m4
 
 $(eval $(host-autotools-package))
-    \end{minted}
+\end{minted}
   \end{block}
 \end{frame}
 
-\begin{frame}[fragile]{Example 2: a flashing utility}
+\begin{frame}[fragile]{Example 2: filesystem manipulation tool}
 
   \begin{itemize}
-  \item \code{dfu-util}, to reflash devices support the USB DFU
-    protocol. Typically used on a development PC.
+  \item \code{fatcat}, is designed to manipulate FAT filesystems, in
+    order to explore, extract, repair, recover and forensic them.
   \item Not used as a build dependency of another package
     $\rightarrow$ visible in \code{menuconfig}.
   \end{itemize}
-  \begin{block}{package/dfu-util/Config.in.host}
+  \begin{block}{package/fatcat/Config.in.host}
     \tiny
 \begin{verbatim}
-config BR2_PACKAGE_HOST_DFU_UTIL
-        bool "host dfu-util"
+config BR2_PACKAGE_HOST_FATCAT
+        bool "host fatcat"
         help
-          Dfu-util is the host side implementation of the DFU 1.0
-          specification of the USB forum. DFU is intended to download
-          and upload firmware to devices connected over USB.
+          Fatcat is designed to manipulate FAT filesystems, in order
+          to explore, extract, repair, recover and forensic them. It
+          currently supports FAT12, FAT16 and FAT32.
 
-          http://dfu-util.gnumonks.org/
+          https://github.com/Gregwar/fatcat
 \end{verbatim}
   \end{block}
 
-  \begin{block}{package/dfu-util/dfu-util.mk}
+  \begin{block}{package/fatcat/fatcat.mk}
     \begin{minted}[fontsize=\tiny]{make}
-DFU_UTIL_VERSION = 0.6
-DFU_UTIL_SITE = http://dfu-util.gnumonks.org/releases
-DFU_UTIL_LICENSE = GPL-2.0+
-DFU_UTIL_LICENSE_FILES = COPYING
+FATCAT_VERSION = 1.1.0
+FATCAT_SITE = $(call github,Gregwar,fatcat,v$(FATCAT_VERSION))
+FATCAT_LICENSE = MIT
+FATCAT_LICENSE_FILES = LICENSE
 
-HOST_DFU_UTIL_DEPENDENCIES = host-libusb
-
-$(eval $(host-autotools-package))
+$(eval $(host-cmake-package))
     \end{minted}
   \end{block}
 \end{frame}
@@ -1291,8 +1291,8 @@ $(eval $(host-autotools-package))
 \begin{frame}[fragile]{Example 3: target and host of the same package}
   \begin{block}{package/e2tools/e2tools.mk}
     \begin{minted}[fontsize=\tiny]{make}
-E2TOOLS_VERSION = 3158ef18a903ca4a98b8fa220c9fc5c133d8bdf6
-E2TOOLS_SITE = $(call github,ndim,e2tools,$(E2TOOLS_VERSION))
+E2TOOLS_VERSION = 0.0.16.4
+E2TOOLS_SITE = $(call github,ndim,e2tools,v$(E2TOOLS_VERSION))
 
 # Source coming from GitHub, no configure included.
 E2TOOLS_AUTORECONF = YES
@@ -1316,4 +1316,3 @@ $(eval $(host-autotools-package))
     the different package infrastructures.
   \end{itemize}
 }
-

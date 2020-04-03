@@ -443,19 +443,23 @@ endef
 \begin{itemize}
 
 \item Buildroot supports several main init systems: {\em sysvinit},
-  {\em Busybox} and {\em systemd}
+  {\em Busybox}, {\em systemd}, {\em OpenRC}
 
 \item When packages want to install a program to be started at boot
-  time, they need to install either a startup script ({\em
-    sysvinit}/{\em Busybox}) or a {\em systemd service} file.
+  time, they need to install a startup script ({\em
+    sysvinit}/{\em Busybox}), a {\em systemd service} file, etc.
 
-\item They can do so with the \code{<pkg>_INSTALL_INIT_SYSV} and
-  \code{<pkg>_INSTALL_INIT_SYSTEMD} variables, which contain a list of
-  shell commands.
+\item They can do so using the following variables, which contain a
+  list of shell commands.
+  \begin{itemize}
+  \item \code{<pkg>_INSTALL_INIT_SYSV}
+  \item \code{<pkg>_INSTALL_INIT_SYSTEMD}
+  \item \code{<pkg>_INSTALL_INIT_OPENRC}
+  \end{itemize}
 
-\item Buildroot will execute either the \code{<pkg>_INSTALL_INIT_SYSV}
-  or the \code{<pkg>_INSTALL_INIT_SYSTEMD} commands of all enabled
-  packages depending on the selected init system.
+\item Buildroot will execute the appropriate
+  \code{<pkg>_INSTALL_INIT_xyz} commands of all enabled packages
+  depending on the selected init system.
 
 \end{itemize}
 
@@ -473,11 +477,6 @@ endef
 define BIND_INSTALL_INIT_SYSTEMD
   $(INSTALL) -D -m 644 package/bind/named.service \
      $(TARGET_DIR)/usr/lib/systemd/system/named.service
-
-  mkdir -p $(TARGET_DIR)/etc/systemd/system/multi-user.target.wants
-
-  ln -sf /usr/lib/systemd/system/named.service \
-    $(TARGET_DIR)/etc/systemd/system/[...]/named.service
 endef
   \end{minted}
 \end{block}
@@ -593,13 +592,13 @@ $ ./output/staging/usr/bin/libpng-config --cflags --ldflags
 
 \begin{frame}[fragile]{Hooks: examples}
 
-\begin{block}{libungif.mk: remove unneeded binaries}
+\begin{block}{bind.mk: remove unneeded binaries}
   \begin{minted}[fontsize=\scriptsize]{make}
-define LIBUNGIF_BINS_CLEANUP
-        rm -f $(addprefix $(TARGET_DIR)/usr/bin/,$(LIBUNGIF_BINS))
+define BIND_TARGET_REMOVE_TOOLS
+        rm -rf $(addprefix $(TARGET_DIR)/usr/bin/, $(BIND_TARGET_TOOLS_BIN))
 endef
 
-LIBUNGIF_POST_INSTALL_TARGET_HOOKS += LIBUNGIF_BINS_CLEANUP
+BIND_POST_INSTALL_TARGET_HOOKS += BIND_TARGET_REMOVE_TOOLS
   \end{minted}
 \end{block}
 
@@ -611,8 +610,8 @@ define VSFTPD_ENABLE_SSL
 endef
 
 ifeq ($(BR2_PACKAGE_OPENSSL),y)
-VSFTPD_DEPENDENCIES += openssl
-VSFTPD_LIBS += -lssl -lcrypto
+VSFTPD_DEPENDENCIES += openssl host-pkgconf
+VSFTPD_LIBS += `$(PKG_CONFIG_HOST_BINARY) --libs libssl libcrypto`
 VSFTPD_POST_CONFIGURE_HOOKS += VSFTPD_ENABLE_SSL
 endif
   \end{minted}
@@ -748,10 +747,11 @@ F:      package/glibc/
     solve this situation.
     \begin{itemize}
     \item \code{libgles} is a virtual package offering the OpenGL ES API
-    \item Eight packages are {\em providers} of the OpenGL ES API:
-      \code{gpu-amd-bin-mx51}, \code{gpu-viv-bin-mx6q}, \code{mesa3d},
+    \item Ten packages are {\em providers} of the OpenGL ES API:
+      \code{gpu-amd-bin-mx51}, \code{imx-gpu-viv},
+      \code{gcnano-binaries}, \code{mali-t76x}, \code{mesa3d},
       \code{nvidia-driver}, \code{nvidia-tegra23-binaries},
-      \code{rpi-userland}, \code{sunxi-mali}, \code{ti-gfx}
+      \code{rpi-userland}, \code{sunxi-mali-mainline}, \code{ti-gfx}
     \end{itemize}
   \end{itemize}
 \end{frame}
@@ -813,23 +813,23 @@ $(eval $(virtual-package))
 
 \begin{frame}[fragile]{Virtual package provider}
 
-\begin{block}{sunxi-mali/Config.in}
+\begin{block}{sunxi-mali-mainline/Config.in}
 {\small
 \begin{verbatim}
-config BR2_PACKAGE_SUNXI_MALI
-        bool "sunxi-mali"
+config BR2_PACKAGE_SUNXI_MALI_MAINLINE
+        bool "sunxi-mali-mainline"
         select BR2_PACKAGE_HAS_LIBEGL
         select BR2_PACKAGE_HAS_LIBGLES
 
 config BR2_PACKAGE_PROVIDES_LIBGLES
-        default "sunxi-mali"
+        default "sunxi-mali-mainline"
 \end{verbatim}}
 \end{block}
 
-\begin{block}{sunxi-mali/sunxi-mali.mk}
+\begin{block}{sunxi-mali-mainline/sunxi-mali-mainline.mk}
 \begin{minted}{make}
 [...]
-SUNXI_MALI_PROVIDES = libegl libgles
+SUNXI_MALI_MAINLINE_PROVIDES = libegl libgles
 [...]
 \end{minted}
 \end{block}
