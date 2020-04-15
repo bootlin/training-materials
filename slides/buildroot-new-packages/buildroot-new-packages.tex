@@ -893,20 +893,22 @@ LINUX_INSTALL_IMAGES = YES
   \end{itemize}
 \end{frame}
 
-\begin{frame}[fragile]{Describing actions: example (1)}
-  \begin{block}{eeprog.mk}
+\begin{frame}[fragile]{Describing actions: {\tt iostat.mk} example}
+  \begin{block}{}
     \begin{minted}[fontsize=\scriptsize]{make}
-EEPROG_VERSION = 0.7.6
-EEPROG_SITE = http://www.codesink.org/download
-EEPROG_LICENSE = GPL-2.0+
-EEPROG_LICENSE_FILES = eeprog.c
+IOSTAT_VERSION = 2.2
+IOSTAT_SITE = http://linuxinsight.com/sites/default/files
+IOSTAT_LICENSE = GPL
+IOSTAT_LICENSE_FILES = LICENSE
 
-define EEPROG_BUILD_CMDS
-        $(MAKE) $(TARGET_CONFIGURE_OPTS) -C $(@D)
+define IOSTAT_BUILD_CMDS
+        $(MAKE) -C $(@D) $(TARGET_CONFIGURE_OPTS) \
+                CFLAGS="$(TARGET_CFLAGS) -DHZ=100"
 endef
 
-define EEPROG_INSTALL_TARGET_CMDS
-        $(INSTALL) -m 0755 -D $(@D)/eeprog $(TARGET_DIR)/usr/bin/eeprog
+define IOSTAT_INSTALL_TARGET_CMDS
+        $(INSTALL) -D -m 0755 $(IOSTAT_DIR)/iostat \
+                $(TARGET_DIR)/usr/bin/iostat
 endef
 
 $(eval $(generic-package))
