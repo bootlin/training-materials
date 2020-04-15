@@ -1057,31 +1057,28 @@ $(eval $(autotools-package))
     \column{0.5\textwidth}
     \begin{block}{}
       \begin{minted}[fontsize=\tiny]{make}
-POPPLER_VERSION = 0.32.0
-POPPLER_SOURCE = poppler-$(POPPLER_VERSION).tar.xz
-POPPLER_SITE = http://poppler.freedesktop.org
-POPPLER_DEPENDENCIES = fontconfig
-POPPLER_LICENSE = GPL-2.0+
-POPPLER_LICENSE_FILES = COPYING
-POPPLER_INSTALL_STAGING = YES
-POPPLER_CONF_OPTS = \
-   --with-font-configuration=fontconfig
+GNUPG2_VERSION = 2.2.20
+GNUPG2_SOURCE = gnupg-$(GNUPG2_VERSION).tar.bz2
+GNUPG2_SITE = https://gnupg.org/ftp/gcrypt/gnupg
+GNUPG2_LICENSE = GPL-3.0+
+GNUPG2_LICENSE_FILES = COPYING
+GNUPG2_DEPENDENCIES = zlib libgpg-error libgcrypt libassuan \
+        libksba libnpth host-pkgconf \
+        $(if $(BR2_PACKAGE_LIBICONV),libiconv)
 
-ifeq ($(BR2_PACKAGE_LCMS2),y)
-POPPLER_CONF_OPTS += --enable-cms=lcms2
-POPPLER_DEPENDENCIES += lcms2
+ifeq ($(BR2_PACKAGE_BZIP2),y)
+GNUPG2_CONF_OPTS += --enable-bzip2 --with-bzip2=$(STAGING_DIR)
+GNUPG2_DEPENDENCIES += bzip2
 else
-POPPLER_CONF_OPTS += --enable-cms=none
+GNUPG2_CONF_OPTS += --disable-bzip2
 endif
 
-ifeq ($(BR2_PACKAGE_TIFF),y)
-POPPLER_CONF_OPTS += --enable-libtiff
-POPPLER_DEPENDENCIES += tiff
+ifeq ($(BR2_PACKAGE_GNUTLS),y)
+GNUPG2_CONF_OPTS += --enable-gnutls
+GNUPG2_DEPENDENCIES += gnutls
 else
-POPPLER_CONF_OPTS += --disable-libtiff
+GNUPG2_CONF_OPTS += --disable-gnutls
 endif
-
-[...]
 \end{minted}
 \end{block}
 \column{0.5\textwidth}
@@ -1089,19 +1086,20 @@ endif
       \begin{minted}[fontsize=\tiny]{make}
 [...]
 
-ifeq ($(BR2_PACKAGE_POPPLER_QT),y)
-POPPLER_DEPENDENCIES += qt
-POPPLER_CONF_OPTS += --enable-poppler-qt4
+ifeq ($(BR2_PACKAGE_LIBUSB),y)
+GNUPG2_CONF_ENV += CPPFLAGS="$(TARGET_CPPFLAGS)
+                            -I$(STAGING_DIR)/usr/include/libusb-1.0"
+GNUPG2_CONF_OPTS += --enable-ccid-driver
+GNUPG2_DEPENDENCIES += libusb
 else
-POPPLER_CONF_OPTS += --disable-poppler-qt4
+GNUPG2_CONF_OPTS += --disable-ccid-driver
 endif
 
-ifeq ($(BR2_PACKAGE_OPENJPEG),y)
-POPPLER_DEPENDENCIES += openjpeg
-POPPLER_CONF_OPTS += \
-   -enable-libopenjpeg=openjpeg1
+ifeq ($(BR2_PACKAGE_READLINE),y)
+GNUPG2_CONF_OPTS += --with-readline=$(STAGING_DIR)
+GNUPG2_DEPENDENCIES += readline
 else
-POPPLER_CONF_OPTS += -enable-libopenjpeg=none
+GNUPG2_CONF_OPTS += --without-readline
 endif
 
 $(eval $(autotools-package))
