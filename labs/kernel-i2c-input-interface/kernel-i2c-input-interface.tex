@@ -209,12 +209,77 @@ reported by \code{evtest}.
 
 \section{Going further}
 
-If you complete your lab before the others, you can:
+Stopping here is sufficient, but if you complete your lab before the
+others, you can try to achieve the below challenges (in any order):
 
-\begin{itemize}
-\item Add support for the nunchuk joystick and accelerometer coordinates.
-\item Support two nunchucks at the same time, by borrowing a one from
-      the instructor or from a fellow participant. Making sure that your
-      driver does indeed support multiple devices at the same time is
-      a good way to make sure it is implemented properly.
-\end{itemize}
+\subsection{Supporting multiple devices}
+
+Modify the driver and Device Tree to support two nunchuks at the same
+time. You can borrow another nunchuk from the instructor or from a fellow
+participant.
+
+Making sure that your driver does indeed support multiple devices at the
+same time is a good way to make sure it is implemented properly.
+
+\subsection{Use the nunchuk as a joystick in an ascii game}
+
+In this optional, challenge, you will extend the driver to expose
+the joystick part of the nunchuk, i.e. x and y coordinates.
+
+We will use the {\em nInvaders} game, which is already present in
+your root filesystem.
+
+\subsubsection{Connect through SSH}
+
+{\em nInvaders} will not work very well over the serial port,
+so you will need to log to your system through \code{ssh} in an
+ordinary terminal:
+
+\begin{verbatim}
+ssh root@192.168.0.100
+\end{verbatim}
+
+You can already plan the \code{nInvaders} game with
+the keyboard!
+
+Note: if you get the error \code{Error opening terminal: xterm-256color.}
+when running \code{nInvaders}, issue first the
+\code{export TERM=xterm} command.
+
+\subsubsection{Recompile your kernel}
+
+Recompile your kernel with support for the joystick interface
+(\code{CONFIG_INPUT_JOYDEV}).
+
+Reboot to the new kernel.
+
+\subsubsection{Extend your driver}
+
+We are going to expose the joystick X and Y coordinates through
+the input device.
+
+Add the below code to the \code{probe} routine:
+\sourcecode{labs/kernel-i2c-input-interface/declare-x-and-y.c}
+
+See \kerneldochtml{input/input-programming} for details about
+the \kfunc{input_set_abs_params} function.
+
+For the joystick to be usable by the application, you will also
+need to declare {\em classic} buttons:
+
+\sourcecode{labs/kernel-i2c-input-interface/declare-classic-buttons.c}
+
+The next thing to do is to retrieve and report the joystick X and Y
+coordinates in the polling routine. This should be very straighforward.
+You will just need to go back to the nunchuk datasheet to find out
+which bytes contain the X and Y values.
+
+\subsubsection{Time to play}
+
+Recompile and reload your driver.
+
+You can now directly play {\em nInvaders}, only with your nunchuk.
+You'll quickly find how to move your ship, how to shoot and how
+to pause the game.
+
+Have fun!
