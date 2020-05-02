@@ -41,8 +41,8 @@ In case this website is down, you can also find this
 tool on \url{https://bootlin.com/labs/tools/}.}.
 
 \begin{verbatim}
-wget https://ww1.microchip.com/downloads/en/DeviceDoc/sam-ba_2.15.zip
-unzip sam-ba_2.15.zip
+wget http://ww1.microchip.com/downloads/en/DeviceDoc/sam-ba_3.3.1-linux_x86_64.tar.gz
+tar xf sam-ba_3.3.1-linux_x86_64.tar.gz
 \end{verbatim}
 
 \section{Setting up serial communication with the board}
@@ -163,40 +163,30 @@ speed up the compiling by using the \code{-jX} option with
 compiling. Twice the number of CPU cores is a good value.}.
 
 At the end of the compilation, you should have a file called
-\code{sama5d3_xplained-nandflashboot-uboot-*.bin}, in the
-\code{binaries} folder.
+\code{sama5d3_xplained-nandflashboot-uboot-*.bin}, and a \code{boot.bin}
+symbolic link to this file, in the \code{binaries} folder.
 
 In order to flash it, we need to do a few things. First, remove the
 \code{NAND CS} jumper on the board. It's next to the pin header
 closest to the Micro-USB plug. Now, press the \code{RESET} button.
-On the serial port, you should see \code{RomBoot}.
+On the serial port, you should see \code{RomBoot}. You should also
+see that a \code{/dev/ttyACM0} device file has appeared.
 
 Put the jumper back.
 
-Then, start \code{sam-ba_64}, running the executable from where
-it was extracted. You'll get a small window. Select the \code{ttyACM0}
-connection, and the \code{at91sama5d3x-xplained} board. Hit
-\code{Connect}.
+Getting back to the \code{bootloader} directory, use \code{sam-ba} to erase
+NAND flash before writing images to it:
 
-You need to:
-\begin{itemize}
-\item Hit the \code{NANDFlash} tab
-\item In the \code{Scripts} choices, select \code{Enable NandFlash}
-      and hit \code{Execute}
-\item Select \code{Erase All}, and execute the command
-\item Then, select and execute \code{Enable OS PMECC parameters}
-  in order to change the NAND ECC
-\footnote{{\em ECC} means {\em Error
-Correcting Code}. If we don't have the same ECC scheme as the one
-RomBOOT expects, RomBOOT will think that the NAND contents are
-corrupted.}
-parameters to what RomBOOT expects.
-\item Finally, send the image we just compiled using the command
-  \code{Send Boot File}
-\end{itemize}
+\begin{verbatim}
+./sam-ba_3.3.1/sam-ba -p serial -b sama5d3-xplained -t 5 -a nandflash -c erase
+\end{verbatim}
 
-AT91Bootstrap should be flashed now, keep \code{sam-ba} open, and move to
-the next section.
+Then flash the at91bootstrap binary:
+
+\begin{verbatim}
+./sam-ba_3.3.1/sam-ba -p serial -b sama5d3-xplained -t 5 -a nandflash \
+-c writeboot:at91bootstrap/binaries/boot.bin
+\end{verbatim}
 
 \section{U-Boot setup}
 
@@ -280,11 +270,13 @@ than our maximum size.
 
 \section{Flashing U-Boot}
 
-Now, in \code{sam-ba}, in the \code{Send File Name} field, set the path to
-the \code{u-boot.bin} that was just compiled, and set the address to
-\code{0x40000}. Click on the \code{Send File} button.
+Back to the \code{bootloader} directory, now use \code{sam-ba} to flash the
+U-Boot binary at offset \code{0x40000}:
 
-You can now exit \code{sam-ba}.
+\begin{verbatim}
+./sam-ba_3.3.1/sam-ba -p serial -b sama5d3-xplained -t 5 -a nandflash \
+-c write:u-boot-2017.09/u-boot.bin:0x40000
+\end{verbatim}
 
 \section{Testing U-Boot}
 
