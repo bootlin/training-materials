@@ -111,7 +111,7 @@ look like:
 \item Offset \code{0x40000} for the second stage bootloader is decided
   by the first stage bootloader. This can be changed by changing the
   AT91Bootstrap configuration.
-\item Offset \code{0xc0000} of the U-Boot environment is decided by
+\item Offset \code{0x140000} of the U-Boot environment is decided by
   U-Boot. This can be changed by modifying the U-Boot configuration.
 \end{itemize}
 
@@ -121,7 +121,7 @@ Microchip's GitHub account:
 \begin{verbatim}
 git clone https://github.com/linux4sam/at91bootstrap.git
 cd at91bootstrap
-git checkout v3.8.9
+git checkout v3.9.1
 \end{verbatim}
 
 Then, we first need to configure the build system for our setup. We're
@@ -190,15 +190,17 @@ Then flash the at91bootstrap binary:
 
 \section{U-Boot setup}
 
-Download U-Boot:
+Get U-Boot sources:
 
 \begin{verbatim}
-wget ftp://ftp.denx.de/pub/u-boot/u-boot-2017.09.tar.bz2
+git clone https://gitlab.denx.de/u-boot/u-boot
+git checkout v2020.04
+cd u-boot
 \end{verbatim}
 
 More recent versions may also work, but we have not tested them.
 
-Extract the source archive and get an understanding of U-Boot's
+Get an understanding of U-Boot's
 configuration and compilation steps by reading the \code{README} file,
 and specifically the {\em Building the Software} section.
 
@@ -229,44 +231,22 @@ sudo apt install device-tree-compiler
 
 \end{itemize}
 
-\section{Shrinking U-Boot}
-
 Look at the size of the \code{u-boot.bin} binary. According to the above
 flash layout, the U-Boot binary is supposed to fit between flash offset
-\code{0x40000} and offset \code{0xc0000}, corresponding to a maximum
-size of \code{524288} bytes. Is \code{u-boot.bin} bigger than this
+\code{0x40000} and offset \code{0x100000}, corresponding to a maximum
+size of \code{786432} bytes. Is \code{u-boot.bin} bigger than this
 maximum?
 
-The first offset is what AT91Bootstrap expects
-(though it can be changed in AT91Bootstrap's configuration).
-The second one, corresponding to where U-Boot stores its environment
-settings, is board dependent but apparently cannot be changed
-through \code{make menuconfig}. 
+If you're trying with a more recent version of U-Boot and if its
+size is too big, we could either change the NAND where U-Boot
+stores its environment and backup environment, but it's easier
+to shrink U-Boot by removing unnecessary features through
+\code{make menuconfig}.
 
-To avoid recompiling AT91Bootstrap, we propose to compile U-Boot with
-less features, to make its binary small. That's probably something you
-will do too during real-life projects.
-
-So, in U-Boot sources, run \code{make menuconfig}, look for and disable
-the below options:\footnote{For each option, don't hesitate to use
-help information to find out what it is about}.
-
-\begin{itemize}
-\item \code{ext4} options
-\item \code{nfs} options
-\item \code{USB} options
-\item \code{SPL} options
-\item \code{XIMG} support
-\item \code{FIT} (Flattened Image Tree) support
-\item \code{CMD_ELF} option
-\item \code{dhcp} command support
-\item Regular expression support (\code{REGEX})
-\item \code{loadb} support
-\item \code{CMD_MII} option
-\end{itemize}
-
-Now, recompile U-Boot and check that \code{u-boot.bin} is smaller
-than our maximum size.
+In any case, run \code{make menuconfig} to see what options
+are available. For each option, don't hesitate to use
+help information to find out what it is about.
+Your instructor can also help.
 
 \section{Flashing U-Boot}
 
@@ -275,7 +255,7 @@ U-Boot binary at offset \code{0x40000}:
 
 \begin{verbatim}
 ./sam-ba_3.3.1/sam-ba -p serial -b sama5d3-xplained -t 5 -a nandflash \
--c write:u-boot-2017.09/u-boot.bin:0x40000
+-c write:u-boot/u-boot.bin:0x40000
 \end{verbatim}
 
 \section{Testing U-Boot}
