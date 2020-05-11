@@ -1,5 +1,5 @@
 /* Small program to test high-resolution timers
- * and scheduling latency in Unix / Linux
+ * and scheduling latency in UNIX / Linux
  *
  * Copyright (c) 2007-2008, Bootlin
  * https://bootlin.com/labs/solutions/cypfig/rttest.c

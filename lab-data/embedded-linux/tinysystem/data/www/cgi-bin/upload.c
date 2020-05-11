@@ -144,7 +144,7 @@ int MatchMask(char *String, char *Mask) {
 
 
 /* Translate the URL separator '/' into the directory separator ('/' for
-   Unix, '\\' for DOS), making a proper pathname. */
+   UNIX, '\\' for DOS), making a proper pathname. */
 void Url2Dir(char *Dir, char *Url) {
   char *p1;
   char *p2;
@@ -170,7 +170,7 @@ void Url2Dir(char *Dir, char *Url) {
    character is found from the needle string. The pointer to the found
    character is returned, or NULL if not found. This subroutine is
    designed to find a directory separator in a path, where the directory
-   separator can be '\\' (DOS) or '/' (Unix). */
+   separator can be '\\' (DOS) or '/' (UNIX). */
 char *strrchrs(char *haystack,char *needle) {
   char *h_here;
   char *n_here;
