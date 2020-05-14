@@ -63,10 +63,7 @@ menuconfig} to find parameters by their name:
    \item In \code{Networking applications}, enable \code{netcat}
    \item In \code{Real-Time}, enable \code{Xenomai Userspace}:
          \begin{itemize}
-         \item Enable \code{Install testsuite}
-	 \item Make sure that \code{POSIX skin library} and
-	       \code{Native skin library}\footnote{Needed by
-	       the Xenomai testsuite.} are enabled.
+	 \item Make sure that \code{POSIX skin library} is enabled.
 	 \end{itemize}
    \end{itemize}
 \end{itemize}
@@ -136,9 +133,9 @@ toolchain that Buildroot used.
 
 Let's configure our \code{PATH} to use this toolchain:
 
-\scriptsize
+\small
 \begin{verbatim}
-export PATH=$HOME/__SESSION_NAME__-labs/realtime/buildroot-YYYY.MM/output/host/usr/bin:$PATH
+export PATH=$HOME/__SESSION_NAME__-labs/realtime/buildroot-2016.02/output/host/usr/bin:$PATH
 \end{verbatim}
 \normalsize
 
@@ -206,7 +203,9 @@ improvement in the maximum latency.
 
 Stay in \code{$HOME/__SESSION_NAME__-labs/realtime}.
 
-Download the 2.6.4 release of Xenomai (that's what our version of
+Download the 2.6.4 release of Xenomai from
+\url{https://xenomai.org/downloads/xenomai/stable/}
+(that's what our version of
 Buildroot supports by default), and extract it.
 
 As you can see in the \code{ksrc/arch/arm/patches} directory,
@@ -238,7 +237,7 @@ enabled, taking your time to read their description:
 Compile your kernel, using the same Sourcery CodeBench compiler
 as earlier in the lab\footnote{Your own toolchain is too recent
 for the 3.14 kernel, which doesn't support compiling with gcc5 yet. The
-Sourcery CodeBench gcc version is 4.8.x.}. 
+Sourcery CodeBench gcc version is 4.8.x.}.
 
 While the kernel compiles, we can start to build our application against
 the Xenomai libraries. We will need {\em pkg-config} built by Buildroot.
@@ -246,16 +245,16 @@ So go in your Buildroot source directory, and force Buildroot to build
 the host variant of {\em pkg-config}:
 
 \begin{verbatim}
-cd $HOME/__SESSION_NAME__-labs/realtime/buildroot-YYYY.MM/
+cd $HOME/__SESSION_NAME__-labs/realtime/buildroot-2016.02/
 make host-pkgconf
 \end{verbatim}
 
 We can now compile \code{rttest} for the Xenomai POSIX skin:
 
-\scriptsize
+\small
 \begin{verbatim}
 cd $HOME/__SESSION_NAME__-labs/realtime/nfsroot/root
-export PATH=$HOME/__SESSION_NAME__-labs/realtime/buildroot-YYYY.MM/output/host/usr/bin:$PATH
+export PATH=$HOME/__SESSION_NAME__-labs/realtime/buildroot-2016.02/output/host/usr/bin:$PATH
 arm-none-linux-gnueabi-gcc -o rttest rttest.c \
   $(pkg-config --libs --cflags libxenomai_posix)
 \end{verbatim}
@@ -278,12 +277,3 @@ raw Xenomai results, that could be further improved by doing proper
 calibration of this compensation mechanism.
 
 Run the tests again, compare the results.
-
-\section{Testing Xenomai interrupt latency}
-
-Measure the interrupt latency with and without load, running the
-following command:
-
-\begin{verbatim}
-latency -t 2
-\end{verbatim}
