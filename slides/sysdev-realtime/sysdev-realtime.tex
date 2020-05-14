@@ -1,4 +1,4 @@
-\section{Real-time in embedded Linux systems}
+options\section{Real-time in embedded Linux systems}
 
 \subsection{Introduction}
 
@@ -339,7 +339,7 @@
     reaction to user input.
   \item Adds explicit rescheduling points throughout kernel code.
   \item Minor impact on throughput.
-  \item Still used in: Ubuntu Desktop 17.04
+  \item Still used in: Ubuntu Desktop 20.04
   \end{itemize}
 \end{frame}
 
@@ -416,41 +416,25 @@
   \end{itemize}
 \end{frame}
 
-\begin{frame}
-  \frametitle{Ongoing work on the PREEMPT\_RT patchset}
-  \begin{itemize}
-  \item Before Oct. 2015: project stalled because of the lack of funding.
-        Thomas Gleixner still the maintainer but lacked time for further
-        development and mainlining efforts. Patch releases only made
-        for specific kernel releases.
-  \item Oct. 2015: the Linux Foundation at last got funding
-        for mainlining the patchset into the Linux kernel (see
-        \url{http://lwn.net/Articles/659193/}).
-  \item Since then, the mainlining effort continues and further kernel
-        releases are supported.
-  \end{itemize}
-\end{frame}
-
-\subsection{PREEMPT\_RT specifics}
+\subsection{PREEMPT\_RT patchset specifics}
 
 \begin{frame}
-  \frametitle{New real-time preemption options}
-  The PREEMPT\_RT patchset adds two new levels of preemption:
-  \begin{itemize}
-    \item \code{CONFIG_PREEMPT_RTB}:\\
-    Roughly all PREEMPT\_RT features except sleeping spinlocks.\\
-    Useful for debugging.
-    \item \code{CONFIG_PREEMPT_RT_FULL}:\\
-    All PREEMPT\_RT features
-  \end{itemize}
+  \frametitle{New real-time preemption option (1)}
+  The PREEMPT\_RT patchset adds one new level of preemption, \code{CONFIG_PREEMPT_RT}:
   \begin{center}
-    \includegraphics[height=0.4\textheight]{slides/sysdev-realtime/rt-preempt-options.png}
+    \includegraphics[height=0.4\textheight]{slides/sysdev-realtime/preempt-rt-option.png}
   \end{center}
-  
 \end{frame}
 
 \begin{frame}
-  \frametitle{{\tt CONFIG\_PREEMPT\_RT\_FULL} (1)}
+  \frametitle{New real-time preemption option (2)}
+  \begin{center}
+    \includegraphics[width=\textwidth]{slides/sysdev-realtime/preempt-rt-option-help.png}
+  \end{center}
+\end{frame}
+
+\begin{frame}
+  \frametitle{{\tt CONFIG\_PREEMPT\_RT} (1)}
   This level of preemption replaces all kernel spinlocks by
   mutexes (or so-called sleeping spinlocks)
   \begin{itemize}
@@ -468,9 +452,9 @@
 \end{frame}
 
 \begin{frame}
-  \frametitle{{\tt CONFIG\_PREEMPT\_RT\_FULL} (2)}
+  \frametitle{{\tt CONFIG\_PREEMPT\_RT} (2)}
   \begin{itemize}
-  \item With \code{CONFIG_PREEMPT_RT_FULL}, virtually all kernel code
+  \item With \code{CONFIG_PREEMPT_RT}, virtually all kernel code
     becomes preemptible
     \begin{itemize}
     \item An interrupt can occur at any time, when returning from the
@@ -498,9 +482,10 @@
     \item Best to have a board supported by the mainline kernel,
       otherwise the PREEMPT\_RT patch may not apply and may require
       some adaptations
+    \item Similarly, only long term stable releases of the kernel
+      are supported, currently: 5.4, 4.19, 4.14, 4.9, 4.4.
+      This is yet another advantage of using an LTS kernel release!
     \end{itemize}
-  \item Not all releases of the Linux kernel are supported.
-      Most recent: 4.14, 4.16, 4.18, 4.19, 5.0, 5.2, 5.4, 5.6
   \item Quick set up:
     \begin{itemize}
     \item Download the latest PREEMPT\_RT patch\\
@@ -517,7 +502,7 @@
   \begin{itemize}
   \item In the kernel configuration, be sure to enable
     \begin{itemize}
-    \item \code{CONFIG_PREEMPT_RT_FULL}
+    \item \code{CONFIG_PREEMPT_RT}
     \item High-resolution timers
     \end{itemize}
   \item Compile your kernel, and boot
@@ -525,6 +510,54 @@
   \item Of course, some system configuration remains to be done, in
     particular setting appropriate priorities to the interrupt
     threads, which depend on your application.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{PREEMPT\_RT mainlining status (1)}
+  \begin{itemize}
+  \item The project is making good progress since it got funding from
+        the Linux foundation in 2015.
+  \item However, a reduction of the size of the PREEMPT\_RT patchset
+        is not really visible yet:\\
+    \vfill
+    \includegraphics[width=0.8\textwidth]{slides/sysdev-realtime/rt-patch-sizes.png}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{PREEMPT\_RT mainlining status (2)}
+  \begin{itemize}
+  \item However, the mainline Linux kernel is a moving target too,
+        introducing new issues for real-time (such as disabling preemption in
+        BPF... see \url{https://lwn.net/Articles/802884/}).
+  \item A major achievement though in Linux 5.3: the
+        \code{CONFIG_PREEMPT_RT} configuration option is now in mainline, though
+        it cannot be selected yet (missing dependencies). This
+        simplifies further mainlining work.
+  \item See the latest status presentations:
+        \begin{itemize}
+	\item PREEMPT\_RT: status and Q\&A, Thomas Gleixner, Linux Plumbers 2019\\
+        Video: \url{https://youtu.be/bpyFQJV5gCI?t=8489}
+	\item State of PREEMPT\_RT - Sebastian Andrzej Siewior, Real-time Linux Summit 2019\\
+        {\footnotesize \url{https://bristot.me/wp-content/uploads/2019/11/rtls2019_07_rt_status.pdf}}
+        \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Useful resources}
+  About real-time support in the standard Linux kernel
+  \begin{itemize}
+  \item Real-Time is coming to Linux - What does that mean for you, Steven Rostedt, VMWare, ELCE 2018\\
+	\url{https://www.elinux.org/images/7/7e/Rostedt-elc-eu-2018-rt-what-does-it-mean.pdf}\\
+	Video: \url{https://youtu.be/BxJm-Ujipcg}
+  \item Using SCHED\_DEADLINE - Steven Rostedt, ELCE 2016\\
+	{\small \url{https://elinux.org/images/f/fe/Using_SCHED_DEADLINE.pdf}}\\
+	Video: \url{https://youtu.be/TDR-rgWopgM}
+  \item The home page of the PREEMPT\_RT project:\\
+       \url{https://wiki.linuxfoundation.org/realtime/}
+  \item See also our books page.
   \end{itemize}
 \end{frame}
 
@@ -919,20 +952,6 @@ echo 0 > /sys/kernel/tracing/tracing_enabled
 cat /sys/kernel/tracing/tracing_max_latency
 \end{verbatim}
     \end{block}{}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Useful reading}
-  About real-time support in the standard Linux kernel
-  \begin{itemize}
-  \item Real-Time is coming to Linux - What does that mean for you, Steven Rostedt, VMWare, ELCE 2018\\
-    	\url{https://www.elinux.org/images/7/7e/Rostedt-elc-eu-2018-rt-what-does-it-mean.pdf}\\
-    	Video: \url{https://youtu.be/BxJm-Ujipcg}
-  \item Using SCHED\_DEADLINE - Steven Rostedt, ELCE 2016\\
-	{\small \url{https://elinux.org/images/f/fe/Using_SCHED_DEADLINE.pdf}}
-	Video: \url{https://youtu.be/TDR-rgWopgM}
-  \item See also our books page.
   \end{itemize}
 \end{frame}
 
