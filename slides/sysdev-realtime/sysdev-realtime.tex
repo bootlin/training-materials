@@ -1,4 +1,4 @@
-options\section{Real-time in embedded Linux systems}
+\section{Real-time in embedded Linux systems}
 
 \subsection{Introduction}
 
@@ -657,11 +657,11 @@ pthread_join(pthread_t *thread, void **value_ptr);
 \end{frame}
 
 \begin{frame}
+  The Linux kernel scheduler support different scheduling classes
   \frametitle{Scheduling classes (1)}
   \begin{itemize}
-  \item The Linux kernel scheduler support different scheduling
-    classes
-  \item The default class, in which processes are started by default
+  \item The default class (\code{SCHED_OTHER}),
+    in which processes are started by default,
     is a {\em time-sharing} class
     \begin{itemize}
     \item All processes, regardless of their priority, get some CPU time
@@ -669,30 +669,41 @@ pthread_join(pthread_t *thread, void **value_ptr);
       by the {\em nice} value, which ranges from -20 (highest) to 19
       (lowest). Can be set using the \code{nice} or \code{renice} commands
     \end{itemize}
-  \item The real-time classes \code{SCHED_FIFO}, \code{SCHED_RR} and
-         \code{SCHED_DEADLINE}
-    \begin{itemize}
-    \item The highest priority process gets all the CPU time, until it
-      blocks.
-    \item In \code{SCHED_RR}, round-robin scheduling between the
-      processes of the same priority. All must block before lower
-      priority processes get CPU time.
-    \item In \code{SCHED_DEADLINE}: guarantees that an RT task
-      will be given an exact amount of cpu time every period.
-    \item Priorities ranging from 0 (lowest) to 99 (highest)
-    \end{itemize}
   \end{itemize}
 \end{frame}
 
-\begin{frame}[fragile]
+\begin{frame}
   \frametitle{Scheduling classes (2)}
+  \begin{itemize}
+  \item The real-time classes \code{SCHED_FIFO}, \code{SCHED_RR} and
+         \code{SCHED_DEADLINE}
+    \begin{itemize}
+    \item The highest RT priority process gets all the CPU time, until it
+      blocks.
+    \item With \code{SCHED_FIFO}, {\em First In, First Out}, each additional
+      process with the same RT priority has to wait for the first ones to block.
+    \item In \code{SCHED_RR}, {\em Round-Robin} scheduling between the
+      processes with the same RT priority. All must block before
+      lower priority processes get CPU time.
+    \item In \code{SCHED_DEADLINE}: guarantees that an RT task
+      will be given an exact amount of cpu time every period.
+    \item RT Priorities ranging from 0 (lowest) to 99 (highest)
+    \end{itemize}
+  \end{itemize}
+  See \url{https://man7.org/linux/man-pages/man7/sched.7.html} for
+  details.
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Using scheduling classes (1)}
   \begin{itemize}
   \item An existing program can be started in a specific scheduling
     class with a specific priority using the \code{chrt} command line tool
     \begin{itemize}
     \item Example: \code{chrt -f 99 ./myprog} \\
         \code{-f}: \code{SCHED_FIFO}\\
-	\code{-r}: \code{SCHED_RR}
+	\code{-r}: \code{SCHED_RR}\\
+	\code{-d}: \code{SCHED_DEADLINE}
     \end{itemize}
   \item The \code{sched_setscheduler()} API can be used to change the scheduling class
     and priority of a process
@@ -704,14 +715,14 @@ int sched_setscheduler(pid_t pid, int policy,
     \end{block}{}
     \begin{itemize}
     \item \code{policy} can be \code{SCHED_OTHER}, \code{SCHED_FIFO},
-      \code{SCHED_RR}, etc.
+      \code{SCHED_RR}, \code{SCHED_DEADLINE}, etc. (others exist).
     \item \code{param} is a structure containing the priority
     \end{itemize}
   \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{Scheduling classes (3)}
+  \frametitle{Using scheduling classes (2)}
   \begin{itemize}
   \item The priority can be set on a per-thread basis when a thread is
     created
