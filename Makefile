@@ -78,7 +78,7 @@ default: help
 # This rule allows to build slides of the training. It is done in two
 # parts with make calling itself because it is not possible to compute
 # a list of prerequisites depending on the target name. See
-# http://stackoverflow.com/questions/3381497/dynamic-targets-in-makefiles
+# https://stackoverflow.com/questions/3381497/dynamic-targets-in-makefiles
 # for details.
 #
 # The value of slide can be "full-kernel", "full-sysdev" (for the
