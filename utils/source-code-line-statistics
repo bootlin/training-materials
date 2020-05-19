@@ -1,0 +1,45 @@
+#!/usr/bin/env python3
+
+# Usage:
+# 1/ Go to a source directory (such as kernel sources
+# 2/ Run: source-code-line-statistics
+
+# Author: michael.opdenacker@bootlin.com
+# License: Public Domain
+
+
+import os
+
+excludes = ['.git']
+
+def count_lines_in_file(filename):
+	return (sum(1 for line in open(filename, 'rb')))
+
+def count_lines_in_dir(dirname):
+	sum=0
+	for root, dirs, files in os.walk(o):
+		for f in files:
+			size = count_lines_in_file(os.path.join(root, f))
+			sum += size
+	return sum
+
+total = 0
+
+sizes = []
+
+for o in os.listdir('.'):
+	if os.path.isdir(o) and not (o in excludes):
+		s = count_lines_in_dir(o)
+		sizes.append([o, s])
+		total += s
+
+print('size summary in number of lines of source code:')
+
+for i in sorted(sizes, key=lambda s: s[1], reverse=True):
+	print(i[0] + ': ' + "{:.1%}".format(i[1]/total))
+
+print('\nSummary in number of lines of source code (Bootlin kernel slides format):')
+
+for i in sorted(sizes, key=lambda s: s[1], reverse=True):
+	print('\item \kdir{' + i[0] + '}: ' + "{:03.1f}".format(100*i[1]/total) + '\%')
+
