@@ -13,9 +13,8 @@
     \url{https://gitlab.denx.de/u-boot/u-boot}
   \item Development and discussions happen around an open mailing-list
     \url{https://lists.denx.de/pipermail/u-boot/}
-  \item Since the end of 2008, it follows a fixed-interval release
-    schedule. Every two months, a new version is released. Versions
-    are named \code{YYYY.MM}.
+  \item Follows a fixed-interval release schedule. Every two months,
+    a new version is released. Versions are named \code{YYYY.MM}.
 \end{itemize}
 \end{frame}
 
@@ -30,7 +29,7 @@
       memory mapping, the U-Boot features that should be compiled in, etc.
     \end{itemize}
   \item Note: U-Boot is migrating from board configuration defined in
-    header files (\code{include/configs/}) to {\em defconfig} like in
+    C header files (\code{include/configs/}) to {\em defconfig} like in
     the Linux kernel (\code{configs/})
     \begin{itemize}
     \item Not all boards have been converted to the new configuration
@@ -125,7 +124,7 @@ CONFIG_USB_EHCI_HCD=y
   \end{itemize}
 \tiny
 \begin{verbatim}
-U-Boot 2016.05 (May 17 2016 - 12:41:15 -0400)
+U-Boot 2020.04 (May 26 2020 - 16:05:43 +0200)
 
 CPU: SAMA5D36
 Crystal frequency:       12 MHz
@@ -133,12 +132,13 @@ CPU clock        :      528 MHz
 Master clock     :      132 MHz
 DRAM:  256 MiB
 NAND:  256 MiB
-MMC:   mci: 0
-
-In:    serial
-Out:   serial
-Err:   serial
-Net:   gmac0
+MMC:   Atmel mci: 0, Atmel mci: 1
+Loading Environment from NAND... OK
+In:    serial@ffffee00
+Out:   serial@ffffee00
+Err:   serial@ffffee00
+Net:   eth0: ethernet@f0028000
+Error: ethernet@f802c000 address not set.
 
 Hit any key to stop autoboot:  0
 =>
@@ -152,12 +152,12 @@ Hit any key to stop autoboot:  0
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{Information commands}
+  \frametitle{Information commands (1)}
 
 \begin{block}{Flash information (NOR and SPI flash)}
 {\tiny
 \begin{verbatim}
-U-Boot> flinfo
+=> flinfo
 DataFlash:AT45DB021
 Nb pages: 1024
 Page Size: 264
@@ -172,22 +172,31 @@ Area 2: C0004000 to C0041FFF (RO) U-Boot
 \begin{block}{NAND flash information}
 {\tiny
 \begin{verbatim}
-U-Boot> nand info
+=> nand info
+
 Device 0: nand0, sector size 128 KiB
-  Page size      2048 b
-  OOB size         64 b
-  Erase size   131072 b
+  Page size       2048 b
+  OOB size          64 b
+  Erase size    131072 b
+  subpagesize     2048 b
+  options     0x40004200
+  bbt options 0x00008000
 \end{verbatim}}
 \end{block}
+\end{frame}
 
+\begin{frame}[fragile]
+  \frametitle{Information commands (2)}
 \begin{block}{Version details}
 {\tiny
 \begin{verbatim}
-U-Boot> version
-U-Boot 2016.05 (May 17 2016 - 12:41:15 -0400)
+=> version
+U-Boot 2020.04 (May 26 2020 - 16:05:43 +0200)
+
+arm-linux-gcc (crosstool-NG 1.24.0.105_5659366) 9.2.0
+GNU ld (crosstool-NG 1.24.0.105_5659366) 2.34
 \end{verbatim}}
 \end{block}
-
 \end{frame}
 
 \begin{frame}
@@ -195,14 +204,15 @@ U-Boot 2016.05 (May 17 2016 - 12:41:15 -0400)
   \begin{itemize}
   \item The exact set of commands depends on the U-Boot configuration
   \item \code{help} and \code{help command}
+  \item \code{fatload}, loads a file from a FAT filesystem to RAM
+    \begin{itemize}
+    \item Example: \code{fatload usb 0:1 0x21000000 zImage}
+    \item And also \code{fatls} and \code{fatinfo}
+    \end{itemize}
   \item \code{ext2load}, loads a file from an ext2 filesystem to RAM
     \begin{itemize}
     \item And also \code{ext2ls} to list files, \code{ext2info} for
       information
-    \end{itemize}
-  \item \code{fatload}, loads a file from a FAT filesystem to RAM
-    \begin{itemize}
-    \item And also \code{fatls} and \code{fatinfo}
     \end{itemize}
   \item \code{tftp}, loads a file from the network to RAM
   \item \code{ping}, to test the network
@@ -345,7 +355,8 @@ u-boot # saveenv
       your platform
     \item Through a SD or microSD card, if U-Boot supports the MMC
       controller of your platform
-    \item Through the serial port
+    \item Through the serial port (\code{loadb}, \code{loadx} or
+      \code{loady} command)
     \end{itemize}
   \end{itemize}
 \end{frame}
