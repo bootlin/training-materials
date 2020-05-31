@@ -1,0 +1,51 @@
+Boot Linux from SD
+------------------
+
+We are going to load the kernel and DTB from the FAT
+filesystem in the first partition of the emulated SD card.
+
+To make this happen, we have to set U-Boot's "bootcmd"
+environment variable to do this.
+
+- The first thing we need is to recompile U-Boot with
+  the ability to store its environment in a file in a FAT
+  partition (our emulated machine doesn't have flash).
+
+  So, go back to U-Boot's configuration and:
+  - unset "Environment in flash memory" (CONFIG_ENV_IS_IN_FLASH)
+  - set "Environment is in a FAT filesystem" (CONFIG_ENV_IS_IN_FAT)
+  - set "Name of the block device for the environment" (CONFIG_ENV_FAT_INTERFACE) to "mmc"
+  - set "Device and partition for where to store the environemt in FAT" (CONFIG_ENV_FAT_DEVICE_AND_PART) to "0:1"
+    The above two settings correspond to the arguments of the "fatload" command
+    (see the block filesystems lab)
+  - Also add support for the "editenv" command (CONFIG_CMD_EDITENV)
+    that is not present in the default configuration for our board
+    Unfortunately, this command is currently broken.
+
+- Recompile U-Boot
+
+- Start QEMU again, but this time with the emulated SD card:
+  qemu-system-arm -M vexpress-a9 -m 128M -nographic -kernel u-boot -sd sd.img
+
+- Then make sure that you can set and store an environment variable:
+  setenv foo bar
+  saveenv
+
+- Type "reset" and check that "foo" is still set:
+  printenv foo
+
+- Now, run "bdinfo" and fine that RAM starts at 0x60000000.
+  We will load the kernel image from the SD's FAT partition to
+  address 0x61000000, and the DTB at address 0x62000000
+
+  Modify the "bootcmd" environment variable to do this,
+  and then boot the kernel from such addresses in RAM.
+
+  Also set the "bootargs" variable to use "ttyAMA0" as console.
+  We will configure the root device in the next lab.
+
+- Run "saveenv" then "reset" and then make sure that the
+  the board boots the Linux kernel as far as previously.
+
+It's now time to compile a root filesystem for Linux
+to use!
