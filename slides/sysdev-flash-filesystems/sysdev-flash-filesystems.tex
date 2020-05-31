@@ -189,10 +189,11 @@
 \begin{frame}
   \frametitle{U-Boot: defining MTD partitions (1)}
   \begin{itemize}
-  \item U-Boot also provides a way to define MTD partitions on flash devices
-  \item Named partitions are easier to use, and much less error prone than using offsets.
-  \item U-Boot partition definitions can also be used by Linux too,
-    eliminating the risk of mismatches between Linux and U-Boot. 
+  \item U-Boot allows to define MTD partitions on flash devices, using
+        the same syntax as Linux for declaring them.
+  \item Sharing definitions allows to eliminate the risk
+        of mismatches between Linux and U-Boot.
+  \item Named partitions are also easier to use, and much less error prone than using offsets.
   \item Use flash specific commands (detailed soon),
     and pass partition names instead of numerical offsets
   \item Example: \code{nand erase.part <partname>}
@@ -228,36 +229,40 @@ setenv mtdparts mtdparts=omap2-nand.0:512k(XLoader)ro,1536k(UBoot)ro,512k(Env),4
 
 \begin{frame}[fragile]
   \frametitle{U-Boot: defining MTD partitions (3)}
-  Details about the two environment variables needed by U-Boot:
+  \code{mtdids} associates a U-Boot flash device name
+  to a Linux flash device name:\\
+  \code{setenv mtdids <devid>=<mtdid>[,<devid>=<mtdid>]}\\
+  That's required because the Linux name is used in partition definitions.
   \begin{itemize}
-  \item \code{mtdids} attaches an {\em mtdid} to a flash device.\\
-    \code{setenv mtdids <devid>=<mtdid>[,<devid>=<mtdid>]}
-    \begin{itemize}
-    \item \code{devid}: {\bf U-Boot} device identifier (from
-      \code{nand info} or \code{flinfo})
-    \item \code{mtdid}: {\bf Linux} mtd identifier. Displayed
-      when booting the Linux kernel:
+  \item \code{devid}: {\bf U-Boot} device identifier (from
+    \code{nand info} or \code{flinfo})
+  \item \code{mtdid}: {\bf Linux} mtd identifier. Displayed
+    when booting the Linux kernel:
     \includegraphics[width=0.85\textwidth]{slides/sysdev-flash-filesystems/kernel-mtd-log.pdf}\\
-    \end{itemize}
-  \item \code{mtdparts} defines partitions for the different devices\\
-  \code{setenv mtdparts mtdparts=<mtdid>:<partition>[,partition]}\\
-  \code{partition} format: \code{<size>[@offset](<name>)[ro]}
   \end{itemize}
-  Use the \code{mtdparts} command to setup the configuration
-  specified by the \code{mtdids} and \code{mtdparts} variables
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{U-Boot: defining MTD partitions (4)}
+  \code{mtdparts} defines partitions for the different devices\\
+  \begin{itemize}
+    \item \code{setenv mtdparts mtdparts=<mtdid>:<partition>[,partition]}
+    \item \code{partition} format: \code{<size>[@offset](<name>)[ro]}
+  \end{itemize}
+  Use the \code{mtdparts} command to process the \code{mtdids} and
+  \code{mtdparts} settings and activate partitions in U-Boot.
 \end{frame}
 
 \begin{frame}
   \frametitle{U-Boot: sharing partition definitions with Linux}
-  Linux understands U-Boot's \code{mtdparts} partition definitions.\\
-  Here is a recommended way to pass them from U-Boot to Linux:
+  Here is a recommended way to pass partition definitions from U-Boot to Linux:
   \begin{itemize}
   \item Define a \code{bootargs_base} environment variable:\\
-    \code{setenv bootargs_base console=ttyS0 root=....} 
+    \code{setenv bootargs_base console=ttyS0 root=....}
   \item Define the final kernel command line (\code{bootargs})
     through the \code{bootcmd} environment variable:
     \code{setenv bootcmd 'setenv bootargs ${bootargs_base} ${mtdparts};
-<rest of bootcmd>'} 
+<rest of bootcmd>'}
   \end{itemize}
 \end{frame}
 
@@ -381,7 +386,9 @@ setenv mtdparts mtdparts=omap2-nand.0:512k(XLoader)ro,1536k(UBoot)ro,512k(Env),4
     \item Wear leveling, power failure resistant
     \item Available in the official Linux kernel
     \item Boot time depends on the filesystem size: doesn't scale well
-      for large partitions.
+      for large partitions because needs to scan the whole storage at
+      boot time. Need to enable \kconfig{CONFIG_JFFS2_SUMMARY} to
+      address this issue.
     \item \url{http://www.linux-mtd.infradead.org/doc/jffs2.html}
     \end{itemize}
     \column{0.3\textwidth}
@@ -399,8 +406,8 @@ setenv mtdparts mtdparts=omap2-nand.0:512k(XLoader)ro,1536k(UBoot)ro,512k(Env),4
     \item Wear leveling, power failure resistant
     \item Fast boot time
     \item Not part of the official Linux kernel: code only available
-      separately\\
-      (Dual GPL / Proprietary license for non Linux operating systems)
+      separately (Dual GPL / Proprietary license for non Linux
+      operating systems)
     \item \url{https://yaffs.net/}
     \end{itemize}
     \column{0.3\textwidth}
@@ -452,6 +459,9 @@ setenv mtdparts mtdparts=omap2-nand.0:512k(XLoader)ro,1536k(UBoot)ro,512k(Env),4
   \begin{center}
     \includegraphics[width=\textwidth]{slides/sysdev-flash-filesystems/ubi.pdf}
   \end{center}
+  When there is too much activity on an LEB, UBI can decide to move it
+  to another PEB with a lower erase count. Even read-only volumes
+  participate to wear leveling!
 \end{frame}
 
 \begin{frame}
@@ -621,13 +631,17 @@ vol_flags=autoresize
       UBI elements
   \item UBI device management:
     \begin{itemize}
-    \item \code{ubiformat <MTD-device-id>}\\
-	Format an MTD partition and preserve Erase Counter information if any
+    \item \code{ubiformat /dev/mtdx}\\
+	Format an MTD partition and preserve Erase Counter information if any.\\
+	Example: \code{ubiformat /dev/mtd1}
     \item \code{ubiattach -m <MTD-device-id> /dev/ubi_ctrl}\\
-	Attach an MTD partition/device to the UBI layer, and create a UBI device
+	Attach an MTD partition/device to the UBI layer, and create a
+        UBI device\\
+        Example: \code{ubiattach -m 1 /dev/ubi_ctrl} 
     \item \code{ubidetach -m <MTD-device-id> /dev/ubi_ctrl}\\
 	Detach an MTD partition/device from the UBI layer, and remove
-        the associated UBI device
+        the associated UBI device\\
+        Example: \code{ubidetach -m 1 /dev/ubi_ctrl}
     \end{itemize}
   \end{itemize}
 \end{frame}
@@ -644,8 +658,8 @@ vol_flags=autoresize
     \item {\small \code{ubiupdatevol /dev/ubi<UBI-device-id>_<UBI-vol-id> [-s <size>] <vol-image-file>}}\\
 	Update volume contents
     \item {\small \code{ubirsvol /dev/ubi<UBI-device-id> -N <name> -s <size>}}\\
-      	Resize a UBI volume
-    \item {\small \code{ubirename /dev/ubi<UBI-device-id>_<UBI-vol-id> <old-name> <new-size>}}\\
+	Resize a UBI volume
+    \item {\small \code{ubirename /dev/ubi<UBI-device-id>_<UBI-vol-id> <old-name> <new-name>}}\\
 	Rename a UBI volume
     \end{itemize}
 \end{frame}
@@ -696,6 +710,7 @@ vol_flags=autoresize
   \begin{itemize}
   \item No specific tools are required to create a UBIFS filesystem.
 	An empty filesystem is created the first time it is mounted.
+        The same applies to JFFS2.
   \item Mounting a UBIFS filesystem is done with \code{mount}:\\
     \code{mount -t ubifs <ubi-device-id>:<volume-name> <mount-point>}
   \item Example:\\
