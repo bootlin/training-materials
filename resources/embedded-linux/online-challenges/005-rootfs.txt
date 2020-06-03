@@ -1,0 +1,55 @@
+Root filesystem with BusyBox
+----------------------------
+
+This challenge is derived from our "Tiny filesystem lab". Look
+at this lab for further instructions.
+
+- First, we will setup networking between the QEMU emulated
+  machine and the host.
+
+  The first thing to do is to create a /etc/qemu-myifup (for example)
+  script that will bring up a network interface. Here are its contents:
+
+#!/bin/bash
+exec /sbin/ifconfig $1 192.168.100.1
+
+  Of course, make this script executable:
+  sudo chmod +x /etc/qemu-myifup
+
+  As you can see, the host side will have IP address 192.168.100.1.
+  We will use 192.168.100.2 for the target side.
+
+- Then, create an empty "nfsroot" directory
+  Install the nfs-kernel-server
+  Modify /etc/exports to export the new directory
+
+- Then, you will need root privileges to run QEMU this time,
+  because of the need to bring up the network interface:
+
+sudo qemu-system-arm -M vexpress-a9 -m 128M -nographic -kernel u-boot -sd sd.img -net tap,script=/etc/qemu-myifup -net nic
+
+  Also note the new net options:
+  -net tap: creates a software network interface on the host side
+  -net nice: adds a network device to the emulated machine
+
+- In QEMU, interrupt the countdown in U-Boot modify bootargs to
+  setup the target IP address to 192.168.100.2
+  and mount the root filesystem through NFS using the directory you created.
+
+  Don't forget to run "saveenv"!
+
+  Still in U-Boot, you can now run "reset" to reboot and attempt
+  to boot Linux.
+
+  If you need to kill QEMU, you'll have to do it with "sudo":
+  sudo killall qemu-system-arm
+
+- Once the NFS root filesystem is mounted, proceed by compiling
+  BusyBox with your toolchain, installing it, and eventually
+  test the http interface and switch to shared libraries,
+  following the normal lab instructions.
+
+  To enable job control, instead of adding "ttyS0" to /etc/inittab,
+  you will use "ttyAMA0", which is the serial device used for
+  our emulated board.
+
