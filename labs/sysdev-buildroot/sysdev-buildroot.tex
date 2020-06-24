@@ -72,14 +72,23 @@ button whenever you need more details about a given option:
   \ifdefstring{\labboard}{discovery}{
   \item \code{Target Architecture Variant}: \code{cortex-A7}
   }{
-  \item \code{Target Architecture Variant}: \code{cortex-A5}
-  \item \code{Enable VFP extension support}: Enabled
+   \ifdefstring{\labboard}{qemu}{
+   \item \code{Target Architecture Variant}: \code{cortex-A9}
+   \item \code{Enable NEON SIMD extension support}: Enabled
+   }{
+   \item \code{Target Architecture Variant}: \code{cortex-A5}
+   }
+   \item \code{Enable VFP extension support}: Enabled
   }
   \item \code{Target ABI}: \code{EABIhf}
   \ifdefstring{\labboard}{discovery}{
   \item \code{Floating point strategy}: \code{VFPv4}
   }{
-  \item \code{Floating point strategy}: \code{VFPv4-D16}
+   \ifdefstring{\labboard}{qemu}{
+   \item \code{Floating point strategy}: \code{VFPv3-D16}
+   }{
+   \item \code{Floating point strategy}: \code{VFPv4-D16}
+   }
   }
   \end{itemize}
 \item \code{Toolchain}
@@ -109,6 +118,10 @@ button whenever you need more details about a given option:
     \begin{itemize}
          \item Select \code{alsactl}
          \item Select \code{alsamixer}
+         \ifdefstring{\labboard}{qemu}{
+            \item Select \code{aplay} (to play a WAV file as long as the
+                  OGG file doesn't play properly).
+         }{}
      \end{itemize}
     \item Select \code{vorbis-tools}
     \end{itemize}
@@ -186,6 +199,12 @@ Boot the board, and log in (\code{root} account, no password).
 
 You should now have a shell, where you will be able to run
 \code{ogg123} like you used to in the previous lab.
+
+\ifdefstring{\labboard}{qemu}
+{{\bf Known issue}: as in the previous lab, the \code{sample.ogg} sample
+may play in a weird way in QEMU. To have a correct result instead, use \code{aplay}
+to play the \code{sample.wav} file provided together with \code{sample.ogg}.}
+{}
 
 \section{Going further}
 
