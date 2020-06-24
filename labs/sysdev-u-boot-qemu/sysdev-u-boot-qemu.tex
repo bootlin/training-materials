@@ -1,0 +1,291 @@
+\subchapter{Bootloader - U-Boot}{Objectives: Compile and install the U-Boot bootloader,
+  use basic U-Boot commands, set up TFTP communication with the development
+  workstation.}
+
+\section{Setup}
+
+Go to the \code{$HOME/__SESSION_NAME__-labs/bootloader} directory.
+
+Install the \code{qemu-system-arm} package. In this lab and in the
+following ones, we will use a QEMU emulated ARM Vexpress Cortex A9 board.
+
+\section{Configuring U-Boot}
+
+Download U-Boot v2020.04 and configure it
+to support the ARM Vexpress Cortex A9 board
+(\code{vexpress_ca9x4_defconfig})
+
+Get an understanding of U-Boot's configuration and compilation steps
+by reading the \code{README} file, and specifically the {\em Building
+the Software} section.
+
+Basically, you need to specify the cross-compiler prefix
+(the part before \code{gcc} in the cross-compiler executable name):
+\begin{verbatim}
+export CROSS_COMPILE=arm-linux-
+\end{verbatim}
+
+Now that you have a valid initial configuration, run \code{make menuconfig}
+to further edit your bootloader features:
+
+\begin{itemize}
+\item In the \code{Environment} submenu, we will configure U-Boot so
+    that it stores its environment inside a file called {\em
+    uboot.env} in a FAT filesystem on an MMC/SD card, as our emulated
+    machine won't have flash storage:
+    \begin{itemize}
+    \item Unset \code{Environment in flash memory} (\code{CONFIG_ENV_IS_IN_FLASH})
+    \item Set \code{Environment is in a FAT filesystem} (\code{CONFIG_ENV_IS_IN_FAT}
+    \item Set \code{Name of the block device for the environment} (\code{CONFIG_ENV_FAT_INTERFACE}): \code{mmc}
+    \item \code{Device and partition for where to store the environment in
+        FAT} (\code{CONFIG_ENV_FAT_DEVICE_AND_PART}): \code{0:1}\newline
+        The above two settings correspond to the arguments of the
+        \code{fatload} command.
+    \end{itemize}
+  \item Also add support for the \code{editenv} command (\code{CONFIG_CMD_EDITENV})
+    that is not present in the default configuration for our board
+    Unfortunately, this command is currently broken.
+\end{itemize}
+
+In recent versions of U-Boot and for some boards, you will
+need to have the Device Tree compiler:
+
+\begin{verbatim}
+sudo apt install device-tree-compiler
+\end{verbatim}
+
+Finally, run \code{make}\footnote{You can speed up the
+compiling by using the \code{-jX} option with \code{make}, where X
+is the number of parallel jobs used for compiling. Twice the
+number of CPU cores is a good value.}, which will build U-Boot.
+
+
+This generates several binaries, including \code{u-boot} and
+\code{u-boot.bin}.
+
+\section{Testing U-Boot}
+
+Still in U-Boot sources, test that U-Boot works:
+
+\begin{verbatim}
+qemu-system-arm -M vexpress-a9 -m 128M -nographic -kernel u-boot
+\end{verbatim}
+
+\begin{itemize}
+\item \code{-M}: emulated machine
+\item \code{-m}: amount of memory in the emulated machine
+\item \code{-kernel}: allows to load the binary directly in the emulated
+      machine and run the machine with it. This way, you don't
+      need a first stage bootloader. Of course, you don't
+      have this with real hardware.
+\end{itemize}
+
+Press a key before the end of the timeout, to access the U-Boot prompt.
+
+You can then type the \code{help} command, and explore the few commands
+available.
+
+Note: to exit QEMU, run the below command in another terminal:
+
+\begin{verbatim}
+killall qemu-system-arm
+\end{verbatim}
+
+\section{SD card setup}
+
+We now need to add an SD card image to the QEMU virtual machine,
+in particular to get a way to store U-Boot's environment.
+
+In later labs, we will also use such storage for other purposes
+(to store the kernel and device tree, root filesystem and other
+filesystems).
+
+The commands that we are going to use will be further explained
+during the {\em Block filesystems} lectures.
+
+First, using the \code{dd} command, create a 1 GB file
+filled with zeros, called code{sd.img}:
+
+\begin{verbatim}
+dd if=/dev/zero of=sd.img bs=1M count=1024
+\end{verbatim}
+
+This will be used by QEMU as an SD card disk image
+
+Now, let's use the \code{cfdisk} command to create the partitions that
+we are going to use:
+
+\begin{verbatim}
+$ cfdisk sd.img
+\end{verbatim}
+
+If \code{cfdisk} asks you to \code{Select a label type}, choose
+\code{dos}. This corresponds to traditional partitions tables that DOS/Windows
+would understand. \code{gpt} partition tables are needed for disks bigger
+than 2 TB.
+
+In the \code{cfdisk} interface, create three primary partitions,
+starting from the beginning, with the following properties:
+
+\begin{itemize}
+\item One partition, 64MB big, with the \code{FAT16} partition type.
+      Mark this partition as bootable.
+
+\item One partition, 8 MB big\footnote{For the needs of our system,
+  the partition could even be much smaller, and 1 MB would be enough.
+  However, with the 8 GB SD cards that we use in our labs, 8 MB will
+  be the smallest partition that \code{cfdisk} will allow you to
+  create.}, that will be used for the root filesystem. Due to the
+  geometry of the device, the partition might be larger than 8 MB,
+  but it does not matter. Keep the \code{Linux} type for the
+  partition.
+
+\item One partition, that fills the rest of the SD card image, that will be
+  used for the data filesystem. Here also, keep the \code{Linux} type
+  for the partition.
+\end{itemize}
+
+Press \code{Write} when you are done.
+
+We will now use the {\em loop} driver\footnote{Once again, this will
+be properly be explained during our {\em Block filesystems} lectures.}
+to emulate block devices from this image and its partitions:
+
+\begin{verbatim}
+sudo losetup -f --show --partscan sd.img
+\end{verbatim}
+
+\begin{itemize}
+\item \code{-f}: finds a free loop device
+\item \code{--show}: shows the loop device that it used
+\item \code{--partscan}: scans the loop device for partitions
+    and creates additional \code{/dev/loop<x>p<y>} block devices.
+\end{itemize}
+
+Last but not least, format the first partition as FAT16 with
+a \code{boot} label:
+
+\begin{verbatim}
+sudo mkfs.vfat -F 16 -n boot /dev/loop<x>p1
+\end{verbatim}
+
+The other partitions will be formated later.
+
+\section{Testing U-Boot's environment}
+
+Start QEMU again, but this time with the emulated SD card
+(you can type the command in a single line):
+
+\begin{verbatim}
+qemu-system-arm -M vexpress-a9 -m 128M -nographic \
+	-kernel u-boot-2020.04/u-boot \
+	-sd sd.img
+\end{verbatim}
+
+Now, in the U-Boot prompt, make sure that you can set and store an environment variable:
+
+\begin{verbatim}
+setenv foo bar
+saveenv
+\end{verbatim}
+
+Type \code{reset} which reboots the board, and then check that the
+\code{foo} variable is still set:
+
+\begin{verbatim}
+printenv foo
+\end{verbatim}
+
+\section{Setup networking between QEMU and the host}
+
+To load a kernel in the next lab, we will setup networking between the QEMU emulated
+machine and the host.
+
+The first thing to do is to create a \code{/etc/qemu-myifup} (for example)
+script that will bring up a network interface between QEMU and the host. Here are its contents:
+
+\begin{verbatim}
+#!/bin/bash
+exec /sbin/ifconfig $1 192.168.100.1
+\end{verbatim}
+
+Of course, make this script executable:
+\begin{verbatim}
+sudo chmod +x /etc/qemu-myifup
+\end{verbatim}
+
+As you can see, the host side will have the \code{192.168.100.1} IP
+address. We will use \code{192.168.100.2} for the target side.
+
+Then, you will need root privileges to run QEMU this time,
+because of the need to bring up the network interface:
+
+\begin{verbatim}
+qemu-system-arm -M vexpress-a9 -m 128M -nographic \
+	-kernel u-boot-2020.04/u-boot \
+	-sd sd.img \
+        -net tap,script=/etc/qemu-myifup -net nic
+\end{verbatim}
+
+Note the new net options:
+\begin{itemize}
+\item \code{-net tap}: creates a software network interface on the host side
+\item \code{-net nic}: adds a network device to the emulated machine
+\end{itemize}
+
+On the host machine, using the \code{ifconfig} command, check that
+there is now a \code{tap0} network interface with the expected IP
+address.
+
+On the U-Boot command line, you will have to configure the environment
+variables for networking:
+
+\begin{verbatim}
+setenv ipaddr 192.168.100.2
+setenv serverip 192.168.100.1
+saveenv
+\end{verbatim}
+
+You can now test the connection to the host:
+\begin{verbatim}
+ping 192.168.100.1
+\end{verbatim}
+
+It should finish by:
+\begin{verbatim}
+host 192.168.100.1 is alive
+\end{verbatim}
+
+\section{tftp setup}
+
+Install a {\em tftp} server on your host as explained in the slides.
+
+Back in U-Boot, run \code{bdinfo}, which will allow you to find out that
+RAM starts at \code{0x60000000}. Therefore, we will use the \code{0x61000000}
+address to test {\em tftp}.
+
+To test the TFTP connection, put a small text file in
+the directory exported through TFTP on your development
+workstation. Then, from U-Boot, do:
+
+\begin{verbatim}
+tftp 0x61000000 textfile.txt
+\end{verbatim}
+
+The \code{tftp} command should have downloaded the
+\code{textfile.txt} file from your development workstation into
+the board's memory at location \code{0x61000000}.
+
+You can verify that the download was successful by dumping the
+contents of the memory:
+
+\begin{verbatim}
+md 0x61000000
+\end{verbatim}
+
+\section{Rescue binary}
+
+If you have trouble generating binaries that work properly, or later
+make a mistake that causes you to loose your bootloader binary, you
+will find a working version under \code{data/} in the current lab
+directory.

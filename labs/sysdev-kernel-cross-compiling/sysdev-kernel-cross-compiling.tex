@@ -5,7 +5,7 @@ After this lab, you will be able to:
 \begin{itemize}
 \item Set up a cross-compiling environment
 \item Configure the kernel Makefile accordingly
-\item Cross compile the kernel for the Microchip SAMA5D3 Xplained ARM board
+\item Cross compile the kernel for your board
 \item Use U-Boot to download the kernel
 \item Check that the kernel you compiled starts the system
 \end{itemize}
@@ -13,11 +13,6 @@ After this lab, you will be able to:
 \section{Setup}
 
 Go to the \code{$HOME/__SESSION_NAME__-labs/kernel} directory.
-
-\section{Target system}
-
-We are going to cross-compile and boot a Linux kernel for the Microchip
-SAMA5D3 Xplained board.
 
 \section{Kernel sources}
 
@@ -46,10 +41,14 @@ Also, don't forget to either:
 \section{Linux kernel configuration}
 
 By running \code{make help}, find the proper Makefile target to
-configure the kernel for the Xplained board (hint: the default
+configure the kernel
+
+\ifdefstring{\labboard}{qemu}
+{for the ARM Vexpress boards (\code{vexpress_defconfig})}
+{for the Xplained board (hint: the default
 configuration is not named after the board, but after the SoC
 name). Once found, use this target to configure the kernel with the
-ready-made configuration.
+ready-made configuration.}
 
 Don't hesitate to visualize the new settings by running
 \code{make xconfig} afterwards!
@@ -78,27 +77,34 @@ the kernel image. You can also see the Device Tree \code{.dtb} files
 which got compiled. Find which \code{.dtb} file corresponds to your
 board.
 
-Copy the linux kernel image and DTB files to the TFTP server 
+Copy the linux kernel image and DTB files to the TFTP server
 home directory.
 
 \section{Load and boot the kernel using U-Boot}
 
-We will use TFTP to load the kernel image on the Xplained board:
+We will use TFTP to load the kernel image on the ARM board:
 
 \begin{itemize}
 
-\item On your workstation, copy the \code{zImage} and DTB files to the
-  directory exposed by the TFTP server.
+\item On your workstation, copy the \code{zImage} and DTB to the
+\ifdefstring{\labboard}{qemu}{(\code{vexpress-v2p-ca9.dtb})}
+files to the directory exposed by the TFTP server.
 
 \item On the target (in the U-Boot prompt), load \code{zImage} from
-  TFTP into RAM at address 0x21000000:\\
-  \code{tftp 0x21000000 zImage}
+TFTP into RAM:
+\ifdefstring{\labboard}{qemu}
+{\code{tftp 0x61000000 zImage}}
+{\code{tftp 0x21000000 zImage}}
 
-\item Now, also load the DTB file into RAM at address 0x22000000:\\
-  \code{tftp 0x22000000 at91-sama5d3_xplained.dtb}
+\item Now, also load the DTB file into RAM:\\
+\ifdefstring{\labboard}{qemu}
+{\code{tftp 0x62000000 vexpress-v2p-ca9.dtb}}
+{\code{tftp 0x22000000 at91-sama5d3_xplained.dtb}}
 
 \item Boot the kernel with its device tree:\\
-  \code{bootz 0x21000000 - 0x22000000}
+\ifdefstring{\labboard}{qemu}
+{\code{bootz 0x61000000 - 0x62000000}}
+{\code{bootz 0x21000000 - 0x22000000}}
 
 \end{itemize}
 
@@ -106,15 +112,22 @@ You should see Linux boot and finally panicking. This is expected: we
 haven't provided a working root filesystem for our device yet.
 
 You can now automate all this every time the board is booted or
-reset. Reset the board, and specify a different \code{bootcmd}:
+reset. Reset the board, and customize \code{bootcmd}:
 
+\ifdefstring{\labboard}{qemu}{\scriptsize
+\code{setenv bootcmd 'tftp 0x61000000 zImage; tftp 0x62000000
+vexpress-v2p-ca9.dtb; bootz 0x61000000 - 0x62000000'}\\
+\code{saveenv}
+}
 {\scriptsize
-\begin{verbatim}
-setenv bootcmd 'tftp 0x21000000 zImage; tftp 0x22000000 at91-sama5d3_xplained.dtb; bootz 0x21000000 - 0x22000000'
-saveenv
-\end{verbatim}
+\code{setenv bootcmd 'tftp 0x21000000 zImage; tftp 0x22000000 at91-sama5d3_xplained.dtb; bootz 0x21000000 - 0x22000000'}\\
+\code{saveenv}
 }
 
+Restart the board to make sure that booting the kernel is now automated.
+
+\ifdefstring{\labboard}{xplained}
+{
 \section{Flashing the kernel and DTB in NAND flash}
 
 In order to let the kernel boot on the board autonomously, we can
@@ -131,14 +144,12 @@ and Linux kernel images:
 
 So, let's start by erasing the corresponding 128 KiB of NAND flash
 for the DTB:
-
 \begin{verbatim}
 nand erase 0x180000 0x20000
         (NAND offset) (size)
 \end{verbatim}
 
 Then, let's erase the 5 MiB of NAND flash for the kernel image:
-
 \begin{verbatim}
 nand erase 0x1a0000 0x500000
 \end{verbatim}
@@ -147,7 +158,6 @@ Then, copy the DTB and kernel binaries from TFTP into memory, using the
 same addresses as before.
 
 Then, flash the DTB and kernel binaries:
-
 \begin{verbatim}
 nand write 0x22000000 0x180000 0x20000
            (RAM addr) (NAND offset) (size)
@@ -187,3 +197,5 @@ the kernel that's running\footnote{Look at the kernel log. You will find
 the kernel version number as well as the date when it was compiled.
 That's very useful to check that you're not loading an older version
 of the kernel instead of the one that you've just compiled.}
+}
+{}
