@@ -53,10 +53,8 @@ EMBEDDED_LINUX_QEMU_LABS   = ubuntu-vm \
 		sysdev-kernel-fetch-and-patch \
 		sysdev-kernel-cross-compiling \
 		sysdev-tinysystem \
-		sysdev-block-filesystems \
-		sysdev-flash-filesystems \
+		sysdev-block-filesystems-qemu \
 		sysdev-thirdparty \
 		sysdev-buildroot \
 		sysdev-application-development \
 		sysdev-application-debugging \
-		sysdev-real-time

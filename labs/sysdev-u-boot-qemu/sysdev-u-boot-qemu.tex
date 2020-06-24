@@ -171,6 +171,11 @@ sudo mkfs.vfat -F 16 -n boot /dev/loop<x>p1
 
 The other partitions will be formated later.
 
+Now, you can release the loop device:
+\begin{verbatim}
+sudo losetup -d /dev/loop<x>
+\end{verbatim}
+
 \section{Testing U-Boot's environment}
 
 Start QEMU again, but this time with the emulated SD card
@@ -206,7 +211,7 @@ script that will bring up a network interface between QEMU and the host. Here ar
 
 \begin{verbatim}
 #!/bin/bash
-exec /sbin/ifconfig $1 192.168.100.1
+exec /sbin/ifconfig $1 192.168.0.1
 \end{verbatim}
 
 Of course, make this script executable:
@@ -214,8 +219,10 @@ Of course, make this script executable:
 sudo chmod +x /etc/qemu-myifup
 \end{verbatim}
 
-As you can see, the host side will have the \code{192.168.100.1} IP
-address. We will use \code{192.168.100.2} for the target side.
+As you can see, the host side will have the \code{192.168.0.1} IP
+address. We will use \code{192.168.0.100} for the target side.
+Of course, use a different IP address range if this conflicts with your
+local network.
 
 Then, you will need root privileges to run QEMU this time,
 because of the need to bring up the network interface:
@@ -241,19 +248,19 @@ On the U-Boot command line, you will have to configure the environment
 variables for networking:
 
 \begin{verbatim}
-setenv ipaddr 192.168.100.2
-setenv serverip 192.168.100.1
+setenv ipaddr 192.168.0.100
+setenv serverip 192.168.0.1
 saveenv
 \end{verbatim}
 
 You can now test the connection to the host:
 \begin{verbatim}
-ping 192.168.100.1
+ping 192.168.0.1
 \end{verbatim}
 
 It should finish by:
 \begin{verbatim}
-host 192.168.100.1 is alive
+host 192.168.0.1 is alive
 \end{verbatim}
 
 \section{tftp setup}

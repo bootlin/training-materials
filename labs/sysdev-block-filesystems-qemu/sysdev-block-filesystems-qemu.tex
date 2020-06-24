@@ -1,0 +1,148 @@
+\subchapter{Filesystems - Block file systems}{Objective: configure and
+  boot an embedded Linux system relying on block storage}
+
+After this lab, you will be able to:
+\begin{itemize}
+\item Manage partitions on block storage.
+\item Produce file system images.
+\item Configure the kernel to use these file systems
+\item Use the tmpfs file system to store temporary files
+\end{itemize}
+
+\section{Goals}
+
+After doing the {\em A tiny embedded system} lab, we are going to copy
+the filesystem contents to the emulated SD card. The storage will be
+split into several partitions, and your QEMU emulated board will
+be booted from this SD card, without using NFS anymore.
+
+\section{Setup}
+
+Throughout this lab, we will continue to use the root filesystem we
+have created in the \code{$HOME/__SESSION_NAME__-labs/tinysystem/nfsroot}
+directory, which we will progressively adapt to use block filesystems.
+
+\section{Filesystem support in the kernel}
+
+Recompile your kernel with support for SquashFS and ext4\footnote{Basic
+configuration options for these filesystems will be sufficient. No need
+for things like extended attributes.}.
+
+Update your kernel image on the tftp server. We will only later copy
+the kernel to our FAT partition.
+
+Boot your board with this new kernel and on the NFS filesystem you
+used in this previous lab.
+
+Now, check the contents of \code{/proc/filesystems}. You should see
+ that ext4 and SquashFS are now supported.
+
+\section{Format the third partition}
+
+We are going to format the third partition of the SD card image
+with the ext4 filesystem, so that it can contain uploaded images.
+
+Setup the loop device again:
+\begin{verbatim}
+sudo losetup -f --show --partscan sd.img
+\end{verbatim}
+
+And then format the third partition:
+
+\begin{verbatim}
+sudo mkfs.ext4 -L data /dev/loop<x>p3
+\end{verbatim}
+
+Now, mount this new partition on a directory on your host (you could
+create the \code{/mnt/data} directory, for example) and move the contents of the
+\code{/www/upload/files} directory (in your target root filesystem) into
+it. The goal is to use the third partition of the SD card as the storage
+for the uploaded images.
+
+You can now unmount the partition and free the loop device:
+\begin{verbatim}
+sudo umount /mnt/data
+sudo losetup -d /dev/loop<x>
+\end{verbatim}
+
+Now, restart QEMU and from the Linux command line and
+mount this third partition on \code{/www/upload/files}.
+
+Once this works, modify the startup scripts in your root filesystem
+to do it automatically at boot time.
+
+Reboot your target system again and with the mount command, check that
+\code{/www/upload/files} is now a mount point for the third SD card
+partition. Also make sure that you can still upload new images, and
+that these images are listed in the web interface.
+
+\section{Adding a tmpfs partition for log files}
+
+For the moment, the upload script was storing its log file in
+\code{/www/upload/files/upload.log}. To avoid seeing this log file in
+the directory containing uploaded files, let's store it in
+\code{/var/log} instead.
+
+Add the \code{/var/log/} directory to your root filesystem and modify
+the startup scripts to mount a \code{tmpfs} filesystem on this
+directory. You can test your \code{tmpfs} mount command line on the
+system before adding it to the startup script, in order to be sure
+that it works properly.
+
+Modify the \code{www/cgi-bin/upload.cfg} configuration file to store
+the log file in \code{/var/log/upload.log}. You will lose your log
+file each time you reboot your system, but that's OK in our
+system. That's what \code{tmpfs} is for: temporary data that you don't need
+to keep across system reboots.
+
+Reboot your system and check that it works as expected.
+
+\section{Making a SquashFS image}
+
+We are going to store the root filesystem in a SquashFS filesystem in
+the second partition of the SD card.
+
+In order to create SquashFS images on your host, you need to install
+the \code{squashfs-tools} package. Now create a SquashFS image of your
+NFS root directory.
+
+Setup the loop device again, and using the \code{dd} command,
+copy the file system image to the second partition in the SD card
+image. Release the loop device.
+
+\section{Booting on the SquashFS partition}
+
+In the U-boot shell, configure the kernel command line to use the
+second partition of the SD card as the root file system. Also add the
+\code{rootwait} boot argument, to wait for the SD card to be properly
+initialized before trying to mount the root filesystem. Since the SD
+cards are detected asynchronously by the kernel, the kernel might try
+to mount the root filesystem too early without \code{rootwait}.
+
+Check that your system still works. Congratulations if it does!
+
+\section{Store the kernel image and DTB on the SD card}
+
+Setup the loop device again, and mount the FAT partition
+in the SD card image (for example on \code{/mnt/boot}).
+Then copy the kernel image and Device Tree to it.
+
+Unmount the FAT partition and release the loop device.
+
+You now need to adjust the \code{bootcmd} of U-Boot so
+that it loads the kernel and DTB from the SD card instead of loading
+them from the network.
+
+In U-boot, you can load a file from a FAT filesystem using a command
+like
+
+\begin{verbatim}
+fatload mmc 0:1 0x61000000 filename
+\end{verbatim}
+
+Which will load the file named \code{filename} from the first
+partition of the device handled by the first MMC controller to the
+system memory at the address \code{0x61000000}.
+
+Type \code{reset} in U-Boot to reboot the board and make
+sure that your system still boots fine.
