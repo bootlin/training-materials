@@ -4,6 +4,8 @@ EMBEDDED_LINUX_SLIDES = \
 		course-information-title \
 		xplained-board \
 		sysdev-shopping-list \
+		discovery-board-also-supported \
+		qemu-also-supported \
 		course-information \
 		sysdev-intro \
 		sysdev-dev-environment \

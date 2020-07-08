@@ -4,6 +4,8 @@ EMBEDDED_LINUX_4D_SLIDES = \
 		course-information-title \
 		discovery-board \
 		sysdev-shopping-list-stm32 \
+		xplained-board-also-supported \
+		qemu-also-supported \
 		course-information \
 		sysdev-intro \
 		sysdev-dev-environment \
