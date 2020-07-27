@@ -13,7 +13,7 @@
     \url{https://gitlab.denx.de/u-boot/u-boot}
   \item Development and discussions happen around an open mailing-list
     \url{https://lists.denx.de/pipermail/u-boot/}
-  \item Follows a fixed-interval release schedule. Every two months,
+  \item Follows a regular release schedule. Every 2 or 3 months,
     a new version is released. Versions are named \code{YYYY.MM}.
 \end{itemize}
 \end{frame}
@@ -21,16 +21,16 @@
 \begin{frame}
   \frametitle{U-Boot configuration}
   \begin{itemize}
-  \item Get the source code from the website, and uncompress it
-  \item The \code{configs/} directory contains one configuration file
+  \item Get the source code from the website or from git, and uncompress it
+  \item The \projdir{u-boot}{configs} directory contains one configuration file
     for each supported board
     \begin{itemize}
     \item It defines the CPU type, the peripherals and their configuration, the
       memory mapping, the U-Boot features that should be compiled in, etc.
     \end{itemize}
   \item Note: U-Boot is migrating from board configuration defined in
-    C header files (\code{include/configs/}) to {\em defconfig} like in
-    the Linux kernel (\code{configs/})
+    C header files (\projdir{u-boot}{include/configs}) to {\em defconfig} like in
+    the Linux kernel (\projdir{u-boot}{configs})
     \begin{itemize}
     \item Not all boards have been converted to the new configuration
       system.
@@ -76,6 +76,7 @@ CONFIG_USB_EHCI_HCD=y
   \begin{itemize}
   \item U-Boot must be configured before being compiled
     \begin{itemize}
+    \item Configuration stored in a \code{.config} file
     \item \code{make BOARDNAME_defconfig}
     \item Where \code{BOARDNAME} is the name of a configuration, as
       visible in the \code{configs/} directory.
@@ -188,7 +189,7 @@ Device 0: nand0, sector size 128 KiB
 \begin{frame}[fragile]
   \frametitle{Information commands (2)}
 \begin{block}{Version details}
-{\tiny
+{\small
 \begin{verbatim}
 => version
 U-Boot 2020.04 (May 26 2020 - 16:05:43 +0200)
@@ -300,7 +301,8 @@ u-boot # saveenv
   \begin{itemize}
   \item \code{bootcmd}, specifies the commands that U-Boot will
     automatically execute at boot time after a configurable delay
-    (\code{bootdelay}), if the process is not interrupted
+    (\code{bootdelay}), if the process is not interrupted. See next
+    page for an example.
   \item \code{bootargs}, contains the arguments passed to the Linux
     kernel, covered later
   \item \code{serverip}, the IP address of the server that U-Boot will
@@ -330,8 +332,9 @@ u-boot # saveenv
     \item You can reference other variables using
       \code{${variable-name}}
     \end{itemize}
-  \item Example
+  \item Examples
     \begin{itemize}
+    \item \code{setenv bootcmd 'tftp 0x21000000 zImage; tftp 0x22000000 dtb; bootz 0x21000000 - 0x22000000'}
     \item \code{setenv mmc-boot 'if fatload mmc 0 80000000
       boot.ini; then source; else if fatload mmc 0 80000000 zImage;
       then run mmc-do-boot; fi; fi'}
@@ -374,8 +377,8 @@ u-boot # saveenv
   \item A TFTP server is needed on the development workstation
     \begin{itemize}
     \item \code{sudo apt install tftpd-hpa}
-    \item All files in \code{/var/lib/tftpboot} (in Ubuntu 18.04)
-          or in \code{/srv/tftp} (in Ubuntu 20.04) are then visible through TFTP
+    \item All files in \code{/var/lib/tftpboot} or in \code{/srv/tftp}
+      (if \code{/srv} exists) are then visible through TFTP
     \item A TFTP client is available in the \code{tftp-hpa} package,
       for testing
     \end{itemize}
@@ -383,7 +386,8 @@ u-boot # saveenv
     \begin{itemize}
     \item Configure the \code{ipaddr} and \code{serverip} environment
       variables
-    \item Use \code{tftp <address> <filename>} to load a file
+    \item Use \code{tftp <address> <filename>} to load file contents to
+      the specified RAM address
     \end{itemize}
   \end{itemize}
 \end{frame}
