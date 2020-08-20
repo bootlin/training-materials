@@ -28,27 +28,46 @@
 
 \begin{frame}
   \frametitle{General purpose toolbox: BusyBox}
-  \begin{itemize}
-  \item Rewrite of many useful UNIX command line utilities
-    \begin{itemize}
-    \item Created in 1995 to implement a rescue and installer
-     system for Debian, fitting in a single floppy disk (1.44 MB)
-    \item Integrated into a single project, which makes it easy to
-      work with
-    \item Designed with embedded systems in mind: highly configurable,
-      no unnecessary features
-    \end{itemize}
-  \item All the utilities are compiled into a single executable,
-    \code{/bin/busybox}
-    \begin{itemize}
-    \item Symbolic links to \code{/bin/busybox} are created for each
-      application integrated into Busybox
-    \end{itemize}
-  \item For a fairly featureful configuration, less than 500 KB
-    (statically compiled with uClibc) or less than 1 MB (statically
-    compiled with glibc).
-  \item   \url{https://www.busybox.net/}
-  \end{itemize}
+  \begin{columns}
+    \column{0.75\textwidth}
+      \url{https://www.busybox.net/}
+      \begin{itemize}
+      \item Rewrite of many useful UNIX command line utilities
+        \begin{itemize}
+        \item Created in 1995 to implement a rescue and installer
+         system for Debian, fitting in a single floppy disk (1.44 MB)
+        \item Integrated into a single project, which makes it easy to
+          work with
+        \item Designed with embedded systems in mind: highly configurable,
+          no unnecessary features
+        \item Called the {\em Swiss Army Knife of Embedded Linux}
+        \end{itemize}
+      \item License: GNU GPLv2
+      \item Alternative: Toybox, BSD licensed (\url{https://en.wikipedia.org/wiki/Toybox})
+      \end{itemize}
+    \column{0.25\textwidth}
+    \includegraphics[width=\textwidth]{common/busybox.png}
+  \end{columns}
+\end{frame}
+
+\begin{frame}
+  \frametitle{BusyBox in the root filesystem}
+  \begin{columns}
+    \column{0.65\textwidth}
+      \begin{itemize}
+      \item All the utilities are compiled into a single executable,
+        \code{/bin/busybox}
+        \begin{itemize}
+        \item Symbolic links to \code{/bin/busybox} are created for each
+          application integrated into Busybox
+        \end{itemize}
+      \item For a fairly featureful configuration, less than 500 KB
+        (statically compiled with uClibc) or less than 1 MB (statically
+        compiled with glibc).
+      \end{itemize}
+    \column{0.35\textwidth}
+      \includegraphics[width=\textwidth]{slides/sysdev-busybox/busybox-tree.png}
+  \end{columns}
 \end{frame}
 
 \begin{frame}
@@ -110,36 +129,6 @@ yes, zcat, zcip}
 \end{frame}
 
 \begin{frame}
-  \frametitle{Applet highlight: Busybox init}
-  \begin{itemize}
-  \item Busybox provides an implementation of an \code{init} program
-  \item Simpler than the init implementation found on desktop/server
-    systems ({\em SysV init} or {\em systemd})
-  \item A single configuration file: \code{/etc/inittab}
-    \begin{itemize}
-    \item Each line has the form \code{<id>::<action>:<process>}
-    \end{itemize}
-  \item Allows to run services at startup, and to make sure that
-    certain services are always running on the system
-  \item See \projfile{busybox}{examples/inittab} in Busybox for details on the
-    configuration
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Applet highlight - BusyBox vi}
-  \begin{itemize}
-  \item If you are using BusyBox, adding \code{vi} support only adds
-    20K (built with shared libraries, using uClibc).
-  \item You can select which exact features to compile in.
-  \item Users hardly realize that they are using a lightweight \code{vi}
-    version!
-  \item Tip: you can learn \code{vi} on the desktop, by running the \code{vimtutor}
-    command.
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
   \frametitle{Configuring BusyBox}
   \begin{itemize}
   \item Get the latest stable sources from \url{https://busybox.net}
@@ -161,13 +150,13 @@ yes, zcat, zcip}
 \begin{frame}
   \frametitle{BusyBox make xconfig}
   \begin{columns}
-    \column{0.3\textwidth}
+    \column{0.5\textwidth}
     You can choose:
     \begin{itemize}
     \item the commands to compile,
     \item and even the command options and features that you need!
     \end{itemize}
-    \column{0.7\textwidth}
+    \column{0.5\textwidth}
     \includegraphics[width=\textwidth]{slides/sysdev-busybox/xconfig-screenshot.png}
   \end{columns}
 \end{frame}
@@ -190,6 +179,41 @@ yes, zcat, zcip}
     links to the \code{busybox} executable):\\
     \code{make install}
   \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Applet highlight: Busybox init}
+  \begin{itemize}
+  \item Busybox provides an implementation of an \code{init} program
+  \item Simpler than the init implementation found on desktop/server
+    systems ({\em SysV init} or {\em systemd})
+  \item A single configuration file: \code{/etc/inittab}
+    \begin{itemize}
+    \item Each line has the form \code{<id>::<action>:<process>}
+    \end{itemize}
+  \item Allows to run services at startup, and to make sure that
+    certain services are always running on the system
+  \item See \projfile{busybox}{examples/inittab} in Busybox for details on the
+    configuration
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Applet highlight - BusyBox vi}
+  \begin{columns}
+    \column{0.6\textwidth}
+      \begin{itemize}
+      \item If you are using BusyBox, adding \code{vi} support only adds
+        about 20K
+      \item You can select which exact features to compile in.
+      \item Users hardly realize that they are using a lightweight \code{vi}
+        version!
+      \item Tip: you can learn \code{vi} on the desktop, by running the \code{vimtutor}
+        command.
+      \end{itemize}
+    \column{0.4\textwidth}
+      \includegraphics[width=\textwidth]{slides/sysdev-busybox/busybox-vi-configuration.png}
+  \end{columns}
 \end{frame}
 
 \setuplabframe
