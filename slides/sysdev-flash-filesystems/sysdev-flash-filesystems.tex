@@ -28,8 +28,13 @@
   \frametitle{NAND flash chips: how they work?}
   \begin{itemize}
   \item Encode bits with voltage levels
+    \begin{itemize}
+      \item SLC: {\em Single Level Cell} - 1 bit per memory cell
+      \item MLC: {\em Multi Level Cell} - Multiple bits per cell)
+    \end{itemize}
   \item Start with all bits set to 1
   \item Programming implies changing some bits from 1 to 0
+        (assuming 1 bit per cell)
   \item Restoring bits to 1 is done via the ERASE operation
   \item Programming and erasing is not done on a per bit or per byte
     basis
@@ -54,8 +59,7 @@
     \begin{itemize}
     \item Far less reliable than NOR flash
     \item Reliability depends on the NAND flash technology (SLC, MLC)
-    \item Require additional mechanisms to recover from bit flips: ECC
-      (Error Correcting Code)
+    \item Require mechanisms to recover from bit flips: ECC (Error Correcting Code)
     \item ECC information stored in the OOB (Out-of-band area)
     \end{itemize}
   \item Lifetime
@@ -63,11 +67,11 @@
     \item Short lifetime compared to other storage media
     \item Lifetime depends on the NAND flash technology (SLC, MLC):
       between 1000000 and 1000 erase cycles per block
-    \item Wear leveling mechanisms are required
+    \item Wear leveling mechanisms are required to erase blocks evenly
     \item Bad block detection/handling required too
     \end{itemize}
   \item Despite the number of constraints brought by NAND they are
-    widely used in embedded systems for several reasons:
+  widely used in embedded systems for several reasons:
     \begin{itemize}
     \item Cheaper than other flash technologies
     \item Provide high capacity storage
@@ -162,7 +166,7 @@
   \frametitle{Linux: definition of MTD partitions}
   \small
   The Device Tree is the standard place to define {\em default} MTD partitions
-  for platforms with Device Tree support.\\
+  and MTD device properties (such as ECC) for platforms with Device Tree support.\\
   Example from \kfile{arch/arm/boot/dts/omap3-overo-base.dtsi}:
 \begin{minted}[fontsize=\scriptsize]{perl}
         nand@0,0 {
@@ -206,7 +210,9 @@
   \item Example:
   {\scriptsize
   \begin{verbatim}
+# Association between U-Boot name and Linux name
 setenv mtdids nand0=omap2-nand.0
+# Partition definitions
 setenv mtdparts mtdparts=omap2-nand.0:512k(XLoader)ro,1536k(UBoot)ro,512k(Env),4m(Kernel),-(Root)
   \end{verbatim}
   }
@@ -218,6 +224,12 @@ setenv mtdparts mtdparts=omap2-nand.0:512k(XLoader)ro,1536k(UBoot)ro,512k(Env),4
     \item \code{Kernel} (4 MiB)
     \item \code{Root filesystem} (Remaining space)
     \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{U-Boot: defining MTD partitions (3)}
+  \begin{itemize}
   \item Partition sizes must be multiple of the erase block size.
     You can use sizes in hexadecimal too. Remember the below sizes:
     \code{0x20000} = 128 KiB, \code{0x100000} = 1 MiB, \code{0x1000000} = 16 MiB
@@ -228,10 +240,11 @@ setenv mtdparts mtdparts=omap2-nand.0:512k(XLoader)ro,1536k(UBoot)ro,512k(Env),4
 
 
 \begin{frame}[fragile]
-  \frametitle{U-Boot: defining MTD partitions (3)}
+  \frametitle{U-Boot: defining MTD partitions (4)}
   \code{mtdids} associates a U-Boot flash device name
   to a Linux flash device name:\\
   \code{setenv mtdids <devid>=<mtdid>[,<devid>=<mtdid>]}\\
+  \vspace{0.5cm}
   That's required because the Linux name is used in partition definitions.
   \begin{itemize}
   \item \code{devid}: {\bf U-Boot} device identifier (from
@@ -243,7 +256,7 @@ setenv mtdparts mtdparts=omap2-nand.0:512k(XLoader)ro,1536k(UBoot)ro,512k(Env),4
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{U-Boot: defining MTD partitions (4)}
+  \frametitle{U-Boot: defining MTD partitions (5)}
   \code{mtdparts} defines partitions for the different devices\\
   \begin{itemize}
     \item \code{setenv mtdparts mtdparts=<mtdid>:<partition>[,partition]}
