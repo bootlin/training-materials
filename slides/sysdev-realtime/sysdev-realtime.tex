@@ -118,20 +118,31 @@
 \end{frame}
 
 \begin{frame}
-  \frametitle{Sources of interrupt latency}
+  \frametitle{Sources of interrupt latency (1)}
   Cause: disabled interrupts
   \begin{itemize}
   \item One of the concurrency prevention mechanism used in the kernel
     is the {\bf spinlock}
-  \item It has several variants, but one of the variant commonly used
+  \item It has several variants, but one commonly used is
     to prevent concurrent accesses between a process context and an
     interrupt context works by disabling interrupts
-  \item Critical sections protected by spinlocks, or other section in
-    which interrupts are explicitly disabled will delay the beginning
-    of the execution of the interrupt handler
-    \begin{itemize}
-    \item The duration of these critical sections is unbounded
-    \end{itemize}
+  \item We want to avoid situations in which the interrupt handler
+    waits forever for a spinlock that was held by the code it
+    interrupted:
+  \end{itemize}
+  \begin{center}
+    \includegraphics[width=0.9\textwidth]{slides/sysdev-realtime/spinlock-deadlock-with-interrupt.pdf}
+  \end{center}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Sources of interrupt latency (2)}
+  \begin{itemize}
+  \item To avoid such issues, when there can be concurrency between regular kernel code
+        and interrupt code, spinlocks are held with interrupts disabled.
+  \item This can delay the execution of a critical interrupt handler
+  \item The duration of these critical sections in which spinlocks are
+        held with interrupts disabled is unbounded:
   \end{itemize}
   \begin{center}
     \includegraphics[width=0.9\textwidth]{slides/sysdev-realtime/spinlock.pdf}
@@ -268,7 +279,7 @@
 \begin{frame}
   \frametitle{The PREEMPT\_RT project}
   \begin{itemize}
-  \item Long-term project lead by Linux kernel developers
+  \item Long-term project (started in 2004!) lead by Linux kernel developers
     such as Thomas Gleixner, Steven Rostedt and Ingo Molnar
     \begin{itemize}
     \item \url{https://wiki.linuxfoundation.org/realtime/}
@@ -326,7 +337,8 @@
   \item Still benefits from some Linux real-time improvements: O(1)
     scheduler, increased multiprocessor safety (work on RT preemption
     was useful to identify hard to find SMP bugs).
-  \item Can also benefit from a lower timer frequency (100 Hz instead
+  \item Can also benefit from a lower timer frequency (several possible
+        values between 100 Hz and 1000 Hz)
     of 250, 300 or 1000).
   \end{itemize}
 \end{frame}
@@ -352,13 +364,12 @@
   process becomes runnable, no more need to wait for kernel code
   (typically a system call) to return before running the scheduler.
   \begin{itemize}
-  \item Exception: kernel critical sections (holding spinlocks).
-    In a case you hold a spinlock on a uni-processor system, kernel preemption
-    could run another process, which would loop forever if it
-    tried to acquire the same spinlock.
+  \item Exception: kernel critical sections (holding spinlocks):
+  \begin{center}
+    \includegraphics[width=0.9\textwidth]{slides/sysdev-realtime/spinlock-deadlock-with-preemption.pdf}
+  \end{center}
   \item Typically for desktop or embedded systems with latency
-    requirements in the milliseconds range.
-  \item Still a relatively minor impact on throughput.
+    requirements in the milliseconds range. Still a relatively minor impact on throughput.
   \end{itemize}
 \end{frame}
 
