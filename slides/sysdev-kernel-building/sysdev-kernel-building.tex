@@ -187,7 +187,8 @@
       used to declare what features a hardware architecture supports.
     \end{itemize}
   \column{0.4\textwidth}
-    \includegraphics[width=\textwidth]{slides/sysdev-kernel-building/kconfig-dependencies.png}
+    \includegraphics[width=\textwidth]{slides/sysdev-kernel-building/kconfig-dependencies.png}\\
+    \footnotesize Kconfig file excerpt
   \end{columns}
   \item With the \code{Show All Options} option, \code{make xconfig} allows
     to see all options, even the ones that cannot be selected because of
@@ -392,7 +393,10 @@ tools (\code{gcc}, \code{as}, \code{ld}, \code{objcopy}, \code{strip}...).
     \begin{itemize}
     \item In the main kernel source directory!
     \item Remember to run multiple jobs in parallel
-          if you have multiple CPU cores. Example: \code{make -j 8}
+          if you have multiple CPU cores. Our advice:
+          \code{ncpus * 2} or \code{ncpus + 2}, to fully load
+          the CPU and I/Os at all times.\\
+          Example: \code{make -j 8}
     \item No need to run as root!
     \end{itemize}
   \item Generates
@@ -521,17 +525,23 @@ tools (\code{gcc}, \code{as}, \code{ld}, \code{objcopy}, \code{strip}...).
 \subsection{Booting the kernel}
 
 \begin{frame}
-  \frametitle{Device Tree (DT)}
+  \frametitle{Device Tree (1)}
   \begin{itemize}
   \item Many embedded architectures have a lot of non-discoverable
-    hardware.
+    hardware (serial, Ethernet, I2C, Nand flash, USB  controllers...)
   \item Depending on the architecture, such hardware is either
     described in BIOS ACPI tables (x86), using C code directly within the kernel,
     or using a special hardware description language in a {\em Device Tree}.
-  \item The DT was created for PowerPC, and later was
+  \item The Device Tree (DT) was created for PowerPC, and later was
     adopted by other architectures (ARM, ARC...). Now Linux
     has DT support in most architectures, at least for specific
     systems (for example for the OLPC on x86).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Device Tree (2)}
+  \begin{itemize}
   \item A {\em Device Tree Source}, written by kernel developers,
     is compiled into a binary {\em Device Tree Blob}, and needs to
     be passed to the kernel at boot time.
@@ -608,6 +618,7 @@ tools (\code{gcc}, \code{as}, \code{ld}, \code{objcopy}, \code{strip}...).
     \item It is very important for system configuration
     \item \code{root=} for the root filesystem (covered later)
     \item \code{console=} for the destination of kernel messages
+    \item Example: \code{console=ttyS0 root=/dev/mmcblk0p2 rootwait}
     \item Many more exist. The most important ones are documented
           in \kerneldochtml{admin-guide/kernel-parameters} in kernel
           documentation.
