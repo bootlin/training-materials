@@ -279,30 +279,147 @@ setenv mtdparts mtdparts=omap2-nand.0:512k(XLoader)ro,1536k(UBoot)ro,512k(Env),4
   \end{itemize}
 \end{frame}
 
-\begin{frame}
-  \frametitle{U-Boot: manipulating NAND devices}
-  U-Boot provides a set of commands to manipulate NAND devices,
-  grouped under the \code{nand} command
+\begin{frame}[fragile]
+  \frametitle{U-Boot: manipulating NAND devices (1)}
+  \begin{block}{}
+  \tiny
+  \begin{verbatim}
+=> help nand
+nand - NAND sub-system
+
+Usage:
+nand info - show available NAND devices
+nand device [dev] - show or set current device
+nand read - addr off|partition size
+nand write - addr off|partition size
+    read/write 'size' bytes starting at offset 'off'
+    to/from memory address 'addr', skipping bad blocks.
+nand read.raw - addr off|partition [count]
+nand write.raw[.noverify] - addr off|partition [count]
+    Use read.raw/write.raw to avoid ECC and access the flash as-is.
+nand write.trimffs - addr off|partition size
+    write 'size' bytes starting at offset 'off' from memory address
+    'addr', skipping bad blocks and dropping any pages at the end
+    of eraseblocks that contain only 0xFF
+nand erase[.spread] [clean] off size - erase 'size' bytes from offset 'off'
+    With '.spread', erase enough for given file size, otherwise,
+    'size' includes skipped bad blocks.
+nand erase.part [clean] partition - erase entire mtd partition'
+nand erase.chip [clean] - erase entire chip'
+nand bad - show bad blocks
+nand dump[.oob] off - dump page
+nand scrub [-y] off size | scrub.part partition | scrub.chip
+    really clean NAND erasing bad blocks (UNSAFE)
+nand markbad off [...] - mark bad block(s) at offset (UNSAFE)
+nand biterr off - make a bit error at offset (UNSAFE)
+  \end{verbatim}
+  \end{block}
+\end{frame}
+
+
+\begin{frame}[fragile]
+  \frametitle{U-Boot: manipulating NAND devices (2)}
   \begin{itemize}
   \item \code{nand info}\\
     Show available NAND devices and characteristics
+    \begin{block}{}
+    \footnotesize
+    \begin{verbatim}
+Device 0: nand0, sector size 128 KiB
+  Page size       2048 b
+  OOB size          64 b
+  Erase size    131072 b
+  subpagesize     2048 b
+  options     0x00004200
+  bbt options 0x00008000
+    \end{verbatim}
+    \end{block}
   \item \code{nand device [dev]}\\
     Select or display the active NAND device
+    \begin{block}{}
+    \footnotesize
+    \begin{verbatim}
+=> nand device 0
+    \end{verbatim}
+    \end{block}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{U-Boot: manipulating NAND devices (3)}
+  \begin{itemize}
   \item \code{nand read[.option] <addr> <offset|partname> <size>}\\
     Read data from NAND
-  \item \code{nand write[.option] <addr> <offset|partname> <size>}\\
-    Write data on NAND
-    \begin{itemize}
-      \item Use \code{nand write.trimffs} to avoid writing empty pages
-      (those filled with \code{0xff})
-    \end{itemize}
+    \begin{block}{}
+    \footnotesize
+    \begin{verbatim}
+=> nand read 0x21000000 0x100000 100
+
+NAND read: device 0 offset 0x100000, size 0x100
+ 256 bytes read: OK
+    \end{verbatim}
+    \end{block}
   \item \code{nand erase <offset> <size>}\\
     Erase a NAND region
+    \begin{block}{}
+    \footnotesize
+    \begin{verbatim}
+=> nand erase 0x4000000 100000
+
+NAND erase: device 0 offset 0x4000000, size 0x100000
+Erasing at 0x40e0000 -- 100% complete.
+    \end{verbatim}
+    \end{block}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{U-Boot: manipulating NAND devices (4)}
+  \begin{itemize}
   \item \code{nand erase.part <partname>}\\
     Erase a NAND partition
+    \begin{block}{}
+    \footnotesize
+    \begin{verbatim}
+=> nand erase.part UBI
+
+NAND erase.part: device 0 offset 0x200000, size 0xfe00000
+Erasing at 0xffe0000 -- 100% complete.
+OK
+    \end{verbatim}
+    \end{block}
+  \item \code{nand write[.option] <addr> <offset|partname> <size>}\\
+    Write data on NAND. Use \code{nand write.trimffs} to avoid writing empty pages
+    (those filled with \code{0xff})
+    \begin{block}{}
+    \footnotesize
+    \begin{verbatim}
+=> nand write 0x21000000 0x4000000 100000
+
+NAND write: device 0 offset 0x4000000, size 0x100000
+ 1048576 bytes written: OK
+    \end{verbatim}
+    \end{block}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{U-Boot: manipulating NAND devices (5)}
+  \begin{itemize}
+  \item \code{nand bad}\\
+    Shows bad blocks
+    \begin{block}{}
+    \footnotesize
+    \begin{verbatim}
+=> nand bad
+
+Device 0 bad blocks:
+    \end{verbatim}
+    \end{block}
   \item More commands for debugging purposes
   \end{itemize}
 \end{frame}
+
 
 \begin{frame}
   \frametitle{Linux: MTD devices interface with user space}
