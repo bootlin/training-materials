@@ -658,34 +658,20 @@ Device 0 bad blocks:
   \end{itemize}
 \end{frame}
 
-\begin{frame}
+\begin{frame}[fragile]
   \frametitle{Linux: UBI host tools}
   \begin{itemize}
   \item \code{ubinize} is the only host tool for the UBI layer
-  \item Creates a UBI image to be flashed on an MTD partition
-  \item Takes the following arguments:
-    \begin{itemize}
-    \item \code{-o <output-file-path>}\\
-	Path to the output image file
-    \item \code{-p <peb-size>}\\
-	The PEB size (MTD erase block size)
-    \item \code{-m <min-io-size>}\\
-	The minimum write unit size (e.g. MTD write size)
-    \item \code{-s <subpage-size>}\\
-	Subpage size, only needed if both your flash and your
-	flash controller are supporting subpage writes
-    \item The last argument is a path to a UBI image description file
-	  (see next page for an example)
-    \end{itemize}
-  \item Example: \code{ubinize -o ubi.img -p 16KiB -m 512 -s 256 ubinize.cfg}
+  \item It creates a UBI image to be flashed on an MTD partition,
+	from a specification of the contents of its volumes:
   \end{itemize}
+  \input{../slides/sysdev-flash-filesystems/ubinize-configuration.tex}
 \end{frame}
 
 \begin{frame}[fragile]
   \frametitle{ubinize configuration file}
   \begin{itemize}
-  \item Can contain several sections
-  \item Each section is describing a UBI volume
+  \item Each section describes a UBI volume
   \item \code{static} volumes are meant to store {\bf read-only} blobs of data,
 	and get the minimum corresponding size. CRC checks are done on
         them.
@@ -694,41 +680,28 @@ Device 0 bad blocks:
         for performance (CRC checking also done at UBIFS level).
   \item \code{autoresize}: allows to fill all remaining UBI space
   \end{itemize}
-  \begin{columns}
-    \column{0.33\textwidth}
-\small
-\begin{verbatim}
-[kernel-volume]
-mode=ubi
-image=zImage
-vol_id=1
-vol_type=static
-vol_name=kernel
-\end{verbatim}
-    \column{0.33\textwidth}
-\small
-\begin{verbatim}
-[rootfs-volume]
-mode=ubi
-image=rootfs.ubifs
-vol_id=2
-vol_size=2MiB
-vol_type=dynamic
-vol_name=rootfs
-\end{verbatim}
-    \column{0.33\textwidth}
-\small
-\begin{verbatim}
-[data-volume]
-mode=ubi
-image=data.ubifs
-vol_id=3
-vol_size=30MiB
-vol_type=dynamic
-vol_name=data
-vol_flags=autoresize
-\end{verbatim}
-  \end{columns}
+  \input{../slides/sysdev-flash-filesystems/ubinize-configuration.tex}
+\end{frame}
+
+\begin{frame}
+  \frametitle{ubinize command line}
+  \begin{itemize}
+  \item \code{ubinize} the following arguments:
+    \begin{itemize}
+    \item \code{-o <output-file-path>}\\
+	Path to the output image file
+    \item \code{-p <peb-size>}\\
+	The PEB size (MTD erase block size)
+    \item \code{-m <min-io-size>}\\
+	The minimum write unit size (MTD write size)
+    \item \code{-s <subpage-size>}\\
+	Subpage size, only needed if both your flash and your
+	flash controller are supporting subpage writes
+    \item The last argument is the path to the \code{ubinize}
+	  configuration file
+    \end{itemize}
+  \item Example: \code{ubinize -o ubi.img -p 256KiB -m 4096 -s 2048 ubinize.cfg}
+  \end{itemize}
 \end{frame}
 
 \begin{frame}
