@@ -46,6 +46,21 @@ line:
 Recompile your kernel if needed. We will update your kernel image on flash
 in the next section.
 
+\section{MTD partitioning}
+
+Look at the default MTD partitions in the kernel log. They do not
+match the way we wish to organize our flash
+storage. Therefore, we will define our own partitions at boot time,
+on the kernel command line.
+
+Redefine the partitions in U-Boot using the \code{mtdids} and
+\code{mtdparts} environment variables.
+Once done, execute the \code{mtdparts} command and check the partition
+definitions in the output of this command.
+
+Boot the kernel too and check that the new partition definitions
+are taken into account in Linux too.
+
 \section{Filesystem image preparation}
 
 To prepare filesystem images, we won't use what you stored on the SD
@@ -69,7 +84,20 @@ simply run \code{nand info} in U-Boot:
 Therefore, the size of one {\em LEB} is the size of the {\em PEB}
 minus the size of two pages: 128 KB - 2 * 2 KB, i.e {\bf 124 KB}.
 
-Knowing that the \code{data} and \code{rootfs} UBI volumes will be 16
+Let's double check this, as it's critical to get such information right.
+
+To do so, erase your \code{UBI} partition and let U-Boot initialize
+a new UBI space on it:
+
+\begin{verbatim}
+nand erase.part UBI
+ubi part UBI
+\end{verbatim}
+
+This will give you plenty of information about UBI on your NAND flash,
+in particular the {\em PEB} and {\em LEB} sizes.
+
+Now, knowing that the \code{data} and \code{rootfs} UBI volumes will be 16
 MiB big, you can now divide their total size by the LEB size, to compute
 the maximum of LEBs that they will contain. That's the last parameter
 (\code{-c}) that you need to pass to \code{mkfs.ubifs}.
@@ -141,20 +169,9 @@ not.
 % # ubinize -o ubi.img -p 128KiB -m 2048 ubinize.cfg
 %
 
-\section{MTD partitioning and flashing}
+\section{Flashing the UBI partition}
 
-Look at the default MTD partitions in the kernel log. They do not
-match the way we wish to organize our flash
-storage. Therefore, we will define our own partitions at boot time,
-on the kernel command line.
-
-Redefine the partitions in U-Boot using the \code{mtdids} and
-\code{mtdparts} environment variables.
-Once done, execute the \code{mtdparts} command and check the partition
-definitions in the output of this command.
-
-You can now safely erase the UBI partition without risking any
-corruption on other partitions.
+Erase the UBI partition again.
 
 Download the UBI image (using \code{tftp}) you have created in the
 previous section and flash it on the UBI partition.
