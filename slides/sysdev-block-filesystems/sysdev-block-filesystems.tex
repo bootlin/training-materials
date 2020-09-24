@@ -111,9 +111,10 @@ major minor #blocks name
     \code{ext{2,3,4}} filesystems
     \begin{itemize}
     \item \code{ext2}
-    \item \code{ext3}, brought {\em journaling} compared to \code{ext2}
+    \item \code{ext3}, brought {\em journaling} compared to \code{ext2},
+	  now obsoleted by \code{ext4}.
     \item \code{ext4}, mainly brought performance improvements and
-      support for even larger filesystems
+          support for very big partitions.
     \end{itemize}
   \item It supports all features Linux needs in a root filesystem:
     permissions, ownership, device files, symbolic links, etc.
@@ -188,13 +189,13 @@ major minor #blocks name
   \item Benchmarks: best performer on flash devices most of the time: \\
         See \url{https://lwn.net/Articles/520003/}
   \item Technical details: \url{https://lwn.net/Articles/518988/}
-  \item Not as widely used as \code{ext3,4}, even on flash-based
+  \item Not as widely used as \code{ext4} and \code{btrfs}, even on flash-based
     storage.
   \end{itemize}
 \end{frame}
 
 \begin{frame}
-  \frametitle{Squashfs: read-only filesystem}
+  \frametitle{SquashFS: read-only filesystem}
   \begin{itemize}
   \item Read-only, compressed filesystem for block devices. Fine for
     parts of a filesystem which can be read-only (kernel, binaries...)
@@ -204,6 +205,8 @@ major minor #blocks name
   \item Supports several compression algorithms (LZO, XZ, etc.)
   \item Benchmarks: roughly 3 times smaller than ext3, and 2-4 times
     faster (\url{https://elinux.org/Squash_Fs_Comparisons})
+  \item New alternative to SquashFS: EROFS\\
+    \url{https://en.wikipedia.org/wiki/EROFS}
   \end{itemize}
 \end{frame}
 
@@ -271,13 +274,12 @@ major minor #blocks name
 \subsection{Using block filesystems}
 
 \begin{frame}
-  \frametitle{Creating ext2/ext3/ext4 filesystems}
+  \frametitle{Creating ext2/ext4 filesystems}
   \begin{itemize}
-  \item To create an empty ext2/ext3/ext4 filesystem on a block device or
+  \item To create an empty ext2/ext4 filesystem on a block device or
     inside an already-existing image file
     \begin{itemize}
     \item \code{mkfs.ext2 /dev/hda3}
-    \item \code{mkfs.ext3 /dev/sda2}
     \item \code{mkfs.ext4 /dev/sda3}
     \item \code{mkfs.ext2 disk.img}
     \end{itemize}
@@ -309,6 +311,9 @@ major minor #blocks name
     the contents of the \code{rootfs.img} file.
   \item This is possible thanks to \code{loop}, which is a kernel
     driver that emulates a block device with the contents of a file.
+  \item Note: \code{-o loop} no longer necessary with recent versions
+        of \code{mount} from {\em GNU Coreutils}. Not true with BusyBox
+       \code{mount}.
   \item Do not forget to run \code{umount} before using the filesystem
     image!
   \end{itemize}
@@ -339,7 +344,7 @@ major minor #blocks name
     \column{0.7\textwidth}
     Good idea to split your block storage into:
     \begin{itemize}
-    \item A compressed read-only partition (\code{Squashfs})\\
+    \item A compressed read-only partition (\code{SquashFS})\\
       Typically used for the root filesystem (binaries, kernel...).\\
       Compression saves space. Read-only access protects your system
       from mistakes and data corruption.
