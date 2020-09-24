@@ -217,15 +217,16 @@ GNU ld (crosstool-NG 1.24.0.105_5659366) 2.34
   \item \code{fatload}, loads a file from a FAT filesystem to RAM
     \begin{itemize}
     \item Example: \code{fatload usb 0:1 0x21000000 zImage}
-    \item And also \code{fatls} and \code{fatinfo}
+    \item And also \code{fatinfo}, \code{fatls}, \code{fatsize},
+          \code{fatwrite}...
     \end{itemize}
   \item \code{ext2load}, loads a file from an ext2 filesystem to RAM
     \begin{itemize}
-    \item And also \code{ext2ls} to list files, \code{ext2info} for
-      information
+    \item And also \code{ext2info}, \code{ext2ls}, \code{ext2size},
+          \code{ext2write}...
     \end{itemize}
   \item Similar commands for other filesystems: \code{ext4load},
-      \code{ext4ls}, \code{sqfsload}, \code{sqfsls}
+      \code{ext4ls}, \code{sqfsload}, \code{sqfsls}...
       (\href{https://bootlin.com/blog/bootlin-contributes-squashfs-support-to-u-boot/}{SquashFS
       support contributed by Bootlin})...
   \item \code{tftp}, loads a file from the network to RAM (example given later)
@@ -263,19 +264,32 @@ GNU ld (crosstool-NG 1.24.0.105_5659366) 2.34
 
 \begin{frame}
   \frametitle{Environment variables: principle}
-  \begin{itemize}
-  \item U-Boot can be configured through environment variables
+  \begin{columns}
+  \column{0.7\textwidth}
     \begin{itemize}
-    \item Some specific environment variables affect the behavior of
-      the different commands
-    \item Custom environment variables can be added, and used in
-      scripts
+    \item U-Boot can be configured through environment variables
+      \begin{itemize}
+      \item Some specific environment variables impact the behavior of
+        the different commands
+      \item Custom environment variables can be added, and used in
+        scripts
+      \end{itemize}
+    \item Environment variables are loaded from persistent storage to RAM at U-Boot
+      startup. They can be defined or modified and saved back to storage for persistence
+    \item Depending on the configuration, the U-Boot environment is typically stored in:
+      \begin{itemize}
+	  \item At a fixed offset in NAND flash
+	  \item At a fixed offset on MMC or USB storage, before the beginning of
+                the first partition.
+	  \item In a file (\code{uboot.env}) on a FAT or ext4 partition
+	  \item In a UBI volume
+      \end{itemize}
     \end{itemize}
-  \item Environment variables are loaded from flash to RAM at U-Boot
-    startup. They can be defined or modified and saved back to flash for persistence
-  \item There is a dedicated location in flash (or in MMC storage)
-    to store the U-Boot environment, defined in the board configuration file
-  \end{itemize}
+  \column{0.3\textwidth}
+    \includegraphics[width=\textwidth]{slides/sysdev-bootloaders-u-boot/u-boot-environment-configuration.png}\\
+    \vspace{0.3cm}
+    \tiny U-Boot environment configuration menu
+  \end{columns}
 \end{frame}
 
 \begin{frame}
