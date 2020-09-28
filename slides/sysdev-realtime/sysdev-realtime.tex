@@ -118,8 +118,24 @@
 \end{frame}
 
 \begin{frame}
-  \frametitle{Sources of interrupt latency (1)}
-  Cause: disabled interrupts
+  \frametitle{Sources of interrupt latency}
+  There can be multiple causes delaying the execution of an interrupt
+  handler.
+  \begin{itemize}
+    \item Interrupts disabled by evil drivers. Such drivers may still
+	  exist but can be fixed.
+    \item Already running interrupt handlers. In Linux, there are
+	  no nested interrupts. Only once interrupt handler can run
+	  at the same time on a give CPU core. Therefore, your critical
+	  interrupt handler may wait for the completion of another,
+	  non-critical handler.
+    \item Sections of kernel code when disabling interrupts is
+          necessary, typically in some {\em spinlocks}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Disabling interrupts in spinlocks (1)}
   \begin{itemize}
   \item One of the concurrency prevention mechanism used in the kernel
     is the {\bf spinlock}
@@ -136,7 +152,7 @@
 \end{frame}
 
 \begin{frame}
-  \frametitle{Sources of interrupt latency (2)}
+  \frametitle{Disabling interrupts in spinlocks (2)}
   \begin{itemize}
   \item To avoid such issues, when there can be concurrency between regular kernel code
         and interrupt code, spinlocks are held with interrupts disabled.
