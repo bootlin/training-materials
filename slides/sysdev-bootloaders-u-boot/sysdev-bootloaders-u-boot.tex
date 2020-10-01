@@ -28,11 +28,14 @@
   \frametitle{U-Boot configuration}
   \begin{itemize}
   \item Get the source code from the website or from git, and uncompress it
-  \item The \projdir{u-boot}{configs} directory contains one configuration file
-    for each supported board
+  \item The \projdir{u-boot}{configs} directory contains one or several
+        configuration file(s) for each supported board
     \begin{itemize}
     \item It defines the CPU type, the peripherals and their configuration, the
       memory mapping, the U-Boot features that should be compiled in, etc.
+     \item Examples:\\
+           \projfile{u-boot}{configs/stm32mp15_basic_defconfig}\\
+           \projfile{u-boot}{configs/stm32mp15_trusted_defconfig}
     \end{itemize}
   \item Note: U-Boot is migrating from board configuration defined in
     C header files (\projdir{u-boot}{include/configs}) to {\em defconfig} like in
@@ -40,8 +43,9 @@
     \begin{itemize}
     \item Not all boards have been converted to the new configuration
       system.
-    \item Older U-Boot releases provided by hardware vendors may not
-      yet use this new configuration system.
+    \item Many boards still have {\em both} hardcoded configuration settings in
+          \code{.h} files, and configuration settings in \code{defconfig}
+          files that can be overriden with configuration interfaces.
     \end{itemize}
   \end{itemize}
 \end{frame}
@@ -110,7 +114,7 @@ CONFIG_USB_EHCI_HCD=y
   installation of U-Boot is done in a different way:
   \begin{itemize}
   \item The CPU provides some kind of specific boot monitor with
-    which you can communicate through serial port or USB using a
+    which you can communicate through the serial port or USB using a
     specific protocol
   \item The CPU boots first on removable media (MMC) before booting
     from fixed media (NAND). In this case, boot from MMC to reflash
@@ -348,7 +352,7 @@ u-boot # saveenv
   \item \code{netmask}, the network mask to contact the server
   \item \code{ethaddr}, the MAC address, can only be set once
   \item \code{autostart}, if set to \code{yes}, U-Boot automatically
-    starts an image after loading it in memory (\code{tftp},
+    tries to execute a binary after loading it in memory (\code{tftp},
     \code{fatload}...)
   \item \code{filesize}, the size of the latest copy to memory
     (from \code{tftp}, \code{fatload}, \code{nand read}...)
@@ -388,9 +392,9 @@ u-boot # saveenv
   \item Files must be exchanged between the target and the development
     workstation. This is possible:
     \begin{itemize}
-    \item Through the network if the target has an Ethernet
-      connection, and U-Boot contains a driver for the Ethernet
-      chip. This is the fastest and most efficient solution.
+    \item Through the network (Ethernet if a network port is available,
+      Ethernet over USB device...), if U-Boot has drivers for such networking.
+      This is the fastest and most efficient solution.
     \item Through a USB key, if U-Boot supports the USB controller of
       your platform
     \item Through a SD or microSD card, if U-Boot supports the MMC
@@ -421,8 +425,8 @@ u-boot # saveenv
     \end{itemize}
   \item A TFTP client is integrated into U-Boot
     \begin{itemize}
-    \item Configure the \code{ipaddr} and \code{serverip} environment
-      variables
+    \item Configure the \code{ipaddr}, \code{serverip}, and
+      \code{ethaddr} environment variables
     \item Use \code{tftp <address> <filename>} to load file contents to
       the specified RAM address
     \item Example: \code{tftp 0x21000000 zImage}
