@@ -206,16 +206,14 @@ printenv foo
 To load a kernel in the next lab, we will setup networking between the QEMU emulated
 machine and the host.
 
-First install the \code{net-tools} package to get the \code{ifconfig}
-command.
-
-Then create a \code{/etc/qemu-myifup} (for example)
+To do so, create a \code{/etc/qemu-myifup} (for example)
 script that will bring up a network interface between QEMU and the host.
 Here are its contents:
 
 \begin{verbatim}
 #!/bin/bash
-exec /sbin/ifconfig $1 192.168.0.1
+/sbin/ip a add 192.168.0.1/24 dev $1
+/sbin/ip link set $1 up
 \end{verbatim}
 
 Of course, make this script executable:
@@ -232,7 +230,7 @@ Then, you will need root privileges to run QEMU this time,
 because of the need to bring up the network interface:
 
 \begin{verbatim}
-qemu-system-arm -M vexpress-a9 -m 128M -nographic \
+sudo qemu-system-arm -M vexpress-a9 -m 128M -nographic \
 -kernel u-boot-2020.04/u-boot \
 -sd sd.img \
 -net tap,script=/etc/qemu-myifup -net nic
