@@ -102,7 +102,7 @@ from the \code{miscdevice} structure itself, accessible through the
 
 At the time we registered our {\em misc} device, we didn't keep any
 pointer to the \code{serial_dev} structure. However, as the
-\code{miscdevice} structure is accessible through
+\kstruct{miscdevice} structure is accessible through
 \code{file->private_data}, and is a member of the
 \code{serial_dev} structure, we can use a magic macro to compute
 the address of the parent structure:
@@ -115,9 +115,16 @@ struct serial_dev *dev =
 See \url{https://radek.io/2012/11/10/magical-container_of-macro/}
 for interesting implementation details about this macro.
 
-This wouldn't have been possible if the \code{miscdevice} structure
+This wouldn't have been possible if the \kstruct{miscdevice} structure
 was allocated separately and was just referred to by a pointer in
 \code{serial_dev}, instead of being a member of it.
+
+Another possibility, but more complicated, would have been to access the
+\code{parent} device pointer in \kstruct{miscdevice}, which then through
+the \kfunc{platform_get_drvdata} function would
+have given us access to the \code{serial_dev} structure containing the
+virtual address of the device. There are always multiple possibilities
+in kernel programming!
 
 Now, add code that copies (in a secure way) each character from the
 user space buffer to the UART device.
