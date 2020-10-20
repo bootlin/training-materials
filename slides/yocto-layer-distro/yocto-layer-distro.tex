@@ -97,6 +97,27 @@ MAINTAINER = "..."
   \end{itemize}
 \end{frame}
 
+\subsection{Release management}
+
+\begin{frame}[fragile]
+  \frametitle{Release management}
+  There are multiple tasks that OE/bitbake based projects let you do
+  on your own to ensure build reproducibility:
+  \begin{itemize}
+  \item Code distribution and project setup.
+  \item Release tagging
+  \end{itemize}
+  A separate tool is needed for that, usual solutions are:
+  \begin{itemize}
+  \item combo-layer, as done by Poky:
+    \url{https://wiki.yoctoproject.org/wiki/Combo-layer}
+  \item git submodules + setup script. Great example in YOE:
+    \url{https://github.com/YoeDistro/yoe-distro}
+  \item repo and \code{templateconf} or setup script
+  \item kas
+  \end{itemize}
+\end{frame}
+
 \begin{frame}
   \frametitle{Distribute the distribution}
   \begin{itemize}
@@ -109,6 +130,9 @@ MAINTAINER = "..."
     \item The only requirement is to use \code{git}.
     \item The \code{repo} configuration is stored in \code{manifest}
       file, usually available in its own \code{git} repository.
+  \item It could also be in a specific branch of your custom layer.
+  \item It only handles fetching code, handling \code{local.conf} and
+    \code{bblayers.conf} is done separately
   \end{itemize}
 \end{frame}
 
@@ -150,3 +174,75 @@ $ repo sync -j4
       \url{https://source.android.com/source/using-repo.html}.
   \end{itemize}
 \end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{repo: release}
+  To tag a release, a few steps have to be taken:
+  \begin{itemize}
+  \item Optionally tag the custom layers
+  \item For each project entry in the manifest, set the revision
+    parameter to either a tag or a commit hash.
+  \item Commit and tag this version of the manifest.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{kas}
+  \begin{itemize}
+  \item Specific tool developed by Siemens for OpenEmbedded:
+    \url{https://github.com/siemens/kas}
+  \item Will fetch layers and build the image in a single command
+  \item Uses a single JSON or YAML configuration file part of the
+    custom layer
+  \item Can generate and run inside a Docker container
+  \item Can setup \code{local.conf} and \code{bblayers.conf}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{kas configuration}
+  \begin{block}{}
+  \fontsize{10}{10}\selectfont
+  \begin{minted}{yaml}
+header:
+  version: 8
+machine: mymachine
+distro: mydistro
+target:
+  - myimage
+
+repos:
+  meta-custom:
+
+  bitbake:
+    url: "https://git.openembedded.org/bitbake"
+    refspec: "1.46"
+
+  openembedded-core:
+    url: "https://git.openembedded.org/openembedded-core"
+    refspec: dunfell
+    layers:
+      meta:
+  \end{minted}
+  \end{block}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{kas configuration}
+  \fontsize{10}{10}\selectfont
+  \begin{block}{}
+  \begin{minted}{yaml}
+  meta-freescale:
+    url: "https://github.com/Freescale/meta-freescale"
+    refspec: dunfell
+
+  meta-openembedded:
+   url: http://git.openembedded.org/meta-openembedded
+   refspec: dunfell
+   layers:
+     meta-oe:
+     meta-python:
+     meta-networking:
+  \end{minted}
+  \end{block}
+\end{frame}
+
