@@ -3,6 +3,7 @@
   \begin{itemize}
   \item Several power management \emph{building blocks}
     \begin{itemize}
+    \item Clock framework
     \item Suspend and resume
     \item CPUidle
     \item Runtime power management
@@ -36,8 +37,7 @@
   The common clock framework
   \begin{itemize}
   \item Allows to declare the available clocks and their association
-    to devices in the Device Tree (preferred) or statically in the
-    source code (old method)
+    to devices in the Device Tree
   \item Provides a {\em debugfs} representation of the clock tree
   \item Is implemented in \kdir{drivers/clk}
   \end{itemize}
@@ -50,7 +50,7 @@
 \end{frame}
 
 \begin{frame}{Clock framework (3)}
-  The interface of the  CCF divided into two halves:
+  The interface of the CCF divided into two halves:
   \begin{itemize}
   \item Common Clock Framework core
     \begin{itemize}
@@ -66,6 +66,7 @@
     \item Callbacks registered with \kstruct{clk_ops} and the
       corresponding hardware-specific structures
     \item Has to be written for each new hardware clock
+    \item Example: \kfile{drivers/clk/mvebu/clk-cpu.c}
     \end{itemize}
   \end{itemize}
 \end{frame}
@@ -79,12 +80,14 @@
     \begin{itemize}
     \item \textbf{Parse} the device tree to \textbf{setup} the
       clock: the resources but also the properties are retrieved.
-    \item Declare the \textbf{compatible} clocks and associate it
-      with an \textbf{initialization} function using
+    \item Declare the \textbf{compatible} clocks and associate each
+      to an \textbf{initialization} function using
       \kfunc{CLK_OF_DECLARE}
-    \item Example: \kfile{drivers/clk/at91/clk-pll.c}
+    \item Example: \kfile{drivers/clk/mvebu/armada-xp.dtsi} and
+	\kfile{drivers/clk/mvebu/armada-xp.c}
     \end{itemize}
   \end{itemize}
+  See our presentation about the Clock Framework for more details: \url{https://frama.link/MYevkXcD}
 \end{frame}
 
 \begin{frame}
@@ -98,11 +101,12 @@
     \item Registered using the \kfunc{suspend_set_ops} function
     \item See \kfile{arch/arm/mach-at91/pm.c}
     \end{itemize}
-  \item Device drivers
+  \item Device driver hooks
     \begin{itemize}
-    \item \code{suspend()} and \code{resume()} hooks in the
-      \code{*_driver} structures (\kstruct{platform_driver},
-      \kstruct{usb_driver}, etc.)
+    \item \code{pm} operations (\code{suspend()} and
+      \code{resume()} hooks) in the
+      \kstruct{device_driver} as a \kstruct{struct dev_pm_ops}
+      structure in (\kstruct{platform_driver}, \kstruct{usb_driver}, etc.)
     \item See \kfile{drivers/net/ethernet/cadence/macb_main.c}
     \end{itemize}
   \end{itemize}
@@ -136,8 +140,10 @@
       hardware-generated wake-up event or a driver's request.}
   \item New hooks must be added to the drivers:
     \code{runtime_suspend()}, \code{runtime_resume()},
-    \code{runtime_idle()}
+    \code{runtime_idle()} in the \kstruct{struct dev_pm_ops}
+    structure in \kstruct{device_driver}.
   \item API and details on \kerneldoctext{power/runtime_pm.txt}
+  \item See \kfile{drivers/net/ethernet/cadence/macb_main.c} again.
   \item See also Kevin Hilman's presentation at ELC Europe 2010:
     \url{https://elinux.org/images/c/cd/ELC-2010-khilman-Runtime-PM.odp}
   \end{itemize}
@@ -241,7 +247,7 @@
   \item The regulator framework allows to take advantage of this
     hardware to save power when parts of the system are unused
     \begin{itemize}
-    \item A consumer interface for device drivers (i.e users)
+    \item A consumer interface for device drivers (i.e. users)
     \item Regulator driver interface for regulator drivers
     \item Machine interface for board configuration
     \item sysfs interface for user space
