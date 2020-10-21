@@ -7,6 +7,7 @@
     \item Suspend and resume
     \item CPUidle
     \item Runtime power management
+    \item Power domains
     \item Frequency and voltage scaling
     \end{itemize}
   \item Independent \emph{building blocks} that can be improved
@@ -131,25 +132,6 @@
 \end{frame}
 
 \begin{frame}
-  \frametitle{Runtime power management}
-  \begin{itemize}
-  \item According to the kernel configuration interface: \emph{Enable
-      functionality allowing I/O devices to be put into energy-saving
-      (low power) states at run time (or autosuspended) after a
-      specified period of inactivity and woken up in response to a
-      hardware-generated wake-up event or a driver's request.}
-  \item New hooks must be added to the drivers:
-    \code{runtime_suspend()}, \code{runtime_resume()},
-    \code{runtime_idle()} in the \kstruct{struct dev_pm_ops}
-    structure in \kstruct{device_driver}.
-  \item API and details on \kerneldoctext{power/runtime_pm.txt}
-  \item See \kfile{drivers/net/ethernet/cadence/macb_main.c} again.
-  \item See also Kevin Hilman's presentation at ELC Europe 2010:
-    \url{https://elinux.org/images/c/cd/ELC-2010-khilman-Runtime-PM.odp}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
   \frametitle{Saving power in the idle loop}
   \begin{itemize}
   \item The idle loop is what you run when there's nothing left to run
@@ -194,6 +176,44 @@
   \item PowerTOP allows to track the worst offenders
   \item Now available on ARM cpus implementing CPUidle
   \item Also gives you useful hints for reducing power.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Runtime power management}
+  \begin{itemize}
+  \item Managing per-device idle, each device being managed by its
+        device driver independently from others.
+  \item According to the kernel configuration interface: \emph{Enable
+      functionality allowing I/O devices to be put into energy-saving
+      (low power) states at run time (or autosuspended) after a
+      specified period of inactivity and woken up in response to a
+      hardware-generated wake-up event or a driver's request.}
+  \item New hooks must be added to the drivers:
+    \code{runtime_suspend()}, \code{runtime_resume()},
+    \code{runtime_idle()} in the \kstruct{struct dev_pm_ops}
+    structure in \kstruct{device_driver}.
+  \item API and details on \kerneldoctext{power/runtime_pm.txt}
+  \item See \kfile{drivers/net/ethernet/cadence/macb_main.c} again.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Generic PM Domains (genpd)}
+  \begin{itemize}
+  \item Generic infrastructure to implement power domains based on
+        Device Tree descriptions, allowing to group devices by the
+        physical power domain they belong to.
+        This sits at the same level as bus type for calling PM hooks.
+  \item All the devices in the same PD get the same state at the same time.
+  \item Specifications and examples available at \kerneldoctext{devicetree/bindings/power/power_domain.txt}
+  \item Driver example: \kfile{drivers/soc/rockchip/pm_domains.c}
+        (\kfunc{rockchip_pd_power_on}, \kfunc{rockchip_pd_power_off},
+        \kfunc{rockchip_pm_add_one_domain}...)
+  \item DT example: look for \kcompat{rockchip\%2Cpx30-power-controller}{rockchip,px30-power-controller}
+        (\kfile{arch/arm64/boot/dts/rockchip/px30.dtsi}) and find PD definitions
+        and corresponding devices.
+  \item See Kevin Hilman's talk at Kernel Recipes 2017: \url{https://youtu.be/SctfvoskABM}
   \end{itemize}
 \end{frame}
 
@@ -269,9 +289,10 @@
     battery management)
   \item Implement regulator framework hooks for your board if
     needed.
+  \item Attach on-board devices to PM domains if needed
   \item All other parts of the PM infrastructure should be already
     there: suspend / resume, cpuidle, cpu frequency and voltage
-    scaling.
+    scaling, PM domains.
   \end{itemize}
 \end{frame}
 
@@ -282,10 +303,9 @@
     \begin{itemize}
     \item Will give you many useful details.
     \end{itemize}
-  \item Introduction to kernel power management, Kevin Hilman, Linaro
+  \item Introduction to kernel power management, Kevin Hilman (Kernel Recipes 2015)
     \begin{itemize}
-      \item \url{https://elinux.org/images/d/dd/Intro_Kernel_PM.svg}
-      \item \url{https://www.youtube.com/watch?v=Um0oRanCtzY}
+      \item \url{https://www.youtube.com/watch?v=juJJZORgVwI}
     \end{itemize}
   \item Tips and ideas for prolonging battery life (Amit Kucheria)
     \begin{itemize}
