@@ -257,7 +257,12 @@ In this function:
 
 \begin{enumerate}
 \item Start by putting a \code{10 ms} delay by calling
-      \code{msleep(10)}.
+      \code{usleep_range(10000, 20000)}, guaranteed to sleep between 10 and 20
+      ms.\footnote{That's better than using \kfunc{udelay} because it is not making
+      an active wait, and instead lets the CPU run other tasks in the meantime.
+      You'll find interesting details on how to sleep or wait in kernel
+      code for specified durations in the kernel documentation:
+      \kerneldochtml{timers/timers-howto}.}
       Such waiting time is needed to add time between the previous i2c
       operation and the next one.
 \item Write \code{0x00} to the bus. That will allow us to read
