@@ -11,9 +11,16 @@ following ones, we will use a QEMU emulated ARM Vexpress Cortex A9 board.
 
 \section{Configuring U-Boot}
 
-Download U-Boot v2020.04 and configure it
-to support the ARM Vexpress Cortex A9 board
-(\code{vexpress_ca9x4_defconfig})
+Download U-Boot v2020.04.
+
+First apply a patch that fixes the \code{editenv} command in U-Boot:
+\begin{verbatim}
+cd u-boot-2020.04
+cat ../data/vexpress_flags_reset.patch | patch -p1
+\end{verbatim}
+
+Now configure U-Boot to support the ARM Vexpress Cortex A9 board
+(\code{vexpress_ca9x4_defconfig}).
 
 Get an understanding of U-Boot's configuration and compilation steps
 by reading the \code{README} file, and specifically the {\em Building
@@ -42,6 +49,9 @@ to further edit your bootloader features:
         The above two settings correspond to the arguments of the
         \code{fatload} command.
     \end{itemize}
+\item Also add support for the \code{editenv} (\code{CONFIG_CMD_EDITENV})
+    and \code{bootd} (which can be abbreviated as \code{boot}, \code{CONFIG_CMD_BOOTD})
+    that are not present in the default configuration for our board.
 \end{itemize}
 
 In recent versions of U-Boot and for some boards, you will
@@ -55,7 +65,6 @@ Finally, run \code{make}\footnote{You can speed up the
 compiling by using the \code{-jX} option with \code{make}, where X
 is the number of parallel jobs used for compiling. Twice the
 number of CPU cores is a good value.}, which will build U-Boot.
-
 
 This generates several binaries, including \code{u-boot} and
 \code{u-boot.bin}.
