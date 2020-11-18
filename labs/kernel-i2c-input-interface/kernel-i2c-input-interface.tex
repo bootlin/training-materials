@@ -20,10 +20,10 @@ its state has changed. Therefore, the only way to access device data
 and detect changes is to regularly poll its registers, using the input
 polling API described in the lectures.
 
-Rebuild your kernel with static support for polled input device
-(\kconfigval{CONFIG_INPUT_POLLDEV}{y}) and for event interface
-(\kconfig{CONFIG_INPUT_EVDEV}) support. With the default configuration,
-these features are available as modules, which is less convenient.
+Rebuild your kernel with static support event interface
+(\kconfig{CONFIG_INPUT_EVDEV}) support. With the default
+configuration, this feature is available as a module, which is less
+convenient.
 
 Update and reboot your kernel.
 
@@ -33,19 +33,14 @@ The first thing to do is to add an input device to the system. Here are
 the steps to do it:
 
 \begin{itemize}
-\item Declare a pointer to an \ksym{input_polled_dev} structure in the
-      \code{probe} routine. You can call it \code{polled_input}.
+\item Declare a pointer to an \ksym{input_dev} structure in the
+      \code{probe} routine. You can call it \code{input}.
       You can't use a global variable because your driver needs to be
       able to support multiple devices.
 \item Allocate such a structure in the same function, using the
-      \kfunc{devm_input_allocate_polled_device} function.
-\item Also declare a pointer to an \ksym{input_dev} structure. You can
-      call it \code{input}. We won't need to allocate it, because it
-      is already part of the \ksym{input_polled_dev} structure,
-      and allocated at the same time.
-      We will use this as a shortcut to keep the code simple.
+      \kfunc{devm_input_allocate_device} function.
 \item Still in the \code{probe()} function, add the input device to
-      the system by calling \kfunc{input_register_polled_device};
+      the system by calling \kfunc{input_register_device};
 \end{itemize}
 
 At this stage, first make sure that your module compiles well (add
@@ -73,7 +68,7 @@ and registered in the \code{probe()} routine.
 
 Fortunately, in our case, there's nothing to do, as everything
 was allocated with \code{devm_} functions. Even the unregistration
-of the \ksym{input_polled_dev} structure is automated. 
+of the \ksym{input_dev} structure is automated. 
 
 Recompile your module, and load it and remove it multiple times, to
 make sure that everything is properly registered and automatically
@@ -104,10 +99,10 @@ It's time to implement the routine which will poll the nunchuk registers
 at a regular interval.
 
 Create a \code{nunchuk_poll()} function with the right prototype (find
-it by looking at the definition of the \ksym{input_polled_dev} structure.
+it by looking at the definition of the \ksym{input_setup_polling} function.)
 
 In this function, you will have to read the nunchuk registers. However,
-as you can see, the prototype of the \code{poll()} routine doesn't
+as you can see, the prototype of the \code{poll_fn()} routine doesn't
 carry any information about the \ksym{i2c_client} structure you will
 need to communicate with the device. That's normal as the input
 subsystem is generic, and can't be bound to any specific bus.
@@ -162,7 +157,7 @@ don't want to enable a device with incomplete information or when it is
 not completely yet (there could be race conditions).
 
 So, back to the \code{nunchuk_poll()} function, you will first need to
-retrieve the I2C physical device from the \ksym{input_polled_dev}
+retrieve the I2C physical device from the \ksym{input_dev}
 structure. That's where you will use your private \code{nunchuk}
 structure.
 
@@ -176,8 +171,8 @@ reading registers fails, you can use a \code{return;} statement instead
 of \code{return value;}}.
 
 At the end of the polling routine, the last thing to do is post the events
-and notify the \code{input} core. Assuming that \code{polled_input} is the
-name of the \code{input_polled_dev} parameter of your polling routine:
+and notify the \code{input} core. Assuming that \code{input} is the
+name of the \code{input_dev} parameter of your polling routine:
 
 \sourcecode{labs/kernel-i2c-input-interface/input-notification.c}
 

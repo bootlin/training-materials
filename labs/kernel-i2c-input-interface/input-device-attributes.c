@@ -1,4 +1,3 @@
-input = polled_input->input;
 input->name = "Wii Nunchuk";
 input->id.bustype = BUS_I2C;
 
