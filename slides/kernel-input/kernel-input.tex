@@ -39,10 +39,10 @@
     \end{itemize}
   \item Implemented in \kdir{drivers/input}
     \begin{itemize}
-    \item \code{input.c}, \code{input-polldev.c}, \code{evbug.c}
+    \item \krelfile{drivers/input}{input.c},
+          \krelfile{drivers/input}{input-polldev.c}, \krelfile{drivers/input}{evdev.c}...
     \end{itemize}
-  \item Implements a single character driver and defines the
-    user/kernel API
+  \item Defines the user/kernel API
     \begin{itemize}
     \item \kfile{include/uapi/linux/input.h}
     \end{itemize}
@@ -150,50 +150,20 @@ static void usb_mouse_irq(struct urb *urb)
   \end{block}
 \end{frame}
 
-\begin{frame}[fragile]{Polled input subclass}
+\begin{frame}[fragile]{Polling input devices}
   \begin{itemize}
-  \item The input subsystem provides a subclass supporting simple input
+  \item The input subsystem provides an API to support simple input
     devices that {\em do not raise interrupts} but have to be {\em
       periodically scanned or polled} to detect changes in their
     state.
-  \item A {\em polled input device} is described by a
-    \kstruct{input_polled_dev} structure:
-    \begin{block}{}
-    \begin{minted}[fontsize=\footnotesize]{c}
-struct input_polled_dev {
-        void *private;
-        void (*open)(struct input_polled_dev *dev);
-        void (*close)(struct input_polled_dev *dev);
-        void (*poll)(struct input_polled_dev *dev);
-        unsigned int poll_interval; /* msec */
-        unsigned int poll_interval_max; /* msec */
-        unsigned int poll_interval_min; /* msec */
-        struct input_dev *input;
-/* private: */
-        struct delayed_work work;
-}
-    \end{minted}
-    \end{block}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}[fragile]{Polled input subsystem API}
-  \begin{itemize}
-  \item Allocating the \kstruct{input_polled_dev} structure is
-    done using \kfunc{devm_input_allocate_polled_device}
-  \item Among the handlers of the \kstruct{input_polled_dev} only the
-    \code{poll()} method is mandatory, this function polls the device
-    and posts input events.
-  \item The fields \code{id}, \code{name}, \code{evbit} and \code{keybit} of
-    the \kstruct{input} structure must be initialized too.
-  \item If none of the \code{poll_interval} fields are filled then the
-    default poll interval is 500ms.
-  \item The device registration/unregistration is done with:
-    \begin{itemize}
-    \item \code{input_register_polled_device(struct input_polled_dev *dev)}.
-    \item Unregistration is automatic after using
-      \kfunc{devm_input_allocate_polled_device}!
-    \end{itemize}
+  \item Setting up polling is done using \kfunc{input_setup_polling}:
+    \code{int input_setup_polling(struct input_dev *dev, void (*poll_fn)(struct input_dev *dev));}
+  \item \code{poll_fn} is the function that will be called
+    periodically.
+  \item The polling interval can be set using
+    \kfunc{input_set_poll_interval} or
+    \kfunc{input_set_min_poll_interval} and
+    \kfunc{input_set_max_poll_interval}
   \end{itemize}
 \end{frame}
 

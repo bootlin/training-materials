@@ -17,16 +17,20 @@ device/driver match.
 \section{Setup}
 
 Go to the \code{~/linux-kernel-labs/src/linux} directory. Check out the
-\code{5.5.y} branch.
+\code{5.9.y} branch.
 
 Now create a new \code{nunchuk} branch starting from the
-\code{5.5.y} branch,  for your upcoming work on the nunchuk
+\code{5.9.y} branch,  for your upcoming work on the nunchuk
 driver.
 
 During this lab, we will start to implement a driver for a
 Nunchuk I2C device, but at this stage we won't need to connect
 it yet, as we will enable I2C on the right board pins in the
 next lab.
+
+Download a useful document sharing useful details about the nunchuk
+and its connector:\\
+\url{https://bootlin.com/labs/doc/nunchuk.pdf}
 
 \section{Create a custom device tree}
 
@@ -65,7 +69,7 @@ enough so far!
 As a child node to the \code{i2c1} bus, now declare the \code{nunchuk}
 device, choosing \code{nintendo,nunchuk} for its \code{compatible}
 property. You will find the I2C slave address of the nunchuk on the
-nunckuk document that we have used earlier\footnote{This I2C slave
+nunckuk document that we have downloaded earlier\footnote{This I2C slave
 addressed is enforced by the device itself. You can't change it.}.
 
 \subsection{Checking the device tree on the running system}
@@ -97,8 +101,8 @@ your device tree:
 
 As the base address of the I2C1 controller registers was not explicited
 in the DTSI file (at least not in the corresponding node), you can now
-compute this address from the above line: it's \code{0x8000000 + 0x2a000
-= 0x802a000}.
+compute this address from the above line: it's \code{0x48000000 + 0x2a000
+= 0x4802a000}.
 
 Also find the same address in the big processor Technical Reference
 Manual\footnote{Tip: to do your search, put an underscore character
@@ -139,7 +143,7 @@ Relying on explanations given during the lectures, fill the
 \item \code{probe()} and \code{remove()} functions that will
       be called when a nunchuk is found.
       For the moment, just put a call to \kfunc{pr_info} inside
-      to confirm that these function are called.
+      to confirm that these functions are called.
 \item Initialize a \ksym{i2c_driver} structure, and register
       the i2c driver using it. Make sure that you use
       a \code{compatible} property that matches the one in the

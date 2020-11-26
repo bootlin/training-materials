@@ -198,7 +198,8 @@ Many more operations exist. All of them are optional.
     \item Allows to extend the driver capabilities beyond the limited
       read/write API.
     \item For example: changing the speed of a serial port, setting
-      video output format, querying a device serial number...
+      video output format, querying a device serial number... Used
+      extensively in the V4L2 (video) and Alsa (sound) driver frameworks.
     \item \code{cmd} is a number identifying the operation to perform
     \item \code{arg} is the optional argument passed as third argument
       of the \code{ioctl()} system call. Can be an integer, an
@@ -411,26 +412,25 @@ static int xxxfb_probe (struct pci_dev *dev,
     \begin{minted}{c}
 int foo_probe(struct platform_device *pdev)
 {
-        foo_t *foo;
-
-        foo = kmalloc(sizeof(struct foo_t),
-                      GFP_KERNEL);
+        foo_t *foo = kmalloc(sizeof(struct foo_t),
+                                    GFP_KERNEL);
+        /* Register to framework, store
+         * reference to framework structure in foo */
         ...
         if (failure) {
                 kfree(foo);
                 return -EBUSY;
         }
-        ...
         platform_set_drvdata(pdev, foo);
-        pm_runtime_enable(&pdev->dev);
-        pm_runtime_get_sync(&pdev->dev);
         return 0;
 }
 
 void foo_remove(struct platform_device *pdev)
 {
-        pm_runtime_disable(&pdev->dev);
         foo_t *foo = platform_get_drvdata(pdev);
+        /* Retrieve framework structure from foo
+           and unregister it */
+        ...
         kfree(foo);
 }
     \end{minted}
@@ -441,23 +441,25 @@ void foo_remove(struct platform_device *pdev)
     \begin{minted}{c}
 int foo_probe(struct platform_device *pdev)
 {
-        foo_t *foo;
-
-        foo = devm_kmalloc(&pdev->dev,
+        foo_t *foo = devm_kmalloc(&pdev->dev,
                            sizeof(struct foo_t),
                            GFP_KERNEL);
+        /* Register to framework, store
+         * reference to framework structure in foo */
         ...
         if (failure)
                 return -EBUSY;
-        ...
-        pm_runtime_enable(&pdev->dev);
-        pm_runtime_get_sync(&pdev->dev);
+        platform_set_drvdata(pdev, foo);
         return 0;
 }
 
 void foo_remove(struct platform_device *pdev)
 {
-        pm_runtime_disable(&pdev->dev);
+        foo_t *foo = platform_get_drvdata(pdev);
+        /* Retrieve framework structure from foo
+           and unregister it */
+        ...
+        /* foo automatically freed */
 }
     \end{minted}
   \end{block}
@@ -561,7 +563,7 @@ struct rtl8150 {
     \begin{minted}[fontsize=\tiny]{c}
 static int serial_imx_probe(struct platform_device *pdev)
 {
-    struct imx_port *sport;
+    struct imx_port *sport; /* per device structure */
     [...]
     sport = devm_kzalloc(&pdev->dev, sizeof(*sport), GFP_KERNEL);
     [...]

@@ -10,7 +10,7 @@ very specific to the hardware platform. There are usually two cases:
 \begin{itemize}
 
 \item The processor offers nothing to ease the installation of the
-  bootloader, in which case the JTAG has to be used to initialize
+  bootloader, in which case a JTAG interface has to be used to initialize
   flash storage and write the bootloader code to flash. Detailed
   knowledge of the hardware is of course required to perform these
   operations.
@@ -31,7 +31,7 @@ without having anything installed on it.
 
 \section{Downloading Microchip's flashing tool}
 
-Go to the \code{~/__SESSION_NAME__-labs/bootloader} directory.
+Go to the \code{$HOME/__SESSION_NAME__-labs/bootloader} directory.
 
 We're going to use that fallback mode, and its associated tool,
 \code{sam-ba}.
@@ -89,12 +89,12 @@ through the serial line.
 If you wish to exit \code{picocom}, press \code{[Ctrl][a]} followed by
 \code{[Ctrl][x]}.
 
-\section{AT91Bootstrap Setup}
+\section{Bootloader setup}
 
 The boot process is done in two steps with the ROM monitor trying to
-execute a first piece of software, called \em{AT91Bootstrap}, from
-its internal SRAM, that will initialize the DRAM, load \em{U-Boot}
-that will in turn load Linux and execute it.
+execute a first piece of software, called \em{U-Boot Single Program
+Loader (U-Boot SPL)}, from its internal SRAM. It will initialize the
+DRAM, load \em{U-Boot} that will in turn load Linux and execute it.
 
 As far as bootloaders are concerned, the layout of the NAND flash will
 look like:
@@ -105,96 +105,25 @@ look like:
 
 \begin{itemize}
 \item Offset \code{0x0} for the first stage bootloader is dictated by
-  the hardware: the ROM code of the SAMA5D3 looks for a bootloader at
-  offset \code{0x0} in the NAND flash.
+  the hardware: the ROM code of the SAMA5D3 looks for a first stage
+  bootloader at offset \code{0x0} in the NAND flash.
 \item Offset \code{0x40000} for the second stage bootloader is decided
-  by the first stage bootloader. This can be changed by changing the
-  AT91Bootstrap configuration.
+  by the first stage bootloader. This can be changed modifying the
+  value of \projconfig{u-boot}{CONFIG_SYS_NAND_U_BOOT_OFFS} in
+  \projfile{u-boot}{include/configs/sama5d3_xplained.h} in U-Boot
+  sources.
 \item Offset \code{0x140000} of the U-Boot environment is decided by
-  U-Boot. This can be changed by modifying the U-Boot configuration.
+  U-Boot's configuration (\projconfig{u-boot}{CONFIG_ENV_OFFSET}).
 \end{itemize}
 
-The first item to compile is AT91Bootstrap that you can fetch from
-Microchip's GitHub account:
-
-\begin{verbatim}
-git clone https://github.com/linux4sam/at91bootstrap.git
-cd at91bootstrap
-git checkout v3.9.1
-\end{verbatim}
-
-Then, we first need to configure the build system for our setup. We're
-going to need a few pieces of information for this:
-
-\begin{itemize}
-\item Which board you want to run AT91Bootstrap on
-\item Which device should AT91Bootstrap will be stored on
-\item What component you want AT91Boostrap to load
-\end{itemize}
-
-You can get the list of the supported boards by listing the
-\code{board} directory. You'll see that in each of these folders, we
-have a bunch of \code{defconfig} files, that are the supported
-combinations. In our case, using the Atmel SAMA5D3 Xplained
-board, we will load U-Boot, from NAND flash on
-(\code{nf} in the \code{defconfig} file names).
-
-After finding the right \code{defconfig} file, load it using
-\code{make <defconfig_filename>} (just the file name, without
-the directory part).
-
-In recent versions of AT91Bootstrap, you can now run \code{make
-menuconfig} to explore options available in this program. 
-
-The next thing to do is to specify the cross-compiler prefix
-(the part before \code{gcc} in the cross-compiler executable name):
-
-\begin{verbatim}
-export CROSS_COMPILE=arm-linux-
-\end{verbatim}
-
-Last but not least, install the \code{python} package
-that the Makefile for AT91Bootstrap will try to invoke.
-
-You can now start compiling using \code{make}\footnote{You can
-speed up the compiling by using the \code{-jX} option with
-\code{make}, where X is the number of parallel jobs used for
-compiling. Twice the number of CPU cores is a good value.}.
-
-At the end of the compilation, you should have a file called
-\code{sama5d3_xplained-nandflashboot-uboot-*.bin}, and a \code{boot.bin}
-symbolic link to this file, in the \code{binaries} folder.
-
-In order to flash it, we need to do a few things. First, remove the
-\code{NAND CS} jumper on the board. It's next to the pin header
-closest to the Micro-USB plug. Now, press the \code{RESET} button.
-On the serial port, you should see \code{RomBoot}. You should also
-see that a \code{/dev/ttyACM0} device file has appeared.
-
-Put the jumper back.
-
-Getting back to the \code{bootloader} directory, use \code{sam-ba} to erase
-NAND flash before writing images to it:
-
-\begin{verbatim}
-./sam-ba_3.3.1/sam-ba -p serial -b sama5d3-xplained -a nandflash -c erase
-\end{verbatim}
-
-Then flash the at91bootstrap binary:
-
-\begin{verbatim}
-./sam-ba_3.3.1/sam-ba -p serial -b sama5d3-xplained -a nandflash \
--c writeboot:at91bootstrap/binaries/boot.bin
-\end{verbatim}
-
-\section{U-Boot setup}
+\section{Configuring and compiling U-Boot}
 
 Get U-Boot sources:
 
 \begin{verbatim}
 git clone https://gitlab.denx.de/u-boot/u-boot
 cd u-boot
-git checkout v2020.04
+git checkout v2020.07
 \end{verbatim}
 
 More recent versions may also work, but we have not tested them.
@@ -217,7 +146,7 @@ Basically, you need to:
   on the NAND, use the latter.
 
 \item Now that you have a valid initial configuration, you can now
-  run \code{make menuconfig} to further edit your bootloader features. 
+  run \code{make menuconfig} to further edit your bootloader features.
 
 \item In recent versions of U-Boot and for some boards, you will
   need to have the Device Tree compiler:
@@ -226,31 +155,46 @@ Basically, you need to:
 sudo apt install device-tree-compiler
 \end{verbatim}
 
-\item Finally, run \code{make}, which should build U-Boot.
+\item Finally, run \code{make}, which should build the two stages of U-Boot:
+\begin{itemize}
+  \item First stage bootloader (SPL): \code{spl/u-boot-spl.bin}
+  \item Second stage bootloader: \code{u-boot.bin}
+\end{itemize}
 
 \end{itemize}
 
-Look at the size of the \code{u-boot.bin} binary. According to the above
-flash layout, the U-Boot binary is supposed to fit between flash offset
-\code{0x40000} and offset \code{0x100000}, corresponding to a maximum
-size of \code{786432} bytes. Is \code{u-boot.bin} bigger than this
-maximum?
+Look at the size of the binaries. \code{spl/u-boot-spl.bin} should fit
+in the SoC SRAM (64 KB) and according to our flash layout, \code{u-boot.bin}
+is supposed to fit between flash offset \code{0x40000} and offset \code{0x100000},
+corresponding to a maximum size of \code{786432} bytes.  Make sure that
+both binaries fit.
 
-If you're trying with a more recent version of U-Boot and if its
-size is too big, we could either change the NAND where U-Boot
-stores its environment and backup environment, but it's easier
-to shrink U-Boot by removing unnecessary features through
-\code{make menuconfig}.
+\section{Flashing SPL and U-Boot}
 
-In any case, run \code{make menuconfig} to see what options
-are available. For each option, don't hesitate to use
-help information to find out what it is about.
-Your instructor can also help.
+To put the board in {\em Boot monitor mode} and use \code{sam-ba} for
+flashing, you first need to remove the \code{NAND CS} jumper on the board.
+It's next to the pin header closest to the Micro-USB plug.
+Now, press the \code{RESET} button.  On the serial port, you should see
+\code{RomBoot}. You should also see that a \code{/dev/ttyACM0} device
+file has appeared.
 
-\section{Flashing U-Boot}
+Put the jumper back.
 
-Back to the \code{bootloader} directory, now use \code{sam-ba} to flash the
-U-Boot binary at offset \code{0x40000}:
+Getting back to the \code{bootloader} directory, use \code{sam-ba} to erase
+NAND flash before writing images to it:
+
+\begin{verbatim}
+./sam-ba_3.3.1/sam-ba -p serial -b sama5d3-xplained -a nandflash -c erase
+\end{verbatim}
+
+Then flash the U-Boot SPL:
+
+\begin{verbatim}
+./sam-ba_3.3.1/sam-ba -p serial -b sama5d3-xplained -a nandflash \
+-c writeboot:u-boot/spl/u-boot-spl.bin
+\end{verbatim}
+
+Then flash the U-Boot binary:
 
 \begin{verbatim}
 ./sam-ba_3.3.1/sam-ba -p serial -b sama5d3-xplained -a nandflash \
@@ -373,6 +317,6 @@ boot a kernel.
 \section{Rescue binaries}
 
 If you have trouble generating binaries that work properly, or later
-make a mistake that causes you to loose your bootloader binaries, you
+make a mistake that causes you to lose your bootloader binaries, you
 will find working versions under \code{data/} in the current lab
 directory.

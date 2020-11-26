@@ -19,19 +19,29 @@ Go to the \code{$HOME/__SESSION_NAME__-labs/realtime/} directory.
 
 Install the \code{netcat} package.
 
-\section{Root filesystem}
+\section{Testing Linux, with and without preemption}
+
+In this section, we will compare the real-time behavior of the Linux
+kernel in four different configurations:
+
+\begin{itemize}
+\item Without preemption, without high-resolution timers
+\item Without preemption, with high-resolution timers
+\item With preemption enabled from the mainlinx kernel
+\item With full preemption enabled from the {\em PREEMPT\_RT} project
+\end{itemize}
+
+First of all, let's prepare a root filesystem for our experiments.
+
+\subsection{Root filesystem}
 
 Create an \code{nfsroot} directory.
 
 To compare real-time latency between standard Linux and Xenomai, we
 are going to need a root filesystem and a build environment that
-supports Xenomai.
+supports Xenomai. Let's build this with Buildroot.
 
-Let's build this with Buildroot.
-
-Download and extract the Buildroot 2016.02 sources. As the latest
-version of Xenomai doesn't seem to work on the Xplained board (yet),
-we need an older version of Buildroot that will build Xenomai 2.6.
+Download and extract the Buildroot 2020.02 sources.
 
 Configure Buildroot with the following settings,
 using the \code{/} command in \code{make
@@ -42,11 +52,12 @@ menuconfig} to find parameters by their name:
    \begin{itemize}
    \item \code{Target architecture}: \code{ARM (little endian)}
    \item \code{Target Architecture Variant}: \code{cortex-A5}
+   \item Enable the \code{Enable VFP extension support} option
    \end{itemize}
 \item In \code{Toolchain}:
    \begin{itemize}
    \item \code{Toolchain type}: \code{External toolchain}
-   \item \code{Toolchain}: \code{Sourcery CodeBench ARM 2014.05}
+   \item \code{Toolchain}: \code{Linaro ARM 2018.05}
    \end{itemize}
 \item In \code{System configuration}:
    \begin{itemize}
@@ -58,13 +69,9 @@ menuconfig} to find parameters by their name:
          We need this to build the standard \code{netcat} command, not
          provided in the default BusyBox configuration.
    \item In \code{Debugging, profiling and benchmark}, enable
-         \code{rt-tests}. This will be a few applications to test
+         \code{rt-tests}. This will add a few applications to test
          real-time latency.
    \item In \code{Networking applications}, enable \code{netcat}
-   \item In \code{Real-Time}, enable \code{Xenomai Userspace}:
-         \begin{itemize}
-	 \item Make sure that \code{POSIX skin library} is enabled.
-	 \end{itemize}
    \end{itemize}
 \end{itemize}
 
@@ -89,23 +96,23 @@ tests:
 cp data/* nfsroot/root
 \end{verbatim}
 
-\section{Downloading sources and patches}
+\subsection{Downloading Linux kernel sources and patches}
 
-We will use a recent kernel version that is supported by the PREEMPT\_RT
-patchset.
+We will use a recent kernel version that is supported by the {\em
+  PREEMPT\_RT} patchset.
 
 So, go to \url{https://kernel.org/pub/linux/kernel/projects/rt/} and
-download the patch for the most recent kernel release. Download
-the patchset available through a single file.
+download the patch \code{patch-5.9.1-rt20.patch.xz}: it is the {\em
+  PREEMPT\_RT} patch for Linux 5.9.1.
 
 Then go to \url{https://kernel.org} and download the exact version
-(including at the update number level) corresponding to the patch
-you downloaded.
+(including at the update number level) corresponding to the patch you
+downloaded.
 
-\section{Compile a standard Linux kernel}
+\subsection{Compile a standard Linux kernel}
 
-Extract the sources of your 5.6.x kernel but don't apply the
-PREEMPT\_RT patches yet.
+Extract the sources of your 5.9.1 kernel but don't apply the {\em
+  PREEMPT\_RT} patches yet.
 
 Configure your kernel for your Xplained board, and then make sure
 that the below settings are disabled:
@@ -118,24 +125,17 @@ option which impact we want to measure.
 Boot the Xplained board by mounting the root filesystem that you
 built. As usual, login as \code{root}, there is no password.
 
-\section{Compiling with the POSIX RT library}
+\subsection{Measure the effect of high-resolution timers}
 
-The root filesystem was built with the GNU C library, because it has
-better support for the POSIX RT API.
-
-In our case, when we created this lab, uClibc didn't support the
-\code{clock_nanosleep} function used in our \code{rttest.c}
-program. {\em uClibc} also does not support priority inheritance on
-mutexes.
-
-Therefore, we will need to compile our test application with the
-toolchain that Buildroot used.
+The root filesystem was built with the {\em glibc} C library, because
+it has better support for the POSIX RT API. We need to compile our
+test application with the toolchain that Buildroot used.
 
 Let's configure our \code{PATH} to use this toolchain:
 
 \small
 \begin{verbatim}
-export PATH=$HOME/__SESSION_NAME__-labs/realtime/buildroot-2016.02/output/host/usr/bin:$PATH
+export PATH=$HOME/__SESSION_NAME__-labs/realtime/buildroot-2020.02/output/host/usr/bin:$PATH
 \end{verbatim}
 \normalsize
 
@@ -145,7 +145,7 @@ resolution of the \code{CLOCK_MONOTONIC} clock.
 
 Now compile this program:
 \begin{verbatim}
-arm-none-linux-gnueabi-gcc -o rttest rttest.c -lrt
+arm-linux-gnueabihf-gcc -o rttest rttest.c
 \end{verbatim}
 
 Execute the program on the board. Is the clock resolution good or bad?
@@ -163,104 +163,109 @@ configuration.
 Recompile your kernel, boot your Xplained with the new version, and
 check the new resolution. Better, isn't it?
 
-\section{Testing the non-preemptible kernel}
+\subsection{Testing the non-preemptible kernel}
 
 Now, do the following tests:
 \begin{itemize}
-\item Test the program with nothing special and write down the
-  results.
-\item Test your program and at the same time, add some workload to the
-  board, by running \code{/root/doload 300 > /dev/null 2>&1 &} on the
-  board, and using \code{netcat 192.168.0.100 5566} on your
+\item Run the \code{rttest} program with nothing special and write
+  down the results.
+\item Run \code{rttest} again and at the same time, add some workload
+  to the board, by running \code{/root/doload 300 > /dev/null 2>&1 &}
+  on the board, and using \code{netcat 192.168.0.100 5566} on your
   workstation in order to flood the network interface of the Xplained
   board (where \code{192.168.0.100} is the IP address of the Xplained
   board).
-\item Test your program again with the workload, but by running the
-  program in the \code{SCHED_FIFO} scheduling class at priority
+\item Run \code{rttest} once again with the workload, but by running
+  the program in the \code{SCHED_FIFO} scheduling class at priority
   \code{99}, using the \code{chrt} command.
 \end{itemize}
 
-\section{Testing the preemptible kernel}
+\subsection{Testing the preemptible kernel}
 
 Recompile your kernel with \kconfig{CONFIG_PREEMPT} enabled, which
 enables kernel preemption (except for critical sections protected by
 spinlocks).
 
-Run the simple tests again with this new preemptible kernel and compare
-the results.
+Run the \code{rttest} program again, with workload, under this new
+preemptible kernel and compare the results.
 
-\section{Compiling and testing the PREEMPT\_RT kernel}
+\subsection{Compiling and testing the PREEMPT\_RT kernel}
 
-Download the latest \code{PREEMPT_RT} kernel patch and apply it to
-your kernel sources.
+Apply the {\em PREEMPT\_RT} patch that you have downloaded previously
+to your Linux kernel sources.
 
 Configure your kernel with \kconfig{CONFIG_PREEMPT_RT} and boot it.
 
 Repeat the tests and compare the results again. You should see a massive
 improvement in the maximum latency.
 
-\section{Testing Xenomai scheduling latency}
+\section{Testing Linux with the Xenomai real-time core}
 
-Stay in \code{$HOME/__SESSION_NAME__-labs/realtime}.
+\subsection{Enable Xenomai in Buildroot}
 
-Download the 2.6.4 release of Xenomai from
-\url{https://xenomai.org/downloads/xenomai/stable/}
-(that's what our version of
-Buildroot supports by default), and extract it.
-
-As you can see in the \code{ksrc/arch/arm/patches} directory,
-the most recent Linux kernel version supported by Xenomai for ARM is
-3.14.17.
-
-Then, download the 3.14.17 Linux sources ({\bf not the latest 3.14.x
-sources} because the Xenomai patches only apply to this exact version),
-and extract them.
- 
-Now, prepare our kernel for Xenomai compilation:
-\begin{verbatim}
-cd $HOME/__SESSION_NAME__-labs/realtime
-./xenomai-2.6.4/scripts/prepare-kernel.sh --arch=arm \
---linux=linux-3.14.17 \
---adeos=xenomai-2.6.4/ksrc/arch/arm/patches/ipipe-core-3.14.17-arm-4.patch
-\end{verbatim}
-
-Now, configure your kernel for SAMA5 boards, then start the kernel
-configuration interface, and make sure that the below options are
-enabled, taking your time to read their description:
+Go back to the Buildroot 2020.02 used earlier in this lab. Run
+\code{make menuconfig}, and enable {\em Xenomai} in \code{Target
+  packages} $\rightarrow$ \code{Real-Time} $\rightarrow$ \code{Xenomai
+  Userspace}. Then for the sub-options:
 
 \begin{itemize}
-\item \code{CONFIG_XENOMAI}
-\item \code{CONFIG_XENO_DRIVERS_TIMERBENCH}
-\item \code{CONFIG_XENO_HW_UNLOCKED_SWITCH}
+\item Set \code{Custom version} to \code{3.1}
+\item Set \code{Xenomai core} to \code{Cobalt}
+\item Disable SMP support
 \end{itemize}
 
-Compile your kernel, using the same Sourcery CodeBench compiler
-as earlier in the lab\footnote{Your own toolchain is too recent
-for the 3.14 kernel, which doesn't support compiling with gcc5 yet. The
-Sourcery CodeBench gcc version is 4.8.x.}.
+Rebuild Buildroot by running \code{make}. Deploy the new root
+filesystem tarball in your \code{nfsroot} directory.
 
-While the kernel compiles, we can start to build our application against
-the Xenomai libraries. We will need {\em pkg-config} built by Buildroot.
-So go in your Buildroot source directory, and force Buildroot to build
-the host variant of {\em pkg-config}:
+\subsection{Build a Xenomai-enabled kernel}
+
+As explained in the lectures, Xenomai needs a patched kernel, with the
+{\em I-Pipe} patch. Such patches can be found at
+\url{https://xenomai.org/downloads/ipipe/}. We will be using
+\code{ipipe-core-4.19.144-arm-10.patch} located at
+\url{https://xenomai.org/downloads/ipipe/v4.x/arm/ipipe-core-4.19.144-arm-10.patch}. Download
+this patch.
+
+Then, go to {\em kernel.org} and download the 4.19.144 Linux kernel
+source code, and extract it.
+
+Now, to apply the {\em I-Pipe} patch and add the Xenomai kernel
+modules to our kernel sources, we will use a helper script provided by
+Xenomai itself. Go to Buildroot \code{output/build/xenomai-3.1/}
+folder, and run:
 
 \begin{verbatim}
-cd $HOME/__SESSION_NAME__-labs/realtime/buildroot-2016.02/
-make host-pkgconf
+./scripts/prepare-kernel.sh \
+  --linux=$HOME/embedded-linux-labs/realtime/linux-4.19.144/ \
+  --ipipe=$HOME/embedded-linux-labs/realtime/ipipe-core-4.19.144-arm-10.patch \
+  --arch=arm
 \end{verbatim}
 
-We can now compile \code{rttest} for the Xenomai POSIX skin:
+Now that your kernel is patched, you can configure it:
+
+\begin{verbatim}
+make ARCH=arm sama5_defconfig
+\end{verbatim}
+
+Make sure \code{CONFIG_XENOMAI} is enabled, build your kernel. Copy
+the kernel image and the Device Tree to your TFTP directory, and boot
+this new kernel.
+
+\subsection{Testing Xenomai latencies}
+
+To run our \code{rttest} application, we need to compile it against
+the Xenomai user-space libraries. This can be done by using the
+\code{xeno-config} script provided by Xenomai, as follows:
 
 \small
 \begin{verbatim}
 cd $HOME/__SESSION_NAME__-labs/realtime/nfsroot/root
-export PATH=$HOME/__SESSION_NAME__-labs/realtime/buildroot-2016.02/output/host/usr/bin:$PATH
-arm-none-linux-gnueabi-gcc -o rttest rttest.c \
-  $(pkg-config --libs --cflags libxenomai_posix)
+export PATH=$HOME/__SESSION_NAME__-labs/realtime/buildroot-2020.02/output/host/usr/bin:$PATH
+arm-linux-gnueabihf-gcc -o rttest rttest.c \
+  $(DESTDIR=../../buildroot-2020.02/output/staging/ \
+    ../../buildroot-2020.02/output/staging/usr/bin/xeno-config --skin=posix --cflags --ldflags)
 \end{verbatim}
 \normalsize
-
-Now boot the board with the new kernel.
 
 Run the following commands on the board:
 

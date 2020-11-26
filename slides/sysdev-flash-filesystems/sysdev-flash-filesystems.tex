@@ -48,7 +48,7 @@
 
 \begin{frame}{NAND flash storage: organization}
   \begin{center}
-    \includegraphics[scale=0.3]{slides/sysdev-flash-filesystems/nand-organization.pdf}
+    \includegraphics[width=\textwidth]{slides/sysdev-flash-filesystems/nand-organization.pdf}
   \end{center}
 \end{frame}
 
@@ -229,13 +229,35 @@ setenv mtdparts mtdparts=omap2-nand.0:512k(XLoader)ro,1536k(UBoot)ro,512k(Env),4
 
 \begin{frame}[fragile]
   \frametitle{U-Boot: defining MTD partitions (3)}
-  \begin{itemize}
-  \item Partition sizes must be multiple of the erase block size.
-    You can use sizes in hexadecimal too. Remember the below sizes:
-    \code{0x20000} = 128 KiB, \code{0x100000} = 1 MiB, \code{0x1000000} = 16 MiB
-  \item \code{ro} lists the partition as read only
-  \item \code{-} is used to use all the remaining space.
-  \end{itemize}
+  \begin{columns}
+  \column{0.5\textwidth}
+    \begin{itemize}
+    \item Partition sizes must be multiple of the erase block size.
+      You can use sizes in hexadecimal too.
+    \item \code{ro} lists the partition as read only
+    \item \code{-} is used to use all the remaining space.
+    \item Remember the below sizes:
+    \begin{itemize}
+      \item \code{0x100} = 256
+      \item \code{0x1000} = 4 KiB
+      \item \code{0x10000} = 64 KiB
+      \item \code{0x100000} = 1 MiB
+      \item \code{0x1000000} = 16 MiB
+    \end{itemize}
+    \end{itemize}
+  \column{0.5\textwidth}
+    Tip: use the \code{python} shell for hexadecimal/decimal/binary conversion:
+    \begin{block}{}
+    \begin{verbatim}
+>>> hex(4096)
+'0x1000'
+>>> 0x10000
+65536
+>>> bin(0xbeef)
+'0b1011111011101111'
+    \end{verbatim}
+    \end{block}
+  \end{columns}
 \end{frame}
 
 
@@ -262,8 +284,8 @@ setenv mtdparts mtdparts=omap2-nand.0:512k(XLoader)ro,1536k(UBoot)ro,512k(Env),4
     \item \code{setenv mtdparts mtdparts=<mtdid>:<partition>[,partition]}
     \item \code{partition} format: \code{<size>[@offset](<name>)[ro]}
   \end{itemize}
-  Use the \code{mtdparts} command to process the \code{mtdids} and
-  \code{mtdparts} settings and activate partitions in U-Boot.
+  You can use the \code{mtdparts} command to check that your partitions
+  definitions are understood correctly by U-Boot.
 \end{frame}
 
 \begin{frame}
@@ -658,34 +680,20 @@ Device 0 bad blocks:
   \end{itemize}
 \end{frame}
 
-\begin{frame}
+\begin{frame}[fragile]
   \frametitle{Linux: UBI host tools}
   \begin{itemize}
   \item \code{ubinize} is the only host tool for the UBI layer
-  \item Creates a UBI image to be flashed on an MTD partition
-  \item Takes the following arguments:
-    \begin{itemize}
-    \item \code{-o <output-file-path>}\\
-	Path to the output image file
-    \item \code{-p <peb-size>}\\
-	The PEB size (MTD erase block size)
-    \item \code{-m <min-io-size>}\\
-	The minimum write unit size (e.g. MTD write size)
-    \item \code{-s <subpage-size>}\\
-	Subpage size, only needed if both your flash and your
-	flash controller are supporting subpage writes
-    \item The last argument is a path to a UBI image description file
-	  (see next page for an example)
-    \end{itemize}
-  \item Example: \code{ubinize -o ubi.img -p 16KiB -m 512 -s 256 ubinize.cfg}
+  \item It creates a UBI image to be flashed on an MTD partition,
+	from a specification of the contents of its volumes:
   \end{itemize}
+  \input{../slides/sysdev-flash-filesystems/ubinize-configuration.tex}
 \end{frame}
 
 \begin{frame}[fragile]
   \frametitle{ubinize configuration file}
   \begin{itemize}
-  \item Can contain several sections
-  \item Each section is describing a UBI volume
+  \item Each section describes a UBI volume
   \item \code{static} volumes are meant to store {\bf read-only} blobs of data,
 	and get the minimum corresponding size. CRC checks are done on
         them.
@@ -694,66 +702,79 @@ Device 0 bad blocks:
         for performance (CRC checking also done at UBIFS level).
   \item \code{autoresize}: allows to fill all remaining UBI space
   \end{itemize}
-  \begin{columns}
-    \column{0.33\textwidth}
-\small
-\begin{verbatim}
-[kernel-volume]
-mode=ubi
-image=zImage
-vol_id=1
-vol_type=static
-vol_name=kernel
-\end{verbatim}
-    \column{0.33\textwidth}
-\small
-\begin{verbatim}
-[rootfs-volume]
-mode=ubi
-image=rootfs.ubifs
-vol_id=2
-vol_size=2MiB
-vol_type=dynamic
-vol_name=rootfs
-\end{verbatim}
-    \column{0.33\textwidth}
-\small
-\begin{verbatim}
-[data-volume]
-mode=ubi
-image=data.ubifs
-vol_id=3
-vol_size=30MiB
-vol_type=dynamic
-vol_name=data
-vol_flags=autoresize
-\end{verbatim}
-  \end{columns}
+  \input{../slides/sysdev-flash-filesystems/ubinize-configuration.tex}
 \end{frame}
 
 \begin{frame}
-  \frametitle{U-Boot: UBI tools}
+  \frametitle{ubinize command line}
+  \begin{itemize}
+  \item \code{ubinize} the following arguments:
+    \begin{itemize}
+    \item \code{-o <output-file-path>}\\
+	Path to the output image file
+    \item \code{-p <peb-size>}\\
+	The PEB size (MTD erase block size)
+    \item \code{-m <min-io-size>}\\
+	The minimum write unit size (MTD write size)
+    \item \code{-s <subpage-size>}\\
+	Subpage size, only needed if both your flash and your
+	flash controller are supporting subpage writes
+    \item The last argument is the path to the \code{ubinize}
+	  configuration file
+    \end{itemize}
+  \item Example: \code{ubinize -o ubi.img -p 256KiB -m 4096 -s 2048 ubinize.cfg}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{U-Boot: UBI tools (1)}
   Grouped under the \code{ubi} command
     \begin{itemize}
     \item \code{ubi part <part-name>}\\
-	Attach an MTD partition to the UBI layer
+	Attach an MTD partition to the UBI layer. Example:\\
+	\code{ubi part UBI}
     \item \code{ubi info [layout]}\\
 	Display UBI device information\\
 	(or volume information if the \code{layout} string is passed)
     \item \code{ubi check <vol-name>}\\
 	Check if a volume exists
     \item \code{ubi readvol <dest-addr> <vol-name> [<size>]}\\
-	Read volume contents
-    \item U-Boot also provides tools to update the UBI device contents
-    \item Using them is highly discouraged (the U-Boot UBI implementation
-      is not entirely stable, and using commands that do not touch the UBI
-      metadata is safer)
-      \begin{itemize}
-      \item \code{ubi createvol <vol-name> [<size>] [<type>]}
-      \item \code{ubi removevol <vol-name>}
-      \item \code{ubi writevol <src-addr> <vol-name> <size>}
-      \end{itemize}
+	Read volume contents. Example:\\
+	\code{ubi readvol 0x21000000 kernel}
     \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{U-Boot: UBI tools (2)}
+  U-Boot also has commands to modify the UBI volumes:
+    \begin{itemize}
+    \item \code{ubi createvol <vol-name> [<size>] [<type>]}\\
+	Create a new volume. Example:\\
+        \code{ubi createvol initramfs 0x100000 static}
+    \item \code{ubi removevol <vol-name>}\\
+	Remove an existing volume
+    \item \code{ubi writevol <src-addr> <vol-name> <size>}\\
+        Write to volume. Example:\\
+	\code{tftp 0x21000000 data.ubifs}\\
+	\code{ubi writevol 0x21000000 data ${filesize}}
+    \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{U-Boot: UBI tools (3)}
+  U-Boot also has commands to access UBIFS partitions:
+    \begin{itemize}
+    \item \code{ubifsmount <volume-name>}\\
+	Mount the specified volume. Example:\\
+        \code{ubifsmount root}
+    \item \code{ubifsload <addr> <filename> [bytes]}\\
+	Load file contents at the specified address. Example:\\
+	\code{ubifsload 0x21000000 boot/zImage}
+    \item Other commands: \code{ubifsls} and \code{ubifsumount}
+    \end{itemize}
+    This shows that to optimize space, the kernel and DTB can
+    also be stored in a UBIFS partition. Otherwise, the DTB volume
+    consumes an entire LEB.
 \end{frame}
 
 \begin{frame}
@@ -774,6 +795,8 @@ vol_flags=autoresize
 	Detach an MTD partition/device from the UBI layer, and remove
         the associated UBI device\\
         Example: \code{ubidetach -m 1 /dev/ubi_ctrl}
+    \item \code{ubinfo -a}\\
+        Print information about all UBI devices and volumes
     \end{itemize}
   \end{itemize}
 \end{frame}
@@ -813,12 +836,12 @@ vol_flags=autoresize
   Beware that some implementations of UBI commands in BusyBox are still
   incomplete. In particular:
   \begin{itemize}
-    \item \code{ubiformat} is not implemented yet
+    \item \code{ubiformat} and \code{ubinfo} are not implemented yet
     \item \code{ubirsvol} doesn't support \code{-N <name>}. You have
       to use specify the volume to resize by its id (\code{-n num}):\\
       \code{ubirsvol /dev/ubi0 -n 4 -s 64 MiB}
     \end{itemize}
-\end{frame} 
+\end{frame}
 
 \begin{frame}
   \frametitle{Linux: UBIFS host tools}
@@ -830,7 +853,7 @@ vol_flags=autoresize
                  (see \code{/sys/class/mtd/mtdx/writesize}).
       \item \code{-e 258048}, logical erase block size (smaller than
                  PEB size, can be found in the kernel log after running
- 		 \code{ubiattach})
+		 \code{ubiattach})
       \item \code{-c 1000}, maximum size of the UBI volume the image
         will be flashed into, in number of logical erase blocks.
         Do not make this number unnecessary big, otherwise the UBIFS
@@ -840,8 +863,8 @@ vol_flags=autoresize
       \end{itemize}
     \item Once created
       \begin{itemize}
-      \item Can be written to a UBI volume from the target using
-        \code{ubiupdatevol} from Linux on the target
+      \item Can be written to a UBI volume from the target either using
+        \code{ubiupdatevol} in Linux, or \code{ubi writevol} in U-Boot.
       \item Or, can be included in a UBI image (using \code{ubinize}
         on the host)
       \end{itemize}
@@ -874,8 +897,11 @@ vol_flags=autoresize
   \item You just have to pass the following information on the kernel
     command line:
     \begin{itemize}
-    \item \code{ubi.mtd=1}\\
-      Attach \code{/dev/mtd1} to the UBI layer and create \code{ubi0}
+    \item \code{ubi.mtd=UBI}\\
+      Attach the MTD partition named \code{UBI} to the UBI layer and
+      create \code{ubi0}.\\
+      Note: you can also use the MTD partition number (more error
+      prone): \code{ubi.mtd=1}
     \item \code{rootfstype=ubifs root=ubi0:rootfs}\\
       Mount the \code{rootfs} volume on ubi0 as a UBIFS filesystem
     \item \code{rootfstype=} lets the kernel know what filesystem
@@ -884,7 +910,7 @@ vol_flags=autoresize
       doesn't have to try all the filesystems it supports. This reduces
       boot time.
     \end{itemize}
-  \item Example: \code{rootfstype=ubifs ubi.mtd=1 root=ubi0:rootfs}
+  \item Example: \code{rootfstype=ubifs ubi.mtd=UBI root=ubi0:rootfs}
   \end{itemize}
 \end{frame}
 
@@ -898,12 +924,12 @@ vol_flags=autoresize
   \item Define the base Linux kernel bootargs, specifying booting
      on UBIFS, the UBI volume used as root filesystem, and the MTD
      partition attached to UBI. Example:\\
-     {\footnotesize \code{setenv bootargs_base console=ttyS0 rootfstype=ubifs root=ubi0:rootfs ubi.mtd=2 ...}}
+     {\footnotesize \code{setenv bootargs_base console=ttyS0 rootfstype=ubifs root=ubi0:rootfs ubi.mtd=UBI}}
   \item Define the boot command sequence, loading the U-Boot partition
      definitions, loading kernel and DTB images from UBI partitions,
      and adding \code{mtdparts} to the kernel command
      line. Example:\\
-     \code{setenv bootcmd 'mtdparts; ubi part UBI; ubi readvol
+     \code{setenv bootcmd 'ubi part UBI; ubi readvol
 0x81000000 kernel; ubi readvol 0x82000000 dtb; setenv bootargs
 ${bootargs_base} ${mtdparts}; bootz 0x81000000 - 0x82000000'}
   \end{itemize}

@@ -218,25 +218,29 @@ Which will load the file named \code{filename} from the first
 partition of the device handled by the first MMC controller to the
 system memory at the address \code{0x21000000}.
 
-\section{Going further}
+\section{Booting U-Boot from the SD card}
 
-At this point our board still uses the bootloaders
-(\code{at91bootstrap} and \code{U-Boot}) stored in the NAND flash.
+At this point our board still uses U-Boot SPL and U-Boot
+stored in NAND flash.
+
 Let's try to have everything on our SD card.
 The ROM code can load the first stage bootloader from an MMC or SD
 card, from a file named \code{boot.bin} located in the first FAT
-partition. U-Boot will be stored as \code{u-boot.bin}.
+partition. U-Boot will be stored as \code{u-boot.img}.
 
-First, copy your U-Boot environment settings
-(\code{bootargs} and \code{bootcmd}) from the environment in NAND
+First, using the \code{printenv} command, copy your U-Boot
+environment settings from the environment in NAND
 flash to a text file, so that you will be able to restore then
 on the new environment that will be stored in the FAT partition.
 
-So, recompile \code{at91bootstrap}
-to support booting from an SD card.
 Then recompile U-Boot after reconfiguring it with its MMC configuration
 (we previously used the configuration for running from NAND flash).
 
+Then, copy the \code{spl/boot.bin} and \code{u-boot.img} files to
+the first partition of the SD card.
+
+Make sure your newly compiled SPL and U-Boot boot well. Check
+the compile dates to make sure that the right binaries are executed.
+
 Restore \code{bootargs} and \code{bootcmd} as defined previously
-and test that you're booting with the bootstrap and bootloader
-that you've just compiled.
+and make sure that the whole system still boots fine.

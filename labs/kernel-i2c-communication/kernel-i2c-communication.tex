@@ -28,10 +28,6 @@ Take the nunchuk device provided by your instructor.
 We will connect it to the second I2C port of the CPU (\code{i2c1}),
 which pins are available on the \code{P9} connector.
 
-Download a useful document sharing useful details about the nunchuk
-and its connector:\\
-\url{https://bootlin.com/labs/doc/nunchuk.pdf}
-
 Now we can identify the 4 pins of the nunchuk connector:
 
 \begin{center}
@@ -239,8 +235,24 @@ In the probe routine (run every time a matching device is found):
       using. This could reveal communication issues.  Using Elixir, find
       examples of how to handle failures properly using the same
       function.
+
 \item Let the CPU wait for 1 ms by using the \kfunc{udelay} routine.
-      You may need to use Elixir again to find the right C headers to include.
+      Let's use Elixir again to find the right C headers to include...
+
+      The Elixir results are a bit confusing here, because
+      \kfunc{udelay} is defined in \code{arch/<arch>/include/asm/delay.h} files,
+      but not in an \code{include/linux/<file>.h>} that is normally used
+      in kernel code.
+
+      However, look at \kfile{include/linux/delay.h} and you will see
+      that it includes \code{asm/delay.h} which corresponds to the
+      specific headers for the current architecture. So you need to include
+      \code{linux/delay.h}.
+
+      {\bf General rule}: whenever the symbol you're looking
+      for is defined in \code{arch/<arch>/include/asm/<file>.h}, you
+      can include \code{linux/<file>.h} in your kernel code.
+
 \item In the same way, send the \code{0xfb} and \code{0x00} bytes now.
       This completes the nunchuk initialization.
 \end{enumerate}
@@ -261,7 +273,7 @@ In this function:
 
 \begin{enumerate}
 \item Start by putting a \code{10 ms} delay by calling
-      \code{usleep_range(10, 20)}, guaranteed to sleep between 10 and 20
+      \code{usleep_range(10000, 20000)}, guaranteed to sleep between 10 and 20
       ms.\footnote{That's better than using \kfunc{udelay} because it is not making
       an active wait, and instead lets the CPU run other tasks in the meantime.
       You'll find interesting details on how to sleep or wait in kernel

@@ -90,6 +90,9 @@ If after 1 minute, you got nothing special on the 4 LEDs, this probably
 means that you didn't manage to boot your board from the external micro-SD
 card. This happens as the button to press is tiny. Try again!
 
+See the 'boot.log' file in this directory for the exact messages
+your should get in the serial console (if you connected it).
+
 If the LEDs all blink at the same time, this means that the reflashing
 operation actually started but failed. If this happens, you will have
 to connect your PC to the serial line of your board, and do this again.

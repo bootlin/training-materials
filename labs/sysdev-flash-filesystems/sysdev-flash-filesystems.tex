@@ -12,6 +12,11 @@ Stay in \code{$HOME/__SESSION_NAME__-labs/tinysystem}. Install the
 \code{mtd-utils} package, which will be useful to create UBIFS and
 UBI images.
 
+Also remove the SD card, to resume to the former way of booting.
+That's important because there is currently an issue with U-Boot
+compiled from the MMC configuration, which causes UBI incompatibilities
+between U-Boot and Linux.
+
 \section{Goals}
 
 Instead of using an external SD card as in the previous lab, we will
@@ -36,14 +41,6 @@ Which gives the following layout:
   \includegraphics[width=\textwidth]{labs/sysdev-flash-filesystems/flash-map.pdf}
 \end{center}
 
-\section{U-Boot issue work-around}
-
-{\em {\bf Caution:} recent mainline U-Boot versions have issues
-using the UBI image that we produce during this lab.
-
-So, to do this lab before we find a better solution, you can compile U-Boot 2018.01
-with the MMC configuration and boot it from MMC.}
-
 \section{Enabling NAND flash and filesystems}
 
 First, make sure your kernel has support for UBI and UBIFS, and also
@@ -53,6 +50,21 @@ line:
 
 Recompile your kernel if needed. We will update your kernel image on flash
 in the next section.
+
+\section{MTD partitioning}
+
+Look at the default MTD partitions in the kernel log. They do not
+match the way we wish to organize our flash
+storage. Therefore, we will define our own partitions at boot time,
+on the kernel command line.
+
+Redefine the partitions in U-Boot using the \code{mtdids} and
+\code{mtdparts} environment variables.
+Once done, execute the \code{mtdparts} command and check the partition
+definitions in the output of this command.
+
+Boot the kernel too and check that the new partition definitions
+are taken into account in Linux too.
 
 \section{Filesystem image preparation}
 
@@ -77,7 +89,21 @@ simply run \code{nand info} in U-Boot:
 Therefore, the size of one {\em LEB} is the size of the {\em PEB}
 minus the size of two pages: 128 KB - 2 * 2 KB, i.e {\bf 124 KB}.
 
-Knowing that the \code{data} and \code{rootfs} UBI volumes will be 16
+Let's double check this, as it's critical to get such information right.
+
+To do so, erase your \code{UBI} partition and let U-Boot initialize
+a new UBI space on it:
+
+\begin{verbatim}
+nand erase.part UBI
+ubi part UBI
+ubi info
+\end{verbatim}
+
+This will give you plenty of information about UBI on your NAND flash,
+in particular the {\em PEB} and {\em LEB} sizes.
+
+Now, knowing that the \code{data} and \code{rootfs} UBI volumes will be 16
 MiB big, you can now divide their total size by the LEB size, to compute
 the maximum of LEBs that they will contain. That's the last parameter
 (\code{-c}) that you need to pass to \code{mkfs.ubifs}.
@@ -96,9 +122,6 @@ Once done, create a UBIFS image of your root filesystem.
 Create a \code{ubinize} config file where you will define the 4 volumes
 described above, then use the \code{ubinize} tool to generate your
 UBI image.
-
-Warning: do not use the autoresize flag (\code{vol_flags=autoresize}):
-U-Boot corrupts the UBI metadata when trying to expand the volume.
 
 Remember that some of these volumes are static (read-only) and some are
 not.
@@ -141,6 +164,7 @@ not.
 %vol_type=dynamic
 %vol_size=16MiB
 %vol_name=data
+%vol_flags=autoresize
 %
 
 %
@@ -149,20 +173,9 @@ not.
 % # ubinize -o ubi.img -p 128KiB -m 2048 ubinize.cfg
 %
 
-\section{MTD partitioning and flashing}
+\section{Flashing the UBI partition}
 
-Look at the default MTD partitions in the kernel log. They do not
-match the way we wish to organize our flash
-storage. Therefore, we will define our own partitions at boot time,
-on the kernel command line.
-
-Redefine the partitions in U-Boot using the \code{mtdids} and
-\code{mtdparts} environment variables.
-Once done, execute the \code{mtdparts} command and check the partition
-definitions in the output of this command.
-
-You can now safely erase the UBI partition without risking any
-corruption on other partitions.
+Erase the UBI partition again.
 
 Download the UBI image (using \code{tftp}) you have created in the
 previous section and flash it on the UBI partition.
@@ -202,10 +215,10 @@ data using the web server.
 %Useful u-boot environment variables
 %setenv mtdids nand0=atmel_nand
 %setenv mtdparts mtdparts=atmel_nand:256k(bootstrap)ro,768k(u-boot)ro,256k(u-boot-env2)ro,256k(u-boot-env1)ro,-(UBI)
-%setenv bootargs_base console=ttyS0,115200 rootfstype=ubifs root=ubi0:root ip=192.168.0.100:::::eth0 ubi.mtd=4 ro
-%setenv bootcmd 'mtdparts; ubi part UBI; ubi readvol 0x21000000 kernel;
+%setenv bootargs_base console=ttyS0,115200 rootfstype=ubifs %root=ubi0:root ip=192.168.0.100:::::eth0 ubi.mtd=UBI ro
+%setenv bootcmd 'ubi part UBI; ubi readvol 0x21000000 kernel;
 %ubi readvol 0x22000000 dtb; setenv bootargs ${bootargs_base} ${mtdparts}; bootz 0x21000000 - 0x22000000'
-%setenv flash 'mtdparts; nand erase.part UBI; tftp 0x21000000 ubi.img; nand write.trimffs 0x21000000 UBI ${filesize}'
+%setenv flash 'nand erase.part UBI; tftp 0x21000000 ubi.img; nand write.trimffs 0x21000000 UBI ${filesize}'
 
 \section{Going further}
 

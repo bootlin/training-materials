@@ -1,2 +1,2 @@
 nunchuk->i2c_client = client;
-polled_input->private = nunchuk;
+input_set_drvdata(input, nunchuk);

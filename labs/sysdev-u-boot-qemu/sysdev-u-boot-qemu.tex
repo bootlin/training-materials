@@ -11,9 +11,16 @@ following ones, we will use a QEMU emulated ARM Vexpress Cortex A9 board.
 
 \section{Configuring U-Boot}
 
-Download U-Boot v2020.04 and configure it
-to support the ARM Vexpress Cortex A9 board
-(\code{vexpress_ca9x4_defconfig})
+Download U-Boot v2020.04.
+
+First apply a patch that fixes the \code{editenv} command in U-Boot:
+\begin{verbatim}
+cd u-boot-2020.04
+cat ../data/vexpress_flags_reset.patch | patch -p1
+\end{verbatim}
+
+Now configure U-Boot to support the ARM Vexpress Cortex A9 board
+(\code{vexpress_ca9x4_defconfig}).
 
 Get an understanding of U-Boot's configuration and compilation steps
 by reading the \code{README} file, and specifically the {\em Building
@@ -34,17 +41,17 @@ to further edit your bootloader features:
     uboot.env} in a FAT filesystem on an MMC/SD card, as our emulated
     machine won't have flash storage:
     \begin{itemize}
-    \item Unset \code{Environment in flash memory} (\code{CONFIG_ENV_IS_IN_FLASH})
-    \item Set \code{Environment is in a FAT filesystem} (\code{CONFIG_ENV_IS_IN_FAT})
-    \item Set \code{Name of the block device for the environment} (\code{CONFIG_ENV_FAT_INTERFACE}): \code{mmc}
+    \item Unset \code{Environment in flash memory} (\projconfig{u-boot}{CONFIG_ENV_IS_IN_FLASH})
+    \item Set \code{Environment is in a FAT filesystem} (\projconfig{u-boot}{CONFIG_ENV_IS_IN_FAT})
+    \item Set \code{Name of the block device for the environment} (\projconfig{u-boot}{CONFIG_ENV_FAT_INTERFACE}): \code{mmc}
     \item \code{Device and partition for where to store the environment in
-        FAT} (\code{CONFIG_ENV_FAT_DEVICE_AND_PART}): \code{0:1}\newline
+        FAT} (\projconfig{u-boot}{CONFIG_ENV_FAT_DEVICE_AND_PART}): \code{0:1}\newline
         The above two settings correspond to the arguments of the
         \code{fatload} command.
     \end{itemize}
-  \item Also add support for the \code{editenv} command (\code{CONFIG_CMD_EDITENV})
-    that is not present in the default configuration for our board
-    Unfortunately, this command is currently broken.
+\item Also add support for the \code{editenv} (\projconfig{u-boot}{CONFIG_CMD_EDITENV})
+    and \code{bootd} (which can be abbreviated as \code{boot}, \projconfig{u-boot}{CONFIG_CMD_BOOTD})
+    that are not present in the default configuration for our board.
 \end{itemize}
 
 In recent versions of U-Boot and for some boards, you will
@@ -58,7 +65,6 @@ Finally, run \code{make}\footnote{You can speed up the
 compiling by using the \code{-jX} option with \code{make}, where X
 is the number of parallel jobs used for compiling. Twice the
 number of CPU cores is a good value.}, which will build U-Boot.
-
 
 This generates several binaries, including \code{u-boot} and
 \code{u-boot.bin}.
@@ -85,11 +91,9 @@ Press a key before the end of the timeout, to access the U-Boot prompt.
 You can then type the \code{help} command, and explore the few commands
 available.
 
-Note: to exit QEMU, run the below command in another terminal:
-
-\begin{verbatim}
-killall qemu-system-arm
-\end{verbatim}
+Note: to exit QEMU, type \code{[Ctrl][a]} followed by \code{[h]}
+to see available commands. One of them is \code{[Ctrl][a]} followed by
+\code{[x]}, which allows to exit the emulator.
 
 \section{SD card setup}
 
@@ -120,9 +124,8 @@ $ cfdisk sd.img
 \end{verbatim}
 
 If \code{cfdisk} asks you to \code{Select a label type}, choose
-\code{dos}. This corresponds to traditional partitions tables that DOS/Windows
-would understand. \code{gpt} partition tables are needed for disks bigger
-than 2 TB.
+\code{dos}, as we don't really need a \code{gpt} partition table for
+our labs.
 
 In the \code{cfdisk} interface, create three primary partitions,
 starting from the beginning, with the following properties:
@@ -206,17 +209,18 @@ printenv foo
 To load a kernel in the next lab, we will setup networking between the QEMU emulated
 machine and the host.
 
-The first thing to do is to create a \code{/etc/qemu-myifup} (for example)
-script that will bring up a network interface between QEMU and the host. Here are its contents:
+To do so, create a \code{qemu-myifup} script that will bring up a
+network interface between QEMU and the host.  Here are its contents:
 
 \begin{verbatim}
-#!/bin/bash
-exec /sbin/ip a add 192.168.0.1/24 dev $1
+#!/bin/sh
+/sbin/ip a add 192.168.0.1/24 dev $1
+/sbin/ip link set $1 up
 \end{verbatim}
 
 Of course, make this script executable:
 \begin{verbatim}
-sudo chmod +x /etc/qemu-myifup
+chmod +x qemu-myifup
 \end{verbatim}
 
 As you can see, the host side will have the \code{192.168.0.1} IP
@@ -228,10 +232,10 @@ Then, you will need root privileges to run QEMU this time,
 because of the need to bring up the network interface:
 
 \begin{verbatim}
-qemu-system-arm -M vexpress-a9 -m 128M -nographic \
+sudo qemu-system-arm -M vexpress-a9 -m 128M -nographic \
 -kernel u-boot-2020.04/u-boot \
 -sd sd.img \
--net tap,script=/etc/qemu-myifup -net nic
+-net tap,script=./qemu-myifup -net nic
 \end{verbatim}
 
 Note the new net options:
@@ -293,6 +297,6 @@ md 0x61000000
 \section{Rescue binary}
 
 If you have trouble generating binaries that work properly, or later
-make a mistake that causes you to loose your bootloader binary, you
+make a mistake that causes you to lose your bootloader binary, you
 will find a working version under \code{data/} in the current lab
 directory.

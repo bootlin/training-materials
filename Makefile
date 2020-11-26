@@ -14,7 +14,7 @@ INKSCAPE_PDF_OPT = -A
 endif
 
 # Needed macros
-UPPERCASE = $(shell echo $1 | tr "[:lower:]" "[:upper:]")
+UPPERCASE = $(shell echo $1 | tr "[:lower:]-" "[:upper:]_")
 
 define sep
 
@@ -94,6 +94,11 @@ SLIDES_CHAPTERS      = $($(call UPPERCASE, $(subst  -,_, $(SLIDES_TRAINING)))_SL
 SLIDES_COMMON_AFTER  = common/slide-footer.tex
 else
 SLIDES_TRAINING      = $(firstword $(subst -, ,  $(SLIDES)))
+ifeq ($(SLIDES_TRAINING),sysdev)
+SLIDES_TRAINING = embedded-linux
+else ifeq ($(SLIDES_TRAINING),kernel)
+SLIDES_TRAINING = linux-kernel
+endif
 # We might be building multiple chapters that share a common
 # prefix. In this case, we want to build them in the order they are
 # listed in the <training>_SLIDES variable that corresponds to the

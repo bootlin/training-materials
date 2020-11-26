@@ -29,12 +29,12 @@ driver.
 The first thing to do is to create:
 
 \begin{itemize}
-\item An \code{serial_write()} write file operation stub.
+\item A \code{serial_write()} write file operation stub.
       See the slides or the code for the prototype to use.
       Just place a \code{return -EINVAL;} statement in the function
       body so far, to signal that there is something wrong with this
       function so far.
-\item Similarly, an \code{serial_read()} read file operation stub.
+\item Similarly, a \code{serial_read()} read file operation stub.
 \item A \ksym{file_operations} structure declaring these file
       operations.
 \end{itemize}
@@ -97,12 +97,12 @@ Now, add code to your write function, to copy user data to the serial
 port, writing characters one by one.
 
 The first thing to do is to retrieve the \code{serial_dev} structure
-from the \code{miscdevice} structure itself, accessible through the
+from the \ksym{miscdevice} structure itself, accessible through the
 \code{private_data} field of the open file structure (\code{file}).
 
 At the time we registered our {\em misc} device, we didn't keep any
 pointer to the \code{serial_dev} structure. However, as the
-\code{miscdevice} structure is accessible through
+\kstruct{miscdevice} structure is accessible through
 \code{file->private_data}, and is a member of the
 \code{serial_dev} structure, we can use a magic macro to compute
 the address of the parent structure:
@@ -115,9 +115,16 @@ struct serial_dev *dev =
 See \url{https://radek.io/2012/11/10/magical-container_of-macro/}
 for interesting implementation details about this macro.
 
-This wouldn't have been possible if the \code{miscdevice} structure
+This wouldn't have been possible if the \kstruct{miscdevice} structure
 was allocated separately and was just referred to by a pointer in
 \code{serial_dev}, instead of being a member of it.
+
+Another possibility, but more complicated, would have been to access the
+\code{parent} device pointer in \kstruct{miscdevice}, which then through
+the \kfunc{platform_get_drvdata} function would
+have given us access to the \code{serial_dev} structure containing the
+virtual address of the device. There are always multiple possibilities
+in kernel programming!
 
 Now, add code that copies (in a secure way) each character from the
 user space buffer to the UART device.
@@ -139,7 +146,9 @@ Make sure that both UART devices work on the same way.
 
 You'll quickly discover that newlines do not work properly. To fix
 this, when the user space application sends \verb+"\n"+, you must send
-\verb+"\n\r"+ to the serial port.
+\verb+"\n\r"+ to the serial port\footnote{See
+\url{https://en.wikipedia.org/wiki/Newline} for details about the
+newline (\code{\n}) and carriage return (\code{\r}) characters}.
 
 \section{Module reference counting}
 
@@ -187,11 +196,12 @@ Two test applications (in source format) are already available in the
 They assume that \code{SERIAL_RESET_COUNTER} is ioctl operation \code{0}
 and that \code{SERIAL_GET_COUNTER} is ioctl operation \code{1}.
 
-Modify their source code according to the exact name of the device file
-you wish to use, and compile them on your host:
+Compile them:
 
 \begin{verbatim}
 arm-linux-gnueabi-gcc -static -o serial-get-counter serial-get-counter.c
+arm-linux-gnueabi-gcc -static -o serial-reset-counter serial-reset-counter.c
 \end{verbatim}
 
-The new executables are then ready to run on your target.
+The new executables are then ready to run on your target. They take as
+argument the path to the device file corresponding to your UART.

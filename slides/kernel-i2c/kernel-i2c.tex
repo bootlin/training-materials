@@ -10,8 +10,9 @@
     by masters.
   \item In a Linux system, the I2C controller embedded in the
     processor is typically the master, controlling the bus.
-  \item Each slave device is identified by a unique I2C address. Each
-    transaction initiated by the master contains this address, which
+  \item Each slave device is identified by an I2C address (you can't
+    have 2 devices with the same address on the same bus). Each transaction
+    initiated by the master contains this address, which
     allows the relevant slave to recognize that it should reply to
     this particular transaction.
   \end{itemize}
@@ -50,10 +51,10 @@
     \begin{itemize}
     \item As usual, this structure points to the \code{->probe()} and
       \code{->remove()} functions.
-    \item It also contains an \code{id_table} field that must point to a
-      list of {\em device IDs} (which is a list of tuples containing a
-      string and some private driver data). It is used for non-DT based
+    \item It also contains an \code{id_table}, used for non-DT based
       probing of I2C devices.
+    \item A \code{->probe_new()} function can replace \code{->probe()}
+      when no \code{id_table} is provided.
     \end{itemize}
   \item The \kfunc{i2c_add_driver} and \kfunc{i2c_del_driver} functions
     are used to register/unregister the driver.
@@ -205,15 +206,19 @@ i2c0: i2c@01c2ac00 {
   From \kfile{arch/arm/boot/dts/sun7i-a20-olinuxino-micro.dts}
 \end{frame}
 
-\begin{frame}{\code{probe()} and \code{remove()}}
+\begin{frame}{\code{probe_new()} and \code{remove()}}
 
   \begin{itemize}
-  \item The \code{->probe()} function is responsible for initializing
+  \item The \code{->probe_new()} function is responsible for initializing
     the device and registering it in the appropriate kernel
     framework. It receives as argument:
     \begin{itemize}
     \item A \kstruct{i2c_client} pointer, which represents the I2C
       device itself. This structure inherits from \kstruct{device}.
+    \end{itemize}
+  \item Alternatively, the \code{->probe()} function receives as arguments:
+    \begin{itemize}
+    \item A similar \kstruct{i2c_client} pointer.
     \item A \kstruct{i2c_device_id} pointer, which points to the
       I2C device ID entry that matched the device that is being
       probed.
@@ -223,7 +228,7 @@ i2c0: i2c@01c2ac00 {
     down. It receives as argument:
     \begin{itemize}
     \item The same \kstruct{i2c_client} pointer that was passed as
-      argument to \code{->probe()}
+      argument to \code{->probe_new()} or \code{->probe()}
     \end{itemize}
   \end{itemize}
 \end{frame}
