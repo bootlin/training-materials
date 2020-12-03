@@ -139,6 +139,11 @@ export CROSS_COMPILE=arm-linux-
 sudo apt install device-tree-compiler
 \end{verbatim}
 
+\item The current {\em STM32MP1} board driver file in U-Boot ignores the partition
+chosen to save the environment variables under {\em ext4} filesystem.
+Apply a patch to fix this shortcoming.
+You will find it under \code{data/} in the current lab directory.
+
 \item Finally, run \code{make
     DEVICE_TREE=stm32mp157a-dk1}\footnote{You can speed up the
     compiling by using the \code{-jX} option with \code{make}, where X
@@ -160,8 +165,7 @@ this partition, it will then try to load it from a partition named
 \code{fslb2}. This first stage bootloader (in our case the U-Boot SPL)
 will load the second bootloader (U-Boot itself) from the partition
 named \code{ssbl}. Finally, U-Boot will store its environment in the
-fourth partition, which we'll name \code{bootfs}\footnote{Currently, the board's
-drivers ignore our choice of which partition to save the uboot.env file. The partition will have to be made bootable for it to work.}.
+fourth partition, which we'll name \code{bootfs}.
 
 So, as far as bootloaders are concerned, the SD card partitioning will
 look like:
@@ -224,7 +228,6 @@ Then, the 4 partitions are created with:
 (parted) mkpart fsbl2 4096s 6143s
 (parted) mkpart ssbl 6144s 10239s
 (parted) mkpart bootfs 10240s 131071s
-(parted) set 4 boot on
 \end{verbatim}
 
 You can verify everything looks right with:

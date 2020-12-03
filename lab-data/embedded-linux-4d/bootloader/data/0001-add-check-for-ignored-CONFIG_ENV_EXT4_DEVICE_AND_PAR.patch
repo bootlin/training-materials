@@ -1,0 +1,52 @@
+From 81d4c4e45c015794f1fa96cc7f308bb27b11009a Mon Sep 17 00:00:00 2001
+From: Manuel Reis <mluis.reis@gmail.com>
+Date: Wed, 25 Nov 2020 10:16:20 +0000
+Subject: [PATCH] add check for ignored CONFIG_ENV_EXT4_DEVICE_AND_PART
+ definition
+
+Check whether user has explicitly defined device and partition where
+environment file will be located before using 'auto' i.e. bootable
+partition
+
+Voids the need to set such partition as bootable to work with the
+'dev:auto' tuple
+
+Signed-off-by: Manuel Reis <mluis.reis@gmail.com>
+Cc: Patrick Delaunay <patrick.delaunay@st.com>
+Cc: Patrice Chotard <patrice.chotard@st.com>
+Tested-by: Michael Opdenacker <michael.opdenacker@bootlin.com>
+Reviewed-by: Patrick Delaunay <patrick.delaunay@foss.st.com>
+---
+ board/st/stm32mp1/stm32mp1.c | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+diff --git a/board/st/stm32mp1/stm32mp1.c b/board/st/stm32mp1/stm32mp1.c
+index 8a3ce0a6f5..d3cffdd770 100644
+--- a/board/st/stm32mp1/stm32mp1.c
++++ b/board/st/stm32mp1/stm32mp1.c
+@@ -827,11 +827,22 @@ const char *env_ext4_get_intf(void)
+ 
+ const char *env_ext4_get_dev_part(void)
+ {
++	static char *const env_dev_part =
++#ifdef CONFIG_ENV_EXT4_DEVICE_AND_PART
++		CONFIG_ENV_EXT4_DEVICE_AND_PART;
++#else
++		"";
++#endif
+ 	static char *const dev_part[] = {"0:auto", "1:auto", "2:auto"};
++
++	if (strlen(env_dev_part) > 0)
++		return env_dev_part;
++
+ 	u32 bootmode = get_bootmode();
+ 
+ 	return dev_part[(bootmode & TAMP_BOOT_INSTANCE_MASK) - 1];
+ }
++
+ int mmc_get_env_dev(void)
+ {
+ 	u32 bootmode = get_bootmode();
+-- 
+2.27.0
+
