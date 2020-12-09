@@ -44,29 +44,28 @@
 \begin{frame}
   \frametitle{Accessing more physical memory}
   \begin{itemize}
-  \item Only less than 1GB memory addressable directly through kernel
-    virtual address space
+  \item Only less than 1GB memory addressable directly through kernel virtual addresses
   \item If more physical memory is present on the platform, part of
-    the memory will not be accessible by kernel space, but can be used
-    by user space
+        the memory will not be accessible by kernel space, but can be used
+         by user space
   \item To allow the kernel to access more physical memory:
     \begin{itemize}
     \item Change the 3GB/1GB memory split to 2GB/2GB or 1GB/3GB
-      (\kconfig{CONFIG_VMSPLIT_2G} or \kconfig{CONFIG_VMSPLIT_1G)}
-      $\Rightarrow$ reduce total user memory available for each process
-    \item Change for a 64 bit architecture ;-) See
-      \kerneldoctext{x86/x86_64/mm.txt} for an example.
+          (\kconfig{CONFIG_VMSPLIT_2G} or \kconfig{CONFIG_VMSPLIT_1G)}
+          $\Rightarrow$ reduce total user memory available for each process
+    \item Change for a 64 bit architecture ;-)\\
+          See \kerneldoctext{x86/x86_64/mm.txt} for an example.
     \item Activate \emph{highmem} support if available for your
-      architecture:
+          architecture:
       \begin{itemize}
       \item Allows kernel to map parts of its non-directly accessible
-        memory
+            memory
       \item Mapping must be requested explicitly
       \item Limited addresses ranges reserved for this usage
       \end{itemize}
     \end{itemize}
-  \item See \url{https://lwn.net/Articles/75174/} for useful
-    explanations
+  \item See Arnd Bergmann's {\em 4GB by 4GB split} presentation (video
+        and slides) at Linaro Connect virtual 2020: \url{https://frama.link/fD1HvuVP}
   \end{itemize}
 \end{frame}
 
@@ -133,8 +132,7 @@
     \begin{itemize}
     \item Same, but doesn't initialize the contents
     \end{itemize}
-  \item \mint{c}+unsigned long __get_free_pages(int flags,+
-    \mint{c}+unsigned int order)+
+  \item \mint{c}+unsigned long __get_free_pages(int flags, unsigned int order)+
     \begin{itemize}
     \item Returns the starting virtual address of an area of several
       contiguous pages in physical RAM, with order being
@@ -221,16 +219,15 @@
   is chosen at configuration time.
   \begin{itemize}
   \item SLAB: legacy, well proven allocator.\\
-        Linux 4.20 on ARM: used in 48 \code{defconfig} files
-  \item SLOB: much simpler. More space efficient but doesn't scale
-        well. Can save space in small systems (depends on
-        \kconfig{CONFIG_EXPERT}). \\
-        Linux 4.20 on ARM: used in 7 \code{defconfig} files \\
+        Linux 5.10 on arm (32 bit): used in 39 \code{defconfig} files
+  \item SLOB: much simpler. More space efficient but doesn't scale well.\\
+        Can save space in small systems (depends on \kconfig{CONFIG_EXPERT}). \\
+        Linux 5.10 on arm (32 bit): used in 7 \code{defconfig} files \\
         Results on BeagleBone Black: -5 KB compressed kernel size, +1.43 s boot time!
   \item SLUB: more recent and simpler than
         SLAB, scaling much better (in particular for huge systems) and
-        creating less fragmentation.\\
-        Linux 4.20 on ARM: used in 0 \code{defconfig} files \\
+        creating less fragmentation. Now the default allocator.\\
+        Linux 5.10 on arm (32 bit): used in 9 \code{defconfig} files \\
 	Results on BeagleBone Black: +4 KB compressed kernel, + 2ms total boot time.
   \end{itemize}
   \begin{center}
