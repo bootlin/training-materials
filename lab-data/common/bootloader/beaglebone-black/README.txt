@@ -70,8 +70,8 @@ line.
 
 First, insert the micro-SD card in the corresponding slot in the board.
 
-Then, press and hold the 'Boot Switch' button (the only one near the USB
-host slot), power up the board (either through the power or USB device
+Then, press and hold the 'Boot Switch' button (the only one close to the
+micro-SD slot), power up the board (either through the power or USB device
 connectors), and release the button.
 
 After about 20 to 30 seconds, you should see the 4 LEDs next to the Ethernet
