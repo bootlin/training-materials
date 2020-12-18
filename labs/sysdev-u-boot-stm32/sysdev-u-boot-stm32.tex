@@ -54,7 +54,7 @@ allowed to write to the serial console:
 sudo adduser $USER dialout
 \end{verbatim}
 
-{\bf Important}: for the group change to be effective, in Ubuntu 18.04, you have to
+{\bf Important}: for the group change to be effective, in Ubuntu 18.04+, you have to
 {\em completely reboot} the system \footnote{As explained on
 \url{https://askubuntu.com/questions/1045993/after-adding-a-group-logoutlogin-is-not-enough-in-18-04/}.}.
 A workaround is to run \code{newgrp dialout}, but it is not global.
@@ -78,9 +78,9 @@ In our case, both programs are provided by U-Boot.
 Download U-Boot:
 
 \begin{verbatim}
-git clone https://github.com/STMicroelectronics/u-boot.git
+git clone https://gitlab.denx.de/u-boot/u-boot.git
 cd u-boot
-git checkout v2018.11-stm32mp-r2.1
+git checkout v2020.10
 \end{verbatim}
 
 Get an understanding of U-Boot's configuration and compilation steps
@@ -110,12 +110,22 @@ export CROSS_COMPILE=arm-linux-
     that it stores its environment inside a file called {\em
       uboot.env} in an ext4 filesystem:
     \begin{itemize}
-    \item Enable \code{Environment is in a EXT4 filesystem}
+    \item Disable \code{Environment is not stored}. We want changes to variables to
+        be persistent across reboots
+    \item Enable \code{Environment is in a EXT4 filesystem}. Disable all other
+        options for environment storage (e.g. MMC, SPI, UBI)
+% Environment in MMC also works, but we need to be careful with the size available
+% and the offset defined. tests showed that if MMC is selected it will take
+% precedence over ext4
     \item \code{Name of the block device for the environment}: \code{mmc}
     \item \code{Device and partition for where to store the environment in
         EXT4}: \code{0:4}
     \item \code{Name of the EXT4 file to use for the environment}: \code{/uboot.env}
     \end{itemize}
+
+  \item In the \code{SPL / TPL} submenu, disable \code{Support an environment}, as
+     SPL will jump to the second stage bootloader U-Boot, and not directly to Linux.
+
   \item In the \code{Device Drivers} $\rightarrow$ \code{Watchdog
       Timer Support} submenu, disable \code{Enable IWDG watchdog
       driver for STM32 MP's family}, so that U-Boot doesn't start the
@@ -129,6 +139,11 @@ export CROSS_COMPILE=arm-linux-
 sudo apt install device-tree-compiler
 \end{verbatim}
 
+\item The current {\em STM32MP1} board driver file in U-Boot ignores the partition
+chosen to save the environment variables under {\em ext4} filesystem.
+Apply a patch to fix this shortcoming.
+You will find it under \code{data/} in the current lab directory.
+
 \item Finally, run \code{make
     DEVICE_TREE=stm32mp157a-dk1}\footnote{You can speed up the
     compiling by using the \code{-jX} option with \code{make}, where X
@@ -136,8 +151,10 @@ sudo apt install device-tree-compiler
     number of CPU cores is a good value.}, which will build
   U-Boot. The \code{DEVICE_TREE} variable specifies the specific
   Device Tree that describes our hardware board, in our case the
-  STM32MP1 Discover Kit 1.
-
+  STM32MP1 Discover Kit 1. Alternatively, if you wish to run just \code{make},
+  specify our board's device tree name on
+  \code{Device Tree Control} $\rightarrow$ \code{Default Device Tree for DT Control}
+  option.
 \end{enumerate}
 
 \section{Flashing U-Boot}
@@ -253,18 +270,20 @@ to your PC at the other end. Check that it boots your new bootloaders.
 You can verify this by checking the build dates:
 
 \begin{verbatim}
-U-Boot SPL 2018.11-stm32mp-r2.1-00026-g161ca18 (Jan 28 2020 - 15:38:25 +0100)
+
+U-Boot SPL 2020.10 (Nov 30 2020 - 14:22:44 +0000)
 Model: STMicroelectronics STM32MP157A-DK1 Discovery Board
-RAM: DDR3-1066/888 bin G 1x4Gb 533MHz v1.41
+RAM: DDR3-DDR3L 16bits 533000Khz
+WDT:   Not found!
 Trying to boot from MMC1
 
 
-U-Boot 2018.11-stm32mp-r2.1-00026-g161ca18 (Jan 28 2020 - 15:38:25 +0100)
+U-Boot 2020.10 (Nov 30 2020 - 14:22:44 +0000)
 
 CPU: STM32MP157AAC Rev.B
 Model: STMicroelectronics STM32MP157A-DK1 Discovery Board
 Board: stm32mp1 in basic mode (st,stm32mp157a-dk1)
-Board: MB1272 Var1 Rev.C-01
+Board: MB1272 Var1.0 Rev.C-01
 DRAM:  512 MiB
 Clocks:
 - MPU : 650 MHz
@@ -272,22 +291,33 @@ Clocks:
 - AXI : 266.500 MHz
 - PER : 24 MHz
 - DDR : 533 MHz
-
-*******************************************
-*   WARNING 500mA power supply detected   *
-* Current too low, use a 3A power supply! *
-*******************************************
-
+WDT:   Not found!
 NAND:  0 MiB
-MMC:   STM32 SDMMC2: 0
+MMC:   STM32 SD/MMC: 0
 Loading Environment from EXT4... ** File not found /uboot.env **
 
 ** Unable to read "/uboot.env" from mmc0:4 **
 In:    serial
 Out:   serial
 Err:   serial
+****************************************************
+*        WARNING 500mA power supply detected       *
+*     Current too low, use a 3A power supply!      *
+****************************************************
+
 Net:   eth0: ethernet@5800a000
-Hit any key to stop autoboot:  0 
+starting USB...
+Bus usbh-ehci@5800d000: USB EHCI 1.00
+scanning bus usbh-ehci@5800d000 for devices... 2 USB Device(s) found
+       scanning usb for storage devices... 0 Storage Device(s) found
+Hit any key to stop autoboot:  0
+Boot over mmc0!
+Saving Environment to EXT4... File System is consistent
+done
+OK
+switch to partitions #0, OK
+mmc0 is current device
+Scanning mmc 0:4...
 STM32MP>
 \end{verbatim}
 
