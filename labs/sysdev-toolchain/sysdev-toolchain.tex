@@ -177,10 +177,51 @@ You can now test your toolchain by adding
 \code{$HOME/x-tools/arm-training-linux-uclibcgnueabihf/bin/} to your
 \code{PATH} environment variable and compiling the simple
 \code{hello.c} program in your main lab directory with
-\code{arm-linux-gcc}.
+\code{arm-linux-gcc}:
+
+\begin{verbatim}
+arm-linux-gcc -o hello hello.c
+\end{verbatim}
 
 You can use the \code{file} command on your binary to make sure it has
 correctly been compiled for the ARM architecture.
+
+Did you know that you can still execute this binary from your x86 host?
+To do this, install the QEMU user emulator, which just emulates target
+instruction sets, not an entire system with devices:
+
+\begin{verbatim}
+sudo apt install qemu-user
+\end{verbatim}
+
+Now, try to run QEMU ARM user emulator:
+
+\begin{verbatim}
+qemu-arm hello
+/lib/ld-uClibc.so.0: No such file or directory
+\end{verbatim}
+
+What's happening is that \code{qemu-arm} is missing the shared C library
+(compiled for ARM) that this binary uses. Let's find it in our newly
+compiled toolchain:
+
+{\footnotesize
+\begin{verbatim}
+find ~/x-tools -name ld-uClibc.so.0
+/home/tux/x-tools/arm-training-linux-uclibcgnueabihf/arm-training-linux-uclibcgnueabihf/sysroot/lib/ld-uClibc.so.0
+\end{verbatim}
+}
+
+We can now use the \code{-L} option of \code{qemu-arm} to let it know
+where shared libraries are:
+
+{\footnotesize
+\begin{verbatim}
+qemu-arm hello
+qemu-arm -L ~/x-tools/arm-training-linux-uclibcgnueabihf/arm-training-linux-uclibcgnueabihf/sysroot hello
+Hello world!
+\end{verbatim}
+}
 
 \section{Cleaning up}
 
