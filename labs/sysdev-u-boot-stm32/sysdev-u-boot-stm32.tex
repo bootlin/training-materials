@@ -80,7 +80,7 @@ Download U-Boot:
 \begin{verbatim}
 git clone https://gitlab.denx.de/u-boot/u-boot.git
 cd u-boot
-git checkout v2020.10
+git checkout v2021.01-rc5
 \end{verbatim}
 
 Get an understanding of U-Boot's configuration and compilation steps
@@ -106,6 +106,10 @@ export CROSS_COMPILE=arm-linux-
 \item Now that you have a valid initial configuration, you can now
   run \code{make menuconfig} to further edit your bootloader features.
   \begin{itemize}
+
+  \item In the \code{SPL / TPL} submenu, disable \code{Support an environment}, as
+     SPL will jump to the second stage bootloader U-Boot, and not directly to Linux.
+
   \item In the \code{Environment} submenu, we will configure U-Boot so
     that it stores its environment inside a file called {\em
       uboot.env} in an ext4 filesystem:
@@ -123,11 +127,8 @@ export CROSS_COMPILE=arm-linux-
     \item \code{Name of the EXT4 file to use for the environment}: \code{/uboot.env}
     \end{itemize}
 
-  \item In the \code{SPL / TPL} submenu, disable \code{Support an environment}, as
-     SPL will jump to the second stage bootloader U-Boot, and not directly to Linux.
-
   \item In the \code{Device Drivers} $\rightarrow$ \code{Watchdog
-      Timer Support} submenu, disable \code{Enable IWDG watchdog
+      Timer Support} submenu, disable \code{IWDG watchdog
       driver for STM32 MP's family}, so that U-Boot doesn't start the
     watchdog.
   \end{itemize}
@@ -138,11 +139,6 @@ export CROSS_COMPILE=arm-linux-
 \begin{verbatim}
 sudo apt install device-tree-compiler
 \end{verbatim}
-
-\item The current {\em STM32MP1} board driver file in U-Boot ignores the partition
-chosen to save the environment variables under {\em ext4} filesystem.
-Apply a patch to fix this shortcoming.
-You will find it under \code{data/} in the current lab directory.
 
 \item Finally, run \code{make
     DEVICE_TREE=stm32mp157a-dk1}\footnote{You can speed up the
@@ -270,15 +266,13 @@ to your PC at the other end. Check that it boots your new bootloaders.
 You can verify this by checking the build dates:
 
 \begin{verbatim}
-
-U-Boot SPL 2020.10 (Nov 30 2020 - 14:22:44 +0000)
+U-Boot SPL 2021.01-rc5-00007-gb8c725e736 (Jan 08 2021 - 17:58:34 +0000)
 Model: STMicroelectronics STM32MP157A-DK1 Discovery Board
 RAM: DDR3-DDR3L 16bits 533000Khz
 WDT:   Not found!
-Trying to boot from MMC1
 
 
-U-Boot 2020.10 (Nov 30 2020 - 14:22:44 +0000)
+U-Boot 2021.01-rc5-00007-gb8c725e736 (Jan 08 2021 - 17:58:34 +0000)
 
 CPU: STM32MP157AAC Rev.B
 Model: STMicroelectronics STM32MP157A-DK1 Discovery Board
@@ -306,19 +300,15 @@ Err:   serial
 ****************************************************
 
 Net:   eth0: ethernet@5800a000
-starting USB...
-Bus usbh-ehci@5800d000: USB EHCI 1.00
-scanning bus usbh-ehci@5800d000 for devices... 2 USB Device(s) found
-       scanning usb for storage devices... 0 Storage Device(s) found
-Hit any key to stop autoboot:  0
+Hit any key to stop autoboot:  0 
 Boot over mmc0!
 Saving Environment to EXT4... File System is consistent
 done
 OK
 switch to partitions #0, OK
 mmc0 is current device
-Scanning mmc 0:4...
-STM32MP>
+** Unrecognized filesystem type **
+STM32MP> 
 \end{verbatim}
 
 In U-Boot, type the \code{help} command, and explore the few commands
