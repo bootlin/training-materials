@@ -1,0 +1,40 @@
+\section{Writing the kernel and DTB on the SD card}
+
+In order to let the kernel boot on the board autonomously, we can
+copy the kernel image and DTB in the boot partition we created
+previously.
+
+Insert the SD card in your PC, it will get auto-mounted. Copy the
+kernel and device tree:
+
+\small
+\code{sudo cp arch/arm/boot/dts/stm32mp157a-dk1.dtb arch/arm/boot/zImage /media/training/boot/}\\
+\code{sudo umount /dev/mmcblk0p4}
+\normalsize
+
+Insert the SD card back in the board and reset it. You should now be
+able to load the DTB and kernel image from the SD card and boot with:
+
+\code{ext2load mmc 0:4 0xc0000000 zImage}\\
+\code{ext2load mmc 0:4 0xc4000000 stm32mp157a-dk1.dtb}\\
+\code{bootz 0xc0000000 - 0xc4000000}
+
+You are now ready to modify \code{bootcmd} to boot the board
+from SD card. But first, save the settings for booting from
+\code{tftp}:
+
+\code{setenv bootcmdtftp \${bootcmd}}
+
+This will be useful to switch back to \code{tftp} booting mode
+later in the labs.
+
+Finally, using \code{editenv bootcmd}, adjust \code{bootcmd} so that
+the Discovery board starts using the kernel from the SD card.
+
+Now, reset the board to check that it boots in the same way from the
+SD card. Check that this is really your own version of the kernel
+that's running\footnote{Look at the kernel log. You will find the
+kernel version number as well as the date when it was compiled.
+That's very useful to check that you're not loading an older version
+of the kernel instead of the one that you've just compiled.}
+

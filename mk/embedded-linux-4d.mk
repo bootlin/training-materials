@@ -50,7 +50,7 @@ EMBEDDED_LINUX_4D_LABS = setup \
 		sysdev-toolchain \
 		sysdev-u-boot-stm32 \
 		sysdev-kernel-fetch-and-patch \
-		sysdev-kernel-cross-compiling-stm32 \
+		sysdev-kernel-cross-compiling \
 		sysdev-tinysystem \
 		sysdev-block-filesystems-stm32 \
 		sysdev-thirdparty \
