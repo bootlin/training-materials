@@ -152,19 +152,13 @@ address, by calling:
 
 \begin{verbatim}
 dev->regs = devm_ioremap_resource(&pdev->dev, res);
-if (!dev->regs) {
-        dev_err(&pdev->dev, "Cannot remap registers\n");
-        return -ENOMEM;
-}
+if (IS_ERR(dev->regs))
+        return PTR_ERR(dev->regs);
 \end{verbatim}
 
 What's nice is that you won't ever have to release this resource,
 neither in the \code{remove()} routine, nor if there are failures
 in subsequent steps of the \code{probe()} routine.
-
-We haven't explained the \code{dev_*} logging routines yet.
-Before further explanations, they are basically used to tell which
-device a given log message is associated to. 
 
 Make sure that your updated driver compiles, loads and unloads well.
 
