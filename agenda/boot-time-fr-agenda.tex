@@ -1,0 +1,347 @@
+\documentclass[a4paper,12pt,obeyspaces,spaces,hyphens]{article}
+
+\usepackage{agenda}
+\usepackage{colortbl}
+\usepackage{xcolor}
+\usepackage{calc}
+
+\hypersetup{pdftitle={Formation optimisation du temps de démarrage de Linux embarqué},
+  pdfauthor={Bootlin}}
+
+\renewcommand{\arraystretch}{2.0}
+
+\begin{document}
+
+\thispagestyle{fancy}
+
+\setlength{\arrayrulewidth}{0.8pt}
+
+\begin{center}
+\LARGE
+Formation optimisation du temps de démarrage de Linux embarqué\\
+\large
+Session de 3 jours
+\end{center}
+\vspace{1cm}
+
+\small
+\newcolumntype{g}{>{\columncolor{fedarkblue}}m{4cm}}
+\newcolumntype{h}{>{\columncolor{felightblue}}X}
+
+\arrayrulecolor{lightgray} {
+  \setlist[1]{itemsep=-5pt}
+  \begin{tabularx}{\textwidth}{|g|h|}
+    {\bf Titre} & {\bf Formation optimisation du temps de démarrage de Linux embarqué} \\
+    \hline
+
+    {\bf Overview} &
+    Mesurer le temps de démarrage \par
+    Réduction du temps passé en espace utilisateur \par
+    Réduction du temps passé dans le noyau \par
+    Optimisations au niveau du chargeur de démarrage \par
+    Techniques avancées et alternatives \par
+    Travaux pratiques avec la carte BeagleBone Black
+    (ou sa variante {\em Wireless}).\\
+    \hline
+    {\bf Supports} &
+    Vérifiez que le contenu de la formation correspond à vos besoins :
+    \newline \url{https://bootlin.com/doc/training/boot-time}. \\
+    \hline
+
+    {\bf Durée} & {\bf Trois} jours - 24 h (8 h par jour)
+    \newline 25\% de présentations et 75\% de travaux pratiques. \\
+    \hline
+
+    {\bf Formateur} & Un des ingénieurs mentionnés sur :
+    \newline \url{https://bootlin.com/training/trainers/}\\
+    \hline
+
+    {\bf Langue} & Présentations : Français
+    \newline Supports : Anglais\\
+    \hline
+
+    {\bf Public visé} & Sociétés et ingénieurs développeurs de systèmes Linux embarqués.
+    \newline Personnes offrant de l'assistance à de tels développeurs.\\
+    \hline
+
+    {\bf Pré-requis} & {\bf Connaissance de Linux embarqué}, sujet couvert par
+    notre formation Linux embarqué (\url{https://bootlin.com/training/embedded-linux/}) \vspace{1em}
+    \newline {\bf Connaissance et pratique des commandes UNIX ou
+    GNU/Linux}
+    \newline Les personnes n'ayant pas ces connaissances doivent
+    s'autoformer, par exemple en utilisant nos supports de formation
+    disponibles en ligne :
+    (\url{https://bootlin.com/blog/command-line/} \\
+    \hline
+  \end{tabularx}
+
+  \begin{tabularx}{\textwidth}{|g|h|}
+    {\bf Équipement\newline nécessaire} &
+    {\bf Pour les sessions sur site uniquement}
+    \newline Le matériel est fourni par Bootlin durant les
+    sessions inter-entreprises
+    \begin{itemize}
+    \item Projecteur vidéo
+    \item Un ordinateur sur chaque bureau (pour une ou deux personnes), avec au
+    moins 8 Go de RAM, un processeur au moins équivalent à un Intel Core i5,
+    et Ubuntu Linux installé dans une {\bf partition
+    dédiée d'au moins 40 Go. L'utilisation de Linux dans une machine virtuelle
+    n'est pas supportée}, en raison de problèmes avec la connexion au matériel.
+    \item Nous avons besoin d'Ubuntu Desktop 18.04 (Xubuntu et autres
+    variantes fonctionnent également). Nous ne supportons pas d'autres
+    distributions, car nous ne pouvons tester toutes les versions des
+    paquets.
+    \item {\bf Connexion à Internet} (directe ou par le proxy de l'entreprise).
+    \item {\bf Les ordinateurs contenant des données importantes doivent être
+    sauvegardés} avant d'être utilisés dans nos sessions. Certains
+    participants ont déjà commis des erreurs lors de travaux pratiques
+    avec pour conséquence des pertes de données.
+    \end{itemize} \\
+    \hline
+
+    {\bf Supports} & Copie électronique des présentations et travaux pratiques.
+    \newline Version électronique des données pour les travaux
+    pratiques..\\
+    \hline
+
+\end{tabularx}}
+\normalsize
+
+\feagendatwocolumn
+{Matériel}
+{
+  La plateforme matérielle utilisée pendant les travaux pratiques de
+  cette formation est la carte {\bf BeagleBone Black}, dont voici les
+  caractéristiques :
+
+  \begin{itemize}
+  \item Un processeur ARM AM335x de Texas Instruments (à base de
+    Cortex-A8), avec accélération 3D, etc.
+  \item 512 Mo de RAM
+  \item 2 Go de stockage eMMC embarqué sur la carte
+	\newline(4 Go avec la révision C)
+  \item USB hôte et device
+  \item Sortie HDMI
+  \item Connecteurs à 2 x 46 broches, pour accéder aux UARTs, aux
+        bus SPI, aux bus I2C, et à d'autres entrées/sorties du
+        processeur.
+  \end{itemize}
+}
+{}
+{
+  \begin{center}
+    \includegraphics[height=5cm]{../slides/beagleboneblack-board/beagleboneblack.png}
+  \end{center}
+}
+
+\feagendaonecolumn
+{Démonstrations}
+{
+  Les démos de cette formation utiliseront les périphériques matériels suivants:
+
+  \begin{itemize}
+  \item Une webcam USB
+  \item Une carte d'extension d'écran tactile LCD connectée à la carte
+    BeagleBone Black, pour afficher la vidéo capturée par la webcam.
+  \item Nous utiliserons également une carte Arduino comme moyen pour mesurer
+    précisément le temps de démarrage, pour montrer comment mettre en place
+    des techniques de mesure matérielles.
+  \end{itemize}
+}
+
+\section{1\textsuperscript{er} jour - Matin}
+
+\feagendatwocolumn
+{Cours - Méthodes}
+{
+  \begin{itemize}
+  \item Comment mesurer le temps de démarrage
+  \item Principales approches
+  \end{itemize}
+}
+{TP - Construction du système}
+{
+ \begin{itemize}
+ \item Téléchargement du code source du chargeur de démarrage, du noyau et de Buildroot
+ \item Prise en main de la carte, mise en place de la communication série
+ \item Configuration de Buildroot et génération du système
+ \item Configuration et compilation du chargeur de démarrage U-Boot. Préparation d'une
+       carte SD pour démarrer le système.
+ \item Configuration et compilation du noyau. Démarrage du système.
+ \end{itemize}
+}
+
+\section{1\textsuperscript{er} Jour - Après-midi}
+
+\feagendatwocolumn
+{Cours - Mesure du temps}
+{
+  \begin{itemize}
+  \item Techniques génériques par logiciel
+  \item Techniques matérielles
+  \item Solutions spécifiques à chaque étage du démarrage
+  \end{itemize}
+}
+{TP - Mesure du temps - Solution logicielle}
+{
+ \begin{itemize}
+ \item Modification du système pour mesurer le temps au niveau des différentes étapes.
+ \item Chronométrer les messages sur la console série
+ \item Chronométrer le démarrage de l'application
+ \end{itemize}
+}
+
+\feagendatwocolumn
+{TP - Mesure du temps - Solution matérielle}
+{
+  \begin{itemize}
+  \item Mesure du temps total de démarrage en positionnant une GPIO
+  \item Mise en oeuvre d'une carte Arduino
+  \item Préparation d'un circuit de test avec un afficheur à 7 segments
+  \item Modification du DTS pour configurer les broches de la Bone Black en tant que GPIOs
+  \item Modification de l'application pour piloter les GPIOs personnalisées
+  \end{itemize}
+}
+{Cours - Optimisations des chaînes de compilation}
+{
+  \begin{itemize}
+  \item Introduction aux chaînes de compilation
+  \item Bibliothèques C
+  \item Informations de taille
+  \item Mesure de la performance d'un exécutable avec la commande \code{time}
+  \end{itemize}
+}
+
+\feagendaonecolumn
+{TP - Optimisations des chaînes de compilation}
+{
+  \begin{itemize}
+  \item Mesure du temps d'exécution de l'application
+  \item Passage à une chaîne Thumb2
+  \item Génération d'un SDK Buildroot pour recompiler plus vite
+  \end{itemize}
+}
+
+\section{2\textsuperscript{ème} Jour - Matin}
+
+\feagendatwocolumn
+{Cours - Optimisation de l'application}
+{
+  \begin{itemize}
+  \item Utilisation de \code{strace}
+  \item Autres techniques de profiling
+  \end{itemize}
+}
+{TP - Optimisation de l'application}
+{
+ \begin{itemize}
+ \item Rechercher d'options de configuration inutiles dans des applications
+ \item Modification de ces options à travers Buildroot
+ \item Expériences avec \code{strace} pour suivre l'exécution d'un programme
+ \end{itemize}
+}
+
+\feagendatwocolumn
+{Cours - Optimisation du démarrage du système}
+{
+  \begin{itemize}
+  \item Utilisation de Bootchart
+  \item Optimisation des scripts d'init
+  \item Possibilité de démarrer directement votre application
+  \end{itemize}
+}
+{TP - Optimisation du démarrage du système}
+{
+ \begin{itemize}
+ \item Utilisation de Buildroot pour supprimer scripts et commandes non nécessaires
+ \item Une méthode pour identifier tous les fichiers inutilisés
+ \item Simplification de BusyBox
+ \item Démarrage de l'application en tant que programme init.
+ \end{itemize}
+}
+
+\section{2\textsuperscript{ème} Jour - Après-midi}
+
+\feagendatwocolumn
+{Cours - Optimisations de systèmes de fichiers}
+{
+  \begin{itemize}
+  \item Systèmes de fichiers disponibles, aspects de performance et de temps de démarrage
+  \item Comment accélerer UBIFS
+  \item Paramètres pour réduire le temps de démarrage
+  \item Démarrer depuis un initramfs
+  \item Utilisation d'exécutables statiques: contraintes de licence
+  \end{itemize}
+}
+{TP - Optimisations de systèmes de fichiers}
+{
+ \begin{itemize}
+ \item Essayer et mesurer deux systèmes de fichiers bloc: ext4 et SquashFS.
+ \item Essai et benchmark de la solution initramfs. Contraintes
+       en rapport avec cette solution.
+ \end{itemize}
+}
+
+\feagendatwocolumn
+{Cours - Optimisations du noyau}
+{
+  \begin{itemize}
+  \item Utilisation d'{\em Initcall debug} to générer un {\em boot graph}
+  \item Options de compression et liées à la taille
+  \item Réduction ou suppression de la sortie console
+  \item Plusieurs réglages pour réduire le temps de démarrage
+  \end{itemize}
+}
+{TP - Optimisations du noyau}
+{
+ \begin{itemize}
+ \item Génération et analyse d'un {\em boot graph} pour le noyau
+ \item Identifier et éliminer les fonctionnalités du noyau non nécessaires
+ \item Trouver la meilleure option de compression pour votre système
+ \end{itemize}
+}
+
+\section{3\textsuperscript{ème} Jour - Matin}
+
+\feagendaonecolumn
+{TP - Optimisations du noyau}
+{
+ \begin{itemize}
+ \item Poursuite du TP
+ \end{itemize}
+}
+
+\section{3\textsuperscript{ème} Jour - Après-midi}
+
+\feagendatwocolumn
+{Cours - Optimisations du chargeur de démarrage}
+{
+  \begin{itemize}
+  \item Compiler U-Boot avec moins de fonctionnalités
+  \item Réglages de configuration d'U-Boot qui ont un impact
+        sur le temps de démarrage
+  \item Optimisation du chargement du noyau
+  \item Sauter le chargeur de démarrage - Comment modifier U-Boot pour
+	activer son {\em Falcon mode}
+  \end{itemize}
+}
+{TP - Optimisations du chargeur de démarrage}
+{
+ \begin{itemize}
+ \item Utilisation des techniques ci-dessus pour rendre le chargeur
+       de démarrage le plus rapide possible
+ \item Passer à un stockage plus rapide
+ \item Sauter le chargeur de démarrage avec le {\em Falcon mode} d'U-Boot
+ \end{itemize}
+}
+
+\feagendaonecolumn
+{Conclusion - Résultats obtenus}
+{
+ \begin{itemize}
+ \item Partage et comparaison des résultats obtenus par les différents groupes
+ \item Questions / réponses, partage d'expérience avec le formateur
+ \end{itemize}
+}
+
+\end{document}
