@@ -24,6 +24,7 @@ BOOT_TIME_SLIDES = \
 		boot-time-kernel \
 		boot-time-bootloader \
 		boot-time-hardware-init \
+		boot-time-conclusions \
 		boot-time-references \
 
 BOOT_TIME_LABS = boot-time-goals \
