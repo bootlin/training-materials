@@ -48,29 +48,47 @@
   \end{center}
 \end{frame}
 
-\begin{frame}[fragile]{Device Tree binding for consumer devices}
+\begin{frame}[fragile]{Device Tree properties for consumer devices}
+  The devices that require certains pins to be muxed will use
+  the \code{pinctrl-<x>} and \code{pinctrl-names} Device Tree
+  properties.
   \begin{itemize}
-  \item The devices that require certains pins to be muxed will use
-    the \code{pinctrl-<x>} and \code{pinctrl-names} Device Tree
-    properties.
-  \item The \code{pinctrl-0}, \code{pinctrl-1}, \code{pinctrl-<x>}
-    properties link to a pin configuration for a given state of the
-    device.
-  \item The \code{pinctrl-names} property associates a name to each
-    state. The name \code{default} is special, and is automatically
-    selected by a device driver, without having to make an explicit
-    {\em pinctrl} function call.
-  \item In most cases, the following is sufficient:
+     \item The \code{pinctrl-0}, \code{pinctrl-1}, \code{pinctrl-<x>}
+       properties link to a pin configuration for a given state of the
+       device.
+     \item The \code{pinctrl-names} property associates a name to each
+       state. The name \code{default} is special, and is automatically
+       selected by a device driver, without having to make an explicit
+       {\em pinctrl} function call.
+     \item See \kerneldoctext{devicetree/bindings/pinctrl/pinctrl-bindings.txt}
+       for details.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Device Tree properties for consumer devices - Examples}
+  \begin{columns}
+    \column{0.5\textwidth}
     \begin{minted}[fontsize=\footnotesize]{perl}
-i2c@11000 {
+i2c0: i2c@11000 {
+        ...
         pinctrl-0 = <&pmx_twsi0>;
         pinctrl-names = "default";
         ...
 };
 \end{minted}
-\item See \kerneldoctext{devicetree/bindings/pinctrl/pinctrl-bindings.txt}
-  for details.
-\end{itemize}
+    Most common case (\kfile{arch/arm/boot/dts/kirkwood.dtsi})
+    \column{0.5\textwidth}
+    \begin{minted}[fontsize=\footnotesize]{perl}
+i2c0: i2c@f8014000 {
+       ...
+       pinctrl-names = "default", "gpio";
+       pinctrl-0 = <&pinctrl_i2c0>;
+       pinctrl-1 = <&pinctrl_i2c0_gpio>;
+       ...
+};
+\end{minted}
+    Case with multiple pin states (\kfile{arch/arm/boot/dts/sama5d4.dtsi})
+  \end{columns}
 \end{frame}
 
 \begin{frame}{Defining pinctrl configurations}
@@ -143,7 +161,7 @@ i2c@11000 {
   \end{columns}
 \end{frame}
 
-\begin{frame}[fragile]{Example on Allwinner SoC}
+\begin{frame}[fragile]{Example on the Allwinner A20 SoC}
   \begin{center}
     \includegraphics[height=0.8\textheight]{slides/kernel-pinmuxing/allwinner-example.pdf}
   \end{center}
