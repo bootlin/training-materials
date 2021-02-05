@@ -204,6 +204,8 @@ Many more operations exist. All of them are optional.
 \begin{frame}[fragile]
   \frametitle{ioctl() example: kernel side}
 \begin{minted}[fontsize=\tiny]{c}
+#include <linux/phantom.h>
+
 static long phantom_ioctl(struct file *file, unsigned int cmd,
     unsigned long arg)
 {
@@ -216,23 +218,28 @@ static long phantom_ioctl(struct file *file, unsigned int cmd,
             return -EFAULT;
         /* Do something */
         break;
+    ...
     case PHN_GET_REG:
         if (copy_to_user(argp, &r, sizeof(r)))
             return -EFAULT;
         /* Do something */
         break;
+    ...
     default:
         return -ENOTTY;
     }
 
-    return 0; }
+    return 0;
+}
 \end{minted}
-Selected excerpt from \kfile{drivers/misc/phantom.c}
+\small Selected excerpt from \kfile{drivers/misc/phantom.c}
 \end{frame}
 
 \begin{frame}[fragile]
   \frametitle{Ioctl() Example: Application Side}
-\begin{minted}[fontsize=\small]{c}
+\begin{minted}[fontsize=\footnotesize]{c}
+#include <linux/phantom.h>
+
 int main(void)
 {
     int fd, ret;
