@@ -195,10 +195,11 @@ static struct usb_driver rtl8150_driver = {
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{Driver (Un)Registration}
+  \frametitle{Driver registration and unregistration}
   \begin{itemize}
-  \item When the driver is loaded or unloaded, it must register or
-    unregister itself from the USB core
+  \small
+  \item When the driver is loaded / unloaded, it must register /
+    unregister itself to / from the USB core
   \item Done using \kfunc{usb_register} and \kfunc{usb_deregister},
     provided by the USB core.
     \begin{block}{}
@@ -217,8 +218,12 @@ module_init(usb_rtl8150_init);
 module_exit(usb_rtl8150_exit);
 \end{minted}
 \end{block}
-\item Note: this code has now been replaced by a shorter
-  \kfunc{module_usb_driver} macro call.
+\item All this code is actually replaced by a call to the \kfunc{module_usb_driver} macro:
+    \begin{block}{}
+\begin{minted}[fontsize=\scriptsize]{c}
+module_usb_driver(rtl8150_driver);
+\end{minted}
+\end{block}
   \end{itemize}
 \end{frame}
 
@@ -770,9 +775,9 @@ static struct platform_driver serial_omap_driver = {
     \begin{itemize}
     \item \code{/sys/bus/} contains the list of buses
     \item \code{/sys/devices/} contains the list of devices
-    \item \code{/sys/class} enumerates devices by class (\code{net},
-      \code{input}, \code{block}...), whatever bus they are connected
-      to. Very useful!
+    \item \code{/sys/class} enumerates devices by the framework they are
+          registered to (\code{net}, \code{input}, \code{block}...),
+          whatever bus they are connected to. Very useful!
     \end{itemize}
   \item Take your time to explore \code{/sys} on your workstation.
   \end{itemize}
