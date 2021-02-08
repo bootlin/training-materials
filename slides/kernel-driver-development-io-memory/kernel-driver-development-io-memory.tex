@@ -210,7 +210,7 @@ sha_dd->io_base = devm_ioremap_resource(&pdev->dev, sha_res);
     \kfunc{ioremap} (\emph{pointer dereferencing}) may not work on some
     architectures.
   \item To do PCI-style, little-endian accesses, conversion being done
-    automatically
+    automatically:
 \begin{minted}{c}
 unsigned read[bwl](void *addr);
 void write[bwl](unsigned val, void *addr);
@@ -220,12 +220,14 @@ void write[bwl](unsigned val, void *addr);
 unsigned __raw_read[bwl](void *addr);
 void __raw_write[bwl](unsigned val, void *addr);
 \end{minted}
+  \item Little-endian is more frequent and also easier
+        to use in drivers. Even if you just read the least significant
+        byte of a 32-bit register, it's still at the same address.
   \item Example
     \begin{itemize}
-    \item 32 bits write
+    \item 32 bit write (\kfile{drivers/tty/serial/uartlite.c}):
 \begin{minted}{c}
-__raw_writel(1 << KS8695_IRQ_UART_TX,
-    membase + KS8695_INTST);
+writel(c & 0xff, port->membase + 4);
 \end{minted}
     \end{itemize}
   \end{itemize}
@@ -246,10 +248,11 @@ __raw_writel(1 << KS8695_IRQ_UART_TX,
       cross the barrier
     \item \kfunc{wmb} is a write memory barrier
     \item \kfunc{mb} is a read-write memory barrier
+    \item Starts to be a problem with CPUs that reorder instructions and
+          with SMP. See \kerneldoctext{memory-barriers.txt} for details.
     \end{itemize}
-  \item Starts to be a problem with CPUs that reorder instructions and
-    SMP.
-  \item See \kerneldoctext{memory-barriers.txt} for details
+  \item Note that \kfunc{readl}, \kfunc{writel} and similar functions
+        already contain barriers (safer), while the raw ones don't.
   \end{itemize}
 \end{frame}
 
