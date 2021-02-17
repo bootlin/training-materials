@@ -92,13 +92,15 @@
 \end{frame}
 
 \begin{frame}
-  \frametitle{Suspend and resume}
+  \frametitle{Suspend and resume (to / from RAM)}
   \begin{itemize}
   \item Infrastructure in the kernel to support suspend and resume
   \item System on Chip hooks
     \begin{itemize}
-    \item \code{prepare()}, \code{enter()}, \code{finish()},
-      \code{valid()} in a \kstruct{platform_suspend_ops} structure
+    \item Define operations (at least \code{valid() and \code{enter()}}
+      \kstruct{platform_suspend_ops} structure. See the documentation
+      for this structure for details about possible operations and the
+      way they are used.
     \item Registered using the \kfunc{suspend_set_ops} function
     \item See \kfile{arch/arm/mach-at91/pm.c}
     \end{itemize}
@@ -110,24 +112,31 @@
       structure in (\kstruct{platform_driver}, \kstruct{usb_driver}, etc.)
     \item See \kfile{drivers/net/ethernet/cadence/macb_main.c}
     \end{itemize}
+   \item {\em Hibernate to disk} is based on suspend to RAM, copying
+    the RAM contents (after a simulated suspend) to a swap partition.
   \end{itemize}
 \end{frame}
 
 \begin{frame}
-  \frametitle{Triggering suspend}
+  \frametitle{Triggering suspend / hibernate}
   \begin{itemize}
   \item \kstruct{suspend_ops} functions are called by the
-    \kfunc{enter_state} function.
-  \item \kfunc{enter_state} also takes care of executing the suspend
-    and resume functions for your devices.
-  \item The execution of this function can be triggered from
-    user space. To suspend to RAM:
-    \begin{itemize}
-    \item \code{echo mem > /sys/power/state}
-    \end{itemize}
-  \item Can also use the s2ram program from
-    \url{http://suspend.sourceforge.net/}
+    \kfunc{enter_state} function. \kfunc{enter_state} also
+    takes care of executing the suspend and resume functions
+    for your devices.
   \item Read \kfile{kernel/power/suspend.c}
+  \item The execution of this function can be triggered from
+    user space:
+    \begin{itemize}
+    \item \code{echo mem > /sys/power/state} (suspend to RAM)
+    \item \code{echo disk > /sys/power/state} (hibernate to disk)
+    \end{itemize}
+  \item Systemd can also manage suspend and hibernate for you, and
+        offers customizations
+    \begin{itemize}
+       \item \code{systemctl suspend} or \code{systemctl hibernate}.
+       \item \small See \url{https://www.man7.org/linux/man-pages/man8/systemd-suspend.service.8.html}
+    \end{itemize}
   \end{itemize}
 \end{frame}
 
