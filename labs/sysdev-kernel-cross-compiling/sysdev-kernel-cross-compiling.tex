@@ -4,7 +4,7 @@ cross-compile a kernel for an ARM target platform.}
 After this lab, you will be able to:
 \begin{itemize}
 \item Set up a cross-compiling environment
-\item Cross compile the kernel for your board
+\item Cross compile the kernel for the \labboarddescription
 \item Use U-Boot to download the kernel
 \item Check that the kernel you compiled starts the system
 \end{itemize}
@@ -39,14 +39,26 @@ Also, don't forget to either:
 
 \section{Linux kernel configuration}
 
+\ifdefstring{\labboard}{discovery}
+{
+We could use the \code{multi_v7_defconfig} default configuration to
+build a working kernel but to save time and compile less code, we
+provide in
+\code{$HOME/__SESSION_NAME__-labs/linux-stm32/} a minimal configuration
+file, named \code{stm32mp157_defconfig}. Copy it to \code{.config} and
+then run either \code{make olddefconfig} or \code{make oldconfig} if
+you want to get asked for all the possible choices.
+}
+{
 By running \code{make help}, find the proper Makefile target to
 configure the kernel
 \ifdefstring{\labboard}{qemu}
-{for the ARM Vexpress boards (\code{vexpress_defconfig})}
+{for the ARM Vexpress boards (\code{vexpress_defconfig}).}
 {for the Xplained board (hint: the default
 configuration is not named after the board, but after the SoC
 name). Once found, use this target to configure the kernel with the
 ready-made configuration.}
+}
 
 Don't hesitate to visualize the new settings by running
 \code{make xconfig} afterwards!
@@ -84,33 +96,24 @@ As we are going to boot the Linux kernel from U-Boot,
 we need to set the \code{bootargs} environment corresponding
 to the Linux kernel command line:
 
-\ifdefstring{\labboard}{qemu}
-{\code{setenv bootargs console=ttyAMA0}}
-{\code{setenv bootargs console=ttyS0}}
+\texttt{setenv bootargs console=\ttyname}
 
-We will use TFTP to load the kernel image on the ARM board:
+We will use TFTP to load the kernel image on the board:
 
 \begin{itemize}
 
 \item On your workstation, copy the \code{zImage} and DTB
-(\ifdefstring{\labboard}{qemu}{\code{vexpress-v2p-ca9.dtb}}{\code{at91-sama5d3_xplained.dtb}})
-to the directory exposed by the TFTP server.
+(\texttt\dtbname) to the directory exposed by the TFTP server.
 
 \item On the target (in the U-Boot prompt), load \code{zImage} from
-TFTP into RAM:
-\ifdefstring{\labboard}{qemu}
-{\code{tftp 0x61000000 zImage}}
-{\code{tftp 0x21000000 zImage}}
+TFTP into RAM:\\
+\texttt{tftp \zimageboardaddr\ zImage}
 
 \item Now, also load the DTB file into RAM:\\
-\ifdefstring{\labboard}{qemu}
-{\code{tftp 0x62000000 vexpress-v2p-ca9.dtb}}
-{\code{tftp 0x22000000 at91-sama5d3_xplained.dtb}}
+\texttt{tftp \dtbboardaddr\ \dtbname}
 
 \item Boot the kernel with its device tree:\\
-\ifdefstring{\labboard}{qemu}
-{\code{bootz 0x61000000 - 0x62000000}}
-{\code{bootz 0x21000000 - 0x22000000}}
+\texttt{bootz \zimageboardaddr\ - \dtbboardaddr}
 
 \end{itemize}
 
@@ -120,86 +123,26 @@ haven't provided a working root filesystem for our device yet.
 You can now automate all this every time the board is booted or
 reset. Reset the board, and customize \code{bootcmd}:
 
-\scriptsize
-\ifdefstring{\labboard}{qemu}{
-\code{setenv bootcmd 'tftp 0x61000000 zImage; tftp 0x62000000
-vexpress-v2p-ca9.dtb; bootz 0x61000000 - 0x62000000'}\\
+\footnotesize
+\texttt {setenv bootcmd 'tftp \zimageboardaddr\ zImage; tftp \dtbboardaddr\ \dtbname;
+bootz \zimageboardaddr\ - \dtbboardaddr'}\\
 \code{saveenv}
-}
-{
-\code{setenv bootcmd 'tftp 0x21000000 zImage; tftp 0x22000000 at91-sama5d3_xplained.dtb; bootz 0x21000000 - 0x22000000'}\\
-\code{saveenv}
-}
 \normalsize
 
 Restart the board to make sure that booting the kernel is now automated.
 
 \ifdefstring{\labboard}{xplained}
 {
-\section{Flashing the kernel and DTB in NAND flash}
-
-In order to let the kernel boot on the board autonomously, we can
-flash the kernel image and DTB in the NAND flash available on the
-Xplained board.
-
-After storing the first stage bootloader, U-boot and its environment
-variables, we will keep special areas in NAND flash for the DTB
-and Linux kernel images:
-
-\begin{center}
-  \includegraphics[width=\textwidth]{labs/sysdev-kernel-cross-compiling/flash-map.pdf}
-\end{center}
-
-So, let's start by erasing the corresponding 128 KiB of NAND flash
-for the DTB:
-
-% Verbatim doesn't seem to work in this \ifdefstring environment
-
-\code{nand erase 0x180000 0x20000} ({\em NAND-offset size})
-
-Then, let's erase the 5 MiB of NAND flash for the kernel image:
-
-% Verbatim doesn't seem to work in this \ifdefstring environment
-\code{nand erase 0x1a0000 0x500000}
-
-Then, copy the DTB and kernel binaries from TFTP into memory, using the
-same addresses as before.
-
-Then, flash the DTB and kernel binaries:
-
-% Verbatim doesn't seem to work in this \ifdefstring environment
-\code{nand write 0x22000000 0x180000 0x20000} ({\em RAM-addr NAND-offset size})\\
-\code{nand write 0x21000000 0x1a0000 0x500000}
-
-Power your board off and on, to clear RAM contents. We should now be
-able to load the DTB and kernel image from NAND and boot with:
-
-% Verbatim doesn't seem to work in this \ifdefstring environment
-\code{nand read 0x22000000 0x180000 0x20000} ({\em RAM-addr offset size})\\
-\code{nand read 0x21000000 0x1a0000 0x500000}\\
-\code{bootz 0x21000000 - 0x22000000}
-
-Write a U-Boot script that automates the DTB + kernel download
-and flashing procedure.
-
-You are now ready to modify \code{bootcmd} to boot the board
-from flash. But first, save the settings for booting from \code{tftp}:
-
-% Verbatim doesn't seem to work in this \ifdefstring environment
-\code{setenv bootcmdtftp ${bootcmd}}
-
-This will be useful to switch back to \code{tftp} booting mode
-later in the labs.
-
-Finally, using \code{editenv bootcmd},
-adjust \code{bootcmd} so that the Xplained board starts
-using the kernel in flash.
-
-Now, reset the board to check that it boots
-in the same way from NAND flash. Check that this is really your own version of
-the kernel that's running\footnote{Look at the kernel log. You will find
-the kernel version number as well as the date when it was compiled.
-That's very useful to check that you're not loading an older version
-of the kernel instead of the one that you've just compiled.}
+\input{sysdev-kernel-cross-compiling-sama5d3.tex}
 }
 {}
+
+
+\ifdefstring{\labboard}{discovery}
+{
+\input{sysdev-kernel-cross-compiling-stm32mp1.tex}
+}
+{}
+
+
+

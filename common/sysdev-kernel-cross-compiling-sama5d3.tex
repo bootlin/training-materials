@@ -1,0 +1,66 @@
+\section{Flashing the kernel and DTB in NAND flash}
+
+In order to let the kernel boot on the board autonomously, we can
+flash the kernel image and DTB in the NAND flash available on the
+Xplained board.
+
+After storing the first stage bootloader, U-boot and its environment
+variables, we will keep special areas in NAND flash for the DTB
+and Linux kernel images:
+
+\begin{center}
+  \includegraphics[width=\textwidth]{labs/sysdev-kernel-cross-compiling/flash-map.pdf}
+\end{center}
+
+So, let's start by erasing the corresponding 128 KiB of NAND flash
+for the DTB:
+
+% Verbatim doesn't seem to work in this \ifdefstring environment
+
+\code{nand erase 0x180000 0x20000} ({\em NAND-offset size})
+
+Then, let's erase the 5 MiB of NAND flash for the kernel image:
+
+% Verbatim doesn't seem to work in this \ifdefstring environment
+\code{nand erase 0x1a0000 0x500000}
+
+Then, copy the DTB and kernel binaries from TFTP into memory, using the
+same addresses as before.
+
+Then, flash the DTB and kernel binaries:
+
+% Verbatim doesn't seem to work in this \ifdefstring environment
+\code{nand write 0x22000000 0x180000 0x20000} ({\em RAM-addr NAND-offset size})\\
+\code{nand write 0x21000000 0x1a0000 0x500000}
+
+Power your board off and on, to clear RAM contents. We should now be
+able to load the DTB and kernel image from NAND and boot with:
+
+% Verbatim doesn't seem to work in this \ifdefstring environment
+\code{nand read 0x22000000 0x180000 0x20000} ({\em RAM-addr offset size})\\
+\code{nand read 0x21000000 0x1a0000 0x500000}\\
+\code{bootz 0x21000000 - 0x22000000}
+
+Write a U-Boot script that automates the DTB + kernel download
+and flashing procedure.
+
+You are now ready to modify \code{bootcmd} to boot the board
+from flash. But first, save the settings for booting from \code{tftp}:
+
+% Verbatim doesn't seem to work in this \ifdefstring environment
+\code{setenv bootcmdtftp ${bootcmd}}
+
+This will be useful to switch back to \code{tftp} booting mode
+later in the labs.
+
+Finally, using \code{editenv bootcmd},
+adjust \code{bootcmd} so that the Xplained board starts
+using the kernel in flash.
+
+Now, reset the board to check that it boots
+in the same way from NAND flash. Check that this is really your own version of
+the kernel that's running\footnote{Look at the kernel log. You will find
+the kernel version number as well as the date when it was compiled.
+That's very useful to check that you're not loading an older version
+of the kernel instead of the one that you've just compiled.}
+
