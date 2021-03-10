@@ -74,7 +74,7 @@ Then, press and hold the 'Boot Switch' button (the only one close to the
 micro-SD slot), power up the board (either through the power or USB device
 connectors), and release the button.
 
-After about 20 to 30 seconds, you should see the 4 LEDs next to the Ethernet
+After about 10 to 20 seconds, you should see the 4 LEDs next to the Ethernet
 connector turned on. This confirms that reflashing went well. You are done!
 
 Then, remove the micro-SD card.
