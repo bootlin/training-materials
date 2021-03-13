@@ -158,14 +158,12 @@ use.
 
 Quickly, you should get an error saying:
 
-\footnotesize
-\begin{verbatim}
+\begin{terminaloutput}
 checking whether we are cross compiling... configure: error: in `.../thirdparty/alsa-lib-1.1.6':
 configure: error: cannot run C compiled programs.
 If you meant to cross compile, use `--host'.
 See `config.log' for more details
-\end{verbatim}
-\normalsize
+\end{terminaloutput}
 
 If you look at the \code{config.log} file, you can see that the
 \code{configure} script compiles a binary with the cross-compiler
@@ -383,13 +381,11 @@ configure: error: Sufficiently new version of libasound not found.
 Again, we can check in \code{config.log} what the \code{configure}
 script is trying to do:
 
-\footnotesize
-\begin{verbatim}
+\begin{terminaloutput}
 configure:7146: checking for libasound headers version >= 1.0.27
 configure:7208: arm-linux-gcc -c -g -O2  conftest.c >&5
 conftest.c:12:10: fatal error: alsa/asoundlib.h: No such file or directory
-\end{verbatim}
-\normalsize
+\end{terminaloutput}
 
 Of course, since {\em alsa-utils} uses {\em alsa-lib}, it includes
 its header file! So we need to tell the C compiler where the headers
@@ -867,7 +863,6 @@ Then, let's run the configuration of the vorbis-tools again, passing
 the \code{PKG_CONFIG_LIBDIR} and \code{PKG_CONFIG_SYSROOT_DIR}
 environment variables:
 
-\small
 \begin{verbatim}
 LDFLAGS=-L$HOME/__SESSION_NAME__-labs/thirdparty/staging/usr/lib \
 CPPFLAGS=-I$HOME/__SESSION_NAME__-labs/thirdparty/staging/usr/include \
@@ -876,7 +871,6 @@ PKG_CONFIG_SYSROOT_DIR=$HOME/__SESSION_NAME__-labs/thirdparty/staging \
 CC=arm-linux-gcc \
 ./configure --host=arm-linux --prefix=/usr
 \end{verbatim}
-\normalsize
 
 Now, the \code{configure} script should end properly, we can now start the
 compilation:
@@ -885,14 +879,13 @@ make
 \end{verbatim}
 
 It should fail with the following cryptic message:
-\footnotesize
-\begin{verbatim}
+\begin{terminaloutput}
 make[2]: Entering directory '/home/tux/__SESSION_NAME__-labs/thirdparty/vorbis-tools-1.4.0/ogg123'
 if arm-linux-gcc -DSYSCONFDIR=\"/usr/etc\" -DLOCALEDIR=\"/usr/share/locale\" -DHAVE_CONFIG_H -I. -I. -I.. -I/usr/include -I../include -I../intl  -I/home/tux/__SESSION_NAME__-labs/thirdparty/staging/usr/include  -O2 -Wall -ffast-math -fsigned-char -g -O2 -MT audio.o -MD -MP -MF ".deps/audio.Tpo" -c -o audio.o audio.c; \
 then mv -f ".deps/audio.Tpo" ".deps/audio.Po"; else rm -f ".deps/audio.Tpo"; exit 1; fi
 In file included from audio.c:22:
 /usr/include/stdio.h:27:10: fatal error: bits/libc-header-start.h: No such file or directory
-\end{verbatim}
+\end{terminaloutput}
 \normalsize
 
 You can notice that \code{/usr/include} is added to the include paths.
@@ -942,7 +935,7 @@ strace ogg123 /sample.ogg
 \end{verbatim}
 
 You can see that the command fails to open the \code{ld-uClibc.so.1} file:
-\begin{verbatim}
+\begin{terminaloutput}
 open("/lib/ld-uClibc.so.1", O_RDONLY)   = -1 ENOENT (No such file or directory)
 open("/lib/ld-uClibc.so.1", O_RDONLY)   = -1 ENOENT (No such file or directory)
 open("/usr/lib/ld-uClibc.so.1", O_RDONLY) = -1 ENOENT (No such file or directory)
@@ -951,7 +944,7 @@ open("/home/tux/__SESSION_NAME__-labs/thirdparty/staging/usr/lib/ld-uClibc.so.1"
 write(2, "ERROR: Failed to load plugin ", 29ERROR: Failed to load plugin ) = 29
 write(2, "/usr/lib/ao/plugins-4/libalsa.so", 32/usr/lib/ao/plugins-4/libalsa.so) = 32
 write(2, " => dlopen() failed\n", 20 => dlopen() failed
-\end{verbatim}
+\end{terminaloutput}
 
 Now, look for \code{ld-uClibc.so.1} in the toolchain. You can see that both \code{ld-uClibc.so.1}
 and \code{ld-uClibc.so.0} are symbolic links to the same file. So, create the missing
