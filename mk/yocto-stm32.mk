@@ -2,7 +2,7 @@ YOCTO_STM32_SLIDES    = \
 		first-slides \
 		about-us \
 		course-information-title \
-		using-either-bbb-or-stm32 \
+		yocto-shopping-list \
 		beagleboneblack-board \
 		discovery-board-dk1 \
 		yocto-course-outline \
