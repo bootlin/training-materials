@@ -1,17 +1,12 @@
 \begin{frame}
-  \frametitle{rootfs in memory: initramfs (1)}
+  \frametitle{Root filesystem in memory: initramfs}
+  It is also possible to boot the system with a filesystem in memory:
+  {\em initramfs}
   \begin{itemize}
-  \item It is also possible to have the root filesystem integrated
-    into the kernel image
-  \item It is therefore loaded into memory together with the kernel
-  \item This mechanism is called {\bf initramfs}
-    \begin{itemize}
-    \item It integrates a compressed archive of the filesystem into
-      the kernel image
-    \item Variant: the compressed archive can also be loaded separately
-      by the bootloader.
-    \end{itemize}
-  \item It is useful for two cases
+  \item Either from a compressed CPIO archive integrated into the kernel image
+  \item Or from such an archive loaded by the bootloader into memory
+  \item At boot time, this archive is extracted into the Linux file cache
+  \item It is useful for two cases:
     \begin{itemize}
     \item Fast booting of very small root filesystems. As the
       filesystem is completely loaded at boot time, application
@@ -23,36 +18,51 @@
       desktop/server distributions to keep the kernel image size
       reasonable.
     \end{itemize}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{rootfs in memory: initramfs (2)}
-  \begin{center}
-    \includegraphics[width=0.9\textwidth]{slides/initramfs/initramfs.pdf}
-  \end{center}
-\end{frame}
-
-\begin{frame}
-  \frametitle{rootfs in memory: initramfs (3)}
-  \begin{itemize}
-  \item The contents of an initramfs are defined at the kernel
-    configuration level, with the \kconfig{CONFIG_INITRAMFS_SOURCE}
-    option
-    \begin{itemize}
-    \item Can be the path to a directory containing the root
-      filesystem contents
-    \item Can be the path to a cpio archive
-    \item Can be a text file describing the contents of the initramfs \\
-      (see documentation for details)
-    \end{itemize}
-  \item The kernel build process will automatically take the contents
-    of the \kconfig{CONFIG_INITRAMFS_SOURCE} option and integrate the
-    root filesystem into the kernel image
   \item Details (in kernel sources): \\
-    {\small
     \kerneldochtml{filesystems/ramfs-rootfs-initramfs}\\
-    \kerneldochtml{driver-api/early-userspace}
-    }
   \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{External initramfs}
+  \begin{itemize}
+  \item To create one, first create a compressed CPIO archive:
+ \begin{verbatim}
+cd rootfs/
+find . | cpio -H newc -o > ../initramfs.cpio
+cd ..
+gzip initramfs.cpio
+\end{verbatim}
+  \item If you're using U-Boot, you'll need to include your archive
+  in a U-Boot container:
+  \begin{verbatim}
+mkimage -n 'Ramdisk Image' -A arm -O linux -T ramdisk -C gzip \
+        -d initramfs.cpio.gz uInitramfs
+\end{verbatim}
+  \item Then, in the bootloader, load the kernel binary, DTB and
+  \code{uInitramfs} in RAM and boot the kernel as follows:
+  \begin{verbatim}
+bootm kernel-addr initramfs-addr dtb-addr
+\end{verbatim}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Built-in initramfs}
+  \begin{columns}
+  \column{0.75\textwidth}
+  To have the kernel Makefile include an initramfs archive in
+  the kernel image: use the \kconfig{CONFIG_INITRAMFS_SOURCE}
+  option.
+  \begin{itemize}
+  \item It can be the path to a directory containing the root
+    filesystem contents
+  \item It can be the path to a ready made cpio archive
+  \item It can be a text file describing the contents of the initramfs
+  \end{itemize}
+  See the kernel documentation for details:
+  \kerneldochtml{driver-api/early-userspace/early_userspace_support}
+  \column{0.25\textwidth}
+    \includegraphics[width=0.9\textwidth]{slides/initramfs/initramfs.pdf}
+  \end{columns}
 \end{frame}
