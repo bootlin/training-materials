@@ -7,7 +7,7 @@
  * This program is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 as published by
  * the Free Software Foundation.
- * 
+ *
  */
 
 #include <stdlib.h>
@@ -51,7 +51,7 @@ int main (void)
 	/* Display clock resolution */
 	clock_getres(CLOCK_MONOTONIC, &time1);
 	printf("Clock resolution (ns): %lu\n", time1.tv_nsec);
-	
+
 	/* Initialize the timer that will be used in nanosleep(),	*/
 	/* to a value of 100 us						*/
 
@@ -68,16 +68,16 @@ int main (void)
 
 		/* Sleep */
 		clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &time1, NULL);
-	
+
 		/* Get the wake-up date */
 		clock_gettime(CLOCK_MONOTONIC, &time2);
-	
+
 		/* skip the first second for warmup */
 		if (samples >= 1) {
 			/* Compute the sleep time */
 			jitter = timespec_diff(&time2, &time1);
 			min_jit = MIN(min_jit, jitter);
-			max_jit = MAX(max_jit, jitter); 
+			max_jit = MAX(max_jit, jitter);
 			sum_jit += jitter;
 		}
 		++samples;
