@@ -66,13 +66,16 @@ PACKAGECONFIG[openvpn] = "--enable-openvpn,           \
       falseval, d)}: if \code{checkval} is found in
       \code{variable}, \code{trueval} is returned; otherwise
       \code{falseval} is used.
+    \item \code{bb.utils.filter(variable, checkvalues, d)}: returns
+      all the words in the variable that are present in the
+      checkvalues.
     \item Example:
       \begin{block}{}
       \begin{minted}[fontsize=\small]{sh}
-PACKAGECONFIG ??= "                                                       \
-    ${@bb.utils.contains('DISTRO_FEATURES', 'wifi','wifi', '', d)}            \
-    ${@bb.utils.contains('DISTRO_FEATURES', 'bluetooth','bluetooth', '', d)}  \
-    ${@bb.utils.contains('DISTRO_FEATURES', '3g','3g', '', d)}"
+PACKAGECONFIG ??= "wispr iptables client\
+                   ${@bb.utils.filter('DISTRO_FEATURES', '3g systemd wifi', d)} \
+                   ${@bb.utils.contains('DISTRO_FEATURES', 'bluetooth', 'bluez', '', d)} \
+"
       \end{minted}
       \end{block}
   \end{itemize}
