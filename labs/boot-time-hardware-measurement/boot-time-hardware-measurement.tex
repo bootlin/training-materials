@@ -101,40 +101,30 @@ P9 headers is used to expose the \code{SYS_RESET} line.
 
 \subsection{Finding a free pin for the stop signal}
 
-Look at the schematics for the 4.3" LCD. Unfortunately, no reference
-manual was ever published for this cape. However, the schematics are
-sufficient to find pins that are not used by the 4.3" LCD cape.
+Unfortunately, the schematics for the 4.3" LCD cape from Element 14
+are currently unavailable. The community is looking for them.
+This would have been useful to find pins that are not used by
+this cape.
+
+Fortunately, by reading the Board's Reference Manual about the
+\code{P8} and \code{P9} headers, you can guess what GPIOs could be
+available from the set of possible signals.
 
 If you look for \code{Bootlin} in the Device Tree Source we provided,
-you can see in the pin definitions sections that we selected pin 13 or
+you can see in the pin definitions sections that we selected pin 13 from
 the P9 headers:
 
 \begin{verbatim}
-// Bootlin: use idle pin as custom GPIO
-0x074 (PIN_OUTPUT | MUX_MODE7)  /* P9_13: uart4_txd_txd.gpio0_31 */
+/* Bootlin boot time labs: use idle pin as custom GPIO on P9_13 */
+AM33XX_PADCONF(AM335X_PIN_GPMC_WPN, PIN_OUTPUT, MUX_MODE7)
 \end{verbatim}
 
 If you look at the \code{Expansion Header P9 Pinout} table in the
 Board's Reference Manual, you will see that \code{MODE7} allows to get
-GPIO number 31 on P9's pin 13.
+GPIO bank 0 / number 31 on P9's pin 13.
 
 Back to the pin for \code{SYS_RESET}, there is nothing to configure to
 get it. It's the only line connected to the pin.
-
-\subsection{Wiring these pins}
-
-We are going the good old wire wrapping technique as shown by the
-instructor to hook up to pins we want to monitor, with a reliable
-connection, but without any soldering.
-
-So, take out the LCD cape, find which of its header pins are connected
-to the Bone Black pins we want to monitor, and then use the wire and
-tool provided by the instructor to connect to these pins, before
-re-attaching the LCD cape.
-
-On the other end of the cables, your instructor will also give you small
-headers that you can plug into the breadboard holes and do some wiring
-wrapping on them too.
 
 \subsection{Pull up or pull down?}
 
@@ -146,10 +136,13 @@ pins can be configured as pull-up, so we just need to configure them
 in software without having to use our own resistors.
 
 For our custom GPIO pin, there only one choice because we cannot use
-pull-up. If we used our own resistor, we would have a 5V voltage level
-coming from the Arduino, and the Beagle Bone Black is {\bf not 5V
-tolerant}, as explicited in its manual. Therefore, pull-down is our only
-option. As a consequence, as the Arduino just supports pull-up for
+pull-up. If we used our own pull-up resistor on the Arduino side,
+we would have a 5V voltage level connected to our board, and the Beagle
+Bone Black is {\bf not 5V tolerant}, as explicited in its manual.
+
+Therefore, pull-down is our only option. We will keep our GPIO low
+by default, and drive it high, after displaying the first
+frame. As a consequence, as the Arduino Nano just supports pull-up for
 pins, we will have to use our own pull-down resistors.
 
 Then which Arduino pins to connect to? As the Beagle Bone Black board
@@ -168,7 +161,7 @@ instructor:
 
 Last but not least, don't forget to connect the ground level
 on the Arduino board to the one on the Beagle Bone Black (pins \code{1}
-or \code{2} on either \code{P8} or \code{P9} connectors.
+or \code{2} on either \code{P8} or \code{P9} connectors).
 
 \section{Making ffmpeg drive the custom GPIO}
 
@@ -176,9 +169,57 @@ Once we know how to modify \code{ffmpeg} to write to its output after
 processing the first frame, it's easy to add code that configures our
 custom GPIO line and drives it.
 
-So, modify your Buildroot customizations so that you use the patch in
+We are going to use the GPIO Sysfs interface (documented on
+\kerneldochtml{admin-guide/gpio/sysfs}). This interface is now
+deprecated for several reasons, but it's convenient to use for
+simple needs.
+
+The first thing to do is to find which number Linux will use to
+represent our custom GPIO. To do this, check that your kernel was
+compiled with \kconfig{CONFIG_DEBUG_FS}. Then mount the DebugFS filesystem and
+access GPIO information as follows:
+
+\begin{verbatim}
+mount -t debugfs none /sys/kernel/debug
+cat /sys/kernel/debug/gpio
+\end{verbatim}
+
+Here's what you should get:
+
+\begin{verbatim}
+...
+ gpio-124 ([ethernet]          )
+ gpio-125 ([ethernet]          )
+ gpio-126 (P9_11 [uart4_rxd]   )
+ gpio-127 (P9_13 [uart4_txd]   )
+\end{verbatim}
+
+So, our custom GPIO in number \code{127}. Such descriptions actually
+come from the \kfile{arch/arm/boot/dts/am335x-boneblack.dts} file.
+
+Here's example shell code to drive this GPIO to a high level,
+using the legacy interface:
+
+\begin{verbatim}
+cd /sys/class/gpio
+echo 127 > export
+\end{verbatim}
+
+A \code{gpio127} file appears. You can then configure the directory and
+write a value:
+
+\begin{verbatim}
+echo out > gpio127/direction
+echo 1 > gpio127/value
+\end{verbatim}
+
+If you have a multimeter, you could even check by yourself that this
+works.
+
+Now, modify your Buildroot customizations so that you use the patch in
 \code{boot-time-labs/rootfs/data/0001-ffmpeg-first-frame-completion-log-and-gpio.patch}
-instead of the previously used one (look at what it does!).
+instead of the previously used one (see how this page does the same
+thing as above).
 
 Rebuild and reflash your root filesystem.
 
