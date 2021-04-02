@@ -20,21 +20,20 @@ A first thing to do is to look at the {\code ffmpeg} logs:
 
 {\scriptsize
 \begin{verbatim}
- Input #0, video4linux2,v4l2, from '/dev/video0':
-   Duration: N/A, start: 8.768660, bitrate: N/A
-     Stream #0:0: Video: mjpeg, yuvj422p(pc, bt470bg/unknown/unknown), 544x288, 30 fps, 30 tbr, 1000k tbn, 1000k tbc
- Stream mapping:
-   Stream #0:0 -> #0:0 (mjpeg (native) -> rawvideo (native))
- Press [q] to stop, [?] for help
- [mjpeg @ 0xb6b00340] unable to decode APP fields: Invalid data found when processing input
- [swscaler @ 0x8f650] deprecated pixel format used, make sure you did set range correctly
- [swscaler @ 0x8f650] No accelerated colorspace conversion found from yuv422p to rgb565le.
- Output #0, fbdev, to '/dev/fb0':
-   Metadata:
-     encoder         : Lavf57.83.100
-     Stream #0:0: Video: rawvideo (RGB[16] / 0x10424752), rgb565le, 544x288, q=2-31, 75202 kb/s, 30 fps, 30 tbn, 30 tbc
-     Metadata:
-       encoder         : Lavc57.107.100 rawvideo
+Input #0, video4linux2,v4l2, from '/dev/video0':
+  Duration: N/A, start: 93.369296, bitrate: N/A
+    Stream #0:0: Video: mjpeg (Baseline), yuvj422p(pc, bt470bg/unknown/unknown), 544x288, 30 fps, 30 tbr, 1000k tbn, 1000k tbc
+Stream mapping:
+  Stream #0:0 -> #0:0 (mjpeg (native) -> rawvideo (native))
+Press [q] to stounable to decode APP fields: Invalid data found when processing input
+[swscaler @ 0x80f50] deprecated pixel format used, make sure you did set range correctly
+[swscaler @ 0x80f50] No accelerated colorspace conversion found from yuv422p to rgb565le.
+Output #0, fbdev, to '/dev/fb0':
+  Metadata:
+    encoder         : Lavf58.29.100
+    Stream #0:0: Video: rawvideo (RGB[16] / 0x10424752), rgb565le, 544x288, q=2-31, 75202 kb/s, 30 fps, 30 tbn, 30 tbc
+    Metadata:
+      encoder         : Lavc58.54.100 rawvideo
 \end{verbatim}
 }
 
@@ -51,7 +50,7 @@ Let's check \code{ffmpeg}'s \code{configure} script, and see what its
 options are:
 
 \begin{verbatim}
-cd ~/boot-time-labs/rootfs/buildroot-arm/output/build/ffmpeg-3.4.5
+cd ~/boot-time-labs/rootfs/buildroot-arm/output/build/ffmpeg-4.2.4
 ./configure --help
 \end{verbatim}
 
@@ -223,9 +222,10 @@ restore the normal configuration for the system:
 
 As explained in the Buildroot
 manual\footnote{https://buildroot.org/downloads/manual/manual.html\#full-rebuild},
-you need to make a full rebuild after disabling packages. Otherwise,
-such packages will still be present in the filesystem image. Fortunately,
-full rebuilds are now fast with Buildroot when it's using a prebuilt toolchain:
+you need to make a full rebuild after disabling packages (such as
+\code{strace} in our case). Otherwise, such packages will still be present in the
+filesystem image. Fortunately, full rebuilds are now fast with Buildroot
+when it's using a prebuilt toolchain:
 
 \begin{verbatim}
 make clean
@@ -240,8 +240,9 @@ console.
 
 To address this issue for the time being, let's modify \code{/etc/init.d/S50playvideo}
 by adding a loop waiting for the \code{/dev/video0} device to appear.
-So, let's add the following lines before the call to \code{echo
-"Starting ffmpeg"}:
+So, let's add the following lines to
+\code{board/beaglecam/rootfs-overlay/etc/init.d/S50playvideo},
+before the call to \code{echo "Starting ffmpeg"}:
 
 \begin{verbatim}
 if ! [ -e /dev/video0 ]
