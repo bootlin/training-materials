@@ -11,18 +11,20 @@ Check and write down the initial size of the root filesystem archive.
 
 \subsection{Use bootchartd on the board}
 
-Add \code{bootchartd} to your \code{BusyBox} configuration:
+Add \code{bootchartd} support (\projconfig{busybox}{CONFIG_BOOTCHARTD})
+to your \code{BusyBox} configuration:
 
 \begin{verbatim}
 cd ~/boot-time-labs/rootfs/buildroot
 make busybox-menuconfig
-make
 \end{verbatim}
 
-Also add support for {\em gzip compression} in utilities like \code{tar}
-(\code{BR2_FEATURE_SEAMLESS_GZ}), which is needed by \code{bootchartd}.
+In \code{Archival Utilities}, also enable \code{Make tar, rpm, modprobe
+etc understand .gz data} (\code{FEATURE_SEAMLESS_GZ}), which is needed by
+\code{bootchartd}.
 
-The \code{make} command should only take a few seconds to run.
+After saving the configuration, the \code{make} command should only take
+a few seconds to run.
 
 \subsection{Re-flash the root filesystem}
 
@@ -44,15 +46,28 @@ U-Boot> saveenv
 
 This will make the system boot and the resulting bootlog will be located
 in \code{/var/log/bootlog.tgz}. As \code{/var/log} is actually stored in
-RAM (through the {\em tmpfs} filesystem, copy it to the root filesystem
-storage and halt your board:
+RAM (through the {\em tmpfs} filesystem, you will copy it to the root
+filesystem.
+
+First, as the filesystem is read-only, remount it in read-write mode:
+\begin{verbatim}
+mount -o remount,rw /
+\end{verbatim}
+
+Now, copy the file to the root filesystem storage and halt your board:
 
 \begin{verbatim}
 cp /var/log/bootlog.tgz /root/
 halt
 \end{verbatim}
 
-Remove the SD card and copy that file to \code{~/boot-time-labs/rootfs/} on your host.
+Remove the SD card, insert it in your PC, and copy that file on your host:
+
+\begin{verbatim}
+cd $HOME/boot-time-labs/rootfs
+sudo cp /media/$USER/rootfs/root/bootlog.tgz .
+sudo chown $USER.$USER bootlog.tgz
+\end{verbatim}
 
 \subsection{Analyze bootchart data on your workstation}
 
@@ -69,8 +84,7 @@ Now, get the \code{bootchart} source code for version 0.9 from
 \url{http://www.bootchart.org/}\footnote{Don't try to get the \code{bootchart} package supplied by
 Ubuntu instead. While it has similar functionality, it looks like a completely
 unrelated piece of software. To confirm this, it has no dependency
-whatsoever on Java packages.}
-, compile it and use \code{bootchart} to generate the boot
+whatsoever on Java packages.}, compile it and use \code{bootchart} to generate the boot
 chart:
 
 \begin{verbatim}
