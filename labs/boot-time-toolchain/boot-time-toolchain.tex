@@ -60,7 +60,7 @@ Write these two numbers in the first row of the below table:
   \hline
   Thumb2 toolchain  & & \\
   \hline
-  Difference (percentage) & & \\
+  Musl toolchain & & \\
   \hline
 \end{tabular}
 
@@ -88,6 +88,8 @@ Write down your first results in the below table (\code{total1},
   ARM toolchain & & & & & & & & & \\
   \hline
   Thumb2 toolchain & & & & & & & & & \\
+  \hline
+  Musl toolchain & & & & & & & & & \\
   \hline
 \end{tabular}
 
@@ -142,7 +144,7 @@ executable size, write it down in the table, and compute the difference
 percentages vs. the ARM code.
 \item Update the SD card with the new filesystem, run the same time
 measurements, and write down the results to compare them with the ARM
-ones.
+ones. You can also add the percentage difference.
 \end{itemize}
 
 So, was it a good choice to switch to {\em Thumb2}? Where there any size
@@ -150,7 +152,40 @@ and performance benefits?
 
 Don't hesitate to show your results to your instructor.
 
+\section{Test the musl C library}
+
+The last thing to try in this lab is using a toolchain with the {\em
+Musl} C library, instead of {\em uClibc}, which is the C library that
+Buildroot uses by default.
+
+Once again, keep a copy your current Buildroot directory:
+\begin{verbatim}
+cd ..
+cp -al buildroot buildroot-thumb2
+\end{verbatim}
+
+Back to the \code{buildroot} directory, run \code{make menuconfig}, and
+in \code{Toolchain}, set \code{C library} to to \code{musl}.
+
+Save, run \code{make clean} and build the root filesystem once again.
+
+Once again, write down the two sizes and measure \code{ffmpeg} execution
+time.
+
+Now, what the best combination? {\em ARM} or {\em Thumb2},
+{\em uClibc} or {\em Musl}?
+
+If you have the same size and performance between {\em uClibc} or {\em
+Musl}, its better to choose the latter, as according to the slides, it
+will allow to generate smaller static executables (we will try that
+in later instructions). Another reason is that the {\em Musl} library
+has a more liberal license, making it easier to ship static executables.
+
 \section{Generate a Buildroot SDK to rebuild faster}
+
+Choose Buildroot configuration that worked best for you, renaming
+the directory to \code{buildroot} if that was not the last one you
+tried.
 
 With Buildroot, it's frequent to need to run \code{make clean} and
 thus make a full rebuild, typically after configuration changes.
@@ -159,13 +194,14 @@ configuration that builds the toolchain too.
 
 Now that we have finalized our toolchain, let's have Buildroot generate
 an SDK that we won't have to build from scratch every time we need a
-full rebuild.
+full rebuild. In the below instructions, you assume that you chose a
+{\em Musl} toolchain:
 
 \begin{verbatim}
 make sdk
 cd ~/boot-time-labs/rootfs
-tar xf buildroot/output/images/arm-buildroot-linux-uclibcgnueabihf_sdk-buildroot.tar.gz
-cd arm-buildroot-linux-uclibcgnueabihf_sdk-buildroot
+tar xf buildroot/output/images/arm-buildroot-linux-musleabihf_sdk-buildroot.tar.gz
+cd arm-buildroot-linux-musleabihf_sdk-buildroot
 ./relocate-sdk.sh
 \end{verbatim}
 
@@ -181,11 +217,11 @@ In the \code{Toolchain} menu:
 \item Set \code{Toolchain} to \code{Custom toolchain}
 \item Set \code{Toolchain origin} to \code{Pre-installed toolchain}
 \item Set \code{Toolchain path} to\\
-      \code{/home/<user>/boot-time-labs/rootfs/arm-buildroot-linux-uclibcgnueabihf_sdk-buildroot}
+      \code{/home/<user>/boot-time-labs/rootfs/arm-buildroot-linux-musleabihf_sdk-buildroot}
       (replace \code{<user>} by your actual user name)
-\item Set \code{External toolchain gcc version} to \code{7.x}
-\item Set \code{External toolchain kernel headers series} to \code{4.19.x}
-\item Disable \code{Toolchain has threads debugging support?}
+\item Set \code{External toolchain gcc version} to \code{9.x}
+\item Set \code{External toolchain kernel headers series} to \code{5.4.x or later}
+\item Set \code{External toolchain C library} to \code{musl (experimental)}
 \end{itemize}
 
 Now test that your settings are correct:
