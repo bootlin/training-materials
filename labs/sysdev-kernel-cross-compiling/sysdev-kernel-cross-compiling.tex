@@ -24,9 +24,7 @@ To cross-compile Linux, you need to have a cross-compiling
 toolchain. We will use the cross-compiling toolchain that we
 previously produced, so we just need to make it available in the PATH:
 
-\begin{verbatim}
-export PATH=$HOME/x-tools/arm-training-linux-uclibcgnueabihf/bin:$PATH
-\end{verbatim}
+\bashcmd{$ export PATH=$HOME/x-tools/arm-training-linux-uclibcgnueabihf/bin:$PATH}
 
 Also, don't forget to either:
 
@@ -75,9 +73,7 @@ package to compile the kernel.
 
 You're now ready to cross-compile your kernel. Simply run:
 
-\begin{verbatim}
-make
-\end{verbatim}
+\bashcmd{$ make}
 
 and wait a while for the kernel to compile. Don't forget to use
 \code{make -j<n>} if you have multiple cores on your machine!
@@ -96,8 +92,9 @@ As we are going to boot the Linux kernel from U-Boot,
 we need to set the \code{bootargs} environment corresponding
 to the Linux kernel command line:
 
-\texttt{setenv bootargs console=\ttyname}
-
+\begin{ubootinput}
+=> setenv bootargs console=%\ttyname%
+\end{ubootinput}
 We will use TFTP to load the kernel image on the board:
 
 \begin{itemize}
@@ -106,14 +103,20 @@ We will use TFTP to load the kernel image on the board:
 (\texttt\dtbname) to the directory exposed by the TFTP server.
 
 \item On the target (in the U-Boot prompt), load \code{zImage} from
-TFTP into RAM:\\
-\texttt{tftp \zimageboardaddr\ zImage}
+TFTP into RAM:
+\begin{ubootinput}
+=> tftp %\zimageboardaddr% zImage
+\end{ubootinput}
 
-\item Now, also load the DTB file into RAM:\\
-\texttt{tftp \dtbboardaddr\ \dtbname}
+\item Now, also load the DTB file into RAM:
+\begin{ubootinput}
+=> tftp %\dtbboardaddr% %\dtbname%
+\end{ubootinput}
 
-\item Boot the kernel with its device tree:\\
-\texttt{bootz \zimageboardaddr\ - \dtbboardaddr}
+\item Boot the kernel with its device tree:
+\begin{ubootinput}
+=> bootz %\zimageboardaddr% - %\dtbboardaddr%
+\end{ubootinput}
 
 \end{itemize}
 
@@ -123,11 +126,10 @@ haven't provided a working root filesystem for our device yet.
 You can now automate all this every time the board is booted or
 reset. Reset the board, and customize \code{bootcmd}:
 
-\footnotesize
-\texttt {setenv bootcmd 'tftp \zimageboardaddr\ zImage; tftp \dtbboardaddr\ \dtbname;
-bootz \zimageboardaddr\ - \dtbboardaddr'}\\
-\code{saveenv}
-\normalsize
+\begin{ubootinput}
+=> setenv bootcmd 'tftp %\zimageboardaddr\ zImage; tftp \dtbboardaddr\ \dtbname; bootz \zimageboardaddr - \dtbboardaddr'%
+=> saveenv
+\end{ubootinput}
 
 Restart the board to make sure that booting the kernel is now automated.
 
