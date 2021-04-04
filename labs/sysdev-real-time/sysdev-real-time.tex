@@ -81,9 +81,9 @@ directory.
 The last thing to do is to add a few files that we will need in our
 tests:
 
-\begin{verbatim}
-cp data/* nfsroot/root
-\end{verbatim}
+\begin{terminalinput}
+$ cp data/* nfsroot/root
+\end{terminalinput}
 
 \subsection{Downloading Linux kernel sources and patches}
 
@@ -122,10 +122,10 @@ test application with the toolchain that Buildroot used.
 
 Let's configure our \code{PATH} to use this toolchain:
 
-\small
-\begin{verbatim}
-export PATH=$HOME/__SESSION_NAME__-labs/realtime/buildroot-2021.02.X/output/host/usr/bin:$PATH
-\end{verbatim}
+%\simall
+\begin{terminalinput}
+$ export PATH=$HOME/__SESSION_NAME__-labs/realtime/buildroot-2021.02.X/output/host/usr/bin:$PATH
+\end{terminalinput}
 \normalsize
 
 Have a look at the \code{rttest.c} source file available in
@@ -133,9 +133,9 @@ Have a look at the \code{rttest.c} source file available in
 resolution of the \code{CLOCK_MONOTONIC} clock.
 
 Now compile this program:
-\begin{verbatim}
-arm-linux-gnueabihf-gcc -o rttest rttest.c
-\end{verbatim}
+\begin{terminalinput}
+$ arm-linux-gnueabihf-gcc -o rttest rttest.c
+\end{terminalinput}
 
 Execute the program on the board. Is the clock resolution good or bad?
 Compare it to the timer tick of your system, as defined by
@@ -223,27 +223,27 @@ modules to our kernel sources, we will use a helper script provided by
 Xenomai itself. Go to Buildroot \code{output/build/xenomai-3.1/}
 folder, and run:
 
-\begin{verbatim}
-./scripts/prepare-kernel.sh \
-  --linux=$HOME/embedded-linux-labs/realtime/linux-4.19.144/ \
-  --ipipe=$HOME/embedded-linux-labs/realtime/ipipe-core-4.19.144-arm-10.patch \
-  --arch=arm
-\end{verbatim}
+\begin{terminalinput}
+$ ./scripts/prepare-kernel.sh \
+    --linux=$HOME/embedded-linux-labs/realtime/linux-4.19.144/ \
+    --ipipe=$HOME/embedded-linux-labs/realtime/ipipe-core-4.19.144-arm-10.patch \
+    --arch=arm
+\end{terminalinput}
 
 Now that your kernel is patched, you can configure it:
 
-\begin{verbatim}
-make ARCH=arm sama5_defconfig
-\end{verbatim}
+\begin{terminalinput}
+$ make ARCH=arm sama5_defconfig
+\end{terminalinput}
 
 Make sure \code{CONFIG_XENOMAI} is enabled.
 
 We are going to use the Linaro toochain used by Buildroot to compile the
 kernel, so we will need to update our \code{CROSS_COMPILE} setting:
 
-\begin{verbatim}
-export CROSS_COMPILE=arm-linux-gnueabihf-
-\end{verbatim}
+\begin{terminalinput}
+$ export CROSS_COMPILE=arm-linux-gnueabihf-
+\end{terminalinput}
 
 Build your kernel. Copy the kernel image and the Device Tree to your TFTP
 directory, and boot this new kernel.
@@ -254,21 +254,22 @@ To run our \code{rttest} application, we need to compile it against
 the Xenomai user-space libraries. This can be done by using the
 \code{xeno-config} script provided by Xenomai, as follows:
 
-\small
-\begin{verbatim}
-cd $HOME/__SESSION_NAME__-labs/realtime/nfsroot/root
-export PATH=$HOME/__SESSION_NAME__-labs/realtime/buildroot-2021.02.X/output/host/usr/bin:$PATH
-arm-linux-gnueabihf-gcc -o rttest rttest.c \
-  $(DESTDIR=../../buildroot-2021.02.X/output/staging/ \
-    ../../buildroot-2021.02.X/output/staging/usr/bin/xeno-config --skin=posix --cflags --ldflags)
-\end{verbatim}
+%\small
+\begin{terminalinput}
+$ cd $HOME/__SESSION_NAME__-labs/realtime/nfsroot/root
+$ export PATH=$HOME/__SESSION_NAME__-labs/realtime/buildroot-2021.02.X/output/host/usr/bin:$PATH
+$ arm-linux-gnueabihf-gcc -o rttest rttest.c \
+    $(DESTDIR=../../buildroot-2021.02.X/output/staging/ \
+    ../../buildroot-2021.02.X/output/staging/usr/bin/xeno-config \
+    --skin=posix --cflags --ldflags)
+\end{terminalinput}
 \normalsize
 
 Run the following commands on the board:
 
-\begin{verbatim}
-echo 0 > /proc/xenomai/latency
-\end{verbatim}
+\begin{terminalinput}
+$ echo 0 > /proc/xenomai/latency
+\end{terminalinput}
 
 This will disable the timer compensation feature of Xenomai. This
 feature allows Xenomai to adjust the timer programming to take into

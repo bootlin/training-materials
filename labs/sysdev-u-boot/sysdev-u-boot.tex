@@ -31,19 +31,18 @@ without having anything installed on it.
 
 \section{Downloading Microchip's flashing tool}
 
-Go to the \code{$HOME/__SESSION_NAME__-labs/bootloader} directory.
-
+Go to the \code{$HOME/__SESSION_NAME__-labs/bootloader} directory.\\
 We're going to use that fallback mode, and its associated tool,
-\code{sam-ba} ({\em SAM Boot Assistant}).
-
+\code{sam-ba} ({\em SAM Boot Assistant}).\\
 We first need to download this tool, from Microchip's website\footnote{
 In case this website is down, you can also find this
 tool on \url{https://bootlin.com/labs/tools/}.}.
 
-\begin{verbatim}
-wget https://ww1.microchip.com/downloads/en/DeviceDoc/sam-ba_3.3.1-linux_x86_64.tar.gz
-tar xf sam-ba_3.3.1-linux_x86_64.tar.gz
-\end{verbatim}
+\begin{terminalinput}
+$ wget https://ww1.microchip.com/downloads/en/DeviceDoc/\
+    sam-ba_3.3.1-linux_x86_64.tar.gz
+$ tar xf sam-ba_3.3.1-linux_x86_64.tar.gz
+\end{terminalinput}
 
 \section{Setting up serial communication with the board}
 
@@ -62,16 +61,16 @@ You can also see this device appear by looking at the output of
 To communicate with the board through the serial port, install a
 serial communication program, such as \code{picocom}:
 
-\begin{verbatim}
-sudo apt install picocom
-\end{verbatim}
+\begin{terminalinput}
+$ sudo apt install picocom
+\end{terminalinput}
 
 You also need to make your user belong to the \code{dialout} group to be
 allowed to write to the serial console:
 
-\begin{verbatim}
-sudo adduser $USER dialout
-\end{verbatim}
+\begin{terminalinput}
+$ sudo adduser $USER dialout
+\end{terminalinput}
 
 {\bf Important}: for the group change to be effective, you have to
 {\em completely log out} from your session and log in again (no need to
@@ -120,11 +119,11 @@ look like:
 
 Get U-Boot sources:
 
-\begin{verbatim}
-git clone https://gitlab.denx.de/u-boot/u-boot
-cd u-boot
-git checkout v2020.07
-\end{verbatim}
+\begin{terminalinput}
+$ git clone https://gitlab.denx.de/u-boot/u-boot
+$ cd u-boot
+$ git checkout v2020.07
+\end{terminalinput}
 
 Note that the latest versions of U-Boot (v2021.01 at the time of this
 writing) are broken for the SAMA5D3 Xplained board. We're trying
@@ -140,7 +139,7 @@ Basically, you need to:
 
 \item Set the \code{CROSS_COMPILE} environment variable;
 
-\item Run \code{make <NAME>_defconfig}, where the list of available
+\item Run \inlinecode{make <NAME>_defconfig}, where the list of available
   configurations can be found in the \code{configs/} directory. There
   are two flavors of the Xplained configuration: one to run from the
   SD card (\code{sama5d3_xplained_mmc}) and one to run from the NAND
@@ -148,14 +147,14 @@ Basically, you need to:
   on the NAND, use the latter.
 
 \item Now that you have a valid initial configuration, you can now
-  run \code{make menuconfig} to further edit your bootloader features.
+  run \inlinecode{make menuconfig} to further edit your bootloader features.
 
 \item In recent versions of U-Boot and for some boards, you will
   need to have the Device Tree compiler:
 
-\begin{verbatim}
-sudo apt install device-tree-compiler
-\end{verbatim}
+\begin{terminalinput}
+$ sudo apt install device-tree-compiler
+\end{terminalinput}
 
 \item Finally, run \code{make}, which should build the two stages of U-Boot:
 \begin{itemize}
@@ -185,23 +184,21 @@ Put the jumper back.
 Getting back to the \code{bootloader} directory, use \code{sam-ba} to erase
 NAND flash before writing images to it:
 
-\begin{verbatim}
-./sam-ba_3.3.1/sam-ba -p serial -b sama5d3-xplained -a nandflash -c erase
-\end{verbatim}
+\begin{terminalinput}
+$ ./sam-ba_3.3.1/sam-ba -p serial -b sama5d3-xplained -a nandflash -c erase
+\end{terminalinput}
 
 Then flash the U-Boot SPL:
 
-\begin{verbatim}
-./sam-ba_3.3.1/sam-ba -p serial -b sama5d3-xplained -a nandflash \
--c writeboot:u-boot/spl/u-boot-spl.bin
-\end{verbatim}
+\begin{terminalinput}
+$ ./sam-ba_3.3.1/sam-ba -p serial -b sama5d3-xplained -a nandflash \%\linebreak% -c writeboot:u-boot/spl/u-boot-spl.bin
+\end{terminalinput}
 
 Then flash the U-Boot binary:
 
-\begin{verbatim}
-./sam-ba_3.3.1/sam-ba -p serial -b sama5d3-xplained -a nandflash \
--c write:u-boot/u-boot.bin:0x40000
-\end{verbatim}
+\begin{terminalinput}
+$ ./sam-ba_3.3.1/sam-ba -p serial -b sama5d3-xplained -a nandflash \%\linebreak% -c write:u-boot/u-boot.bin:0x40000
+\end{terminalinput}
 
 \section{Testing U-Boot}
 
@@ -234,9 +231,9 @@ a USB Ethernet adapter. A new network interface should appear on your
 Linux system.
 
 Find the name of this interface by typing:
-\begin{verbatim}
-ip a
-\end{verbatim}
+\begin{terminalinput}
+$ ip a
+\end{terminalinput}
 
 The network interface name is likely to be
 \code{enxxx}\footnote{Following the {\em Predictable Network Interface
@@ -248,38 +245,38 @@ the one that shows up after pluging in the device.
 Then, instead of configuring the host IP address from NetWork Manager’s graphical interface,
 let’s do it through its command line interface, which is so much easier to use:
 
-\begin{verbatim}
-nmcli con add type ethernet ifname en... ip4 192.168.0.1/24
-\end{verbatim}
+\begin{terminalinput}
+$ nmcli con add type ethernet ifname en... ip4 192.168.0.1/24
+\end{terminalinput}
 
 Now, configure the network on the board in U-Boot by setting the \code{ipaddr}
 and \code{serverip} environment variables:
 
-\begin{verbatim}
-setenv ipaddr 192.168.0.100
-setenv serverip 192.168.0.1
-\end{verbatim}
+\begin{ubootinput}
+=> setenv ipaddr 192.168.0.100
+=> setenv serverip 192.168.0.1
+\end{ubootinput}
 
 The first time you use your board, you also need to set the MAC
 address in U-boot:
 
-\begin{verbatim}
-setenv ethaddr 12:34:56:ab:cd:ef
-\end{verbatim}
+\begin{ubootinput}
+=> setenv ethaddr 12:34:56:ab:cd:ef
+\end{ubootinput}
 
 To make these settings permanent, save the environment:
 
-\begin{verbatim}
-saveenv
-\end{verbatim}
+\begin{ubootinput}
+=> saveenv
+\end{ubootinput}
 
 You can then test the TFTP connection. First, put a small text file in
 the directory exported through TFTP on your development
 workstation. Then, from U-Boot, do:
 
-\begin{verbatim}
-tftp 0x22000000 textfile.txt
-\end{verbatim}
+\begin{ubootinput}
+=> tftp 0x22000000 textfile.txt
+\end{ubootinput}
 
 The \code{tftp} command should have downloaded the
 \code{textfile.txt} file from your development workstation into
@@ -301,9 +298,9 @@ knowing that our board only has 256 MB of RAM (that's
 You can verify that the download was successful by dumping the
 contents of the memory:
 
-\begin{verbatim}
-md 0x22000000
-\end{verbatim}
+\begin{ubootinput}
+=> md 0x22000000
+\end{ubootinput}
 
 We will see in the next labs how to use U-Boot to download, flash and
 boot a kernel.

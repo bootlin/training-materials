@@ -18,7 +18,7 @@ Go to the \code{$HOME/__SESSION_NAME__-labs/toolchain} directory.
 Install the packages needed for this lab:
 
 \begin{terminalinput}
-sudo apt install build-essential git autoconf bison flex texinfo help2man gawk libtool-bin libncurses5-dev
+$ sudo apt install build-essential git autoconf bison flex texinfo help2man gawk libtool-bin libncurses5-dev
 \end{terminalinput}
 
 \section{Getting Crosstool-ng}
@@ -26,11 +26,11 @@ sudo apt install build-essential git autoconf bison flex texinfo help2man gawk l
 Let's download the sources of Crosstool-ng, through its git
 source repository, and switch to a commit that we have tested:
 
-\begin{verbatim}
-git clone https://github.com/crosstool-ng/crosstool-ng.git
-cd crosstool-ng/
-git checkout 79fcfa17
-\end{verbatim}
+\begin{terminalinput}
+$ git clone https://github.com/crosstool-ng/crosstool-ng.git
+$ cd crosstool-ng/
+$ git checkout 79fcfa17
+\end{terminalinput}
 
 \section{Building and installing Crosstool-ng}
 
@@ -39,21 +39,21 @@ locally in its download directory. We'll choose the latter
 solution. As documented at
 \url{https://crosstool-ng.github.io/docs/install/#hackers-way}, do:
 
-\begin{verbatim}
-./bootstrap
-\end{verbatim}
+\begin{terminalinput}
+$ ./bootstrap
+\end{terminalinput}
 
 You can continue:
-\begin{verbatim}
-./configure --enable-local
-make
-\end{verbatim}
+\begin{terminalinput}
+$ ./configure --enable-local
+$ make
+\end{terminalinput}
 
 Then you can get Crosstool-ng help by running
 
-\begin{verbatim}
-./ct-ng help
-\end{verbatim}
+\begin{terminalinput}
+$ ./ct-ng help
+\end{terminalinput}
 
 \section{Configure the toolchain to produce}
 
@@ -72,9 +72,9 @@ any sample for Cortex A7 yet}. Load it with the \code{./ct-ng} command.
 
 Then, to refine the configuration, let's run the \code{menuconfig} interface:
 
-\begin{verbatim}
-./ct-ng menuconfig
-\end{verbatim}
+\begin{terminalinput}
+$ ./ct-ng menuconfig
+\end{terminalinput}
 
 In \code{Path and misc options}:
 \begin{itemize}
@@ -138,9 +138,9 @@ toolchain configuration.
 
 Nothing is simpler:
 
-\begin{verbatim}
-./ct-ng build
-\end{verbatim}
+\begin{terminalinput}
+$ ./ct-ng build
+\end{terminalinput}
 
 The toolchain will be installed by default in \code{$HOME/x-tools/}.
 That's something you could have changed in Crosstool-ng's configuration.
@@ -172,9 +172,9 @@ You can now test your toolchain by adding
 \code{hello.c} program in your main lab directory with
 \code{arm-linux-gcc}:
 
-\begin{verbatim}
-arm-linux-gcc -o hello hello.c
-\end{verbatim}
+\begin{terminalinput}
+$ arm-linux-gcc -o hello hello.c
+\end{terminalinput}
 
 You can use the \code{file} command on your binary to make sure it has
 correctly been compiled for the ARM architecture.
@@ -183,23 +183,29 @@ Did you know that you can still execute this binary from your x86 host?
 To do this, install the QEMU user emulator, which just emulates target
 instruction sets, not an entire system with devices:
 
-\begin{verbatim}
-sudo apt install qemu-user
-\end{verbatim}
+\begin{terminalinput}
+$ sudo apt install qemu-user
+\end{terminalinput}
 
 Now, try to run QEMU ARM user emulator:
 
 \begin{terminalinput}
-qemu-arm hello
-/lib/ld-uClibc.so.0: No such file or directory
+$ qemu-arm hello
 \end{terminalinput}
+
+\begin{terminaloutput}
+/lib/ld-uClibc.so.0: No such file or directory
+\end{terminaloutput}
 
 What's happening is that \code{qemu-arm} is missing the shared C library
 (compiled for ARM) that this binary uses. Let's find it in our newly
 compiled toolchain:
 
+\begin{terminalinput}
+$ find ~/x-tools -name ld-uClibc.so.0
+\end{terminalinput} 
+
 \begin{terminaloutput}
-find ~/x-tools -name ld-uClibc.so.0
 /home/tux/x-tools/arm-training-linux-uclibcgnueabihf/arm-training-linux-uclibcgnueabihf/sysroot/lib/ld-uClibc.so.0
 \end{terminaloutput}
 
@@ -207,9 +213,12 @@ We can now use the \code{-L} option of \code{qemu-arm} to let it know
 where shared libraries are:
 
 \begin{terminalinput}
-qemu-arm -L ~/x-tools/arm-training-linux-uclibcgnueabihf/arm-training-linux-uclibcgnueabihf/sysroot hello
-Hello world!
+$ qemu-arm -L ~/x-tools/arm-training-linux-uclibcgnueabihf/arm-training-linux-uclibcgnueabihf/sysroot hello
 \end{terminalinput}
+
+\begin{terminaloutput}
+Hello world!
+\end{terminaloutput}
 
 \section{Cleaning up}
 
