@@ -48,8 +48,8 @@ void setup()
   tm1637.point(false);
 
   Serial.begin(9600);
-  pinMode(reset, INPUT_PULLUP); // Can't declare pins as pull-down on atmega328p
-  pinMode(videoready, INPUT); // Can't set these as pull-ups as on the other side, BBB GPIO pins are not 5V tolerant
+  pinMode(reset, INPUT); // Actually pulled up with an external resistor
+  pinMode(videoready, INPUT); // Actually pulled down with an external resistor
 }
 
 void loop() {

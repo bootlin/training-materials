@@ -129,21 +129,22 @@ get it. It's the only line connected to the pin.
 \subsection{Pull up or pull down?}
 
 We need to control the state of the pins we watch when they are not
-driven.
+driven. That's particularly important for the \code{SYS_RESET} signal,
+as if it's left floating, it can reset the board or prevent it from
+booting at any time.
 
-For the \code{SYS_RESET} signal, we are lucky that the ATmega328p CPU
-pins can be configured as pull-up, so we just need to configure them
-in software without having to use our own resistors.
+The ATmega328p CPU pins could be configured as pull-up (with internal
+pull-up resistors), but we are not allowed to have a 5V level
+connected to our board, as the Beagle Bone Black is {\bf not 5V tolerant},
+as explicited in its manual.
 
-For our custom GPIO pin, there only one choice because we cannot use
-pull-up. If we used our own pull-up resistor on the Arduino side,
-we would have a 5V voltage level connected to our board, and the Beagle
-Bone Black is {\bf not 5V tolerant}, as explicited in its manual.
+So, we will use a pull-up resistor to keep it at 3.3V when not driven,
+connected to a 3.3V voltage rail from the Beagle Bone Black.
 
-Therefore, pull-down is our only option. We will keep our GPIO low
-by default, and drive it high, after displaying the first
-frame. As a consequence, as the Arduino Nano just supports pull-up for
-pins, we will have to use our own pull-down resistors.
+For our custom GPIO pin, we will keep it low by default, using
+a pull-down resistor (the ATmega328p CPU pins don't have internal
+pull-down resistors), and drive it high, after displaying the first
+video frame.
 
 Then which Arduino pins to connect to? As the Beagle Bone Black board
 has a 3.3V voltage level, it's best to use the Arduino's Analog pins to
@@ -152,8 +153,7 @@ small integer value for 0V, and about 700 (out of a 1024 maximum) for
 3.3V.
 
 So, let's use Arduino pin \code{A0} for reset, and pin \code{A1} for the
-custom GPIO, adding a 1 Kohm pull-down resistor provided by your
-instructor:
+custom GPIO, and connect two 1 Kohm resistors provided by your instructor:
 
 \begin{center}
 \includegraphics[width=0.7\textwidth]{labs/boot-time-hardware-measurement/nano-final.png}
