@@ -55,26 +55,33 @@ If you are using \code{systemd} as your \code{init} program, you can use
 \begin{block}{}
 \tiny
 \begin{verbatim}
-$ systemd-analyze blame
-  6207ms udev-settle.service
-   735ms NetworkManager.service
-   642ms avahi-daemon.service
-   600ms abrtd.service
-   517ms rtkit-daemon.service
-   396ms dbus.service
-   390ms rpcidmapd.service
-   346ms systemd-tmpfiles-setup.service
-   316ms cups.service
-   310ms console-kit-log-system-start.service
-   309ms libvirtd.service
-   303ms rpcbind.service
-   298ms ksmtuned.service
-   281ms rpcgssd.service
-   277ms sshd.service
-...
+$ systemd-analyze critical-chain
+multi-user.target @47.820s
+└─pmie.service @35.968s +548ms
+  └─pmcd.service @33.715s +2.247s
+    └─network-online.target @33.712s
+      └─systemd-networkd-wait-online.service @12.804s +20.905s
+        └─systemd-networkd.service @11.109s +1.690s
+          └─systemd-udevd.service @9.201s +1.904s
+            └─systemd-tmpfiles-setup-dev.service @7.306s +1.776s
+              └─kmod-static-nodes.service @6.976s +177ms
+                └─systemd-journald.socket
+                  └─system.slice
+                    └─-.slice
 \end{verbatim}
 \end{block}
 \end{frame}
+
+\begin{frame}[fragile]
+\frametitle{systemd-analyze plot}
+This command prints an SVG graphic detailing which system services have been started at what time,
+highlighting the time they spent on initialization.
+\begin{verbatim}
+$ systemd-analyze plot >bootup.svg
+$ inkscape bootup.svg
+\end{verbatim}
+\end{frame}
+
 
 \begin{frame}
 \frametitle{Init}
