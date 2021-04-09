@@ -30,8 +30,8 @@ Write the size of the \code{zImage} file in the first row of the below table:
 Go to \code{~/boot-time-labs/rootfs}. You should have a \code{rootfs}
 subdirectory where your root filesystem archive has been extracted.
 
-Boot your system with \code{grabserial} and start filling the
-table below:
+Boot your system with \code{grabserial}, store its output in
+\code{logs/filesystem-ext4.log}, and start filling the table below:
 
 \begin{tabular}{| l | l | l | r |}
   \hline
@@ -57,19 +57,25 @@ sudo dd if=rootfs.sqfs of=/dev/mmcblk0p2
 \end{verbatim}
 
 Then remove the SD card and boot the board with it as usual, and record
-measurements.
+and store measurements.
 
 Note that we also made tests with {\em ext2}, but they were very close
 to {\em ext4} ones, at least for very small filesystems like this one.
 So we decided to skip this filesystem here, to save time.
+
+\section{Testing further filesystems}
+
+If you have time, you could also test the {\em Btrfs}, {\em F2FS} and
+{\em EROFS} filesystems. That's very easy to do, as Buildroot can build
+images for such filesystems for you.
 
 \section{Initramfs tests}
 
 Booting from an {\em initramfs} is completely different. The strong
 advantage here is that the root filesystem will be extracted from an
 archive inside the kernel binary. So instead of several reads from the
-MMC, we will just have one reading (though bigger) the kernel binary.
-This can work well with small root filesystems as ours.
+MMC, we will just have a single one (though bigger), in addition to the
+Device Tree binary.  This can work well with small root filesystems as ours.
 
 Booting the kernel should be faster too, as we won't need the MMC and
 filesystem drivers at all. So, let's configure the kernel accordingly.
@@ -86,8 +92,14 @@ So:
     any additional option.
    \item Add the following line to the \code{/playvideo} file:\\
    \code{mount -t devtmpfs nodev /dev}
-   \item Run \code{make} to update your root filesystem and then
-   extract it again in your \code{rootfs} directory.
+   \item Run \code{make} to update your root filesystem.
+   \item Then extract it in your \code{rootfs} directory:
+\begin{verbatim}
+cd ..
+mkdir rootfs
+cd rootfs
+tar xvf ../buildroot/output/images/rootfs.tar
+\end{verbatim}
    \end{itemize}
 \item Go to the U-Boot command line on your board, and modify the
 kernel parameters:\\
