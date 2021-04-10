@@ -38,11 +38,11 @@ We first need to download this tool, from Microchip's website\footnote{
 In case this website is down, you can also find this
 tool on \url{https://bootlin.com/labs/tools/}.}.
 
-\begin{terminalinput}
+\begin{bashinput}
 $ wget https://ww1.microchip.com/downloads/en/DeviceDoc/\
     sam-ba_3.3.1-linux_x86_64.tar.gz
 $ tar xf sam-ba_3.3.1-linux_x86_64.tar.gz
-\end{terminalinput}
+\end{bashinput}
 
 \section{Setting up serial communication with the board}
 
@@ -61,23 +61,23 @@ You can also see this device appear by looking at the output of
 To communicate with the board through the serial port, install a
 serial communication program, such as \code{picocom}:
 
-\begin{terminalinput}
+\begin{bashinput}
 $ sudo apt install picocom
-\end{terminalinput}
+\end{bashinput}
 
 You also need to make your user belong to the \code{dialout} group to be
 allowed to write to the serial console:
 
-\begin{terminalinput}
+\begin{bashinput}
 $ sudo adduser $USER dialout
-\end{terminalinput}
+\end{bashinput}
 
 {\bf Important}: for the group change to be effective, you have to
 {\em completely log out} from your session and log in again (no need to
 reboot). A workaround is to run \code{newgrp dialout}, but it is not global.
 You have to run it in each terminal.
 
-Run \code{picocom -b 115200 /dev/ttyUSB0}, to start serial
+Run \inlinebash{$ picocom -b 115200 /dev/ttyUSB0}, to start serial
 communication on \code{/dev/ttyUSB0}, with a baudrate of 115200.
 
 You can now power-up the board by connecting the micro-USB cable to
@@ -119,11 +119,11 @@ look like:
 
 Get U-Boot sources:
 
-\begin{terminalinput}
+\begin{bashinput}
 $ git clone https://gitlab.denx.de/u-boot/u-boot
 $ cd u-boot
 $ git checkout v2020.07
-\end{terminalinput}
+\end{bashinput}
 
 Note that the latest versions of U-Boot (v2021.01 at the time of this
 writing) are broken for the SAMA5D3 Xplained board. We're trying
@@ -139,7 +139,7 @@ Basically, you need to:
 
 \item Set the \code{CROSS_COMPILE} environment variable;
 
-\item Run \inlinecode{make <NAME>_defconfig}, where the list of available
+\item Run \inlinebash{$ make <NAME>_defconfig}, where the list of available
   configurations can be found in the \code{configs/} directory. There
   are two flavors of the Xplained configuration: one to run from the
   SD card (\code{sama5d3_xplained_mmc}) and one to run from the NAND
@@ -147,14 +147,14 @@ Basically, you need to:
   on the NAND, use the latter.
 
 \item Now that you have a valid initial configuration, you can now
-  run \inlinecode{make menuconfig} to further edit your bootloader features.
+  run \inlinebash{$ make menuconfig} to further edit your bootloader features.
 
 \item In recent versions of U-Boot and for some boards, you will
   need to have the Device Tree compiler:
 
-\begin{terminalinput}
+\begin{bashinput}
 $ sudo apt install device-tree-compiler
-\end{terminalinput}
+\end{bashinput}
 
 \item Finally, run \code{make}, which should build the two stages of U-Boot:
 \begin{itemize}
@@ -184,21 +184,21 @@ Put the jumper back.
 Getting back to the \code{bootloader} directory, use \code{sam-ba} to erase
 NAND flash before writing images to it:
 
-\begin{terminalinput}
+\begin{bashinput}
 $ ./sam-ba_3.3.1/sam-ba -p serial -b sama5d3-xplained -a nandflash -c erase
-\end{terminalinput}
+\end{bashinput}
 
 Then flash the U-Boot SPL:
 
-\begin{terminalinput}
+\begin{bashinput}
 $ ./sam-ba_3.3.1/sam-ba -p serial -b sama5d3-xplained -a nandflash \%\linebreak% -c writeboot:u-boot/spl/u-boot-spl.bin
-\end{terminalinput}
+\end{bashinput}
 
 Then flash the U-Boot binary:
 
-\begin{terminalinput}
+\begin{bashinput}
 $ ./sam-ba_3.3.1/sam-ba -p serial -b sama5d3-xplained -a nandflash \%\linebreak% -c write:u-boot/u-boot.bin:0x40000
-\end{terminalinput}
+\end{bashinput}
 
 \section{Testing U-Boot}
 
@@ -231,9 +231,9 @@ a USB Ethernet adapter. A new network interface should appear on your
 Linux system.
 
 Find the name of this interface by typing:
-\begin{terminalinput}
+\begin{bashinput}
 $ ip a
-\end{terminalinput}
+\end{bashinput}
 
 The network interface name is likely to be
 \code{enxxx}\footnote{Following the {\em Predictable Network Interface
@@ -245,9 +245,9 @@ the one that shows up after pluging in the device.
 Then, instead of configuring the host IP address from NetWork Manager’s graphical interface,
 let’s do it through its command line interface, which is so much easier to use:
 
-\begin{terminalinput}
+\begin{bashinput}
 $ nmcli con add type ethernet ifname en... ip4 192.168.0.1/24
-\end{terminalinput}
+\end{bashinput}
 
 Now, configure the network on the board in U-Boot by setting the \code{ipaddr}
 and \code{serverip} environment variables:
