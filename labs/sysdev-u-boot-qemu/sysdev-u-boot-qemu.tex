@@ -14,10 +14,10 @@ following ones, we will use a QEMU emulated ARM Vexpress Cortex A9 board.
 Download U-Boot v2020.04.
 
 First apply a patch that fixes the \code{editenv} command in U-Boot:
-\begin{verbatim}
-cd u-boot-2020.04
-cat ../data/vexpress_flags_reset.patch | patch -p1
-\end{verbatim}
+\begin{bashinput}
+$ cd u-boot-2020.04
+$ cat ../data/vexpress_flags_reset.patch | patch -p1
+\end{bashinput}
 
 Now configure U-Boot to support the ARM Vexpress Cortex A9 board
 (\code{vexpress_ca9x4_defconfig}).
@@ -28,9 +28,7 @@ the Software} section.
 
 Basically, you need to specify the cross-compiler prefix
 (the part before \code{gcc} in the cross-compiler executable name):
-\begin{verbatim}
-export CROSS_COMPILE=arm-linux-
-\end{verbatim}
+\bashcmd{$ export CROSS_COMPILE=arm-linux-}
 
 Now that you have a valid initial configuration, run \code{make menuconfig}
 to further edit your bootloader features:
@@ -57,9 +55,7 @@ to further edit your bootloader features:
 In recent versions of U-Boot and for some boards, you will
 need to have the Device Tree compiler:
 
-\begin{verbatim}
-sudo apt install device-tree-compiler
-\end{verbatim}
+\bashcmd{$ sudo apt install device-tree-compiler}
 
 Finally, run \code{make}\footnote{You can speed up the
 compiling by using the \code{-jX} option with \code{make}, where X
@@ -73,9 +69,7 @@ This generates several binaries, including \code{u-boot} and
 
 Still in U-Boot sources, test that U-Boot works:
 
-\begin{verbatim}
-qemu-system-arm -M vexpress-a9 -m 128M -nographic -kernel u-boot
-\end{verbatim}
+\bashcmd{$ qemu-system-arm -M vexpress-a9 -m 128M -nographic -kernel u-boot}
 
 \begin{itemize}
 \item \code{-M}: emulated machine
@@ -110,18 +104,14 @@ during the {\em Block filesystems} lectures.
 First, using the \code{dd} command, create a 1 GB file
 filled with zeros, called code{sd.img}:
 
-\begin{verbatim}
-dd if=/dev/zero of=sd.img bs=1M count=1024
-\end{verbatim}
+\bashcmd{$ dd if=/dev/zero of=sd.img bs=1M count=1024}
 
 This will be used by QEMU as an SD card disk image
 
 Now, let's use the \code{cfdisk} command to create the partitions that
 we are going to use:
 
-\begin{verbatim}
-$ cfdisk sd.img
-\end{verbatim}
+\bashcmd{$ cfdisk sd.img}
 
 If \code{cfdisk} asks you to \code{Select a label type}, choose
 \code{dos}, as we don't really need a \code{gpt} partition table for
@@ -154,9 +144,7 @@ We will now use the {\em loop} driver\footnote{Once again, this will
 be properly be explained during our {\em Block filesystems} lectures.}
 to emulate block devices from this image and its partitions:
 
-\begin{verbatim}
-sudo losetup -f --show --partscan sd.img
-\end{verbatim}
+\bashcmd{$ sudo losetup -f --show --partscan sd.img}
 
 \begin{itemize}
 \item \code{-f}: finds a free loop device
@@ -168,41 +156,35 @@ sudo losetup -f --show --partscan sd.img
 Last but not least, format the first partition as FAT16 with
 a \code{boot} label:
 
-\begin{verbatim}
-sudo mkfs.vfat -F 16 -n boot /dev/loop<x>p1
-\end{verbatim}
+\bashcmd{$ sudo mkfs.vfat -F 16 -n boot /dev/loop<x>p1}
 
 The other partitions will be formated later.
 
 Now, you can release the loop device:
-\begin{verbatim}
-sudo losetup -d /dev/loop<x>
-\end{verbatim}
+\bashcmd{$ sudo losetup -d /dev/loop<x>}
 
 \section{Testing U-Boot's environment}
 
 Start QEMU again, but this time with the emulated SD card
 (you can type the command in a single line):
 
-\begin{verbatim}
-qemu-system-arm -M vexpress-a9 -m 128M -nographic \
-	-kernel u-boot-2020.04/u-boot \
-	-sd sd.img
-\end{verbatim}
+\begin{bashcmd}
+$ qemu-system-arm -M vexpress-a9 -m 128M -nographic \
+	  	  -kernel u-boot-2020.04/u-boot \
+		  -sd sd.img
+\end{bashcmd}
 
 Now, in the U-Boot prompt, make sure that you can set and store an environment variable:
 
-\begin{verbatim}
-setenv foo bar
-saveenv
-\end{verbatim}
+\begin{bashinput}
+$ setenv foo bar
+$ saveenv
+\end{bashinput}
 
 Type \code{reset} which reboots the board, and then check that the
 \code{foo} variable is still set:
 
-\begin{verbatim}
-printenv foo
-\end{verbatim}
+\bashcmd{$ printenv foo}
 
 \section{Setup networking between QEMU and the host}
 
@@ -219,9 +201,7 @@ network interface between QEMU and the host.  Here are its contents:
 \end{verbatim}
 
 Of course, make this script executable:
-\begin{verbatim}
-chmod +x qemu-myifup
-\end{verbatim}
+\bashcmd{$ chmod +x qemu-myifup}
 
 As you can see, the host side will have the \code{192.168.0.1} IP
 address. We will use \code{192.168.0.100} for the target side.
@@ -231,12 +211,12 @@ local network.
 Then, you will need root privileges to run QEMU this time,
 because of the need to bring up the network interface:
 
-\begin{verbatim}
-sudo qemu-system-arm -M vexpress-a9 -m 128M -nographic \
--kernel u-boot-2020.04/u-boot \
--sd sd.img \
--net tap,script=./qemu-myifup -net nic
-\end{verbatim}
+\begin{bashinput}
+$ sudo qemu-system-arm -M vexpress-a9 -m 128M -nographic \
+	-kernel u-boot-2020.04/u-boot \
+	-sd sd.img \
+	-net tap,script=./qemu-myifup -net nic
+\end{bashinput}
 
 Note the new net options:
 \begin{itemize}
@@ -251,16 +231,14 @@ address.
 On the U-Boot command line, you will have to configure the environment
 variables for networking:
 
-\begin{verbatim}
-setenv ipaddr 192.168.0.100
-setenv serverip 192.168.0.1
-saveenv
-\end{verbatim}
+\begin{ubootinput}
+=> setenv ipaddr 192.168.0.100
+=> setenv serverip 192.168.0.1
+=> saveenv
+\end{ubootinput}
 
 You can now test the connection to the host:
-\begin{verbatim}
-ping 192.168.0.1
-\end{verbatim}
+\ubootcmd{=> ping 192.168.0.1}
 
 It should finish by:
 \begin{verbatim}
@@ -279,9 +257,7 @@ To test the TFTP connection, put a small text file in
 the directory exported through TFTP on your development
 workstation. Then, from U-Boot, do:
 
-\begin{verbatim}
-tftp 0x61000000 textfile.txt
-\end{verbatim}
+\ubootcmd{$ tftp 0x61000000 textfile.txt}
 
 The \code{tftp} command should have downloaded the
 \code{textfile.txt} file from your development workstation into
@@ -290,9 +266,7 @@ the board's memory at location \code{0x61000000}.
 You can verify that the download was successful by dumping the
 contents of the memory:
 
-\begin{verbatim}
-md 0x61000000
-\end{verbatim}
+\ubootcmd{=> md 0x61000000}
 
 \section{Rescue binary}
 
