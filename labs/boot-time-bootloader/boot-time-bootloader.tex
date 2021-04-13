@@ -114,19 +114,23 @@ mode documentation, it does need a \code{uImage} file for SPL loading.
 
 So, let's generate this file:
 \begin{verbatim}
-sudo apt install u-boot-tools
 cd ~/boot-time-labs/kernel/linux/
 make uImage LOADADDR=80008000
 \end{verbatim}
 
 Copy this \code{uImage} file to your SD card boot partition.
 
-To save time, we are also going to recompile U-Boot without support for
-loading the environment in the SPL file. Our own tests showed that this
-saves about 250 ms!
+To optimize the size of the U-Boot SPL, let's recompile it without the
+features we don't need. So, in U-Boot's \code{menuconfig} interface,
+go to the \code{SPL / TPL} menu and:
 
-So, in U-Boot's \code{menuconfig} file, go to the \code{SPL / TPL}
-menu and unselect \code{Support an environment}. Compile U-Boot again
+\begin{itemize}
+\item Unselect \code{Support an environment}. Our own tests showed that this
+      saves about 250 ms!
+\item Unselect \code{Suppport USB Gadget drivers}
+\end{itemize}
+
+Compile U-Boot again
 and copy the \code{u-boot.img} and \code{MLO} files to the boot
 partition too.
 
@@ -155,30 +159,30 @@ tells you where the exported data were stored in RAM:
 
 \begin{verbatim}
 ## Booting kernel from Legacy Image at 82000000 ...
-   Image Name:   Linux-5.1.2-00001-gee667fd2c4d3
-   Created:      2019-05-27  14:48:08 UTC
+   Image Name:   Linux-5.11.11-dirty
+   Created:      2021-04-13   9:48:35 UTC
    Image Type:   ARM Linux Kernel Image (uncompressed)
-   Data Size:    4664952 Bytes = 4.4 MiB
+   Data Size:    2842016 Bytes = 2.7 MiB
    Load Address: 80008000
    Entry Point:  80008000
    Verifying Checksum ... OK
 ## Flattened Device Tree blob at 88000000
    Booting using the fdt blob at 0x88000000
-   Loading Kernel Image ... OK
-   Loading Device Tree to 8ffee000, end 8ffffe57 ... OK
+   Loading Kernel Image
+   Loading Device Tree to 8ffec000, end 8ffff3ff ... OK
 subcommand not supported
 subcommand not supported
-   Loading Device Tree to 8ffd9000, end 8ffede57 ... OK
-Argument image is now in RAM: 0x8ffd9000
+   Loading Device Tree to 8ffd5000, end 8ffeb3ff ... OK
+Argument image is now in RAM: 0x8ffd5000
 WARN: FDT size > CMD_SPL_WRITE_SIZE
 \end{verbatim}
 
 The last thing to do is to store such information in an \code{args} file
 in the FAT partition on the MMC, using the starting RAM address provided
-above and its size (\code{0x8ffede57 - 0x8ffd9000}):
+above and its size (\code{0x8ffeb3ff - 0x8ffd5000}):
 
 \begin{verbatim}
-fatwrite mmc 0:1 0x8ffd9000 args 1de57
+fatwrite mmc 0:1 0x8ffd5000 args 0x163ff
 \end{verbatim}
 
 You're ready to go and reboot your board with the SD card inside.
