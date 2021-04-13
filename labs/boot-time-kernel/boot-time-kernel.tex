@@ -179,10 +179,21 @@ the below table:
 \end{tabular}
 
 For the \code{None} row, there is no kernel configuration option, but
-all you have to do is take the \code{arch/arm/boot/Image} file, rename
-it to \code{zImage} on your SD card, and boot it. This option can make
-sense when the CPU is very slow and the storage is quite fast (like when
-you're booting Linux on a CPU emulated on an FPGA).
+all you have to do is take the \code{arch/arm/boot/Image} file, and make a
+\code{uImage} file out of it (as U-Boot's \code{bootz} command only
+works with \code{zImage} files):
+
+\begin{verbatim}
+sudo apt install u-boot-tools
+mkimage -A arm -O linux -C none  -T kernel -a 80008000 -e 80008000 \
+        -n 'Linux-5.11.11' -d arch/arm/boot/Image arch/arm/boot/uImage
+\end{verbatim}
+
+Then, in U-Boot, you will have to boot it with \code{bootm} instead of
+\code{bootz}.
+
+This option can make sense when the CPU is very slow and the storage is
+quite fast (like when you're booting Linux on a CPU emulated on an FPGA).
 
 At the end, keep the option that gives you the best boot time, and
 update the below table:
