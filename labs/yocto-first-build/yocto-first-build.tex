@@ -17,41 +17,40 @@ system due to limitations in file name lengths.
 Go to the \code{$HOME/__SESSION_NAME__-labs/} directory.
 
 Install the required packages:
-\begin{verbatim}
+\begin{bashinput}
 sudo apt install bc build-essential chrpath cpio diffstat gawk git python texinfo wget
-\end{verbatim}
+\end{bashinput}
 
 \section{Download Yocto}
 
-Download the \code{sumo} version of Poky and apply a custom patch:
-\begin{verbatim}
+Download the \code{dunfell} version of Poky:
+\begin{bashinput}
 git clone git://git.yoctoproject.org/poky.git
 cd $HOME/__SESSION_NAME__-labs/poky
-git checkout -b sumo-19.0.0 sumo-19.0.0
-git am $HOME/__SESSION_NAME__-labs/bootlin-lab-data/0001-bblayers-do-not-include-meta-yocto-bsp.patch
-\end{verbatim}
+git checkout -b dunfell-23.0.6 dunfell-23.0.6
+\end{bashinput}
 
 Return to your project root directory (\code{cd $HOME/__SESSION_NAME__-labs/})
-and download the OpenEmbedded TI layer:
-\begin{verbatim}
+and download the \code{meta-arm} and \code{meta-ti} layers:
+\begin{bashinput}
+git clone git://git.yoctoproject.org/meta-arm.git
 git clone git://git.yoctoproject.org/meta-ti.git
 cd $HOME/__SESSION_NAME__-labs/meta-ti
-git checkout -b sumo ti2018.02
-git am $HOME/__SESSION_NAME__-labs/bootlin-lab-data/0001-Simplify-linux-ti-staging-recipe.patch
-git am $HOME/__SESSION_NAME__-labs/bootlin-lab-data/0002-do-not-use-base_read_file.patch
-git am $HOME/__SESSION_NAME__-labs/bootlin-lab-data/0003-recipes-bsp-u-boot-fix-non-booting-U-Boot.patch
-git am $HOME/__SESSION_NAME__-labs/bootlin-lab-data/0004-fix-bitbake-warnings.patch
-\end{verbatim}
+git checkout -b dunfell-labs 07.03.00.005
+git am $HOME/__SESSION_NAME__-labs/bootlin-lab-data/0001-Simplify-linux-ti-staging-5.4-recipe.patch
+cd $HOME/__SESSION_NAME__-labs/meta-arm
+git checkout 1cf8b975e1c40bf8e8c0bf315db5d4cddcb01a7b
+\end{bashinput}
 
 \section{Set up the build environment}
 
 Check you're using Bash. This is the default shell when using Ubuntu.
 
 Export all needed variables and set up the build directory:
-\begin{verbatim}
+\begin{bashinput}
 cd $HOME/__SESSION_NAME__-labs
 source poky/oe-init-build-env
-\end{verbatim}
+\end{bashinput}
 
 You must specify which machine is your target. By default it
 is \code{qemu}. We need to build an image for a \code{beaglebone}.
@@ -63,16 +62,17 @@ Also, if you need to save disk space on your computer you can add \code{INHERIT
 += "rm_work"} in the previous configuration file. This will remove the
 package work directory once a package is built.
 
-Don't forget to make the configuration aware of the TI layer. Edit the
+Don't forget to make the configuration aware of the ARM and TI layers. Edit the
 layer configuration file (\code{$BUILDDIR/conf/bblayers.conf}) and append the
-full path to the \code{meta-ti} directory to the \code{BBLAYERS} variable.
+full path to the \code{meta-arm-toolchain}, \code{meta-arm},
+\code{meta-ti} directories to the \code{BBLAYERS} variable.
 
 \section{Build your first image}
 
 Now that you're ready to start the compilation, simply run:
-\begin{verbatim}
+\begin{bashinput}
 bitbake core-image-minimal
-\end{verbatim}
+\end{bashinput}
 
 Once the build finished, you will find the output images under
 \code{$BUILDDIR/tmp/deploy/images/beaglebone}.
@@ -80,35 +80,13 @@ Once the build finished, you will find the output images under
 \section{Set up the SD card}
 
 In this first lab we will use an SD card to store the bootloader, kernel and
-root filesystem files. Before copying the images on it, we first need to set up the
-partition layout. You will find a bash script to do so, under
-\code{$HOME/__SESSION_NAME__-labs/bootlin-lab-data/script/}.
+root filesystem files. The SD card image has been generated and is
+named \code{core-image-minimal-beaglebone.wic.xz}.
 
-Execute it:
-\begin{verbatim}
-umount /dev/mmcblk0p*
-sudo ./format_sdcard.sh /dev/mmcblk0
-\end{verbatim}
-
-Once this is finished, remove the SD card, then insert it again, it
-should automatically be mounted.
-
-You can now copy the two U-Boot stages, the Linux kernel image and the compiled
-device tree in the \code{boot} partition.
-\begin{verbatim}
-cp $BUILDDIR/tmp/deploy/images/beaglebone/{MLO,u-boot.img,zImage} \
-  /media/$USER/boot
-cp $BUILDDIR/tmp/deploy/images/beaglebone/zImage-am335x-boneblack-wireless.dtb \
-  /media/$USER/boot/dtb
-\end{verbatim}
-
-Now uncompress the generated rootfs in the second partition with the
-following \code{tar} command:
-\begin{verbatim}
-sudo tar xpf $BUILDDIR/tmp/deploy/images/beaglebone/\
-  core-image-minimal-beaglebone.tar.xz -C /media/$USER/rootfs
-sync
-\end{verbatim}
+Now uncompress and flash the image with the following command:
+\begin{bashinput}
+xz -dc $BUILDDIR/tmp/deploy/images/beaglebone/core-image-minimal-beaglebone.wic.xz | sudo dd of=/dev/sdX conv=fdatasync bs=4M
+\end{bashinput}
 
 \section{Setting up serial communication with the board}
 
@@ -136,18 +114,18 @@ appear by looking at the output of \code{dmesg}.
 To communicate with the board through the serial port, install a
 serial communication program, such as \code{picocom}:
 
-\begin{verbatim}
+\begin{bashinput}
 sudo apt install picocom
-\end{verbatim}
+\end{bashinput}
 
 If you run \code{ls -l /dev/ttyUSB0}, you can also see that only
 \code{root} and users belonging to the \code{dialout} group have
 read and write access to this file. Therefore, you need to add your user
 to the \code{dialout} group:
 
-\begin{verbatim}
+\begin{bashinput}
 sudo adduser $USER dialout
-\end{verbatim}
+\end{bashinput}
 
 {\bf Important}: for the group change to be effective, in Ubuntu 18.04, you have to
 {\em completely reboot} the system \footnote{As explained on
@@ -169,19 +147,5 @@ Insert the SD card in the dedicated slot on the BeagleBone Black. Press the S2
 push button (located just above the previous slot), plug in the USB cable and
 release the push button. You should see boot messages on the console.
 
-Stop the boot process when you see \code{Press SPACE to abort autoboot} to
-access the U-Boot command line.
-
-In order to boot properly, you need to set up some configuration variables to
-tell the bootloader how to load the Linux kernel. In the U-Boot command-line,
-set the following variables:
-\begin{verbatim}
-setenv bootcmd 'mmc rescan; fatload mmc 0 0x80200000 zImage; fatload mmc 0
-0x82000000 dtb; bootz 0x80200000 - 0x82000000'
-setenv bootargs 'console=ttyS0,115200 root=/dev/mmcblk0p2 rootwait rw'
-saveenv
-\end{verbatim}
-
-Finally you can start the kernel using the U-Boot command \code{boot}. Wait
-until the login prompt, then enter \code{root} as user. Congratulations! The
-board has booted and you now have a shell.
+Wait until the login prompt, then enter \code{root} as user.
+Congratulations! The board has booted and you now have a shell.
