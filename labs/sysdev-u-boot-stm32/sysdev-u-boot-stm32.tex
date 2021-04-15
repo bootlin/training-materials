@@ -43,23 +43,19 @@ You can also see this device appear by looking at the output of
 To communicate with the board through the serial port, install a
 serial communication program, such as \code{picocom}:
 
-\begin{verbatim}
-sudo apt install picocom
-\end{verbatim}
+\bashcmd{$ sudo apt install picocom}
 
 You also need to make your user belong to the \code{dialout} group to be
 allowed to write to the serial console:
 
-\begin{verbatim}
-sudo adduser $USER dialout
-\end{verbatim}
+\bashcmd{$ sudo adduser $USER dialout}
 
 {\bf Important}: for the group change to be effective, you have to
 {\em completely log out} from your session and log in again (no need to
 reboot). A workaround is to run \code{newgrp dialout}, but it is not global.
 You have to run it in each terminal.
 
-Run \code{picocom -b 115200 /dev/ttyACM0}, to start serial
+Run \inlinebash{$ picocom -b 115200 /dev/ttyACM0}, to start serial
 communication on \code{/dev/ttyACM0}, with a baudrate of 115200.
 
 If you wish to exit \code{picocom}, press \code{[Ctrl][a]} followed by
@@ -76,11 +72,11 @@ In our case, both programs are provided by U-Boot.
 
 Download U-Boot:
 
-\begin{verbatim}
-git clone https://gitlab.denx.de/u-boot/u-boot.git
-cd u-boot
-git checkout v2021.01
-\end{verbatim}
+\begin{bashinput}
+$ git clone https://gitlab.denx.de/u-boot/u-boot.git
+$ cd u-boot
+$ git checkout v2021.01
+\end{bashinput}
 
 Get an understanding of U-Boot's configuration and compilation steps
 by reading the \code{README} file, and specifically the {\em Building
@@ -92,18 +88,16 @@ Basically, you need to:
 
 \item Specify the cross-compiler prefix
 (the part before \code{gcc} in the cross-compiler executable name):
-\begin{verbatim}
-export CROSS_COMPILE=arm-linux-
-\end{verbatim}
+\bashcmd{$ export CROSS_COMPILE=arm-linux-}
 
-\item Run \code{make <NAME>_defconfig}, where the list of available
+\item Run \inlinebash{$ make <NAME>_defconfig}, where the list of available
   configurations can be found in the \code{configs/} directory. There
   are three flavors of the stm32mp15 configuration: two to boot using
   secure boot and a basic one (\code{stm32mp15_basic}). This is the
   one we will use.
 
 \item Now that you have a valid initial configuration, you can now
-  run \code{make menuconfig} to further edit your bootloader features.
+  run \inlinebash{$ make menuconfig} to further edit your bootloader features.
   \begin{itemize}
 
   \item In the \code{SPL / TPL} submenu, disable \code{Support an environment}, as
@@ -135,11 +129,9 @@ export CROSS_COMPILE=arm-linux-
 \item In recent versions of U-Boot and for some boards, you will
   need to have the Device Tree compiler:
 
-\begin{verbatim}
-sudo apt install device-tree-compiler
-\end{verbatim}
+\bashcmd{$ sudo apt install device-tree-compiler}
 
-\item Finally, run \code{make
+\item Finally, run \inlinebash{$ make
     DEVICE_TREE=stm32mp157a-dk1}\footnote{You can speed up the
     compiling by using the \code{-jX} option with \code{make}, where X
     is the number of parallel jobs used for compiling. Twice the
@@ -193,23 +185,17 @@ seen as \code{/dev/mmcblk0} by your PC workstation.
 Type the \code{mount} command to check your currently mounted
 partitions. If SD partitions are mounted, unmount them:
 
-\begin{verbatim}
-$ sudo umount /dev/mmcblk0p*
-\end{verbatim}
+\bashcmd{$ sudo umount /dev/mmcblk0p*}
 
 Then, clear possible SD card contents remaining from previous
 training sessions (only the first megabytes matter):
 
-\begin{verbatim}
-$ sudo dd if=/dev/zero of=/dev/mmcblk0 bs=4k count=200
-\end{verbatim}
+\bashcmd{$ sudo dd if=/dev/zero of=/dev/mmcblk0 bs=4k count=200}
 
 Now, let's use the \code{parted} command to create the partitions that
 we are going to use:
 
-\begin{verbatim}
-$ sudo parted /dev/mmcblk0
-\end{verbatim}
+\bashcmd{$ sudo parted /dev/mmcblk0}
 
 The ROM monitor handles {\em GPT} partition tables, let's create one:
 
@@ -240,22 +226,18 @@ Once done, quit:
 
 Now, format the boot partition as an ext2 filesystem. This is where
 U-Boot saves its environment:
-\begin{verbatim}
-sudo mkfs.ext2 -L boot /dev/mmcblk0p4
-\end{verbatim}
+\bashcmd{$ sudo mkfs.ext2 -L boot /dev/mmcblk0p4}
 
 The U-Boot SPL is {\em fsbl}. Write it in both fsbl partitions:
 
-\begin{verbatim}
-sudo dd if=spl/u-boot-spl.stm32 of=/dev/mmcblk0p1 bs=1M conv=fdatasync
-sudo dd if=spl/u-boot-spl.stm32 of=/dev/mmcblk0p2 bs=1M conv=fdatasync
-\end{verbatim}
+\begin{bashinput}
+$ sudo dd if=spl/u-boot-spl.stm32 of=/dev/mmcblk0p1 bs=1M conv=fdatasync
+$ sudo dd if=spl/u-boot-spl.stm32 of=/dev/mmcblk0p2 bs=1M conv=fdatasync
+\end{bashinput}
 
 Then flash {\em ssbl}, this is the main U-Boot binary:
 
-\begin{verbatim}
-sudo dd if=u-boot.img of=/dev/mmcblk0p3 bs=1M conv=fdatasync
-\end{verbatim}
+\bashcmd{$ sudo dd if=u-boot.img of=/dev/mmcblk0p3 bs=1M conv=fdatasync}
 
 \section{Testing U-Boot}
 
@@ -328,9 +310,7 @@ a USB Ethernet adapter. A new network interface should appear on your
 Linux system.
 
 Find the name of this interface by typing:
-\begin{verbatim}
-ip a
-\end{verbatim}
+\ubootcmd{=> ip a}
 
 The network interface name is likely to be
 \code{enxxx}\footnote{Following the {\em Predictable Network Interface
@@ -342,31 +322,29 @@ the one that shows up after pluging in the device.
 Then, instead of configuring the host IP address from NetWork Manager’s graphical interface,
 let’s do it through its command line interface, which is so much easier to use:
 
-\begin{verbatim}
-nmcli con add type ethernet ifname en... ip4 192.168.0.1/24
-\end{verbatim}
+\bashcmd{$ nmcli con add type ethernet ifname en... ip4 192.168.0.1/24}
 
 Now, configure the network on the board in U-Boot by setting the \code{ipaddr}
 and \code{serverip} environment variables:
 
-\begin{verbatim}
-setenv ipaddr 192.168.0.100
-setenv serverip 192.168.0.1
-\end{verbatim}
+\begin{ubootinput}
+=> setenv ipaddr 192.168.0.100
+=> setenv serverip 192.168.0.1
+\end{ubootinput}
 
 To make these settings permanent, save the environment:
 
-\begin{verbatim}
-saveenv
-\end{verbatim}
+\begin{ubootinput}
+=> saveenv
+\end{ubootinput}
 
 You can then test the TFTP connection. First, put a small text file in
 the directory exported through TFTP on your development
 workstation. Then, from U-Boot, do:
 
-\begin{verbatim}
-tftp 0xc4000000 textfile.txt
-\end{verbatim}
+\begin{ubootinput}
+=> tftp 0xc4000000 textfile.txt
+\end{ubootinput}
 
 The \code{tftp} command should have downloaded the
 \code{textfile.txt} file from your development workstation into
@@ -385,9 +363,9 @@ for RAM. You can also try with other values in the same address range.}.
 You can verify that the download was successful by dumping the
 contents of the memory:
 
-\begin{verbatim}
-md 0xc4000000
-\end{verbatim}
+\begin{ubootinput}
+=> md 0xc4000000
+\end{ubootinput}
 
 We will see in the next labs how to use U-Boot to download, flash and
 boot a kernel.
