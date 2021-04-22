@@ -171,25 +171,30 @@ devices. Of course, this will be done in the \code{probe()} routine.
 \subsection{Accessing device registers}
 
 As we will have multiple registers to read, create a \code{reg_read()}
-routine, returning an \code{unsigned int} value, and  taking a \code{dev}
-pointer to an \code{serial_dev} structure and an \code{offset} integer
+routine, returning an \code{unsigned int} value, and taking a \code{dev}
+pointer to an \code{serial_dev} structure and an \code{int} register
 offset.
 
+Your prototype should look like:
+\begin{verbatim}
+static void reg_read(struct serial_dev *dev, int reg);
+\end{verbatim}
+
 In this function, read from a 32 bits register at the base virtual
-address for the device plus the offset multiplied by 4.
+address for the device plus the register offset multiplied by 4.
 
 All the UART register offsets have standardized values, shared between
 several types of serial drivers (see
 \kfile{include/uapi/linux/serial_reg.h}). This explains why they are not
 completely ready to use and we have to multiply them by 4 for OMAP SoCs.
 
-Create a similar \code{reg_write()} routine, writing an unsigned integer
-value at a given integer offset (don't forget to multiply it by 4) from
+Create a similar \code{reg_write()} routine, writing an \code{int}
+value at a given register offset (don't forget to multiply it by 4) from
 the device base virtual address. The following code samples are using
 the \kfunc{writel} convention of passing the value first, then the
 offset. Your prototype should look like:
 \begin{verbatim}
-static void reg_write(struct serial_dev *dev, int val, int off);
+static void reg_write(struct serial_dev *dev, int val, int reg);
 \end{verbatim}
 
 In the next sections, we will tell you what register offsets to use
