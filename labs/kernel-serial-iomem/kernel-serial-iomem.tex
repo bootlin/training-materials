@@ -91,40 +91,14 @@ actually called twice! That's because we have declared two devices.
 Even if we only connect a serial-to-USB dongle to one of them, both
 of them are ready to be used!}.
 
-\section{Get base addresses from the device tree}
-
-We are going to read from memory mapped registers and read from them.
-The first thing we need is the base physical address for the each
-device.
-
-Such information is precisely available in the Device Tree. You can
-extract it with the below code:
-
-\begin{verbatim}
-struct resource *res;
-res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-\end{verbatim}
-
-Add such code to your \code{probe()} routine, with proper error
-handling when \code{res == NULL}, and print the start address
-(\code{res->start}) to make sure that the address values that
-you get match the ones in the device tree.
-
-You can remove the printing instruction as soon as the collected
-addresses are correct.
-
 \section{Create a device private structure}
-
-The next step is to start allocating and registering resources,
-which eventually will have to be freed and unregistered too.
 
 In the same way as in the nunchuk lab, we now need to create a
 structure that will hold device specific information and help
 keeping pointers between logical and physical devices.
 
 As the first thing to store will be the base virtual address for
-each device (obtained through \kfunc{ioremap}), let's declare this
-structure as follows:
+each device, let's declare this structure as follows:
 
 \begin{verbatim}
 struct serial_dev {
@@ -147,11 +121,13 @@ if (!dev)
         return -ENOMEM;
 \end{verbatim}
 
+\section{Get a base virtual address for your device registers}
+
 You can now get a virtual address for your device's base physical
 address, by calling:
 
 \begin{verbatim}
-dev->regs = devm_ioremap_resource(&pdev->dev, res);
+dev->regs = devm_platform_ioremap_resource(pdev, 0);
 if (IS_ERR(dev->regs))
         return PTR_ERR(dev->regs);
 \end{verbatim}
