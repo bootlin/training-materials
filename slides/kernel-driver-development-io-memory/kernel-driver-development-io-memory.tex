@@ -127,29 +127,48 @@ void release_mem_region(
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{/proc/iomem example - ARM (Raspberry Pi, Linux 4.19)}
-{\footnotesize
-\begin{verbatim}
-00000000-3b3fffff : System RAM
-  00008000-00bfffff : Kernel code
-  00d00000-00e6ad0f : Kernel data
-3f006000-3f006fff : dwc_otg
-3f007000-3f007eff : dma@7e007000
-3f00a000-3f00a023 : watchdog@7e100000
-3f00b840-3f00b87b : mailbox@7e00b840
-3f00b880-3f00b8bf : mailbox@7e00b880
-3f100000-3f100113 : watchdog@7e100000
-3f101000-3f102fff : cprman@7e101000
-3f104000-3f10400f : rng@7e104000
-3f200000-3f2000b3 : gpio@7e200000
-3f201000-3f2011ff : serial@7e201000
-  3f201000-3f2011ff : serial@7e201000
-3f202000-3f2020ff : mmc@7e202000
-3f212000-3f212007 : thermal@7e212000
-3f215000-3f215007 : aux@7e215000
-3f980000-3f98ffff : dwc_otg
+  \frametitle{/proc/iomem example - ARM 32 bit (BeagleBone Black, Linux 5.11)}
+  \tiny
+  \begin{columns}
+  \column{0.5\textwidth}
+  \begin{verbatim}
+40300000-4030ffff : 40300000.sram sram@0
+44e00c00-44e00cff : 44e00c00.prm prm@c00
+44e00d00-44e00dff : 44e00d00.prm prm@d00
+44e00e00-44e00eff : 44e00e00.prm prm@e00
+44e00f00-44e00fff : 44e00f00.prm prm@f00
+44e01000-44e010ff : 44e01000.prm prm@1000
+44e01100-44e011ff : 44e01100.prm prm@1100
+44e01200-44e012ff : 44e01200.prm prm@1200
+44e07000-44e07fff : 44e07000.gpio gpio@0
+44e09000-44e0901f : serial
+44e0b000-44e0bfff : 44e0b000.i2c i2c@0
+44e10800-44e10a37 : pinctrl-single
+44e10f90-44e10fcf : 44e10f90.dma-router dma-router@f90
+48024000-48024fff : 48024000.serial serial@0
+48042000-480423ff : 48042000.timer timer@0
+48044000-480443ff : 48044000.timer timer@0
 \end{verbatim}
-}
+  \column{0.5\textwidth}
+  \begin{verbatim}
+48046000-480463ff : 48046000.timer timer@0
+48048000-480483ff : 48048000.timer timer@0
+4804a000-4804a3ff : 4804a000.timer timer@0
+4804c000-4804cfff : 4804c000.gpio gpio@0
+48060000-48060fff : 48060000.mmc mmc@0
+4819c000-4819cfff : 4819c000.i2c i2c@0
+481a8000-481a8fff : 481a8000.serial serial@0
+481ac000-481acfff : 481ac000.gpio gpio@0
+481ae000-481aefff : 481ae000.gpio gpio@0
+481d8000-481d8fff : 481d8000.mmc mmc@0
+49000000-4900ffff : 49000000.dma edma3_cc
+4a100000-4a1007ff : 4a100000.ethernet ethernet@0
+4a101200-4a1012ff : 4a100000.ethernet ethernet@0
+80000000-9fdfffff : System RAM
+  80008000-80cfffff : Kernel code
+  80e00000-80f3d807 : Kernel data
+\end{verbatim}
+  \end{columns}
 \end{frame}
 
 \begin{frame}[fragile]
@@ -185,21 +204,26 @@ void iounmap(void __iomem *addr);
   drivers is now deprecated. You should use the below "managed"
   functions instead, which simplify driver coding and error handling:
   \begin{itemize}
-  \item \kfunc{devm_ioremap}
-  \item \kfunc{devm_iounmap}
+  \item \kfunc{devm_ioremap}, \kfunc{devm_iounmap}
   \item \kfunc{devm_ioremap_resource}
         \begin{itemize}
 	\item Takes care of both the request and remapping operations!
-	\item Example (\kfile{drivers/crypto/atmel-sha.c}):
+	\end{itemize}
+  \item \kfunc{devm_platform_ioremap_resource}
+        \begin{itemize}
+	\item Takes care of \kfunc{platform_get_resource},
+	      \kfunc{request_mem_region} and \kfunc{ioremap}
+	\item Caution: unlike the other \code{devm_} functions, its
+	      first argument is of type \kstruct{pdev}, not a pointer to \kstruct{device}:
+	\item Example: \kfile{drivers/char/hw_random/st-rng.c}:
 	\begin{block}{}
 	\begin{minted}{c}
-sha_res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-...
-sha_dd->io_base = devm_ioremap_resource(&pdev->dev, sha_res);
+base = devm_platform_ioremap_resource(pdev, 0);
+if (IS_ERR(base))
+        return PTR_ERR(base);
 	\end{minted}
 	\end{block}{}
 	\end{itemize}
-  \item \kfunc{devm_platform_ioremap_resource}
   \end{itemize}
 \end{frame}
 
