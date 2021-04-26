@@ -64,8 +64,13 @@ for each found device:
 \item To get an automatically assigned minor number.
 \item To specify a name for the device file in {\em devtmpfs}. We
   propose to use {\tt devm\_kasprintf(\&pdev->dev, GFP\_KERNEL,
-  "serial-\%x", res->start)}. \kfunc{devm_kasprintf} allocates a
-  buffer and runs \kfunc{kasprintf} to fill its contents.
+  "serial-\%x", platform\_get\_resource(pdev, IORESOURCE\_MEM, 0)->start)}.
+  \kfunc{devm_kasprintf} allocates a buffer and runs \kfunc{kasprintf}
+  to fill its contents. \kfunc{platform_get_resource} is used to
+  retrieve the device physical address from the device tree.
+  A much simpler solution to get a unique name for the device file
+  would have been to use \code{&pdev->name}, but this would create
+  unusual names for device files (e.g. \code{48024000.serial}).
 \item To pass the \ksym{file_operations} structure that you defined.
 \item To set the \code{parent} pointer to the appropriate value.
 \end{itemize}
