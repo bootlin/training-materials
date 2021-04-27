@@ -4,12 +4,8 @@
   \frametitle{Registering an interrupt handler 1/2}
   The {\em managed} API is recommended:
   \begin{minted}[fontsize=\small]{c}
-int devm_request_irq(struct device *dev,
-                     unsigned int irq,
-                     irq_handler_t handler,
-                     unsigned long irq_flags,
-                     const char *devname,
-                     void *dev_id);
+int devm_request_irq(struct device *dev, unsigned int irq, irq_handler_t handler,
+                     unsigned long irq_flags, const char *devname, void *dev_id);
   \end{minted}
   \begin{itemize}
   \item \code{device} for automatic freeing at device or module
@@ -20,7 +16,9 @@ int devm_request_irq(struct device *dev,
   \item \code{handler} is a pointer to the IRQ handler function
   \item \code{irq_flags} are option masks (see next slide)
   \item \code{devname} is the registered name (for
-	\code{/proc/interrupts})
+	\code{/proc/interrupts}). For platform drivers, good idea
+	to use \code{pdev->name} which allows to distinguish
+	devices managed by the same driver (example: \code{44e0b000.i2c}).
   \item \code{dev_id} is an opaque pointer. It can typically
         be used to pass a pointer to a per-device data structure.
         It cannot be \code{NULL} as it is used as an identifier for
