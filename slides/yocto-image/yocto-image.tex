@@ -120,15 +120,43 @@ LICENSE = "MIT"
     \item It can create partitions.
     \item It can select which files are located in
       which partition through the use of plugins.
-    \item The final image layout is described in a \code{.wks} file.
+    \item The final image layout is described in a \code{.wks} or
+      \code{.wks.in} file.
     \item It can be extended in any layer.
     \item Usage example:
       \begin{block}{}
         \begin{minted}{sh}
-WKS_FILE = "imx-uboot.wks"
+WKS_FILE = "imx-uboot-custom.wks.in"
 IMAGE_FSTYPES = "wic.bmap wic"
         \end{minted}
       \end{block}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{imx-uboot-custom.wks.in}
+      \begin{block}{}
+        \fontsize{7}{7}\selectfont
+        \begin{minted}{sh}
+part u-boot --source rawcopy --sourceparams="file=imx-boot" --ondisk sda --no-table --align ${IMX_BOOT_SEEK}
+part /boot --source bootimg-partition --ondisk sda --fstype=vfat --label boot --active --align 8192 --size 64
+part / --source rootfs --ondisk sda --fstype=ext4 --label root --exclude-path=home/ --exclude-path=opt/ --align 8192
+part /home --source rootfs --rootfs-dir=${IMAGE_ROOTFS}/home --ondisk sda --fstype=ext4 --label home --align 8192
+part /opt --source rootfs --rootfs-dir=${IMAGE_ROOTFS}/opt --ondisk sda --fstype=ext4 --label opt --align 8192
+
+bootloader --ptable msdos
+        \end{minted}
+      \end{block}
+  \begin{itemize}
+  \item Copies \code{imx-boot} from \code{$DEPLOY_DIR} in the image,
+    aligned on (and so at that offset) \code{${IMX_BOOT_SEEK}}.
+  \item Creates a first partition, formatted in FAT32, with the files
+    listed in the \code{IMAGE_BOOT_FILES} variable.
+  \item Creates an \code{ext4} partition with the contents on the root
+    filesystem, excluding the content of \code{/home} and \code{/opt}
+  \item Creates two \code{ext4} partitions, one with the content of
+    \code{/home}, the other one with the content of \code{/opt}, from
+    the image root filesystem.
   \end{itemize}
 \end{frame}
 
