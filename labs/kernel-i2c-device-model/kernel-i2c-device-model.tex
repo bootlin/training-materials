@@ -2,7 +2,7 @@
   and basic driver hooks called when this device is detected}
 
 Throughout the upcoming labs, we will implement a driver for an I2C
-device, which offers the functionality of an I2C nunchuk.
+device, which offers the functionality of an I2C Nunchuk.
 
 After this lab, you will be able to:
 
@@ -20,7 +20,7 @@ Go to the \code{~/linux-kernel-labs/src/linux} directory. Check out the
 \code{5.11.y} branch.
 
 Now create a new \code{nunchuk} branch starting from the
-\code{5.11.y} branch,  for your upcoming work on the nunchuk
+\code{5.11.y} branch,  for your upcoming work on the Nunchuk
 driver.
 
 During this lab, we will start to implement a driver for a
@@ -28,7 +28,7 @@ Nunchuk I2C device, but at this stage we won't need to connect
 it yet, as we will enable I2C on the right board pins in the
 next lab.
 
-Download a useful document sharing useful details about the nunchuk
+Download a useful document sharing useful details about the Nunchuk
 and its connector:\\
 \url{https://bootlin.com/labs/doc/nunchuk.pdf}
 
@@ -66,11 +66,13 @@ enough so far!
 
 \subsection{Declare the Nunchuk device}
 
-As a child node to the \code{i2c1} bus, now declare the \code{nunchuk}
-device, choosing \code{nintendo,nunchuk} for its \code{compatible}
-property. You will find the I2C slave address of the nunchuk on the
+As a child node to the \code{i2c1} bus, now declare an I2C device
+for the Nunchuk, choosing \code{nintendo,nunchuk} for its \code{compatible}
+property. You will find the I2C slave address of the Nunchuk on the
 nunckuk document that we have downloaded earlier\footnote{This I2C slave
-addressed is enforced by the device itself. You can't change it.}.
+address is enforced by the device itself. You can't change it.}.
+The node name should be \code{joystick@addr}, the convention for node
+names is \code{<device-type>@<addr>}.
 
 \subsection{Checking the device tree on the running system}
 
@@ -89,13 +91,13 @@ Through the \code{/sys/firmware/devicetree} directory, it is possible to check
 the Device Tree settings that your system has loaded. That's useful when
 you are not sure exactly which settings were actually loaded.
 
-For example, you can check the presence of a new \code{nunchuk} node in
+For example, you can check the presence of a new \code{joystick} node in
 your device tree:
 
 {\small
 \begin{verbatim}
-# find /sys/firmware/devicetree -name "*nunchuk*"
-/sys/firmware/devicetree/base/ocp/interconnect@48000000/segment@0/target-module@2a000/i2c@0/nunchuk@52
+# find /sys/firmware/devicetree -name "*joystick*"
+/sys/firmware/devicetree/base/ocp/interconnect@48000000/segment@0/target-module@2a000/i2c@0/joystick@52
 \end{verbatim}
 }
 
@@ -118,14 +120,14 @@ checking the source files and includes in the source directory:
 # dtc -I fs /sys/firmware/devicetree/base/ > /tmp/dts
 \end{verbatim}
 
-Look for \code{i2c1} and \code{nunchuk} in the output file,
+Look for \code{i2c1} and \code{joystick} in the output file,
 and see where the nodes are instantiated. Don't hesitate to ask your
 instructor for questions!
 
-\section{Implement a basic I2C driver for the nunchuk}
+\section{Implement a basic I2C driver for the Nunchuk}
 
 It is now time to start writing the first building blocks of the I2C
-driver for our nunchuk.
+driver for our Nunchuk.
 
 In a new terminal, go to
 \code{~/linux-kernel-labs/modules/nfsroot/root/nunchuk/}.  This directory
@@ -141,7 +143,7 @@ Relying on explanations given during the lectures, fill the
 
 \begin{itemize}
 \item \code{probe()} and \code{remove()} functions that will
-      be called when a nunchuk is found.
+      be called when a Nunchuk is found.
       For the moment, just put a call to \kfunc{pr_info} inside
       to confirm that these functions are called.
 \item Initialize a \ksym{i2c_driver} structure, and register
