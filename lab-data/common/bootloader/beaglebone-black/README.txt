@@ -32,34 +32,10 @@ partitions. Umount them with a command such as
 'sudo umount /dev/mmcblk0p1' or 'sudo umount /dev/sdb1',
 depending on how the system sees the media card device.
 
-Now type the below command to partition the micro-SD card
-(we assume that the card is seen as '/dev/mmcblk0'):
+Now type the below command to flash your micro-SD card (we assume that
+the card is seen as '/dev/mmcblk0'):
 
-sudo sfdisk /dev/mmcblk0 << EOF
-1,,0xE,*
-EOF
-
-Remove the SD card and insert it again (to make sure new
-partitions are detected properly)
-
-Now, format the first partition in FAT format:
-
-sudo mkfs.vfat -F 32 /dev/mmcblk0p1 -n boot
-
-Remove the card and insert it again. It should automatically be mounted
-on '/media/$USER/boot'.
-
-Now, copy the below files to this partition:
-
-cp zImage dtb MLO MLO.final u-boot.img u-boot.img.final MBR /media/$USER/boot
-
-Note that we're using two versions of U-Boot:
-- MLO, u-boot.img: just used for booting from external MMC and booting the kernel/rootfs
-  that will reflash U-Boot
-- MLO.final, u-boot.img.final: corresponding to U-Boot that we flash
-  on the board.
-
-Now, unmount '/media/$USER/boot' and you are done!
+sudo dd if=sdcard.img of=/dev/mmcblk0 bs=1M
 
 Using your bootable micro-SD card
 ---------------------------------
@@ -204,3 +180,9 @@ Copy the arch/arm/boot/dts/am335x-boneblack-wireless.dtb to "dtb"
 (this dtb will work fine for both BeagleBone Black
 and BeagleBoneBlack Wireless, at least for the purpose of
 reflashing U-Boot).
+
+Assembling all files into sdcard.img
+------------------------------------
+
+This is done using the ./gen.sh script, which itself uses the genimage
+tool.
