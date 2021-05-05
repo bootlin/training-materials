@@ -25,6 +25,6 @@ static struct platform_driver serial_driver = {
         .probe = serial_probe,
         .remove = serial_remove,
 };
-
 module_platform_driver(serial_driver);
+
 MODULE_LICENSE("GPL");
