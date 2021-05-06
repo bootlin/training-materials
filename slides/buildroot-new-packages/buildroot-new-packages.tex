@@ -619,18 +619,18 @@ PERL_EXTRA_DOWNLOADS = $(PERL_CROSS_SITE)/$(PERL_CROSS_SOURCE)
   \begin{block}{package/perl/perl.hash}
     {\tiny
 \begin{verbatim}
-# Locally computed
-md5  4bfa12b528522a50de0470b8b70b9b3b  perl-5.30.2.tar.xz
-sha1  d82cdaa610a3e749e821fc77004b1b4bfd5ebd28  perl-5.30.2.tar.xz
-sha256  a1aa88bd6fbbdc2e82938afbb76c408b0ea847317737b712dc196cc7907a5259  perl-5.30.2.tar.xz
+# Hashes from: https://www.cpan.org/src/5.0/perl-5.32.1.tar.xz.{md5,sha1,sha256}.txt
+md5  7f104064b906ad8c7329ca5e409a32d7  perl-5.32.1.tar.xz
+sha1  1fb4f710d139da1e1a3e1fa4eaba201fcaa8e18e  perl-5.32.1.tar.xz
+sha256  57cc47c735c8300a8ce2fa0643507b44c4ae59012bfdad0121313db639e02309  perl-5.32.1.tar.xz
 
-# Hashes from: https://github.com/arsv/perl-cross/releases/download/1.3.2/perl-cross-1.3.2.hash
-sha256  defa12f0ad7be0b6c48b4f76e2fb5b37c1b37fbeb6e9ebe938279cd539a0c20c  perl-cross-1.3.2.tar.gz
+# Hashes from: https://github.com/arsv/perl-cross/releases/download/1.3.5/perl-cross-1.3.5.hash
+sha256  91c66f6b2b99fccfd4fee14660b677380b0c98f9456359e91449798c2ad2ef25  perl-cross-1.3.5.tar.gz
 
 # Locally calculated
 sha256  dd90d4f42e4dcadf5a7c09eea0189d93c7b37ae560c91f0f6d5233ed3b9292a2  Artistic
 sha256  d77d235e41d54594865151f4751e835c5a82322b0e87ace266567c3391a4b912  Copying
-sha256  4916e95d32b84e07c045d839646f74996f577e5f497bbba8177a94b31415cee7  README
+sha256  df6ad59aefea68676c38325f25f6707f026ddde6c71291b2ca231b6247859907  README
 \end{verbatim}
     }
   \end{block}
@@ -939,15 +939,15 @@ define LIBZLIB_CONFIGURE_CMDS
 endef
 
 define LIBZLIB_BUILD_CMDS
-        $(MAKE1) -C $(@D)
+        $(TARGET_MAKE_ENV) $(MAKE1) -C $(@D)
 endef
 
 define LIBZLIB_INSTALL_STAGING_CMDS
-        $(MAKE1) -C $(@D) DESTDIR=$(STAGING_DIR) LDCONFIG=true install
+        $(TARGET_MAKE_ENV) $(MAKE1) -C $(@D) DESTDIR=$(STAGING_DIR) LDCONFIG=true install
 endef
 
 define LIBZLIB_INSTALL_TARGET_CMDS
-        $(MAKE1) -C $(@D) DESTDIR=$(TARGET_DIR) LDCONFIG=true install
+        $(TARGET_MAKE_ENV) $(MAKE1) -C $(@D) DESTDIR=$(TARGET_DIR) LDCONFIG=true install
 endef
 
 $(eval $(generic-package))
@@ -968,6 +968,7 @@ $(eval $(generic-package))
     \code{luarocks.org}
   \item \code{cmake-package}, for {\em CMake} based packages
   \item \code{waf-package}, for {\em Waf} based packages
+  \item \code{qmake-package}, for {\em QMake} based packages
   \end{itemize}
 \end{frame}
 
@@ -1044,13 +1045,20 @@ $(eval $(generic-package))
 
 \begin{frame}[fragile]{Canonical \code{autotools-package} example}
   \begin{block}{libyaml.mk}
-    \begin{minted}[fontsize=\scriptsize]{make}
-LIBYAML_VERSION = 0.2.2
+\begin{minted}[fontsize=\scriptsize]{make}
+################################################################################
+#
+# libyaml
+#
+################################################################################
+
+LIBYAML_VERSION = 0.2.5
 LIBYAML_SOURCE = yaml-$(LIBYAML_VERSION).tar.gz
 LIBYAML_SITE = http://pyyaml.org/download/libyaml
 LIBYAML_INSTALL_STAGING = YES
 LIBYAML_LICENSE = MIT
-LIBYAML_LICENSE_FILES = LICENSE
+LIBYAML_LICENSE_FILES = License
+LIBYAML_CPE_ID_VENDOR = pyyaml
 
 $(eval $(autotools-package))
 $(eval $(host-autotools-package))
@@ -1063,11 +1071,13 @@ $(eval $(host-autotools-package))
     \column{0.5\textwidth}
     \begin{block}{}
       \begin{minted}[fontsize=\tiny]{make}
-GNUPG2_VERSION = 2.2.20
+GNUPG2_VERSION = 2.2.25
 GNUPG2_SOURCE = gnupg-$(GNUPG2_VERSION).tar.bz2
 GNUPG2_SITE = https://gnupg.org/ftp/gcrypt/gnupg
 GNUPG2_LICENSE = GPL-3.0+
 GNUPG2_LICENSE_FILES = COPYING
+GNUPG2_CPE_ID_VENDOR = gnupg
+GNUPG2_CPE_ID_PRODUCT = gnupg
 GNUPG2_DEPENDENCIES = zlib libgpg-error libgcrypt libassuan \
         libksba libnpth host-pkgconf \
         $(if $(BR2_PACKAGE_LIBICONV),libiconv)
@@ -1138,9 +1148,9 @@ $(eval $(autotools-package))
 
   \begin{block}{python-serial.mk}
     \begin{minted}[fontsize=\scriptsize]{make}
-PYTHON_SERIAL_VERSION = 3.1
+PYTHON_SERIAL_VERSION = 3.5
 PYTHON_SERIAL_SOURCE = pyserial-$(PYTHON_SERIAL_VERSION).tar.gz
-PYTHON_SERIAL_SITE = https://pypi.python.org/packages/ce/9c/694ce...
+PYTHON_SERIAL_SITE = https://files.pythonhosted.org/packages/1e/7d/ae3f0a63f41e4d2f6cb66a5b57197850f919f59e558159a4dd3a818f5082
 PYTHON_SERIAL_LICENSE = BSD-3-Clause
 PYTHON_SERIAL_LICENSE_FILES = LICENSE.txt
 PYTHON_SERIAL_SETUP_TYPE = setuptools
@@ -1154,8 +1164,8 @@ $(eval $(python-package))
 \begin{frame}[fragile]{Python package: more complicated example}
   \begin{block}{python-lxml.mk}
     \begin{minted}[fontsize=\scriptsize]{make}
-PYTHON_LXML_VERSION = 4.5.0
-PYTHON_LXML_SITE = https://files.pythonhosted.org/packages/39/2b/0a6...
+PYTHON_LXML_VERSION = 4.6.2
+PYTHON_LXML_SITE = https://files.pythonhosted.org/packages/db/f7/43f....
 PYTHON_LXML_SOURCE = lxml-$(PYTHON_LXML_VERSION).tar.gz
 [...]
 PYTHON_LXML_SETUP_TYPE = setuptools
@@ -1244,14 +1254,17 @@ $(eval $(python-package))
   \end{itemize}
   \begin{block}{package/bison/bison.mk}
 \begin{minted}[fontsize=\tiny]{make}
-BISON_VERSION = 3.4.2
+BISON_VERSION = 3.7.1
 BISON_SOURCE = bison-$(BISON_VERSION).tar.xz
 BISON_SITE = $(BR2_GNU_MIRROR)/bison
 BISON_LICENSE = GPL-3.0+
 BISON_LICENSE_FILES = COPYING
+BISON_CPE_ID_VENDOR = gnu
 # parallel build issue in examples/c/reccalc/
 BISON_MAKE = $(MAKE1)
 HOST_BISON_DEPENDENCIES = host-m4
+HOST_BISON_CONF_OPTS = --enable-relocatable
+HOST_BISON_CONF_ENV = ac_cv_libtextstyle=no
 
 $(eval $(host-autotools-package))
 \end{minted}
