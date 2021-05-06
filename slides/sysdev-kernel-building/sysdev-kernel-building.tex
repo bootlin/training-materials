@@ -22,25 +22,6 @@
 \end{frame}
 
 \begin{frame}
-  \frametitle{Specifying the target architecture}
-  First, specify the architecture for the kernel to build
-  \begin{itemize}
-  \item Set \code{ARCH} to the name of a directory under \kdir{arch}:\\
-	\code{export ARCH=arm}
-  \item By default, the kernel build system assumes that the
-        kernel is configured and built for the host architecture
-	(\code{x86} in our case, native kernel compiling)
-  \item The kernel build system will use this setting to:
-	\begin{itemize}
-	\item Use the configuration options for the target
-	      architecture.
-	\item Compile the kernel with source code and headers
-	      for the target architecture.
-	\end{itemize}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
   \frametitle{Kernel configuration and build system}
   \begin{itemize}
   \item The kernel configuration and build system is based on multiple
@@ -59,6 +40,78 @@
     \item \code{cd linux-4.14.x/}
     \item \code{make <target>}
     \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Specifying the target architecture}
+  First, specify the architecture for the kernel to build
+  \begin{itemize}
+  \item Set \code{ARCH} to the name of a directory under \kdir{arch}:\\
+	\code{export ARCH=arm}
+  \item By default, the kernel build system assumes that the
+        kernel is configured and built for the host architecture
+	(\code{x86} in our case, native kernel compiling)
+  \item The kernel build system will use this setting to:
+	\begin{itemize}
+	\item Use the configuration options for the target
+	      architecture.
+	\item Compile the kernel with source code and headers
+	      for the target architecture.
+	\end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Choose a compiler}
+  The compiler invoked by the kernel Makefile is \code{$(CROSS_COMPILE)gcc}
+  \begin{itemize}
+    \item Specifying the compiler is already needed at configuration
+	  time, as some kernel configuration options depend on the
+          capabilities of the compiler.
+    \item When compiling natively
+      \begin{itemize}
+	 \item Leave \code{CROSS_COMPILE} undefined and the kernel
+	    will be natively compiled for the host architecture
+            using \code{gcc}.
+      \end{itemize}
+    \item When using a cross-compiler
+      \begin{itemize}
+      \item To make the difference with a native compiler, cross-compiler
+          executables are prefixed by the name of the target system,
+          architecture and sometimes library. Examples:\\
+          \small
+          \code{mips-linux-gcc}: the prefix is \code{mips-linux-}\\
+          \code{arm-linux-gnueabi-gcc}: the prefix is \code{arm-linux-gnueabi-}
+      \item So, you can specify your cross-compiler as follows:\\
+          \code{export CROSS_COMPILE=arm-linux-gnueabi-}
+      \end{itemize}
+  \end{itemize}
+  \code{CROSS_COMPILE} is actually the prefix of the cross compiling tools\\
+       (\code{gcc}, \code{as}, \code{ld}, \code{objcopy}, \code{strip}...).
+\end{frame}
+
+\begin{frame}
+  \frametitle{Specifying ARCH and CROSS\_COMPILE}
+  There are actually two ways of defining \code{ARCH} and \code{CROSS_COMPILE}:
+  \begin{itemize}
+  \item Pass \code{ARCH} and \code{CROSS_COMPILE} on the \code{make}
+    command line: \\
+    \code{make ARCH=arm CROSS_COMPILE=arm-linux- ...} \\
+    Drawback: it is easy to forget to pass these variables when
+    you run any \code{make} command, causing your build and
+    configuration to be screwed up.
+  \item Define \code{ARCH} and \code{CROSS_COMPILE} as environment
+    variables: \\
+    \code{export ARCH=arm} \\
+    \code{export CROSS_COMPILE=arm-linux-} \\
+    Drawback: it only works inside the current
+    shell or terminal. You could put these settings in a file
+    that you source every time you start working on the project.
+    If you only work on a single architecture with always the
+    same toolchain, you could even put these settings in your
+    \code{~/.bashrc} file to make them permanent and visible from
+    any terminal.
   \end{itemize}
 \end{frame}
 
@@ -336,56 +389,6 @@ CONFIG_NTFS_RW=y
 \end{frame}
 
 \subsection{Compiling and installing the kernel}
-
-\begin{frame}
-  \frametitle{Choose a compiler}
-  The compiler invoked by the kernel Makefile is \code{$(CROSS_COMPILE)gcc}
-  \begin{itemize}
-    \item When compiling natively
-      \begin{itemize}
-	 \item Leave \code{CROSS_COMPILE} undefined and the kernel
-	    will be natively compiled for the host architecture
-            using \code{gcc}.
-      \end{itemize}
-    \item When using a cross-compiler
-      \begin{itemize}
-      \item To make the difference with a native compiler, cross-compiler
-          executables are prefixed by the name of the target system,
-          architecture and sometimes library. Examples:\\
-          \small
-          \code{mips-linux-gcc}: the prefix is \code{mips-linux-}\\
-          \code{arm-linux-gnueabi-gcc}: the prefix is \code{arm-linux-gnueabi-}
-      \item So, you can specify your cross-compiler as follows:\\
-          \code{export CROSS_COMPILE=arm-linux-gnueabi-}
-      \end{itemize} 
-  \end{itemize}
-  \code{CROSS_COMPILE} is actually the prefix of the cross compiling
-tools (\code{gcc}, \code{as}, \code{ld}, \code{objcopy}, \code{strip}...).
-\end{frame}
-
-\begin{frame}
-  \frametitle{Specifying ARCH and CROSS\_COMPILE}
-  There are actually two ways of defining \code{ARCH} and \code{CROSS_COMPILE}:
-  \begin{itemize}
-  \item Pass \code{ARCH} and \code{CROSS_COMPILE} on the \code{make}
-    command line: \\
-    \code{make ARCH=arm CROSS_COMPILE=arm-linux- ...} \\
-    Drawback: it is easy to forget to pass these variables when
-    you run any \code{make} command, causing your build and
-    configuration to be screwed up.
-  \item Define \code{ARCH} and \code{CROSS_COMPILE} as environment
-    variables: \\
-    \code{export ARCH=arm} \\
-    \code{export CROSS_COMPILE=arm-linux-} \\
-    Drawback: it only works inside the current
-    shell or terminal. You could put these settings in a file
-    that you source every time you start working on the project.
-    If you only work on a single architecture with always the
-    same toolchain, you could even put these settings in your
-    \code{~/.bashrc} file to make them permanent and visible from
-    any terminal.
-  \end{itemize}
-\end{frame}
 
 \begin{frame}[fragile]
   \frametitle{Kernel compilation}
