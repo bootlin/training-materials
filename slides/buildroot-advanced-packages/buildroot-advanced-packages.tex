@@ -97,6 +97,104 @@ OWL_LINUX_REDISTRIBUTE = NO
 
 \end{frame}
 
+\subsection{Security vulnerability tracking}
+
+\begin{frame}{Security vulnerability tracking}
+  \begin{itemize}
+  \item Security has obviously become a key issue in embedded systems
+    that are more and more commonly connected.
+  \item Embedded Linux systems typically integrate 10-100+ open-source
+    components $\rightarrow$ not easy to keep track of their potential
+    security vulnerabilities
+  \item Industry relies on {\em Common Vulnerability Exposure} (CVE)
+    reports to document known security issues
+  \item Buildroot is able to identify if packages are affected by
+    known CVEs, by using the {\em National Vulnerability Database}
+    \begin{itemize}
+    \item \code{make pkg-stats}
+    \item Produces \code{$(O)/pkg-stats.html}, \code{$(O)/pkg-stats.json}
+    \end{itemize}
+  \item Note: this is limited to known CVEs. It does not guarantee the
+    absence of security vulnerabilities.
+  \item Only applies to open-source packages, not to your own custom
+    code.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Example \code{pkg-stats} output}
+  \begin{center}
+    \includegraphics[width=\textwidth]{slides/buildroot-advanced-packages/pkg-stats-output.png}
+    \includegraphics[width=\textwidth]{slides/buildroot-advanced-packages/pkg-stats-output-summary.png}
+  \end{center}
+\end{frame}
+
+\begin{frame}{CPE: Common Platform Enumeration}
+  \begin{itemize}
+  \item Concept of {\em Common Platform Enumeration}, which gives a
+    unique identifier to a software release
+    \begin{itemize}
+    \item E.g.: \code{cpe:2.3:a:xiph:libao:1.2.0:*:*:*:*:*:*:*}
+    \end{itemize}
+  \item By default Buildroot uses:
+    \begin{itemize}
+    \item \code{cpe:2.3:a:<pkg>_project:<pkg>:<pkg>_VERSION:*:*:*:*:*:*:*}
+    \item Not always correct!
+    \end{itemize}
+  \item Can be modified using:
+    \begin{itemize}
+    \item \code{<pkg>_CPE_ID_PREFIX}
+    \item \code{<pkg>_CPE_ID_VENDOR}
+    \item \code{<pkg>_CPE_ID_PRODUCT}
+    \item \code{<pkg>_CPE_ID_VERSION}
+    \item \code{<pkg>_CPE_ID_UPDATE}
+    \end{itemize}
+  \item Concept of {\em CPE dictionary} provided by NVD, which
+    contains all known CPEs.
+    \begin{itemize}
+    \item
+      \code{pkg-stats} checks if the CPE of each package is known in the {\em CPE dictionary}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{NVD CVE-2020-35492 example}
+  \begin{center}
+    \includegraphics[height=0.8\textheight]{slides/buildroot-advanced-packages/nvd-example.png}
+  \end{center}
+\end{frame}
+
+\begin{frame}[fragile]{CPE information in packages}
+
+  \begin{block}{\code{package/bash/bash.mk}}
+\begin{verbatim}
+BASH_CPE_ID_VENDOR = gnu
+\end{verbatim}
+  \end{block}
+
+  \begin{block}{\code{package/audit/audit.mk}}
+\begin{verbatim}
+AUDIT_CPE_ID_VENDOR = linux_audit_project
+AUDIT_CPE_ID_PRODUCT = linux_audit
+\end{verbatim}
+  \end{block}
+
+  \begin{block}{\code{linux/linux.mk}}
+\begin{verbatim}
+LINUX_CPE_ID_VENDOR = linux
+LINUX_CPE_ID_PRODUCT = linux_kernel
+LINUX_CPE_ID_PREFIX = cpe:2.3:o
+\end{verbatim}
+  \end{block}
+
+  \begin{block}{\code{package/libffi/libffi.mk}}
+\begin{verbatim}
+LIBFFI_CPE_ID_VERSION = 3.3
+LIBFFI_CPE_ID_UPDATE = rc0
+\end{verbatim}
+  \end{block}
+
+\end{frame}
+
 \subsection{Patching packages}
 
 \begin{frame}{Patching packages: why?}
