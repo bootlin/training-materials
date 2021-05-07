@@ -108,34 +108,34 @@ struct serial_dev {
         void __iomem *regs;
         struct miscdevice miscdev;
         int irq;
-        char serial_buf[SERIAL_BUFSIZE];
-        int serial_buf_rd;
-        int serial_buf_wr;
+        char buf[SERIAL_BUFSIZE];
+        int int buf_rd;
+        int buf_wr;
 };
 \end{verbatim}
 
 In the interrupt handler, store the received character at location
-\code{serial_buf_wr} in the circular buffer, and increment the value
-of \code{serial_buf_wr}. If this value reaches \code{SERIAL_BUFSIZE},
+\code{buf_wr} in the circular buffer, and increment the value
+of \code{buf_wr}. If this value reaches \code{SERIAL_BUFSIZE},
 reset it to zero.
 
-In the \code{read()} operation, if the \code{serial_buf_rd} value is
-different from the \code{serial_buf_wr} value, it means that one
+In the \code{read()} operation, if the \code{buf_rd} value is
+different from the \code{buf_wr} value, it means that one
 character can be read from the circular buffer. So, read this
 character, store it in the user space buffer, update the
-\code{serial_buf_rd} variable, and return to user space (we will only
+\code{buf_rd} variable, and return to user space (we will only
 read one character at a time, even if the user space application
 requested more than one).
 
 Now, what happens in our \code{read()} function if no character is
-available for reading (i.e, if \code{serial_buf_wr} is equal to
-\code{serial_buf_rd})? We should put the process to sleep!
+available for reading (i.e, if \code{buf_wr} is equal to
+\code{buf_rd})? We should put the process to sleep!
 
 To do so, add a wait queue to our \code{serial_dev} structure,
 named for example \code{serial_wait}. In the \code{read()} function,
 keep things simple by directly using \kfunc{wait_event_interruptible}
-right from the start, to wait until \code{serial_buf_wr}
-is different from \code{serial_buf_rd}\footnote{A single test in the
+right from the start, to wait until \code{buf_wr}
+is different from \code{buf_rd}\footnote{A single test in the
 \kfunc{wait_event_interruptible} function is sufficient. If the
 condition is met, you don't go to sleep and read one character right away.
 Otherwise, when you wake up, you can proceed to the reading part.}.
