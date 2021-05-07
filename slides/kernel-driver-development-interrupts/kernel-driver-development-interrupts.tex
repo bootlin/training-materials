@@ -29,8 +29,7 @@ int devm_request_irq(struct device *dev, unsigned int irq, irq_handler_t handler
 \begin{frame}[fragile]
   \frametitle{Releasing an interrupt handler}
   \begin{minted}{c}
-void devm_free_irq(struct device *dev,
-                   unsigned int irq, void *dev_id);
+void devm_free_irq(struct device *dev, unsigned int irq, void *dev_id);
   \end{minted}
   \begin{itemize}
   \item Explicitly release an interrupt handler. Done automatically
@@ -78,18 +77,18 @@ void devm_free_irq(struct device *dev,
 \begin{block}{}
   \tiny
 \begin{verbatim}
-           CPU0       CPU1       CPU2       CPU3
- 17:    1005317          0          0          0  ARMCTRL-level   1 Edge      3f00b880.mailbox
- 18:         36          0          0          0  ARMCTRL-level   2 Edge      VCHIQ doorbell
- 40:          0          0          0          0  ARMCTRL-level  48 Edge      bcm2708_fb DMA
- 42:     427715          0          0          0  ARMCTRL-level  50 Edge      DMA IRQ
- 56:  478426356          0          0          0  ARMCTRL-level  64 Edge      dwc_otg, dwc_otg_pcd, dwc_otg_hcd:usb1
- 80:     411468          0          0          0  ARMCTRL-level  88 Edge      mmc0
- 81:        502          0          0          0  ARMCTRL-level  89 Edge      uart-pl011
-161:          0          0          0          0  bcm2836-timer   0 Edge      arch_timer
-162:   10963772    6378711   16583353    6406625  bcm2836-timer   1 Edge      arch_timer
-165:          0          0          0          0  bcm2836-pmu   9 Edge      arm-pmu
-FIQ:              usb_fiq
+            CPU0       CPU1       CPU2       CPU3
+ 17:     1005317          0          0          0  ARMCTRL-level   1 Edge      3f00b880.mailbox
+ 18:          36          0          0          0  ARMCTRL-level   2 Edge      VCHIQ doorbell
+ 40:           0          0          0          0  ARMCTRL-level  48 Edge      bcm2708_fb DMA
+ 42:      427715          0          0          0  ARMCTRL-level  50 Edge      DMA IRQ
+ 56:   478426356          0          0          0  ARMCTRL-level  64 Edge      dwc_otg, dwc_otg_pcd, dwc_otg_hcd:usb1
+ 80:      411468          0          0          0  ARMCTRL-level  88 Edge      mmc0
+ 81:         502          0          0          0  ARMCTRL-level  89 Edge      uart-pl011
+161:           0          0          0          0  bcm2836-timer   0 Edge      arch_timer
+162:    10963772    6378711   16583353    6406625  bcm2836-timer   1 Edge      arch_timer
+165:           0          0          0          0  bcm2836-pmu     9 Edge      arm-pmu
+FIQ:                                               usb_fiq
 IPI0:          0          0          0          0  CPU wakeup interrupts
 IPI1:          0          0          0          0  Timer broadcast interrupts
 IPI2:    2625198    4404191    7634127    3993714  Rescheduling interrupts
@@ -97,7 +96,7 @@ IPI3:       3140      56405      49483      59648  Function call interrupts
 IPI4:          0          0          0          0  CPU stop interrupts
 IPI5:    2167923     477097    5350168     412699  IRQ work interrupts
 IPI6:          0          0          0          0  completion interrupts
-Err:          0
+Err:           0
 \end{verbatim}
 \end{block}
   {\footnotesize
@@ -151,11 +150,9 @@ Err:          0
         execution, which is useful for real-time usage of Linux
   \end{itemize}
   \begin{minted}{c}
-int devm_request_threaded_irq(
-    struct device *dev,
-    unsigned int irq,
-    irq_handler_t handler, irq_handler_t thread_fn,
-    unsigned long flags, const char *name, void *dev);
+int devm_request_threaded_irq(struct device *dev, unsigned int irq,
+                              irq_handler_t handler, irq_handler_t thread_fn,
+                              unsigned long flags, const char *name, void *dev);
   \end{minted}
   \begin{itemize}
   \item \code{handler}, ``hard IRQ'' handler
@@ -268,12 +265,12 @@ static void atmel_sha_done_task(unsigned long data)
 /* Probe function: registering the tasklet */
 static int atmel_sha_probe(struct platform_device *pdev)
 {
-        struct atmel_sha_dev *sha_dd; // Per device structure
+        struct atmel_sha_dev *sha_dd; /* Per device structure */
         [...]
         platform_set_drvdata(pdev, sha_dd);
         [...]
         tasklet_init(&sha_dd->done_task, atmel_sha_done_task,
-                                        (unsigned long)sha_dd);
+                     (unsigned long)sha_dd);
         [...]
         err = devm_request_irq(&pdev->dev, sha_dd->irq, atmel_sha_irq,
                                IRQF_SHARED, "atmel-sha", sha_dd);
