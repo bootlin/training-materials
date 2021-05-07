@@ -63,7 +63,15 @@ for each found device:
 \begin{itemize}
 \item To get an automatically assigned minor number.
 \item To specify a name for the device file in {\em devtmpfs}. We
-  "serial-\%llx", platform\_get\_resource(pdev, IORESOURCE\_MEM, 0)->start)}.
+  propose to use:
+  \begin{verbatim}
+struct resource *res;
+[...]
+res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+/* Error handling */
+[...]
+devm_kasprintf(&pdev->dev, GFP_KERNEL, "serial-\%llx", res->start);
+  \end{verbatim}
   \kfunc{devm_kasprintf} allocates a buffer and runs \kfunc{kasprintf}
   to fill its contents. \kfunc{platform_get_resource} is used to
   retrieve the device physical address from the device tree.
