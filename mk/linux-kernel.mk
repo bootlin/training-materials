@@ -54,9 +54,6 @@ LINUX_KERNEL_SLIDES = \
 		kernel-backup-slides-title \
 		kernel-driver-development-dma \
 		kernel-driver-development-mmap \
-		kernel-git-title \
-		kernel-git-content \
-		kernel-git-lab
 
 LINUX_KERNEL_LABS   = setup \
 		kernel-sources-download \
@@ -72,4 +69,3 @@ LINUX_KERNEL_LABS   = setup \
 		kernel-serial-interrupt \
 		kernel-locking \
 		kernel-debugging \
-		kernel-git
