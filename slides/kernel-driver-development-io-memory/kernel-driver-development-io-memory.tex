@@ -1,109 +1,24 @@
-\section{I/O Memory and Ports}
+\section{I/O Memory}
 
 \begin{frame}
-  \frametitle{Port I/O vs. Memory-Mapped I/O}
+  \frametitle{Memory-Mapped I/O}
+  \begin{columns}
+  \column{0.75\textwidth}
   \begin{itemize}
-  \item Memory-Mapped I/O (MMIO)
-    \begin{itemize}
-    \item Same address bus to address memory and I/O devices
-    \item Access to the I/O devices using regular instructions
+    \item Same address bus to address memory and I/O device registers
+    \item Access to the I/O device registers using regular instructions
     \item Most widely used I/O method across the different
       architectures supported by Linux
-    \end{itemize}
-  \item Port I/O (PIO)
-    \begin{itemize}
-    \item Different address spaces for memory and I/O devices
-    \item Uses a special class of CPU instructions to access I/O
-      devices
-    \item Example on x86: IN and OUT instructions
-    \end{itemize}
   \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{MMIO vs PIO}
-  \begin{center}
+  \column{0.25\textwidth}
     \includegraphics[width=\textwidth]{slides/kernel-driver-development-io-memory/mmio-vs-pio.pdf}
-  \end{center}
-\end{frame}
-
-\begin{frame}[fragile]
-  \frametitle{Requesting I/O ports}
-  \begin{itemize}
-  \item Tells the kernel which driver is using which I/O ports
-  \item Allows to prevent other drivers from using the same I/O ports,
-    but is purely voluntary.
-  \item
-\begin{minted}{c}
-struct resource *request_region(unsigned long start,
-                                unsigned long len, char *name);
-\end{minted}
-  \item Tries to reserve the given region and returns \code{NULL} if unsuccessful.
-  \item \mint{c}+request_region(0x0170, 8, "ide1");+
-  \item
-\begin{minted}{c}
-void release_region(unsigned long start, unsigned long len);
-\end{minted}
-\end{itemize}
-\end{frame}
-
-\begin{frame}[fragile]
-  \frametitle{/proc/ioports example (x86)}
-{\small
-\begin{verbatim}
-0000-001f : dma1
-0020-0021 : pic1
-0040-0043 : timer0
-0050-0053 : timer1
-0070-0077 : rtc
-0080-008f : dma page reg
-00a0-00a1 : pic2
-00c0-00df : dma2
-00f0-00ff : fpu
-0170-0177 : ide1
-01f0-01f7 : ide0
-0376-0376 : ide1
-03f6-03f6 : ide0
-03f8-03ff : serial
-0800-087f : 0000:00:1f.0
-...
-\end{verbatim}
-}
-\end{frame}
-
-\begin{frame}[fragile]
-  \frametitle{Accessing I/O ports}
-  \begin{itemize}
-  \item Functions to read/write bytes (\code{b}), word (\code{w}) and longs (\code{l}) to I/O ports:
-    \begin{itemize}
-    \item \mint{c}+unsigned in[bwl](unsigned long port)+
-    \item \mint{c}+void out[bwl](value, unsigned long port)+
-    \end{itemize}
-  \item And the strings variants: often more efficient than the
-    corresponding C loop, if the processor supports such operations!
-    \begin{itemize}
-    \item \mint{c}+void ins[bwl](unsigned port, void *addr, unsigned long count)+
-    \item \mint{c}+void outs[bwl](unsigned port, void *addr, unsigned long count)+
-    \end{itemize}
-  \item Examples
-    \begin{itemize}
-    \item read 8 bits
-      \begin{itemize}
-      \item \mint{c}|oldlcr = inb(baseio + UART_LCR)|
-      \end{itemize}
-    \item write 8 bits
-      \begin{itemize}
-      \item \mint{c}|outb(MOXA_MUST_ENTER_ENCHANCE, baseio + UART_LCR)|
-      \end{itemize}
-    \end{itemize}
-  \end{itemize}
+  \end{columns}
 \end{frame}
 
 \begin{frame}[fragile]
   \frametitle{Requesting I/O memory}
   \begin{itemize}
-  \item Functions equivalent to \kfunc{request_region} and
-    \kfunc{release_region}, but for I/O memory.
+  \item Tells the kernel which driver is using which I/O registers
   \item
 \begin{minted}{c}
 struct resource *request_mem_region(unsigned long start,
@@ -113,6 +28,8 @@ struct resource *request_mem_region(unsigned long start,
 \begin{minted}{c}
 void release_mem_region(unsigned long start, unsigned long len);
   \end{minted}
+  \item Allows to prevent other drivers requesting the same I/O registers,
+    but is purely voluntary.
 \end{itemize}
 \end{frame}
 
@@ -249,7 +166,7 @@ writel(c & 0xff, port->membase + 4);
 \begin{frame}
   \frametitle{Avoiding I/O access issues}
   \begin{itemize}
-  \item Caching on I/O ports or memory already disabled
+  \item Caching on I/O memory already disabled
   \item Use the \kfunc{writel}/\kfunc{readl} macros,
         they do the right thing for your architecture
   \item The compiler and/or CPU can reorder memory accesses, which
