@@ -63,13 +63,13 @@ int main (void)
 		/* Get the date before sleeping */
 		clock_gettime(CLOCK_MONOTONIC, &time1);
 
-		/* Compute the wake-up date */
+		/* Compute the expected wake-up date */
 		timespec_add_ns(&time1, 100000);
 
 		/* Sleep */
 		clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &time1, NULL);
 
-		/* Get the wake-up date */
+		/* Get the actual wake-up date */
 		clock_gettime(CLOCK_MONOTONIC, &time2);
 
 		/* skip the first second for warmup */
