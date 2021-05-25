@@ -343,21 +343,23 @@ on the SD card:
   partition of the SD card, using:\\
   \code{sudo tar -C /media/$USER/rootfs/ -xf output/images/rootfs.tar}.
 
-\item Create a file named \code{uEnv.txt} in the \code{boot}
-  partition. This file should contain the following lines:
+\item Create a file named \code{extlinux/extlinux.conf} in the
+  \code{boot} partition. This file should contain the following lines:
 
 {\small
 \begin{verbatim}
-bootdir=
-bootpart=0:1
-devtype=mmc
-args_mmc=setenv bootargs console=${console} ${optargs} root=/dev/mmcblk0p2 rw rootfstype=${mmcrootfstype}
-uenvcmd=run loadimage;run loadramdisk;run findfdt;run loadfdt;run mmcloados
+label buildroot
+  kernel /zImage
+  devicetree /am335x-boneblack-wireless.dtb
+  append console=ttyO0,115200 root=/dev/mmcblk0p2 rootwait
 \end{verbatim}
 }
 
-  These lines teach the U-Boot bootloader how to load the Linux kernel
-  image and the Device Tree, before booting the kernel.
+These lines teach the U-Boot bootloader how to load the Linux kernel
+image and the Device Tree, before booting the kernel. It uses a
+standard U-Boot mechanism called {\em distro boot command}, see
+\url{https://source.denx.de/u-boot/u-boot/-/raw/master/doc/README.distro}
+for more details.
 
 \end{itemize}
 
