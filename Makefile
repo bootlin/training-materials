@@ -5,7 +5,7 @@ PDFLATEX = xelatex
 DIA      = dia
 EPSTOPDF = epstopdf
 
-INKSCAPE_IS_NEW = $(shell inkscape --version | grep -q "^Inkscape 1.0" && echo YES)
+INKSCAPE_IS_NEW = $(shell inkscape --version | grep -q "^Inkscape 1" && echo YES)
 
 ifeq ($(INKSCAPE_IS_NEW),YES)
 INKSCAPE_PDF_OPT = -o
