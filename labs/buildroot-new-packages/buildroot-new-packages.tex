@@ -114,6 +114,27 @@ Restart again the build of the package by using
 \code{make ninvaders-dirclean all} (which is the same as doing
 \code{make ninvaders-dirclean} followed by \code{make}).
 
+Now the package build fails at link time with messages such as
+\code{multiple definition of `skill_level'; aliens.o:(.bss+0x674):
+  first defined here}.
+
+\section{Customizing CFLAGS}
+
+The \code{multiple definition} issue is due to the code base of {\em
+  nInvaders} being quite old, and having multiple compilation units
+redefine the same symbols. While this was accepted by older {\em gcc}
+versions, since {\em gcc 10} this is no longer accepted by default.
+
+While we could fix the {\em nInvaders} code base, we will take a
+different route: ask {\em gcc} to behave as it did before {\em gcc 10}
+and accept such redefinitions. This can be done by passing the
+\code{-fcommon} {\em gcc} flag.
+
+To achieve this, make sure that \code{CFLAGS} is set to
+\code{$(TARGET_CFLAGS) -fcommon} in \code{NINVADERS_BUILD_CMDS}.
+
+Restart the build with \code{make ninvaders-dirclean all}.
+
 Now the package should build properly! If you look in
 \code{output/build/ninvaders-0.1.1/}, you should see a
 \code{nInvaders} binary file. Run the \code{file} program with
