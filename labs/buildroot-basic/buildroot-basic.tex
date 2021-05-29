@@ -20,26 +20,26 @@ manual\footnote{\url{https://buildroot.org/downloads/manual/manual.html\#require
 Buildroot requires a few packages to be installed on your
 machine. Let's install them using Ubuntu's package manager:
 
-\begin{verbatim}
+\begin{bashinput}
 sudo apt install sed make binutils gcc g++ bash patch \
   gzip bzip2 perl tar cpio python unzip rsync wget libncurses-dev
-\end{verbatim}
+\end{bashinput}
 
 \section{Download Buildroot}
 
 Since we're going to do Buildroot development, let's clone the
 Buildroot source code from its Git repository:
 
-\begin{verbatim}
+\begin{bashinput}
 git clone git://git.buildroot.net/buildroot
-\end{verbatim}
+\end{bashinput}
 
 If your company blocks the {\em Git} protocol (they should not!), then
 you can try to clone over HTTP:
 
-\begin{verbatim}
+\begin{bashinput}
 git clone https://git.buildroot.net/git/buildroot.git
-\end{verbatim}
+\end{bashinput}
 
 In the worst case, if neither work, you can download the Buildroot
 tarball \code{buildroot-2021.02.tar.bz2} from
@@ -52,9 +52,9 @@ Go into the newly created \code{buildroot} directory.
 We're going to start a branch from the {\em 2021.02} Buildroot
 release, with which this training has been tested.
 
-\begin{verbatim}
+\begin{bashinput}
 git checkout -b felabs 2021.02
-\end{verbatim}
+\end{bashinput}
 
 \section{Configuring Buildroot}
 
@@ -66,9 +66,9 @@ our own configuration from scratch!
 
 Start the Buildroot configuration utility:
 
-\begin{verbatim}
+\begin{bashinput}
 make menuconfig
-\end{verbatim}
+\end{bashinput}
 
 Of course, you're free to try out the other configuration utilities
 \code{nconfig}, \code{xconfig} or \code{gconfig}.
@@ -259,9 +259,9 @@ You could simply run \code{make}, but since we would like to keep a
 log of the build, we'll redirect both the standard and error outputs
 to a file, as well as the terminal by using the \code{tee} command:
 
-\begin{verbatim}
+\begin{bashinput}
 make 2>&1 | tee build.log
-\end{verbatim}
+\end{bashinput}
 
 While the build is on-going, please go through the following sections
 to prepare what will be needed to test the build results.
@@ -296,18 +296,18 @@ appear by looking at the output of \code{dmesg}.
 To communicate with the board through the serial port, install a
 serial communication program, such as \code{picocom}:
 
-\begin{verbatim}
+\begin{bashinput}
 sudo apt install picocom
-\end{verbatim}
+\end{bashinput}
 
 If you run \code{ls -l /dev/ttyUSB0}, you can also see that only
 \code{root} and users belonging to the \code{dialout} group have read
 and write access to this file. Therefore, you need to add your user to
 the \code{dialout} group:
 
-\begin{verbatim}
+\begin{bashinput}
 sudo adduser $USER dialout
-\end{verbatim}
+\end{bashinput}
 
 {\bf Important}: for the group change to be effective, in Ubuntu 18.04, you have to
 {\em completely reboot} the system \footnote{As explained on
@@ -341,18 +341,18 @@ on the SD card:
 
 \item Extract the \code{rootfs.tar} file to the \code{rootfs}
   partition of the SD card, using:\\
-  \code{sudo tar -C /media/$USER/rootfs/ -xf output/images/rootfs.tar}.
+  \inlinebash{sudo tar -C /media/$USER/rootfs/ -xf output/images/rootfs.tar}.
 
 \item Create a file named \code{extlinux/extlinux.conf} in the
   \code{boot} partition. This file should contain the following lines:
 
 {\small
-\begin{verbatim}
+\begin{fileinput}
 label buildroot
   kernel /zImage
   devicetree /am335x-boneblack-wireless.dtb
   append console=ttyO0,115200 root=/dev/mmcblk1p2 rootwait
-\end{verbatim}
+\end{fileinput}
 }
 
 These lines teach the U-Boot bootloader how to load the Linux kernel
@@ -384,10 +384,10 @@ and \code{/etc}.
 Note: if your system doesn't boot as expected, make sure to reset the
 U-Boot environment by running the following U-Boot commands:
 
-\begin{verbatim}
+\begin{bashinput}
 env default -f -a
 saveenv
-\end{verbatim}
+\end{bashinput}
 
 and reset. This is needed because the U-Boot loaded from the SD card
 still loads the U-Boot environment from the eMMC. Ask your instructor
@@ -401,9 +401,9 @@ happened. Since the Buildroot build is quite verbose, Buildroot prints
 before each important step a message prefixed by the \code{>>>}
 sign. So to get an overall idea of what the build did, you can run:
 
-\begin{verbatim}
+\begin{bashinput}
 grep ">>>" build.log
-\end{verbatim}
+\end{bashinput}
 
 You see the different packages between downloaded, extracted, patched,
 configured, built and installed.

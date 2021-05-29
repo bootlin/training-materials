@@ -4,9 +4,9 @@
   \begin{itemize}
   \item Explore the build output
   \item Customize the root filesystem using a {\em rootfs overlay}
+  \item Customize the Linux kernel configuration
   \item Use a post-build script
-  \item Customize the kernel with patches and additional configuration
-    options
+  \item Customize the kernel with patches and
   \item Add more packages
   \item Use {\em defconfig} files and {\em out of tree} build
   \end{itemize}
@@ -89,7 +89,7 @@ interfaces. So, in \code{board/felabs/beagleboneblack/rootfs-overlay},
 create a file named \code{etc/network/interfaces} with the following
 contents:
 
-\begin{verbatim}
+\begin{fileinput}
 auto lo
 iface lo inet loopback
 
@@ -97,7 +97,7 @@ auto usb0
 iface usb0 inet static
       address 192.168.0.2
       netmask 255.255.255.0
-\end{verbatim}
+\end{fileinput}
 
 Then, rebuild your system by running \code{make}. Here as well, we
 don't need to do a full rebuild, since the {\em rootfs overlays} are
@@ -126,9 +126,9 @@ hardcoded in the \code{S30usbgadget} script to
 To configure an IP address for this interface on your host machine,
 we'll use NetworkManager and its command line interface:
 
-\begin{verbatim}
+\begin{bashinput}
 nmcli con add type ethernet ifname enxf8dc7a000001 ip4 192.168.0.1/24
-\end{verbatim}
+\end{bashinput}
 
 {\em Note: using \code{ip} in the command line is not
 recommended, because Network Manager will unconfigure and
@@ -161,10 +161,10 @@ built, and will therefore trigger the build process.
 Re-extract the root filesystem tarball in the \code{rootfs} partition
 of the SD card. Don't forget to replace the entire root filesystem:
 
-\begin{verbatim}
+\begin{bashinput}
 rm -rf /media/$USER/rootfs/*
 sudo tar -C /media/$USER/rootfs/ -xf output/images/rootfs.tar
-\end{verbatim}
+\end{bashinput}
 
 Now, boot the new system on the BeagleBone Black. You should see a
 message:
@@ -175,9 +175,9 @@ Starting dropbear sshd: OK
 
 Now, from your PC, if you try to SSH to the board by doing:
 
-\begin{verbatim}
+\begin{bashinput}
 ssh root@192.168.0.2
-\end{verbatim}
+\end{bashinput}
 
 You'll notice that it is very slow to open the connection: this is due
 to the lack of hardware random number generator support. In the next
@@ -190,9 +190,9 @@ Until now, our Linux kernel was configured using the
 \code{omap2plus_defconfig} configuration provided in the Linux kernel
 source code. Let's customize our kernel configuration by running:
 
-\begin{verbatim}
+\begin{bashinput}
 make linux-menuconfig
-\end{verbatim}
+\end{bashinput}
 
 In the kernel configuration, enable the following kernel options (use
 the \code{/} search engine to easily find those options):
@@ -226,7 +226,7 @@ changes persistently. To do so:
 
 \item Exit \code{menuconfig}
 
-\item Run \code{make linux-update-defconfig}. This will generate the
+\item Run \inlinebash{make linux-update-defconfig}. This will generate the
   configuration file in
   \code{board/felabs/beagleboneblack/linux.config}. It will be a {\em
     minimal} configuration file (i.e a {\em defconfig}). In this file,
@@ -265,17 +265,17 @@ We will first create a new directory to store our kernel patches. It
 will sit next to our {\em rootfs overlay} in our project-specific
 directory:
 
-\begin{verbatim}
+\begin{bashinput}
 mkdir board/felabs/beagleboneblack/patches/linux/
-\end{verbatim}
+\end{bashinput}
 
 Copy in this directory the two patches that we provided with the data
 of this lab, in \code{$HOME/buildroot-labs/buildroot-rootfs/linux/}:
 
-\begin{verbatim}
+\begin{bashinput}
 cp $HOME/buildroot-labs/buildroot-rootfs/linux/*.patch \
      board/felabs/beagleboneblack/patches/linux/
-\end{verbatim}
+\end{bashinput}
 
 The first patch adds the driver, the second patch adjusts the Device
 Tree. Feel free to look at them. If you're interested, you can look at
@@ -291,9 +291,9 @@ Let's now clean up completely the \code{linux} package so that its
 sources will be re-extracted and our patches applied the next time we
 do a build:
 
-\begin{verbatim}
+\begin{bashinput}
 make linux-dirclean
-\end{verbatim}
+\end{bashinput}
 
 If you check in \code{output/build/}, the \code{linux-5.10.27}
 directory will have disappeared.
@@ -301,9 +301,9 @@ directory will have disappeared.
 Now, we need to adjust our kernel configuration to enable the {\em Wii
 Nunchuk} driver. To start the Linux kernel configuration tool, run:
 
-\begin{verbatim}
+\begin{bashinput}
 make linux-menuconfig
-\end{verbatim}
+\end{bashinput}
 
 This will:
 
@@ -324,18 +324,18 @@ options are set, leave the kernel \code{menuconfig}.
 
 Let's save persistently our kernel configuration change:
 
-\begin{verbatim}
+\begin{bashinput}
 make linux-update-defconfig
-\end{verbatim}
+\end{bashinput}
 
 You can check \code{board/felabs/beagleboneblack/linux.config} and
 verify that \kconfig{CONFIG_JOYSTICK_WIICHUCK} is set to \code{y}.
 
 You can now restart the build of the kernel:
 
-\begin{verbatim}
+\begin{bashinput}
 make
-\end{verbatim}
+\end{bashinput}
 
 It should hopefully end successfully, and if you look closely at the
 build log, you should see the file \code{wiichuck.c} being compiled.
@@ -379,21 +379,21 @@ input: Wiichuck expansion connector as /devices/platform/ocp/4802a000.i2c/i2c-1/
 You can also explore {\em sysfs}, and see that your Nunchuk device is
 handled by the system:
 
-\begin{verbatim}
+\begin{bashinput}
 cat /sys/bus/i2c/devices/1-0052/name
-\end{verbatim}
+\end{bashinput}
 
 Now, to get the raw events coming from the Nunchuk, you can do:
 
-\begin{verbatim}
+\begin{bashinput}
 cat /dev/input/event0
-\end{verbatim}
+\end{bashinput}
 
 or, if you prefer to see hexadecimal values instead of raw binary:
 
-\begin{verbatim}
+\begin{bashinput}
 cat /dev/input/event0 | hexdump -C
-\end{verbatim}
+\end{bashinput}
 
 You should see events when moving the Nunchuk (it has an
 accelerometer), when moving the joystick and pushing the buttons.
@@ -407,9 +407,9 @@ and display them in a more human readable format: \code{evtest}.
 Enable this package in Buildroot, restart the build, reflash the root
 filesystem and reboot the system. Now you can use \code{evtest}:
 
-\begin{verbatim}
+\begin{bashinput}
 evtest /dev/input/event0
-\end{verbatim}
+\end{bashinput}
 
 \section{Generate a {\em defconfig}}
 
@@ -423,9 +423,9 @@ where Buildroot will save the {\em defconfig} file generated by
 
 Then, exit \code{menuconfig}, and run:
 
-\begin{verbatim}
+\begin{bashinput}
 make savedefconfig
-\end{verbatim}
+\end{bashinput}
 
 Read the file \code{configs/felabs_defconfig} generated in the
 Buildroot sources. You will see the values for all the options for
@@ -452,16 +452,16 @@ start a build from scratch. And to learn something new, we'll use {\em
 To do so, create a build directory anywhere you want, and move inside
 this directory:
 
-\begin{verbatim}
+\begin{bashinput}
 mkdir ~/felabs/buildroot-build/
 cd ~/felabs/buildroot-build/
-\end{verbatim}
+\end{bashinput}
 
 Now, we will load the \code{felabs_defconfig}:
 
-\begin{verbatim}
+\begin{bashinput}
 make -C ~/felabs/buildroot/ O=$(pwd) felabs_defconfig
-\end{verbatim}
+\end{bashinput}
 
 Let's explain a little bit what happens here. By using
 \code{-C ~/felabs/buildroot/}, we in fact tell \code{make} that the
@@ -489,6 +489,6 @@ This command will have two main effects:
 Now that this is done, start the build. You can again save the build
 log:
 
-\begin{verbatim}
+\begin{bashinput}
 make 2>&1 | tee build.log
-\end{verbatim}
+\end{bashinput}
