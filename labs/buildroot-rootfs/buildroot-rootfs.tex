@@ -173,8 +173,73 @@ message:
 Starting dropbear sshd: OK
 \end{verbatim}
 
-From your host machine, you can connect over the network to the board
-by doing \code{ssh root@192.168.0.2}.
+Now, from your PC, if you try to SSH to the board by doing:
+
+\begin{verbatim}
+ssh root@192.168.0.2
+\end{verbatim}
+
+You'll notice that it is very slow to open the connection: this is due
+to the lack of hardware random number generator support. In the next
+section, we will adjust the Linux kernel configuration to enable
+support for such hardware random number generators.
+
+\section{Customize the Linux kernel configuration}
+
+Until now, our Linux kernel was configured using the
+\code{omap2plus_defconfig} configuration provided in the Linux kernel
+source code. Let's customize our kernel configuration by running:
+
+\begin{verbatim}
+make linux-menuconfig
+\end{verbatim}
+
+In the kernel configuration, enable the following kernel options (use
+the \code{/} search engine to easily find those options):
+
+\begin{itemize}
+\item \kconfig{CONFIG_HW_RANDOM}
+\item \kconfig{CONFIG_HW_RANDOM_OMAP}
+\item \kconfig{CONFIG_HW_RANDOM_OMAP3_ROM}
+\end{itemize}
+
+You'll notice that they were already enabled, but as modules. We need
+them to be statically enabled in the kernel, to have the hardware
+random number generator ready directly at boot time.
+
+Your kernel configuration has now been customized, but those changes
+are only saved in \code{output/build/linux-5.10.27/.config}, which
+will be deleted at the next \code{make clean}. So we need to save such
+changes persistently. To do so:
+
+\begin{enumerate}
+
+\item Run Buildroot \code{menuconfig}
+
+\item In the \code{Kernel} menu, instead of \code{Using a defconfig},
+  chose \code{Using a custom config file}. This will allow us to use
+  our own custom kernel configuration file, instead of a pre-defined
+  {\em defconfig} that comes with the kernel sources.
+
+\item In the \code{Configuration file path}, enter
+  \code{board/felabs/beagleboneblack/linux.config}.
+
+\item Exit \code{menuconfig}
+
+\item Run \code{make linux-update-defconfig}. This will generate the
+  configuration file in
+  \code{board/felabs/beagleboneblack/linux.config}. It will be a {\em
+    minimal} configuration file (i.e a {\em defconfig}). In this file,
+  verify that the option \kconfig{CONFIG_HW_RANDOM}is properly set to
+  \code{y}. The other two options are not visible in the
+  \code{linux.config} file: they default to \code{y} when
+  \kconfig{CONFIG_HW_RANDOM} is \code{y}.
+
+\end{enumerate}
+
+Re-run the build of the system by running \code{make}. Update the
+\code{zImage} on the SD card, and test again the SSH connection: it
+should now connect immediately.
 
 \section{Use a post-build script}
 
@@ -188,7 +253,7 @@ Register this script as a post-build script in your Buildroot
 configuration, run a build, and verify that \code{/etc/build-id} is
 created as expected.
 
-\section{Linux kernel customization}
+\section{Patch the Linux kernel}
 
 Now, we would like to connect an additional peripheral to our system:
 the {\em Wii Nunchuk}. Using this custom peripheral requires adding a
@@ -245,22 +310,28 @@ This will:
 \begin{itemize}
 \item Extract the Linux kernel sources
 \item Apply our two patches
-\item Load the default kernel configuration
-  \code{omap2plus_defconfig}, as we specified in the previous lab
+\item Load the current kernel configuration, from
+  \code{board/felabs/beagleboneblack/linux.config} as we have modified
+  earlier in this lab.
 \item Start the kernel \code{menuconfig} tool
 \end{itemize}
 
-Once in the kernel \code{menuconfig}, search for the option
-\kconfig{CONFIG_JOYSTICK_WIICHUCK} by using the search engine tool
-accessible by typing \code{/}. Make sure to enable the {\em Nintendo
-  Wiimote Extension connector on i2c bus} option using a \code{*} so
-that the driver is part of the kernel image itself (enabling with
-\code{M} would lead the driver to be compiled as a module). Also, make
-sure the \kconfig{CONFIG_INPUT_EVDEV} option is enabled with \code{*} (by
-default it is enabled as a module).
+Once in the kernel \code{menuconfig}, enable the option
+\kconfig{CONFIG_JOYSTICK_WIICHUCK}, and make sure it is enabled
+statically. Also, make sure the \kconfig{CONFIG_INPUT_EVDEV} option is
+enabled statically (by default it is enabled as a module). Once those
+options are set, leave the kernel \code{menuconfig}.
 
-You can now exit the kernel \code{menuconfig}, and restart the build
-of the kernel:
+Let's save persistently our kernel configuration change:
+
+\begin{verbatim}
+make linux-update-defconfig
+\end{verbatim}
+
+You can check \code{board/felabs/beagleboneblack/linux.config} and
+verify that \kconfig{CONFIG_JOYSTICK_WIICHUCK} is set to \code{y}.
+
+You can now restart the build of the kernel:
 
 \begin{verbatim}
 make
@@ -268,39 +339,6 @@ make
 
 It should hopefully end successfully, and if you look closely at the
 build log, you should see the file \code{wiichuck.c} being compiled.
-
-However, the change of the configuration has only been made in the
-build directory of the Linux kernel, which gets removed when you do a
-\code{make clean}. Since we want to make this configuration
-persistent, we have to do a few more steps.
-
-Then you can actually save your kernel configuration to a custom file:
-
-\begin{enumerate}
-
-\item Run Buildroot \code{menuconfig}
-
-\item In the \code{Kernel} menu, instead of \code{Using a defconfig},
-  chose \code{Using a custom config file}. This will allow us to use
-  our own custom kernel configuration file, instead of a pre-defined
-  {\em defconfig} that comes with the kernel sources.
-
-\item In the \code{Configuration file path}, enter
-  \code{board/felabs/beagleboneblack/linux.config}.
-
-\item Exit \code{menuconfig}
-
-\item Run \code{make linux-update-defconfig}. This will generate the
-  configuration file in
-  \code{board/felabs/beagleboneblack/linux.config}. It will be a {\em
-    minimal} configuration file (i.e a {\em defconfig}). In this file,
-  verify that the option \kconfig{CONFIG_JOYSTICK_WIICHUCK} is properly
-  set to \code{y}.
-
-\end{enumerate}
-
-Congratulations, your kernel configuration is now customized, and will
-be re-used for the next builds!
 
 \section{Connect the Wii Nunchuk}
 
