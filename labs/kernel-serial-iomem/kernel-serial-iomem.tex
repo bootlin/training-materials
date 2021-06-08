@@ -114,10 +114,10 @@ automatically taken care of when we use the \code{devm_} functions.
 So, add the below line to your code:
 
 \begin{verbatim}
-struct serial_dev *dev;
+struct serial_dev *serial;
 ...
-dev = devm_kzalloc(&pdev->dev, sizeof(struct serial_dev), GFP_KERNEL);
-if (!dev)
+serial = devm_kzalloc(&pdev->dev, sizeof(struct serial_dev), GFP_KERNEL);
+if (!serial)
         return -ENOMEM;
 \end{verbatim}
 
@@ -127,9 +127,9 @@ You can now get a virtual address for your device's base physical
 address, by calling:
 
 \begin{verbatim}
-dev->regs = devm_platform_ioremap_resource(pdev, 0);
-if (IS_ERR(dev->regs))
-        return PTR_ERR(dev->regs);
+serial->regs = devm_platform_ioremap_resource(pdev, 0);
+if (IS_ERR(serial->regs))
+        return PTR_ERR(serial->regs);
 \end{verbatim}
 
 What's nice is that you won't ever have to release this resource,
@@ -147,8 +147,8 @@ devices. Of course, this will be done in the \code{probe()} routine.
 \subsection{Accessing device registers}
 
 As we will have multiple registers to read, create a \code{reg_read()}
-routine, returning an \code{unsigned int} value, and taking a \code{dev}
-pointer to a \code{serial_dev} structure and an \code{int} register
+routine, returning an \code{unsigned int} value, and taking a
+\code{serial} pointer to a \code{serial_dev} structure and an \code{int} register
 offset.
 
 Your prototype should look like:
