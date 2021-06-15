@@ -5,7 +5,6 @@ YOCTO_SLIDES    = \
 		yocto-shopping-list \
 		beagleboneblack-board \
 		discovery-board-dk1 \
-		yocto-course-outline \
 		course-information \
 		setup-lab \
 		buildroot-yocto-introduction \
