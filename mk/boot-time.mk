@@ -22,6 +22,8 @@ BOOT_TIME_SLIDES = \
 		boot-time-init-scripts3 \
 		boot-time-kernel \
 		boot-time-bootloader \
+		boot-time-u-boot-falcon-mode \
+		boot-time-bootloader-lab \
 		boot-time-hardware-init \
 		boot-time-conclusions \
 		boot-time-references \
