@@ -55,6 +55,7 @@
 \frametitle{Time measurement equipment: serial port}
 \begin{columns}
 \column{0.75\textwidth}
+\small
 \begin{itemize}
 \item Useful when you don't have monitoring hardware, or don't want to make
       take any risk connecting wires to the hardware.
@@ -63,31 +64,19 @@
       runs on a PC connected to the serial port.
 \item On the board, requires a real serial port (directly connected to the CPU),
       immediately usable from the earliest parts of the boot process.
+      Attaching a USB-to-serial dongle to a USB {\bf host} port on
+      the device won't do: USB is available much later and messages
+      go through more complex software stacks (loss of time accuracy).
 \item Limitation: won't be able to time the "Power on" event in
       an accurate way. But acceptable as you can assume that
       the time to run the first stage bootloader is constant.
 \end{itemize}
 \column{0.25\textwidth}
 % From https://openclipart.org/detail/173570/serial-db9-female-by-deusinvictus-173570
-\includegraphics[width=\textwidth]{slides/boot-time-measuring/serial_db9_female.pdf}
-\end{columns}
-\end{frame}
-
-\begin{frame}
-\frametitle{Time measurement equipment: USB to serial}
-\begin{columns}
-    \column{0.65\textwidth}
-	\begin{itemize}
-	\item Serial ports over USB {\bf device} are fine if there's an on-board
-	      serial-to-USB chip directly connected to the CPU serial port (very frequent).
-	\item Attaching a USB-to-serial dongle to a USB {\bf host} port on
-	      the device won't do: USB is available much later and messages
-	      go through more complex software stacks (loss of time accuracy).
-	\item All development boards have a standard or USB serial port.
-	\end{itemize}
-    \column{0.35\textwidth}
-	% From https://openclipart.org/detail/135721/usb-cable-by-gsagri04
-	\includegraphics[width=\textwidth]{slides/boot-time-measuring/GS_USB_Cable.pdf}
+\includegraphics[width=\textwidth]{slides/boot-time-measuring/serial_db9_female.pdf}\\
+\vspace{1cm}
+% From https://openclipart.org/detail/135721/usb-cable-by-gsagri04
+\includegraphics[width=\textwidth]{slides/boot-time-measuring/GS_USB_Cable.pdf}
 \end{columns}
 \end{frame}
 
@@ -95,8 +84,8 @@
 \frametitle{grabserial}
 \url{https://elinux.org/Grabserial} (by Tim Bird)
 \begin{itemize}
-\item A Python script to add timestamps to messages coming from a
-	serial console.
+\item A Python script to add timestamps to messages received on a
+      serial console.
 \item Key advantage: starts counting very early (bootstrap and bootloader)
 \item Another advantage: no overhead on the target, because run on the host machine.
 \item Drawbacks: may not be precise enough. Can't measure power up time.
@@ -121,7 +110,8 @@ was received at that time.}
 \begin{itemize}
   \item You can interrupt \code{grabserial} manually (with
   \code{[Ctrl][c]}) when you have gone far enough.
-  \item The \code{-m} and \code{-q} options actually expect a regular expression.
+  \item The \code{-m} ({\bf m}atch start pattern) and \code{-q} ({\bf
+  q}uit pattern) options actually expect a regular expression.
   A normal string may not match in the middle of a line.
   \item Example: you may have to replace \code{-m "Starting kernel"} by
   \code{-m ".*Starting Kernel.*"}.
@@ -134,7 +124,9 @@ Later, we will see specific resources for measuring time
 \begin{itemize}
   \item \code{time} for measuring application time
   \item \code{strace} for application tracing
-  \item \code{bootchartd} for tracing the execution of system services
+  \item \code{bootchartd} for tracing the execution of system services.
+  \item More specifically, \code{systemd-analyze} if your system
+	is started with {\em Systemd}.
   \item \kconfig{CONFIG_PRINTK_TIME} and \code{initcall_debug} for
         tracing kernel code and functions.
 \end{itemize}
