@@ -108,11 +108,13 @@ How fast would we be if we could be the first started application?
 	\item Start all your services directly from a single startup
 	      script (e.g. \code{/etc/init.d/rcS}). This eliminates multiple
 	      calls to \code{/bin/sh}.
+	\item An easier to maintain solution allowing to keep subscripts: \code{source} them\\
+              (\code{.} command) if possible. This won't spawn new shell processes.
 	\item You could mount your filesystems directly in the C code
 	      of your application:
 \end{itemize}
 \begin{block}{}
-\begin{minted}{c}
+\begin{minted}[fontsize=\small]{c}
 #include <stdio.h>
 #include <sys/mount.h>
 
@@ -132,10 +134,9 @@ int main (void)
 \begin{itemize}
 \item \code{fork}/\code{exec} system calls are very expensive.
       Because of this, calls to executables from shells are slow.
-\item Even an \code{echo} in a BusyBox shell results in a \code{fork}
-syscall!
-\item Select \code{Shells -> Standalone shell} in BusyBox
-      configuration to make the shell call applets whenever possible.
+\item Try to use shell built-ins whenever possible. For example in
+      BusyBox, you can use \code{echo}, \code{test}, \code{printf}
+      and others as shell built-ins.
 \item Pipes and back-quotes are also implemented by
       \code{fork}/\code{exec}.  You can reduce their usage in
       scripts. Example:
@@ -212,13 +213,11 @@ You may try \code{mklibs}, available at \url{https://packages.debian.org/sid/mkl
 \frametitle{Quick splashscreen display (1)}
 Often the first sign of life that you are showing!
 \begin{itemize}
-\item You could use the \code{fbv} program
-      (\url{http://freshmeat.sourceforge.net/projects/fbv})\\
-      to display your splashscreen.
-\item On \code{armel}, you can just use our statically compiled
-      binary:\\
-\url{https://github.com/bootlin/static-binaries/tree/master/fbv/}
-\item However, this is slow:\\
+\item A good solution seems to be BusyBox \code{fbsplash}:\\
+      See \projfile{busybox}{miscutils/fbsplash.c} in BusyBox sources.
+\item Alternative: \code{fbv}\\
+      \url{http://s-tech.elsat.net.pl/fbv/}
+\item However, \code{fbv} is slow:\\
       878 ms on an Microchip AT91SAM9263 system!
 \end{itemize}
 \end{frame}
@@ -247,7 +246,9 @@ Time & 878 ms & 54 ms & 52.5 ms\\
 \end{tabular}
 \vfill
 \footnotesize
-\url{https://bootlin.com/blog/super-fast-linux-splashscreen/}
+\url{https://bootlin.com/blog/super-fast-linux-splashscreen/} \\
+Note: {\em LZO} compression is the fastest in terms of
+decompression, and is supported by BusyBox.
 \end{frame}
 
 \begin{frame}
@@ -257,7 +258,8 @@ and even create an animation!
 \begin{itemize}
 \item Create a simple C program that just animates pixels and simple
       geometric shapes on the framebuffer!
-\item Example: {\small \url{https://bootlin.com/pub/code/fb/anim.c}}.
+\item Example: {\small \url{https://bootlin.com/pub/code/fb/anim.c}}
+      (Public Domain license).\\
       On a 400 MHz ARM9 system: starts drawing in 10 ms \\
       Size: 24 KB, compiled statically.
 \end{itemize}
@@ -269,8 +271,6 @@ and even create an animation!
 {
 \begin{itemize}
 \item Regenerate the root filesystem with Buildroot
-\item Use bootchart to measure boot time
+\item Use bootchartd to measure boot time
 \end{itemize}
 }
-
-
