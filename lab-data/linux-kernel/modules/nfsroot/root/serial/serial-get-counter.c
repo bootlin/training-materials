@@ -4,6 +4,8 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <stdlib.h>
+#include <string.h>
+#include <errno.h>
 
 #define SERIAL_RESET_COUNTER 0
 #define SERIAL_GET_COUNTER 1
@@ -20,13 +22,15 @@ int main(int argc, char *argv[])
 
 	fd = open(argv[1], O_RDWR);
 	if (fd < 0) {
-		fprintf(stderr, "Unable to open %s\n", argv[1]);
+		fprintf(stderr, "Unable to open %s: %s\n", argv[1],
+			strerror(errno));
 		exit(1);
 	}
 
 	ret = ioctl(fd, SERIAL_GET_COUNTER, &val);
 	if (ret < 0) {
-		fprintf(stderr, "Unable to get counter\n");
+		fprintf(stderr, "Unable to get counter: %s\n",
+			strerror(errno));
 		exit(1);
 	}
 
