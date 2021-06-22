@@ -131,11 +131,11 @@ Now, what happens in our \code{read()} function if no character is
 available for reading (i.e, if \code{buf_wr} is equal to
 \code{buf_rd})? We should put the process to sleep!
 
-To do so, add a wait queue to our \code{serial_dev} structure,
-named for example \code{serial_wait}. In the \code{read()} function,
-keep things simple by directly using \kfunc{wait_event_interruptible}
-right from the start, to wait until \code{buf_wr}
-is different from \code{buf_rd}\footnote{A single test in the
+To do so, add a \code{wait_queue_head_t} wait queue to our
+\code{serial_dev} structure, named for example \code{wait}. In the
+\code{read()} function, keep things simple by directly using
+\kfunc{wait_event_interruptible} right from the start, to wait until
+\code{buf_wr} is different from \code{buf_rd}\footnote{A single test in the
 \kfunc{wait_event_interruptible} function is sufficient. If the
 condition is met, you don't go to sleep and read one character right away.
 Otherwise, when you wake up, you can proceed to the reading part.}.
