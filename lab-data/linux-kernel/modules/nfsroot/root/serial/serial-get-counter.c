@@ -10,26 +10,26 @@
 
 int main(int argc, char *argv[])
 {
-    unsigned int val;
-    int fd, ret;
+	unsigned int val;
+	int fd, ret;
 
-    if (argc != 2) {
-	fprintf(stderr, "Usage: %s /dev/UART\n", argv[0]);
-	exit (1);
-    }
+	if (argc != 2) {
+		fprintf(stderr, "Usage: %s /dev/UART\n", argv[0]);
+		exit(1);
+	}
 
-    fd = open(argv[1], O_RDWR);
-    if (fd < 0) {
-	fprintf(stderr, "Unable to open %s\n", argv[1]);
-        exit (1);
-    }
+	fd = open(argv[1], O_RDWR);
+	if (fd < 0) {
+		fprintf(stderr, "Unable to open %s\n", argv[1]);
+		exit(1);
+	}
 
-    ret = ioctl(fd, SERIAL_GET_COUNTER, & val);
-    if (ret < 0) {
-        fprintf(stderr, "Unable to get counter\n");
-        exit (1);
-    }
+	ret = ioctl(fd, SERIAL_GET_COUNTER, &val);
+	if (ret < 0) {
+		fprintf(stderr, "Unable to get counter\n");
+		exit(1);
+	}
 
-    printf("Counter value: %d\n", val);
-    return 0;
+	printf("Counter value: %d\n", val);
+	return 0;
 }
