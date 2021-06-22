@@ -209,3 +209,31 @@ From \kfile{char/tpm/tpm_ibmvtpm.c}
     \end{itemize}
   \end{itemize}
 \end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Waiting when there is no interrupt}
+  \begin{itemize}
+  \item When there is no interrupt mechanism tied to a particular
+        hardware state, it is tempting to implement a custom busy-wait loop.
+    \begin{itemize}
+    \item Spoiler alert: this is highly discouraged!
+    \end{itemize}
+  \item For long lasting pauses, rely on helpers which leverage the
+    system clock
+    \begin{itemize}
+    \item \kfunc{wait_event} helpers are (also) very useful outside of
+      interruption situations
+    \item Release the CPU with \kfunc{schedule}
+    \end{itemize}
+  \item For shorter pauses, use helpers which implement software loops
+    \begin{itemize}
+    \item \kfunc{msleep}/\kfunc{msleep_interruptible} put the process
+      in sleep for a given amount of milliseconds
+    \item \kfunc{udelay}/\kfunc{udelay_range} waste CPU cycles in order
+      to save a couple of context switches for a sub-millisecond period
+    \item \kfunc{cpu_relax} does nothing, but may be used as a way to
+      not being optimized out by the compiler when busy looping for very
+      short periods
+    \end{itemize}
+  \end{itemize}
+\end{frame}
