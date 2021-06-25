@@ -137,89 +137,153 @@
 \begin{frame}[fragile]
   \frametitle{Crystalfontz CFA-10036 Device Tree, header}
   \begin{itemize}
+  \item SPDX license tag\\
   \item Mandatory Device Tree language definition\\
-    \begin{block}{} \mint[fontsize=\small]{perl}+/dts-v1/+ \end{block}
+    \begin{block}{} \mint[fontsize=\small]{perl}+/dts-v1/;+ \end{block}
   \item Include the \code{.dtsi} file describing the SoC\\
     \begin{block}{}
       \mint[fontsize=\small]{perl}+#include "imx28.dtsi"+
     \end{block}
-  \item Start the root of the tree\\
-    \begin{block}{} \mint[fontsize=\small]{perl}+/ {+ \end{block}
-  \item A human-readable string to describe the machine (shown at boot time)\\
-    \begin{block}{}
-      \mint[fontsize=\small]{perl}+model = "Crystalfontz CFA-10036 Board";+
-    \end{block}
-  \item A list of {\em compatible} strings, from the most specific one
-    to the most general one. Mandatory to execute the right SoC specific
-    initializations and board specific code.\\
-    \begin{block}{}
-      \mint[fontsize=\small]{perl}+compatible = "crystalfontz,cfa10036", "fsl,imx28";+
-    \end{block}
+  \item Start the root of the tree (named \code{/}) then describe the board
+    \begin{itemize}
+    \item A human-readable string to describe the machine (shown at boot time)\\
+      \begin{block}{}
+        \mint[fontsize=\small]{perl}+model = "Crystalfontz CFA-10036 Board";+
+      \end{block}
+    \item A list of {\em compatible} strings, from the most specific one
+      to the most general one. Mandatory to execute the right SoC specific
+      initializations and board specific code.\\
+      \begin{block}{}
+        \mint[fontsize=\small]{perl}+compatible = "crystalfontz,cfa10036", "fsl,imx28";+
+      \end{block}
+    \end{itemize}
   \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{Crystalfontz CFA-10036 Device Tree, chosen/memory}
+  \frametitle{Crystalfontz CFA-10036, backbone}
   \begin{itemize}
-  \item Definition of the default {\em kernel command line}. Some
-    additional operating-system specific entries can be added in
-    \code{chosen}:
+  \item Definition of the buses and peripherals
     \begin{block}{}
-    \begin{minted}[fontsize=\footnotesize]{perl}
-chosen {
-        bootargs = "console=ttyS0,115200 earlyprintk";
-};
-\end{minted}
-\end{block}
-\item Definition of the size and location of the RAM:
-  \begin{block}{}
-    \begin{minted}[fontsize=\footnotesize]{perl}
-memory {
+      \begin{minted}[fontsize=\small]{perl}
+/ {
+    /* Define here 'standalone' peripherals and internal buses */
+    memory {
         device_type = "memory";
         reg = <0x40000000 0x8000000>; /* 128 MB */
+    };
+    apb@80000000 {
+        apbh@80000000 {
+            /* Define apbh peripherals here */
+            apbx@80040000 {
+                /* Define apbx peripherals here */
+            };
+        };
+    };
 };
+/* Reference here existing nodes with their labels */
       \end{minted}
     \end{block}
   \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{Crystalfontz CFA-10036, bus/UART}
+  \frametitle{Crystalfontz CFA-10036 Device Tree, enable already
+    described devices}
   \begin{itemize}
-  \item Start of the internal SoC peripherals.
+  \item The CFA-10036 has one debug UART. It is described in the iMX28
+    DTSI file, so the corresponding controller should be referenced in
+    the board DTS and enabled:
     \begin{block}{}
-    \begin{minted}[fontsize=\small]{perl}
-apb@80000000 {
-    apbh@80000000 {
-        apbx@80040000 {
-\end{minted}
-\end{block}
-\item The CFA-10036 has one debug UART, so the corresponding
-  controller is enabled:
-  \begin{block}{}
-    \begin{minted}[fontsize=\small]{perl}
-duart: serial@80074000 {
+      \begin{minted}[fontsize=\small]{perl}
+&duart {
     pinctrl-names = "default";
     pinctrl-0 = <&duart_pins_b>;
     status = "okay";
 };
-    \end{minted}
-  \end{block}
-\end{itemize}
+      \end{minted}
+    \end{block}
+    \item It also features an USB port which is described in the SoC
+      DTSI but needs to be enabled:
+      \begin{block}{}
+        \begin{minted}[fontsize=\small]{perl}
+&usb0 {
+    pinctrl-names = "default";
+    pinctrl-0 = <&usb0_otg_cfa10036>;
+    status = "okay";
+};
+        \end{minted}
+      \end{block}
+  \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{Crystalfontz CFA-10036 Device Tree, Muxing}
-\begin{itemize}
+  \frametitle{Crystalfontz CFA-10036 Device Tree, fully describe
+    additional devices}
+  \begin{itemize}
+  \item The I2C bus with a Solomon SSD1306 OLED display connected on
+    it must be described entirely at the location where it belongs:
+    \begin{block}{}
+      \begin{minted}[fontsize=\tiny]{perl}
+apbc@80040000 {
+    i2c0: i2c@18000 { /* This means physical offset 0x80058000 */
+        reg = <0x18000 0x1000>;
+        pinctrl-names = "default";
+        pinctrl-0 = <&i2c0_pins_b>;
+        status = "okay";
+        clock-frequency = <400000>;
+
+        ssd1306: oled@3c {
+            compatible = "solomon,ssd1306fb-i2c";
+            pinctrl-names = "default";
+            pinctrl-0 = <&ssd1306_cfa10036>;
+            reg = <0x3c>;
+            reset-gpios = <&gpio2 7 0>;
+            solomon,height = <32>;
+            solomon,width = <128>;
+            solomon,page-offset = <0>;
+        };
+    };
+      \end{minted}
+    \end{block}
+  \item Mind the display's pin configuration that has not yet been
+    described
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Crystalfontz CFA-10036 Device Tree, LEDs}
+  \begin{itemize}
+  \item One LED is connected to this platform, let's describe it as well
+    \begin{block}{}
+      \begin{minted}[fontsize=\small]{perl}
+/ {
+    leds {
+        compatible = "gpio-leds";
+        pinctrl-names = "default";
+        pinctrl-0 = <&led_pins_cfa10036>;
+
+        power {
+            gpios = <&gpio3 4 1>;
+            default-state = "on";
+        };
+    };
+      \end{minted}
+    \end{block}
+  \item Also mind the pin configuration that we can define at any place
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Crystalfontz CFA-10036 Device Tree, muxing}
+  \begin{itemize}
   \item Definition of a few pins that will be muxed as GPIO, for LEDs and reset.
-  \begin{block}{}
-    \begin{minted}[fontsize=\tiny]{perl}
-pinctrl@80018000 {
+    \begin{block}{}
+      \begin{minted}[fontsize=\tiny]{perl}
+&pinctrl {
     ssd1306_cfa10036: ssd1306-10036@0 {
         reg = <0>;
-        fsl,pinmux-ids = <
-            0x2073 /* MX28_PAD_SSP0_D7__GPIO_2_7 */
-        >;
+        fsl,pinmux-ids = <0x2073>; /* MX28_PAD_SSP0_D7__GPIO_2_7 */
         fsl,drive-strength = <0>;
         fsl,voltage = <1>;
         fsl,pull-up = <0>;
@@ -227,92 +291,10 @@ pinctrl@80018000 {
 
     led_pins_cfa10036: leds-10036@0 {
         reg = <0>;
-        fsl,pinmux-ids = <
-            0x3043 /* MX28_PAD_AUART1_RX__GPIO_3_4 */
-        >;
+        fsl,pinmux-ids = <0x3043>; /* MX28_PAD_AUART1_RX__GPIO_3_4 */
         fsl,drive-strength = <0>;
         fsl,voltage = <1>;
         fsl,pull-up = <0>;
-    };
-};
-    \end{minted}
-  \end{block}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}[fragile]
-  \frametitle{Crystalfontz CFA-10036 Device Tree, LED}
-\begin{itemize}
-\item One LED is connected to this platform. Note the reference to the
-  \code{led_pins_cfa10036} muxing configuration.
-  \begin{block}{}
-    \begin{minted}[fontsize=\small]{perl}
-leds {
-    compatible = "gpio-leds";
-    pinctrl-names = "default";
-    pinctrl-0 = <&led_pins_cfa10036>;
-
-    power {
-        gpios = <&gpio3 4 1>;
-        default-state = "on";
-    };
-};
-    \end{minted}
-    \end{block}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}[fragile]
-  \frametitle{Crystalfontz CFA-10036 Device Tree, SD Card/USB}
-  \begin{itemize}
-  \item The platform also has a USB port
-    \begin{block}{}
-      \begin{minted}[fontsize=\small]{perl}
-usb0: usb@80080000 {
-    pinctrl-names = "default";
-    pinctrl-0 = <&usb0_otg_cfa10036>;
-    status = "okay";
-};
-      \end{minted}
-    \end{block}
-  \item and an SD Card slot:
-    \begin{block}{}
-      \begin{minted}[fontsize=\small]{perl}
-ssp0: ssp@80010000 {
-    compatible = "fsl,imx28-mmc";
-    pinctrl-names = "default";
-    pinctrl-0 = <&mmc0_4bit_pins_a
-                 &mmc0_cd_cfg &mmc0_sck_cfg>;
-    bus-width = <4>;
-    status = "okay";
-};
-    \end{minted}
-    \end{block}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}[fragile]
-  \frametitle{Crystalfontz CFA-10036 Device Tree, I2C bus}
-  \begin{itemize}
-  \item An I2C bus, with a Solomon SSD1306 OLED display connected on
-    it:
-    \begin{block}{}
-      \begin{minted}[fontsize=\tiny]{perl}
-i2c0: i2c@80058000 {
-    pinctrl-names = "default";
-    pinctrl-0 = <&i2c0_pins_b>;
-    clock-frequency = <400000>;
-    status = "okay";
-
-    ssd1306: oled@3c {
-        compatible = "solomon,ssd1306fb-i2c";
-        pinctrl-names = "default";
-        pinctrl-0 = <&ssd1306_cfa10036>;
-        reg = <0x3c>;
-        reset-gpios = <&gpio2 7 0>;
-        solomon,height = <32>;
-        solomon,width = <128>;
-        solomon,page-offset = <0>;
     };
 };
       \end{minted}
@@ -343,7 +325,8 @@ i2c0: i2c@80058000 {
     \kfile{arch/arm/boot/dts/Makefile}:
     \begin{block}{}
       \begin{minted}{make}
-dtb-$(CONFIG_ARCH_MXS) += imx28-cfa10036.dtb \
+dtb-$(CONFIG_ARCH_MXS) +=
+        imx28-cfa10036.dtb \
         imx28-cfa10037.dtb \
         imx28-cfa10049.dtb \
         imx28-cfa10055.dtb \
