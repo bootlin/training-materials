@@ -1,5 +1,4 @@
 /* Configure the baud rate to 115200 */
-
 ret = of_property_read_u32(pdev->dev.of_node, "clock-frequency",
 			   &uartclk);
 if (ret) {
