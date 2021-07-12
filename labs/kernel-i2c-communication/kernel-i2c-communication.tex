@@ -267,10 +267,14 @@ errors.
 
 \section{Read nunchuk registers}
 
-The nunchuk exhibits a rather weird behavior: it seems that it updates
-the state of its internal registers only when they have been read.
+As the nunchuk does not feature any type of external signaling nor any
+internal bit to advertize a possible end-of-conversion status, the user
+is required to regularly poll the registers, each read triggering the
+next conversion. This leads to a specific situation: the first read
+triggers the first conversion but returns some data which can be
+considered garbage and safely discarded.
 
-As a consequence, we will need to read the registers twice!
+As a consequence, we will need to read the registers twice the first time!
 
 To keep the code simple and readable, let's create a
 \code{nunchuk_read_registers()} function to read the registers once.
