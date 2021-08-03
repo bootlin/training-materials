@@ -14,3 +14,4 @@ reg_write(serial, UART_LCR_DLAB, UART_LCR);
 reg_write(serial, baud_divisor & 0xff, UART_DLL);
 reg_write(serial, (baud_divisor >> 8) & 0xff, UART_DLM);
 reg_write(serial, UART_LCR_WLEN8, UART_LCR);
+reg_write(serial, 0x00, UART_OMAP_MDR1);
