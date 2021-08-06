@@ -1,0 +1,170 @@
+\section{Configuring the system}
+
+\begin{frame}
+	\frametitle{Configuration}
+	\begin{itemize}
+		\item The Linux Kernel has a lot of available configurations
+		\item Some are dedicated to performances
+			\begin{itemize}
+				\item Focus on improving the most-likely scenario
+				\item Have the best average performances
+				\item Optimize throughput and low-latency
+				\item Usually have a slow-path, which is non-deterministic
+			\end{itemize}
+		\item Some are dedicated to security and hardening
+		\item Some can be useful for Deterministic Behaviour
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+	\frametitle{CPU Pinning}
+	\begin{itemize}
+		\item The Linux Kernel Scheduler allows setting constraints about the CPU cores that are allowed
+			to run each task
+		\item This can be useful for lots of purposes :
+			\begin{itemize}
+				\item Make sure that a process won't be migrated to another core
+				\item Dedicate cores for specific tasks
+				\item Optimize the data-path if a process deals with data handled by a specific CPU core
+				\item Ease the job of the scheduler's CPU load-balancer, whose complexity grows non-linearly with the number of CPUs
+			\end{itemize}
+		\item This mechanism is called te \code{cpu affinity} of a process
+		\item The \code{cpuset} subsystem and the \code{sched_setaffinity} syscall are used to select the CPUs
+		\item Use \code{taskset -p <mask> <cmd>} to start a new process on the given CPUs
+	\end{itemize}
+\end{frame}
+
+% isolcpus
+\begin{frame}
+	\frametitle{CPU Isolation}
+	\begin{itemize}
+		\item Users can pin processes to CPU cores through the cpu affinity mechanism
+		\item But the kernel might also schedule other processes on these CPUs
+		\item \code{isolcpus} can be passed on the kernel commandline
+		\item Isolated CPUs will not be used by the scheduler
+		\item The only way to run processes on these CPUs is with cpu affinity
+		\item Very useful when RT processes coexist with non-RT processes
+	\end{itemize}
+	\code{isolcpus=0,2,3}
+\end{frame}
+
+% irq assignment
+\begin{frame}
+	\frametitle{IRQ affinity}
+	\begin{itemize}
+		\item Interrupts are handled by a specific CPU core
+		\item The default CPU that handles interrupts is the CPU 0
+		\item On Multi-CPU systems, it can be good to balance interrupt handling between CPUs
+		\item Similarly, we might also want to prevent CPUs from handling external interrupts
+		\item IRQs can be pinned to CPUs by tweaking \code{/proc/irq/XX/smp_affinity}
+		\item The \code{irqbalance} tool monitors and distributes the irq affinty to spread the load across CPUs
+		\item Use the \code{IRQBALANCE_BANNED_CPUS} environment variable to make \code{irqbalance} ignore some CPUs
+	\end{itemize}
+\end{frame}
+
+% scheduling classes
+\begin{frame}
+	\frametitle{The Linux Kernel Scheduler}
+	\begin{itemize}
+		\item The Linux Kernel Scheduler is a key piece in having a real-time behaviour
+		\item It is in charge of deciding which \textbf{runnable} task gets executed
+		\item It also elects on which CPU the task runs, and it tightly coupled to CPUidle and CPUFreq
+		\item It schedules both \textbf{userspace} tasks, but also \textbf{kernel} tasks
+		\item Each task is assigned one \textbf{scheduling class} or \textbf{policy}
+		\item The class determines the algorithm used to elect each task
+		\item Tasks with different scheduling classes can coexist on the system
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Non-Realtime Scheduling Classes}
+	\begin{itemize}
+		\item There are 3 \textbf{Non-RealTime} classes
+		\item SCHED\_OTHER : The default policy, using a time-sharing algorithm
+		\item SCHED\_BATCH : Similar to SCHED\_OTHER, but designed for CPU-intensive loads that affects the wakeup time
+		\item SCHED\_IDLE : Very low priority class. Tasks with this policy will run only if nothing else needs to run.
+		\item SCHED\_OTHER and SCHED\_BATCH use the \textbf{nice} value to increase or decrease their scheduling frequency
+		\item A higher nice value means that the tasks gets scheduled \textbf{less} often
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Realtime Scheduling Classes}
+	\begin{itemize}
+		\item There are 3 \textbf{Realtime} classes
+		\item Tasks under a Realtime class can be assigned a priority between 0 and 98
+		\item priority 99 is \textbf{reserved} for critical housekeeping tasks
+		\item Runnable tasks will preempt any other lower-priority task
+		\item SCHED\_FIFO : All tasks with the same priority are scheduled \textbf{First in, First out}
+		\item SCHED\_RR : Similar to SCHED\_FIFO but with a time-sharing round-robin between tasks with the same priority
+		\item SCHED\_DEADLINE : For tasks doing recurrent jobs, extra attributes are attached to a task
+			\begin{itemize}
+				\item A computation time, which represents the time the tasks needs to complete a job
+				\item A deadline, which is the maximum allowable time to compute the job
+				\item A period, during which only one job can occur
+			\end{itemize}
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Changing the Scheduling Class}
+	\begin{itemize}
+		\item The Scheduling Class is set per-task, and defaults to SCHED\_OTHER
+		\item The \code{sched_setscheduler} syscall allows changing the class of a task
+		\item The tool \code{chrt} uses it to allow changing the class of a running task :
+			\begin{itemize}
+				\item \code{chrt -f/-b/-o/-r -p PRIO PID}
+			\end{itemize}
+		\item It can also be used to launch a new program with a dedicated class :
+			\begin{itemize}
+				\item \code{chrt -f/-b/-o/-r PRIO CMD}
+			\end{itemize}
+		\item New processes will inherit the class of their parent except if the \code{SCHED_RESET_ON_FORK} flag is set with \code{sched_setscheduler}
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Realtime policies and CPU hogging}
+	\begin{itemize}
+		\item A bug or an infinite loop in a high-priority realtime task will cause the system to become unresponsive
+		\item This can be prevented by creating an emergency shell with a higher priority to kill the faulty programs
+		\item The Kernel also provides a mechanism to make sure non-RT tasks get to run at one point
+		\item \code{/proc/sys/kernel/sched_rt_period_us} defines a window in microseconds that the scheduler will share between RT and non-RT tasks
+		\item \code{/proc/sys/kernel/sched_rt_runtime_us} defines how-much of that window is going to be dedicated to RT tasks.
+		\item The default values allocates 95\% of the CPU time to RT tasks
+	\end{itemize}
+\end{frame}
+
+% System ticks and NOHZ
+\begin{frame}
+	\frametitle{System timer}
+	\begin{itemize}
+		\item The Scheduler is invoked on a regular basis to perform time-sharing activities
+		\item This is sequenced through the \textbf{system ticks}, generated by a high resolution timer
+		\item Typically run at 1KHz, but can be configured
+		\item Several policies regarding system ticks are available :
+		\item \code{CONFIG_HZ_PERIODIC} : Always tick at a given rate. This can introduce small latencies but keep the system responsive.
+		\item \code{CONFIG_NO_HZ_IDLE} : Disable the tick when idle, for powersasving
+		\item \code{CONFIG_NO_HZ_FULL} : Actively disables ticking even when not idle. Introduces long latencies during context switches.
+	\end{itemize}
+\end{frame}
+
+% Memory management and allocators
+
+% Writing a driver
+\begin{frame}
+		\frametitle{Writing a driver}
+A few consideration can be taken when writing a driver
+		\begin{itemize}
+			\item Avoid using \code{raw_spinlock_t} unless really necessary
+			\item Avoid forcing non-threaded interrupts, unless writing a driver involved in interrupt dispatch
+				\begin{itemize}
+					\item irqchip, gpio-irq drivers
+					\item cpufreq and cpuidle drivers due to scheduler interaction
+				\end{itemize}
+			\item Beware of DMA bus mastering and other serialized IO buffering
+				\begin{itemize}
+					\item Certain register writes are buffered until the next register read
+				\end{itemize}
+		\end{itemize}
+\end{frame}

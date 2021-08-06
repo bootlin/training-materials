@@ -1,0 +1,43 @@
+\subchapter{Lab3: Optimizing an application for Real-Time}{}
+
+During this lab, you will:
+\begin{itemize}
+  \item Analyse the source code of an application
+  \item Find ways to improve the maximum latency
+  \item Trace the program's execution using perf
+\end{itemize}
+
+\section{Compile and run the program}
+
+In the \code{bootlin-labs-data} folder, you'll find a C program called \code{test_counter.c}
+This program's goal is to count rising edges on a GPIO input pin.
+
+The program stores the timestamp for each edge, ans stores it into a buffer.
+
+Your goal is to implement the logic to compute the maximum latency during the
+program's execution, and to try to improve it by following the best practises.
+
+Using a signal generator, send a 10KHz square signal on pin 28 on connector 9.
+
+Alternatively, apply the patch 0001-enable-spidev.patch file on your devicetree
+to have the /dev/spidev0.0 device available, and use it to send pulses onto the
+pin 28.
+
+\subsection{Program configuration}
+
+Pay attention to the initialization sequence for the program, and make sure you
+use the right memory-management practises.
+
+The program will run by default in \code{SCHED_OTHER}. Make sure that the scheduling
+algorithm used is the right one.
+
+Make sure that the timestamps are gathered using the right clock.
+
+\subsection{Benchmarking}
+
+Using \code{perf}, try to analyse the program. What can you say about the number
+of pagefaults and their occurence ?
+
+The GPIO controller on the beaglebone uses edge-triggered interrupts for event
+reporting. Make sure these interrupts have the right priority.
+

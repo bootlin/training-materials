@@ -1,0 +1,233 @@
+\section{Application development}
+
+\begin{frame}
+\frametitle{Real-time application development}
+	\begin{itemize}
+		\item A few best-practices should be followed when developping a real-time application
+		\item Some POSIX APIs weren't designed with RT behaviour in mind
+		\item Some syscalls and memory-access patterns will lead to kernel-side latencies
+		\item Following the good practises is important
+		\item but benchmarking the application is also crucial
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Initialization}
+	\begin{itemize}
+		\item Usually, the initialisation section of the application doesn't need to be RT
+		\item This init section will configure various settings :
+			\begin{itemize}
+				\item Allocate and lock the memory
+				\item Start the threads and configure them
+				\item Initialize the locks
+				\item Configure the scheduling parameters (priority, deadlines)
+				\item Configure the CPU affinity
+			\end{itemize}
+
+	\end{itemize}
+\end{frame}
+
+%%%%%%%%%
+\begin{frame}
+  \frametitle{Development and compilation}
+  \begin{itemize}
+  \item No special library is needed, the POSIX real-time API is part
+    of the standard C library
+  \item The glibc C library is recommended, as support
+    for some real-time features is not mature in other C libraries
+    \begin{itemize}
+    \item Priority inheritance mutexes or NPTL on some architectures,
+      for example
+    \end{itemize}
+  \item Compile a program
+    \begin{itemize}
+    \item \code{ARCH-linux-gcc -o myprog myprog.c -lrt}
+    \end{itemize}
+  \item To get the documentation of the POSIX API
+    \begin{itemize}
+    \item Install the \code{manpages-posix-dev} package
+    \item Run \code{man function-name}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Process, thread?}
+  \begin{itemize}
+  \item Confusion about the terms {\em process}, {\em thread} and {\em task}
+  \item In UNIX, a process is created using \code{fork()} and is composed of
+    \begin{itemize}
+    \item An address space, which contains the program code, data, stack, shared
+      libraries, etc.
+    \item One thread, that starts executing the \code{main()} function.
+    \item Upon creation, a process contains one thread
+    \end{itemize}
+  \item Additional threads can be created inside an existing process, using
+    \code{pthread_create()}
+    \begin{itemize}
+    \item They run in the same address space as the initial thread of
+      the process
+    \item They start executing a function passed as argument to
+      \code{pthread_create()}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Process, thread: kernel point of view}
+  \begin{itemize}
+  \item The kernel represents each thread running in the system by
+    a \kstruct{task_struct} structure.
+  \item From a scheduling point of view, it makes no difference
+    between the initial thread of a process and all additional threads
+    created dynamically using \code{pthread_create()}
+  \end{itemize}
+  \begin{center}
+    \includegraphics[width=0.8\textwidth]{slides/realtime-linux-application-development/thread-vs-process.pdf}
+  \end{center}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Creating threads}
+  \begin{itemize}
+  \item Linux supports the POSIX thread API
+  \item To create a new thread
+    \begin{block}{}
+\small
+\begin{verbatim}
+pthread_create(pthread_t *thread, pthread_attr_t *attr,
+               void *(*routine)(void*), void *arg);
+\end{verbatim}
+\normalsize
+    \end{block}
+  \item The new thread will run in the same address space, but will be
+    scheduled independently
+  \item Exiting from a thread
+    \begin{block}{}
+\small
+\begin{verbatim}
+pthread_exit(void *value_ptr);
+\end{verbatim}
+\normalsize
+    \end{block}
+  \item Waiting for the termination of a thread
+    \begin{block}{}
+\small
+\begin{verbatim}
+pthread_join(pthread_t *thread, void **value_ptr);
+\end{verbatim}
+\normalsize
+    \end{block}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Using scheduling classes (1)}
+  \begin{itemize}
+  \item An existing program can be started in a specific scheduling
+    class with a specific priority using the \code{chrt} command line tool
+    \begin{itemize}
+    \item Example: \code{chrt -f 99 ./myprog} \\
+        \code{-f}: \ksym{SCHED_FIFO}\\
+	\code{-r}: \ksym{SCHED_RR}\\
+	\code{-d}: \ksym{SCHED_DEADLINE}
+    \end{itemize}
+  \item The \code{sched_setscheduler()} API can be used to change the scheduling class
+    and priority of a threads
+    \begin{block}{}
+\begin{verbatim}
+int sched_setscheduler(pid_t pid, int policy,
+                const struct sched_param *param);
+\end{verbatim}
+    \end{block}{}
+    \begin{itemize}
+    \item \code{policy} can be \code{SCHED_OTHER}, \ksym{SCHED_FIFO},
+      \ksym{SCHED_RR}, \ksym{SCHED_DEADLINE}, etc. (others exist).
+    \item \code{param} is a structure containing the priority
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Using scheduling classes (2)}
+  \begin{itemize}
+  \item The priority can be set on a per-thread basis when a thread is
+    created
+    \begin{block}{}
+\footnotesize
+\begin{verbatim}
+struct sched_param parm;
+pthread_attr_t attr;
+
+pthread_attr_init(&attr);
+pthread_attr_setinheritsched(&attr, PTHREAD_EXPLICIT_SCHED);
+pthread_attr_setschedpolicy(&attr, SCHED_FIFO);
+parm.sched_priority = 42;
+pthread_attr_setschedparam(&attr, &parm);
+\end{verbatim}
+\normalsize
+    \end{block}
+  \item Then the thread can be created using \code{pthread_create()},
+    passing the \code{attr} structure.
+  \item Several other attributes can be defined this way: stack size,
+    etc.
+  \end{itemize}
+\end{frame}
+
+
+%%%%%%%%%
+
+\begin{frame}
+	\frametitle{Memory management}
+	\begin{itemize}
+		\item When asking the Kernel to allocate some memory, a virtual address range is given to the application
+		\item This virtual range is mapped to a physical memory range \textbf{upon accessing it}
+		\item This will introduce a \textbf{page fault} latency for the application
+		\item All memory should be \textbf{locked} and \textbf{accessed} at application initialization
+		\item Accessing memory at init is called \textbf{prefaulting} the memory
+		\item This concerns the heap memory, but also the stack
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Memory management}
+	\begin{itemize}
+		\item Call \code{mlockall()} at init to lock all memory regions
+		\item Allocate all memory and acces it at initialization
+		\item Don't call \code{fork()}, since the child will copy-on-write pages
+		\item Avoid using mmap'd memory, since ranges aren't reused after free
+		\item malloc's behaviour can be tuned not to use mmap : \code{mallopt(M_MMAP_MAX, 0)}
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Locking}
+	\begin{itemize}
+		\item When creating multi-threaded applications, use \code{pthread\_mutex}
+		\item Avoid using semaphores, which don't have an owner
+		\item These are POSIX mutexes, which have a notion of \textbf{ownership}
+		\item Ownership allows to handle \textbf{Priority Inheritance} (PI)
+		\item PI needs to be explicitely enabled : \code{pthread_mutexattr_setprotocol(&mattr, PTHREAD_PRIO_INHERIT);}
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Synchronizing and signaling}
+	\begin{itemize}
+		\item Application might need to wait or react to external events
+		\item Inter-thread signaling should be done with \code{pthread_cond_wait()}
+		\item Conditions can be attached to mutexes
+		\item Avoid using UNIX Signals
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+	\frametitle{timekeeping}
+	\begin{itemize}
+		\item Usually, real-time applications will need timing information
+		\item This can be done by using \code{clock_gettime(clk_id, &ts)}
+		\item Although counter-intuitive, don't use the \code{CLOCK_REALTIME} clock id
+		\item \code{CLOCK_REALTIME} gives the current time, which can be adjusted and is non-consistent
+		\item instead, use \code{CLOCK_MONOTONIC} which is never adjusted and strictly increasing
+	\end{itemize}
+\end{frame}

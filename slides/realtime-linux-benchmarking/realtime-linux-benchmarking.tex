@@ -1,0 +1,197 @@
+\section{Testing and Benchmarking}
+
+\begin{frame}
+	\frametitle{Benchmarking vs Testing}
+	\begin{itemize}
+		\item \textbf{Benchmarking} will give you system-wide metrics for :
+			\begin{itemize}
+				\item Your hardware platform
+				\item Your Kernel configuration
+				\item Your Non-critical userspace stack
+			\end{itemize}
+		\item \textbf{Testing} will ensure that your business application behaves correctly
+		\item Stressing tools used for benchmarking can also be used for testing
+		\item It's important to always consider the \textbf{Worst Case Scenario}
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{ftrace - Kernel function tracer}
+
+  Infrastructure that can be used for debugging or analyzing latencies
+  and performance issues in the kernel.
+
+  \begin{itemize}
+  \item Very well documented in \kdochtml{trace/ftrace}
+  \item Negligible overhead when tracing is not enabled at run-time.
+  \item Can be used to trace any kernel function!
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Using ftrace}
+  \begin{itemize}
+  \item Tracing information available through the \code{tracefs} virtual fs
+  \item Mount this filesystem as follows:\\
+    \code{mount -t tracefs nodev /sys/kernel/tracing}
+  \item Check available tracers in
+    \code{/sys/kernel/tracing/available_tracers}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Scheduling latency tracer}
+  \fontsize{9}{9}\selectfont
+  \kconfig{CONFIG_SCHED_TRACER} ({\em Kernel Hacking} section)
+  \begin{itemize}
+  \item Maximum recorded time between waking up a top priority task
+    and its scheduling on a CPU, expressed in us.
+  \item Check that \code{wakeup} is listed in
+    \code{/sys/kernel/tracing/available_tracers}
+  \item To select, reset and enable this tracer:
+    \begin{block}{}
+\begin{verbatim}
+echo wakeup > /sys/kernel/tracing/current_tracer
+echo 0 > /sys/kernel/tracing/tracing_max_latency
+echo 1 > /sys/kernel/tracing/tracing_enabled
+\end{verbatim}
+    \end{block}
+  \item Let your system run, in particular real-time tasks.\\
+    Dummy example: \code{chrt -f 5 sleep 1}
+  \item Disable tracing:\\
+    \begin{block}{}
+\begin{verbatim}
+echo 0 > /sys/kernel/tracing/tracing_enabled
+\end{verbatim}
+    \end{block}{}
+  \item Read the maximum recorded latency and the corresponding trace:\\
+    \begin{block}{}
+\begin{verbatim}
+cat /sys/kernel/tracing/tracing_max_latency
+\end{verbatim}
+    \end{block}{}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+	\frametitle{kernelshark}
+	\begin{itemize}
+		\item Kernelshark is a graphical interface for processing ftrace reports
+		\item It's better used with \code{trace-cmd}, an interface to ftrace
+		\item Useful when a deep analysis is required for a specific bug 
+		\item \code{trace-cmd list}
+		\item \code{trace-cmd record -e <event> [<command>]}
+		\item \code{kernelshark}
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+	\frametitle{hwlatdetect}
+	Tool provided by \code{rt-tests}, relying on a dedicated kernel feature
+	\begin{itemize}
+		\item Allows detecting NMIs, that the kernel is normally unaware of
+		\item Runs a loop on all CPU cores with local interrupts disabled
+		\item Only NMIs can interrupt the loop
+		\item Samples a high precision timer and looks for large latencies
+		\item Useful to benchmark and validate a hardware platform
+		\item Must \textbf{not} be used in production environment, introduces huge latencies
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+	\frametitle{cyclictest}
+	\begin{itemize}
+		\item Tool that tests the System and Kernel Latencies
+		\item provided by the \code{rt-test} suite
+		\item Schedules timer events and compares the expected and actual wakeup time
+		\item Measures the kernel-induced latencies, but also hardware-induced latencies
+		\item Can create graphs, and be used with tracing subsystems
+		\item Best used in conjunction with various stressing workloads
+		\item Should be run for long amounts of time
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+	\frametitle{hackbench}
+	Stress and benchmark the Linux Kernel Scheduler
+	\begin{itemize}
+		\item Stresses the scheduler by creating lots of processes of threads
+		\item They communicate with each-other through sockets or pipes
+		\item This generates lots of context switches and scheduling events
+		\item Useful to check how a RT program behaves when heavy workloads run in parallel
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+	\frametitle{stress-ng}
+	Very feature-full stressing utility, with more than 260 stressors
+	\begin{itemize}
+		\item Can stress very specific aspects of the sytem :
+			\begin{itemize}
+				\item Specific syscalls
+				\item CPU instructions and computations
+				\item Caches, Memory access, Page-faults
+				\item Network and Filesytem stacks
+			\end{itemize}
+		\item Very useful to accurately simulate known workloads
+	\end{itemize}
+\end{frame}
+
+\subsection{Benchmarking an application}
+\begin{frame}
+	\frametitle{strace}
+	strace is a userspace tool that trace system-calls and signals
+	\begin{itemize}
+		\item Help analyse how an application interacts with the kernel
+		\item Some syscalls can be detrimental to RT behaviour
+		\item strace can help understand what an application does
+		\item Helpful for external libraries
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+	\frametitle{perf}
+	perf is a performance analysis tool that gather kernel and hardware statistics
+	\begin{itemize}
+		\item Uses Hardware Counters and monitoring units
+		\item Uses Kernel Counters and the tracing infrastructure
+		\item Can profile the whole system, an application, a CPU core, etc.
+		\item Very versatile, but tied to the kernel version
+		\item Perf relies on various \textbf{events} reported by the kernel
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Using perf, examples}
+	\begin{itemize}
+		\item Lots of events measurable : hardware events, software events, cache misses, power management
+			\begin{itemize}
+				\item \code{perf list}
+			\end{itemize}
+		\item Display statistics in real-time
+			\begin{itemize}
+				\item \code{perf top}
+				\item \code{perf top -e cache-misses}
+				\item \code{perf top -e context-switches}
+			\end{itemize}
+		\item Investigate scheduling latencies
+			\begin{itemize}
+				\item \code{perf sched record}
+				\item \code{perf sched latency}
+			\end{itemize}
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+	\frametitle{Other useful tools}
+	\begin{itemize}
+		\item \code{vmstat} : Displays the system state, interrupts, context switches...
+			\begin{itemize}
+				\item \code{vmstat -w 0}
+			\end{itemize}
+		\item \code{powertop} : Display the CPU usage
+		\item \code{cat /sys/kernel/realtime} : Indicates if the RT Patch is applied
+		\item \code{htop} : Displays running tasks, including kernel tasks
+	\end{itemize}
+\end{frame}
+
