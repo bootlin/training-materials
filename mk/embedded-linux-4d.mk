@@ -2,7 +2,7 @@ EMBEDDED_LINUX_4D_SLIDES = \
 		first-slides \
 		about-us \
 		course-information-title \
-		discovery-board \
+		discovery-board-dk1 \
 		sysdev-shopping-list-stm32 \
 		xplained-board-also-supported \
 		qemu-also-supported \
