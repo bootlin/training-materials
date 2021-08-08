@@ -300,7 +300,12 @@ clean:
 
 ALL_TRAININGS = $(sort $(patsubst %.mk,%,$(notdir $(wildcard mk/*.mk))))
 
-all: $(foreach p,$(ALL_TRAININGS),full-$(p)-slides.pdf full-$(p)-labs.pdf $(p)-agenda.pdf)
+ALL_SLIDES = $(foreach p,$(ALL_TRAININGS),$(if $($(call UPPERCASE,$(p)_SLIDES)),full-$(p)-slides.pdf))
+ALL_LABS = $(foreach p,$(ALL_TRAININGS),$(if $($(call UPPERCASE,$(p)_LABS)),full-$(p)-labs.pdf))
+ALL_AGENDAS = $(patsubst %.tex,%.pdf,$(notdir $(wildcard agenda/*.tex)))
+ALL_LABS_TARBALLS = $(patsubst %,%-labs.tar.xz,$(filter-out common,$(notdir $(wildcard lab-data/*))))
+
+all: $(ALL_SLIDES) $(ALL_LABS) $(ALL_AGENDAS) $(ALL_LABS_TARBALLS)
 
 list-courses:
 	@echo $(ALL_TRAININGS)
@@ -310,14 +315,14 @@ HELP_FIELD_FORMAT = " %-34s %s\n"
 help:
 	@echo "Available targets:"
 	@echo
-	$(foreach p,$(ALL_TRAININGS),\
-		@printf $(HELP_FIELD_FORMAT) "full-$(p)-labs.pdf" "Complete labs for the '$(p)' course"$(sep))
-	$(foreach p,$(ALL_TRAININGS),\
-		@printf $(HELP_FIELD_FORMAT) "full-$(p)-slides.pdf" "Complete slides for the '$(p)' course"$(sep))
-	$(foreach p,$(sort $(patsubst agenda/%.tex,%.pdf,$(wildcard agenda/*.tex))),\
+	$(foreach p,$(ALL_SLIDES),\
+		@printf $(HELP_FIELD_FORMAT) "$(p)" "Complete slides for the '$(patsubst full-%-slides.pdf,%,$(p))' course"$(sep))
+	$(foreach p,$(ALL_LABS),\
+		@printf $(HELP_FIELD_FORMAT) "$(p)" "Complete labs for the '$(patsubst full-%-labs.pdf,%,$(p))' course"$(sep))
+	$(foreach p,$(ALL_AGENDAS),\
 		@printf $(HELP_FIELD_FORMAT) "$(p)" "Agenda for the '$(patsubst %-agenda.pdf,%,$(p))' course"$(sep))
-	$(foreach p,$(ALL_TRAININGS),\
-		@printf $(HELP_FIELD_FORMAT) "$(p)-labs.tar.xz" "Lab data for the '$(p)' course"$(sep))
+	$(foreach p,$(ALL_LABS_TARBALLS),\
+		@printf $(HELP_FIELD_FORMAT) "$(p)" "Lab data for the '$(patsubst %-labs.tar.xz,%,$(p))' course"$(sep))
 	@echo
 	@printf $(HELP_FIELD_FORMAT) "<some-chapter>-slides.pdf" "Slides for a particular chapter in slides/"
 	@printf $(HELP_FIELD_FORMAT) "<some-chapter>-labs.pdf" "Labs for a particular chapter in labs/"
