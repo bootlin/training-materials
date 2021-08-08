@@ -310,7 +310,7 @@ all: $(ALL_SLIDES) $(ALL_LABS) $(ALL_AGENDAS) $(ALL_LABS_TARBALLS)
 list-courses:
 	@echo $(ALL_TRAININGS)
 
-HELP_FIELD_FORMAT = " %-34s %s\n"
+HELP_FIELD_FORMAT = " %-36s %s\n"
 
 help:
 	@echo "Available targets:"
