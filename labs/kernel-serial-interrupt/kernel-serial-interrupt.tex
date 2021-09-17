@@ -31,20 +31,11 @@ hardware interrupt number. This virtual number is created through the
 \code{irqdomain} mechanism. The hardware IRQ number to use is found in
 the device tree.
 
-First, add an \code{irq} field to your \code{serial_dev} structure:
+First, retrieve the unique IRQ number to request:
 
 \begin{verbatim}
-struct serial_dev {
-        struct miscdevice miscdev;
-        void __iomem *regs;
-        int irq;
-};
-\end{verbatim}
-
-Now, to retrieve the IRQ number to be used with \kfunc{devm_request_irq}:
-
-\begin{verbatim}
-serial->irq = platform_get_irq(pdev, 0);
+int irq;
+irq = platform_get_irq(pdev, 0);
 \end{verbatim}
 
 Then, pass the interrupt number to \kfunc{devm_request_irq} along
@@ -107,7 +98,6 @@ we can read from:
 struct serial_dev {
         void __iomem *regs;
         struct miscdevice miscdev;
-        int irq;
         char buf[SERIAL_BUFSIZE];
         unsigned int buf_rd;
         unsigned int buf_wr;
