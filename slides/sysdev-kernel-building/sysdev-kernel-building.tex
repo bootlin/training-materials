@@ -631,15 +631,41 @@ CONFIG_NTFS_RW=y
           in \kdochtml{admin-guide/kernel-parameters} in kernel
           documentation.
     \end{itemize}
-  \item This kernel command line can be, in order of priority (highest
-    to lowest):
-    \begin{itemize}
-    \item Passed by the bootloader. In U-Boot, the contents of the
-      \code{bootargs} environment variable is automatically passed to the
-      kernel.
-    \item Specified in the Device Tree (for architectures which use it)
-    \item Built into the kernel, using the \kconfig{CONFIG_CMDLINE} option.
-    \item A combination of the above depending on the kernel configuration.
-    \end{itemize}
   \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{DT fixups and passing the kernel command line}
+  \footnotesize
+  On platforms with the Device Tree, U-Boot actually fixes the DT
+  before passing it to the Linux kernel:
+  \begin{columns}
+  \column{0.7\textwidth}
+  \begin{itemize}
+     \item U-Boot checks the device tree loaded in RAM
+           or directly provides its own.
+     \item U-Boot checks the specifics of the hardware
+           (amount and location of RAM, MAC address, present
+           devices...), possibly loads corresponding Device Tree overlays,
+           and modifies (fixes-up) the Device Tree accordingly.
+     \item U-Boot stores the Linux kernel command line string
+            (\code{bootargs}) in the \code{chosen} section
+            in the Device Tree.
+     \item Then the kernel can:
+           \begin{itemize}
+	   \item Append this string to the default command line
+                 (\kconfig{CONFIG_CMDLINE}) if \kconfig{CONFIG_CMDLINE_EXTEND} is set
+           \item Use only this string if \kconfig{CONFIG_CMDLINE_FROM_BOOTLOADER} is set
+	   \item Use only \kconfig{CONFIG_CMDLINE} if \kconfig{CONFIG_CMDLINE_FORCE} is set.
+           \end{itemize}
+  \end{itemize}
+  \column{0.3\textwidth}
+    \tiny See the "Understanding U-Boot Falcon Mode"
+    presentation from Michael Opdenacker, for details about how U-Boot boots Linux.\\
+    \vspace{0.6cm}
+    \includegraphics[width=\textwidth]{slides/sysdev-kernel-building/understanding-falcon-mode-presentation.png}\\
+    \vspace{0.4cm}
+    \tiny Slides: \url{https://bootlin.com/pub/conferences/2021/lee/}\\
+    Video: \url{https://www.youtube.com/watch?v=LFe3x2QMhSo}
+  \end{columns}
 \end{frame}
