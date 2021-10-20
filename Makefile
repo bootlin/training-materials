@@ -125,13 +125,14 @@ SLIDES_TEX      = \
 	$(SLIDES_COMMON_AFTER)
 SLIDES_PICTURES = $(call PICTURES,$(foreach s,$(SLIDES_CHAPTERS),slides/$(s))) $(COMMON_PICTURES)
 
-%-slides.pdf: $(VARS) $(SLIDES_TEX) $(SLIDES_PICTURES) $(STYLESHEET)
+%-slides.pdf: $(VARS) $(SLIDES_TEX) $(SLIDES_PICTURES) $(STYLESHEET) $(OUTDIR)/last-update.tex
 	@echo $(SLIDES_CHAPTERS_NUM)
 	@mkdir -p $(OUTDIR)
 # We generate a .tex file with \input{} directives (instead of just
 # concatenating all files) so that when there is an error, we are
 # pointed at the right original file and the right line in that file.
 	rm -f $(OUTDIR)/$(basename $@).tex
+	echo "\input{last-update}" >> $(OUTDIR)/$(basename $@).tex
 	echo "\input{$(VARS)}" >> $(OUTDIR)/$(basename $@).tex
 	for f in $(filter %.tex,$^) ; do \
 		echo -n "\input{../"          >> $(OUTDIR)/$(basename $@).tex ; \
@@ -182,12 +183,13 @@ LABS_TEX      = \
 	$(LABS_FOOTER)
 LABS_PICTURES = $(call PICTURES,$(foreach s,$(LABS_CHAPTERS),labs/$(s))) $(COMMON_PICTURES)
 
-%-labs.pdf: common/labs.sty $(VARS) $(LABS_TEX) $(LABS_PICTURES)
+%-labs.pdf: common/labs.sty $(VARS) $(LABS_TEX) $(LABS_PICTURES) $(OUTDIR)/last-update.tex
 	@mkdir -p $(OUTDIR)
 # We generate a .tex file with \input{} directives (instead of just
 # concatenating all files) so that when there is an error, we are
 # pointed at the right original file and the right line in that file.
 	rm -f $(OUTDIR)/$(basename $@).tex
+	echo "\input{last-update}" >> $(OUTDIR)/$(basename $@).tex
 	echo "\input{$(VARS)}" >> $(OUTDIR)/$(basename $@).tex
 	for f in $(filter %.tex,$^) ; do \
 		cp $$f $(OUTDIR)/`basename $$f` ; \
@@ -231,9 +233,9 @@ ifdef AGENDA
 AGENDA_TEX = agenda/$(AGENDA)-agenda.tex
 AGENDA_PICTURES = $(COMMON_PICTURES) $(call PICTURES,agenda)
 
-%-agenda.pdf: common/agenda.sty $(AGENDA_TEX) $(AGENDA_PICTURES)
+%-agenda.pdf: common/agenda.sty $(AGENDA_TEX) $(AGENDA_PICTURES) $(OUTDIR)/last-update.tex
 	rm -f $(OUTDIR)/$(basename $@).tex
-	cp $(filter %.tex,$^) $(OUTDIR)/$(basename $@).tex
+	cp $(filter %-agenda.tex,$^) $(OUTDIR)/$(basename $@).tex
 	(cd $(OUTDIR); $(PDFLATEX_ENV) $(PDFLATEX) $(basename $@).tex)
 	cat $(OUTDIR)/$@ > $@
 else
@@ -241,6 +243,13 @@ FORCE:
 %-agenda.pdf: FORCE
 	@$(MAKE) $@ AGENDA=$*
 endif
+
+#
+# === Last update file generation ===
+#
+$(OUTDIR)/last-update.tex:
+	t=`git log -1 --format=%ct` && printf "\def \lastupdate{%s}\n" "`(LANG=en_EN.UTF-8 date -d @$${t} +'%B %d, %Y')`" > $@
+
 
 #
 # === Picture generation ===
