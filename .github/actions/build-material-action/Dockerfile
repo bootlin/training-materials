@@ -9,6 +9,7 @@ RUN dnf -y update && \
 	dia \
 	fakeroot \
 	ghostscript \
+	git \
 	inkscape \
 	levien-inconsolata-fonts \
 	liberation-serif-fonts \
