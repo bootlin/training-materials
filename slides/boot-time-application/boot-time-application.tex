@@ -169,44 +169,6 @@ perf report
 \end{block}
 \end{frame}
 
-\begin{frame}
-\frametitle{Linker optimizations (1)}
-Group application code used at startup
-\begin{itemize}
-        \item Find the functions called during startup, for example using
-              the \code{-finstrument-functions} gcc option.
-        \item Create a custom linker script to reorder these functions in
-              the call order. You can achieve that by putting each function
-              in their own section using the \code{-ffunction-sections} gcc
-              option.
-        \item Particularly useful for flash storage with rather big MTD
-              read blocks. As the whole read blocks are read, you end up
-              reading unnecessary data.
-\end{itemize}
-Details:
-\tiny \url{https://web.archive.org/web/20130508211037/http://blogs.linux.ie/caolan/2007/04/24/controlling-symbol-ordering/}
-\end{frame}
-
-\begin{frame}
-\frametitle{Linker optimizations (2)}
-\begin{itemize}
-\item Here's a very simple way to find the maximum savings you can expect
-      from this technique:
-      \begin{itemize}
-      \item Start the application once and measure its startup time.
-      \item Start the application and measure its startup time again.
-            Its code should still be in the Linux file cache,
-            and the code loading time will be zero.
-      \end{itemize}
-\item You now know how much time it took to load the application code
-      (and its libraries) the first time. Linker optimizations will
-      save less than this upper limit.
-\item You can then decide whether this could be worth the effort.
-      Such optimizations are costly, as the way you compile your
-      applications has to be modified.
-\end{itemize}
-\end{frame}
-
 \setuplabframe
 {Optimizing the application}
 {
