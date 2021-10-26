@@ -6,6 +6,7 @@ BOOT_TIME_SLIDES = \
 		course-information-title \
 		beagleboneblack-board \
 		beaglecam \
+		boot-time-shopping-list \
 		board-setup-lab \
 		boot-time-principles \
 		build-system-bootloader-kernel-lab \
