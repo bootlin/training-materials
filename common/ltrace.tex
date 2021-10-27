@@ -11,29 +11,68 @@
   \item Also offers a summary with its \code{-c} option.
   \item Manual page: \url{https://linux.die.net/man/1/ltrace}
   \item Works better with {\em glibc}. \code{ltrace} was broken
-        with {\em uClibc} and may still be.
+        with {\em uClibc} and may still be, and was not supported
+        with {\em Musl} (Buildroot 2021.08 status).
   \end{itemize}
   See \url{https://en.wikipedia.org/wiki/Ltrace} for details
 \end{frame}
 
 \begin{frame}[fragile]
   \frametitle{ltrace example output}
-  \small
+  \scriptsize
   \begin{block}{}
 \begin{verbatim}
-ltrace nedit index.html
-sscanf(0x8274af1, 0x8132618, 0x8248640, 0xbfaadfe8, 0) = 1
-sprintf("const 0", "const %d", 0) = 7
-strcmp("startScan", "const 0") = 1
-strcmp("ScanDistance", "const 0") = -1
-strcmp("const 200", "const 0") = 1
-strcmp("$list_dialog_button", "const 0") = -1
-strcmp("$shell_cmd_status", "const 0") = -1
-strcmp("$read_status", "const 0") = -1
-strcmp("$search_end", "const 0") = -1
-strcmp("$string_dialog_button", "const 0") = -1
-strcmp("$rangeset_list", "const 0") = -1
-strcmp("$calltip_ID", "const 0") = -1
+# ltrace  ffmpeg -f video4linux2 -video_size 544x288 -input_format mjpeg -i /dev
+/video0 -pix_fmt rgb565le -f fbdev /dev/fb0
+__libc_start_main([ "ffmpeg", "-f", "video4linux2", "-video_size"... ] <unfinished ...>
+setvbuf(0xb6a0ec80, nil, 2, 0)                   = 0
+av_log_set_flags(1, 0, 1, 0)                     = 1
+strchr("f", ':')                                 = nil
+strlen("f")                                      = 1
+strncmp("f", "L", 1)                             = 26
+strncmp("f", "h", 1)                             = -2
+strncmp("f", "?", 1)                             = 39
+strncmp("f", "help", 1)                          = -2
+strncmp("f", "-help", 1)                         = 57
+strncmp("f", "version", 1)                       = -16
+strncmp("f", "buildconf", 1)                     = 4
+strncmp("f", "formats", 1)                       = 0
+strlen("formats")                                = 7
+strncmp("f", "muxers", 1)                        = -7
+strncmp("f", "demuxers", 1)                      = 2
+strncmp("f", "devices", 1)                       = 2
+strncmp("f", "codecs", 1)                        = 3
+...
 \end{verbatim}
 \end{block}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{ltrace summary}
+  Example summary at the end of the ltrace output (\code{-c} option)
+  \scriptsize
+  \begin{block}{}
+\begin{verbatim}
+
+% time     seconds  usecs/call     calls      function
+------ ----------- ----------- --------- --------------------
+ 52.64    5.958660     5958660         1 __libc_start_main
+ 20.64    2.336331     2336331         1 avformat_find_stream_info
+ 14.87    1.682895         421      3995 strncmp
+  7.17    0.811210      811210         1 avformat_open_input
+  0.75    0.085290         584       146 av_freep
+  0.49    0.055150         434       127 strlen
+  0.29    0.033008         660        50 av_log
+  0.22    0.025090         464        54 strcmp
+  0.20    0.022836       22836         1 avformat_close_input
+  0.16    0.017788         635        28 av_dict_free
+  0.15    0.016819         646        26 av_dict_get
+  0.15    0.016753         440        38 strchr
+  0.13    0.014536         581        25 memset
+  0.09    0.009762        9762         1 avcodec_send_packet
+...
+------ ----------- ----------- --------- --------------------
+100.00   11.318773                  4762 total
+\end{verbatim}
+  \end{block}
 \end{frame}
