@@ -18,11 +18,6 @@ you've surely been longing to do.
 
 \section{Recompiling the bootloader}
 
-{\bf Importante note}: for this lab, because of issues with Falcon Mode
-in U-Boot 2019.01 that we are currently investigating, you will have to
-switch back to the 2019.01 version of U-Boot, configured with its
-\code{am335x_boneblack_defconfig} file.
-
 It's now time to eliminate useless features in U-Boot. Go to
 \code{~/boot-time-labs/bootloader/u-boot/} and run \code{make
 menuconfig} to unselect features that we don't need in our system.
@@ -43,9 +38,9 @@ time and fill the below table:
   Step & Duration & Description \\
   \hline
   \hline
-  U-Boot SPL & & Between \code{U-Boot SPL 2019.01} and \code{U-Boot 2019.01} \\
+  U-Boot SPL & & Between \code{U-Boot SPL 2021.10} and \code{U-Boot 2021.10} \\
   \hline
-  U-Boot & & Between \code{U-Boot 2019.01} and \code{Starting kernel} \\
+  U-Boot & & Between \code{U-Boot 2021.10} and \code{Starting kernel} \\
   \hline
   Kernel + Init scripts & & Between \code{Starting kernel} and \code{Starting ffmpeg} \\
   \hline
@@ -82,9 +77,9 @@ latest results:
   Step & Duration & Description \\
   \hline
   \hline
-  U-Boot SPL & & Between \code{U-Boot SPL 2019.01} and \code{U-Boot 2019.01} \\
+  U-Boot SPL & & Between \code{U-Boot SPL 2021.10} and \code{U-Boot 2021.10} \\
   \hline
-  U-Boot & & Between \code{U-Boot 2019.01} and \code{Starting kernel} \\
+  U-Boot & & Between \code{U-Boot 2021.10} and \code{Starting kernel} \\
   \hline
   Kernel + Init scripts & & Between \code{Starting kernel} and \code{Starting ffmpeg} \\
   \hline
@@ -125,15 +120,29 @@ make uImage LOADADDR=80008000
 
 Copy this \code{uImage} file to your SD card boot partition.
 
-To optimize the size of the U-Boot SPL, let's recompile it without the
-features we don't need. So, in U-Boot's \code{menuconfig} interface,
-go to the \code{SPL / TPL} menu and:
-
+We also need a few features to be enabled in the U-Boot SPL. So start
+U-Boot's \code{make menuconfig}:
 \begin{itemize}
-\item Unselect \code{Support an environment}. Our own tests showed that this
-      saves about 250 ms!
-\item Unselect \code{Suppport USB Gadget drivers}
+\item In the \code{Environment menu}, unselect \code{SPL environment is
+      not stored} (\projconfigval{u-boot}{CONFIG_SPL_ENV_IS_NOWHERE}{n}), and
+      select \code{SPL Environment is in a FAT filesystem}
+      (\projconfigval{u-boot}{CONFIG_SPL_ENV_IS_IN_FAT}{y}). This way, we
+      can have a \code{boot_os} environment variable that if set to
+      \code{yes}, will allow to boot Linux directly. See the
+      \projfunc{u-boot}{spl_start_uboot} function in the
+      \projfile{u-boot}{board/ti/am335x/board.c} file for details. A
+      faster option to skip reading the environment would be to
+      modify this function so that it always returns \code{0}.
+\item In the \code{SPL / TPL} menu, enable {\em Support SPL loading
+      and booting of Legacy images}
+      (\projconfigval{u-boot}{CONFIG_SPL_LEGACY_IMAGE_SUPPORT}{y}).
+      That's needed to support loading the legacy \code{uImage} file.
 \end{itemize}
+
+Also make sure that \projconfigval{u-boot}{CONFIG_SPL_OS_BOOT}{y}
+({\em Activate Falcon Mode}).
+That's the case for our current configuration, but configurations
+for other boards may not have this by default.
 
 Compile U-Boot again
 and copy the \code{u-boot.img} and \code{MLO} files to the boot
@@ -204,7 +213,7 @@ When it works, update your table again:
   Step & Duration & Description \\
   \hline
   \hline
-  U-Boot SPL & & Between \code{U-Boot SPL 2019.01} and \code{Starting kernel} \\
+  U-Boot SPL & & Between \code{U-Boot SPL 2021.10} and \code{Starting kernel} \\
   \hline
   Kernel + Init scripts & & Between \code{Starting kernel} and \code{Starting ffmpeg} \\
   \hline
@@ -220,16 +229,20 @@ When it works, update your table again:
 There are several things we can do to try to further optimize things:
 
 \begin{itemize}
+\item Reduce the features of the U-Boot SPL to make it load faster,
+      modify \projfunc{u-boot}{spl_start_uboot} so that it doesn't have
+      to load an environment. Also try loading the \code{uImage} file
+      directly from raw MMC, so that there is no FAT intermediate layer.
 \item As our storage is now faster, it can be interesting to explore the
-various kernel compression schemes again. The optimum solution may be a
-different one.
+      various kernel compression schemes again. The optimum solution may be a
+      different one.
 \item Look for a solution to eliminate the delay detecting the USB
-webcam.
+      webcam.
 \item If you don't manage to get rid of this delay, at least take
-advantage of this spare time to show signs of life on the screen, by
-implementing a splashscreen. You can even implement an animation.
-One thing you can do is use BusyBox's \code{fbsplash} tool, to first
-show an image on the framebuffer, and then even show a progress bar
-(knowing how much time you have to wait for the camera to be ready).
+      advantage of this spare time to show signs of life on the screen, by
+      implementing a splashscreen. You can even implement an animation.
+      One thing you can do is use BusyBox's \code{fbsplash} tool, to first
+      show an image on the framebuffer, and then even show a progress bar
+      (knowing how much time you have to wait for the camera to be ready).
 \end{itemize}
 
