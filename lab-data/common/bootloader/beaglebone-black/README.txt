@@ -116,7 +116,7 @@ Compiling U-Boot
 ----------------
 
 Clone the mainline U-boot sources:
-git clone git://git.denx.de/u-boot.git
+git clone https://git.denx.de/u-boot
 git checkout v2018.05
 export CROSS_COMPILE=arm-linux-gnueabi-
 make am335x_boneblack_defconfig
