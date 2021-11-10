@@ -595,33 +595,30 @@ CONFIG_NTFS_RW=y
 \end{frame}
 
 \begin{frame}
-  \frametitle{DT fixups and passing the kernel command line}
-  \footnotesize
-  On platforms with the Device Tree, U-Boot actually fixes the DT
-  before passing it to the Linux kernel:
+  \frametitle{Passing the kernel command line}
   \begin{columns}
-  \column{0.7\textwidth}
-  \begin{itemize}
-     \item U-Boot checks the device tree loaded in RAM
-           or directly provides its own.
-     \item U-Boot checks the specifics of the hardware
-           (amount and location of RAM, MAC address, present
-           devices...), possibly loads corresponding Device Tree overlays,
-           and modifies (fixes-up) the Device Tree accordingly.
-     \item U-Boot stores the Linux kernel command line string
-            (\code{bootargs}) in the \code{chosen} section
-            in the Device Tree.
-     \item Then the kernel can:
-           \begin{itemize}
-	   \item Append this string to the default command line
-                 (\kconfig{CONFIG_CMDLINE}) if \kconfig{CONFIG_CMDLINE_EXTEND} is set
-           \item Use only this string if \kconfig{CONFIG_CMDLINE_FROM_BOOTLOADER} is set
-	   \item Use only \kconfig{CONFIG_CMDLINE} if \kconfig{CONFIG_CMDLINE_FORCE} is set.
-           \end{itemize}
-  \end{itemize}
-  \column{0.3\textwidth}
+    \column{0.7\textwidth}
+    \begin{itemize}
+    \item U-Boot carries the Linux kernel command line string in its
+      \code{bootargs} environment variable
+    \item Right before starting the kernel, it will store the content of
+      \code{bootargs} in the \code{chosen} section of the Device Tree
+    \item The kernel will behave differently depending on its
+      configuration:
+      \begin{itemize}
+      \item If \kconfig{CONFIG_CMDLINE_FROM_BOOTLOADER} is set:\\
+        The kernel will use only the string from the bootloader
+      \item If \kconfig{CONFIG_CMDLINE_FORCE} is set:\\
+        The kernel will only use the string received at configuration
+        time in \kconfig{CONFIG_CMDLINE}
+      \item If \kconfig{CONFIG_CMDLINE_EXTEND} is set:\\
+        The kernel will concatenated both strings
+      \end{itemize}
+    \end{itemize}
+    \column{0.3\textwidth}
     \tiny See the "Understanding U-Boot Falcon Mode"
-    presentation from Michael Opdenacker, for details about how U-Boot boots Linux.\\
+    presentation from Michael Opdenacker, for details about how U-Boot
+    boots Linux.\\
     \vspace{0.6cm}
     \includegraphics[width=\textwidth]{slides/sysdev-kernel-building/understanding-falcon-mode-presentation.png}\\
     \vspace{0.4cm}
