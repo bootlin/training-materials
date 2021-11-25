@@ -17,6 +17,7 @@ LINUX_KERNEL_SLIDES = \
 		kernel-source-code-management \
 		kernel-source-code-exploring-lab \
 		sysdev-kernel-building \
+		sysdev-kernel-booting \
 		kernel-board-setup-kernel-compiling-and-booting-labs \
 		sysdev-linux-intro-modules \
 		kernel-driver-development-modules \

@@ -27,6 +27,8 @@ EMBEDDED_LINUX_QEMU_SLIDES = \
 		sysdev-linux-tarballs-and-patches \
 		sysdev-linux-intro-lab-sources \
 		sysdev-kernel-building \
+		sysdev-customizing-dt \
+		sysdev-kernel-booting \
 		sysdev-linux-intro-lab-cross-compilation \
 		sysdev-linux-intro-modules \
 		sysdev-root-filesystem-title \
