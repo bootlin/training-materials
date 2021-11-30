@@ -48,6 +48,7 @@ EMBEDDED_LINUX_SLIDES = \
 		sysdev-embedded-linux \
 		sysdev-application-development \
 		sysdev-realtime \
+		sysdev-realtime-lab \
 		sysdev-references \
 		last-slides
 
