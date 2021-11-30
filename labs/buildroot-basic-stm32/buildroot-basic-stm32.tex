@@ -1,0 +1,488 @@
+\subchapter
+{Basic Buildroot usage}
+{Objectives:
+  \begin{itemize}
+  \item Get Buildroot
+  \item Configure a minimal system with Buildroot for the STM32MP1 Discovery Kit 1
+  \item Do the build
+  \item Prepare the STM32MP1 Discovery Kit 1 for usage
+  \item Flash and test the generated system
+  \end{itemize}
+}
+
+\section{Setup}
+
+Go to the \code{$HOME/__SESSION_NAME__-labs/} directory.
+
+As specified in the Buildroot
+manual\footnote{\url{https://buildroot.org/downloads/manual/manual.html\#requirement-mandatory}},
+Buildroot requires a few packages to be installed on your
+machine. Let's install them using Ubuntu's package manager:
+
+\begin{bashinput}
+sudo apt install sed make binutils gcc g++ bash patch \
+  gzip bzip2 perl tar cpio python unzip rsync wget libncurses-dev
+\end{bashinput}
+
+\section{Download Buildroot}
+
+Since we're going to do Buildroot development, let's clone the
+Buildroot source code from its Git repository:
+
+\begin{bashinput}
+git clone https://git.buildroot.net/buildroot
+\end{bashinput}
+
+Go into the newly created \code{buildroot} directory.
+
+We're going to start a branch from the {\em 2021.02} Buildroot
+release, with which this training has been tested.
+
+\begin{bashinput}
+git checkout -b felabs 2021.02
+\end{bashinput}
+
+\section{Configuring Buildroot}
+
+If you look under \code{configs/}, you will see that there is a file
+named \code{stm32mp157a_dk1_defconfig}, which is a ready-to-use Buildroot
+configuration file to build a system for the STM32MP1 Discovery Kit 1
+platform. However, since we want to learn about Buildroot, we'll start
+our own configuration from scratch!
+
+Start the Buildroot configuration utility:
+
+\begin{bashinput}
+make menuconfig
+\end{bashinput}
+
+Of course, you're free to try out the other configuration utilities
+\code{nconfig}, \code{xconfig} or \code{gconfig}.
+
+Now, let's do the configuration:
+
+\begin{itemize}
+
+\item \code{Target Options} menu
+
+  \begin{itemize}
+
+  \item The STM32MP1 is an ARM based processor, so select \code{ARM
+      (little endian)} as the target architecture.
+
+  \item According to the STM32MP1 Discovery Kit 1 website at
+    \url{https://www.st.com/en/evaluation-tools/stm32mp157a-dk1.html},
+    the STM32MP157 SoC is based on a dual ARM Cortex-A7 core. So
+    select \code{cortex-A7} as the \code{Target Architecture Variant}.
+
+  \item On ARM two {\em Application Binary Interfaces} are available:
+    \code{EABI} and \code{EABIhf}. Unless you have backward
+    compatibility concerns with pre-built binaries, \code{EABIhf} is
+    more efficient, so make this choice as the \code{Target ABI}
+    (which should already be the default anyway).
+
+  \item The other parameters can be left to their default value:
+    \code{ELF} is the only available \code{Target Binary Format},
+    \code{VFPv4} is the appropriate setting for the \code{Floating
+      Point Strategy} and using the \code{ARM} instruction set is also
+    a good default (we could use the \code{Thumb-2} instruction set
+    for slightly more compact code).
+
+  \end{itemize}
+
+\item We don't have anything special to change in the
+  \code{Build options} menu, but take nonetheless this opportunity to
+  visit this menu, and look at the available options. Each option has
+  a help text that tells you more about the option.
+
+\item \code{Toolchain} menu
+
+  \begin{itemize}
+
+  \item By default, Buildroot builds its own toolchain. This takes
+    quite a bit of time, and for \code{ARMv7} platforms, there is a
+    pre-built toolchain provided by ARM. We'll use it through the
+    {\em external toolchain} mechanism of Buildroot. Select
+    \code{External toolchain} as the \code{Toolchain type}. Do not
+    hesitate however to look at the available options when you select
+    \code{Buildroot toolchain} as the \code{Toolchain type}.
+
+  \item Select \code{Arm ARM 2020.11} as the
+    \code{Toolchain}. Buildroot can either use pre-defined toolchains
+    such as the ones provided by ARM, or custom toolchains (either
+    downloaded from a given location, or pre-installed on your
+    machine).
+
+  \end{itemize}
+
+\item \code{System configuration} menu
+
+  \begin{itemize}
+
+  \item For our basic system, we don't need a lot of custom {\em
+      system configuration} for the moment. So take some time to look
+    at the available options, and put some custom values for the
+    \code{System hostname}, \code{System banner} and \code{Root
+      password}.
+
+  \end{itemize}
+
+\item \code{Kernel} menu
+
+  \begin{itemize}
+
+  \item We obviously need a Linux kernel to run on our platform, so
+    enable the \code{Linux kernel} option.
+
+  \item By default, the most recent Linux kernel version available at
+    the time of the Buildroot release is used. In our case, we want to
+    use a specific version, to make sure our build is reproducible. So
+    select \code{Custom version} as the \code{Kernel version}, and
+    enter \code{5.15.5} in the \code{Kernel version} text field that
+    appears.
+
+  \item Now, we need to define which kernel configuration to use. The
+    Linux kernel comes with a number of pre-defined configurations for
+    ARM 32-bit platforms, in
+    \url{https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/arch/arm/configs/?id=v5.15}. However,
+    the only configuration that supports STM32MP1 is
+    \code{multi_v7_defconfig}, which has support for all ARMv7
+    platforms, not just the STM32MP1, making it a very large
+    configuration, with a long build time and a large kernel image.
+
+    So instead, we will use our own custom Linux kernel configuration,
+    which we are providing in
+    \code{$HOME/__SESSION_NAME__-labs/buildroot-basic/linux-stm32mp1.config}.
+
+    Create the directory \code{board/felabs/stm32mp1} in the Buildroot
+    source tree. We will use it to store all the files that are
+    directly specific to our project. Copy the Linux kernel
+    configuration file to this location.
+
+    Then, tell Buildroot to use it as the Linux kernel configuration
+    file: choose \code{Using a custom (def)config fil} in \code{Kernel
+      configuration}, and set \code{Configuration file path} to
+    \code{board/felabs/stm32mp1/linux-stm32mp1.config}.
+
+  \item The \code{Kernel binary format} is the next option. Since we
+    are going to use a recent U-Boot bootloader, we'll keep the
+    default of the \code{zImage} format.
+
+  \item On ARM, all modern platforms now use the {\em Device Tree} to
+    describe the hardware. The STM32MP1 Discovery kit 1 is in this
+    situation, so you'll have to enable the
+    \code{Build a Device Tree Blob} option. At
+    \url{https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/arch/arm/boot/dts/?id=v5.15},
+    you can see the list of all Device Tree files available in the
+    5.15 Linux kernel (note: the Device Tree files for boards use the
+    \code{.dts} extension). The one for the STM32MP1 Discovery kit 1
+    is \code{stm32mp157a-dk1.dts}. Even if talking about
+    Device Tree is beyond the scope of this training, feel free to
+    have a look at this file to see what it contains. Back in
+    Buildroot, enable \code{Build a Device Tree Blob (DTB)} and type
+    \code{stm32mp157a-dk1} as the \code{In-tree Device Tree
+      Source file names}.
+
+  \item The kernel configuration for this platform requires having
+    OpenSSL available on the host machine. To avoid depending on the
+    OpenSSL development files installed by your host machine Linux
+    distribution, Buildroot can build its own version: just enable the
+    \code{Needs host OpenSSL} option.
+
+  \end{itemize}
+
+\item \code{Target packages} menu. This is probably the most important
+  menu, as this is the one where you can select amongst the 2800+
+  available Buildroot packages which ones should be built and
+  installed in your system. For our basic system, enabling
+  \code{BusyBox} is sufficient and is already enabled by default, but
+  feel free to explore the available packages. We'll have the
+  opportunity to enable some more packages in the next labs.
+
+\item \code{Filesystem images} menu. For now, keep only the \code{tar
+    the root filesystem} option enabled. We'll take care separately of
+  flashing the root filesystem on the SD card.
+
+\item \code{Bootloaders} menu. The STM32MP1 platform supports two
+  different booting possibilities: the {\em basic} boot strategy,
+  where U-Boot implements both the first stage and second stage
+  bootloader, and the {\em trusted} boot strategy, where TF-A replaces
+  U-Boot as the first stage bootloader. For the sake of simplicity in
+  this initial configuration, we will use the {\em basic} boot
+  strategy.
+
+  \begin{itemize}
+
+  \item We'll use the most popular ARM bootloader, {\em U-Boot}, so
+    enable it in the configuration.
+
+  \item Select \code{Kconfig} as the \code{Build system}. U-Boot is
+    transitioning from a situation where all the hardware platforms
+    were described in C header files to a system where U-Boot re-uses
+    the Linux kernel configuration logic. Since we are going to use a
+    recent enough U-Boot version, we are going to use the latter,
+    called {\em Kconfig}.
+
+  \item Use the custom version of U-Boot \code{2021.10}.
+
+  \item Look at
+    \url{https://gitlab.denx.de/u-boot/u-boot/-/tree/master/configs}
+    to identify the available U-Boot configurations. For many STM32MP1
+    platforms, U-Boot has a single configuration called
+    \code{stm32mp15_basic_defconfig}, which can then be given the exact
+    hardware platform to support using a Device Tree. So we need to
+    use \code{stm32mp15_basic} as \code{Board defconfig} and
+    \code{DEVICE_TREE=stm32mp157a-dk1} as \code{Custom make options}
+
+  \item U-Boot on STM32MP1 is split in two parts: the first stage
+    bootloader called \code{spl/u-boot-spl.stm32} and the second stage
+    bootloader called \code{u-boot.img}. So, select \code{u-boot.img}
+    as the \code{U-Boot binary format}, enable \code{Install U-Boot
+      SPL binary image} and use \code{spl/u-boot-spl.stm32} as the
+    \code{U-Boot SPL binary image name}.
+
+  \end{itemize}
+
+\end{itemize}
+
+You're now done with the configuration!
+
+\section{Building}
+
+You could simply run \code{make}, but since we would like to keep a
+log of the build, we'll redirect both the standard and error outputs
+to a file, as well as the terminal by using the \code{tee} command:
+
+\begin{bashinput}
+make 2>&1 | tee build.log
+\end{bashinput}
+
+While the build is on-going, please go through the following sections
+to prepare what will be needed to test the build results.
+
+\section{Prepare the STM32MP1 Discovery Kit 1}
+
+The STM32M1 Discovery Kit 1 is powered via a USB-C cable, which you
+need to connect to the \code{CN6} (also labeled \code{PWR_IN})
+connector.
+
+In addition, to access the debug serial console, you need to use a
+micro-USB cable connected to the \code{CN11} (also labeled
+\code{ST-LINK}) connector.
+
+Once your micro-USB cable is connected, a \code{/dev/ttyACM0} device
+will apear on your PC. You can see this device appear by looking at
+the output of \code{dmesg} on your workstation.
+
+To communicate with the board through the serial port, install a
+serial communication program, such as \code{picocom}:
+
+\begin{bashinput}
+sudo apt install picocom
+\end{bashinput}
+
+If you run \code{ls -l /dev/ttyACM0}, you can also see that only
+\code{root} and users belonging to the \code{dialout} group have read
+and write access to this file. Therefore, you need to add your user to
+the \code{dialout} group:
+
+\begin{bashinput}
+sudo adduser $USER dialout
+\end{bashinput}
+
+{\bf Important}: for the group change to be effective, in Ubuntu 18.04, you have to
+{\em completely reboot} the system \footnote{As explained on
+\url{https://askubuntu.com/questions/1045993/after-adding-a-group-logoutlogin-is-not-enough-in-18-04/}.}.
+A workaround is to run \code{newgrp dialout}, but it is not global.
+You have to run it in each terminal.
+
+Now, you can run \code{picocom -b 115200 /dev/ttyACM0}, to start
+serial communication on \code{/dev/ttyACM0}, with a baudrate of
+\code{115200}. If you wish to exit \code{picocom}, press
+\code{[Ctrl][a]} followed by \code{[Ctrl][x]}.
+
+There should be nothing on the serial line so far, as the board is not
+powered up yet.
+
+\section{Preparing the SD card}
+
+In order for the system to boot, we need to prepare the SD card with a
+specific partition scheme, described by a {\em GPT} partition table:
+
+\begin{verbatim}
+Number  Start     End       Size      File system  Name   Flags
+ 1      1024kiB   2048kiB   1024kiB                fsbl1
+ 2      2048kiB   3072kiB   1024kiB                fsbl2
+ 3      3072kiB   5120kiB   2048kiB                ssbl
+ 4      5120kiB   21504kiB  16384kiB               boot
+ 5      21504kiB  87040kiB  65536kiB               root
+\end{verbatim}
+
+Plug the SD card your instructor gave you on your workstation. Type
+the \code{dmesg} command to see which device is used by your
+workstation. In case the device is \code{/dev/mmcblk0}, you will see
+something like
+
+\begin{verbatim}
+[46939.425299] mmc0: new high speed SDHC card at address 0007
+[46939.427947] mmcblk0: mmc0:0007 SD16G 14.5 GiB
+\end{verbatim}
+
+The device file name may be different (such as \code{/dev/sdb})
+if the card reader is connected to a USB bus (either internally
+or using a USB card reader).
+
+In the following instructions, we will assume that your SD card is
+seen as \code{/dev/mmcblk0} by your PC workstation.
+
+Type the \code{mount} command to check your currently mounted
+partitions. If SD partitions are mounted, unmount them:
+
+\bashcmd{$ sudo umount /dev/mmcblk0p*}
+
+Then, clear possible SD card contents remaining from previous use
+(only the first few megabytes matter):
+
+\bashcmd{$ sudo dd if=/dev/zero of=/dev/mmcblk0 bs=1M count=32}
+
+Now, let's use the \code{parted} command to create the partitions that
+we are going to use:
+
+\bashcmd{$ sudo parted /dev/mmcblk0}
+
+Specify the type of partition table, here {\em GPT}:
+
+\begin{verbatim}
+(parted) mklabel gpt
+\end{verbatim}
+
+Then, the 4 partitions are created with:
+\begin{verbatim}
+(parted) mkpart fsbl1 0% 4095s
+(parted) mkpart fsbl2 4096s 6143s
+(parted) mkpart ssbl 6144s 10239s
+(parted) mkpart boot 10240s 43007s
+(parted) mkpart root 43008s 174079s
+\end{verbatim}
+
+Let's mark the 4th partition as the boot partition:
+
+\begin{verbatim}
+(parted) toggle 4 boot
+\end{verbatim}
+
+You can check that the overall partitioning looks correct:
+
+\begin{verbatim}
+(parted) unit kiB
+(parted) print
+Number  Start     End       Size      File system  Name   Flags
+ 1      1024kiB   2048kiB   1024kiB                fsbl1
+ 2      2048kiB   3072kiB   1024kiB                fsbl2
+ 3      3072kiB   5120kiB   2048kiB                ssbl
+ 4      5120kiB   21504kiB  16384kiB               boot   boot, esp
+ 5      21504kiB  87040kiB  65536kiB               root
+\end{verbatim}
+
+Now everything should be ready. Hopefully by that time the Buildroot
+build should have completed. If not, wait a little bit more.
+
+Format the {\em boot} partition as a FAT filesystem:
+
+\begin{bashinput}
+sudo mkfs.vfat -F 32 -n boot /dev/mmcblk0p4
+\end{bashinput}
+
+Format the {\em root} partition as an ext4 filesystem:
+
+\begin{bashinput}
+sudo mkfs.ext4 -L rootfs -E nodiscard /dev/mmcblk0p5
+\end{bashinput}
+
+Eject and re-insert the SD card, so that your Linux system
+automatically mounts the {\em boot} and {\em root} partitions.
+
+\section{Flash the system}
+
+Once Buildroot has finished building the system, it's time to put it
+on the SD card:
+
+\begin{itemize}
+
+\item Flash the first stage bootloader, U-Boot SPL, in both the
+  \code{fsbl1} and \code{fsbl2} partitions:
+
+\begin{bashinput}
+$ sudo dd if=output/images/u-boot-spl.stm32 of=/dev/mmcblk0p1 bs=1M conv=fdatasync
+$ sudo dd if=output/images/u-boot-spl.stm32 of=/dev/mmcblk0p2 bs=1M conv=fdatasync
+\end{bashinput}
+
+\item Flash the second stage bootloader, U-Boot, in the \code{ssbl}
+  partition:
+
+\begin{bashinput}
+$ sudo dd if=output/images/u-boot.img of=/dev/mmcblk0p3 bs=1M conv=fdatasync
+\end{bashinput}
+
+\item Copy the Linux kernel image and Device Tree Blob to the FAT filesystem:
+
+\begin{bashinput}
+$ cp output/images/zImage output/images/stm32mp157a-dk1.dtb /media/$USER/boot
+\end{bashinput}
+
+\item Create a file named \code{extlinux/extlinux.conf} in the
+  \code{boot} partition. This file should contain the following lines:
+
+{\small
+\begin{fileinput}
+label buildroot
+  kernel /zImage
+  devicetree /stm32mp157a-dk1.dtb
+  append console=ttySTM0,115200 root=/dev/mmcblk0p5 rootwait
+\end{fileinput}
+}
+
+These lines teach the U-Boot bootloader how to load the Linux kernel
+image and the Device Tree, before booting the kernel. It uses a
+standard U-Boot mechanism called {\em distro boot command}, see
+\url{https://source.denx.de/u-boot/u-boot/-/raw/master/doc/README.distro}
+for more details.
+
+\item Extract the \code{rootfs.tar} file to the \code{rootfs}
+  partition of the SD card, using:\\
+  \inlinebash{sudo tar -C /media/$USER/rootfs/ -xf output/images/rootfs.tar}.
+
+\end{itemize}
+
+Cleanly unmount the two SD card partitions, and eject the SD card.
+
+\section{Boot the system}
+
+Insert the SD card in the STM32MP1 DK1 board and power on the board
+(or reset the board if it's already powered on).
+
+You should see your system booting. Make sure that the U-Boot SPL and
+U-Boot version and build dates match with the current date. Do the
+same check for the Linux kernel.
+
+Login as \code{root} on the board, and explore the system. Run
+\code{ps} to see which processes are running, and look at what
+Buildroot has generated in \code{/bin}, \code{/lib}, \code{/usr} and
+\code{/etc}.
+
+\section{Explore the build log}
+
+Back to your build machine, since we redirected the build output to a
+file called \code{build.log}, we can now have a look at it to see what
+happened. Since the Buildroot build is quite verbose, Buildroot prints
+before each important step a message prefixed by the \code{>>>}
+sign. So to get an overall idea of what the build did, you can run:
+
+\begin{bashinput}
+grep ">>>" build.log
+\end{bashinput}
+
+You see the different packages between downloaded, extracted, patched,
+configured, built and installed.
+
+Feel free to explore the \code{output/} directory as well.

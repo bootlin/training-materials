@@ -203,6 +203,36 @@ following elements:
 
 Your \code{BR2_EXTERNAL} tree should look like this:
 
+\if\defstring{\labboard}{stm32mp1}
+\begin{verbatim}
++-- board/
+|   +-- felabs/
+|       +-- stm32mp1/
+|           +-- linux.config
+|           +-- post-build.sh
+|           +-- patches/
+|               +-- linux/
+|                   +-- 0001-Add-nunchuk-driver.patch
+|                   +-- 0002-ARM-dts-stm32mp157a-dk1-add-description-of-Nunchuk-o.patch
+|           +-- rootfs-overlay/
+|               +-- etc
+|                   +-- network
+|                       +-- interfaces
++-- package/
+|   +-- bar
+|       +-- 0001-Fix-missing-libconfig.h-include.patch
+|       +-- bar.mk
+|       +-- Config.in
+|   +-- libfoo
+|       +-- libfoo.mk
+|       +-- Config.in
++-- configs
+|   +-- felabs_defconfig
++-- Config.in
++-- external.desc
++-- external.mk
+\end{verbatim}
+\else
 \begin{verbatim}
 +-- board/
 |   +-- felabs/
@@ -233,6 +263,7 @@ Your \code{BR2_EXTERNAL} tree should look like this:
 +-- external.desc
 +-- external.mk
 \end{verbatim}
+\fi
 
 Now, do a full rebuild using your \code{BR2_EXTERNAL} tree, and check
 that your system builds and runs fine!
@@ -249,15 +280,14 @@ create partitions. Follow those steps:
 \item Change the Buildroot configuration to generate an {\em ext4}
   filesystem image
 
-\item Take example on \code{board/beaglebone/genimage.cfg} to create
-  your own \code{board/felabs/beagleboneblack/genimage.cfg}. Keep only
+\item Take example on \code{board/stmicroelectronics/common/stm32mp157/genimage.cfg.template} to create
+  your own \code{board/felabs/stm32mp1/genimage.cfg}. Keep only
   the single Device Tree we need for our project.
 
 \item Adjust the Buildroot configuration to use the
   \code{support/scripts/genimage.sh} script as a {\em post-image}
-  script, and pass \code{-c board/felabs/beagleboneblack/genimage.cfg}
+  script, and pass \code{-c board/felabs/stm32mp1/genimage.cfg}
   as {\em post-image} script arguments. Make sure to enable
-  \code{BR2_PACKAGE_HOST_DOSFSTOOLS}, \code{BR2_PACKAGE_HOST_GENIMAGE}
-  and \code{BR2_PACKAGE_HOST_MTOOLS}.
+  \code{BR2_PACKAGE_HOST_GENIMAGE}.
 
 \end{itemize}
