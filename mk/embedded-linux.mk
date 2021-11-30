@@ -44,6 +44,7 @@ EMBEDDED_LINUX_SLIDES = \
 		sysdev-busybox \
 		sysdev-block-filesystems \
 		sysdev-flash-filesystems \
+		sysdev-flash-filesystems-lab \
 		sysdev-embedded-linux \
 		sysdev-application-development \
 		sysdev-realtime \
