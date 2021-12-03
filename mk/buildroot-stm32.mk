@@ -2,7 +2,8 @@ BUILDROOT_STM32_SLIDES = \
 		first-slides \
 		about-us \
 		course-information-title \
-		beagleboneblack-board \
+		discovery-board-dk1 \
+		buildroot-shopping-list-stm32 \
 		course-information \
 		setup-lab \
 		buildroot-yocto-introduction \

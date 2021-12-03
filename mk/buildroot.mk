@@ -3,6 +3,7 @@ BUILDROOT_SLIDES = \
 		about-us \
 		course-information-title \
 		beagleboneblack-board \
+		buildroot-shopping-list \
 		course-information \
 		setup-lab \
 		buildroot-yocto-introduction \
