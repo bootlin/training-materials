@@ -12,8 +12,6 @@
     \item The {\bf build time graphing} tools
     \item The {\bf filesystem size} tools
     \end{itemize}
-  \item Additional tools can be constructed using {\bf instrumentation
-      scripts}
   \end{itemize}
 \end{frame}
 
@@ -128,57 +126,6 @@ BR2_GRAPH_OUT=png \
     \includegraphics[height=0.8\textheight]{slides/buildroot-analysis/graph-size.pdf}
   \end{center}
 \end{frame}
-
-\begin{frame}{Instrumentation scripts}
-  \begin{itemize}
-  \item Additional analysis tools can be constructed using the {\bf
-      instrumentation scripts} mechanism.
-  \item \code{BR2_INSTRUMENTATION_SCRIPTS} is an environment variable,
-    containing a space-separated list of scripts, that will be called
-    before and after each step of the build of all packages.
-  \item Three arguments are passed to the scripts:
-    \begin{enumerate}
-    \item \code{start} or \code{stop} to indicate whether it's the
-      beginning or end of the step
-    \item the name of the step
-    \item the name of the package
-    \end{enumerate}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}[fragile]{Instrumentation scripts: example}
-  \begin{block}{instrumentation.sh}
-{\tiny
-\begin{verbatim}
-#!/bin/sh
-echo "${3} now ${1}s ${2}"
-\end{verbatim}}
-  \end{block}
-
-  \begin{block}{Output}
-{\tiny
-\begin{verbatim}
-$ make BR2_INSTRUMENTATION_SCRIPTS="./instrumentation.sh"
-strace now starts extract
->>> strace 4.10 Extracting
-xzcat /home/thomas/dl/strace-4.10.tar.xz | tar --strip-components=1 \
-      -C /home/thomas/projets/buildroot/output/build/strace-4.10  -xf -
-strace now ends extract
-strace now starts patch
->>> strace 4.10 Patching
-
-Applying 0001-linux-aarch64-add-missing-header.patch using patch: 
-patching file linux/aarch64/arch_regs.h
->>> strace 4.10 Updating config.sub and config.guess
-for file in config.guess config.sub; do for i in $(find \
-    /home/thomas/projets/buildroot/output/build/strace-4.10 -name $file); do \
-       cp support/gnuconfig/$file $i; done; done
->>> strace 4.10 Patching libtool
-strace now ends patch
-strace now starts configure
->>> strace 4.10 Configuring
-\end{verbatim}}
-  \end{block}
 
 \end{frame}
 
