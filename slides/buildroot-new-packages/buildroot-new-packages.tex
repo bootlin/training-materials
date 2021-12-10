@@ -1124,62 +1124,6 @@ $(eval $(autotools-package))
   \end{columns}
 \end{frame}
 
-\subsection{{\tt python-package} infrastructure}
-
-\begin{frame}{Python package infrastructure: basics}
-  \begin{itemize}
-  \item Modules for the Python language often use {\em distutils} or
-    {\em setuptools} as their build/installation system.
-  \item Buildroot provides a \code{python-package} infrastructure for
-    such packages.
-  \item Supports all the \code{generic-package} metadata information
-    (source, site, license, etc.)
-  \item Adds a mandatory variable \code{<pkg>_SETUP_TYPE}, which must
-    be set to either \code{distutils} or \code{setuptools}
-  \item And several optional variables to further adjust the build:
-    \code{<pkg>_ENV}, \code{<pkg>_BUILD_OPTS},
-    \code{<pkg>_INSTALL_TARGET_OPTS},
-    \code{<pkg>_INSTALL_STAGING_OPTS}, \code{<pkg>_INSTALL_OPTS},
-    \code{<pkg>_NEEDS_HOST_PYTHON}.
-  \end{itemize}
-\end{frame}
-
-\begin{frame}[fragile]{Python package: simple example}
-
-  \begin{block}{python-serial.mk}
-    \begin{minted}[fontsize=\scriptsize]{make}
-PYTHON_SERIAL_VERSION = 3.5
-PYTHON_SERIAL_SOURCE = pyserial-$(PYTHON_SERIAL_VERSION).tar.gz
-PYTHON_SERIAL_SITE = https://files.pythonhosted.org/packages/1e/7d/ae3f0a63f41e4d2f6cb66a5b57197850f919f59e558159a4dd3a818f5082
-PYTHON_SERIAL_LICENSE = BSD-3-Clause
-PYTHON_SERIAL_LICENSE_FILES = LICENSE.txt
-PYTHON_SERIAL_SETUP_TYPE = setuptools
-
-$(eval $(python-package))
-    \end{minted}
-  \end{block}
-
-\end{frame}
-
-\begin{frame}[fragile]{Python package: more complicated example}
-  \begin{block}{python-lxml.mk}
-    \begin{minted}[fontsize=\scriptsize]{make}
-PYTHON_LXML_VERSION = 4.6.2
-PYTHON_LXML_SITE = https://files.pythonhosted.org/packages/db/f7/43f....
-PYTHON_LXML_SOURCE = lxml-$(PYTHON_LXML_VERSION).tar.gz
-[...]
-PYTHON_LXML_SETUP_TYPE = setuptools
-PYTHON_LXML_DEPENDENCIES = libxml2 libxslt zlib
-
-PYTHON_LXML_BUILD_OPTS = \
-        --with-xslt-config=$(STAGING_DIR)/usr/bin/xslt-config \
-        --with-xml2-config=$(STAGING_DIR)/usr/bin/xml2-config
-
-$(eval $(python-package))
-    \end{minted}
-  \end{block}
-\end{frame}
-
 \subsection{Target vs. host packages}
 
 \begin{frame}{Host packages}
