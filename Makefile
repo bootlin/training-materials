@@ -248,6 +248,7 @@ endif
 # === Last update file generation ===
 #
 $(OUTDIR)/last-update.tex: FORCE
+	mkdir -p $(@D)
 	t=`git log -1 --format=%ct` && printf "\def \lastupdateen{%s}\n" "`(LANG=en_EN.UTF-8 date -d @$${t} +'%B %d, %Y')`" > $@
 	t=`git log -1 --format=%ct` && printf "\def \lastupdatefr{%s}\n" "`(LANG=fr_FR.UTF-8 date -d @$${t} +'%d %B %Y')`" >> $@
 
