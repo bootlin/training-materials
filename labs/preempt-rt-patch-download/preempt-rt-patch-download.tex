@@ -2,9 +2,9 @@
 
 During this lab, you will:
 \begin{itemize}
-
-  \item Configure the project and choose a target
-  \item Build your first Poky image
+	\item Configure the Buildroot Build-system to generate an image based on the upstream linux-rt repository
+	\item Configure the kernel to enable full preemption
+	\item Boot the system and check that it runs preempt-rt
 \end{itemize}
 
 \section{Initial Setup}
@@ -28,31 +28,30 @@ git clone https://git.buildroot.net/git/buildroot.git
 \end{bashinput}
 
 In case this is blocked on your network, you can download the Buildroot
-tarball \code{buildroot-2021.02.tar.bz2} from
+tarball \code{buildroot-2021.11.tar.bz2} from
 \code{https://buildroot.org/downloads/} and extract it. However in this
 case, you won't be able to use {\em Git} to visualize your changes and
 keep track of them.
 
 Go into the newly created \code{buildroot} directory.
 
-We're going to start a branch from the {\em 2021.02} Buildroot
+We're going to start a branch from the {\em 2021.11} Buildroot
 release, with which this training has been tested.
 
 \begin{bashinput}
-git checkout -b felabs 2021.02
+git checkout -b felabs 2021.11
 \end{bashinput}
 
 \section{Configuring Buildroot}
 
 If you look under \code{configs/}, you will see that there is a file
-named \code{beaglebone_defconfig}, which is a ready-to-use Buildroot
-configuration file to build a system for the BeagleBone Black Wireless
-platform.
+named \code{stm32mp157a_dk1_defconfig}, which is a ready-to-use Buildroot
+configuration file to build a system for the STM32MP157A platform.
 
 We'll use that configuration as a basis for our setup :
 
 \begin{bashinput}
-make beaglebone_defconfig
+make stm32mp157a_dk1_defconfig
 \end{bashinput}
 
 We'll configure Buildroot to download the Linux Kernel with the RT Patch applied.
@@ -60,38 +59,32 @@ We'll configure Buildroot to download the Linux Kernel with the RT Patch applied
 From the \code{make menuconfig} interface, change the Kernel sources's custom
 tarball location to the following :
 
-\code{$(call github,beagleboard,linux,5.10.30-ti-rt-r3)/linux-5.10.30-ti-rt-r3.tar.gz}
+\url{git://git.kernel.org/pub/scm/linux/kernel/git/rt/linux-stable-rt.git}
+
+We'll use the latest stable RT version, which is \code{v5.15.14-rt27}. Set that
+value in the \code{Custom repository version}
 
 Make sure you enable a toolchain with wchar and C++ support, it will be required
-for later.
+for later, and 
 
 Realtime applications should really be using the GLibC, so select this C library in the
 toolchain configuration.
 
 \section{Kernel configuration}
+The standard way to configure the kernel is through the \code{make menuconfig} interface. Here, we're building everything using
+Buildroot, because it's an easy way to build a fully integrated image, with our custom kernel but also our custom applications.
 
-Let's modify our kernel configuration to enable some required options :
+We'll use Buildroot's \code{make linux-menuconfig} to modify our kernel configuration,
+it's strictly equivalent to the \code{make menuconfig} command from the kernel's source tree.
 
 \begin{bashinput}
 	make linux-menuconfig
 \end{bashinput}
 
-Add the below options to support networking over USB device:
-\begin{itemize}
-  \item \kconfigval{CONFIG_USB_GADGET}{y}
-  \item \kconfigval{CONFIG_USB_MUSB_HDRC}{y} {\em Driver for the USB OTG
-        controller}
-  \item \kconfigval{CONFIG_USB_MUSB_GADGET}{y} {\em Use the USB OTG controller
-	in device (gadget) mode}
-  \item \kconfigval{CONFIG_USB_MUSB_DSPS}{y}
-  \item Check the dependencies of \kconfig{CONFIG_AM335X_PHY_USB}
-        and find the way to set \kconfigval{CONFIG_AM335X_PHY_USB}{y}
-  \item Find the "USB Gadget precomposed configurations" menu
-        and set it to {\em static} instead of {\em module}
-	so that \kconfigval{CONFIG_USB_ETH}{y}
-\end{itemize}
+The default kernel configuration file for this platform isn't made for a -RT kernel. Building an kernel with the Preempt-RT patch is not enough to
+benefit from the full kernel preemption, we also need to enable it. In the menuconfig interface, you'll find the \code{Preemption Model} setting under the \code{General Setup} category.
 
-Finally, make sure to select the right preemption model, and let's build our image !
+We want to enable the \code{Fully Preemptible Kernel} mode, but it's not proposed as an available choice by default. To enable it, we first need to enable the \code{expert} mode, by selecting the \code{CONFIG_EXPERT} option. Once enabled, we can select the Preempt-RT mode !
 
 \begin{bashinput}
 make
@@ -101,32 +94,17 @@ While the build is ongoing, don't hesitate to take a look at the latest
 version of the patchset :
 
 \begin{bashinput}
-wget https://cdn.kernel.org/pub/linux/kernel/projects/rt/5.14/patches-5.14.1-rt19.tar.gz
+wget https://cdn.kernel.org/pub/linux/kernel/projects/rt/5.14/patches-5.15.14-rt27.tar.gz
 \end{bashinput}
 
 Look at the \code{series} file for more information about each individual patch.
 
 \section{Setting up serial communication with the board}
 
-The Beaglebone serial connector is exported on the 6 pins close to one
-of he 48 pins headers. Using your special USB to Serial adapter provided
-by your instructor, connect the ground wire (blue) to the pin closest
-to the power supply connector (let's call it pin 1), and the \code{TX} (red)
-and \code{RX} (green) wires to the pins 4 (board \code{RX}) and
-5 (board \code{TX})\footnote{See
-\url{https://www.olimex.com/Products/Components/Cables/USB-Serial-Cable/USB-Serial-Cable-F/}
-for details about the USB to Serial adapter that we are using.}.
+The STM32MP1 devkit's serial port can be accessed through the micro-USB connector.
 
-You always should make sure that you connect the \code{TX} pin of the cable
-to the \code{RX} pin of the board, and vice-versa, whatever the board and
-cables that you use.
-
-\begin{center}
-\includegraphics[width=8cm]{common/beaglebone-black-serial-connection.jpg}
-\end{center}
-
-Once the USB to Serial connector is plugged in, a new serial port
-should appear: \code{/dev/ttyUSB0}.  You can also see this device
+Once the USB cable is plugged in, a new serial port
+should appear: \code{/dev/ttyACM0}.  You can also see this device
 appear by looking at the output of \code{dmesg}.
 
 To communicate with the board through the serial port, install a
@@ -136,7 +114,7 @@ serial communication program, such as \code{picocom}:
 sudo apt install picocom
 \end{bashinput}
 
-If you run \code{ls -l /dev/ttyUSB0}, you can also see that only
+If you run \code{ls -l /dev/ttyACM0}, you can also see that only
 \code{root} and users belonging to the \code{dialout} group have
 read and write access to this file. Therefore, you need to add your user
 to the \code{dialout} group:
@@ -151,35 +129,20 @@ sudo adduser $USER dialout
 A workaround is to run \code{newgrp dialout}, but it is not global.
 You have to run it in each terminal.
 
-Now, you can run \code{picocom -b 115200 /dev/ttyUSB0}, to start serial
-communication on \code{/dev/ttyUSB0}, with a baudrate of \code{115200}. If
+Now, you can run \code{picocom -b 115200 /dev/ttyACM0}, to start serial
+communication on \code{/dev/ttyACM0}, with a baudrate of \code{115200}. If
 you wish to exit \code{picocom}, press \code{[Ctrl][a]} followed by
 \code{[Ctrl][x]}.
 
 There should be nothing on the serial line so far, as the board is not
 powered up yet.
 
-\section{Configure the U-Boot environment and boot}
+\section{Checking that we run a Patched kernel}
 
-Flash the generated image onto your SD card :
+To check that we are indeed running a kernel with the preempt-RT patch applied and
+full kernel preemption enabled, we have 2 main ways of checing.
 
-\begin{bashinput}
-	sudo dd if=output/images/sdcard.img of=/dev/mmcblk0 bs=1M conv=fdatasync
-\end{bashinput}
+First, use the \code{uname -a} command. Running an RT kernel should show the \code{PREEMPT_RT} version item.
 
-
-Insert the SD card in the dedicated slot on the BeagleBone Black. Press the S2
-push button (located just above the previous slot), plug in the USB cable and
-release the push button.
-
-Enter the U-boot prompt, and change the boot environment variables with the following commands :
-
-\begin{bashinput}
-setenv bootcmd 'mmc rescan; fatload mmc 0 0x80200000 zImage; fatload mmc 0 0x82000000 am335x-boneblack.dtb; bootz 0x80200000 - 0x82000000'
-setenv bootargs 'console=ttyS0,115200 root=/dev/mmcblk0p2 rootwait rw'
-saveenv
-\end{bashinput}
-
-Wait until the login prompt, then enter \code{root} as user.
-Congratulations! The board has booted and you now have a shell.
+The other way to check is to look at the file \code{/sys/kernel/realtime}. It's content is always '1', but the file only exists for RT kernels.
 
