@@ -22,14 +22,23 @@ In the Buildroot \code{make menuconfig} interface, enable the following packages
 	\item fping
 	\item scheduling utilites from the util-linux package
 	\item python3
+	\item screen
 \end{itemize}
 
-Re-build the image, and boot it on the Beaglebone.
+You'll also need to enable a few features in the kernel. Run \code{make linux-menuconfig} and select
+the following options, located in "Kernel Hacking" :
+
+\begin{itemize}
+	\item Compile-time checks and compiler options -> Compile the kernel with debug info
+	\item Tracers -> Function tracer, Interrupts-off tracer, Preemption off tracer, scheduling latency tracer...
+\end{itemize}
+
+Re-build the image, and boot it on the board : \code {make linux-rebuild && make}
 
 Let's first start by establishing the baseline latency by simply running \code{cyclictest} :
 
 \begin{bashinput}
-cyclictest
+cyclictest -p 
 \end{bashinput}
 
 The goal of this lab is to try to lower the latency as much as possible while
@@ -37,7 +46,7 @@ the system is under various types of loads. This will allow us to get the
 best running conditions for our applications.
 
 Some tweaks will really be useful on SMP systems, so don't hesitate to test on
-you own machine !
+your own machine !
 
 Here's a few leads :
 
@@ -61,6 +70,7 @@ Stress the system using several tools :
 \end{itemize}
 
 Some kernel options can also be useful :
+
 \begin{itemize}
 	\item \code{CONFIG_TRACE_HWLAT}
 \end{itemize}
