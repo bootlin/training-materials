@@ -2,6 +2,9 @@ PREEMPT_RT_SLIDES    = \
 	first-slides \
 	about-us \
 	course-information-title \
+	discovery-board-dk1 \
+	course-information \
+	setup-lab \
 	realtime-linux-realtime-systems \
 	realtime-linux-preempt-rt \
 	realtime-linux-setup-lab \
