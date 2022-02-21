@@ -22,7 +22,6 @@ BUILDROOT_SLIDES = \
 		buildroot-appdev \
 		buildroot-internals \
 		buildroot-support-contribution \
-		buildroot-whats-new \
 		buildroot-acknowledgements \
 		last-slides
 
