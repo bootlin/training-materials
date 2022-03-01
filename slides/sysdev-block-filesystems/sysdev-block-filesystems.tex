@@ -111,10 +111,10 @@ major minor #blocks name
   \item The standard filesystem used on Linux systems is the series of
     \code{ext{2,3,4}} filesystems
     \begin{itemize}
-    \item \code{ext2}
+    \item \code{ext2} (\kconfig{CONFIG_EXT2_FS})
     \item \code{ext3}, brought {\em journaling} (explained next slide)
           compared to \code{ext2}, now obsoleted by \code{ext4}.
-    \item \code{ext4}, mainly brought performance improvements and
+    \item \code{ext4} (\kconfig{CONFIG_EXT4_FS}), mainly brought performance improvements and
           support for very big partitions.
     \end{itemize}
   \item It supports all features Linux needs in a root filesystem:
@@ -161,14 +161,14 @@ major minor #blocks name
 \begin{frame}
   \frametitle{Other journaled Linux/UNIX filesystems}
   \begin{itemize}
-  \item \code{btrfs}, the most actively developed filesystem
+  \item \code{btrfs} (\kconfig{CONFIG_BTRFS_FS}), the most actively developed filesystem
     for Linux. It integrates numerous features: data checksuming,
     integrated volume management, snapshots, etc.
-  \item \code{XFS}, high-performance filesystem inherited from SGI
+  \item \code{XFS} (\kconfig{CONFIG_XFS_FS}), high-performance filesystem inherited from SGI
     IRIX, still actively developed.
-  \item \code{JFS}, inherited from IBM AIX. No longer actively
+  \item \code{JFS} (\kconfig{CONFIG_JFS_FS}), inherited from IBM AIX. No longer actively
     developed, provided mainly for compatibility.
-  \item \code{reiserFS}, used to be a popular filesystem, but its
+  \item \code{reiserFS} (\kconfig{CONFIG_REISERFS_FS}), used to be a popular filesystem, but its
     latest version \code{Reiser4} was never merged upstream.
   \item \code{ZFS}, provides standard and advanced filesystem and
     volume management (CoW, snapshot, etc.). Due to license it
@@ -182,7 +182,7 @@ major minor #blocks name
 
 \begin{frame}
   \frametitle{F2FS: filesystem for flash-based block storage}
-  \url{https://en.wikipedia.org/wiki/F2FS}
+  \kconfig{CONFIG_F2FS_FS}, \url{https://en.wikipedia.org/wiki/F2FS}
   \begin{itemize}
   \item Filesystem that takes into account the characteristics of
     flash-based storage: eMMC, SD cards, SSD, etc.
@@ -193,7 +193,6 @@ major minor #blocks name
     storage internal behavior which may not easy to get
   \item Benchmarks: best performer on flash devices most of the time: \\
         See \url{https://lwn.net/Articles/520003/}
-  \item Technical details: \url{https://lwn.net/Articles/518988/}
   \item Not as widely used as \code{ext4} and \code{btrfs}, even on flash-based
     storage.
   \end{itemize}
@@ -201,6 +200,7 @@ major minor #blocks name
 
 \begin{frame}
   \frametitle{SquashFS: read-only filesystem}
+  \kconfig{CONFIG_SQUASHFS}
   \begin{itemize}
   \item Read-only, compressed filesystem for block devices. Fine for
     parts of a filesystem which can be read-only (kernel, binaries...)
@@ -211,7 +211,7 @@ major minor #blocks name
   \item Benchmarks: roughly 3 times smaller than ext3, and 2-4 times
     faster (\url{https://elinux.org/Squash_Fs_Comparisons})
   \item New alternative to SquashFS: EROFS\\
-    \url{https://en.wikipedia.org/wiki/EROFS}
+    \kconfig{CONFIG_EROFS_FS}, \url{https://en.wikipedia.org/wiki/EROFS}
   \end{itemize}
 \end{frame}
 
@@ -233,8 +233,9 @@ major minor #blocks name
                    performance.
 	     \item Keep the one working best in your case.
            \end{itemize}
-     \item For read/write partitions, the best choices are
-           probably \code{btrfs} and \code{f2fs}.
+     \item For read/write partitions, a good default choice
+           would be \code{ext4}, and then try \code{btrfs} and \code{f2fs}
+           if you need extra performance.
   \end{itemize}
 \end{frame}
 
@@ -243,7 +244,7 @@ major minor #blocks name
   Linux also supports several other filesystem formats, mainly to be
   interoperable with other operating systems:
   \begin{itemize}
-  \item \code{vfat} for compatibility with the FAT filesystem used in
+  \item \code{vfat} (\kconfig{CONFIG_VFAT_FS}) for compatibility with the FAT filesystem used in
     the Windows world and on numerous removable devices
     \begin{itemize}
     \item Also convenient to store bootloader binaries (FAT easy
@@ -251,19 +252,18 @@ major minor #blocks name
     \item This filesystem does {\em not} support features like
       permissions, ownership, symbolic links, etc. Cannot be used for
       a Linux root filesystem.
-    \item Linux now supports the exFAT filesystem too (\code{exfat}).
+    \item Linux now supports the exFAT filesystem too (\kconfig{CONFIG_EXFAT_FS}).
     \end{itemize}
-  \item \code{ntfs} for compatibility with the NTFS filesystem used on
-    Windows
-  \item \code{hfs} for compatibility with the HFS filesystem used on
-    Mac OS
-  \item \code{iso9660}, the filesystem format used on CD-ROMs,
-    obviously a read-only filesystem
+  \item \code{ntfs} (\kconfig{CONFIG_NTFS_FS}) for compatibility with
+      Windows NTFS filesystem.
+  \item \code{hfs} (\kconfig{CONFIG_HFS_FS}) for compatibility with the
+      MacOS HFS filesystem.
   \end{itemize}
 \end{frame}
 
 \begin{frame}
   \frametitle{tmpfs: filesystem in RAM}
+  \kconfig{CONFIG_TMPFS}
   \begin{itemize}
   \item Not a block filesystem of course!
   \item Perfect to store temporary data in RAM: system log files,
