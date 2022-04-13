@@ -14,7 +14,7 @@
 Go to the \code{\$HOME/__SESSION_NAME__-labs/} directory.
 
 To start our exploration of {\em autotools}, we'll use the {\bf
-  ethtool} set of programs. Download the 3.18 version from the project
+  ethtool} set of programs. Download the 5.17 version from the project
 home page at
 \url{https://www.kernel.org/pub/software/network/ethtool/} and extract
 it.
@@ -34,8 +34,10 @@ Read the output of \code{./configure --help}.
 
 \section{First build}
 
-Run \code{./configure}, and look at the output. Also look at the
-contents of the \code{config.log} file.
+Run \code{./configure}, and look at the output. You may need to
+install the \code{libmnl-dev} package if it is not already installed
+on your system. Also look at the contents of the \code{config.log}
+file.
 
 Then, run the build with \code{make}.
 
@@ -64,7 +66,7 @@ and move to this directory. Then, call the \code{configure} script of
 {\em ethtool}:
 
 \begin{verbatim}
-../ethtool-3.18/configure
+../ethtool-5.17/configure
 \end{verbatim}
 
 This will abort with an error: it doesn't want to do {\em out of tree}
@@ -82,10 +84,17 @@ apt install gcc-arm-linux-gnueabihf
 Then you can do:
 
 \begin{verbatim}
-../ethtool-3.18/configure --host=arm-linux-gnueabihf
+../ethtool-5.17/configure --host=arm-linux-gnueabihf
 \end{verbatim}
 
-Start the build, and verify that the cross-compiler is used.
+Start the build, and verify that the cross-compiler is used. The build
+will fail because {\em libmnl} isn't available on our system,
+cross-compiled for ARM. Let's build without {\em netlink} support to
+avoid the {\em libmnl} dependency.
+
+\begin{verbatim}
+../ethtool-5.17/configure --host=arm-linux-gnueabihf --disable-netlink
+\end{verbatim}
 
 \section{Overriding cache variables}
 
