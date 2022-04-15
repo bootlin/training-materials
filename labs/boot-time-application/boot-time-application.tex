@@ -228,41 +228,8 @@ make clean
 make
 \end{verbatim}
 
-Update your root filesystem and then reboot.
-
-According to our tests, there should be an issue now: the video player
-is started even before the camera is ready, as you can see in the system
-console.
-
-To address this issue for the time being, let's modify \code{/etc/init.d/S50playvideo}
-by adding a loop waiting for the \code{/dev/video0} device to appear.
-So, let's add the following lines to
-\code{board/beaglecam/rootfs-overlay/etc/init.d/S50playvideo},
-before the call to \code{echo "Starting ffmpeg"}:
-
-\begin{verbatim}
-if ! [ -e /dev/video0 ]
-then
-   echo "Waiting for /dev/video0 to be ready..."
-   while ! [ -e /dev/video0 ]
-   do
-       usleep 1000
-   done
-fi
-\end{verbatim}
-
-Notes:
-\begin{itemize}
-\item It seems you can not run an empty \code{while} loop with BusyBox
-      \code{sh}. That's why I had to put a real command (not a comment)
-      inside the loop.
-\item When we optimize the kernel, we will try to address this camera
-      readiness issue. If we can't fix it, at least we will display
-      something on the screen to make the user wait.
-\end{itemize}
-
-Update and reboot your system through \code{grabserial}, copying the
-output to \code{~/logs/application.log}.
+Update your root filesystem and then reboot your system through \code{grabserial},
+copying the output to \code{~/logs/application.log}.
 Fill the below table with updated figures:
 
 \begin{tabular}{| l | l | r |}
