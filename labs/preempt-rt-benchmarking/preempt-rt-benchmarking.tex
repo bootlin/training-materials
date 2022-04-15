@@ -74,3 +74,124 @@ Some kernel options can also be useful :
 \begin{itemize}
 	\item \code{CONFIG_TRACE_HWLAT}
 \end{itemize}
+
+\section{First analysis}
+
+To get a first idea of the wakeup latencies you can expect on your system, launch
+\code{cyclictest} on the target, and take a look at the Max latency. The lower, the
+better. You shouldn't get bit latency spikes.
+
+By running \code{cyclictest} as is, you will run the benchmark with the default
+scheduling policy (\code{SCHED_OTHER}), and without any CPU pinning.
+
+You may not notice huge latencies right away, since the system at that point isn't
+doint much else. You can try to load the system and see how that affects the latencies
+
+To run cyclictest with a real-time scheduling policy, use the \code{-p <prio>} option.
+Cyclictest doesn't play well with the \code{chrt} command, since it will itself re-set
+it's own scheduling policy.
+
+Try running \code{cyclictest -p 40} and see if you get better latencies.
+
+\subsection{Network load}
+
+An easy way to introduce some load is to generate some network traffic. This will
+generate some interrupts, but also stress the kernel and create some context switches.
+
+First, setup the board's network interface :
+
+\code{ip link set eth0 up}
+
+\code{udhcpc -i eth0}
+
+Then run the \code{iperf3} server in the background :
+
+\code{iperf3 -s -D}
+
+Re-run your cyclictest benchmark, and start sending traffic to your target. From
+you host computer, run \code{iperf3 -c <addr_of_your_board>}. You should start
+seeing the latency rising up.
+
+Try comparing the latencies you get between \code{cyclictest} and \code{cyclictest -p 40}. Do you
+still see high latencies while some network traffic is being received ? If so, why and how
+could we fix this ?
+
+\subsection{Scheduling load}
+
+Another way to stress the system without any external source is with the \code{hackbench}
+tool, which generates a lot of context switches by exchanging data back and forth between
+multiple processes and multiple threads. This benchmark is pretty intense and can bring
+an entire system down to a non-responsive state, so launch it with only 10 file-descriptors,
+running an infinite amout of loops :
+
+\code{hackbench -f 10 -l -1 &}
+
+With hackbench running in the background, compare the output of \code{cyclictest} and \code{cyclictest -p 40}, the
+difference should be pretty impressive.
+
+\section{Analyzing the system configuration}
+
+\subsection{CPU Pinning}
+
+Take a look at how many CPUs are on your system. You can run "htop", or
+look in \code{/sys/devices/system/cpu/}. This place is useful since you'll find
+lots of ways to manage the CPUs :
+
+\begin{itemize}
+	\item in \code{cpuX/cpufreq}, you'll find ways to inspect and control the CPU's frequency
+	\item in \code{cpuX/cpuidle}, you'll find ways to inspect and control the CPU's idle states
+\end{itemize}
+
+If you have multiple CPU cores, it's a good idea to start by isolating :
+\begin{itemize}
+	\item Your process
+	\item Important interrupts
+\end{itemize}
+
+On the contrary, you might want to restrict interrupts to cores that won't affect
+you process.
+
+To perform this, use the \code{taskset} command, both for running your process, but
+also to change the interrupt CPU affinity.
+
+For cyclictest, you can either run cyclictest with the \code{-a <cpu_num>} option,
+or use \code{taskset -c <cpu_num> cyclictest ...}.
+
+Try running hackbench and cyclictest on the same CPU, and then on differenc CPU and
+compare the induced latencies.
+
+\subsection{Interrupt Pinning}
+
+It might be a good idea to make sure that no unexpected interrupts occur on the CPU
+you use for your realtime application. To know how many interrupts fire on each CPU
+core, take a look at the \code{/proc/interrupts} file :
+
+\code{cat /proc/interrupts}.
+
+After you identify the interrupts that fire (take a look at the \code{ethernet} interrupt
+when you generate traffic), you cat change it's CPU affinity by going into \code{/proc/irq/<num>/}.
+
+You can then limit it by echo-ing an integer corresponding to the bitfield of enabled CPUS :
+
+\code{echo 1 > smp_affinity} will limit the interrupt to the CPU 0
+
+\code{echo 3 > smp_affinity} will limit the interrupt to the CPU 0 and 1
+
+Try to limit the ethernet interrupt to one CPU core, and launch \code{cyclictest -p 40} on the
+other core. You can see that even when launching cyclictest with a priority lower than
+the threaded interrupt's, you don't see any impact of network traffic on the latencies.
+
+\subsection{CPU Isolation}
+
+To go even further, you can completely isolate one CPU from the scheduler's pool,
+abd have it only accessible through \code{taskset}. To do so, you need to change
+the kernel's commandline, passed by the bootloader. On the STM32MP157 platform,
+this is done using the \code{extlinux} infrastructure. You can change the
+commandline by editing the \code{/boot/extlinux/extlinux.conf} file :
+
+\code{vi /boot/extlinux/extlinux.conf}
+
+Add the \code{isolcpus=1} to the \code{append} line to isolate CPU 1.
+
+Reboot your target, and run cyclictest on CPU1. What can you notice ?
+
