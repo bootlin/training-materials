@@ -27,18 +27,18 @@ First, let's get the list of branches on our \code{stable} remote tree:
 git branch -a
 \end{verbatim}
 
-As we will do our labs with the Linux 5.11 stable branch, the remote branch
-we are interested in is \code{remotes/stable/linux-5.11.y}.
+As we will do our labs with the Linux 5.15 LTS stable branch, the remote branch
+we are interested in is \code{remotes/stable/linux-5.15.y}.
 
 First, open the \code{Makefile} file just to check the Linux kernel
 version that you currently have.
 
-Now, let's check out the \code{5.11.y} branch:
+Now, let's check out the \code{5.15.y} branch:
 \begin{verbatim}
-git checkout stable/linux-5.11.y
+git checkout stable/linux-5.15.y
 \end{verbatim}
 
-Open \code{Makefile} again and make sure you now have a 5.11.<n> version.
+Open \code{Makefile} again and make sure you now have a 5.15.<n> version.
 
 \section{Compiling environment}
 
@@ -102,15 +102,9 @@ For USB support:
 \item \kconfigval{CONFIG_USB}{y}
 \item \kconfigval{CONFIG_USB_MUSB_HDRC}{y}
 \item \kconfigval{CONFIG_USB_MUSB_DSPS}{y}
-\item \kconfigval{CONFIG_MUSB_PIO_ONLY}{y}
-\item \kconfigval{CONFIG_USB_GADGET}{y}\\
-      You may wonder why we need this while we're not using USB gadget
-      at all. At least in the 5.1 kernel, this setting was required to get some
-      of the USB host functionality we needed.
+\item Disable \kconfig{CONFIG_USB_GADGET}
 \item \kconfigval{CONFIG_NOP_USB_XCEIV}{y}
 \item \kconfigval{CONFIG_AM335X_PHY_USB}{y}
-\item \kconfigval{CONFIG_USB_GPIO_VBUS}{y}
-\item \kconfigval{CONFIG_USB_GADGET_VBUS_DRAW}{500}
 \item \kconfigval{CONFIG_USB_CONFIGFS_F_UVC}{y}
 \end{itemize}
 
@@ -201,6 +195,24 @@ saveenv
 
 This saves the environment in a \code{uboot.env} file in the FAT32
 partition of the SD card.
+
+\section{Remove the unnecessary boot delay}
+
+By default, U-Boot leaves you 2 seconds to type a key in the console,
+to reach its command line shell, before attempting to start the
+default boot command, as specified in the \code{bootcmd} environment
+variable.
+
+This is a pure waste of time, as if you type keys early enough, you
+can get to a shell anyway. So, let’s remove this unnecessary delay
+which is too easy to eliminate and which we don’t want to count in
+the original boot time. We don’t want to unnecessarily slow down
+all our tests either.
+
+\begin{verbatim}
+setenv bootdelay 0
+saveenv
+\end{verbatim}
 
 \section{Testing time!}
 
