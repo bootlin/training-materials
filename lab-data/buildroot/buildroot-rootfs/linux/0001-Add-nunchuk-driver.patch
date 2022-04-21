@@ -1,4 +1,4 @@
-From f887f52465c0c9d3dc14893d684343651571097f Mon Sep 17 00:00:00 2001
+From 71c7e58915a31ac44ffbef033911c27b7437cb76 Mon Sep 17 00:00:00 2001
 From: =?UTF-8?q?Antoine=20T=C3=A9nart?= <antoine.tenart@bootlin.com>
 Date: Mon, 7 Apr 2014 11:55:31 +0200
 Subject: [PATCH 1/2] Add nunchuk driver
@@ -11,15 +11,15 @@ Signed-off-by: Thomas Petazzoni <thomas.petazzoni@bootlin.com>
 ---
  drivers/input/joystick/Kconfig    |  13 +
  drivers/input/joystick/Makefile   |   1 +
- drivers/input/joystick/wiichuck.c | 423 ++++++++++++++++++++++++++++++
- 3 files changed, 437 insertions(+)
+ drivers/input/joystick/wiichuck.c | 404 ++++++++++++++++++++++++++++++
+ 3 files changed, 418 insertions(+)
  create mode 100644 drivers/input/joystick/wiichuck.c
 
 diff --git a/drivers/input/joystick/Kconfig b/drivers/input/joystick/Kconfig
-index b080f0cfb068..e28371e399d2 100644
+index 3b23078bc7b5..5b6a2d219a12 100644
 --- a/drivers/input/joystick/Kconfig
 +++ b/drivers/input/joystick/Kconfig
-@@ -205,6 +205,19 @@ config JOYSTICK_TWIDJOY
+@@ -206,6 +206,19 @@ config JOYSTICK_TWIDJOY
  	  To compile this driver as a module, choose M here: the
  	  module will be called twidjoy.
  
@@ -40,23 +40,22 @@ index b080f0cfb068..e28371e399d2 100644
  	tristate "5-byte Zhenhua RC transmitter"
  	select SERIO
 diff --git a/drivers/input/joystick/Makefile b/drivers/input/joystick/Makefile
-index 58232b3057d3..c3991d71aa6e 100644
+index 5174b8aba2dd..2ab4167afbd7 100644
 --- a/drivers/input/joystick/Makefile
 +++ b/drivers/input/joystick/Makefile
-@@ -35,6 +35,7 @@ obj-$(CONFIG_JOYSTICK_TURBOGRAFX)	+= turbografx.o
+@@ -37,5 +37,6 @@ obj-$(CONFIG_JOYSTICK_TURBOGRAFX)	+= turbografx.o
  obj-$(CONFIG_JOYSTICK_TWIDJOY)		+= twidjoy.o
  obj-$(CONFIG_JOYSTICK_WARRIOR)		+= warrior.o
  obj-$(CONFIG_JOYSTICK_WALKERA0701)	+= walkera0701.o
 +obj-$(CONFIG_JOYSTICK_WIICHUCK)		+= wiichuck.o
  obj-$(CONFIG_JOYSTICK_XPAD)		+= xpad.o
  obj-$(CONFIG_JOYSTICK_ZHENHUA)		+= zhenhua.o
- 
 diff --git a/drivers/input/joystick/wiichuck.c b/drivers/input/joystick/wiichuck.c
 new file mode 100644
-index 000000000000..7b82e70c87dc
+index 000000000000..ba3797396c8a
 --- /dev/null
 +++ b/drivers/input/joystick/wiichuck.c
-@@ -0,0 +1,423 @@
+@@ -0,0 +1,404 @@
 +/*
 + * i2c Wiichuck driver (Nintendo Wiimote accessory connector)
 + *
@@ -92,7 +91,6 @@ index 000000000000..7b82e70c87dc
 +#include <linux/i2c.h>
 +#include <linux/interrupt.h>
 +#include <linux/input.h>
-+#include <linux/input-polldev.h>
 +#include <linux/mod_devicetable.h>
 +#include <linux/slab.h>
 +
@@ -113,7 +111,7 @@ index 000000000000..7b82e70c87dc
 +};
 +
 +struct wiichuck_device {
-+	struct input_polled_dev *poll_dev;
++	struct input_dev *input_dev;
 +	struct i2c_client *i2c_client;
 +	int (*process)(struct wiichuck_device *wiichuck);
 +	enum wiichuck_state state;
@@ -166,7 +164,7 @@ index 000000000000..7b82e70c87dc
 +
 +static int wiichuck_process_nunchuk(struct wiichuck_device *wiichuck)
 +{
-+	struct input_dev *input_dev = wiichuck->poll_dev->input;
++	struct input_dev *input_dev = wiichuck->input_dev;
 +	uint8_t *b = wiichuck->buf;
 +	int ax, ay, az, rc;
 +
@@ -195,7 +193,7 @@ index 000000000000..7b82e70c87dc
 +
 +static int wiichuck_process_classic(struct wiichuck_device *wiichuck)
 +{
-+	struct input_dev *input_dev = wiichuck->poll_dev->input;
++	struct input_dev *input_dev = wiichuck->input_dev;
 +	uint8_t *b = wiichuck->buf;
 +	int lx, ly, lt, rx, ry, rt, rc;
 +
@@ -253,9 +251,9 @@ index 000000000000..7b82e70c87dc
 + * back.  Using a state machine means the poll function can return and
 + * free up the worker thread while waiting for the data.
 + */
-+static void wiichuck_poll(struct input_polled_dev *poll_dev)
++static void wiichuck_poll(struct input_dev *input_dev)
 +{
-+	struct wiichuck_device *wiichuck = poll_dev->private;
++	struct wiichuck_device *wiichuck = input_get_drvdata(input_dev);
 +	int id;
 +
 +	switch (wiichuck->state) {
@@ -298,7 +296,7 @@ index 000000000000..7b82e70c87dc
 +			return;
 +
 +		wiichuck->state = WIICHUCK_STATE_DATA;
-+		poll_dev->poll_interval = WIICHUCK_CAPTURE_PERIOD;
++		input_set_poll_interval(input_dev, WIICHUCK_CAPTURE_PERIOD);
 +		break;
 +
 +	case WIICHUCK_STATE_DATA:
@@ -319,7 +317,7 @@ index 000000000000..7b82e70c87dc
 + disconnect:
 +	dev_info(&wiichuck->i2c_client->dev, "disconnected\n");
 +	wiichuck->state = WIICHUCK_STATE_DISCONNECTED;
-+	poll_dev->poll_interval = WIICHUCK_POLL_PERIOD;
++	input_set_poll_interval(input_dev, WIICHUCK_POLL_PERIOD);
 +}
 +
 +/**
@@ -330,42 +328,37 @@ index 000000000000..7b82e70c87dc
 + * before reopening.  This simply clears the state to disconnected and
 + * sets the poll rate back to the slow speed
 + */
-+static void wiichuck_open(struct input_polled_dev *poll_dev)
++static int wiichuck_open(struct input_dev *input_dev)
 +{
-+	struct wiichuck_device *wiichuck = poll_dev->private;
++	struct wiichuck_device *wiichuck = input_get_drvdata(input_dev);
 +
 +	wiichuck->process = wiichuck_process_unknown;
 +	wiichuck->state = WIICHUCK_STATE_DISCONNECTED;
-+	wiichuck->poll_dev->poll_interval = WIICHUCK_POLL_PERIOD;
++	input_set_poll_interval(input_dev, WIICHUCK_POLL_PERIOD);
++
++	return 0;
 +}
 +
 +static int wiichuck_probe(struct i2c_client *client,
 +				const struct i2c_device_id *id)
 +{
 +	struct wiichuck_device *wiichuck;
-+	struct input_polled_dev *poll_dev;
 +	struct input_dev *input_dev;
 +	int rc;
 +
-+	wiichuck = kzalloc(sizeof(*wiichuck), GFP_KERNEL);
++	wiichuck = devm_kzalloc(&client->dev, sizeof(*wiichuck), GFP_KERNEL);
 +	if (!wiichuck)
 +		return -ENOMEM;
 +
-+	poll_dev = input_allocate_polled_device();
-+	if (!poll_dev) {
-+		rc = -ENOMEM;
-+		goto err_alloc;
-+	}
++	input_dev = devm_input_allocate_device(&client->dev);
++	if (!input_dev)
++		return -ENOMEM;
 +
 +	wiichuck->i2c_client = client;
-+	wiichuck->poll_dev = poll_dev;
++	wiichuck->input_dev = input_dev;
 +
-+	poll_dev->private = wiichuck;
-+	poll_dev->poll = wiichuck_poll;
-+	poll_dev->open = wiichuck_open;
-+
-+	input_dev = poll_dev->input;
 +	input_dev->name = "Wiichuck expansion connector";
++	input_dev->open = wiichuck_open;
 +	input_dev->id.bustype = BUS_I2C;
 +	input_dev->dev.parent = &client->dev;
 +
@@ -425,23 +418,22 @@ index 000000000000..7b82e70c87dc
 +	__set_bit(BTN_TR2, input_dev->keybit);
 +
 +	i2c_set_clientdata(client, wiichuck);
++	input_set_drvdata(input_dev, wiichuck);
++
++	rc = input_setup_polling(input_dev, wiichuck_poll);
++	if (rc) {
++		dev_err(&client->dev, "Failed to setup polling\n");
++		return rc;
++	}
 +
 +	/* Register the device; it is 'live' after this point */
-+	rc = input_register_polled_device(wiichuck->poll_dev);
++	rc = input_register_device(input_dev);
 +	if (rc) {
 +		dev_err(&client->dev, "Failed to register input device\n");
-+		goto err_register;
++		return rc;
 +	}
 +
 +	return 0;
-+
-+ err_register:
-+	i2c_set_clientdata(client, NULL);
-+	input_free_polled_device(poll_dev);
-+ err_alloc:
-+	kfree(wiichuck);
-+
-+	return rc;
 +}
 +
 +static const struct i2c_device_id wiichuck_id[] = {
@@ -455,31 +447,19 @@ index 000000000000..7b82e70c87dc
 +	{ .compatible = "nintendo,wiimote-extension", },
 +	{ }
 +};
-+#else
-+#define wiichuck_match_table NULL
++MODULE_DEVICE_TABLE(of, nunchuk_dt_match);
 +#endif
 +
 +static struct i2c_driver wiichuck_driver = {
 +	.driver = {
 +		.name = "wiichuck",
 +		.owner = THIS_MODULE,
-+		.of_match_table = wiichuck_match_table,
++		.of_match_table = of_match_ptr(wiichuck_match_table),
 +	},
 +	.probe		= wiichuck_probe,
 +	.id_table	= wiichuck_id,
 +};
-+
-+static int __init wiichuck_init(void)
-+{
-+	return i2c_add_driver(&wiichuck_driver);
-+}
-+module_init(wiichuck_init);
-+
-+static void __exit wiichuck_exit(void)
-+{
-+	i2c_del_driver(&wiichuck_driver);
-+}
-+module_exit(wiichuck_exit);
++module_i2c_driver(wiichuck_driver);
 -- 
-2.31.1
+2.35.1
 
