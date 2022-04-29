@@ -11,8 +11,8 @@ During this lab, we will compare 3 ways of accessing the root filesystem
 
 \section{Tests with ext4 and SquashFS}
 
-First, recompile your kernel with {\em SquashFS} support, and update it
-on the SD card.
+First, recompile your kernel with built-in {\em SquashFS} support (with
+default options), and update it on the SD card.
 
 Write the size of the \code{zImage} file in the first row of the below table:
 
@@ -43,18 +43,15 @@ Boot your system with \code{grabserial}, copying its output to
   \hline
 \end{tabular}
 
-For {\em SquashFS}, you will have to create an image and copy it to the
-raw partition:
+For {\em SquashFS}, configure Buildroot to generate a SquashFS image too
+(with the default options).
+
+Once this image is generated, you'll just have to update the root
+partition from the host machine:
 
 \begin{verbatim}
-sudo apt install squashfs-tools
-cd ~/boot-time-labs/rootfs
-mkdir rootfs
-cd rootfs
-tar xvf ../buildroot/output/images/rootfs.tar
-cd ..
-mksquashfs rootfs/ rootfs.sqfs -noappend
-sudo dd if=rootfs.sqfs of=/dev/mmcblk0p2
+sudo umount /dev/mmcblk0p2
+sudo dd if=rootfs.squashfs of=/dev/mmcblk0p2
 \end{verbatim}
 
 Then remove the SD card and boot the board with it as usual, and record
@@ -91,11 +88,12 @@ So:
    \item Modify the BusyBox configuration to add support for the
    \code{mount} command (found in \code{Linux System Utilities}), without
     any additional option.
-   \item Add the following line to the \code{/playvideo} file:\\
+   \item Add the following line to the beginning of the \code{/playvideo} file:\\
    \code{mount -t devtmpfs nodev /dev}
    \item Run \code{make} to update your root filesystem.
-   \item Then extract again it in your \code{rootfs} directory:
+   \item Then extract again it in a new \code{rootfs} directory:
 \begin{verbatim}
+mkdir ../rootfs
 cd ../rootfs
 tar xvf ../buildroot/output/images/rootfs.tar
 \end{verbatim}
