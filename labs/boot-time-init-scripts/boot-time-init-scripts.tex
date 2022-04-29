@@ -153,7 +153,27 @@ So, let's remove \code{/etc/init.d/S50playvideo} from the root
 filesystem overlay and replace it by the \code{/playvideo} script
 provided in \code{~/boot-time-labs/rootfs/data/}.
 
-Regenerate your root filesystem:
+\subsection{Detecting and eliminating unused files}
+
+Here we want to use access time information (stored in the filesystems)
+to identify the files that are accessed at boot time.
+
+For this to work, we need to mount the root filesystem with the
+\code{strictatime} option, instead of the default \code{relatime} one,
+which only updates the access time of files when it's older that their
+modified time.
+
+It doesn't seem to be possible through the kernel command line, so,
+all we can do is change this mount option in our init executable.
+So, add the following two lines right after the first line at
+the begining of the \code{/playvideo} file:
+
+\begin{verbatim}
+mount -t proc nodev /proc
+mount -o remount,strictatime /
+\end{verbatim}
+
+We can now regenerate the root filesystem:
 \begin{verbatim}
 make clean
 make
@@ -169,60 +189,75 @@ boot
 \end{verbatim}
 
 Note that the \code{rw} setting is going to be important, as it will
-make Linux mount the root filesystem in read/write mode, which allows to
-record the access time of each file.
-
-\subsection{Detecting and eliminating unused files}
+make Linux mount the root filesystem in read/write mode, which is
+required to record the access time of each file.
 
 If the video played ran fine as expected, you should now be in a shell
 in the serial console.
 
 Type the \code{sync} command to flush the filesystem, remove the SD card
-and insert it on your PC again. Go to \code{/media/$USER/rootfs} and run
-the below command:
+and insert it on your PC again. On Ubuntu 20.04 at least, the challenge
+is to mount the root partition in read-only mode, otherwise the
+access times are modified.
+
+Unless you disable automounting of USB devices, a trick is to
+make your SD card read-only (through the write-protect mechanical
+switch in the micro-SD to SD card adaptor), and mount the partition
+manually from the command line:
 
 \begin{verbatim}
-find . -atime -100 -type f
+sudo mkdir /mnt/rootfs
+sudo mount -o ro,noload /dev/sdc2 /mnt/roots/
 \end{verbatim}
 
-This lists the regular files that were not accessed during the boot
-sequence we've just executed:
+Because of the way we removed the SD card, the \code{noload}
+option is required to mount the partition without trying to
+replay the journal of its filesystem, which would require
+read-write access.
+
+Now, let's run the below command:
 
 \begin{verbatim}
-./usr/lib/os-release
-./usr/share/ffmpeg/libvpx-720p50_60.ffpreset
-./usr/share/ffmpeg/libvpx-360p.ffpreset
-./usr/share/ffmpeg/libvpx-720p.ffpreset
-./usr/share/ffmpeg/ffprobe.xsd
-./usr/share/ffmpeg/libvpx-1080p.ffpreset
-./usr/share/ffmpeg/libvpx-1080p50_60.ffpreset
-./usr/share/udhcpc/default.script
-./bin/busybox
+cd /mnt/rootfs
+sudo find / -amin -100 -type f
+\end{verbatim}
+
+This lists the regular files that were not accessed after we remounted
+the root filesystem in \code{strictatime} mode:
+
+\begin{verbatim}
 ./lib/libatomic.so.1.2.0
 ./lib/libgcc_s.so.1
-./etc/hostname
-./etc/profile.d/umask.sh
-./etc/init.d/S02klogd
-./etc/init.d/S20urandom
-./etc/init.d/rcS
-./etc/init.d/rcK
-./etc/init.d/S01syslogd
-./etc/group
-./etc/protocols
-./etc/inittab
-./etc/passwd
-./etc/services
-./etc/fstab
-./etc/shadow
-./etc/hosts
-./etc/profile
+./usr/lib/os-release
+./usr/share/udhcpc/default.script
+./usr/share/ffmpeg/ffprobe.xsd
+./usr/share/ffmpeg/libvpx-720p50_60.ffpreset
+./usr/share/ffmpeg/libvpx-1080p50_60.ffpreset
+./usr/share/ffmpeg/libvpx-360p.ffpreset
+./usr/share/ffmpeg/libvpx-720p.ffpreset
+./usr/share/ffmpeg/libvpx-1080p.ffpreset
 ./etc/issue
+./etc/shadow
+./etc/hostname
+./etc/services
+./etc/profile
+./etc/protocols
+./etc/profile.d/umask.sh
+./etc/hosts
+./etc/fstab
+./etc/inittab
+./etc/init.d/rcS
+./etc/init.d/S01syslogd
+./etc/init.d/rcK
+./etc/init.d/S20urandom
+./etc/init.d/S02sysctl
+./etc/init.d/S02klogd
 ./etc/shells
 \end{verbatim}
 
 How does it work?
 
-\code{-atime -100} finds all the files which last access time is
+\code{-amin -100} finds all the files which last access time is
 less than 100 minutes ago, actually when we extracted the archive.
 Why doesn't it find the files which were actually accessed during the
 boot sequence? That's because the board doesn't have a clock set and its
@@ -230,24 +265,20 @@ date got back to January 1st, 1970. You can check the date of such a
 file:
 
 \begin{verbatim}
-stat playvideo
-  File: playvideo
-  Size: 300       	Blocks: 8          IO Block: 4096   regular file
-Device: b302h/45826d	Inode: 376         Links: 1
-Access: (0755/-rwxr-xr-x)  Uid: ( 1000/    mike)   Gid: ( 1000/    mike)
-Access: 1970-01-01 01:00:02.250000000 +0100
-Modify: 2019-05-21 22:29:21.348835786 +0200
-Change: 2019-05-21 22:29:21.748834877 +0200
+# stat usr/bin/ffmpeg
+  File: usr/bin/ffmpeg
+  Size: 210392    	Blocks: 416        IO Block: 4096   regular file
+Device: 822h/2082d	Inode: 261217      Links: 1
+Access: (0755/-rwxr-xr-x)  Uid: (    0/    root)   Gid: (    0/    root)
+Access: 1970-01-01 01:00:03.600000000 +0100
+Modify: 2022-04-29 10:12:51.294039733 +0200
+Change: 2022-04-29 10:30:07.550795191 +0200
  Birth: -
 \end{verbatim}
 
 A limitation is that it doesn't work with symbolic links and directories, so we don't
 know whether a symbolic link or directory was accessed or not. That's why we're
 keeping only regular files (\code{-type f}).
-
-There's a discrepancy too with \code{/bin/busybox} which was for sure
-accessed, but through a symbolic link. We will have to remove it from
-the list.
 
 If we had a board with a correct date, we would have still been able to
 use this technique, but this time only looking for files last accessed more
@@ -260,20 +291,25 @@ to each case (each case is special, while recipes should be generic).
 
 So, in the Buildroot directory, create a
 \code{board/beaglecam/post-fakeroot.sh} script that removing all the above
-files (except \code{/bin/busybox}):
+files:
 
 \begin{verbatim}
 #!/bin/sh
 TARGET_DIR=$1
 cd $TARGET_DIR
 rm -rf \
-./usr/lib/os-release \
-./usr/share/ffmpeg/libvpx-720p50_60.ffpreset \
-./usr/share/ffmpeg/libvpx-360p.ffpreset \
+./lib/libatomic.so.1.2.0
+./lib/libgcc_s.so.1
+./usr/lib/os-release
 ...
 \end{verbatim}
 
 Don't forget to make this script executable!
+
+Now that you have the list of files which were not accessed at boot
+time, remove the second and third lines of the \code{/playvideo} script
+mounting \code{/proc} and remounting the root filesystem. We don't
+need this temporary code any more.
 
 The last thing to do is to configure \code{BR2_ROOTFS_POST_FAKEROOT_SCRIPT}
 to \code{board/beaglecam/post-fakeroot.sh}\footnote{We could have used
@@ -293,8 +329,15 @@ See what's left in the final archive. Actually, we propose to be more
 aggressive and directly remove the entire \code{/etc} directory which we
 shouldn't need any more. Do the same for \code{/root}, \code{/tmp},
 \code{/var}, \code{/media}, \code{/mnt}, \code{/opt}, \code{/run} and
-the \code{/lib32} link. We're keeping the \code{/proc} and \code{/sys}
-directories in case we need to mount the corresponding filesystems.
+the \code{/lib32} and \code{/linuxrc} links. We're keeping the \code{/proc}
+and \code{/sys} directories in case we need to mount the corresponding
+filesystems.
+
+Also make sure idle symbolic links and all directories which are now
+empty of files are removed by the script.
+
+You can also remove all the files in the \code{dev/} directory,
+which won't be used as we will mount \code{devtmpfs} on this directory.
 
 Why doing this so aggressively for files we won't access? On an {\em
 ext4} filesystem, files that are not accessed may not do any harm if
@@ -302,6 +345,30 @@ they are not used, except perhaps marginally in terms of mounting time
 (if the filesystem is unnecessarily big). However, if we store the root
 filesystem in an {\em Initramfs} embedded in the kernel binary,
 every byte counts as it will make the kernel to load bigger.
+
+Ultimately, here's the final script that we got:
+\begin{verbatim}
+#!/bin/sh
+TARGET_DIR=$1
+cd $TARGET_DIR
+rm -rf \
+./lib/libatomic.so* \
+./lib/libgcc_s.so.1 \
+./usr/lib/os-release \
+./usr/share/ \
+./etc \
+./root \
+./var \
+./media \
+./mnt \
+./run \
+./tmp \
+./opt \
+./lib32 \
+./usr/lib32 \
+./linuxrc \
+./dev/* \
+\end{verbatim}
 
 Update your root filesystem, remove the \code{rw} kernel parameter from
 \code{bootargs} in U-Boot (better to keep the root filesystem mounted read-only as we don't
@@ -322,7 +389,7 @@ Buildroot helps us to configure BusyBox by providing a \code{make
 busybox-menuconfig} command, but it will be tedious to use because we
 will have to unselect countless options.
 
-Here's another way. Go to \code{output/build/busybox-1.33.1/} and run
+Here's another way. Go to \code{output/build/busybox-1.35.0/} and run
 \code{make allnoconfig}, followed by \code{make menuconfig}. You'll see
 that most options are unselected!
 
@@ -336,9 +403,6 @@ Just select the below options, based on what we have in our
   \end{itemize}
   \item In \code{Shells}:
   \begin{itemize}
-     \item Enable \code{Use internal glob() implementation}, even
-	   if you don't select \code{ash}. Otherwise, compiling
-           \code{hush} will fail.
      \item Select the \code{hush} shell
      \item Keep only \code{Support if/then/elif/else/fi} and
            \code{Support for, while and until loops},
@@ -357,7 +421,7 @@ Now get back to the main Buildroot directory and copy this new
 configuration:
 
 \begin{verbatim}
-cp output/build/busybox-1.31.1/.config board/beaglecam/busybox.config
+cp output/build/busybox-1.35.0/.config board/beaglecam/busybox.config
 \end{verbatim}
 
 Then, run \code{make menuconfig} and set
