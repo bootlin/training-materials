@@ -2,54 +2,15 @@
 
 In this lab, we will run the final stage of boot time reduction:
 \begin{itemize}
-\item Improving the efficiency of the bootloader by optimizing its
-usage
-\item Recompiling the bootloader with the minimum set of options,
-and even completely skip the second stage of the bootloader.
+\item Improving the efficiency of the bootloader by using faster storage
+\item Configuring the bootloader so that it's second stage can be
+skipped ({\em Falcon mode} in U-Boot).
 \end{itemize}
 
 \section{Optimizing U-Boot usage}
 
-By following the indications given in the lectures, start by optimizing
-the way U-Boot is used.
-
-At last, you can start by eliminating the infamous 2-second boot delay, something
-you've surely been longing to do.
-
-\section{Recompiling the bootloader}
-
-It's now time to eliminate useless features in U-Boot. Go to
-\code{~/boot-time-labs/bootloader/u-boot/} and run \code{make
-menuconfig} to unselect features that we don't need in our system.
-
-For the moment, don't touch the \code{SPL / TPL} options, as we will try
-to use U-Boot's Falcon mode at the end.
-
-In the same way you did when you reduced the kernel configuration,
-do the changes {\bf progressively}, and even make backup copies of your
-intermediate configurations (\code{.config} file). You will be glad you
-did when you break U-Boot.
-
-Once you have reached the minimum set of features, please measure boot
-time and fill the below table:
-
-\begin{tabular}{| l | l | r |}
-  \hline
-  Step & Duration & Description \\
-  \hline
-  \hline
-  U-Boot SPL & & Between \code{U-Boot SPL 2022.04} and \code{U-Boot 2022.04} \\
-  \hline
-  U-Boot & & Between \code{U-Boot 2022.04} and \code{Starting kernel} \\
-  \hline
-  Kernel + Init scripts & & Between \code{Starting kernel} and \code{Starting ffmpeg} \\
-  \hline
-  Application & & Between \code{Starting ffmpeg} and \code{First frame decoded} \\
-  \hline
-  \hline
-  Total & & \\
-  \hline
-\end{tabular}
+Here, we won't try to optimize U-Boot, because we are ultimately
+going to skip its second stage. We could, but we don't need to.
 
 \section{Using faster storage}
 
@@ -123,9 +84,8 @@ Copy this \code{uImage} file to your SD card boot partition.
 We also need a few features to be enabled in the U-Boot SPL. So start
 U-Boot's \code{make menuconfig}:
 \begin{itemize}
-\item In the \code{Environment menu}, unselect \code{SPL environment is
-      not stored} (\projconfigval{u-boot}{CONFIG_SPL_ENV_IS_NOWHERE}{n}), and
-      select \code{SPL Environment is in a FAT filesystem}
+\item In the \code{Environment menu}, make sure that
+      \code{SPL Environment is in a FAT filesystem} is selected
       (\projconfigval{u-boot}{CONFIG_SPL_ENV_IS_IN_FAT}{y}). This way, we
       can have a \code{boot_os} environment variable that if set to
       \code{yes}, will allow to boot Linux directly. See the
@@ -173,20 +133,20 @@ tells you where the exported data were stored in RAM:
 
 \begin{verbatim}
 ## Booting kernel from Legacy Image at 82000000 ...
-   Image Name:   Linux-5.11.11-dirty
-   Created:      2021-04-13   9:48:35 UTC
+   Image Name:   Linux-5.15.34-dirty
+   Created:      2022-04-29  17:47:56 UTC
    Image Type:   ARM Linux Kernel Image (uncompressed)
-   Data Size:    2842016 Bytes = 2.7 MiB
+   Data Size:    3008496 Bytes = 2.9 MiB
    Load Address: 80008000
    Entry Point:  80008000
    Verifying Checksum ... OK
 ## Flattened Device Tree blob at 88000000
    Booting using the fdt blob at 0x88000000
    Loading Kernel Image
-   Loading Device Tree to 8ffec000, end 8ffff3ff ... OK
+   Loading Device Tree to 8ffec000, end 8ffffce6 ... OK
 subcommand not supported
 subcommand not supported
-   Loading Device Tree to 8ffd5000, end 8ffeb3ff ... OK
+   Loading Device Tree to 8ffd5000, end 8ffebce6 ... OK
 Argument image is now in RAM: 0x8ffd5000
 WARN: FDT size > CMD_SPL_WRITE_SIZE
 \end{verbatim}
