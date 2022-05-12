@@ -125,8 +125,10 @@ SLIDES_TEX      = \
 	$(SLIDES_COMMON_AFTER)
 SLIDES_PICTURES = $(call PICTURES,$(foreach s,$(SLIDES_CHAPTERS),slides/$(s))) $(COMMON_PICTURES)
 
+# Check for all slides .tex file to exist
+$(foreach file,$(SLIDES_TEX),$(if $(wildcard $(file)),,$(error Missing file $(file) !)))
+
 %-slides.pdf: $(VARS) $(SLIDES_TEX) $(SLIDES_PICTURES) $(STYLESHEET) $(OUTDIR)/last-update.tex
-	@echo $(SLIDES_CHAPTERS_NUM)
 	@mkdir -p $(OUTDIR)
 # We generate a .tex file with \input{} directives (instead of just
 # concatenating all files) so that when there is an error, we are
