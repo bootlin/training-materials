@@ -185,6 +185,10 @@ LABS_TEX      = \
 	$(LABS_FOOTER)
 LABS_PICTURES = $(call PICTURES,$(foreach s,$(LABS_CHAPTERS),labs/$(s))) $(COMMON_PICTURES)
 
+
+# Check for all labs .tex file to exist
+$(foreach file,$(LABS_TEX),$(if $(wildcard $(file)),,$(error Missing file $(file) !)))
+
 %-labs.pdf: common/labs.sty $(VARS) $(LABS_TEX) $(LABS_PICTURES) $(OUTDIR)/last-update.tex
 	@mkdir -p $(OUTDIR)
 # We generate a .tex file with \input{} directives (instead of just
