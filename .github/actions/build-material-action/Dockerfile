@@ -4,6 +4,10 @@ LABEL maintainer="Bootlin <feedback@bootlin.com>" \
       vendor="Bootlin" \
 description="Container with everything needed to build Bootlin training materials"
 
+COPY build_materials.sh /build_materials.sh
+
+ENTRYPOINT ["/build_materials.sh"]
+
 RUN dnf -y update && \
     dnf -y install \
 	dia \
