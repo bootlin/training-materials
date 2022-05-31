@@ -150,16 +150,6 @@ void write[bwlq](unsigned val, void *addr);
 unsigned __raw_read[bwlq](void *addr);
 void __raw_write[bwlq](unsigned val, void *addr);
 \end{minted}
-  \item Little-endian is more frequent and also easier
-        to use in drivers. Even if you just read the least significant
-        byte of a 32-bit register, it's still at the same address.
-  \item Example
-    \begin{itemize}
-    \item 32 bit write (\kfile{drivers/tty/serial/uartlite.c}):
-\begin{minted}{c}
-writel(c & 0xff, port->membase + 4);
-\end{minted}
-    \end{itemize}
   \end{itemize}
 \end{frame}
 
@@ -184,6 +174,29 @@ writel(c & 0xff, port->membase + 4);
   \item Note that \kfunc{readl}, \kfunc{writel} and similar functions
         already contain barriers (safer), while the raw ones don't.
   \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Byte endianness}
+  \begin{itemize}
+  \item Not all devices are little-endian
+  \item Most networking protocols are big-endian
+  \item Manual handling of the endianness may sometimes be required
+  \end{itemize}
+  \begin{columns}
+    \column{0.4\textwidth}
+    For portability purposes, drivers should handle all possibilities:
+    \begin{itemize}
+    \item \kfunc{cpu_to_be32}
+    \item \kfunc{cpu_to_le32}
+    \item \kfunc{be32_to_cpu}
+    \item \kfunc{le32_to_cpu}
+    \end{itemize}
+    \column{0.6\textwidth}
+    \begin{center}
+      \includegraphics[width=0.8\textwidth]{slides/kernel-driver-development-io-memory/endianness-conversion.pdf}
+    \end{center}
+  \end{columns}
 \end{frame}
 
 \begin{frame}
