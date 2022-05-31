@@ -13,7 +13,6 @@ LINUX_KERNEL_SLIDES = \
 		kernel-source-code-download-lab \
 		kernel-source-code-title \
 		kernel-source-code-drivers \
-		kernel-source-code-layout \
 		kernel-source-code-management \
 		kernel-source-code-exploring-lab \
 		sysdev-kernel-building \
