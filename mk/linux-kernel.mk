@@ -8,13 +8,12 @@ LINUX_KERNEL_SLIDES = \
 		setup-lab \
 		kernel-introduction-title \
 		sysdev-linux-intro-features \
-		kernel-embedded-linux-usage-title \
 		sysdev-linux-intro-sources \
 		kernel-source-code-download-lab \
 		kernel-source-code-title \
 		kernel-source-code-drivers \
-		kernel-source-code-management \
 		kernel-source-code-exploring-lab \
+		kernel-linux-usage-title \
 		sysdev-kernel-building \
 		sysdev-kernel-booting \
 		kernel-board-setup-kernel-compiling-and-booting-labs \
