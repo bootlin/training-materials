@@ -217,26 +217,47 @@
 
 \begin{frame}[fragile]
   \frametitle{Kernel option dependencies}
-  There are dependencies between kernel options
-  \begin{itemize}
-  \item For example, enabling a network driver requires the network
-    stack to be enabled
-  \item Two types of dependencies:
+  Enabling a network driver requires the network stack to be enabled,
+  therefore configuration symbols have two ways to express dependencies:
   \begin{columns}
-  \column{0.5\textwidth}
+    \column{0.4\textwidth}
     \begin{itemize}
-    \item \code{depends on} dependencies. In this case, option B that
-      depends on option A is not visible until option A is enabled
-    \item \code{select} dependencies. In this case, with option B
-      depending on option A, when option A is enabled, option B is
-      automatically enabled. In particular, such dependencies are
-      used to declare what features a hardware architecture supports.
+    \item \code{depends on} dependency:
+\begin{verbatim}
+config B
+    depends on A
+\end{verbatim}
+      \begin{itemize}
+      \item B is not visible until A is enabled
+      \item Strong dependency, can be chained
+      \end{itemize}
     \end{itemize}
-  \column{0.4\textwidth}
-    \includegraphics[width=\textwidth]{slides/sysdev-kernel-building/kconfig-dependencies.png}\\
-    \footnotesize Kconfig file excerpt
+    \column{0.6\textwidth}
+    \begin{itemize}
+    \item \code{select} dependency:
+\begin{verbatim}
+config A
+    select B
+\end{verbatim}
+      \begin{itemize}
+      \item When A is enabled, B is also enabled too
+      \item Weaker dependencies, should not select a symbol with \code{depends
+        on} dependencies
+      \item To declare hardware features or select libraries
+      \end{itemize}
+    \end{itemize}
   \end{columns}
-  \end{itemize}
+  \vfill
+  \scriptsize
+\begin{verbatim}
+config SPI_ATH79
+        tristate "Atheros AR71XX/AR724X/AR913X SPI controller driver"
+        depends on ATH79 || COMPILE_TEST
+        select SPI_BITBANG
+        help
+          This enables support for the SPI controller present on the
+          Atheros AR71XX/AR724X/AR913X SoCs.
+\end{verbatim}
 \end{frame}
 
 \begin{frame}[fragile]
