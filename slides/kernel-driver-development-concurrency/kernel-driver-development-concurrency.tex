@@ -262,19 +262,14 @@ static unsigned int ulite_tx_empty(struct uart_port *port) {
 
 \begin{frame}[fragile]
   \frametitle{Atomic variables 1/2}
+  \mint{c}+#include <linux/atomic.h>+
   \begin{itemize}
   \item Useful when the shared resource is an integer value
   \item Even an instruction like \code{n++} is not guaranteed to be
     atomic on all processors!
-  \item Atomic operations definitions
-    \begin{itemize}
-    \item \mint{c}+#include <asm/atomic.h>+
-    \end{itemize}
-  \item \ksym{atomic_t}
-    \begin{itemize}
-    \item Contains a signed integer (at least 24 bits)
-    \end{itemize}
-  \item Atomic operations (main ones)
+  \item Ideal for RMW (Read-Modify-Write) operations
+  \item Main atomic operations on \ksym{atomic_t} (signed integer, at
+    least 24 bits):
     \begin{itemize}
     \item Set or read the counter:
       \begin{itemize}
@@ -317,6 +312,7 @@ static unsigned int ulite_tx_empty(struct uart_port *port) {
   \item Supply very fast, atomic operations
   \item On most platforms, apply to an \code{unsigned long *} type.
   \item Apply to a \code{void *} type on a few others.
+  \item Ideal for bitmaps or non-RMW counters
   \item Set, clear, toggle a given bit:
     \begin{itemize}
     \item \mint{c}+void set_bit(int nr, unsigned long *addr);+
