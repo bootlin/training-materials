@@ -145,34 +145,9 @@ if (IS_ERR(base))
 unsigned read[bwlq](void *addr);
 void write[bwlq](unsigned val, void *addr);
 \end{minted}
-  \item To do raw access, without endianness conversion
-\begin{minted}{c}
-unsigned __raw_read[bwlq](void *addr);
-void __raw_write[bwlq](unsigned val, void *addr);
-\end{minted}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Avoiding I/O access issues}
-  \begin{itemize}
-  \item Caching on I/O memory already disabled
-  \item Use the \kfunc{writel}/\kfunc{readl} macros,
-        they do the right thing for your architecture
-  \item The compiler and/or CPU can reorder memory accesses, which
-    might cause trouble for your devices is they expect one register
-    to be read/written before another one.
-    \begin{itemize}
-    \item Memory barriers are available to prevent this reordering
-    \item \kfunc{rmb} is a read memory barrier, prevents reads to
-      cross the barrier
-    \item \kfunc{wmb} is a write memory barrier
-    \item \kfunc{mb} is a read-write memory barrier
-    \item Starts to be a problem with CPUs that reorder instructions and
-          with SMP. See \kdoctext{memory-barriers.txt} for details.
-    \end{itemize}
-  \item Note that \kfunc{readl}, \kfunc{writel} and similar functions
-        already contain barriers (safer), while the raw ones don't.
+  \item These helpers are protected against ordering issues and will
+    generally do the right thing for your architecture
+  \item Caching is disabled on I/O memory
   \end{itemize}
 \end{frame}
 
@@ -197,6 +172,29 @@ void __raw_write[bwlq](unsigned val, void *addr);
       \includegraphics[width=0.8\textwidth]{slides/kernel-driver-development-io-memory/endianness-conversion.pdf}
     \end{center}
   \end{columns}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Ordering}
+  \begin{itemize}
+  \item \code{write[bwlq]} ensures all prior writes have been posted
+  \item \code{read[bwlq]} ensures read reception before continuing
+  \item Reordering is prevented to avoid trouble if the device expects
+    one register to be read/written before another one!
+  \item Sometimes compiler/CPU reordering is not an issue, in this case
+    the code may be optimized by dropping the memory barriers, using the
+    relaxed helpers:
+\begin{minted}{c}
+unsigned read[bwlq]_relaxed(void *addr);
+void write[bwlq]_relaxed(unsigned val, void *addr);
+\end{minted}
+  \item To do pure raw accesses, without barriers nor endianness
+    conversion:
+\begin{minted}{c}
+unsigned __raw_read[bwlq](void *addr);
+void __raw_write[bwlq](unsigned val, void *addr);
+\end{minted}
+  \end{itemize}
 \end{frame}
 
 \begin{frame}
