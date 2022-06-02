@@ -177,10 +177,16 @@ void write[bwlq](unsigned val, void *addr);
 \begin{frame}[fragile]
   \frametitle{Ordering}
   \begin{itemize}
-  \item \code{write[bwlq]} ensures all prior writes have been posted
-  \item \code{read[bwlq]} ensures the read has been issued before continuing
-  \item Reordering is prevented to avoid trouble if the device expects
-    one register to be read/written before another one!
+  \item The compiler and/or CPU can reorder memory accesses, which
+    might cause trouble for your devices is they expect one register
+    to be read/written before another one.
+    \begin{itemize}
+    \item Memory barriers are available to prevent this reordering
+    \item \code{write[bwlq]} starts with a write memory barrier which
+      prior writes cannot cross
+    \item \code{read[bwlq]} ends with a read memory barrier which
+      guarantees the ordering with regard to the subsequent reads
+    \end{itemize}
   \item Sometimes compiler/CPU reordering is not an issue, in this case
     the code may be optimized by dropping the memory barriers, using the
     relaxed helpers:
