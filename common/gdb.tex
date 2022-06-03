@@ -1,0 +1,137 @@
+\begin{frame}
+  \frametitle{GDB}
+  \fontsize{11}{11}\selectfont
+  \begin{columns}[T]
+    \column{0.8\textwidth}
+    The {\bf GNU Project Debugger}\\
+    \url{https://www.gnu.org/software/gdb/}
+    \begin{itemize}
+    \item The debugger on GNU/Linux, available for most embedded
+      architectures.
+    \item Supported languages: C, C++, Pascal, Objective-C, Fortran,
+      Ada...
+    \item Console interface (useful for remote debugging).
+    \item Can also be used through graphical IDEs
+    \item Can be used to control the execution of a program, set
+      breakpoints or change internal variables. You can also use it to
+      see what a program was doing when it crashed (by loading its
+      memory image, dumped into a \code{core} file).
+    \item New alternative: {\em lldb} (\url{https://lldb.llvm.org/})\\
+      from the LLVM project.
+    \end{itemize}
+    See also \url{https://en.wikipedia.org/wiki/Gdb}
+    \column{0.2\textwidth}
+    \includegraphics[width=0.9\textwidth]{common/gdb.png}
+  \end{columns}
+\end{frame}
+
+\begin{frame}
+  \frametitle{GDB crash course (1)}
+  \small
+  A few useful GDB commands
+  \begin{itemize}
+  \item \code{break foobar} (\code{b})\\
+    Put a breakpoint at the entry of function \code{foobar()}
+  \item \code{break foobar.c:42}\\
+    Put a breakpoint in \code{foobar.c}, line 42
+  \item \code{print var} or \code{print task->files[0].fd} (\code{p})\\
+    Print the variable \code{var}, or a more complicated reference. GDB
+    can also nicely display structures with all their members
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{GDB crash course (2)}
+  \small
+  \begin{itemize}
+  \item \code{continue} (\code{c})\\
+    Continue the execution after a breakpoint
+  \item \code{next} (\code{n})\\
+    Continue to the next line, stepping over function calls
+  \item \code{step} (\code{s})\\
+    Continue to the next line, entering into subfunctions
+  \item \code{backtrace} (\code{bt})\\
+    Display the program stack
+  \end{itemize}
+\end{frame}
+
+\ifthenelse{\equal{\training}{debug}}{}
+{
+\subsection{Remote debugging}
+}
+
+\begin{frame}
+  \frametitle{Remote debugging}
+  \begin{itemize}
+  \item In a non-embedded environment, debugging takes place using \code{gdb}
+    or one of its front-ends.
+  \item \code{gdb} has direct access to the binary and libraries compiled
+    with debugging symbols.
+  \item However, in an embedded context, the target platform
+    environment is often too limited to allow direct debugging with
+    \code{gdb} (2.4 MB on x86).
+  \item Remote debugging is preferred
+    \begin{itemize}
+    \item \code{ARCH-linux-gdb} is used on the development workstation, offering
+      all its features.
+    \item \code{gdbserver} is used on the target system (only 100 KB
+      on arm).
+    \end{itemize}
+  \end{itemize}
+  \begin{center}
+    \includegraphics[width=0.5\textwidth]{common/gdb-vs-gdbserver.pdf}
+  \end{center}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Remote debugging: architecture}
+  \begin{center}
+    \includegraphics[width=\textwidth]{common/gdb-vs-gdbserver-architecture.pdf}
+  \end{center}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Remote debugging: usage}
+  \begin{itemize}
+  \item On the target, run a program through \code{gdbserver}.\\
+    Program execution will not start immediately.\\
+    \code{gdbserver localhost:<port> <executable> <args>}
+    \code{gdbserver /dev/ttyS0 <executable> <args>}
+  \item Otherwise, attach \code{gdbserver} to an already running program:\\
+    \code{gdbserver --attach localhost:<port> <pid>}
+  \item Then, on the host, start \code{ARCH-linux-gdb <executable>},\\
+    and use the following \code{gdb} commands:
+    \begin{itemize}
+    \item To connect to the target:\\
+      \code{gdb> target remote <ip-addr>:<port>} (networking)\\
+      \code{gdb>  target remote /dev/ttyUSB0} (serial link)
+    \item To tell \code{gdb} where shared libraries are:\\
+      \code{gdb> set sysroot <library-path>} (without \code{lib/})
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Post mortem analysis}
+  \begin{itemize}
+  \item When an application crashes due to a {\em segmentation fault}
+    and the application was not under control of a debugger, we get no
+    information about the crash
+  \item Fortunately, Linux can generate a \code{core} file that
+    contains the image of the application memory at the moment of the
+    crash, and gdb can use this \code{core} file to let us analyze the
+    state of the crashed application
+  \item On the target
+    \begin{itemize}
+    \item Use \code{ulimit -c unlimited} in the shell starting the
+    application, to enable the generation of a \code{core} file
+    when a crash occurs
+    \end{itemize}
+  \item On the host
+    \begin{itemize}
+    \item After the crash, transfer the \code{core} file from the target to
+      the host, and run
+      \code{ARCH-linux-gdb -c core-file application-binary}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
