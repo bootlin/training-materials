@@ -1,0 +1,102 @@
+\begin{frame}[fragile]
+  \frametitle{Debugging using messages (1)}
+  Three APIs are available
+  \begin{itemize}
+  \item The old \kfunc{printk}, no longer recommended for new debugging
+    messages
+  \item The \code{pr_*()} family of functions: \kfunc{pr_emerg},
+    \kfunc{pr_alert}, \kfunc{pr_crit}, \kfunc{pr_err},
+    \kfunc{pr_warning}, \kfunc{pr_notice}, \kfunc{pr_info},
+    \kfunc{pr_cont} \\
+    and the special \kfunc{pr_debug} (see next pages)
+    \begin{itemize}
+    \item Defined in \kfile{include/linux/printk.h}
+    \item They take a classic format string with arguments
+    \item Example:
+      \begin{minted}{c}
+pr_info("Booting CPU %d\n", cpu);
+      \end{minted}
+    \item Here's what you get in the kernel log:
+      \begin{verbatim}
+[  202.350064] Booting CPU 1
+      \end{verbatim}
+    \end{itemize}
+    \item \kfunc{print_hex_dump_debug}: useful to dump a buffer with
+      \code{hexdump} like display
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Debugging using messages (2)}
+  \begin{itemize}
+  \item The \code{dev_*()} family of functions: \kfunc{dev_emerg},
+    \kfunc{dev_alert}, \kfunc{dev_crit}, \kfunc{dev_err},
+    \kfunc{dev_warn}, \kfunc{dev_notice}, \kfunc{dev_info} \\
+    and the special \kfunc{dev_dbg} (see next page)
+    \begin{itemize}
+    \item They take a pointer to \kstruct{device} as first
+      argument, and then a format string with arguments
+    \item Defined in \kfile{include/linux/dev_printk.h}
+    \item To be used in drivers integrated with the Linux device
+      model
+    \item Example:
+      \begin{minted}{c}
+dev_info(&pdev->dev, "in probe\n");
+      \end{minted}
+    \item Here's what you get in the kernel log:
+      \begin{verbatim}
+[   25.878382] serial 48024000.serial: in probe
+[   25.884873] serial 481a8000.serial: in probe
+      \end{verbatim}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{pr\_debug() and dev\_dbg()}
+  \begin{itemize}
+  \item When the driver is compiled with \code{DEBUG} defined, all
+    these messages are compiled and printed at the debug level.
+    \code{DEBUG} can be defined by \codewithhash{\#define DEBUG} at the
+    beginning of the driver, or using
+    \code{ccflags-$(CONFIG_DRIVER) += -DDEBUG} in the \code{Makefile}
+  \item When the kernel is compiled with \kconfig{CONFIG_DYNAMIC_DEBUG},
+    then these messages can dynamically be enabled on a per-file,
+    per-module or per-message basis
+    \begin{itemize}
+    \item Details in \kdochtml{admin-guide/dynamic-debug-howto}
+    \item Very powerful feature to only get the debug messages you're
+      interested in.
+    \end{itemize}
+  \item When neither \code{DEBUG} nor \kconfig{CONFIG_DYNAMIC_DEBUG} are
+    used, these messages are not compiled in.
+  \end{itemize}
+\end{frame}
+
+\ifthenelse{\equal{\training}{linux-kernel}}{
+\begin{frame}
+  \frametitle{Configuring the priority}
+  \begin{itemize}
+  \item Each message is associated to a priority, ranging from \code{0} for
+    emergency to \code{7} for debug, as specified in
+    \kfile{include/linux/kern_levels.h}.
+  \item All the messages, regardless of their priority, are stored in
+    the kernel log ring buffer
+    \begin{itemize}
+    \item Typically accessed using the \code{dmesg} command
+    \end{itemize}
+  \item Some of the messages may appear on the console, depending on
+    their priority and the configuration of
+    \begin{itemize}
+    \item The \code{loglevel} kernel parameter, which defines the
+      priority number below which messages are displayed on the console.
+      Details in \kdochtml{admin-guide/kernel-parameters}.
+      \newline Examples: \code{loglevel=0}: no message, \code{loglevel=8}: all messages
+    \item The value of \code{/proc/sys/kernel/printk}, which allows to
+      change at runtime the priority above which messages are
+      displayed on the console. Details in
+      \kdochtml{admin-guide/sysctl/kernel}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+}{}
