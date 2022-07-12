@@ -63,10 +63,31 @@ cd ctris-0.42
 Then modify the Makefile, to make sure that the environment variables exported
 by the SDK script are not overridden.
 
-Compile the application. You can check the application was
-successfully compiled for the right target by using the \code{file} command.
-The \code{ctris} binary should be an ELF 32-bit LSB executable
-compiled for ARM.
+Try to compile the application. Just like nInvaders, ctris is also an old
+program and won't build with a recent toolchain. You will face these
+errors:
+
+\begin{itemize}
+  \item The ctris makefile uses the native compiler, not the cross compiler
+  provided by the SDK; while you could fix it using \code{make -e} as done
+  for nInvaders, try fixing it by editing the \code{Makefile} this time;
+  hint: you don't need to write any code, just to delete two lines
+
+  \item Building with a recent GCC will give the following error, not
+  reported by older versions:
+\begin{verbatim}
+error: format not a string literal and no format arguments [-Werror=format-security]
+\end{verbatim}
+  Fix this by adding \code{-Wno-error=format-security} to \code{CFLAGS}
+
+  \item As for nInvaders, you will see the \code{multiple definition of...}
+  error; add the \code{-fcommon} flag to \code{CFLAGS} also for ctris
+
+\end{itemize}
+
+You can check the application was successfully compiled for the right
+target by using the \code{file} command.  The \code{ctris} binary should be
+an ELF 32-bit LSB executable compiled for ARM.
 
 Finally, you can copy the binary to the board, by using the \code{scp}
 command. Then run it and play a bit to ensure it is working fine!
