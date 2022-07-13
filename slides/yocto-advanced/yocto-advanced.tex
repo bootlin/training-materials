@@ -58,26 +58,25 @@
   \item Bitbake supports \textbf{overrides}, to allow appending,
     prepending or modifying a variable at expansion time, when
     the variable's value is read
-  \item Overrides are written as \code{VARIABLE_override = "some_value"}
-  \item A new syntax was introduced in bitbake: \code{VARIABLE:override = "some_value"}
-  \item It will be the new syntax to be used starting with \textbf{Honister}, with no retrocompatibility
+  \item Overrides are written as \code{VARIABLE:override = "some_value"}
+  \item A different syntax was used before \textbf{Honister}, with no retrocompatibility: \code{VARIABLE_override = "some_value"}
   \end{itemize}
 \end{frame}
 
 \begin{frame}
   \frametitle{Methods and conditions 1/4}
   \begin{itemize}
-    \item Append the keyword \code{_append} to a configuration
+    \item Append the keyword \code{:append} to a configuration
       variable to add values {\bf after} the ones previously defined
       (without space).
       \begin{itemize}
-        \item \code{IMAGE_INSTALL_append = " dropbear"} adds
+        \item \code{IMAGE_INSTALL:append = " dropbear"} adds
           \code{dropbear} to the packages installed on the image.
       \end{itemize}
-    \item Append the keyword \code{_prepend} to add values {\bf
+    \item Append the keyword \code{:prepend} to add values {\bf
       before} the ones previously defined (without space).
       \begin{itemize}
-        \item \code{FILESEXTRAPATHS_prepend := "${THISDIR}/${PN}:"}
+        \item \code{FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"}
           %stopzone
           adds the folder to the set of paths where files are located
           (in a recipe).
@@ -88,18 +87,18 @@
 \begin{frame}
   \frametitle{Methods and conditions 2/4}
   \begin{itemize}
-    \item Append the keyword \code{_remove} to a configuration
+    \item Append the keyword \code{:remove} to a configuration
       variable to remove all occurrences of a value within a
       configuration variable.
       \begin{itemize}
-        \item \code{IMAGE_INSTALL_remove = "i2c-tools"}
+        \item \code{IMAGE_INSTALL:remove = "i2c-tools"}
       \end{itemize}
     \item Append the machine name to only define a configuration
       variable for a given machine. It tries to match with values from
       \code{MACHINEOVERRIDES} which include \code{MACHINE} and
       \code{SOC_FAMILY}.
       \begin{itemize}
-        \item \code{KERNEL_DEVICETREE_beaglebone = "am335x-bone.dtb"}
+        \item \code{KERNEL_DEVICETREE:beaglebone = "am335x-bone.dtb"}
           tells to use the kernel device tree \code{am335x-bone.dtb}
           only when the machine is \code{beaglebone}.
       \end{itemize}
@@ -113,8 +112,8 @@
     \item If we define:
       \begin{itemize}
         \item \code{IMAGE_INSTALL = "busybox mtd-utils"}
-        \item \code{IMAGE_INSTALL_append = " dropbear"}
-        \item \code{IMAGE_INSTALL_append_beaglebone = " i2c-tools"}
+        \item \code{IMAGE_INSTALL:append = " dropbear"}
+        \item \code{IMAGE_INSTALL:append:beaglebone = " i2c-tools"}
       \end{itemize}
     \item The resulting configuration variable will be:
       \begin{itemize}
@@ -133,7 +132,7 @@
     \item The most specific variable takes precedence.
     \item Example:
       \begin{minted}[fontsize=\footnotesize]{console}
-IMAGE_INSTALL_beaglebone = "busybox mtd-utils i2c-tools"
+IMAGE_INSTALL:beaglebone = "busybox mtd-utils i2c-tools"
 IMAGE_INSTALL = "busybox mtd-utils"
       \end{minted}
     \item If the machine is \code{beaglebone}:
@@ -173,7 +172,7 @@ IMAGE_INSTALL = "busybox mtd-utils"
       \begin{itemize}
         \item If \code{+=} is parsed before \code{?=}, the latter will
           be discarded.
-        \item Using \code{_append} unconditionally appends the value.
+        \item Using \code{:append} unconditionally appends the value.
       \end{itemize}
   \end{itemize}
 \end{frame}
