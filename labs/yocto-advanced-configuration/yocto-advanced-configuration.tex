@@ -15,21 +15,19 @@ NFS. We will use Ethernet over USB device and therefore will only need
 the USB device cable that is already used to power up the board.
 
 First we need to set the kernel boot arguments U-Boot will pass to the
-Linux kernel at boot time:
-\begin{verbatim}
-setenv bootargs 'console=ttyS0,115200 root=/dev/nfs rw
-  nfsroot=192.168.0.1:/nfs,nfsvers=3,tcp
-  ip=192.168.0.100:::::usb0 g_ether.dev_addr=f8:dc:7a:00:00:02
-  g_ether.host_addr=f8:dc:7a:00:00:01'
-setenv bootcmd 'mmc dev 0; devnum=${mmcdev}; setenv devtype mmc;
-  mmc rescan; run loadimage; run findfdt; run mmcloados'
-saveenv
-\end{verbatim}
+Linux kernel at boot time. For that, mount the \code{bootfs} partition
+of the SD card on your PC and edit the extlinux configuration file:
+\code{extlinux/extlinux.conf}.
 
-If you later want to make changes to this setting, you can use:
+Change the \code{APPEND} line to be (in just 1 line):
+
+{\small
 \begin{verbatim}
-editenv bootargs
+APPEND root=/dev/nfs rw nfsroot=192.168.0.1:/nfs,nfsvers=3,tcp ip=192.168.0.100:::::usb0
+       g_ether.dev_addr=f8:dc:7a:00:00:02 g_ether.host_addr=f8:dc:7a:00:00:01
+       rootwait rw console=${console},${baudrate}
 \end{verbatim}
+}
 
 \section{Set up the Ethernet communication on the workstation}
 
