@@ -196,12 +196,12 @@ MACHINE_FEATURES += "touchscreen"
 \begin{frame}
   \frametitle{Linux kernel recipes in Yocto}
   \begin{itemize}
-    \item There are basically two ways of compiling a kernel in the
-      Yocto Project:
+    \item There are mainly two ways of compiling a kernel:
       \begin{itemize}
+        \item By creating a custom kernel recipe, inheriting
+          \code{kernel.bbclass}
         \item By using the \code{linux-yocto} packages, provided in
-          Poky.
-        \item By using a fully custom kernel recipe.
+          Poky, for very complex needs
       \end{itemize}
     \item The kernel used is selected in the machine file thanks to:
       \code{PREFERRED_PROVIDER_virtual/kernel}
@@ -211,77 +211,46 @@ MACHINE_FEATURES += "touchscreen"
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{Linux Yocto 1/4}
+  \frametitle{Linux Yocto 1/3}
   \begin{itemize}
-    \item \code{linux-yocto} is a generic set of recipes for building
-      mainline Linux kernel images.
+    \item \code{linux-yocto} is a set of recipes with advanced features to
+      build a mainline kernel
     \item \code{PREFERRED_PROVIDER_virtual/kernel = "linux-yocto"}
     \item \usebeamercolor[fg]{code} \path{PREFERRED_VERSION_linux-yocto = "5.14%"}
   \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{Linux Yocto 2/4}
+  \frametitle{Linux Yocto 2/3}
   \begin{itemize}
-    \item Like other appended recipes, patches can be added by filling
-      \code{SRC_URI} with \code{.patch} and/or \code{.diff} files.
-    \item The kernel configuration must also be provided, and the file
-      containing it must be called \code{defconfig}.
-      \begin{itemize}
-        \item This can be generated from a Linux source tree, by using
-          \code{make savedefconfig}
-        \item The configuration can be split in several files, by
-          using the \code{.cfg} extension. It is the best practice
-          when adding new features:
-          \begin{block}{}
-            \begin{minted}{sh}
+    \item Automatically applies a \code{defconfig} listed in \code{SRC_URI}
+    \item Automatically applies configuration fragments listed in \code{SRC_URI} with a \code{.cfg} extension
+      \begin{block}{}
+        \begin{minted}{sh}
 SRC_URI += "file://defconfig        \
             file://nand-support.cfg \
             file://ethernet-support.cfg"
-            \end{minted}
-          \end{block}
-      \end{itemize}
+        \end{minted}
+      \end{block}
   \end{itemize}
 \end{frame}
 
 \begin{frame}
-  \frametitle{Linux Yocto 3/4}
-  \begin{itemize}
-    \item Configuration fragments can be generated directly with the
-      \code{bitbake} command:
-      \begin{enumerate}
-        \item Configure the kernel following its recipe
-          instructions: \code{bitbake -c kernel_configme linux-yocto}
-        \item Edit the configuration:
-          \code{bitbake -c menuconfig linux-yocto}
-        \item Save the configuration differences:
-          \code{bitbake -c diffconfig linux-yocto}
-          \begin{itemize}
-            \item The differences will be saved at
-              \code{$WORKDIR/fragment.cfg}
-          \end{itemize}
-      \end{enumerate}
-    \item After integrating configuration fragments into the appended
-      recipe, you can check everything is fine by running:
-      \code{bitbake -c kernel_configcheck -f linux-yocto}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Linux Yocto 4/4}
+  \frametitle{Linux Yocto 3/3}
   \begin{itemize}
     \item Another way of configuring \code{linux-yocto} is by using
       \emph{Advanced Metadata}.
     \item It is a powerful way of splitting the configuration and the
       patches into several pieces.
-    \item It is designed to provide a very configurable kernel.
+    \item It is designed to provide a very configurable kernel, at the cost
+      of higher complexity.
     \item The full documentation can be found at
       \url{https://docs.yoctoproject.org/kernel-dev/advanced.html\#working-with-advanced-metadata-yocto-kernel-cache}
   \end{itemize}
 \end{frame}
 
 \begin{frame}
-  \frametitle{Linux Yocto: Kernel Metadata 1/4}
+  \frametitle{Linux Yocto: Kernel Metadata 1/2}
   \begin{itemize}
     \item Kernel Metadata is a way to organize and to split the
       kernel configuration and patches in little pieces each providing
@@ -304,66 +273,22 @@ SRC_URI += "file://defconfig        \
   \end{itemize}
 \end{frame}
 
-\begin{frame}
-  \frametitle{Linux Yocto: Kernel Metadata 2/4}
-  \begin{itemize}
-    \item Kernel Metadata can be stored in the \code{linux-yocto}
-      recipe space.
-    \item It must be under \code{$FILESEXTRAPATHS}. A best practice
-      is to follow this directory hierarchy:
-      \begin{description}
-        \item[bsp/]
-        \item[cfg/]
-        \item[features/]
-        \item[ktypes/]
-        \item[patches/]
-      \end{description}
-    \item Kernel Metadata are divided into 3 file types:
-      \begin{itemize}
-        \item Description files, ending in \code{.scc}
-        \item Configuration fragments
-        \item Patches
-      \end{itemize}
-  \end{itemize}
-\end{frame}
-
 \begin{frame}[fragile]
-  \frametitle{Linux Yocto: Kernel Metadata 3/4}
+  \frametitle{Linux Yocto: Kernel Metadata 2/2}
   \begin{itemize}
-    \item Kernel Metadata description files have their own syntax,
-      used to describe the feature provided and which patches and
-      configuration fragments to use.
-    \item Simple example, \code{features/smp.scc}
+    \item Kernel Metadata description files have their own syntax to describe an optional kernel feature
+    \item A basic feature is defined as a patch to apply and a
+      configuration fragment to add
+    \item Simple example, \code{features/nunchuk.scc}
       \begin{block}{}
         \begin{minted}{sh}
-define KFEATURE_DESCRIPTION "Enable SMP"
+define KFEATURE_DESCRIPTION "Enable Nunchuk driver"
 
-kconf hardware smp.cfg
-patch smp-support.patch
+kconf hardware enable-nunchuck-driver.cfg
+patch Add-nunchuk-driver.patch
         \end{minted}
       \end{block}
     \item To integrate the feature into the kernel image:
-      \code{KERNEL_FEATURES += "features/smp.scc"}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Linux Yocto: Kernel Metadata 4/4}
-  \begin{itemize}
-    \item \code{.scc} syntax description:
-      \begin{description}
-        \item[\code{branch <ref>}] Create a new branch relative to the
-          current one.
-        \item[\code{define}] Defines variables.
-        \item[\code{include <scc file>}] Include another description
-          file. Parsed inline.
-        \item[\code{kconf [hardware|non-hardware] <cfg file>}] Queues
-          a configuration fragment, to merge it into Linux's
-          \code{.config}
-        \item[\code{git merge <branch>}] Merge \code{branch} into the
-          current git branch.
-        \item[\code{patch <patch file>}] Applies \code{patch file} to
-          the current git branch.
-      \end{description}
+      \code{KERNEL_FEATURES += "features/nunchuk.scc"}
   \end{itemize}
 \end{frame}
