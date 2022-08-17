@@ -23,8 +23,8 @@ YOCTO_STM32_SLIDES    = \
 		yocto-layer-distro \
 		yocto-image \
 		yocto-image-lab \
-		yocto-licensing \
 		yocto-recipe-extra \
+		yocto-licensing \
 		yocto-sdk \
 		yocto-sdk-lab \
 		yocto-runtime-package-management \
