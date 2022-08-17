@@ -179,34 +179,6 @@ PACKAGECONFIG ??= "wispr iptables client\
 
 \subsection{Root filesystem creation}
 
-\begin{frame}[fragile]
-  \frametitle{Files and directories selection}
-  \begin{itemize}
-    \item The \code{FILES} variable controls the list of files and
-      directories to be placed into packages.
-    \item It must be package specific (e.g. with \code{:${PN}}).
-    \item In Poky, defaults to:
-  \end{itemize}
-  \begin{block}{}
-    \begin{minted}[fontsize=\scriptsize]{sh}
-FILES:${PN} = \
-    "${bindir}/* ${sbindir}/* ${libexecdir}/* ${libdir}/lib*${SOLIBS} \
-     ${sysconfdir} ${sharedstatedir} ${localstatedir} \
-     ${base_bindir}/* ${base_sbindir}/* \
-     ${base_libdir}/*${SOLIBS} \
-     ${base_prefix}/lib/udev/rules.d ${prefix}/lib/udev/rules.d \
-     ${datadir}/${BPN} ${libdir}/${BPN}/* \
-     ${datadir}/pixmaps ${datadir}/applications \
-     ${datadir}/idl ${datadir}/omf ${datadir}/sounds \
-     ${libdir}/bonobo/servers"
-    \end{minted}
-  \end{block}
-  \begin{itemize}
-    \item To prevent configuration files to be overwritten during the
-      Package Management System update process, use \code{CONFFILES}.
-  \end{itemize}
-\end{frame}
-
 \begin{frame}
   \frametitle{Root filesystem generation}
   \begin{itemize}
@@ -246,24 +218,96 @@ rootfs_deb_do_rootfs () {
   \end{block}
 \end{frame}
 
-\subsection{Splitting packages}
+\subsection{Package splitting}
 
-\begin{frame}
-  \frametitle{Benefits}
+\begin{frame}{Package splitting}
+  \begin{center}
+    \includegraphics[width=0.95\textwidth]{slides/yocto-recipe-extra/splitting-packages.pdf}
+  \end{center}
+\end{frame}
+
+\begin{frame}{Package splitting}
   \begin{itemize}
-    \item Packages can be split.
-    \item Useful when a single remote repository provides multiple
-      binaries or libraries.
-    \item The list of packages to provide is defined by the
-      \code{PACKAGES} variable.
-    \item The \code{FILES} variable is often used to split the output
-      into packages.
-    \item \code{PACKAGE_BEFORE_PN} allows to pick files normally included in the
-      default package in another.
-    \item \code{PACKAGES_DYNAMIC} allows to check dependencies with optional
-      packages are satisfied.
-    \item \code{ALLOW_EMPTY} allows to produce a package even if it is empty.
+    \item \code{do_install} copies {\em all} files in the \code{D} directory
+      (\tt \$\{WORKDIR\}/image).
+    \item \code{do_package} splits files in several packages in \tt
+      \$\{WORKDIR\}/packages-split
+      \begin{itemize}
+        \item based on the \code{PACKAGES} and \code{FILES} variables.
+      \end{itemize}
+    \item \code{do_package_rpm} generates RPM packages
   \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{\code{PACKAGES}}
+  \begin{itemize}
+    \item \code{PACKAGES} lists the packages to be built:
+    \begin{block}{}
+    \begin{minted}[fontsize=\small]{sh}
+PACKAGES = "${PN}-src ${PN}-dbg ${PN}-staticdev ${PN}-dev \
+    ${PN}-doc ${PN}-locale ${PACKAGE_BEFORE_PN} ${PN}"
+    \end{minted}
+    \end{block}
+    \item More packages can be added to the default list
+      \begin{itemize}
+        \item Useful when a single remote repository provides multiple
+          binaries or libraries.
+        \item The order matters. \code{PACKAGE_BEFORE_PN} allows to pick
+          files normally included in the default package in another.
+      \end{itemize}
+    \item \code{PACKAGES_DYNAMIC} allows to check dependencies with
+      optional packages are satisfied.
+    \item \code{ALLOW_EMPTY} allows to produce a package even if it is empty.
+    \item To prevent configuration files to be overwritten during the
+      Package Management System update process, use \code{CONFFILES}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{\code{FILES}}
+  \begin{itemize}
+    \item For each package a \code{FILES} variable lists the files to
+      include.
+    \item It must be package specific (e.g. with \code{:${PN}}, \code{:${PN}-dev}, dots).
+    \item Defaults from \code{meta/conf/bitbake.conf}:
+    \begin{block}{}
+    \begin{minted}[fontsize=\small]{sh}
+FILES:${PN}-dev = \
+    "${includedir} ${FILES_SOLIBSDEV} ${libdir}/*.la \
+     ${libdir}/*.o ${libdir}/pkgconfig ${datadir}/pkgconfig \
+     ${datadir}/aclocal ${base_libdir}/*.o \
+     ${libdir}/${BPN}/*.la ${base_libdir}/*.la \
+     ${libdir}/cmake ${datadir}/cmake"
+FILES:${PN}-dbg = \
+    "/usr/lib/debug /usr/lib/debug-static \
+     /usr/src/debug"
+    \end{minted}
+    \end{block}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{\code{FILES}: the main package}
+  \begin{itemize}
+    \item The package named just \code{${PN}} is the one that gets
+      installed in the root filesystem.
+    \item In Poky, defaults to:
+  \end{itemize}
+  \begin{block}{}
+    \begin{minted}[fontsize=\small]{sh}
+FILES:${PN} = \
+    "${bindir}/* ${sbindir}/* ${libexecdir}/* ${libdir}/lib*${SOLIBS} \
+     ${sysconfdir} ${sharedstatedir} ${localstatedir} \
+     ${base_bindir}/* ${base_sbindir}/* \
+     ${base_libdir}/*${SOLIBS} \
+     ${base_prefix}/lib/udev/rules.d ${prefix}/lib/udev/rules.d \
+     ${datadir}/${BPN} ${libdir}/${BPN}/* \
+     ${datadir}/pixmaps ${datadir}/applications \
+     ${datadir}/idl ${datadir}/omf ${datadir}/sounds \
+     ${libdir}/bonobo/servers"
+    \end{minted}
+  \end{block}
 \end{frame}
 
 \begin{frame}[fragile]
@@ -284,34 +328,6 @@ PACKAGES =+ "kexec kdump"
 
 FILES:kexec = "${sbindir}/kexec"
 FILES:kdump = "${sbindir}/kdump"
-    \end{minted}
-    \end{block}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}[fragile]
-  \frametitle{Default packages}
-  \begin{itemize}
-    \item By default several packages are produced automatically:
-    \begin{block}{}
-    \begin{minted}[fontsize=\small]{sh}
-PACKAGES = "${PN}-src ${PN}-dbg ${PN}-staticdev ${PN}-dev \
-    ${PN}-doc ${PN}-locale ${PACKAGE_BEFORE_PN} ${PN}"
-    \end{minted}
-    \end{block}
-    \item For each of these packages a \code{FILES} variable is
-      defined in \code{meta/conf/bitbake.conf}:
-    \begin{block}{}
-    \begin{minted}[fontsize=\small]{sh}
-FILES:${PN}-dev = \
-    "${includedir} ${FILES_SOLIBSDEV} ${libdir}/*.la \
-     ${libdir}/*.o ${libdir}/pkgconfig ${datadir}/pkgconfig \
-     ${datadir}/aclocal ${base_libdir}/*.o \
-     ${libdir}/${BPN}/*.la ${base_libdir}/*.la \
-     ${libdir}/cmake ${datadir}/cmake"
-FILES:${PN}-dbg = \
-    "/usr/lib/debug /usr/lib/debug-static \
-     /usr/src/debug"
     \end{minted}
     \end{block}
   \end{itemize}
