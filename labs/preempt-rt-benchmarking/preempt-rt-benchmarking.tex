@@ -195,3 +195,117 @@ Add the \code{isolcpus=1} to the \code{append} line to isolate CPU 1.
 
 Reboot your target, and run cyclictest on CPU1. What can you notice ?
 
+\subsection{Using the Tracing subsystem}
+
+In order to use Ftrace, we need to make sure it is enabled in the kernel
+configuration. Using \code{make linux-menuconfig}, go in the "Kernel hacking" section
+and enable the following options :
+
+\begin{itemize}
+	\item Generic Kernel Debugging Instruments -> Debug Filesystem
+	\item Tracers -> Kernel Function Tracer
+	\item Tracers -> Kernel Function Profiler
+	\item Tracers -> Interrupts-off Latency Tracer
+	\item Tracers -> Preemption-off Latency Tracer
+	\item Tracers -> Scheduling Latency Tracer
+	\item Tracers -> Tracer to detect hardware latencies
+\end{itemize}
+
+You can now recompile your kernel and re-generate your full image :
+
+\begin{bashinput}
+make linux-rebuild
+make
+\end{bashinput}
+
+Once you've rebooted your board with ftrace enabled, you'll need to mount the
+Tracing Filesystem, that gets automatically mounted in debugfs :
+
+\code{mount -t debugfs debugfs /sys/kernel/debug}
+\code{mount -t tracefs nodev /sys/kernel/tracing}
+
+You can now move into the tracing subsystem's main directory :
+
+\code{cd /sys/kernel/debug/tracing}
+
+You can now take a little tour of the files here :
+
+\begin{itemize}
+	\item \code{available_tracers} : Lists all tracers you can use. Each tracer
+		corresponds to what and how do you want the tracing to occur.
+	\item \code{current_tracer} : Write the tracer you want to use in this file
+	\item \code{tracing_on} : Write 1 to start tracing, 0 to stop tracing
+	\item \code{trace} : The content of the trace buffer after tracing is finished
+\end{itemize}
+
+First, try the \code{preemptirqsoff} tracer and start tracing :
+
+\begin{bashinput}
+echo preemptirqsoff > current_tracer
+echo 1 > tracing_on
+sleep 10
+echo 0 > tracing_on
+cat trace
+\end{bashinput}
+
+Give a try to other traces : \code{wakeup_rt}, \code{function}, \code{function_graph},
+using various of the stressing methods proposed above. Can you get meaningful information ?
+
+\section{Using trace-cmd and kernelshark}
+
+Trace-cmd is a wrapper over the raw silesystem-based interface of ftrace. There
+are various ways of using it, either standalone, or by recording the behaviour
+of the system during a command.
+
+\subsection{Recording}
+
+To record traces during a command, run trace-cmd with the \code{record} keyword :
+
+\begin{bashinput}
+# record a full function_graph trace for the duration of the cyclictest run
+trace-cmd record -p function_graph cyclictest -p 80 -D 10
+
+# Display the output
+trace-cmd report
+\end{bashinput}
+
+Running a recording session will automatically export the generated trace in a
+"trace.dat" file, that can be displayed with \code{trace-cmd report} or \code{kernelshark}.
+
+\subsection{Manual tracing}
+
+Another approach is to simply start an ftrace session, without relying on a process's
+execution. This is useful in combination with the \code{wakeup_rt}, \code{wakeup}, \code{preemptirqsoff} tracers.
+
+\begin{bashinput}
+	# Start a tracing session
+	trace-cmd start -p wakeup_rt
+
+	# Stop a tracing session
+	trace-cmd stop
+
+	# Display the generated trace
+	trace-cmd show
+
+	# Export and clear the trace buffer into trace.dat
+	trace-cmd extract
+
+	# Display the extraced trace
+	trace-cmd report
+\end{bashinput}
+
+This approach also allows you to use \code{cyclictest} in conjunction with \code{ftrace},
+since you can start at tracing session with \code{trace-cmd start} and have it
+stopped automatically when cyclictest detects a high latency :
+
+\begin{bashinput}
+	# Start a tracing session
+	trace-cmd start -p function_graph
+
+	# Launch cyclictest with the breaktrace option
+	cyclictest -p 80 --breaktrace=2000 --tracemark
+
+	# When the high latency is hit, you can display the trace
+	trace-cmd show
+\end{bashinput}
+

@@ -24,7 +24,7 @@ Since we're going to do Buildroot development, let's clone the
 Buildroot source code from its Git repository:
 
 \begin{bashinput}
-git clone https://git.buildroot.net/git/buildroot.git
+git clone git://git.busybox.net/buildroot
 \end{bashinput}
 
 In case this is blocked on your network, you can download the Buildroot
@@ -39,10 +39,10 @@ We're going to start a branch from the {\em 2021.11} Buildroot
 release, with which this training has been tested.
 
 \begin{bashinput}
-git checkout -b felabs 2021.11
+git checkout -b felabs 2022.02.1
 \end{bashinput}
 
-\section{Configuring Buildroot}
+\section{Configuring Buildroot - STM32MP157}
 
 If you look under \code{configs/}, you will see that there is a file
 named \code{stm32mp157a_dk1_defconfig}, which is a ready-to-use Buildroot
@@ -54,14 +54,36 @@ We'll use that configuration as a basis for our setup :
 make stm32mp157a_dk1_defconfig
 \end{bashinput}
 
+\section{Configuring Buildroot - Beaglebone Black}
+
+If you look under \code{configs/}, you will see that there is a file
+named \code{beaglebone_defconfig}, which is a ready-to-use Buildroot
+configuration file to build a system for the STM32MP157A platform.
+
+We'll use that configuration as a basis for our setup :
+
+\begin{bashinput}
+make beaglebone_defconfig
+\end{bashinput}
+
+The default configuration for the BeagleBone includes some vendor-specific patches
+that won't apply anymore onto the mainline linux-rt kernel. Simply remove the
+patch file :
+
+\begin{bashinput}
+rm board/beaglebone/patches/linux/*
+\end{bashinput}
+
+\section{Selecting a -RT kernel}
+
 We'll configure Buildroot to download the Linux Kernel with the RT Patch applied.
 
 From the \code{make menuconfig} interface, change the Kernel sources's custom
-tarball location to the following :
+git repository location to the following :
 
 \url{git://git.kernel.org/pub/scm/linux/kernel/git/rt/linux-stable-rt.git}
 
-We'll use the latest stable RT version, which is \code{v5.15.14-rt27}. Set that
+We'll use the latest stable RT version, which is \code{v5.15.36-rt41}. Set that
 value in the \code{Custom repository version}
 
 Make sure you enable a toolchain with wchar and C++ support, it will be required
@@ -94,12 +116,12 @@ While the build is ongoing, don't hesitate to take a look at the latest
 version of the patchset :
 
 \begin{bashinput}
-wget https://cdn.kernel.org/pub/linux/kernel/projects/rt/5.14/patches-5.15.14-rt27.tar.gz
+wget https://cdn.kernel.org/pub/linux/kernel/projects/rt/5.14/patches-5.15.36-rt41.tar.gz
 \end{bashinput}
 
 Look at the \code{series} file for more information about each individual patch.
 
-\section{Setting up serial communication with the board}
+\section{Setting up serial communication with the board - STM32MP157}
 
 The STM32MP1 devkit's serial port can be accessed through the micro-USB connector.
 
@@ -136,6 +158,63 @@ you wish to exit \code{picocom}, press \code{[Ctrl][a]} followed by
 
 There should be nothing on the serial line so far, as the board is not
 powered up yet.
+
+\section{Setting up serial communication with the board - Beaglebone}
+
+The Beaglebone serial connector is exported on the 6 pins close to one
+of the 48 pins headers. Using your special USB to Serial adapter provided
+by your instructor, connect the ground wire (blue) to the pin closest
+to the power supply connector (let's call it pin 1), and the \code{TX} (red)
+and \code{RX} (green) wires to the pins 4 (board \code{RX}) and
+5 (board \code{TX})\footnote{See
+\url{https://www.olimex.com/Products/Components/Cables/USB-Serial-Cable/USB-Serial-Cable-F/}
+for details about the USB to Serial adapter that we are using.}.
+
+You always should make sure that you connect the \code{TX} pin of the cable
+to the \code{RX} pin of the board, and vice-versa, whatever the board and
+cables that you use.
+
+\begin{center}
+\includegraphics[width=8cm]{common/beaglebone-black-serial-connection.jpg}
+\end{center}
+
+Once the USB to Serial connector is plugged in, a new serial port
+should appear: \code{/dev/ttyUSB0}.  You can also see this device
+appear by looking at the output of \code{dmesg}.
+
+To communicate with the board through the serial port, install a
+serial communication program, such as \code{picocom}:
+
+\begin{bashinput}
+sudo apt install picocom
+\end{bashinput}
+
+If you run \code{ls -l /dev/ttyUSB0}, you can also see that only
+\code{root} and users belonging to the \code{dialout} group have
+read and write access to this file. Therefore, you need to add your user
+to the \code{dialout} group:
+
+\begin{bashinput}
+sudo adduser $USER dialout
+\end{bashinput}
+
+{\bf Important}: for the group change to be effective, in Ubuntu 18.04, you have to
+{\em completely reboot} the system \footnote{As explained on
+\url{https://askubuntu.com/questions/1045993/after-adding-a-group-logoutlogin-is-not-enough-in-18-04/}.}.
+A workaround is to run \code{newgrp dialout}, but it is not global.
+You have to run it in each terminal.
+
+Now, you can run \code{picocom -b 115200 /dev/ttyUSB0}, to start serial
+communication on \code{/dev/ttyUSB0}, with a baudrate of \code{115200}. If
+you wish to exit \code{picocom}, press \code{[Ctrl][a]} followed by
+\code{[Ctrl][x]}.
+
+Insert the SD card in the dedicated slot on the BeagleBone Black. Press the S2
+push button (located just above the previous slot), plug in the USB cable and
+release the push button. You should see boot messages on the console.
+
+Wait until the login prompt, then enter \code{root} as user.
+Congratulations! The board has booted and you now have a shell.
 
 \section{Checking that we run a Patched kernel}
 

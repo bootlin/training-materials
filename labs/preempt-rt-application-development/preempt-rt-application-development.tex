@@ -3,41 +3,21 @@
 During this lab, you will:
 \begin{itemize}
   \item Analyse the source code of an application
-  \item Find ways to improve the maximum latency
-  \item Trace the program's execution using perf
+  \item Better understand the page-faulting mechanism
+  \item Use ftrace to display the program's behaviour
 \end{itemize}
 
 \section{Compile and run the program}
 
-In the \code{bootlin-labs-data} folder, you'll find a C program called \code{test_counter.c}
-This program's goal is to count rising edges on a GPIO input pin.
+Compile the pgflt program : \code{make}
 
-The program stores the timestamp for each edge, ans stores it into a buffer.
+Test the various options, and analyse how the Stack and Heap are allocated and
+pre-faulted.
 
-Your goal is to implement the logic to compute the maximum latency during the
-program's execution, and to try to improve it by following the best practises.
+Use ftrace to visualise the page-fault occurings :
+\begin{bashinput}
+	trace-cmd record -e *page_fault* ./pgflt 0x1f
+\end{bashinput}
 
-Using a signal generator, send a 10KHz square signal on pin 28 on connector 9.
-
-Alternatively, apply the patch 0001-enable-spidev.patch file on your devicetree
-to have the /dev/spidev0.0 device available, and use it to send pulses onto the
-pin 28.
-
-\subsection{Program configuration}
-
-Pay attention to the initialization sequence for the program, and make sure you
-use the right memory-management practises.
-
-The program will run by default in \code{SCHED_OTHER}. Make sure that the scheduling
-algorithm used is the right one.
-
-Make sure that the timestamps are gathered using the right clock.
-
-\subsection{Benchmarking}
-
-Using \code{perf}, try to analyse the program. What can you say about the number
-of pagefaults and their occurence ?
-
-The GPIO controller on the board uses edge-triggered interrupts for event
-reporting. Make sure these interrupts have the right priority.
-
+This is a good example where kernelshark can be useful, try to export the trace
+to your host machine for cold analysis.
