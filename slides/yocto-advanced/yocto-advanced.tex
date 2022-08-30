@@ -23,7 +23,7 @@
   \end{itemize}
 \end{frame}
 
-\subsection{Advanced configuration}
+\subsection{Variables}
 
 \begin{frame}
   \frametitle{Overview}
@@ -50,15 +50,42 @@
 \end{frame}
 
 \begin{frame}
-  \frametitle{Operators and Overrides}
+  \frametitle{Operators}
   \begin{itemize}
-  \item BitBake uses a dedicated set of operators to assign values to variables
-  \item The operators apply their effect immediately when executed
-  \item The parsing order is difficult to predict, no assumption should be made about it.
-  \item Variables in the global scope therefore have a value difficult to predict
-  \item Bitbake supports \textbf{overrides}, to allow appending,
-    prepending or modifying a variable at expansion time, when
-    the variable's value is read
+    \item Various operators can be used to assign values to
+    configuration variables:
+      \begin{description}
+        \item[=] expand the value when using the variable
+        \item[:=] immediately expand the value
+        \item[+=] append (with space)
+        \item[=+] prepend (with space)
+        \item[.=] append (without space)
+        \item[=.] prepend (without space)
+        \item[?=] assign if no other value was previously assigned
+        \item[??=] same as previous, with a lower precedence
+      \end{description}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Operators caveats}
+  \begin{itemize}
+    \item The operators apply their effect during parsing
+    \item The parsing order is difficult to predict, no assumption should
+      be made about it.
+    \item Example: if \code{+=} is parsed before \code{?=}, the latter will
+      be discarded.
+    \item To avoid the problem, avoid using \code{+=}, \code{=+}, \code{.=}
+      and \code{=.} in \code{$BUILDDIR/conf/local.conf}. Always use
+      overrides (see following slides).
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Overrides}
+  \begin{itemize}
+  \item Bitbake \textbf{overrides} allow appending, prepending or modifying
+    a variable at expansion time, when the variable's value is read
   \item Overrides are written as \code{<VARIABLE>:<override> = "some_value"}
   \item A different syntax was used before \textbf{Honister}, with no
     retrocompatibility: \code{<VARIABLE>_<override> = "some_value"}
@@ -66,49 +93,48 @@
 \end{frame}
 
 \begin{frame}
-  \frametitle{Methods and conditions 1/4}
+  \frametitle{Overrides to modify variable values}
   \begin{itemize}
-    \item Append the keyword \code{:append} to a configuration
-      variable to add values {\bf after} the ones previously defined
+    \item The \code{append} override adds {\bf at the end} of the variable
       (without space).
       \begin{itemize}
         \item \code{IMAGE_INSTALL:append = " dropbear"} adds
           \code{dropbear} to the packages installed on the image.
       \end{itemize}
-    \item Append the keyword \code{:prepend} to add values {\bf
-      before} the ones previously defined (without space).
+    \item The \code{prepend} override adds {\bf at the beginning} of the
+      variable (without space).
       \begin{itemize}
         \item \code{FILESEXTRAPATHS:prepend := "${THISDIR}/${PN}:"}
           %stopzone
           adds the folder to the set of paths where files are located
           (in a recipe).
       \end{itemize}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Methods and conditions 2/4}
-  \begin{itemize}
-    \item Append the keyword \code{:remove} to a configuration
-      variable to remove all occurrences of a value within a
-      configuration variable.
+    \item The \code{remove} override removes all occurrences of a value
+      within a variable.
       \begin{itemize}
         \item \code{IMAGE_INSTALL:remove = "i2c-tools"}
       \end{itemize}
-    \item Append the machine name to only define a configuration
-      variable for a given machine. It tries to match with values from
-      \code{MACHINEOVERRIDES} which include \code{MACHINE} and
-      \code{SOC_FAMILY}.
-      \begin{itemize}
-        \item \code{KERNEL_DEVICETREE:beaglebone = "am335x-bone.dtb"}
-          tells to use the kernel device tree \code{am335x-bone.dtb}
-          only when the machine is \code{beaglebone}.
-      \end{itemize}
   \end{itemize}
 \end{frame}
 
+\begin{frame}[fragile]
+  \frametitle{Overrides for conditional assignment}
+  \begin{itemize}
+    \item Append the machine name to only define a configuration variable
+      for a given machine. It tries to match with values from
+      \code{OVERRIDES} which includes \code{MACHINE}, \code{SOC_FAMILY}.
+  \end{itemize}
+  \begin{block}{}
+    \begin{minted}[fontsize=\footnotesize]{shell}
+OVERRIDES="arm:armv7a:ti-soc:ti33x:beaglebone:poky"
+KERNEL_DEVICETREE:beaglebone = "am335x-bone.dtb" # This is applied
+KERNEL_DEVICETREE:dra7xx-evm = "dra7-evm.dtb"    # This is ignored
+    \end{minted}
+  \end{block}
+\end{frame}
+
 \begin{frame}
-  \frametitle{Methods and conditions 3/4}
+  \frametitle{Combining overrides 1/2}
   \begin{itemize}
     \item The previous methods can be combined.
     \item If we define:
@@ -129,7 +155,7 @@
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{Methods and conditions 4/4}
+  \frametitle{Combining overrides 2/2}
   \begin{itemize}
     \item The most specific variable takes precedence.
     \item Example:
@@ -149,34 +175,18 @@ IMAGE_INSTALL = "busybox mtd-utils"
 \end{frame}
 
 \begin{frame}
-  \frametitle{Operators 1/2}
-  \begin{itemize}
-    \item Various operators can be used to assign values to
-    configuration variables:
-      \begin{description}
-        \item[=] expand the value when using the variable
-        \item[:=] immediately expand the value
-        \item[+=] append (with space)
-        \item[=+] prepend (with space)
-        \item[.=] append (without space)
-        \item[=.] prepend (without space)
-        \item[?=] assign if no other value was previously assigned
-        \item[??=] same as previous, with a lower precedence
-      \end{description}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Operators 2/2}
-  \begin{itemize}
-    \item Avoid using \code{+=}, \code{=+}, \code{.=} and \code{=.}
-      in \code{$BUILDDIR/conf/local.conf} due to ordering issues.
-      \begin{itemize}
-        \item If \code{+=} is parsed before \code{?=}, the latter will
-          be discarded.
-        \item Using \code{:append} unconditionally appends the value.
-      \end{itemize}
-  \end{itemize}
+  \frametitle{Order of variable assignment}
+  \begin{columns}
+    \column{0.4\textwidth}
+      \includegraphics[width=\textwidth]{slides/yocto-advanced/yocto-operators-order.pdf}
+    \column{0.6\textwidth}
+      \begin{enumerate}
+        \item All the operators are applied, in parsing order
+        \item \code{:append} overrides are applied
+        \item \code{:prepend} overrides are applied
+        \item \code{:remove} overrides are applied
+      \end{enumerate}
+  \end{columns}
 \end{frame}
 
 \subsection{Packages variants}
