@@ -3,8 +3,6 @@ EMBEDDED_LINUX_QEMU_SLIDES = \
 		about-us \
 		course-information-title \
 		qemu-board \
-		xplained-board-also-supported \
-		discovery-board-also-supported \
 		course-information \
 		sysdev-intro \
 		sysdev-dev-environment \
