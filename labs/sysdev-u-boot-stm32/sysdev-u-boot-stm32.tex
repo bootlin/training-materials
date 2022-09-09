@@ -1,4 +1,4 @@
-\subchapter{Bootloader - U-Boot}{Objectives: Set up serial
+\subchapter{Bootloader - TF-A and U-Boot}{Objectives: Set up serial
   communication, compile and install the U-Boot bootloader, use basic
   U-Boot commands, set up TFTP communication with the development
   workstation.}
@@ -61,21 +61,29 @@ communication on \code{/dev/ttyACM0}, with a baudrate of 115200.
 If you wish to exit \code{picocom}, press \code{[Ctrl][a]} followed by
 \code{[Ctrl][x]}.
 
-\section{U-Boot setup}
+\section{TF-A and U-Boot relationship}
 
 The boot process is done in two steps with the ROM monitor trying to
 execute a first piece of software, called {\em fsbl}, from its
-internal SRAM, that will initialize the DRAM, a second program, {\em
-ssbl} that will in turn load Linux and execute it.
+internal SRAM, that will initialize the DRAM, and a second program,
+{\em ssbl} that will in turn load Linux and execute it.
 
-In our case, both programs are provided by U-Boot.
+In our case, {\em fsbl} is provided by TF-A BL2 and {\em
+  ssbl} is provided by U-Boot.
+
+TF-A BL2 is loading U-Boot from the Firmware Image Package ({\em
+  FIP}), that will also contain the configuration for this second
+part. The {\em FIP} is generated from TF-A sources, so first we are
+going to build U-Boot.
+
+\section{U-Boot setup}
 
 Download U-Boot:
 
 \begin{bashinput}
 $ git clone https://gitlab.denx.de/u-boot/u-boot
 $ cd u-boot
-$ git checkout v2021.01
+$ git checkout v2022.07
 \end{bashinput}
 
 Get an understanding of U-Boot's configuration and compilation steps
@@ -92,19 +100,16 @@ Basically, you need to:
 
 \item Run \inlinebash{$ make <NAME>_defconfig}, where the list of available
   configurations can be found in the \code{configs/} directory. There
-  are four stm32mp15 configurations. We will use the basic one
-  (\code{stm32mp15_basic}).
+  are four stm32mp15 configurations. We will use the standard one
+  (\code{stm32mp15}).
 
 \item Now that you have a valid initial configuration, you can now
   run \inlinebash{$ make menuconfig} to further edit your bootloader features.
   \begin{itemize}
 
-  \item In the \code{SPL / TPL} submenu, disable \code{Support an environment}, as
-     SPL will jump to the second stage bootloader U-Boot, and not directly to Linux.
-
   \item In the \code{Environment} submenu, we will configure U-Boot so
-    that it stores its environment inside a file called {\em
-      uboot.env} in an ext4 filesystem:
+    that it stores its environment inside a file called \code{uboot.env}
+    in an ext4 filesystem:
     \begin{itemize}
     \item Disable \code{Environment is not stored}. We want changes to variables to
         be persistent across reboots
@@ -128,7 +133,7 @@ Basically, you need to:
 Install the following packages which may be needed to compile U-Boot for
 your board:
 
-\bashcmd{$ sudo apt install libssl-dev device-tree-compiler}
+\bashcmd{$ sudo apt install libssl-dev device-tree-compiler swig}
 
 \item Finally, run \inlinebash{$ make
     DEVICE_TREE=stm32mp157a-dk1}\footnote{You can speed up the
@@ -146,15 +151,61 @@ your board:
   option.
 \end{enumerate}
 
-\section{Flashing U-Boot}
+\section{TF-A setup}
+
+Get the mainline TF-A sources:
+
+\begin{bashinput}
+$ cd ..
+$ git clone https://git.trustedfirmware.org/TF-A/trusted-firmware-a.git
+$ cd trusted-firmware-a/
+$ git checkout v2.7
+\end{bashinput}
+
+Several configuration parameters have to be passed to the Makefile:
+\begin{itemize}
+\item Specify the cross-compiler prefix (the part before gcc in the
+      cross-compiler executable name), either using the environment
+      variable:\inlinebash{$ export CROSS_COMPILE=arm-linux-}, or just by
+      adding it to the \code{make} commande line.
+\item The architecture has to be selected: \code{ARCH=aarch32}, as
+      well as the major version of Arm Architecture, here the Cortex A7 is
+      an Armv7, so we need to use \code{ARM_ARCH_MAJOR=7}
+\item The STM32MP1 platform is selected too with \code{PLAT=stm32mp1}
+\item Specify the AArch32 Secure Payload component, we are going to
+      use a minimal monitor implementation provided by TF-A: the
+      {\em SP-MIN}. For this we need to add the following variable:
+      \code{AARCH32_SP=sp_min}
+\item For this specific board, the device tree is generated and then
+      needs to be specifed: \code{DTB_FILE_NAME=stm32mp157a-dk1.dtb}
+\item Specify the configuration of this firmware which is actually
+      the Device Tree passed to U-Boot:
+      \code{BL33_CFG=../u-boot/u-boot.dtb}
+\item Specify that the fsbl will be located on the SD
+      card with \code{STM32MP_SDMMC=1}.
+\item Specify the location of the BL33 (Boot loader stage 3-3):
+      \code{BL33=../u-boot/u-boot-nodtb.bin}
+\end{itemize}
+
+We can now generate the \code{bl32}, \code{dtb}, and \code{fip} targets
+with a single command line:
+\begin{bashinput}
+$ make ARM_ARCH_MAJOR=7 ARCH=aarch32 PLAT=stm32mp1 AARCH32_SP=sp_min \
+  DTB_FILE_NAME=stm32mp157a-dk1.dtb BL33=../u-boot/u-boot-nodtb.bin \
+  BL33_CFG=../u-boot/u-boot.dtb STM32MP_SDMMC=1 fip all
+\end{bashinput}
+
+\section{Flashing the bootloaders}
 
 The ROM monitor will look for the first stage bootloader in a
 partition named \code{fsbl1}. If it cannot find a valid bootloader in
 this partition, it will then try to load it from a partition named
-\code{fslb2}. This first stage bootloader (in our case the U-Boot SPL)
-will load the second bootloader (U-Boot itself) from the partition
-named \code{ssbl}. Finally, U-Boot will store its environment in the
-fourth partition, which we'll name \code{bootfs}.
+\code{fslb2}. This first stage bootloader (in our case the TF-A BL2)
+will load the second bootloader (U-Boot) from the Firmware Image
+Package located in the partition named \code{fip}. At the same time,
+BL2 will also load the BL32 monitor (SP-min) from the FIP. Finally,
+U-Boot will store its environment in the fourth partition, which we'll
+name \code{bootfs}.
 
 So, as far as bootloaders are concerned, the SD card partitioning will
 look like:
@@ -163,11 +214,11 @@ look like:
 Number  Start   End      Size     File system  Name    Flags
  1      2048s   4095s    2048s                 fsbl1
  2      4096s   6143s    2048s                 fsbl2
- 3      6144s   10239s   4096s                 ssbl
+ 3      6144s   10239s   4096s                 fip
  4      10240s  131071s  120832s               bootfs
 \end{verbatim}
 
-Plug the SD card your instructor gave you on your workstation. Type
+On your workstation, plug in the SD card your instructor gave you. Type
 the \code{dmesg} command to see which device is used by your
 workstation. In case the device is \code{/dev/mmcblk0}, you will see
 something like
@@ -209,7 +260,7 @@ Then, the 4 partitions are created with:
 \begin{verbatim}
 (parted) mkpart fsbl1 0% 4095s
 (parted) mkpart fsbl2 4096s 6143s
-(parted) mkpart ssbl 6144s 10239s
+(parted) mkpart fip 6144s 10239s
 (parted) mkpart bootfs 10240s 131071s
 \end{verbatim}
 
@@ -218,6 +269,19 @@ You can verify everything looks right with:
 \begin{verbatim}
 (parted) unit s
 (parted) print
+Model: SD SS16G (sd/mmc)
+Disk /dev/mmcblk0: 15.9GB
+Sector size (logical/physical): 512B/512B
+Partition Table: gpt
+Disk Flags:
+
+Number  Start   End     Size    File system  Name    Flags
+ 1      1049kB  2097kB  1049kB               fsbl1
+ 2      2097kB  3146kB  1049kB               fsbl2
+ 3      3146kB  5243kB  2097kB               fip
+ 4      5243kB  67.1MB  61.9MB  ext2         bootfs
+
+(parted)
 \end{verbatim}
 
 Once done, quit:
@@ -225,23 +289,27 @@ Once done, quit:
 (parted) quit
 \end{verbatim}
 
-
-Now, format the boot partition as an ext2 filesystem. This is where
+Now, format the boot partition as an ext4 filesystem. This is where
 U-Boot saves its environment:
-\bashcmd{$ sudo mkfs.ext2 -L boot /dev/mmcblk0p4}
+\bashcmd{$ sudo mkfs.ext4 -L boot -O ^metadata_csum /dev/mmcblk0p4}
 
-The U-Boot SPL is {\em fsbl}. Write it in both fsbl partitions:
+The \code{-O ^metadata_csum} option allows to create the filesystem
+without enabling metadata checksums, which U-Boot doesn't seem to
+support yet.
+
+Now write the TF-A binary in both \code{fsbl} partitions:
 
 \begin{bashinput}
-$ sudo dd if=spl/u-boot-spl.stm32 of=/dev/mmcblk0p1 bs=1M conv=fdatasync
-$ sudo dd if=spl/u-boot-spl.stm32 of=/dev/mmcblk0p2 bs=1M conv=fdatasync
+$ sudo dd if=build/stm32mp1/release/tf-a-stm32mp157a-dk1.stm32 of=/dev/mmcblk0p1 bs=1M conv=fdatasync
+$ sudo dd if=build/stm32mp1/release/tf-a-stm32mp157a-dk1.stm32 of=/dev/mmcblk0p2 bs=1M conv=fdatasync
 \end{bashinput}
 
-Then flash {\em ssbl}, this is the main U-Boot binary:
+Then flash the {\em fip} partition with the Firmware Image Package
+containing U-Boot, the BL32 monitor and their configuration (device tree):
 
-\bashcmd{$ sudo dd if=u-boot.img of=/dev/mmcblk0p3 bs=1M conv=fdatasync}
+\bashcmd{$ sudo dd if=build/stm32mp1/release/fip.bin of=/dev/mmcblk0p3 bs=1M conv=fdatasync}
 
-\section{Testing U-Boot}
+\section{Testing the bootloaders}
 
 Insert the SD card in the board slot. You can now power-up the board
 by connecting the USB-C cable to the board, in CN6, \code{PWR_IN} and
@@ -249,53 +317,59 @@ to your PC at the other end. Check that it boots your new bootloaders.
 You can verify this by checking the build dates:
 
 \begin{verbatim}
-U-Boot SPL 2021.01 (Nov 03 2021 - 16:48:02 +0100)
+NOTICE:  CPU: STM32MP157AAC Rev.B
+NOTICE:  Model: STMicroelectronics STM32MP157A-DK1 Discovery Board
+NOTICE:  Board: MB1272 Var1.0 Rev.C-01
+NOTICE:  BL2: v2.7(release):v2.7.0
+NOTICE:  BL2: Built : 13:03:55, Jul  7 2022
+NOTICE:  BL2: Booting BL32
+NOTICE:  SP_MIN: v2.7(release):v2.7.0
+NOTICE:  SP_MIN: Built : 13:03:59, Jul  7 2022
+
+
+U-Boot 2022.07 (Jul 07 2022 - 12:58:28 +0200)
+
+CPU: STM32MP157AAC Rev.B
 Model: STMicroelectronics STM32MP157A-DK1 Discovery Board
-RAM: DDR3-DDR3L 16bits 533000Khz
-WDT:   Not found!
-
-
-U-Boot 2021.01 (Nov 03 2021 - 16:48:02 +0100)
-
-CPU: STM32MP157DAC Rev.Z
-Model: STMicroelectronics STM32MP157A-DK1 Discovery Board
-Board: stm32mp1 in basic mode (st,stm32mp157a-dk1)
-Board: MB1272 Var3.0 Rev.C-02
+Board: stm32mp1 in trusted mode (st,stm32mp157a-dk1)
+Board: MB1272 Var1.0 Rev.C-01
 DRAM:  512 MiB
 Clocks:
-- MPU : 800 MHz
+- MPU : 650 MHz
 - MCU : 208.878 MHz
 - AXI : 266.500 MHz
 - PER : 24 MHz
 - DDR : 533 MHz
-WDT:   Not found!
+Core:  264 devices, 35 uclasses, devicetree: board
 NAND:  0 MiB
 MMC:   STM32 SD/MMC: 0
-Loading Environment from EXT4... ** File not found /uboot.env **
-
-** Unable to read "/uboot.env" from mmc0:4 **
+Loading Environment from MMC... OK
 In:    serial
 Out:   serial
 Err:   serial
+Previous ADC measurements was not the one expected, retry in 20ms
 ****************************************************
-*        WARNING 500mA power supply detected       *
+*       WARNING 1.5A power supply detected        *
 *     Current too low, use a 3A power supply!      *
 ****************************************************
 
 Net:   eth0: ethernet@5800a000
-Hit any key to stop autoboot:  0
-Boot over mmc0!
-Saving Environment to EXT4... File System is consistent
-done
-OK
-switch to partitions #0, OK
-mmc0 is current device
-** Unrecognized filesystem type **
+Hit any key to stop autoboot:  0 
 STM32MP>
 \end{verbatim}
 
 In U-Boot, type the \code{help} command, and explore the few commands
 available.
+
+\subsection{Adding a new command to the U-Boot shell}
+
+Check whether the \code{config} command is available. This command
+allows to dump the configuration settings U-Boot was compiled from.
+
+If it's not, go back to U-Boot's configuration and enable it.
+
+Update U-Boot on the SD card and test that the command is now
+available and works as expected.
 
 \section{Setting up Ethernet communication}
 

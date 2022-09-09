@@ -50,14 +50,13 @@ EMBEDDED_LINUX_SLIDES = \
 
 EMBEDDED_LINUX_LABS   = setup \
 		sysdev-toolchain \
-		sysdev-u-boot \
-		sysdev-kernel-fetch-and-patch \
+		sysdev-u-boot-stm32 \
+		sysdev-kernel-fetch-sources \
 		sysdev-kernel-cross-compiling \
 		sysdev-tinysystem \
-		sysdev-block-filesystems \
-		sysdev-flash-filesystems \
+		sysdev-accessing-hardware \
+		sysdev-block-filesystems-stm32 \
 		sysdev-thirdparty \
 		sysdev-buildroot \
-		sysdev-application-development \
-		sysdev-application-debugging \
-		sysdev-real-time
+		sysdev-system-integration \
+		sysdev-application-development-and-debugging

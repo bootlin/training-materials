@@ -46,14 +46,14 @@ EMBEDDED_LINUX_QEMU_SLIDES = \
 		last-slides
 
 EMBEDDED_LINUX_QEMU_LABS   = ubuntu-vm \
-		setup \
-		sysdev-toolchain \
-		sysdev-u-boot-qemu \
-		sysdev-kernel-fetch-and-patch \
-		sysdev-kernel-cross-compiling \
-		sysdev-tinysystem \
-		sysdev-block-filesystems-qemu \
-		sysdev-thirdparty \
-		sysdev-buildroot \
-		sysdev-application-development \
-		sysdev-application-debugging \
+                setup \
+                sysdev-toolchain \
+                sysdev-u-boot-qemu \
+                sysdev-kernel-fetch-sources \
+                sysdev-kernel-cross-compiling \
+                sysdev-tinysystem \
+                sysdev-block-filesystems-qemu \
+                sysdev-thirdparty \
+                sysdev-buildroot \
+		sysdev-system-integration \
+		sysdev-application-development-and-debugging

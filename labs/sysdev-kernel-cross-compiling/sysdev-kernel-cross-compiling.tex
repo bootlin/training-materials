@@ -3,6 +3,7 @@ cross-compile a kernel for an ARM target platform.}
 
 After this lab, you will be able to:
 \begin{itemize}
+\item Checkout a stable version of the Linux kernel
 \item Set up a cross-compiling environment
 \item Cross compile the kernel for the \labboarddescription
 \item Use U-Boot to download the kernel
@@ -11,12 +12,41 @@ After this lab, you will be able to:
 
 \section{Setup}
 
-Go to the \code{$HOME/__SESSION_NAME__-labs/kernel} directory.
+Stay in the \code{$HOME/__SESSION_NAME__-labs/kernel} directory.
 
-\section{Kernel sources}
+\section{Choose a particular stable version of Linux}
 
-We will re-use the kernel sources downloaded and patched in the
-previous lab.
+We will use \texttt{linux-\workingkernel.x}, which corresponds to an
+LTS release, and which this lab was tested with.
+
+First, let's get the list of branches on our \code{stable} remote tree:
+
+\begin{verbatim}
+cd linux
+git branch -a
+\end{verbatim}
+
+As we will do our labs with the Linux \workingkernel,
+the remote branch we are interested in is
+\texttt{remotes/stable/linux-\workingkernel.y}.
+
+First, execute the following command to check which version you
+currently have:
+
+\begin{verbatim}
+make kernelversion
+\end{verbatim}
+
+You can also open the \code{Makefile} and look at the beginning of it
+to check this information.
+
+Now, let's create a local branch starting from that remote branch:
+\begin{bashinput}
+git checkout stable/linux-%\workingkernel%.y
+\end{bashinput}
+
+Check the version again using the \code{make kernelversion} command
+to make sure you now have a \workingkernel.x version.
 
 \section{Cross-compiling environment setup}
 
@@ -32,42 +62,33 @@ Also, don't forget to either:
 \item Define the value of the \code{ARCH} and \code{CROSS_COMPILE}
   variables in your environment (using \code{export})
 \item {\bf Or} specify them on the command line at every invocation of
-  \code{make}, i.e: \code{make ARCH=... CROSS_COMPILE=... <target>}
+  \code{make}, i.e.: \code{make ARCH=... CROSS_COMPILE=... <target>}
 \end{itemize}
 
 \section{Linux kernel configuration}
 
 \ifdefstring{\labboard}{discovery}
 {
-We could use the \code{multi_v7_defconfig} default configuration to
-build a working kernel but to save time and compile less code, we
-provide in
-\code{$HOME/__SESSION_NAME__-labs/linux-stm32/} a minimal configuration
-file, named \code{stm32mp157_defconfig}. Copy it to \code{.config} and
-then run either \code{make olddefconfig} or \code{make oldconfig} if
-you want to get asked for all the possible choices.
+The standard configuration for this kernel is \code{multi_v7_defconfig},
+but this will generate a pretty big kernel with support for many other
+SoCs. However, we can reduce it to compile faster and get a small
+kernel.
+
+So, apply this configuration, and than run \code{make menuconfig},
+and in the \code{System Type} menu, remove support for all the
+SoCs except the STM32MP157 ones. Don't forget to disable the TI ones
+too which are in a submenu.
 }
 {
 By running \code{make help}, find the proper Makefile target to
 configure the kernel
 \ifdefstring{\labboard}{qemu}
 {for the ARM Vexpress boards (\code{vexpress_defconfig}).}
-{for the Xplained board (hint: the default
-configuration is not named after the board, but after the SoC
-name). Once found, use this target to configure the kernel with the
-ready-made configuration.}
 }
 
-Don't hesitate to visualize the new settings by running
-\code{make xconfig} afterwards!
-
-In the kernel configuration, as an experiment, change the kernel
-compression from Gzip to XZ. This compression algorithm is far more
-efficient than Gzip, in terms of compression ratio, at the expense of
-a higher decompression time.
-
 \ifdefstring{\labboard}{qemu}
-{Also add \kconfig{CONFIG_DEVTMPFS_MOUNT} to your configuration.}
+{Also start \code{make menuconfig} to
+add \kconfig{CONFIG_DEVTMPFS_MOUNT} to your configuration.}
 {}
 
 \section{Cross compiling}
