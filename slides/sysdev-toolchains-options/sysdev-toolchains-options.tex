@@ -10,9 +10,11 @@
     organization of structures (alignment, etc.)
   \item All binaries in a system are typically compiled with the same ABI,
     and the kernel must understand this ABI.
-  \item On ARM, two main ABIs: {\em OABI} and {\em EABI}
+  \item On ARM 32-bit, two main ABIs: {\em EABI} and {\em EABIhf}
     \begin{itemize}
-    \item Nowadays everybody uses {\em EABI}
+    \item {\em EABIhf} passes floating-point arguments in
+      floating-point registers $\rightarrow$ needs an ARM processor
+      with a FPU
     \end{itemize}
   \item On RISC-V, several ABIs: {\em ilp32}, {\em ilp32f}, {\em ilp32d},
         {\em lp64}, {\em lp64f}, and {\em lp64d}
@@ -20,18 +22,16 @@
   \end{itemize}
 \end{frame}
 
-\begin{frame}
-  \frametitle{Floating point support}
+\begin{frame}{Floating point support}
   \begin{itemize}
-  \item Some processors have a floating point unit, some others do not.
-    \begin{itemize}
-    \item For example, many ARMv4 and ARMv5 CPUs do not have a
-      floating point unit.  Since ARMv7, a VFP unit is mandatory.
-    \end{itemize}
-  \item For processors having a floating point unit, the toolchain
-    should generate {\em hard float} code, in order to use the
-    floating point instructions directly
+  \item All ARMv7-A (32-bit) and ARMv8-A (64-bit) processors have a
+    floating point unit
+  \item RISC-V cores with the \code{F} extension have a floating point
+    unit
+  \item Some older ARM cores (ARMv4/ARMv5) or some RISC-V cores may
+    not have a floating point unit
   \item For processors without a floating point unit, two solutions
+    for floating point computation:
     \begin{itemize}
     \item Generate {\em hard float code} and rely on the kernel to
       emulate the floating point instructions. This is very slow.
@@ -40,7 +40,9 @@
       library are generated
     \end{itemize}
   \item Decision taken at toolchain configuration time
-  \item Also possible to configure which floating point unit should be used
+  \item For processors with a floating point unit, sometimes different
+    FPU are possible. For example on ARM: VFPv3, VFPv3-D16, VFPv4,
+    VFPv4-D16, etc.
   \end{itemize}
 \end{frame}
 
@@ -48,7 +50,7 @@
   \frametitle{CPU optimization flags}
   \begin{itemize}
   \item GNU tools (gcc, binutils) can only be compiled for a specific
-        target architecture at a time (ARM, x86, RiscV...)
+        target architecture at a time (ARM, x86, RISC-V...)
   \item gcc offers further options:
     \begin{itemize}
     \item \code{-march} allows to select a specific target instruction set

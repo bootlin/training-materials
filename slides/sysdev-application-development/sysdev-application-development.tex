@@ -1,7 +1,6 @@
 \section{Embedded Linux application development}
 
-\begin{frame}
-  \frametitle{Contents}
+\begin{frame}{Contents}
   \begin{itemize}
   \item Application development
     \begin{itemize}
@@ -19,8 +18,7 @@
 
 \subsection{Developing applications on embedded Linux}
 
-\begin{frame}
-  \frametitle{Application development}
+\begin{frame}{Application development}
   \begin{itemize}
   \item An embedded Linux system is just a normal Linux system, with
     usually a smaller selection of components
@@ -39,147 +37,165 @@
   \end{itemize}
 \end{frame}
 
-\begin{frame}
-  \frametitle{Programming language (1)}
+\begin{frame}{Leverage existing libraries and languages}
   \begin{itemize}
-  \item The programming language for system-level applications
-    in Linux is usually C
+  \item Many developers getting started with embedded Linux limit
+    themselves to C, sometimes C++, and the C/C++ standard library.
+  \item However, there are a lot of libraries and languages that can
+    help you accelerate and simplify your application development
     \begin{itemize}
-    \item The C library is already present on your system, nothing to
-      add
+    \item Compiled languages like Rust and Go are increasingly popular
+    \item Interpreted languages, especially Python
+    \item Higher-level libraries: Qt, Glib, Boost, and many more
     \end{itemize}
-  \item C++ can be used for larger applications
+  \item Make sure to evaluate what is the right choice for your
+    project, but pay attention it
     \begin{itemize}
-    \item The C++ library must be added to the system
-    \item Some libraries, including Qt, are developed in C++ so they
-      need the C++ library on the system anyway
-    \end{itemize}
-  \item The Rust language is increasingly popular in embedded
-      and system applications, as an alternative to C and C++.\\
-      See \url{https://www.rust-lang.org/what/embedded}
-      for attractive features.
-  \item Suggestion to start with Rust if you neither know
-      C and C++.
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Programming language (2)}
-  \begin{itemize}
-  \item Scripting languages can also be useful for quick application
-    development, web applications or scripts
-    \begin{itemize}
-    \item But they require an interpreter on the embedded system and
-      have usually higher memory consumption and slightly lower
-      performance
-    \item Most popular: Python, shell
-    \end{itemize}
-  \item All programming languages can be used: Lua, Ada, Java, Go...
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{C library or higher-level libraries?}
-  \begin{itemize}
-  \item For many applications, the C library already provides a
-    relatively large set of features
-    \begin{itemize}
-    \item file and device I/O, networking, threads and
-      synchronization, inter-process communication
-    \item Thoroughly described in the glibc manual, or in any {\em
-        Linux system programming} book
-    \item However, the API carries a lot of history and is not
-      necessarily easy to grasp for new comers
-    \end{itemize}
-  \item Therefore, using a higher level framework, such as Qt or the
-    Gtk/Glib stack, might be a good idea
-    \begin{itemize}
-    \item These frameworks are not only graphical libraries, their
-      core is separate from the graphical part
-    \item But of course, these libraries have some memory and storage
-      footprint, in the order of a few megabytes
+    \item Footprint and performance on low-end platforms
+    \item Use well-maintained and well-known technologies
     \end{itemize}
   \end{itemize}
 \end{frame}
 
-\begin{frame}
-  \frametitle{Building your applications}
+\begin{frame}{Building your applications/libraries}
   \begin{itemize}
-  \item For simple applications that do not need to be really portable
-    or provide compile-time configuration options, a simple Makefile
-    will be sufficient
-  \item For more complicated applications, or if you want to be able
-    to run your application on a desktop Linux PC and on the target
-    device, using a build system is recommended
+  \item Even for simple applications or libraries, make use of a build
+    system
     \begin{itemize}
-    \item {\em autotools} is ancient, complicated but very
-      widely used.
-    \item We recommend to invest in simpler and more modern tools
-          instead, such as {\em CMake} and {\em Meson}.
+    \item \href{https://cmake.org/}{CMake}
+    \item \href{https://mesonbuild.com/}{Meson}
+    \end{itemize}
+  \item This will simplify
+    \begin{itemize}
+    \item the build process of your application
+    \item the life of developers joining your project
+    \item the packaging of your application into an embedded Linux
+      build system
     \end{itemize}
   \end{itemize}
 \end{frame}
 
-\begin{frame}[fragile]
-  \frametitle{Simple Makefile (1)}
-  Case of an application that only uses the C library, contains two source
-  files and generates a single binary\\
-  \includegraphics[height=0.7\textheight]{slides/sysdev-application-development/simple-makefile1.pdf}
+\begin{frame}[fragile]{Getting started with {\em meson}}
+  \begin{block}{Minimal {\tt meson.build}}
+\begin{verbatim}
+project('example', 'c')
+executable('demo', 'main.c')
+\end{verbatim}
+  \end{block}
+
+  \begin{block}{{\tt meson.build} for multiple programs and source files}
+\begin{verbatim}
+project('example', 'c')
+src_demo1 = ['demo1.c', 'foo1.c']
+executable('demo1', src_demo1)
+src_demo2 = ['demo2.c', 'foo2.c']
+executable('demo2, src_demo2)
+\end{verbatim}
+  \end{block}
 \end{frame}
 
-\begin{frame}[fragile]
-  \frametitle{Simple Makefile (2)}
-  Case of an application that uses the Glib and the GPS libraries\\
-  \includegraphics[height=0.7\textheight]{slides/sysdev-application-development/simple-makefile2.pdf}\\
+\begin{frame}[fragile]{Options with {\em meson}}
+  \begin{block}{{\tt meson\_options.txt}}
+\begin{verbatim}
+option('demo-debug', type : 'feature', value : 'disabled')
+\end{verbatim}
+  \end{block}
+
+  \begin{block}{{\tt meson.build}}
+\begin{verbatim}
+project('tutorial', 'c')
+demo_c_args = []
+if get_option('demo-debug').enabled()
+   demo_c_args += '-DDEBUG'
+endif
+executable('demo', 'main.c', c_args: demo_c_args)
+\end{verbatim}
+  \end{block}
 \end{frame}
 
-\subsection{Debuggers}
+\begin{frame}[fragile]{Library dependencies with {\em meson}}
+  \begin{block}{{\tt meson.build}}
+\begin{verbatim}
+project('tutorial', 'c')
+gtkdep = dependency('gtk+-3.0')
+executable('demo', 'main.c', dependencies : gtkdep)
+\end{verbatim}
+  \end{block}
 
-\begin{frame}
-  \frametitle{GDB}
-  \fontsize{11}{11}\selectfont
-  \begin{columns}[T]
-    \column{0.8\textwidth}
-    The {\bf GNU Project Debugger}\\
-    \url{https://www.gnu.org/software/gdb/}
-    \begin{itemize}
-    \item The debugger on GNU/Linux, available for most embedded
-      architectures.
-    \item Supported languages: C, C++, Pascal, Objective-C, Fortran,
-      Ada...
-    \item Console interface (useful for remote debugging).
-    \item Can also be used through graphical IDEs
-    \item Can be used to control the execution of a program, set
-      breakpoints or change internal variables. You can also use it to
-      see what a program was doing when it crashed (by loading its
-      memory image, dumped into a \code{core} file).
-    \item New alternative: {\em lldb} (\url{https://lldb.llvm.org/})\\
-      from the LLVM project.
-    \end{itemize}
-    See also \url{https://en.wikipedia.org/wiki/Gdb}
-    \column{0.2\textwidth}
-    \includegraphics[width=0.9\textwidth]{slides/sysdev-application-development/gdb.png}
-  \end{columns}
+  The dependency \code{gtk+-3.0} is searched using \code{pkg-config}.
 \end{frame}
 
-\begin{frame}
-  \frametitle{GDB crash course (1)}
-  \small
-  A few useful GDB commands
+\subsection{Debugging}
+
+\begin{frame}{GDB}
   \begin{itemize}
+  \item GDB: {\bf GNU Debugger}
+  \item The reference debugger on Linux
+  \item Supports most embedded architectures
+  \item Source-level debugger: C, C++, Pascal, Objective-C, Fortran,
+    Ada...
+  \item Console interface, but integration in many graphical IDEs
+  \item Can be used to
+    \begin{itemize}
+    \item control the execution of a running program
+    \item analyze post mortem a program crash
+    \end{itemize}
+  \item Needs program and libraries compiled with {\em debugging
+      symbols}, using gcc \code{-g} option
+  \item \url{https://www.gnu.org/software/gdb/}
+  \item \href{https://www.youtube.com/watch?v=JGhAgd2a_Ck}{Tutorial:
+      Debugging Embedded Devices using GDB}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{GDB crash course (1)}
+  \begin{itemize}
+  \item Example for {\em native debugging}
+    \begin{itemize}
+    \item \code{gdb} runs on the same machine as the program to debug
+    \end{itemize}
+  \item Compile with debugging symbols, for example with {\em meson}
+    \begin{block}{}
+      {\small
+\begin{verbatim}
+$ meson -Ddebug=true
+$ ninja
+$ file test
+test: LF 64-bit LSB executable, x86-64, [...], with debug_info
+\end{verbatim}
+      }
+    \end{block}
+  \item Start {\em gdb} with the program as argument, {\em gdb} loads
+    the debugging symbols and waits at its prompt
+    \begin{block}{}
+      {\small
+\begin{verbatim}
+$ gdb test
+GNU gdb (GDB) Fedora 12.1-1.fc36
+[...]
+Reading symbols from test...
+(gdb)
+\end{verbatim}
+      }
+    \end{block}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{GDB crash course (2)}
+  \begin{itemize}
+  \item \code{help}\\
+    Get some useful help!
   \item \code{break foobar} (\code{b})\\
-    Put a breakpoint at the entry of function \code{foobar()}
+    Set a breakpoint at the entry of function \code{foobar()}
   \item \code{break foobar.c:42}\\
-    Put a breakpoint in \code{foobar.c}, line 42
+    Set a breakpoint in \code{foobar.c}, line 42
   \item \code{print var} or \code{print task->files[0].fd} (\code{p})\\
     Print the variable \code{var}, or a more complicated reference. GDB
     can also nicely display structures with all their members
   \end{itemize}
 \end{frame}
 
-\begin{frame}
-  \frametitle{GDB crash course (2)}
-  \small
+\begin{frame}{GDB crash course (3)}
   \begin{itemize}
   \item \code{continue} (\code{c})\\
     Continue the execution after a breakpoint
@@ -194,16 +210,20 @@
 
 \subsection{Remote debugging}
 
-\begin{frame}
-  \frametitle{Remote debugging}
+\begin{frame}{Remote debugging}
   \begin{itemize}
   \item In a non-embedded environment, debugging takes place using \code{gdb}
     or one of its front-ends.
-  \item \code{gdb} has direct access to the binary and libraries compiled
-    with debugging symbols.
+    \begin{itemize}
+    \item \code{gdb} has local access to the binary and libraries compiled
+      with debugging symbols
+    \end{itemize}
   \item However, in an embedded context, the target platform
-    environment is often too limited to allow direct debugging with
-    \code{gdb} (2.4 MB on x86).
+    environment is often too limited
+    \begin{itemize}
+    \item \code{gdb} itself is a bit large
+    \item but more importantly, debugging symbols can be extremely large
+    \end{itemize}
   \item Remote debugging is preferred
     \begin{itemize}
     \item \code{ARCH-linux-gdb} is used on the development workstation, offering
@@ -217,36 +237,44 @@
   \end{center}
 \end{frame}
 
-\begin{frame}
-  \frametitle{Remote debugging: architecture}
+\begin{frame}{Remote debugging: architecture}
   \begin{center}
     \includegraphics[width=\textwidth]{slides/sysdev-application-development/gdb-vs-gdbserver-architecture.pdf}
   \end{center}
 \end{frame}
 
-\begin{frame}
-  \frametitle{Remote debugging: usage}
+\begin{frame}{Remote debugging: on the target}
   \begin{itemize}
-  \item On the target, run a program through \code{gdbserver}.\\
-    Program execution will not start immediately.\\
-    \code{gdbserver localhost:<port> <executable> <args>}
-    \code{gdbserver /dev/ttyS0 <executable> <args>}
-  \item Otherwise, attach \code{gdbserver} to an already running program:\\
-    \code{gdbserver --attach localhost:<port> <pid>}
-  \item Then, on the host, start \code{ARCH-linux-gdb <executable>},\\
-    and use the following \code{gdb} commands:
+  \item Start the program through \code{gdbserver}
+    \begin{itemize}
+    \item TCP socket communication: \code{gdbserver localhost:<port> <executable> <args>}
+    \item Serial port communication: \code{gdbserver /dev/ttyS0 <executable> <args>}
+    \item {\em gdbserver} does not start the program, it waits for
+      {\em gdb} to connect and start the program
+    \end{itemize}
+  \item Attach \code{gdbserver} to an already running program, using
+    its PID
+    \begin{itemize}
+    \item \code{gdbserver --attach localhost:<port> <pid>}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Remote debugging: on the host}
+  \begin{itemize}
+  \item Start \code{ARCH-linux-gdb <executable>}
+  \item Then use the following \code{gdb} commands:
     \begin{itemize}
     \item To connect to the target:\\
       \code{gdb> target remote <ip-addr>:<port>} (networking)\\
-      \code{gdb>  target remote /dev/ttyUSB0} (serial link)
+      \code{gdb> target remote /dev/ttyUSB0} (serial link)
     \item To tell \code{gdb} where shared libraries are:\\
       \code{gdb> set sysroot <library-path>} (without \code{lib/})
     \end{itemize}
   \end{itemize}
 \end{frame}
 
-\begin{frame}
-  \frametitle{Post mortem analysis}
+\begin{frame}{Post mortem analysis}
   \begin{itemize}
   \item When an application crashes due to a {\em segmentation fault}
     and the application was not under control of a debugger, we get no
@@ -270,25 +298,166 @@
   \end{itemize}
 \end{frame}
 
-\subsection{Profiling}
+\subsection{Tracing and profiling}
 
 \input{../common/strace.tex}
 \input{../common/ltrace.tex}
+
+\begin{frame}{ftrace}
+  \begin{itemize}
+  \item In-kernel {\em tracing} functionality
+  \item Can trace
+    \begin{itemize}
+    \item Well-defined trace locations in the kernel, called {\em
+        tracepoints}, identifying important events in the kernel:
+      scheduling, interrupts, etc.
+    \item Arbitrary functions in the kernel
+    \item Arbitrary functions in user-space applications
+    \end{itemize}
+  \item Low-overhead and optimized tracing
+  \item Accessible using the dedicated {\em tracefs} filesystem
+  \item \code{trace-cmd} is a higher-level CLI tool to use {\em
+      ftrace}
+  \item Can be used to understand overall system activity (what is my
+    system doing?) as well as narrow down specific performance
+    issues
+  \item \url{https://www.kernel.org/doc/Documentation/trace/ftrace.txt}
+  \item \url{https://www.trace-cmd.org/}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{kernelshark}
+  \begin{itemize}
+  \item Visualization tool for {\em ftrace} traces
+  \item \url{https://kernelshark.org/}
+  \end{itemize}
+  \begin{center}
+    \includegraphics[height=0.6\textheight]{slides/sysdev-application-development/kernelshark.png}
+  \end{center}
+\end{frame}
+
+\begin{frame}{perf}
+  \begin{itemize}
+  \item {\em instrument CPU performance counters, tracepoints, kprobes, and uprobes}
+  \item Directly included in the Linux kernel source code: \kfile{tools/perf}
+  \item Began as a tool for using the performance counters in Linux,
+    and has had various enhancements to add tracing capabilities
+  \item Supports a list of measurable events: hardware events (cycle
+    count, L1 cache hits/miss, page faults), software events
+    (tracepoints)
+  \item \url{https://perf.wiki.kernel.org}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{perf examples}
+  \begin{itemize}
+  \item List all currently known events\\
+    \code{perf list}
+  \item List scheduler tracepoints\\
+    \code{perf list 'sched:*'}
+  \item CPU counter statistics for the specified command\\
+    \code{perf stat <command>}
+  \item CPU counter statistics for the entire system, for 5 seconds\\
+    \code{perf stat -a sleep 5}
+  \item Profiling: sample on-CPU functions for the specified command, at 99 Hertz\\
+    \code{perf record -F 99 <command>}
+  \item Tracing: trace all context-switches via sched tracepoint, until Ctrl-C\\
+    \code{perf record -e sched:sched_switch -a}
+  \item Many more at \url{https://www.brendangregg.com/perf.html}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{perf GUI: hotspot}
+  \begin{columns}
+    \column{0.4\textwidth}
+    \begin{itemize}
+    \item Hotspot - the Linux perf GUI for performance analysis
+    \item The main feature of hotspot is visualizing a \code{perf.data} file graphically
+    \item \href{https://github.com/KDAB/hotspot}{github.com/KDAB/hotspot}
+    \end{itemize}
+    \column{0.6\textwidth}
+    \includegraphics[width=\textwidth]{slides/sysdev-application-development/hotspot.png}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{gprof}
+  \begin{itemize}
+  \item Application-level profiler
+  \item Part of {\em binutils}
+  \item Requires passing gcc \code{-pg} option at build/link time
+  \item Run your program normally, it automatically generates a
+    \code{gmon.out} file when exiting
+  \item Use the \code{gprof} tool on \code{gmon.out} to extract
+    profiling data
+  \item \url{http://sourceware.org/binutils/docs/gprof/}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{gprof example}
+  \begin{columns}
+    \column{0.6\textwidth}
+    \begin{block}{}
+      {\tiny
+\begin{verbatim}
+$ ./test-gprof
+$ gprof test-gprof gmon.out
+Flat profile:
+
+Each sample counts as 0.01 seconds.
+  %   cumulative   self              self     total
+ time   seconds   seconds    calls   s/call   s/call  name
+ 35.31      7.46     7.46        1     7.46    13.92  func1
+ 34.03     14.65     7.19        1     7.19     7.19  func2
+ 30.57     21.11     6.46        1     6.46     6.46  new_func1
+  0.09     21.13     0.02                             main
+[...]
+\end{verbatim}
+      }
+    \end{block}
+    \column{0.4\textwidth}
+    \begin{center}
+      \includegraphics[height=0.6\textheight]{slides/sysdev-application-development/gprof2dot.pdf}\\
+      {\small Generated with \href{https://github.com/jrfonseca/gprof2dot}{gprof2dot}}
+    \end{center}
+  \end{columns}
+\end{frame}
+
+\subsection{Memory debugging}
+
 \input{../common/valgrind.tex}
 
-\setuplabframe
-{App. development and debugging}
-{
-  Application development
+\begin{frame}{Debugging ressources}
   \begin{itemize}
-  \item Compile your own application with the ncurses library
+  \item Brendan Gregg
+    \href{https://www.brendangregg.com/systems-performance-2nd-edition-book.html}{Systems
+      performance} book
+  \item Brendan Gregg
+    \href{https://www.brendangregg.com/linuxperf.html}{Linux
+      Performance} page
+  \item {\em Tools and Techniques to Debug an Embedded Linux System},
+    talk from Sergio Prado,
+    \href{https://www.youtube.com/watch?v=dgPkZnGuIMg}{video},
+    \href{https://elinux.org/images/c/cf/Slides-debugging.pdf}{slides}
+  \item {\em Tracing with Ftrace: Critical Tooling for Linux
+      Development}, talk from Steven Rostedt,
+    \href{https://www.youtube.com/watch?v=mlxqpNvfvEQ}{video}
+  \item {\em Tutorial: Debugging Embedded Devices using GDB}, tutorial
+    from Chris Simmonds,
+    \href{https://www.youtube.com/watch?v=JGhAgd2a_Ck}{video}
   \end{itemize}
-  Remote debugging
+\end{frame}
+
+\setuplabframe
+{Application development and debugging}
+{
   \begin{itemize}
-  \item Set up remote debugging tools on the target:\\
-        \code{strace}, \code{ltrace} and \code{gdbserver}.
-  \item Debug a simple application running on the target using remote
-    debugging
+  \item Creating an application that uses an I2C-connected joystick to
+    control an audio player.
+  \item Setting up an IDE to develop and remotely debug an
+    application.
+  \item Using {\em strace}, {\em ltrace}, {\em gdbserver} and {\em
+      perf} to debug/investigate buggy applications on the embedded
+    board.
   \end{itemize}
 }
 

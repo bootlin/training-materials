@@ -27,25 +27,32 @@
   \end{center}
 \end{frame}
 
-\begin{frame}
-  \frametitle{Machines in build procedures}
+\begin{frame}{Architecture tuple and toolchain prefix}
   \begin{itemize}
-  \item Three machines must be distinguished when discussing toolchain creation
+  \item Many Unix/Linux build mechanisms rely on {\em architecture
+      tuple} names to identify machines.
+  \item Examples: \code{arm-linux-gnueabihf},
+    \code{mips64el-linux-gnu}, \code{arm-vendor-none-eabihf}
+  \item These tuples are 3 or 4 parts:
+    \begin{enumerate}
+    \item The architecture name: \code{arm}, \code{riscv},
+      \code{mips64el}, etc.
+    \item Optionally, a vendor name, which is a free-form string
+    \item An operating system name, or \code{none} when not targeting
+      an operating system
+    \item The ABI/C library (see later)
+    \end{enumerate}
+  \item This tuple is used to:
     \begin{itemize}
-    \item The {\bf build} machine, where the toolchain is built.
-    \item The {\bf host} machine, where the toolchain will be executed.
-    \item The {\bf target} machine, where the binaries created by the
-      toolchain are executed.
+    \item configure/build software for a given platform
+    \item as a prefix of cross-compilation tools, to differentiate
+      them from the native toolchain
+      \begin{itemize}
+      \item \code{gcc} $\rightarrow$ native compiler
+      \item \code{arm-linux-gnueabihf-gcc} $\rightarrow$ cross-compiler
+      \end{itemize}
     \end{itemize}
-  \item Four common build types are possible for toolchains
   \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Different toolchain build procedures}
-  \begin{center}
-    \includegraphics[height=0.8\textheight]{slides/sysdev-toolchains-definition/toolchain-build-types.pdf}
-  \end{center}
 \end{frame}
 
 \begin{frame}
@@ -73,9 +80,6 @@
       for debugging (reducing their size).
     \end{itemize}
   \item GNU Binutils: \url{https://www.gnu.org/software/binutils/}, GPL license
-  \item The LLVM project now provides alternatives to GNU Binutils:
-        \code{llvm-strip}, \code{llvm-readelf}, \code{lld}...
-        (\url{https://www.llvm.org/docs/CommandGuide/})
   \end{itemize}
 \end{frame}
 
@@ -132,9 +136,8 @@ struct stat {
 
 \begin{frame}[fragile]
   \frametitle{Kernel headers (3)}
-  The kernel to user space ABI is {\bf backward compatible}
+  The kernel to user space interface {\bf backward compatible}
   \begin{itemize}
-  \item ABI = {\em Application Binary Interface} - It's about binary compatibility
   \item Kernel developers are doing their best to {\bf never}
         break existing programs when the kernel is upgraded.
         Otherwise, users would stick to older kernels, which
@@ -163,10 +166,6 @@ struct stat {
       architectures, including x86, ARM, RISC-V, and many others.
     \item Available under the GPL license, libraries under the GPL with
       linking exception.
-    \item Alternative: Clang / LLVM compiler (\url{https://clang.llvm.org/})
-      getting increasingly popular and able to compile most programs
-      (license: MIT/BSD type). It can offer better optimizations and
-      make errors easier to interpret.
     \end{itemize}
     \column{0.2\textwidth}
     \includegraphics[width=0.7\textwidth]{slides/sysdev-toolchains-definition/gcc.png}
@@ -196,4 +195,170 @@ struct stat {
     {\tiny Source: Wikipedia (\url{https://bit.ly/2zrGve2})}
   \end{columns}
   Comparing libcs by feature: \url{https://www.etalabs.net/compare_libcs.html}
+\end{frame}
+
+\begin{frame}
+  \frametitle{glibc}
+  \begin{columns}
+    \column{0.7\textwidth}
+    \begin{itemize}
+    \item License: LGPL
+    \item C library from the GNU project
+    \item Designed for performance, standards compliance and portability
+    \item Found on all GNU / Linux host systems
+    \item Of course, actively maintained
+    \item By default, quite big for small embedded systems.
+      On armv7hf, version 2.31: \code{libc}: 1.5 MB, \code{libm}: 432
+      KB, source: \url{https://toolchains.bootlin.com}
+    \item But some features not needed in embedded systems can be
+          configured out (merged from the old {\em eglibc} project).
+    \item \url{https://www.gnu.org/software/libc/}
+    \end{itemize}
+    \vfill
+    \column{0.3\textwidth}
+    \minipage[c][0.8\textheight][s]{\columnwidth}
+    \includegraphics[width=\textwidth]{slides/sysdev-toolchains-definition/heckert_gnu_white.pdf}
+    \vfill
+    \tiny \href{https://en.wikipedia.org/wiki/File:Heckert_GNU_white.svg}{Image source}
+    \endminipage
+  \end{columns}
+\end{frame}
+
+\begin{frame}
+  \frametitle{uClibc-ng}
+  \begin{itemize}
+  \item \url{https://uclibc-ng.org/}
+  \item A continuation of the old uClibc project, license: LGPL
+  \item Lightweight C library for small embedded systems
+    \begin{itemize}
+    \item High configurability: many features can be enabled or
+      disabled through a menuconfig interface.
+    \item Supports most embedded architectures, including MMU-less
+          ones (ARM Cortex-M, Blackfin, etc.). The only library
+          supporting ARM noMMU.
+    \item No guaranteed binary compatibility. May need to
+      recompile applications when the library configuration changes.
+    \item Some features may be implemented later than on glibc (real-time,
+          floating-point operations...)
+    \item Focus on size (RAM and storage) rather than performance
+    \item Size on armv7hf, version 1.0.34:
+      \code{libc}: 712 KB, source: \url{https://toolchains.bootlin.com}
+    \end{itemize}
+    \item Actively supported, but Yocto Project stopped supporting it.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{musl C library}
+  \begin{columns}
+    \column{0.85\textwidth}
+      \url{https://www.musl-libc.org/}
+      \begin{itemize}
+      \item A lightweight, fast and simple library for embedded systems
+      \item Created while uClibc's development was stalled
+      \item In particular, great at making small static executables,
+	    which can run anywhere, even on a system built
+            from another C library.
+      \item More permissive license (MIT), making it easier to release
+            static executables. We will talk about the requirements
+            of the LGPL license (glibc, uClibc) later.
+      \item Supported by build systems such as Buildroot and Yocto
+        Project.
+      \item Used by the Alpine Linux lightweight distribution
+        (\url{https://www.alpinelinux.org/})
+      \item Size on armv7hf, version 1.2.0:
+        \code{libc}: 748 KB, source: \url{https://toolchains.bootlin.com}
+      \end{itemize}
+    \column{0.15\textwidth}
+    \includegraphics[width=\textwidth]{slides/sysdev-toolchains-definition/musl.png}
+  \end{columns}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Other smaller C libraries}
+  \begin{itemize}
+  \item Several other smaller C libraries exist, but they do not
+    implement the full POSIX interface required by most Linux
+    applications
+  \item They can run only relatively simple programs, typically to
+    make very small static executables and run in very small root
+    filesystems.
+  \item Therefore not commonly used in most embedded Linux systems
+  \item Choices:
+    \begin{itemize}
+    \item Newlib, \url{https://sourceware.org/newlib/}, maintained by
+      Red Hat, used mostly in Cygwin, in bare metal and in small POSIX
+      RTOS.
+    \item Klibc, \url{https://en.wikipedia.org/wiki/Klibc}, from the
+      kernel community, designed to implement small executables for
+      use in an {\em initramfs} at boot time.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Advise for choosing the C library}
+  \begin{itemize}
+  \item Advice to start developing and debugging your applications
+    with {\em glibc}, which is the most standard solution
+  \item If you have size constraints, try to compile your app and then
+    the entire filesystem with {\em uClibc} or {\em musl}
+    \begin{itemize}
+    \item The size advantage of {\em uClibc} or {\em musl}, which used
+      to be a significant argument, is less relevant with today's
+      storage capacities
+    \end{itemize}
+  \item If you run into trouble, it could be because of missing
+    features in the C library.
+  \item In case you wish to make static executables, {\em musl} will
+    be an easier choice in terms of licensing constraints.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Linux vs. bare-metal toolchain}
+  \begin{itemize}
+  \item A {\bf Linux toolchain}
+    \begin{itemize}
+    \item is a toolchain that includes a Linux-ready C library, which
+      uses the Linux system calls to implement system services
+    \item can be used to build Linux user-space applications, but also
+      bare-metal code (firmware, bootloader, Linux kernel)
+    \item is identified by the \code{linux} OS identifier in the
+      toolchain tuple: \code{arm-linux},
+      \code{arm-none-linux-gnueabihf}
+    \end{itemize}
+  \item A {\bf bare metal toolchain}
+    \begin{itemize}
+    \item is a toolchain that does not include a C library, or a very
+      minimal C library that isn't tied to a particular operating
+      system
+    \item can be used to build only bare-metal code (firmware,
+      bootloader, Linux kernel)
+    \item is identified by the \code{none} OS identifier in the
+      toolchain tuple: \code{arm-none-eabi}, \code{arm-none-none-eabi}
+      (vendor is \code{none}, OS is \code{none})
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{An alternate compiler suite: LLVM}
+  \begin{itemize}
+  \item Most Embedded Linux projects use toolchains based on GNU
+    project: GCC compiler, binutils, GDB debugger
+  \item The LLVM project has been developing an alternative compiler
+    suite:
+    \begin{itemize}
+    \item Clang, C/C++ compiler, \url{https://clang.llvm.org/}
+    \item LLDB, debugger, \url{https://lldb.llvm.org/}
+    \item LLD, linker, \url{https://lld.llvm.org/}
+    \item and more, see \url{https://llvm.org/}
+    \end{itemize}
+  \item While they are used by several high-profile projects, they are
+    not yet in widespread use in most Embedded Linux projects.
+  \item Initially had better code optimization and diagnostics than
+    GCC, but thanks to having competition, GCC has improved
+    significantly in this area.
+  \item Available under MIT/BSD licenses
+  \item \url{https://en.wikipedia.org/wiki/LLVM}
+  \end{itemize}
 \end{frame}

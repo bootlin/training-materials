@@ -25,8 +25,6 @@ LINUX_KERNEL_SLIDES = \
 		kernel-i2c \
 		kernel-pinmuxing \
 		kernel-frameworks \
-		sysdev-device-files \
-		kernel-frameworks2 \
 		kernel-input \
 		kernel-driver-development-memory \
 		kernel-driver-development-io-memory \

@@ -3,18 +3,26 @@
 \begin{frame}
   \frametitle{Building a toolchain manually}
 
-  Building a cross-compiling toolchain by yourself is a difficult and painful
-  task! Can take days or weeks!
   \begin{itemize}
-  \item Lots of details to learn: many components to build, complicated
-    configuration. Need to be familiar with building and configuring tools.
-  \item Many decisions to make about the components (such as C library,
-        gcc and binutils versions, ABI, floating point mechanisms...). Not
-	trivial to find working combinations of such components!
-  \item Need to be familiar with current \code{gcc} issues and patches
-    on your platform
-  \item See the {\em Crosstool-NG} \code{docs/} directory for details
-    on how toolchains are built.
+  \item Building a cross-compiling toolchain manually is a fairly
+    difficult process
+  \item Lots of details to learn: many components to build with
+    complicated configuration
+  \item Typical process is:
+    \begin{itemize}
+    \item Build dependencies of binutils/gcc (GMP, MPFR, ISL, etc.)
+    \item Build {\em binutils}
+    \item Build a first stage {\em GCC}
+    \item Extract kernel headers from the Linux source code
+    \item Build the C library using the first stage GCC
+    \item Build the second stage and final {\em GCC}
+    \end{itemize}
+  \item Many decisions to make about the components: C library, gcc
+    and binutils versions, ABI, floating point mechanisms, etc. Not
+    trivial to find correct combinations of these possibilities
+  \item See the
+    \href{https://crosstool-ng.github.io/docs/toolchain-construction/}{Crosstool-NG
+      documentation} for details on how toolchains are built.
 \end{itemize}
 \end{frame}
 
@@ -26,20 +34,56 @@
     \item Advantage: it is the simplest and most convenient solution
     \item Drawback: you can't fine tune the toolchain to your needs
     \end{itemize}
-  \item Make sure the toolchain you find meets your requirements:
-    CPU, endianness, C library, component versions, ABI, soft float
-    or hard float, etc.
-  \item Possible choices
+  \item Make sure the toolchain you find meets your requirements: CPU,
+    endianness, C library, component versions, version of the kernel
+    headers, ABI, soft float or hard float, etc.
+  \item Some possibilities:
     \begin{itemize}
-    \item Toolchains packaged by your distribution\\
-          For example, Ubuntu toolchains (glibc only):\\
-	  \code{sudo apt install gcc-arm-linux-gnueabihf}
-    \item Bootlin's GNU toolchains (for most architectures):
-          \url{https://toolchains.bootlin.com}
-    \item ARM GNU toolchains released by ARM (previously shipped by Linaro):\\
-          \small \url{https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain/gnu-a/downloads}
+    \item Toolchains packaged by your distribution, for example Ubuntu
+      package
+      \href{https://packages.ubuntu.com/gcc-arm-linux-gnueabihf}{gcc-arm-linux-gnueabihf}
+      or Fedora
+      \href{https://packages.fedoraproject.org/pkgs/cross-gcc/gcc-arm-linux-gnu/}{gcc-arm-linux-gnu}. Often
+      limited to ARM/ARM64 with glibc.
+    \item Bootlin's GNU toolchains, most CPU architectures, with
+      glibc/uClibc/musl, \url{https://toolchains.bootlin.com}
+    \item \href{https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain/downloads}
+      {ARM and ARM64 toolchains released by ARM}
     \end{itemize}
   \end{itemize}
+\end{frame}
+
+\begin{frame}{Example of toolchains from ARM: downloading}
+  \begin{columns}
+    \column{0.6\textwidth}
+    \begin{center}
+      \includegraphics[height=0.8\textheight]{slides/sysdev-toolchains-obtaining/arm-toolchain.png}
+    \end{center}
+    \column{0.4\textwidth}
+    From \href{https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain/downloads}
+    {Arm GNU Toolchains}
+  \end{columns}
+\end{frame}
+
+\begin{frame}[fragile]{Example of toolchains from ARM: using}
+  \begin{block}{}
+    {\tiny
+\begin{verbatim}
+$ wget https://developer.arm.com/-/media/Files/downloads/gnu-a/10.3-2021.07/binrel/[...]
+    [...]gcc-arm-10.3-2021.07-x86_64-arm-none-linux-gnueabihf.tar.xz
+
+$ tar xf gcc-arm-10.3-2021.07-x86_64-arm-none-linux-gnueabihf.tar.xz
+
+$ cd gcc-arm-10.3-2021.07-x86_64-arm-none-linux-gnueabihf/
+
+$ ./bin/arm-none-linux-gnueabihf-gcc -o test test.c
+
+$ file test
+test: ELF 32-bit LSB executable, ARM, EABI5 version 1 (SYSV), dynamically linked, interpreter /lib/ld-linux-armhf.so.3, [...]
+   for GNU/Linux 3.2.0, with debug_info, not stripped
+\end{verbatim}
+    }
+  \end{block}
 \end{frame}
 
 \begin{frame}
@@ -51,6 +95,8 @@
     to mess up with all the details of the build process
   \item But also offers more flexibility in terms of toolchain
     configuration, component version selection, etc.
+  \item Allows to rebuild the toolchain if needed to fix a bug or
+    security issue.
   \item They also usually contain several patches that fix known
     issues with the different components on some architectures
   \item Multiple tools with identical principle: shell scripts or
@@ -73,7 +119,7 @@
       \item \url{https://crosstool-ng.github.io/}
     \end{itemize}
   \column{0.4\textwidth}
-    \includegraphics[width=\textwidth]{slides/sysdev-toolchains-obtaining/ct-ng-menu.png}
+    \includegraphics[width=\textwidth]{slides/sysdev-toolchains-obtaining/crosstool-ng.png}
   \end{columns}
 \end{frame}
 
@@ -104,56 +150,114 @@ a cross-compiling toolchain
 \end{itemize}
 \end{frame}
 
-\begin{frame}[fragile]
-  \frametitle{Crosstool-NG: installation and usage}
+\begin{frame}[fragile]{Crosstool-NG: download}
   \begin{itemize}
-  \item Installation of Crosstool-NG can be done system-wide, or just locally in
-    the source directory. For local installation:
+  \item Getting Crosstool-NG
 \begin{verbatim}
-./configure --enable-local
-make
+$ git clone https://github.com/crosstool-ng/crosstool-ng.git
 \end{verbatim}
-  \item Some sample configurations for various architectures are
-    available in
-    samples, they can be listed using
+  \item Using a well-known stable version
 \begin{verbatim}
-./ct-ng list-samples
+$ cd crosstool-ng
+$ git checkout crosstool-ng-1.25.0
 \end{verbatim}
-  \item To load a sample configuration
+  \item As we're fetching from Git, the \code{configure} script needs
+    to be generated:
 \begin{verbatim}
-./ct-ng <sample-name>
-\end{verbatim}
-  \item To adjust the configuration\\
-\code{./ct-ng menuconfig} or \code{./ct-ng nconfig} (according to your preference)
-  \item To build the toolchain
-\begin{verbatim}
-./ct-ng build
+$ ./bootstrap
 \end{verbatim}
   \end{itemize}
 \end{frame}
 
-\begin{frame}
-  \frametitle{Toolchain contents}
+\begin{frame}[fragile]{Crosstool-NG: installation}
   \begin{itemize}
-  \item The cross compilation tool binaries, in \code{bin/}
+  \item Installation can be done:
     \begin{itemize}
-    \item This directory should be added to your \code{PATH} to ease
+    \item system-wide, for example in \code{/usr/local}, the
+      \code{ct-ng} command is then available globally
+\begin{verbatim}
+$ ./configure
+$ make
+$ make install
+\end{verbatim}
+    \item or just locally in the source directory, the \code{ct-ng}
+      command will be invoked from this directory
+\begin{verbatim}
+$ ./configure --enable-local
+$ make
+\end{verbatim}
+    \end{itemize}
+  \item In our labs, we will use the second method
+  \item Note: the \code{make} invocation doesn't build any toolchain,
+    it builds the \code{ct-ng} executable.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Crosstool-NG: toolchain configuration}
+  \begin{itemize}
+  \item Once installed, the \code{ct-ng} tool allows to configure and
+    build an arbitrary number of toolchains
+  \item Its configuration system is based on {\em kconfig}, like the
+    Linux kernel configuration system
+  \item Configuration of the toolchain to build stored in a
+    \code{.config} file
+  \item Example configurations provided with Crosstool-NG
+    \begin{itemize}
+    \item List: \code{./ct-ng list-samples}
+    \item Load an example: \code{./ct-ng <sample-name>}, replaces \code{.config}
+    \item For example \code{./ct-ng aarch64-unknown-linux-gnu}
+    \item No sample loaded
+      $\rightarrow$ default Crosstool-NG configuration is a bare-metal
+      toolchain for the {\em Alpha} CPU architecture!
+    \end{itemize}
+  \item The configuration can then be refined using either:
+    \begin{itemize}
+    \item \code{./ct-ng menuconfig}
+    \item \code{./ct-ng nconfig}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Crosstool-NG: toolchain configuration}
+  \begin{center}
+    \includegraphics[height=0.7\textheight]{slides/sysdev-toolchains-obtaining/ct-ng-menu.png}
+    \vspace{0.1cm}\\
+    \code{./ct-ng menuconfig}
+  \end{center}
+\end{frame}
+
+\begin{frame}[fragile]{Crosstool-NG: toolchain building}
+  \begin{itemize}
+  \item To build the toolchain
+\begin{verbatim}
+./ct-ng build
+\end{verbatim}
+    This will automatically download all the needed dependencies, and
+    build all toolchain components in the right order, with the
+    specified configuration.
+  \item By default the results go in
+    \code{$HOME/x-tools/<architecture-tuple>}, as defined by the
+    option \code{CT_PREFIX_DIR} in {\em Paths and misc options}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Important toolchain contents}
+  \begin{itemize}
+  \item \code{bin/}: cross compilation tool binaries
+    \begin{itemize}
+    \item This directory can be added to your \code{PATH} to ease
       usage of the toolchain
+    \item Sometimes with symlinks for shorter names
+\begin{verbatim}
+arm-linux-gcc -> arm-cortexa7-linux-uclibcgnueabihf-gcc
+\end{verbatim}
     \end{itemize}
-  \item One or several {\em sysroot}, each containing
+  \item \code{<arch-tuple>/sysroot}: {\em sysroot} directory
     \begin{itemize}
-    \item The C library and related libraries, compiled for the target
-    \item The C library headers and kernel headers
-    \end{itemize}
-  \item There is one {\em sysroot} for each variant: toolchains can be
-    {\em multilib} if they have several copies of the C library for
-    different configurations (for example: ARMv4T, ARMv5T, etc.)
-    \begin{itemize}
-    \item Old CodeSourcery ARM toolchains were multilib, the sysroots in:
-      \code{arm-none-linux-gnueabi/libc/armv4t/}\\
-      \code{arm-none-linux-gnueabi/libc/thumb2/}\\
-    \item Crosstool-NG toolchains can be multilib too
-      (\code{CT_MULTILIB} configuration parameter)
+    \item \code{<arch-tuple>/sysroot/lib}: C library, GCC runtime, C++
+      standard library compiled for the target
+    \item \code{<arch-tuple>/sysroot/usr/include}: C library headers
+      and kernel headers
     \end{itemize}
   \end{itemize}
 \end{frame}

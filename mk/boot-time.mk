@@ -12,7 +12,7 @@ BOOT_TIME_SLIDES = \
 		build-system-bootloader-kernel-lab \
 		boot-time-measuring \
 		boot-time-toolchain \
-		c-libraries \
+		boot-time-c-libraries \
 		boot-time-toolchain2 \
 		boot-time-application \
 		boot-time-init-scripts \

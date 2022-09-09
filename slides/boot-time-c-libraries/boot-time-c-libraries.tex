@@ -1,0 +1,150 @@
+\begin{frame}
+  \frametitle{glibc}
+  \begin{columns}
+    \column{0.7\textwidth}
+    \begin{itemize}
+    \item License: LGPL
+    \item C library from the GNU project
+    \item Designed for performance, standards compliance and portability
+    \item Found on all GNU / Linux host systems
+    \item Of course, actively maintained
+    \item By default, quite big for small embedded systems.
+      On armv7hf, version 2.31: \code{libc}: 1.5 MB, \code{libm}: 432
+      KB, source: \url{https://toolchains.bootlin.com}
+    \item But some features not needed in embedded systems can be
+          configured out (merged from the old {\em eglibc} project).
+    \item \url{https://www.gnu.org/software/libc/}
+    \end{itemize}
+    \vfill
+    \column{0.3\textwidth}
+    \minipage[c][0.8\textheight][s]{\columnwidth}
+    \includegraphics[width=\textwidth]{slides/boot-time-c-libraries/heckert_gnu_white.pdf}
+    \vfill
+    \tiny Image: \url{https://bit.ly/2EzHl6m}
+    \endminipage
+  \end{columns}
+\end{frame}
+
+\begin{frame}
+  \frametitle{uClibc-ng}
+  \begin{itemize}
+  \item \url{https://uclibc-ng.org/}
+  \item A continuation of the old uClibc project, license: LGPL
+  \item Lightweight C library for small embedded systems
+    \begin{itemize}
+    \item High configurability: many features can be enabled or
+      disabled through a menuconfig interface.
+    \item Supports most embedded architectures, including MMU-less
+          ones (ARM Cortex-M, Blackfin, etc.). The only library
+          supporting ARM noMMU.
+    \item No guaranteed binary compatibility. May need to
+      recompile applications when the library configuration changes.
+    \item Some features may be implemented later than on glibc (real-time,
+          floating-point operations...)
+    \item Focus on size (RAM and storage) rather than performance
+    \item Size on armv7hf, version 1.0.34:
+      \code{libc}: 712 KB, source: \url{https://toolchains.bootlin.com}
+    \end{itemize}
+    \item Actively supported, but Yocto Project stopped supporting it.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{musl C library}
+  \begin{columns}
+    \column{0.85\textwidth}
+      \url{https://www.musl-libc.org/}
+      \begin{itemize}
+      \item A lightweight, fast and simple library for embedded systems
+      \item Created while uClibc's development was stalled
+      \item In particular, great at making small static executables,
+	    which can run anywhere, even on a system built
+            from another C library.
+      \item More permissive license (MIT), making it easier to release
+            static executables. We will talk about the requirements
+            of the LGPL license (glibc, uClibc) later.
+      \item Supported by build systems such as Buildroot and Yocto
+        Project.
+      \item Used by the Alpine Linux lightweight distribution
+        (\url{https://www.alpinelinux.org/})
+      \item Size on armv7hf, version 1.2.0:
+        \code{libc}: 748 KB, source: \url{https://toolchains.bootlin.com}
+      \end{itemize}
+    \column{0.15\textwidth}
+    \includegraphics[width=\textwidth]{slides/boot-time-c-libraries/musl.png}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{glibc vs uclibc-ng vs musl - small static executables}
+  Let's compile and strip a \code{hello.c} program {\bf statically} and
+compare the size
+  \begin{itemize}
+    \item With musl 1.2.0:\\
+          {\bf 9,084} bytes
+    \item With uclibc-ng 1.0.34 :\\
+          {\bf 21,916} bytes.
+    \item With glibc 2.31:\\
+          {\bf 431,140} bytes
+  \end{itemize}
+  Tests run with \code{gcc 10.0.2} toolchains for \code{armv7-eabihf}\\
+  (from \url{https://toolchains.bootlin.com})
+\end{frame}
+
+\begin{frame}{glibc vs uclibc vs musl - more realistic example}
+  Let's compile and strip BusyBox 1.32.1 {\bf statically}\\
+  (with the \code{defconfig} configuration) and compare the size
+  \begin{itemize}
+    \item With musl 1.2.0:\\
+          {\bf 1,176,744} bytes
+    \item With uclibc-ng 1.0.34 :\\
+          {\bf 1,251,080} bytes.\\
+    \item With glibc 2.31:\\
+          {\bf 1,852,912} bytes
+  \end{itemize}
+  Notes:
+  \begin{itemize}
+    \item Tests run with \code{gcc 10.0.2} toolchains for \code{armv7-eabihf}
+    \item BusyBox is automatically compiled with \code{-Os} and stripped.
+    \item Compiling with shared libraries will mostly eliminate size differences
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Other smaller C libraries}
+  \begin{itemize}
+  \item Several other smaller C libraries have been developed, but
+    none of them have the goal of allowing the compilation of large
+    existing applications
+  \item They can run only relatively simple programs,
+	typically to make very small static executables and run
+	in very small root filesystems.
+  \item Choices:
+    \begin{itemize}
+    \item Newlib, \url{https://sourceware.org/newlib/},
+	  maintained by Red Hat, used mostly in Cygwin, in bare metal
+          and in small POSIX RTOS.
+    \item Klibc, \url{https://en.wikipedia.org/wiki/Klibc},
+          from the kernel community, designed to implement small executables
+          for use in an {\em initramfs} at boot time.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Advise for choosing the C library}
+  \begin{itemize}
+  \item Advice to start developing and debugging your applications with
+        {\em glibc}, which is the most standard solution, and is best
+        supported by debugging tools ({\em ltrace} not supported by {\em
+        musl} in Buildroot, for example).
+  \item Then, when everything works, if you have size constraints, try to compile
+        your app and then the entire filesystem with {\em uClibc} or {\em musl}.
+  \item If you run into trouble, it could be because of missing features
+        in the C library.
+  \item In case you wish to make static executables, {\em musl} will be
+        an easier choice in terms of licensing constraints.
+	The binaries will be smaller too.
+        Note that static executables built with a given C library
+        can be used in a system with a different C library.
+  \end{itemize}
+\end{frame}

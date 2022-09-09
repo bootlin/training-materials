@@ -15,121 +15,61 @@
   \item Raw flash devices:
     \begin{itemize}
     \item Allow for random data access too
-    \item Require special care before writing on the media (erasing
-      the region you are about to write on)
-    \item Erase, write and read operations might not use the same block
-      size
-    \item Reliability depends on the flash technology
+    \item Require erasing before writing on the media
+    \item Read and write block size (for example 4 KiB) don't use
+          the same block size as erasing (for example 128 KiB).
+    \item Multiple flash technologies: NOR flash, NAND
+          flash (Single Level Cell - SLC: 1 bit per cell, MLC: multiple bits per cell).
     \end{itemize}
   \end{itemize}
 \end{frame}
 
-\begin{frame}
-  \frametitle{NAND flash chips: how they work?}
-  \begin{itemize}
-  \item Encode bits with voltage levels
-    \begin{itemize}
-      \item SLC: {\em Single Level Cell} - 1 bit per memory cell
-      \item MLC: {\em Multi Level Cell} - Multiple bits per cell
-    \end{itemize}
-  \item Start with all bits set to 1
-  \item Writing implies changing some bits from 1 to 0
-        (assuming 1 bit per cell)
-  \item Restoring bits to 1 is done via the ERASE operation
-  \item Writing and erasing are not done on a per bit or per byte
-    basis
-  \item Organization
-    \begin{itemize}
-    \item Page: minimum unit for PROGRAM (write) operation. Example size: 4 K.
-    \item Block: minimum unit for ERASE operation. Example size: 128 K.
-    \end{itemize}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}{NAND flash storage: organization}
-  \begin{center}
-    \includegraphics[width=\textwidth]{slides/sysdev-flash-filesystems/nand-organization.pdf}
-  \end{center}
-\end{frame}
-
-\begin{frame}
+\begin{frame}[fragile]
   \frametitle{NAND flash storage: constraints}
+  \begin{columns}
+  \small
+  \column{0.7\textwidth}
+  \small
   \begin{itemize}
   \item Reliability
     \begin{itemize}
-    \item Far less reliable than NOR flash
-    \item Reliability depends on the NAND flash technology (SLC, MLC)
-    \item Require mechanisms to recover from bit flips: ECC (Error Correcting Code)
-    \item ECC information stored in the OOB (Out-of-band area)
+    \item Reliability depends on flash technology (SLC, MLC)
+    \item Require mechanisms to recover from bit flips: ECC (Error
+          Correcting Code), stored in the OOB (Out-Of-Band area)
     \end{itemize}
   \item Lifetime
     \begin{itemize}
-    \item Short lifetime compared to other storage media
-    \item Lifetime depends on the NAND flash technology (SLC, MLC):
-      between 1,000,000 and 1,000 erase cycles per block
-    \item Wear leveling mechanisms are required to erase blocks evenly
+    \item Relatively short lifetime: between 1,000,000 (SLC) and 1,000
+          (MLC) erase cycles per block
+    \item Wear leveling required to erase blocks evenly
     \item Bad block detection/handling required too
     \end{itemize}
-  \item Despite the number of constraints brought by NAND they are
-  widely used in embedded systems for several reasons:
-    \begin{itemize}
-    \item Cheaper than other flash technologies
-    \item Provide high capacity storage
-    \item Provide good performance (both in read and write access)
-    \end{itemize}
+  \item Widely used anyway in embedded systems for several reasons:
+        low cost, high capacity, good read and write performance.
   \end{itemize}
+  \column{0.3\textwidth}
+  \includegraphics[width=\textwidth]{slides/sysdev-flash-filesystems/nand-organization.pdf}
+  \end{columns}
 \end{frame}
 
 \begin{frame}
-  \frametitle{NAND flash: ECC}
-  \begin{itemize}
-  \item ECC partly addresses the reliability problem on NAND flash
-  \item Operates on chunks of usually 512 or 1024 bytes
-  \item ECC data are stored in the OOB area
-  \item Three algorithms:
-    \begin{itemize}
-    \item Hamming: can fixup a single bit per chunk
-    \item Reed-Solomon: can fixup several bits per chunk
-    \item BCH: can fixup several bits per chunk
-    \end{itemize}
-  \item BCH and Reed-Solomon strength depends on the size allocated
-    for ECC data, which in turn depends on the OOB size
-  \item NAND manufacturers specify the required ECC strength in their
-    datasheets: ignoring these requirements might compromise data
-    integrity
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{The MTD subsystem (1)}
+  \frametitle{The MTD subsystem}
+  \begin{columns}
+  \column{0.5\textwidth}
   \begin{itemize}
   \item MTD stands for {\em Memory Technology Devices}
   \item Generic subsystem in Linux dealing with all types of storage media that
-    are not fitting in the block subsystem
+        are not fitting in the block subsystem
   \item Supported media types: RAM, ROM, NOR flash, NAND flash,
-    Dataflash
+        Dataflash...
   \item Independent of the communication interface (drivers available
-    for parallel, SPI, direct memory mapping, ...)
+        for parallel, SPI, direct memory mapping, ...)
   \item Abstract storage media characteristics and provide a simple
-    API to access MTD devices
-  \item MTD device characteristics exposed to users:
-    \begin{itemize}
-    \item \code{erasesize}: minimum erase size unit
-    \item \code{writesize}: minimum write size unit
-    \item \code{oobsize}: extra size to store metadata or ECC data
-    \item \code{size}: device size
-    \item \code{flags}: information about device type and capabilities
-    \end{itemize}
-  \item Various kinds of MTD "users" in the kernel: file-systems, block
-    device emulation layers, user space interfaces...
+        API to access MTD devices
   \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{The MTD subsystem (2)}
-  \begin{center}
-    \includegraphics[height=0.8\textheight]{slides/sysdev-flash-filesystems/mtd-architecture.pdf}
-  \end{center}
+  \column{0.5\textwidth}
+    \includegraphics[width=\textwidth]{slides/sysdev-flash-filesystems/mtd-architecture.pdf}
+  \end{columns}
 \end{frame}
 
 \begin{frame}
@@ -145,8 +85,7 @@
     table, the partitioning of MTD devices is described externally
     (don't want to put it in a flash sector which could become bad)
     \begin{itemize}
-    \item Specified in the board Device Tree
-    \item Hard-coded into the kernel code (if no Device Tree)
+    \item Specified in the board Device Tree (default partitions, not always relevant)
     \item Specified through the kernel command line
     \end{itemize}
   \item Each partition becomes a separate MTD device
@@ -161,327 +100,48 @@
   \end{itemize}
 \end{frame}
 
-
 \begin{frame}[fragile]
-  \frametitle{Linux: definition of MTD partitions}
-  \footnotesize
-  The Device Tree is the standard place to define {\em default} MTD partitions
-  and MTD device properties (such as ECC) for platforms with Device Tree support.
-\begin{minted}[fontsize=\scriptsize]{perl}
-        nand@0,0 {
-                linux,mtd-name= "micron,mt29c4g96maz";
-                [...]
-                ti,nand-ecc-opt = "bch8"
-                [...]
-                partition@0 {
-                        label = "SPL";
-                        reg = <0 0x80000>; /* 512KiB */
-                };
-                partition@80000 {
-                        label = "U-Boot";
-                        reg = <0x80000 0x1C0000>; /* 1792KiB */
-                };
-                partition@1c0000 {
-                        label = "Environment";
-                        reg = <0x240000 0x40000>; /* 256KiB */
-                };
-                [...]
-\end{minted}
-  Example from \kfile{arch/arm/boot/dts/omap3-overo-base.dtsi}
-\end{frame}
-
-\begin{frame}
-  \frametitle{U-Boot: defining MTD partitions (1)}
+  \frametitle{Defining MTD partitions}
+  \scriptsize
   \begin{itemize}
-  \item U-Boot allows to define MTD partitions on flash devices, using
-        the same syntax as Linux for declaring them.
-  \item Sharing definitions allows to eliminate the risk
-        of mismatches between Linux and U-Boot.
-  \item Named partitions are also easier to use, and much less error prone than using offsets.
-  \item Use flash specific commands (detailed soon),
-    and pass partition names instead of numerical offsets
-  \item Example: \code{nand erase.part <partname>}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}[fragile]
-  \frametitle{U-Boot: defining MTD partitions (2)}
-  \begin{itemize}
-  \item Example:
-  {\scriptsize
+  \item MTD partitions must start and end at erase block boundaries
+  \item MTD partitions are defined through the kernel command line. Example:\\
+        \code{mtdparts=omap2-nand.0:512k(XLoader)ro,1536k(UBoot)ro,512k(Env),4m(Kernel),-(Root)}\\
+	(\code{omap2-nand.0} is the NAND device name for Linux, check the boot log)
+  \item U-Boot understands the Linux syntax:
   \begin{verbatim}
-# Association between U-Boot name and Linux name for the flash device
+# Association between flash device U-Boot name (nand info) and Linux name
 setenv mtdids nand0=omap2-nand.0
 # Partition definitions
-setenv mtdparts mtdparts=omap2-nand.0:512k(XLoader)ro,1536k(UBoot)ro,512k(Env),4m(Kernel),-(Root)
+setenv mtdparts mtdparts=omap2-nand.0:512k(XLoader)ro,1536k(UBoot)ro...
   \end{verbatim}
-  }
-  \item This defines 5 partitions in the \code{omap2-nand.0} device:
-    \begin{itemize}
-    \item \code{1st stage bootloader} (512 KiB, read-only)
-    \item \code{U-Boot} (1536 KiB, read-only)
-    \item \code{U-Boot environment} (512 KiB)
-    \item \code{Kernel} (4 MiB)
-    \item \code{Root filesystem} (Remaining space)
-    \end{itemize}
   \end{itemize}
+  \includegraphics[height=0.25\textheight]{slides/sysdev-flash-filesystems/kernel-mtd-log.pdf}
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{U-Boot: defining MTD partitions (3)}
-  \begin{columns}
-  \column{0.5\textwidth}
-    \begin{itemize}
-    \item Partition sizes must be multiple of the erase block size.
-      You can use sizes in hexadecimal too.
-    \item \code{ro} lists the partition as read only
-    \item \code{-} is used to use all the remaining space.
-    \item Remember the below sizes:
-    \begin{itemize}
-      \item \code{0x100} = 256
-      \item \code{0x1000} = 4 KiB
-      \item \code{0x10000} = 64 KiB
-      \item \code{0x100000} = 1 MiB
-      \item \code{0x1000000} = 16 MiB
-    \end{itemize}
-    \end{itemize}
-  \column{0.5\textwidth}
-    Tip: use the \code{python} shell for hexadecimal/decimal/binary conversion:
-    \begin{block}{}
-    \begin{verbatim}
->>> hex(4096)
-'0x1000'
->>> 0x10000
-65536
->>> bin(0xbeef)
-'0b1011111011101111'
-    \end{verbatim}
-    \end{block}
-  \end{columns}
-\end{frame}
-
-
-\begin{frame}[fragile]
-  \frametitle{U-Boot: defining MTD partitions (4)}
-  \code{mtdids} associates a U-Boot flash device name
-  to a Linux flash device name:\\
-  \code{setenv mtdids <devid>=<mtdid>[,<devid>=<mtdid>]}\\
-  \vspace{0.5cm}
-  That's required because the Linux name is used in partition definitions.
+  \frametitle{Commands to manage NAND devices}
   \begin{itemize}
-  \item \code{devid}: {\bf U-Boot} device identifier (from \code{nand info})
-  \item \code{mtdid}: {\bf Linux} mtd identifier. Displayed
-    when booting the Linux kernel:
-    \includegraphics[width=0.85\textwidth]{slides/sysdev-flash-filesystems/kernel-mtd-log.pdf}\\
-  \end{itemize}
-\end{frame}
-
-\begin{frame}[fragile]
-  \frametitle{U-Boot: defining MTD partitions (5)}
-  \code{mtdparts} defines partitions for the different devices\\
-  \begin{itemize}
-    \item \code{setenv mtdparts mtdparts=<mtdid>:<partition>[,partition]}
-    \item \code{partition} format: \code{<size>[@offset](<name>)[ro]}
-  \end{itemize}
-  You can use the \code{mtdparts} command to check that your partitions
-  definitions are understood correctly by U-Boot.
-\end{frame}
-
-\begin{frame}
-  \frametitle{U-Boot: sharing partition definitions with Linux}
-  Here is a recommended way to pass partition definitions from U-Boot to Linux:
-  \begin{itemize}
-  \item Define a \code{bootargs_base} environment variable:\\
-    \code{setenv bootargs_base console=ttyS0 root=....}
-  \item Define the final kernel command line (\code{bootargs})
-    through the \code{bootcmd} environment variable:
-    \code{setenv bootcmd 'setenv bootargs ${bootargs_base} ${mtdparts};
-<rest of bootcmd>'}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}[fragile]
-  \frametitle{U-Boot: managing NAND devices (1)}
-  \begin{block}{}
-  \tiny
-  \begin{verbatim}
-=> help nand
-nand - NAND sub-system
-
-Usage:
-nand info - show available NAND devices
-nand device [dev] - show or set current device
-nand read - addr off|partition size
-nand write - addr off|partition size
-    read/write 'size' bytes starting at offset 'off'
-    to/from memory address 'addr', skipping bad blocks.
-nand read.raw - addr off|partition [count]
-nand write.raw[.noverify] - addr off|partition [count]
-    Use read.raw/write.raw to avoid ECC and access the flash as-is.
-nand write.trimffs - addr off|partition size
-    write 'size' bytes starting at offset 'off' from memory address
-    'addr', skipping bad blocks and dropping any pages at the end
-    of eraseblocks that contain only 0xFF
-nand erase[.spread] [clean] off size - erase 'size' bytes from offset 'off'
-    With '.spread', erase enough for given file size, otherwise,
-    'size' includes skipped bad blocks.
-nand erase.part [clean] partition - erase entire mtd partition'
-nand erase.chip [clean] - erase entire chip'
-nand bad - show bad blocks
-nand dump[.oob] off - dump page
-nand scrub [-y] off size | scrub.part partition | scrub.chip
-    really clean NAND erasing bad blocks (UNSAFE)
-nand markbad off [...] - mark bad block(s) at offset (UNSAFE)
-nand biterr off - make a bit error at offset (UNSAFE)
-  \end{verbatim}
-  \end{block}
-\end{frame}
-
-
-\begin{frame}[fragile]
-  \frametitle{U-Boot: managing NAND devices (2)}
-  \begin{itemize}
-  \item \code{nand info}\\
-    Show available NAND devices and characteristics
-    \begin{block}{}
-    \footnotesize
-    \begin{verbatim}
-Device 0: nand0, sector size 128 KiB
-  Page size       2048 b
-  OOB size          64 b
-  Erase size    131072 b
-  subpagesize     2048 b
-  options     0x00004200
-  bbt options 0x00008000
-    \end{verbatim}
-    \end{block}
-  \item \code{nand device [dev]}\\
-    Select or display the active NAND device
-    \begin{block}{}
-    \footnotesize
-    \begin{verbatim}
-=> nand device 0
-    \end{verbatim}
-    \end{block}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}[fragile]
-  \frametitle{U-Boot: managing NAND devices (3)}
-  \begin{itemize}
-  \item \code{nand read[.option] <addr> <offset|partname> <size>}\\
-    Read data from NAND
-    \begin{block}{}
-    \footnotesize
-    \begin{verbatim}
-=> nand read 0x21000000 0x100000 100
-
-NAND read: device 0 offset 0x100000, size 0x100
- 256 bytes read: OK
-    \end{verbatim}
-    \end{block}
-  \item \code{nand erase <offset> <size>}\\
-    Erase a NAND region
-    \begin{block}{}
-    \footnotesize
-    \begin{verbatim}
-=> nand erase 0x4000000 100000
-
-NAND erase: device 0 offset 0x4000000, size 0x100000
-Erasing at 0x40e0000 -- 100% complete.
-    \end{verbatim}
-    \end{block}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}[fragile]
-  \frametitle{U-Boot: managing NAND devices (4)}
-  \begin{itemize}
-  \item \code{nand erase.part <partname>}\\
-    Erase a NAND partition
-    \begin{block}{}
-    \footnotesize
-    \begin{verbatim}
-=> nand erase.part UBI
-
-NAND erase.part: device 0 offset 0x200000, size 0xfe00000
-Erasing at 0xffe0000 -- 100% complete.
-OK
-    \end{verbatim}
-    \end{block}
-  \item \code{nand write[.option] <addr> <offset|partname> <size>}\\
-    Write data on NAND. Use \code{nand write.trimffs} to avoid writing empty pages
-    (those filled with \code{0xff})
-    \begin{block}{}
-    \footnotesize
-    \begin{verbatim}
-=> nand write 0x21000000 0x4000000 100000
-
-NAND write: device 0 offset 0x4000000, size 0x100000
- 1048576 bytes written: OK
-    \end{verbatim}
-    \end{block}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}[fragile]
-  \frametitle{U-Boot: managing NAND devices (5)}
-  \begin{itemize}
-  \item \code{nand bad}\\
-    Shows bad blocks
-    \begin{block}{}
-    \footnotesize
-    \begin{verbatim}
-=> nand bad
-
-Device 0 bad blocks:
-    \end{verbatim}
-    \end{block}
-  \item More commands for debugging purposes
-  \end{itemize}
-\end{frame}
-
-
-\begin{frame}
-  \frametitle{Linux: MTD devices interface with user space}
-  \begin{itemize}
-  \item MTD devices are visible in \code{/proc/mtd}
-  \item User space only sees MTD partitions, not the flash device
-    under those partitions (unless the kernel is compiled with
-    \kconfig{CONFIG_MTD_PARTITIONED_MASTER})
-  \item The {\bf mtdchar} driver creates a character device for each
-    MTD device/partition of the system
-    \begin{itemize}
-    \item Named \code{/dev/mtdX} and \code{/dev/mtdXro}
-    \item Provide \code{ioctl()} to erase and manage the flash
-    \item Used by the {\em mtd-utils} utilities
-    \end{itemize}
+  \item From U-Boot
+     \begin{itemize}
+     \item \code{help nand} to see all \code{nand} subcommands
+     \item \code{nand info}, \code{nand read}, \code{nand write}, \code{nand erase}...
+     \end{itemize}
+  \item From Linux
+     \begin{itemize}
+     \item {\bf mtdchar} driver: one \code{/dev/mtdX} and \code{/dev/mtdXro}
+           character device per partition.
+     \item Accessed through \code{ioctl()} operations to erase and flash
+	   the storage.
+     \item Used by these utilities: \code{flash_eraseall}, \code{nandwrite}\\
+           Provided by the {\em mtd-utils} package, also available in BusyBox
+     \item There are also host commands in {\em mtd-utils}: \code{mkfs.jffs2}, \code{mkfs.ubifs}, \code{ubinize}...
+     \end{itemize}
   \end{itemize}
 \end{frame}
 
 \begin{frame}
-  \frametitle{Linux: user space flash management tools}
-  \begin{itemize}
-  \item \code{mtd-utils} is a set of utilities to manipulate MTD devices
-    \begin{itemize}
-    \item \code{mtdinfo} to get detailed information about an MTD device
-    \item \code{flash_erase} and \code{flash_eraseall} to partially or
-          completely erase a given MTD device
-    \item \code{nandwrite} to write to NAND flash
-    \item Flash filesystem image creation tools: \code{mkfs.jffs2},
-      \code{mkfs.ubifs}, \code{ubinize}, etc.
-    \end{itemize}
-  \item On your workstation: usually available as the \code{mtd-utils}
-      package in your distribution.
-  \item On your embedded target: most commands now also available
-      in BusyBox.
-  \item See \url{http://www.linux-mtd.infradead.org/}.
-  \end{itemize}
-\end{frame}
-
-
-\begin{frame}
-  \frametitle{Flash wear leveling (1)}
+  \frametitle{Flash wear leveling}
   \begin{itemize}
   \item Wear leveling consists in distributing erases over the whole
     flash device to avoid quickly reaching the maximum number of erase
@@ -497,83 +157,27 @@ Device 0 bad blocks:
 \end{frame}
 
 \begin{frame}
-  \frametitle{Flash wear leveling (2)}
-  Flash users should also take the limited lifetime of flash
-  devices into account by taking additional precautions
-  \begin{itemize}
-  \item Do not use your flash storage as swap area (rare in embedded
-    systems anyway)
-  \item Mount your filesystems as read-only whenever possible.
-  \item Keep volatile files in RAM (tmpfs)
-  \item Don't use the \code{sync} mount option (commits writes
-    immediately). Use the \code{fsync()} system call for per-file
-    synchronization.
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
   \frametitle{Flash file-systems}
   \begin{itemize}
-  \item 'Standard' file systems are meant to work on block devices
+  \item 'Standard' file systems ({\em ext2}, {\em ext4}...) are
+        meant to work on block devices
   \item Specific file systems have been developed to deal flash
     constraints
   \item These file systems are relying on the MTD layer to access
     flash chips
   \item There are several legacy flash filesystems which might be
-    useful for specific uses: JFFS2, YAFFS2.
+    useful for small partitions: JFFS2, YAFFS2.
   \item Nowadays, UBI/UBIFS is the de facto standard for medium to
     large capacity NANDs
   \end{itemize}
 \end{frame}
 
 \begin{frame}
-  \frametitle{Legacy flash filesystems: JFFS2}
+  \frametitle{UBI (1)}
   \begin{columns}
     \column{0.7\textwidth}
-    {\em Journaling Flash File System version 2}
+    {\em UBI: Unsorted Block Images}
     \begin{itemize}
-    \item Supports on the fly compression
-    \item Wear leveling, power failure resistant
-    \item Available in the official Linux kernel
-    \item Boot time depends on the filesystem size: doesn't scale well
-      for large partitions because needs to scan the whole storage at
-      boot time. Need to enable \kconfig{CONFIG_JFFS2_SUMMARY} to
-      address this issue.
-    \item \url{http://www.linux-mtd.infradead.org/doc/jffs2.html}
-    \end{itemize}
-    \column{0.3\textwidth}
-    \includegraphics[height=0.8\textheight]{slides/sysdev-flash-filesystems/jffs2.pdf}
-  \end{columns}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Legacy flash filesystems: YAFFS2}
-  \begin{columns}
-    \column{0.7\textwidth}
-    {\em Yet Another Flash File System version 2}
-    \begin{itemize}
-    \item Mainly supports NAND flash
-    \item No compression
-    \item Wear leveling, power failure resistant
-    \item Fast boot time
-    \item Not part of the official Linux kernel: code only available
-      separately (Dual GPLv2 / Commercial license for non GPL
-      operating systems)
-    \item \url{https://yaffs.net/}
-    \end{itemize}
-    \column{0.3\textwidth}
-    \includegraphics[height=0.8\textheight]{slides/sysdev-flash-filesystems/yaffs2.pdf}
-  \end{columns}
-\end{frame}
-
-
-\begin{frame}
-  \frametitle{UBI / UBIFS}
-  \begin{columns}
-    \column{0.7\textwidth}
-    {\em Unsorted Block Images}
-    \begin{itemize}
-    \item Aimed at replacing JFFS2 by addressing its limitations
     \item Design choices:
       \begin{itemize}
       \item Split the wear leveling and filesystem layers
@@ -581,29 +185,17 @@ Device 0 bad blocks:
       \item Focus on scalability, performance and reliability
       \end{itemize}
     \item Drawback: introduces noticeable space overhead,
-      especially when used on small devices or partitions. JFFS2
-      still makes sense on small MTD partitions.
+          especially when used on small devices or partitions. JFFS2
+          still makes sense on small MTD partitions.
+    \item Implements logical volumes on top of MTD devices
+          (like LVM for block devices)
+    \item Allows wear leveling to operate on the whole storage,
+	  not only on individual partitions.
     \end{itemize}
+    \url{http://www.linux-mtd.infradead.org/doc/ubi.html}
     \column{0.3\textwidth}
     \includegraphics[height=0.8\textheight]{slides/sysdev-flash-filesystems/ubifs.pdf}
   \end{columns}
-\end{frame}
-
-\begin{frame}
-  \frametitle{UBI (1)}
-  Unsorted Block Images
-  \begin{itemize}
-  \item \url{http://www.linux-mtd.infradead.org/doc/ubi.html}
-  \item Volume management system on top of MTD devices (similar to
-    what LVM provides for block devices)
-  \item Allows to create multiple logical volumes and spread writes
-    across all physical blocks
-  \item Takes care of managing the erase blocks and wear
-    leveling. Makes filesystems easier to implement
-  \item Wear leveling can operate on the whole storage,
-    not only on individual partitions (strong advantage)
-  \item Volumes can be dynamically resized.
-  \end{itemize}
 \end{frame}
 
 \begin{frame}
@@ -617,83 +209,54 @@ Device 0 bad blocks:
 \end{frame}
 
 \begin{frame}
-  \frametitle{UBI: internals}
-  \begin{columns}
-    \column{0.5\textwidth}
-    \begin{itemize}
-    \item UBI is storing its metadata in-band
-    \item In each MTD erase block
-    \begin{itemize}
-      \item One page is reserved to count the number of erase cycles
-      \item Another page is reserved to attach the erase block to a
-        UBI volume
-      \item The remaining pages are used to store payload data
-      \end{itemize}
-    \item If the device supports subpage write, the EC and VID headers
-      can be stored on the same page
-    \end{itemize}
-    \column{0.5\textwidth}
-    \includegraphics[scale=0.3]{slides/sysdev-flash-filesystems/ubi-leb.pdf}
-  \end{columns}
-\end{frame}
-
-\begin{frame}
   \frametitle{UBI: good practice}
   \begin{itemize}
-  \item UBI is responsible for distributing erases all over the flash
-    device: the more space you assign to a partition attached to the
-    UBI layer the more efficient the wear leveling will be
-  \item If you need partitioning, use UBI volumes not MTD partitions
+  \item UBI distributes erases all over the flash device: the more space
+    you assign to a partition attached to the UBI layer the more efficient
+    wear leveling will be.
+  \item If you need partitioning, use UBI volumes not MTD partitions.
   \item Some partitions will still have to be MTD partitions: e.g. the
     bootloaders.
   \item U-Boot now even supports storing its environment in a UBI volume!
-  \item If you do need extra MTD partitions, try to group them at the end
-    or the beginning of the flash device (often more reliable areas).
+  \item If you do need extra MTD partitions, try to group them at the
+    beginning of the flash device (often more reliable area).
   \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{UBI layout: bad example}
-  \begin{center}
-    \includegraphics[width=\textwidth]{slides/sysdev-flash-filesystems/ubifs-bad-layout.pdf}
-  \end{center}
-\end{frame}
-
-\begin{frame}
-  \frametitle{UBI layout: good example}
-  \begin{center}
-    \includegraphics[width=\textwidth]{slides/sysdev-flash-filesystems/ubifs-good-layout.pdf}
-  \end{center}
+  \includegraphics[height=0.3\textheight]{slides/sysdev-flash-filesystems/ubifs-bad-layout.pdf}
+  \hfill
+  \includegraphics[height=0.3\textheight]{slides/sysdev-flash-filesystems/ubifs-good-layout.pdf}
 \end{frame}
 
 \begin{frame}
   \frametitle{UBIFS}
-  Unsorted Block Images File System
+  {\em Unsorted Block Images File System}
   \begin{itemize}
   \item \url{http://www.linux-mtd.infradead.org/doc/ubifs.html}
-  \item The filesystem part of the UBI/UBIFS couple
-  \item Works on top of UBI volumes
   \item Journaling file system providing better performance than
-    JFFS2 and addressing its scalability issues
-  \item See this paper for more technical details about UBIFS internals
-    \url{http://www.linux-mtd.infradead.org/doc/ubifs_whitepaper.pdf}
+        its predecessor (JFFS2) and addressing its scalability issues
+  \item UBIFS filesystem images can be created using \code{mkfs.ubifs}
+        from {\em mtd-utils}:\\
+      \code{mkfs.ubifs -m 4096 -e 258048 -c 1000 -r rootfs/ ubifs.img}
+      \begin{itemize}
+      \item \code{-m 4096}: minimal I/O size\\
+                 (see \code{/sys/class/mtd/mtdx/writesize}).
+      \item \code{-e 258048}: {\bf logical} erase block size (smaller than
+                 PEB size, can be found in the kernel log after running
+		 \code{ubiattach})
+      \item \code{-c 1000}; maximum number of erase blocks for the
+        UBI volume the image will be flashed into. A pessimistic
+	number will increase metadata size and degrade performance.
+      \end{itemize}
+  \item This image can then be flashed on a volume\\
+        or included in a UBI image (\code{ubinize} command).
   \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{Linux: UBI host tools}
+  \frametitle{ubinize: create a UBI image}
+  \small
   \begin{itemize}
-  \item \code{ubinize} is the only host tool for the UBI layer
-  \item It creates a UBI image to be flashed on an MTD partition,
-	from a specification of the contents of its volumes:
-  \end{itemize}
-  \input{../slides/sysdev-flash-filesystems/ubinize-configuration.tex}
-\end{frame}
-
-\begin{frame}[fragile]
-  \frametitle{ubinize configuration file}
-  \begin{itemize}
-  \item Each section describes a UBI volume
+  \item \code{ubinize} creates a UBI image to be flashed on an MTD partition,
+	from a specification of the contents of its volumes.
   \item \code{static} volumes are meant to store {\bf read-only} blobs of data,
 	and get the minimum corresponding size. CRC checks are done on
         them.
@@ -701,14 +264,49 @@ Device 0 bad blocks:
 	volume, but in this case \code{dynamic} volumes are best
         for performance (CRC checking also done at UBIFS level).
   \item \code{autoresize}: allows to fill all remaining UBI space
+  \item Example configuration file for \code{ubinize}:
   \end{itemize}
-  \input{../slides/sysdev-flash-filesystems/ubinize-configuration.tex}
+  \begin{columns}
+\column{0.33\textwidth}
+\scriptsize
+\begin{verbatim}
+[kernel-volume]
+mode=ubi
+image=zImage
+vol_id=1
+vol_type=static
+vol_name=kernel
+\end{verbatim}
+\column{0.33\textwidth}
+\scriptsize
+\begin{verbatim}
+[rootfs-volume]
+mode=ubi
+image=rootfs.ubifs
+vol_id=2
+vol_size=2MiB
+vol_type=dynamic
+vol_name=rootfs
+\end{verbatim}
+\column{0.33\textwidth}
+\scriptsize
+\begin{verbatim}
+[data-volume]
+mode=ubi
+image=data.ubifs
+vol_id=3
+vol_size=30MiB
+vol_type=dynamic
+vol_name=data
+vol_flags=autoresize
+\end{verbatim}
+  \end{columns}
 \end{frame}
 
 \begin{frame}
   \frametitle{ubinize command line}
   \begin{itemize}
-  \item \code{ubinize} the following arguments:
+  \item \code{ubinize} takes the following arguments:
     \begin{itemize}
     \item \code{-o <output-file-path>}\\
 	Path to the output image file
@@ -727,32 +325,22 @@ Device 0 bad blocks:
 \end{frame}
 
 \begin{frame}
-  \frametitle{U-Boot: UBI tools (1)}
+  \frametitle{Linux: UBI image creation workflow}
+  \begin{center}
+    \includegraphics[scale=0.3]{slides/sysdev-flash-filesystems/ubi-creation-workflow.pdf}
+  \end{center}
+\end{frame}
+
+\begin{frame}
+  \frametitle{U-Boot: main UBI tools}
   Grouped under the \code{ubi} command
     \begin{itemize}
     \item \code{ubi part <part-name>}\\
 	Attach an MTD partition to the UBI layer. Example:\\
 	\code{ubi part UBI}
-    \item \code{ubi info [layout]}\\
-	Display UBI device information\\
-	(or volume information if the \code{layout} string is passed)
-    \item \code{ubi check <vol-name>}\\
-	Check if a volume exists
     \item \code{ubi readvol <dest-addr> <vol-name> [<size>]}\\
 	Read volume contents. Example:\\
 	\code{ubi readvol 0x21000000 kernel}
-    \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{U-Boot: UBI tools (2)}
-  U-Boot also has commands to modify the UBI volumes:
-    \begin{itemize}
-    \item \code{ubi createvol <vol-name> [<size>] [<type>]}\\
-	Create a new volume. Example:\\
-        \code{ubi createvol initramfs 0x100000 static}
-    \item \code{ubi removevol <vol-name>}\\
-	Remove an existing volume
     \item \code{ubi writevol <src-addr> <vol-name> <size>}\\
         Write to volume. Example:\\
 	\code{tftp 0x21000000 data.ubifs}\\
@@ -761,7 +349,7 @@ Device 0 bad blocks:
 \end{frame}
 
 \begin{frame}
-  \frametitle{U-Boot: UBI tools (3)}
+  \frametitle{U-Boot: main UBI tools (2)}
   U-Boot also has commands to access UBIFS partitions:
     \begin{itemize}
     \item \code{ubifsmount ubi<n>:<volume-name>}\\
@@ -778,105 +366,11 @@ Device 0 bad blocks:
 \end{frame}
 
 \begin{frame}
-  \frametitle{Linux: UBI target tools (1)}
+  \frametitle{Linux: UBI / UBIFS target tools}
   \begin{itemize}
-  \item Tools used on the target to dynamically create and modify
-      UBI elements
-  \item UBI device management:
-    \begin{itemize}
-    \item \code{ubiformat /dev/mtdx}\\
-	Format an MTD partition and preserve Erase Counter information if any.\\
-	Example: \code{ubiformat /dev/mtd1}
-    \item \code{ubiattach -m <MTD-device-id> /dev/ubi_ctrl}\\
-	Attach an MTD partition/device to the UBI layer, and create a
-        UBI device\\
-        Example: \code{ubiattach -m 1 /dev/ubi_ctrl} 
-    \item \code{ubidetach -m <MTD-device-id> /dev/ubi_ctrl}\\
-	Detach an MTD partition/device from the UBI layer, and remove
-        the associated UBI device\\
-        Example: \code{ubidetach -m 1 /dev/ubi_ctrl}
-    \item \code{ubinfo -a}\\
-        Print information about all UBI devices and volumes
-    \end{itemize}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Linux: UBI target tools (2)}
-  UBI volume management:
-    \begin{itemize}
-    \item {\small \code{ubimkvol /dev/ubi<UBI-device-id> -N <name> -s <size>}}\\
-	Create a new volume. Use \code{-m} in place of \code{-s <size>}
-	if you want to assign all the remaining space to this volume.\\
-        Example: \code{ubimkvol /dev/ubi0 -N varlog -s 16MiB}
-    \item {\small \code{ubirmvol /dev/ubi<UBI-device-id> -N <name>}}\\
-	Delete a UBI volume\\
-        Example: \code{ubirmvol /dev/ubi0 -N varlog}
-    \item {\small \code{ubiupdatevol /dev/ubi<UBI-device-id>_<UBI-vol-id> [-s <size>] <img-file>}}\\
-	Update volume contents\\
-        Example: \code{ubiupdatevol /dev/ubi0_1 rootfs.img}
-    \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Linux: UBI target tools (3)}
-  UBI volume management (continued):
-    \begin{itemize}
-    \item {\small \code{ubirsvol /dev/ubi<UBI-device-id> -N <name> -s <size>}}\\
-	Resize a UBI volume\\
-        Example: \code{ubirsvol /dev/ubi0 -N varlog -s 32MiB}
-    \item {\small \code{ubirename /dev/ubi<UBI-device-id> <old-name> <new-name>}}\\
-	Rename a UBI volume\\
-        Example: \code{ubirename /dev/ubi0 varlog var}
-    \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Linux tools: BusyBox UBI limitations}
-  Beware that some implementations of UBI commands in BusyBox are still
-  incomplete. In particular:
-  \begin{itemize}
-    \item \code{ubiformat} and \code{ubinfo} are not implemented yet
-    \item \code{ubirsvol} doesn't support \code{-N <name>}. You have
-      to specify the volume to resize by its id (\code{-n num}):\\
-      \code{ubirsvol /dev/ubi0 -n 4 -s 64 MiB}
-    \item \code{ubidetach} doesn't support \code{-m <MTD-device-id>}. You
-      have to specify the UBI device id by \code{-d <UBI-device-id>}
-    \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Linux: UBIFS host tools}
-  UBIFS filesystems images can be created using \code{mkfs.ubifs}
-    \begin{itemize}
-    \item \code{mkfs.ubifs -m 4096 -e 258048 -c 1000 -r rootfs/ ubifs.img}
-      \begin{itemize}
-      \item \code{-m 4096}, minimal I/O size\\
-                 (see \code{/sys/class/mtd/mtdx/writesize}).
-      \item \code{-e 258048}, {\bf logical} erase block size (smaller than
-                 PEB size, can be found in the kernel log after running
-		 \code{ubiattach})
-      \item \code{-c 1000}, maximum size of the UBI volume the image
-        will be flashed into, in number of logical erase blocks.
-        Do not make this number unnecessary big, otherwise the UBIFS
-        data structures will be bigger than needed and performance
-        will be degraded. Details:
-        {\scriptsize\url{http://linux-mtd.infradead.org/faq/ubifs.html\#L_max_leb_cnt}}
-      \end{itemize}
-    \item Once created
-      \begin{itemize}
-      \item Can be written to a UBI volume from the target either using
-        \code{ubiupdatevol} in Linux, or \code{ubi writevol} in U-Boot.
-      \item Or, can be included in a UBI image (using \code{ubinize}
-        on the host)
-      \end{itemize}
-    \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Linux: UBIFS target tools}
-  \begin{itemize}
-  \item No specific tools are required to create a UBIFS filesystem.
+  \item Target tools exist for creating UBI spaces and manipulating volumes:\\
+         see \url{http://www.linux-mtd.infradead.org/doc/ubi.html\#L_usptools}
+  \item No specific tools are required to create a new UBIFS filesystem.
 	An empty filesystem is created the first time it is mounted.
         The same applies to JFFS2.
   \item Mounting a UBIFS filesystem is done with \code{mount}:\\
@@ -884,13 +378,6 @@ Device 0 bad blocks:
   \item Example:\\
     \code{mount -t ubifs ubi0:data /data}
   \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Linux: UBI image creation workflow}
-  \begin{center}
-    \includegraphics[scale=0.3]{slides/sysdev-flash-filesystems/ubi-creation-workflow.pdf}
-  \end{center}
 \end{frame}
 
 \begin{frame}
@@ -917,85 +404,25 @@ Device 0 bad blocks:
 \end{frame}
 
 \begin{frame}
-  \frametitle{Summary: how to boot on a UBIFS filesystem}
-  In U-Boot:
-  \begin{itemize}
-  \item Define partitions:\\
-     \code{setenv mtdids ...}\\
-     \code{setenv mtdparts ...}\\
-  \item Define the base Linux kernel bootargs, specifying booting
-     on UBIFS, the UBI volume used as root filesystem, and the MTD
-     partition attached to UBI. Example:\\
-     {\footnotesize \code{setenv bootargs_base console=ttyS0 rootfstype=ubifs root=ubi0:rootfs ubi.mtd=UBI}}
-  \item Define the boot command sequence, initializing UBI,
-     loading kernel and DTB images from UBI partitions,
-     and adding \code{mtdparts} to the kernel command
-     line. Example:\\
-     \code{setenv bootcmd 'ubi part UBI; ubi readvol
-0x81000000 kernel; ubi readvol 0x82000000 dtb; setenv bootargs
-${bootargs_base} ${mtdparts}; bootz 0x81000000 - 0x82000000'}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
   \frametitle{Linux: Block emulation layers}
   \begin{itemize}
-  \item Sometimes we need block devices to re-use existing block
-    filesystems, especially read-only ones like SquashFs
+  \item Sometimes needed to use read-only block filesystems such as Squashfs and EROFS
   \item Linux provides two block emulation layers:
     \begin{itemize}
-    \item \code{mtdblock}: block devices emulated on top of MTD devices
-    \item \code{ubiblock}: {\bf read-only} block devices emulated on top of UBI volumes
+    \item \code{mtdblock} (\kconfig{CONFIG_MTD_BLOCK}:
+       block devices emulated on top of MTD devices.
+       \begin{itemize}
+       \item Named \code{/dev/mtdblockX}, one for each partition.
+       \item Originally the \code{mount} wanted a block device to mount JFFS2 and YAFFS2.
+       \item Don't write to \code{mtdblock} devices: bad blocks are not handled!
+       \end{itemize}
+    \item \code{ubiblock} (\kconfig{CONFIG_MTD_UBI_BLOCK}):
+       {\bf read-only} block devices emulated on top of UBI volumes
+       \begin{itemize}
+       \item Used on static (read-only) volumes
+       \item Usually named \code{/dev/ubiblockX_Y}, where X is the UBI device
+             id and Y is the UBI volume id (example: \code{/dev/ubiblock0_3})
+       \end{itemize}
     \end{itemize}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Linux: mtdblock}
-  \begin{itemize}
-  \item The \code{mtdblock} layer creates a block device for each MTD
-    device of the system
-  \item Usually named \code{/dev/mtdblockX}.
-  \item Allows read/write block-level access. However bad blocks are not
-    handled, and no wear leveling is done for writes.
-  \item For historical reasons, JFFS2 and YAFFS2 filesystems require a
-    block device for the \code{mount} command.
-  \item {\bf Do not write on \code{mtdblock} devices}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Linux: ubiblock}
-  \begin{itemize}
-  \item \kconfig{CONFIG_MTD_UBI_BLOCK}
-  \item Implemented by Ezequiel Garcia from Bootlin.
-  \item Preferred over \code{mtdblock} if UBI is available (UBI accounts
-    for data retention and wear leveling issues, while MTD does not)
-  \item The \code{ubiblock} layer creates {\bf read-only} block devices
-    on demand
-  \item The user specifies which static volumes (s)he would like to attach
-    to \code{ubiblock}
-    \begin{itemize}
-    \item Through the kernel command line: by passing
-      \code{ubi.block=<ubi-dev-id>,<volume-name>}\\
-      Example: \code{ubi.block=0,rootfs}\\
-    \item In Linux, using the \code{ubiblock} utility provided by \code{mtd-utils}:
-      \code{ubiblock --create <ubi-volume-dev-file>}
-    \end{itemize}
-   \item Usually named \code{/dev/ubiblockX_Y}, where X is the UBI device
-     id and Y is the UBI volume id (example: \code{/dev/ubiblock0_3})
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Useful reading}
-  \begin{itemize}
-  \item Documentation on the linux-mtd website:\\
-    \url{http://www.linux-mtd.infradead.org/}
-    \begin{itemize}
-	\item You will find answers to your questions there
-    \end{itemize}
-  \item Wikipedia's page about ECC:\\
-    \url{https://en.wikipedia.org/wiki/Error_correction_code}
   \end{itemize}
 \end{frame}

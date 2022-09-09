@@ -1,0 +1,100 @@
+\subsection{TF-A: Trusted Firmware}
+
+\begin{frame}{Concept of FIP}
+  \begin{itemize}
+  \item FIP = {\em Firmware Image Package}
+  \item Concept specific to TF-A
+  \item {\em packaging format used by TF-A to package firmware images
+      in a single binary}
+  \item Typically used to bundle the BL33, i.e. the U-Boot bootloader
+    that will be loaded by TF-A.
+  \item \url{https://trustedfirmware-a.readthedocs.io/en/latest/getting_started/tools-build.html}
+  \item \url{https://wiki.st.com/stm32mpu/wiki/How_to_configure_TF-A_FIP}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Configuring TF-A}
+  \begin{itemize}
+  \item TF-A does not use {\em Kconfig} for configuration
+  \item All the configuration is based on variables passed on the
+    \code{make} command line
+  \item Most variables are documented at:
+    \url{https://trustedfirmware-a.readthedocs.io/en/latest/getting_started/build-options.html}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Configure TF-A: important variables}
+  \begin{itemize}
+  \item \code{CROSS_COMPILE}, cross-compiler prefix
+  \item \code{ARCH}, CPU architecture: \code{aarch32} or \code{aarch64}
+  \item \code{ARM_ARCH_MAJOR}, \code{7} for ARMv7, \code{8} for ARMv8
+  \item \code{PLAT}, SoC family, any directory name in \code{plat}
+    that contains \code{platform.mk}
+  \item \code{AARCH32_SP}, the Secure Payload, specific to
+    ARMv7. Either OP-TEE or the built-in {\em SP-MIN} provided by TF-A
+  \item \code{DTB_FILE_NAME}, path to the Device Tree describing our board
+  \item \code{BL33}, path to the second stage bootloader, usually
+    U-Boot, to include in the FIP image
+  \item Specific to STM32MP1
+    \begin{itemize}
+    \item \code{BL33_CFG}, path to the U-Boot Device Tree
+    \item \code{STM32MP_SDMMC=1}, enable support for SD card/eMMC in TF-A
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Building TF-A for STM32MP1}
+  \begin{block}{}
+    {\tiny
+\begin{verbatim}
+$ make CROSS_COMPILE=arm-linux- \
+        ARM_ARCH_MAJOR=7 \
+        ARCH=aarch32 \
+        PLAT=stm32mp1 \
+        AARCH32_SP=sp_min \
+        DTB_FILE_NAME=stm32mp157a-dk1.dtb \
+        BL33=/path/to/u-boot/u-boot-nodtb.bin \
+        BL33_CFG=/path/to/u-boot/u-boot.dtb \
+        STM32MP_SDMMC=1 \
+        fip all
+\end{verbatim}
+    }
+  \end{block}
+
+  Build results in \code{build/stm32mp1/release}. Important files:
+
+  \begin{itemize}
+  \item \code{tf-a-stm32mp157a-dk1.stm32}, TF-A itself
+  \item \code{fip.bin}, the FIP image, containing U-Boot and other
+    elements
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{FIP image contents}
+  \begin{block}{fiptool info}
+    {\tiny
+\begin{verbatim}
+$ ./tools/fiptool/fiptool info build/stm32mp1/release/fip.bin
+Secure Payload BL32 (Trusted OS): offset=0x100, size=0x8AEC, cmdline="--tos-fw"
+Non-Trusted Firmware BL33: offset=0x8BEC, size=0xECE6C, cmdline="--nt-fw"
+FW_CONFIG: offset=0xF5A58, size=0x226, cmdline="--fw-config"
+HW_CONFIG: offset=0xF5C7E, size=0x16A98, cmdline="--hw-config"
+TOS_FW_CONFIG: offset=0x10C716, size=0x3CF6, cmdline="--tos-fw-config"
+\end{verbatim}
+    }
+  \end{block}
+\end{frame}
+
+\begin{frame}{STM32MP1 layout partition layout}
+  \begin{columns}
+  \column{0.6\textwidth}
+  \begin{center}
+    \includegraphics[width=0.9\textwidth]{slides/sysdev-bootloaders-tf-a/stm32mp1-tfa.pdf}
+  \end{center}
+  \column{0.4\textwidth}
+  \small Reminder: boot sequence with TF-A on STM32MP1
+  \begin{center}
+    \includegraphics[width=\textwidth]{common/sequence-stm32mp1.pdf}
+  \end{center}
+  \end{columns}
+\end{frame}
