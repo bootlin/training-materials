@@ -17,7 +17,7 @@ LINUX_KERNEL_SLIDES = \
 		sysdev-kernel-building \
 		sysdev-kernel-booting \
 		kernel-board-setup-kernel-compiling-and-booting-labs \
-		sysdev-linux-intro-modules \
+		kernel-intro-modules \
 		kernel-driver-development-modules \
 		kernel-driver-development-lab-modules \
 		kernel-driver-development-general-apis \
