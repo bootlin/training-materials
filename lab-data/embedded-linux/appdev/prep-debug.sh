@@ -2,7 +2,7 @@
 
 # Definitions
 TARGETIP=192.168.0.100
-PATH=$HOME/embedded-linux-ng-labs/integration/buildroot-2022.02.3/output/host/bin:$PATH
+PATH=$HOME/embedded-linux-labs/integration/buildroot-2022.02.3/output/host/bin:$PATH
 EXEC=nunchuk-mpd-client
 CROSS_COMPILE=arm-linux-
 
