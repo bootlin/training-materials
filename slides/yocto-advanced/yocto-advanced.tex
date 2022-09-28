@@ -67,14 +67,38 @@
   \end{itemize}
 \end{frame}
 
-\begin{frame}
+\begin{frame}[fragile]
   \frametitle{Operators caveats}
   \begin{itemize}
     \item The operators apply their effect during parsing
-    \item The parsing order is difficult to predict, no assumption should
-      be made about it.
-    \item Example: if \code{+=} is parsed before \code{?=}, the latter will
-      be discarded.
+    \item Example:
+  \end{itemize}
+  \begin{columns}
+    \column{0.2\textwidth}
+    \column{0.3\textwidth}
+    \begin{block}{}
+      \begin{minted}{text}
+VAR ?= "a"
+VAR += "b"
+      \end{minted}
+    \end{block}
+    Result: \code{VAR = "a b"}
+    \break
+    \column{0.3\textwidth}
+    \begin{block}{}
+      \begin{minted}{text}
+VAR += "b"
+VAR ?= "a"
+      \end{minted}
+    \end{block}
+    Result: \code{VAR = "b"}
+    \break
+    \column{0.2\textwidth}
+  \end{columns}
+
+  \begin{itemize}
+    \item The parsing order of files is difficult to predict, no assumption
+      should be made about it.
     \item To avoid the problem, avoid using \code{+=}, \code{=+}, \code{.=}
       and \code{=.} in \code{$BUILDDIR/conf/local.conf}. Always use
       overrides (see following slides).
