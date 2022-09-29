@@ -329,6 +329,34 @@ major minor #blocks name
   \end{itemize}
 \end{frame}
 
+\begin{frame}[fragile]
+  \frametitle{How to access partitions in a disk image}
+  \begin{itemize}
+  \item You may have dumped a complete block device (with partitions) into a disk image.
+  \item The \code{losetup} command allows to manually associate
+    a loop device to a file, and offers a \code{--partscan} option
+    allowing to also create extra block device files for the partitions
+    inside the image:
+    \begin{block}{}
+    \begin{verbatim}
+$ sudo losetup -f --show --partscan disk.img
+/dev/loop2
+
+$ ls -la /dev/loop2*
+brw-rw---- 1 root disk   7,  2 Jan 14 10:50 /dev/loop2
+brw-rw---- 1 root disk 259, 11 Jan 14 10:50 /dev/loop2p1
+brw-rw---- 1 root disk 259, 12 Jan 14 10:50 /dev/loop2p2
+\end{verbatim}
+    \end{block}{}
+  \item Each partition can then be accessed indidually, for example:
+    \begin{block}{}
+    \begin{verbatim}
+$ mount /dev/loop2p2 /mnt/rootfs
+\end{verbatim}
+    \end{block}{}
+  \end{itemize}
+\end{frame}
+
 \begin{frame}
   \frametitle{Creating squashfs filesystems}
   \begin{itemize}
