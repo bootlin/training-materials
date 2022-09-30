@@ -128,16 +128,16 @@ int main(int argc, char ** argv)
 		case EV_ABS:
 			switch (event.code) {
 			case ABS_Y:
-				if (event.value == 255) {
+				if (event.value > 250) {
 					printf("Volume up: ");
 					change_volume(conn, 5);
-				} else if (event.value == 0) {
+				} else if (event.value < 5) {
 					printf("Volume down: ");
 					change_volume(conn, -5);
 				}
 				break;
 			case ABS_X:
-				if (event.value == 255) {
+				if (event.value > 250) {
 					if (!mpd_run_next(conn)) {
 						printf("No next song. Aborting\n");
 						exit(handle_error(conn));
@@ -146,7 +146,7 @@ int main(int argc, char ** argv)
 						print_current_song(conn);
 					}
 				}
-				else if (event.value == 0) {
+				else if (event.value < 5) {
 					if (!mpd_run_previous(conn)) {
 						printf("No previous song. Aborting\n");
 						exit(handle_error(conn));
