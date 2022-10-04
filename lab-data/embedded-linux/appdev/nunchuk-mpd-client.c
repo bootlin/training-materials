@@ -125,6 +125,7 @@ int main(int argc, char ** argv)
 					free(conn);
 				break;
 			}
+			break;
 		case EV_ABS:
 			switch (event.code) {
 			case ABS_Y:
@@ -157,6 +158,7 @@ int main(int argc, char ** argv)
 				}
 				break;
 			}
+			break;
 		}
 	}
 
