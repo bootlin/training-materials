@@ -306,6 +306,9 @@ $(OUTDIR)/%.pdf: %.pdf
 # === Misc targets ===
 #
 
+# Drop final / in the URL
+SESSION_URL := $(patsubst %/,%,$(SESSION_URL))
+
 $(VARS): FORCE
 	@mkdir -p $(dir $@)
 	/bin/echo "\def \sessionurl {$(SESSION_URL)}" > $@
