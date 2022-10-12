@@ -332,14 +332,21 @@ HELP_FIELD_FORMAT = " %-36s %s\n"
 help:
 	@echo "Available targets:"
 	@echo
+	@echo "Slides:"
 	$(foreach p,$(ALL_SLIDES),\
-		@printf $(HELP_FIELD_FORMAT) "$(p)" "Complete slides for the '$(patsubst full-%-slides.pdf,%,$(p))' course"$(sep))
+		@printf $(sort $(HELP_FIELD_FORMAT)) "$(p)" "Complete slides for the '$(patsubst full-%-slides.pdf,%,$(p))' course"$(sep))
+	@echo
+	@echo "Labs:"
 	$(foreach p,$(ALL_LABS),\
-		@printf $(HELP_FIELD_FORMAT) "$(p)" "Complete labs for the '$(patsubst full-%-labs.pdf,%,$(p))' course"$(sep))
+		@printf $(sort $(HELP_FIELD_FORMAT)) "$(p)" "Complete labs for the '$(patsubst full-%-labs.pdf,%,$(p))' course"$(sep))
+	@echo
+	@echo "Agendas:"
 	$(foreach p,$(ALL_AGENDAS),\
-		@printf $(HELP_FIELD_FORMAT) "$(p)" "Agenda for the '$(patsubst %-agenda.pdf,%,$(p))' course"$(sep))
+		@printf $(sort $(HELP_FIELD_FORMAT)) "$(p)" "Agenda for the '$(patsubst %-agenda.pdf,%,$(p))' course"$(sep))
+	@echo
+	@echo "Tarballs:"
 	$(foreach p,$(ALL_LABS_TARBALLS),\
-		@printf $(HELP_FIELD_FORMAT) "$(p)" "Lab data for the '$(patsubst %-labs.tar.xz,%,$(p))' course"$(sep))
+		@printf $(sort $(HELP_FIELD_FORMAT)) "$(p)" "Lab data for the '$(patsubst %-labs.tar.xz,%,$(p))' course"$(sep))
 	@echo
 	@printf $(HELP_FIELD_FORMAT) "<some-chapter>-slides.pdf" "Slides for a particular chapter in slides/"
 	@printf $(HELP_FIELD_FORMAT) "<some-chapter>-labs.pdf" "Labs for a particular chapter in labs/"
