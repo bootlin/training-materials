@@ -137,13 +137,16 @@
   \item \mint{c}+void spin_unlock(spinlock_t *lock);+
     \begin{itemize}
     \item Used for locking in process context (critical sections
-          in which you do not want to sleep).
+      in which you do not want to sleep) as well as atomic
+      sections.
     \item Kernel preemption on the local CPU is disabled. We need
-          to avoid deadlocks because of preemption from processes
-	  that want to get the same lock:
+      to avoid deadlocks (and unbounded latencies) because of preemption
+      from processes that want to get the same lock:
+      \includegraphics[width=0.8\textwidth]{common/spinlock-deadlock-with-preemption.pdf}
+    \item Disabling kernel preemption also disables migration to avoid
+      the same kind of issue as pictured above from happening.
     \end{itemize}
   \end{itemize}
-  \includegraphics[width=0.8\textwidth]{common/spinlock-deadlock-with-preemption.pdf}
 \end{frame}
 
 \begin{frame}[fragile]
