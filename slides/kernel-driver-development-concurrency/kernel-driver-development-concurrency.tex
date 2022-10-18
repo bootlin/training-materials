@@ -267,6 +267,100 @@ static unsigned int ulite_tx_empty(struct uart_port *port) {
 \end{frame}
 
 \begin{frame}[fragile]
+  \frametitle{RCU API}
+  \begin{itemize}
+  \item Conditions where RCU is useful:
+    \begin{itemize}
+    \item Synchronization between many readers vs. one writer
+    \item Focus on getting consistent data rather than getting the
+      latest data
+    \end{itemize}
+  \item Kind of enforces ownership by enforcing space/time synchronization
+  \item RCU API (\kfile{Documentation/RCU/whatisRCU.rst}):
+    \begin{itemize}
+    \item \kfunc{rcu_read_lock} and \kfunc{rcu_read_unlock}:
+      reclaim/release read access
+    \item \kfunc{synchronize_rcu} or \kfunc{call_rcu}: wait for
+      pre-existing readers
+    \item \kfunc{rcu_assign_pointer}: update RCU-protected pointer
+    \item \kfunc{rcu_dereference}: load RCU-protected pointer
+    \end{itemize}
+  \item RCU mentorship session by Paul E. McKenney:
+    \url{https://youtu.be/K-4TI5gFsig}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{RCU protected reads: accessing structure members in a consistent way}
+    \begin{block}{Unsafe read}
+      \begin{minted}[fontsize=\tiny]{c}
+struct myconf { int a, b; } *current_conf; /* initialized */
+
+unsafe_get(int *cur_a, int *cur_b)
+{
+        *cur_a = current_conf->a;
+        /* What if *current_conf gets updated now? The assignement is inconsistent! */
+        *cur_b = current_conf->b;
+};
+      \end{minted}
+    \end{block}
+  \begin{block}{Safe read}
+    \begin{minted}[fontsize=\tiny]{c}
+struct myconf { int a, b; } *current_conf; /* initialized */
+
+safe_get(int *cur_a, int *cur_b)
+{
+        struct myconf *conf;
+
+        rcu_read_lock();
+        conf = rcu_dereference(current_conf);
+        *cur_a = conf->a;
+        /* If *current_conf is updated, conf->a and conf->b will remain consistent! */
+        *cur_b = conf->b;
+        rcu_read_unlock();
+};
+    \end{minted}
+  \end{block}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{RCU protected writes: updating a pointer in a consistent way}
+  \begin{block}{Unsafe write}
+    \begin{minted}[fontsize=\tiny]{c}
+struct myconf { int a, b; } *current_conf; /* initialized */
+
+unsafe_set(int cur_a, int cur_b)
+{
+        struct myconf *newconf = kmalloc(...), *oldconf;
+        newconf->a = cur_a, newconf->b = cur_b;
+
+        oldconf = current_conf;
+        current_conf = newconf;
+        kfree(oldconf); /* Readers might still have a reference over the freed struct! */
+};
+    \end{minted}
+  \end{block}
+  \begin{block}{Safe write}
+    \begin{minted}[fontsize=\tiny]{c}
+struct myconf { int a, b; } *current_conf; /* initialized */
+
+safe_set(int cur_a, int cur_b)
+{
+        struct myconf *newconf = kmalloc(...), *oldconf;
+        newconf->a = cur_a, newconf->b = cur_b;
+
+        oldconf = rcu_dereference(current_conf);
+        rcu_assign_pointer(current_conf, newconf);
+        /* Readers might still have a reference over the old struct here... */
+        synchronize_rcu();
+        /* ...but not here! No more readers of the old struct, kfree() is safe! */
+        kfree(oldconf);
+};
+    \end{minted}
+  \end{block}
+\end{frame}
+
+\begin{frame}[fragile]
   \frametitle{Atomic variables 1/2}
   \mint{c}+#include <linux/atomic.h>+
   \begin{itemize}
