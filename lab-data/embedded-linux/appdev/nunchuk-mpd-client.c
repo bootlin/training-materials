@@ -119,10 +119,11 @@ int main(int argc, char ** argv)
 				}
 				break;
 			case BTN_C:
-				if (event.value == 1)
+				if (event.value == 1) {
 					printf("Quit\n");
 					quit = 1;
 					free(conn);
+				}
 				break;
 			}
 			break;
