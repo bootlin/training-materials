@@ -1,0 +1,105 @@
+\subchapter
+{Debugging memory issues}
+{Objectives:
+  \begin{itemize}
+    \item Memory leak and misbehavior detection with {\em valgrind} and
+            {\em vgdb}.
+    \item Visualizing application heap using {\em Massif}.
+  \end{itemize}
+}
+
+\section{valgrind \& vgdb}
+
+Go into the \code{valgrind folder} and compile \code{valgrind.c} with debugging
+information using:
+
+\begin{bashinput}
+$ cd /home/<user>/debugging-labs/nfsroot/root/valgrind
+$ ${CROSS_COMPILE}-gcc -g3 valgrind.c -o test_valgrind
+\end{bashinput}
+
+Then run it on the target. Do you notice any problem ? Does it run correctly ?
+Even though there is no segfault, an application might have some memory leaks
+or even out-of-bounds accesses, uninitialized memory, etc.
+
+Now, run the command again with valgrind using the following command:
+
+\begin{bashinput}
+$ valgrind --leak-check=full ./test_valgrind
+\end{bashinput}
+
+You'll see various errors found by valgrind
+\begin{itemize}
+  \item Invalid memory write
+  \item Uninitialized memory
+  \item Memory leaks
+\end{itemize}
+
+In order to pinpoint exactly each error and be able to disable with gdb, vgdb
+can be used. We will do that remotely on the host using gdb-multiarch. First, we
+need to run valgrind with vgdb enabled on the target:
+
+\begin{bashinput}
+$ cd /root/valgrind
+$ valgrind --vgdb-error=0 --leak-check=full ./test_valgrind
+\end{bashinput}
+
+Then, in order to do remote debugging, we also need to run vgdb in listen mode.
+Start another terminal in SSH on the target and run the following command:
+
+\begin{bashinput}
+$ vgdb --port=1234
+\end{bashinput}
+
+On the computer side, start gdb-multiarch and give it the \code{test_valgrind}
+binary which will allow to detect the architecture and read symbols:
+\begin{bashinput}
+$ gdb-multiarch ./test_valgrind
+\end{bashinput}
+
+Finally, we'll need to connect to vgdb using the following gdb command:
+\begin{bashinput}
+(gdb) target remote <target_ip>:1234
+\end{bashinput}
+
+You will then be able to debug each error using gdb and valgrind will interrupt
+the program each time it detects an error. Try to solve all the problems that
+were encountered by valgrind.
+
+NOTE: The backtrace for leaks is not shown on the target because all libraries
+are stripped and thus do not have any debugging symbols anymore. This leads to
+the impossibility to use the dwarf information for backtracing.
+
+\section{Massif}
+
+Massif is really helpful to understand what is going on the memory allocation
+side of an application. Compile the \code{heap_profile} example that we did provide
+using the following command:
+
+\begin{bashinput}
+$ cd /home/<user>/debugging-labs/nfsroot/root/heap_profile
+$ ${CROSS_COMPILE}-gcc -g3 heap_profile.c -o heap_profile
+\end{bashinput}
+
+Once compile, on the target run it under massif using the following command:
+
+\begin{bashinput}
+$ cd /root/heap_profile
+$ valgrind --tool=massif --time-unit=B ./heap_profile
+\end{bashinput}
+
+NOTE: we use \code{--time-unit=B} to set the X axis to be based on the allocated
+size.
+
+Once done, a \code{massif.out.<pid>} file will be created. This file can be 
+displayed with \code{ms_print}. Based on the result, can you answer the
+following questions:
+\begin{itemize}
+  \item What is the peak allocation size of this program ?
+  \item How much memory was allocated during the program lifetime ?
+  \item Do we have memory leaks at the end of execution ?
+\end{itemize}
+
+Note: \code{heaptrack} is not available on buildroot but is available on debian.
+You can try the same experience using heaptrack on your computer and visualizing
+the results with \code{heaptrack_gui}.

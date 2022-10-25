@@ -1,0 +1,128 @@
+\subchapter
+{Solving an application crash}
+{Objectives:
+  \begin{itemize}
+    \item Analysis of compiled C code with compiler-explorer to understand
+          optimizations.
+    \item Managing {\em gdb} from the command line.
+    \item Debugging a crashed application using a coredump with {\em gdb}.
+    \item Using {\em gdb} Python scripting capabilities.
+  \end{itemize}
+}
+
+\section{Compiler explorer}
+
+Go to \url{https://godbolt.org/} and paste the content of \code{swap_bytes.c}.
+Select the correct compiler for armv7 and observe the generated assembly. Try
+to modify the compiler options to optimize the generation (-O3). Observe the
+result.
+
+\section{Using GDB}
+
+Take our \code{linked_list.c} program. It uses the \code{<sys/queue.h>} header
+which provides multiple linked-list implementations. This program creates and
+fill a linked list with the names read from a file. Compile it using the
+following command:
+
+\begin{bashinput}
+$ cd /home/<user>/debugging-labs/nfsroot/root/gdb/
+$ ${CROSS_COMPILE}gcc linked_list.c -Wall -Werror -o linked_list
+\end{bashinput}
+
+By default, it will look for a \code{word_list} file located in the current
+directory. This program should display the list of words that were read from
+the file.
+
+\begin{bashinput}
+$ ./linked_list
+\end{bashinput}
+
+From what you can see, it actually crashes ! So we will use GDB to debug that
+program. We will do that remotely since our target does not embed a full gdb,
+only a gdbserver, a lightweight gdb server that allows connecting with a remote
+full feature GDB. Start our program using gdbserver:
+
+\begin{bashinput}
+$ gdbserver localhost:2000 ./linked_list
+\end{bashinput}
+
+On the host side install gdb-multiarch if not already done and attach to this
+process using gdb-multiarch:
+
+\begin{bashinput}
+$ sudo apt install gdb-multiarch
+$ gdb-multiarch ./linked_list
+(gdb) target remote <target_ip>:2000
+\end{bashinput}
+
+Then continue the execution and try to find the error using GDB. There are
+multiple ways to debug such program. We will track down up to the error in order
+to understand
+
+\section{Using a coredump with GDB}
+
+Sometimes, the problems only arise in production and you can only gather data
+once the application crashed. This is also something that can be used if the
+crash is not reproducible but crashes only once in a while.  If so, we can use
+the kernel coredump support to generate a core dump of the faulty application
+and do a post-mortem analysis.
+
+First of all, we need to enable kernel coredumping support of programs:
+
+\begin{bashinput}
+$ ulimit -c unlimited
+\end{bashinput}
+
+Then, run the program normally:
+
+\begin{bashinput}
+$ ./linked_list
+Segmentation fault (core dumped)
+\end{bashinput}
+
+When crashing, a \code{core} file will be generated. Copy this file from the
+NFS directory on you desktop computer using \code{gdb-multiarch}:
+
+
+\begin{bashinput}
+$ gdb-multiarch <program_binary> <coredump_file>
+\end{bashinput}
+
+You can then inspect the program state (memory, registers, etc) at the time it
+crashed. While less dynamic, it allows to pinpoint the place that triggered the 
+crash.
+
+\section{GDB Python support}
+
+When developping and debugging applications, sometimes we often uses the same
+set of commands over and over under GDB. Rather than doing so, we can create 
+python scripts that are integrated with GDB.
+
+In order to display our program list from GDB, create a python GDB script named
+\code{linked_list.py} that displays this list. You will add a new command which
+will be of type \code{COMMAND_USER} and will be named \code{printslist}. This
+command will use the \code{name_list} struct to traverse the list. You can use
+\code{gdb.parse_and_eval("name_list")} to obtain a python \code{GDB.Value}
+object that can be inspected. If the object is a struct then you can access
+the fields using \code{value['field']}.
+
+Once done, in GDB, check that it works by sourcing your python script and
+executing it:
+
+\begin{bashinput}
+(gdb) source linked_list.py
+(gdb) printslist
+\end{bashinput}
+
+In order to display something more user friendly, we will create a pretty
+printer for the \code{struct name} and modify the printslist command to take
+two arguments which are the list name and the field name to be used for list
+traversal. In our case, the command would be called
+like this:
+
+\begin{bashinput}
+(gdb) printslist name_list next
+\end{bashinput}
+
+You can use the \code{gdb.string_to_argv(args)} to convert the args into an
+array of arguments.

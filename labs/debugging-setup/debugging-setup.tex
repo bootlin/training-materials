@@ -1,0 +1,120 @@
+\subchapter
+{Preparing the system}
+{Objectives:
+  \begin{itemize}
+    \item Prepare the STM32MP157D board
+  \end{itemize}
+}
+
+\section{Building the image}
+
+We created a special image for the training. This image will contain everything
+we need (tools, configured kernel, etc). This image will be built with buildroot
+which allows to build a complete image for embedded systems.
+
+\begin{bashinput}
+$ cd /home/<user>/debugging-labs/
+$ git clone https://github.com/bootlin/buildroot
+$ cd buildroot
+$ git checkout debugging-training/2022.08
+$ make stm32mp157a_dk1_debugging_defconfig
+$ make -j12
+\end{bashinput}
+
+This will take a few minutes. At the end of the build, a images directory will
+contain the images that can be used on the board. During this course, we will
+use a kernel located on a sdcard and a rootfs vis NFS. This will let us transfer
+data freely from and to the target board.
+
+The rootfs should be extracted at \code{/home/<user>/debugging-labs/nfsroot}
+using this command:
+
+\begin{bashinput}
+$ tar xvf images/rootfs.tar -C /home/<user>/debugging-labs/nfsroot
+\end{bashinput}
+
+\input{../common/stm32-prepare.tex}
+
+\section{Set up the Ethernet communication on the workstation}
+
+With a network cable, connect the Ethernet port of your board to the
+one of your computer. If your computer already has a wired connection
+to the network, your instructor will provide you with a USB Ethernet
+adapter. A new network interface should appear on your Linux system.
+
+Find the name of this interface by typing:
+\begin{bashinput}
+$ ip a
+\end{bashinput}
+
+The network interface name is likely to be
+\code{enxxx}\footnote{Following the {\em Predictable Network Interface
+Names} convention:
+\url{https://www.freedesktop.org/wiki/Software/systemd/PredictableNetworkInterfaceNames/}}.
+If you have a pluggable Ethernet device, it's easy to identify as it's
+the one that shows up after pluging in the device.
+
+Then, instead of configuring the host IP address from NetWork Manager’s graphical interface,
+let’s do it through its command line interface, which is so much easier to use:
+
+\begin{bashinput}
+$ nmcli con add type ethernet ifname en<xxx> ip4 192.168.0.1/24
+\end{bashinput}
+
+\section{Setting up the NFS server}
+
+Install the NFS server by installing the \code{nfs-kernel-server}
+package. Once installed, edit the \code{/etc/exports} file as
+\code{root} to add the following lines, assuming that the IP address
+of your board will be \code{192.168.0.100}:
+
+\scriptsize
+\begin{bashinput}
+/home/<user>/debugging-labs/nfsroot 192.168.0.100(rw,no_root_squash,no_subtree_check)
+\end{bashinput}
+\normalsize
+
+Of course, replace \code{<user>} by your actual user name.
+
+Make sure that the path and the options are on the same line.
+Also make sure that there is no space between the IP address and the NFS
+options, otherwise default options will be used for this IP address,
+causing your root filesystem to be read-only.
+
+Then, restart the NFS server:
+
+\begin{bashinput}
+$ sudo exportfs -r
+\end{bashinput}
+
+If there is any error message, this usually means that there was a
+syntax error in the \code{/etc/exports} file. Don't proceed until these
+errors disappear.
+
+\section{Flashing the sdcard}
+
+In order to get a working board, you will need to flash a sdcard with the 
+\code{images/sdcard.img} file. Plug your sdcard on your computer and check
+on which /dev/sdX it has been mounted (you can use the \code{dmesg} command to
+check that). For instance, if the sdcard has been mounted on /dev/sde, use the
+following command:
+
+\begin{bashinput}
+$ sudo dd if=images/sdcard.img of=/dev/sde
+$ sync
+\end{bashinput}
+
+Once flashed, plug the sdcard onto the STM32MP157D board and reboot the board.
+
+\section{U-Boot setup}
+
+In order to use a rootfs on NFS, we will use an external rootfs. This can be
+specified by passing bootargs to the kernel. To do so, we are going to set the
+\code{bootargs} U-Boot variable and save the environment.
+
+\begin{bashinput}
+STM32MP1> env set bootargs root=/dev/nfs ip=192.168.0.100:::::eth0
+  nfsroot=192.168.0.1:/home/<user>/debugging-labs/nfsroot/,nfsvers=3,tcp rw
+STM32MP1> saveenv
+\end{bashinput}
+

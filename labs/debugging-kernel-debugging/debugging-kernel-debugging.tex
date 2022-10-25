@@ -1,0 +1,272 @@
+\subchapter
+{Kernel debugging}
+{Objectives:
+  \begin{itemize}
+    \item Analyzing an {\em oops} with {\em addr2line}.
+    \item Debugging with {\em KGDB}.
+    \item Debugging a deadlock problem using {\em PROVE\_LOCKING} options.
+    \item Find a module memory leak using {\em kmemleak}.
+  \end{itemize}
+}
+
+\section{OOPS analysis}
+We noticed that the watchdog command generated a crash on the kernel. In order
+to reproduce the crash, run the following command:
+
+\begin{bashinput}
+$ watchdog -T 10 -t 5 /dev/watchdog0
+\end{bashinput}
+
+Immediatly after executing this commands, you'll see that the kernel crashing.
+
+\subsection{Analyzing the crash message}
+
+Analyze the crash message carefully. Knowing that on ARM, the \code{PC}
+register contains the location of the instruction being executed, find
+in which function does the crash happen, and what the function call
+stack is.
+
+Using Elixir or the kernel source code, have a look at the definition of this
+function. In most cases, a careful review of the driver source code is enough
+to understand the issue. But not in that case !
+
+\subsection{Locating the exact line where the error happens}
+
+Even if you already found out which instruction caused the crash, it's
+useful to use information in the crash report.
+
+If you look again, the report tells you at what offset in the function
+this happens. We will disassemble the code for this function to understand
+exactly where the issue happened.
+
+That is where we need a kernel compiled with \kconfig{CONFIG_DEBUG_INFO}
+as we did at the beginning of this lab. This way, the kernel vmlinux file is
+compiled with \code{-g} compiler flag, which adds a lot of debugging
+information (matching between source code lines and assembly for instance).
+
+Using \code{addr2line}, find the exact source code line were the crash happened.
+For that, you can use the following command:
+
+\begin{bashinput}
+$ addr2line -e vmlinux -a <crash_address>
+\end{bashinput}
+
+We can even go a step further and use \code{gdb-multiarch} to open vmlinux and
+locate the function and corresponding offset in assembly
+
+\begin{bashinput}
+$ gdb-multiarch /home/<user>/debugging-labs/nfsroot/root/vmlinux
+(gdb) disassemble <function>
+\end{bashinput}
+
+\section{KGDB debugging}
+In order to debug this OOPS, we'll use KGDB which is an in-kernel debugger.
+The provided image already contains the necessary KGDB support and the watchdog
+has been disabled to avoid rebooting while debugging. In order to use KGDB and
+the console simultaneously, compile and run kdmx:
+
+\begin{bashinput}
+$ git clone https://git.kernel.org/pub/scm/utils/kernel/kgdb/agent-proxy.git
+$ cd agent-proxy/kdmx
+$ make
+$ ./kdmx -n -d -p/dev/ttyACM0 -b115200
+serial port: /dev/ttyACM0
+Initalizing the serial port to 115200 8n1
+/dev/pts/7 is slave pty for terminal emulator
+/dev/pts/8 is slave pty for gdb
+
+Use <ctrl>C to terminate program
+\end{bashinput}
+
+Note: the slave ports will depend on the run.
+
+On the target, setup KGDB by setting the console to be used for that purpose in
+kgdboc module parameters:
+
+\begin{bashinput}
+$ echo ttySTM0 > /sys/module/kgdboc/parameters/kgdboc
+\end{bashinput}
+
+Once done, trigger the crash by running the watchdog command, the system will
+automatically wait for a debugger to be attached. Run \code{gdb-multiarch} and
+attach a gdb process to KGDB with the following command:
+
+\begin{bashinput}
+$ gdb-multiarch /home/<user>/debugging-labs/nfsroot/root/vmlinux
+(gdb) target remote /dev/pts/8
+\end{bashinput}
+
+First of all, confirm the previous information that were obtain post crash using
+GDB. This will allow you to also display variables values. Starting from that
+point, we will add a breakpoint on the \code{watchdog_set_drvdata()} function.
+However, this function is called early in boot so we will need to actually
+attach with KGDB at boot time. To do so, we'l modify the bootargs to specify
+that. In U-Boot, add the following arguments to bootargs using \code{env edit}:
+
+\begin{bashinput}
+STM32MP> env edit bootargs
+STM32MP> <existing bootargs> kgdboc=ttySTM0,115200 kgdbwait
+STM32MP> boot
+\end{bashinput}
+
+Then the kernel will halt during boot waiting for a GDB process to be attached.
+Attached using the same command that was previously used:
+
+\begin{bashinput}
+$ gdb-multiarch vmlinux
+(gdb) target remote /dev/pts/8
+\end{bashinput}
+
+Before continuing the execution, add a breakpoint on
+\code{watchdog_set_drvdata()} using the \code{break} GDB command and then
+continue the execution using the continue \code{command}
+
+\begin{bashinput}
+(gdb) break watchdog_set_drvdata
+(gdb) continue
+\end{bashinput}
+
+Analyze the subsequent calls and find the place where the driver data are
+clobbered.
+
+TIP: you can fix the problem in "live" by modifying the content of the
+\code{wdd->driver_data} variable directly using the following command:
+
+\begin{bashinput}
+(gdb) p/x var=hex_value
+\end{bashinput}
+
+Use it to set the variable with the previous value that was used before getting
+clobbered with NULL. Once done, continue the execution and verify that you fixed
+the problem using the \code{watchdog} command.
+
+{\em Note: In theory, we could have add a watchpoint to watch the address that
+was modified but the arm32 platforms does not provide watchpoints support with
+KGDB.}
+
+\section{Locking problems}
+
+\kconfig{CONFIG_PROVE_LOCKING} has been enabled in the provided kernel image.
+Load the \code{locking.ko} module and look at the output in dmesg. Once
+analyzed, unload the module. Try to understand and fix all the problems that
+have been reported by the \code{lockdep} system.
+
+\section{Kmemleak}
+
+The provided kernel image contains kmemleak but it is disabled by default to
+avoid having a large overhead. In order to enable it, reboot and enable it by
+adding \code{kmemleak=on} on the command line. Interrupt U-Boot at reboot and
+modify the \code{bootargs} variable:
+
+\begin{bashinput}
+STM32MP> env edit bootargs
+STM32MP> <existing bootargs> kmemleak=on
+STM32MP> boot
+\end{bashinput}
+
+Once done, use the \code{boot} command to actually boot the kernel. Once booted,
+load the \code{leaky_module.ko} and trigger an immediate kmemleak scan using:
+
+\begin{bashinput}
+# echo scan > /sys/kernel/module/kmemleak
+\end{bashinput}
+
+Soon after that, the kernel will report that some leaks have been identified.
+Display them and analyze them using:
+
+\begin{bashinput}
+# cat /sys/kernel/module/kmemleak
+\end{bashinput}
+
+You can use \code{addr2line} to identify the location in source code of the
+lines that did cause the reports. You will also notice other memory leaks that
+are actually some real memory leaks that did exist in the 5.13 kernel version !
+
+
+\section{kdump \& kexec}
+
+As presented in the course, kdump/kexec allows to boot a new kernel and dump a
+perfect copy of the crashed kernel (memory, registers, etc) which can be then
+debugged using gdb or crash. 
+
+\subsection{Configuring kexec}
+First of all we need to setup a kexec sutiable memory zone for our crash kernel
+image. THis is achieved via the linux command line. Reboot, interrupt U-Boot and
+add the \code{crashkernel=80M} parameter. This will tell the kernel to reserve
+80M of memory to load a "rescue" kernel that will be booted on panic.
+
+\begin{bashinput}
+STM32MP> env edit bootargs
+STM32MP> <existing bootargs> crashkernel=80M
+STM32MP> boot
+\end{bashinput}
+
+Once done, we'll need to configure the kernel to be booted on crash using kexec.
+We will use the same image than currently running on the platform to do so. In
+order to allow that, we will need to mount the sdcard boot partition that
+contains the zImage and dtb:
+
+\begin{bashinput}
+mount -t ext4 /dev/mmcblk0p4 /mnt/
+\end{bashinput}
+
+Note: normally, one would recompile a custom slim kernel to be as lightweight
+as possible instead of reusing a full feature kernel. A specific initrd/rootfs
+would also be provided to avoid any more risks of crashing.
+
+To load the crash kernel into the previously reserved memory zone, run the
+following command:
+
+\begin{bashinput}
+$ kexec --type zImage -p /mnt/boot/zImage --dtb=/mnt/boot/stm32mp157a-dk1.dtb
+        --append="console=ttySTM0 maxcpus=1 reset_devices"
+\end{bashinput}
+
+Once done, you can trigger a crash using the previously mentionned watchdog
+command:
+
+\begin{bashinput}
+$ watchdog -T 10 -t 5 /dev/watchdog0
+\end{bashinput}
+
+At this moment, the kernel will reboot into a new kernel using the specified
+kernel after displaying the backtrace and a message:
+
+\begin{bashinput}
+[ 1181.987971] Loading crashdump kernel...
+[ 1181.990839] Bye!
+\end{bashinput}
+
+For some reason, the console is not working after rebooting. But the kernel is
+actually booting correctly. Wait a bit, connect with ssh and copy the coredump:
+
+\begin{bashinput}
+$ ssh root@192.168.0.100
+$ cp /proc/vmcore /root/vmcore
+\end{bashinput}
+
+Finally, we will be able to debug that kernel coredump using crash.
+
+\subsection{Compiling crash}
+
+\code{crash} utility that is available on your computer does not support ARM
+so we will need to recompile it for the ARM target. This can be done using the
+following commands:
+
+\begin{bashinput}
+$ sudo apt install gcc-multilibs g++-multilibs
+$ sudo apt install libncurses5:i386 lib32z1-dev
+$ cd /home/<user>/debugging-labs/
+$ git clone https://github.com/crash-utility/crash.git
+$ cd crash
+$ make target=ARM
+\end{bashinput}
+
+Once done, you can open the vmcore file with crash using
+\begin{bashinput}
+$ ./crash /home/<user>/debugging-labs/nfsroot/root/vmlinux 
+  /home/<user>/debugging-labs/nfsroot/root/vmcore
+\end{bashinput}
+
+Take some times to analyze the content of the dump using the commands that are
+offered by \code{crash}.

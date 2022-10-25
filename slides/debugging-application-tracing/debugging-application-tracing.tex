@@ -1,0 +1,121 @@
+\section{Application Tracing}
+
+\input{../common/strace.tex}
+\input{../common/ltrace.tex}
+
+\begin{frame}
+  \frametitle{Hooking Library Calls}
+  \begin{itemize}
+    \item In order to do some more complex library call hooks, one can use
+          the {\em LD\_PRELOAD} environment variable.
+    \item {\em LD\_PRELOAD} is used to specify a shared library that will be
+          loaded before any other library by the dynamic loader.
+    \item Allows to intercept all library calls by preloading another library.
+    \begin{itemize}
+      \item Override libraries symbols that have the same name.
+      \item Allow to redefine only a few specific symbols.
+    \end{itemize}
+    \item Used by some debugging/tracing libraries ({\em libsegfault},
+          {\em libefence})
+    \item Works for C and C++.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{{\em LD\_PRELOAD} example}
+  \begin{itemize}
+    \item Code for library that will be preloaded using {\em LD\_PRELOAD}:
+  \end{itemize}
+  \begin{block}{}
+    \begin{minted}[fontsize=\small]{c}
+#include <string.h>
+
+ssize_t read(int fd, void *data, size_t size) {
+  memset(data, 0x42, size);
+  return size;
+}
+    \end{minted}
+  \end{block}
+  \begin{itemize}
+    \item Compilation of the library for {\em LD\_PRELOAD} usage:
+  \end{itemize}
+  \begin{block}{}
+    \begin{minted}[fontsize=\small]{console}
+$ gcc -shared -fPIC -o my_lib.so my_lib.c
+    \end{minted}
+  \end{block}
+
+  \begin{itemize}
+    \item Preloading the new library using {\em LD\_PRELOAD}:
+  \end{itemize}
+  \begin{block}{}
+    \begin{minted}[fontsize=\small]{console}
+$ LD_PRELOAD=my_lib.so ./exe
+    \end{minted}
+  \end{block}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{The {\em perf} tool}
+  \begin{itemize}
+    \item {\em perf} tool was started as a tool to profile application under
+          Linux using performance counter (\manpage{perf}{1}).
+    \item It became much more than that and now allows to insert tracepoints,
+          kprobes and uprobes.
+    \item {\em perf} can profile both user-space and kernel-space execution.
+    \item {\em perf} is based on the \code{perf_event} interface that is
+          exposed by the kernel.
+    \item {\em perf} provides a set of operations that each have specific
+          arguments (see \code{perf help}).
+    \begin{itemize}
+      \item \code{stat}, \code{record}, \code{report}, \code{top}, \code{annotate}, \code{ftrace}, \code{list}, \code{probe}, etc
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Using {\em perf record}}
+  \begin{itemize}
+    \item {\em perf record} allows to record performance events per-thread,
+          per-process and per-cpu basis.
+    \item Kernel needs to be configured with \kconfigval{CONFIG_PERF_EVENTS}{y}.
+    \item This is the first command that needs to be run to gather data from
+          program execution and output them into \code{perf.data}.
+    \item \code{perf.data} file can then be analyzed using \code{perf annotate}
+          and \code{perf report}.
+    \begin{itemize}
+      \item Often useful on embedded systems to analyze data on another computer.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Probing userspace functions}
+  \begin{itemize}
+    \item Create tracepoints on function in a user-space library/executable: 
+  \end{itemize}
+  \begin{block}{}
+    \begin{minted}[fontsize=\scriptsize]{C}
+$ perf probe -x /lib/libc.so.6 printf
+$ perf probe -x app my_func
+    \end{minted}
+  \end{block}
+  \begin{itemize}
+    \item Recording execution of these tracpoints: 
+  \end{itemize}
+  \begin{block}{}
+    \begin{minted}[fontsize=\scriptsize]{C}
+$ perf record -e probe_app:my_func,probe_libc:printf
+    \end{minted}
+  \end{block}
+\end{frame}
+
+\setuplabframe
+{Debugging application issues}
+{
+  Analyzing of application interactions
+  \begin{itemize}
+    \item Tracing system calls with {\em strace}
+    \item Analyze dynamic library calls
+  \end{itemize}
+}

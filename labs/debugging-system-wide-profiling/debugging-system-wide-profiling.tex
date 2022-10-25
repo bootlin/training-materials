@@ -1,0 +1,90 @@
+\subchapter
+{System wide profiling and tracing}
+{Objectives:
+  \begin{itemize}
+    \item System profiling with {\em perf}.
+    \item IRQ latencies using {\em ftrace}.
+    \item Tracing and visualizing system activity using {\em kernelshark} or
+          {\em LTTng}
+  \end{itemize}
+}
+
+\section{System profiling with {\em perf}}
+
+
+
+\section{IRQ latencies using {\em ftrace}}
+
+{\em ftrace} features a specific tracers for irq latency which is named irqsoff.
+Using this tracer, analyze the system irqs latency. Run the following command
+for a few seconds and hit \code{Ctrl + [C]} to stop it.
+
+\begin{bashinput}
+$ trace-cmd record -p irqsoff
+^C
+\end{bashinput}
+
+Once done, you can visualize which section of code generated too much latency by
+using:
+
+\begin{bashinput}
+$ trace-cmd report
+\end{bashinput}
+
+This will display a trace of the longest chain of calls while itnerrupts were
+disabled. Based on this report, can you find the code that generates this
+latency ?
+
+\section{LTTng}
+
+Go into the primes directory and open the \code{primes.c} file. This file
+computes primes number and output them in a file provided as an argument.
+Compile it using the provided toolchain
+
+\begin{bashinput}
+  $(CROSS_COMPILE)-gcc -Wall -Werror primes.c -o primes
+\end{bashinput}
+
+In order to observe our program performances, we want to instrument it with
+tracepoints. We would like to know two things:
+
+\begin{itemize}
+  \item How much time it takes to generate a prime number.
+  \item How much times it takes to write data to the output file.
+\end{itemize}
+
+In order to do so, add tracepoints to your program which will allows to measure
+this. We'll add 4 tracepoints:
+
+\begin{itemize}
+  \item One for the start of prime number computation
+  \item Another for the end of computation
+  \item One for the start of writing to disk
+  \item Another for the end of writing to disk
+\end{itemize}
+
+For that, create a tracepoint provider header file template named
+\code{primes-tp.h} and another one for the tracepoint provider named
+\code{primes-tp.c}. You can then use the new tracepoints in your program to
+trace specific points of execution.
+
+Once added, you can compile your application using the following command.
+
+\begin{bashinput}
+$ $(CROSS_COMPILE)-gcc -I. primes-tp.c primes.c  -llttng-ust -o primes
+\end{bashinput}
+
+Enable the program tracepoints, run it and collect tracepoints.
+
+Download \code{tracecompass} latest version from the eclipse website:
+(https://www.eclipse.org/tracecompass/) and extract it using:
+
+\begin{bashinput}
+  tar -xvf trace-compass-*.tar.gz
+\end{bashinput}
+
+Run it
+\begin{bashinput}
+$ cd trace-compass*
+$ ./tracecompass
+\end{bashinput}

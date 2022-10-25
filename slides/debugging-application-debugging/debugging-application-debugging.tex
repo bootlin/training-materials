@@ -1,0 +1,198 @@
+\section{Application Debugging}
+
+\begin{frame}
+  \frametitle{Compiler impact on debuggability}
+  \begin{itemize}
+    \item When compiling an application, optimizations that are applied by the
+          compiler have a direct impact on the debuggability.
+    \item Some values might be optimized out and thus not accessible when
+          debugging.
+    \item Same goes for static functions, they are often folded into the caller
+          and thus won't be displayed in backtraces
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{libSegFault}
+  \begin{itemize}
+      \item Displaying a backtrace from your application were the crash happened
+            is useful to debug and can be done using \code{backtrace()}
+            (\manpage{backtrace}{3}GNU extension function:
+  \end{itemize}
+    \begin{block}{}
+      \begin{minted}[fontsize=\small]{c}
+char **backtrace_symbols(void *const *buffer, int size);
+      \end{minted}
+    \end{block}
+
+  \begin{itemize}
+    \item LibSegFault is a library that will allow to automatically display a
+          backtrace and more information when your program does generate a
+          segfault.
+    \item {\em LibSegFault.so} is provided by the glibc and is available for
+          many architectures
+    \item Can be used without recompilation by preloading it with \code{LD_PRELOAD}
+  \end{itemize}
+  \begin{block}{}
+    \begin{minted}[fontsize=\small]{console}
+$ LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libSegFault.so ./segfault
+    \end{minted}
+  \end{block}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{libSegFault (condensed) report}
+    \begin{block}{}
+      \begin{minted}[fontsize=\tiny]{console}
+Register dump:
+RAX: 0000000000000000   RBX: 0000558cd999b190   RCX: 0000000000000000
+RDX: 000000000000000a   RSI: 0000000000000000   RDI: 0000000000000000
+RBP: 00007ffe401b9480   R8 : 0000000000000000   R9 : 00007f52bd5021f0
+R10: fffffffffffff4b9   R11: 00007f52bd44a140   R12: 0000558cd999b050
+R13: 0000000000000000   R14: 0000000000000000   R15: 0000000000000000
+RSP: 00007ffe401b9468
+
+RIP: 00007f52bd44a289   EFLAGS: 00010202
+
+Backtrace:
+/lib/x86_64-linux-gnu/libc.so.6(+0x15f289)[0x7f52bd44a289]
+./segfault(+0x115b)[0x558cd999b15b]
+./segfault(+0x117a)[0x558cd999b17a]
+/lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xcd)[0x7f52bd30e7fd]
+./segfault(+0x107a)[0x558cd999b07a]
+
+Memory map:
+558cd999a000-558cd999b000 r--p 00000000 103:03 19547792     /home/cleger/segfault
+558cd999b000-558cd999c000 r-xp 00001000 103:03 19547792     /home/cleger/segfault
+558cd999c000-558cd999d000 r--p 00002000 103:03 19547792     /home/cleger/segfault
+558cd999d000-558cd999e000 r--p 00002000 103:03 19547792     /home/cleger/segfault
+558cd999e000-558cd999f000 rw-p 00003000 103:03 19547792     /home/cleger/segfault
+558cdafa8000-558cdafc9000 rw-p 00000000 00:00 0             [heap]
+    \end{minted}
+  \end{block}
+\end{frame}
+
+\input{../common/gdb.tex}
+
+\begin{frame}
+  \frametitle{GDB: going further}
+  \begin{itemize}
+    \item Tutorial: Debugging Embedded Devices using GDB - Chris Simmonds, 2020
+    \begin{itemize}
+      \item Slides: \url{https://elinux.org/images/0/01/Debugging-with-gdb-csimmonds-elce-2020.pdf}
+      \item Video: \url{https://www.youtube.com/watch?v=JGhAgd2a_Ck}
+    \end{itemize}
+  \end{itemize}
+  \begin{center}
+    \includegraphics[height=0.6\textheight]{slides/debugging-application-debugging/gdb_tuto_elce_2020.png}
+  \end{center}
+\end{frame}
+
+
+\begin{frame}
+  \frametitle{GDB Python Extension}
+  \begin{itemize}
+    \item GDB features a \href{https://sourceware.org/gdb/onlinedocs/gdb/Python.html}{python integration},
+          allowing to script some debugging operations
+    \item When executing python under GDB, a module named {\em gdb} is available
+          and all the GDB specific classes are accessible under this module
+    \item Allow to add new types of commands, breakpoint, printers
+    \begin{itemize}
+      \item Used by the kernel to create new commands with the python GDB scripts
+    \end{itemize}
+    \item Allow full control and observability over the debugged program using
+          GDB capabilities from Python scripts
+    \begin{itemize}
+      \item Controlling execution, adding breakpoints, watchpoints, etc
+      \item Accessing the process memory, frames, symbols, etc
+    \end{itemize}
+  \end{itemize}
+  \begin{center}
+    \includegraphics[height=0.2\textheight]{slides/debugging-application-debugging/python_logo.pdf}
+  \end{center}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{GDB Python Extension (1/2)}
+  \begin{block}{}
+    \begin{minted}[fontsize=\tiny]{python}
+class PrintOpenFD(gdb.FinishBreakpoint):
+  def __init__(self, file):
+    self.file = file
+    super(PrintOpenFD, self).__init__()
+
+  def stop (self):
+    print ("---> File " + self.file + " opened with fd " + str(self.return_value))
+    return False
+
+class PrintOpen(gdb.Breakpoint):
+  def stop(self):
+    PrintOpenFD(gdb.parse_and_eval("file").string())
+    return False
+
+class TraceFDs (gdb.Command):
+  def __init__(self):
+    super(TraceFDs, self).__init__("tracefds", gdb.COMMAND_USER)
+
+  def invoke(self, arg, from_tty):
+    print("Hooking open() with custom breakpoint")
+    PrintOpen("open")
+
+TraceFDs()
+    \end{minted}
+  \end{block}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{GDB Python Extension (2/2)}
+  \begin{itemize}
+    \item Python script can be loaded using gdb \code{source} command
+    \begin{itemize}
+      \item Or the script can be named <program>-gdb.py and will be loaded automatically by GDB
+    \end{itemize}
+  \end{itemize}
+  \begin{block}{}
+    \begin{minted}[fontsize=\small]{console}
+(gdb) source trace_fds.py 
+(gdb) tracefds 
+Hooking open() with custom breakpoint
+Breakpoint 1 at 0x33e0
+(gdb) run
+Starting program: /usr/bin/touch foo bar
+Temporary breakpoint 2 at 0x5555555587da
+---> File foo opened with fd 3
+Temporary breakpoint 3 at 0x5555555587da
+---> File bar opened with fd 0
+    \end{minted}
+  \end{block}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Good practices}
+  \begin{itemize}
+    \item Some good practices can allow you to save time before even needing to
+          use a debugger
+    \item Compiler are now smart enough to detect a wide range of errors at
+          compile-time using warnings
+    \begin{itemize}
+      \item Using \code{-Werror -Wall -Wextra} is recommended if possible to catch
+            errors as early as possible
+    \end{itemize}
+    \item Compilers now offer static analysis capabilities
+    \begin{itemize}
+      \item GCC allows to do so using the \href{https://gcc.gnu.org/onlinedocs/gcc-11.1.0/gcc/Static-Analyzer-Options.html}{-fanalyzer} flag
+      \item LLVM provides \href{https://clang-analyzer.llvm.org/command-line.html}{dedicated tools} that can be used in build process
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\setuplabframe
+{Solving an application crash}
+{
+  Debugging an application crash
+  \begin{itemize}
+    \item Code generation analysis with compiler-explorer
+    \item Using GDB and its Python support
+    \item Analyzing and using a coredump
+  \end{itemize}
+}

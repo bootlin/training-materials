@@ -1,0 +1,66 @@
+\subchapter
+{Debugging application issues}
+{Objectives:
+  \begin{itemize}
+    \item Analyze dynamic library calls from an application using
+            {\em ltrace}.
+    \item Using {\em strace} to analyze program syscalls.
+  \end{itemize}
+}
+
+\section{ltrace}
+
+Go into the \code{ltrace} folder
+
+\begin{bashinput}
+$ cd /root/ltrace/
+\end{bashinput}
+
+From there, run the \code{traceme} application:
+
+\begin{bashinput}
+$ export LD_LIBRARY_PATH=$PWD
+$ ./authent
+Error: failed to authenticate the user !
+\end{bashinput}
+
+As you can see, it seems our application is failing to correctly authenticate
+the system. Using {\em ltrace}, trace the application in order to understand
+what is going on. From what we can see, some function is failing and seems to
+returns 1 instead of 0.
+
+In order to overload this check, we can use a \code{LD_PRELOAD} a library.
+We'll override the \code{al_authent_user()} based on the
+\code{authent_library.h} definitions. Create a file \code{overload.c} which
+override the \code{al_authent_user()}, prints the user, password and returns 0. 
+Compile it using the following command line:
+
+\begin{bashinput}
+$ gcc -fPIC -shared overload.c -o overload.so
+\end{bashinput}
+
+Finally, run your application and preload the new library using the following
+command:
+\begin{bashinput}
+$ LD_PRELOAD=./overload.so ./authent
+\end{bashinput}
+
+\section{strace}
+
+\code{strace} is useful to debug an application when you don't have the source.
+For that example, use the \code{strace_me} binary that is present in on the
+target in \code{/root/strace} and run it with strace:
+
+\begin{bashinput}
+$ cd /root/strace
+$ strace ./strace_me
+\end{bashinput}
+
+Based on the output and running strace with other options, try to answer the
+following questions:
+\begin{itemize}
+  \item What are the files that are opened by this binary ?
+  \item How many time is \code{read()} called ?
+  \item Which \code{openat} system call failed ?
+  \item How many system calls are issued by the program ?
+\end{itemize}
