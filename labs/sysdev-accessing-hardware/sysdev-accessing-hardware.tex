@@ -323,13 +323,25 @@ file, shared between multiple stm32mp15 DK boards, which is included
 by the toplevel Device Tree for our board.
 
 Modify the \kfile{arch/arm/boot/dts/Makefile} file to add your custom
-Device Tree, and then have it compiled (\code{make dtbs}). Reboot
-your board with the update.
+Device Tree, and then have it compiled (\code{make dtbs}).
 
-We can now see that there is one more I2C bus. We can also recognize the
-I2C5 address (\code{0x40015000}) though it's now associated to
-the \code{i2c-1} device name, which already existed previously, but
-mapped to a different physical device:
+Reboot your board with the update.
+
+When this works, create a branch for your kernel changes. {\bf Please
+don't skip this step} as it would interfere with the version assigned
+to the kernel and its modules, and with the way we will refer to our
+kernel sources in the upcoming labs.
+
+\begin{bashinput}
+git checkout -b bootlin-labs
+git add arch/arm/boot/dts/stm32mp157a-dk1-custom.dts
+git commit -as -m "Custom DTS for Bootlin lab"
+\end{bashinput}
+
+Back to the running system, we can now see that there is one more
+I2C bus. We can also recognize the I2C5 address (\code{0x40015000})
+though it's now associated to the \code{i2c-1} device name, which
+already existed previously, but mapped to a different physical device:
 
 \begin{bashinput}
 # i2cdetect -l
@@ -501,13 +513,7 @@ a good opportunity to practice with kernel modules.
 Following details given in the lectures, compile the modules for your
 kernel if necessary (in case you just compiled the \code{zImage} and
 DTB files), and then install them in our NFS root filesystem
-(\code{$HOME/__SESSION_NAME__-labs/tinysystem/nfsroot}). Make sure to
-also reinstall the kernel image, and reboot the board. Indeed, due to
-the changes we have made to the kernel source code, the kernel version
-is now \code{5.15.<x>-dirty}, the {\em dirty} indicating that the Git
-working tree has uncommitted changes. The modules are therefore
-installed in \code{/lib/modules/5.15.<x>-dirty/}, and the version of
-the running Linux kernel must match this.
+(\code{$HOME/__SESSION_NAME__-labs/tinysystem/nfsroot}).
 
 After rebooting, try to load the module that we need:
 
