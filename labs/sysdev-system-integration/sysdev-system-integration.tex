@@ -14,29 +14,25 @@ Since {\em systemd} requires the GNU C library, we are going
 to make a new Buildroot build in a new working directory, and
 using a different cross-compiling toolchain.
 
-So, create the \code{$HOME/__SESSION_NAME__-labs/integration} directory.
+So, create the \code{$HOME/__SESSION_NAME__-labs/integration} directory
+and go inside it.
 
-Make a new clone of Buildroot from the existing local Git repository.
+Make a new clone of Buildroot from the existing local Git repository,
+and checkout our \code{bootlin-labs} branch:
+
+\begin{bashinput}
+git clone $HOME/embedded-linux-labs/buildroot/buildroot
+cd buildroot
+git checkout bootlin-labs
+\end{bashinput}
 
 \section{Root filesystem overlay}
 
-Copy the root filesystem overlay from the previous lab, but remove
-the \code{etc/init.d/S03modprobe} file, as with {\em systemd}, the
-way to load modules will be different:
+Remove \code{etc/init.d/} from the root filesystem overlay.
+It was adapted to {\em BusyBox init}, not to {\em systemd}:
 
 \begin{bashinput}
-cp -a ../buildroot/rootfs-overlay .
-rm -rf rootfs-overlay/etc/init.d
-\end{bashinput}
-
-We also have to move the modules in \code{/lib/modules} to
-\code{/usr/lib/modules} in the overlay, because using {\em systemd}
-will require Buildroot to make \code{/lib} become a symbolic
-link to \code{/usr/lib}:
-
-\begin{bashinput}
-mkdir rootfs-overlay/usr
-mv rootfs-overlay/lib rootfs-overlay/usr/
+rm -r ./board/bootlin/stm32mp1-training/rootfs-overlay/etc/init.d/
 \end{bashinput}
 
 \section{Buildroot configuration}
@@ -63,7 +59,19 @@ Configure Buildroot as follows:
   \begin{itemize}
   \item \code{Init system}: \code{systemd}
   \item \code{Run a getty (login prompt) after boot}, \code{TTY port}: \code{ttySTM0}
-  \item \code{Root filesystem overlay directories}: \code{../rootfs-overlay}
+  \item \code{Root filesystem overlay directories}: \code{board/bootlin/stm32mp1-training/rootfs-overlay}
+  \end{itemize}
+\item \code{Kernel}
+  \begin{itemize}
+  \item Enable \code{Linux Kernel}
+  \item Set \code{Kernel version} to \code{Custom Git repository}
+  \item Set \code{URL of custom repository} to \code{file:///../../kernel/linux}
+        (you can also use an absolute path)
+  \item Set \code{Custom repository version} to \code{bootlin-labs}
+  \item Set \code{Kernel configuration} to \code{Using a custom (def)config file})
+  \item Set \code{Configuration file path} to \code{board/bootlin/stm32mp1-training/linux.config}
+  \item Select \code{Build a Device Tree Blob (DTB)}
+  \item Set \code{In-tree Device Tree Source file names} to \code{stm32mp157a-dk1-custom}
   \end{itemize}
 \item \code{Target packages}
   \begin{itemize}
@@ -80,6 +88,10 @@ Configure Buildroot as follows:
     \begin{itemize}
     \item Select \code{ltrace}
     \item Select \code{strace}
+    \end{itemize}
+  \item \code{Hardware handling}
+    \begin{itemize}
+    \item Select \code{nunchuk driver}
     \end{itemize}
   \item \code{Networking applications}
     \begin{itemize}
