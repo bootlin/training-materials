@@ -1,4 +1,3 @@
-\subchapter{Accessing Hardware Devices}
 {Objective: learn how to access hardware devices and declare new ones.}
 
 \section{Goals}
@@ -130,7 +129,7 @@ Take one of the M-M breadboard wires provided by your instructor and:
   \item Connect the other end to pin 7 (GND) of connector CN16
 \end{itemize}
 
-\includegraphics[width=6cm]{labs/sysdev-accessing-hardware/dk1-board-gpio-connected-to-gnd.jpg}
+\includegraphics[width=6cm]{labs/sysdev-accessing-hardware-stm32/dk1-board-gpio-connected-to-gnd.jpg}
 
 If you check the {\em Pinout of the Arduino™ connectors} table in the board
 documentation
@@ -150,35 +149,35 @@ interface. First, let's enable it:
 
 \begin{bashinput}
 # cd /sys/class/gpio
-# echo 65 > export
+# echo %\gpionum% > export
 \end{bashinput}
 
 If indeed the pin is still available, this should create a new
-\code{gpio65} file should appear in \code{/sys/class/gpio}.
+{\tt gpio\gpionum} file should appear in \code{/sys/class/gpio}.
 
 We can now configure this pin as input:
 
 \begin{bashinput}
-# echo in > gpio65/direction
+# echo in > gpio%\gpionum%/direction
 \end{bashinput}
 
 And check its value:
 
 \begin{bashinput}
-# cat gpio65/value
+# cat gpio%\gpionum%/value
 0
 \end{bashinput}
 
 The value should be \code{0} as the pin is connected to a ground level.
 
-Now, let's connect our GPIO pin to pin 2 (IOREF 3V3) of connector CN16.
+{Now, let's connect our GPIO pin to pin 2 (IOREF 3V3) of connector CN16.
 That's the same connector as before, just the second pin from the top
 (in the board picture above), instead of the seventh one.
 
 Let's check the value again:
 
 \begin{bashinput}
-# cat gpio65/value
+# cat gpio%\gpionum%/value
 1
 \end{bashinput}
 
@@ -192,22 +191,26 @@ through the \code{value} file. This way, you could add an external LED
 to your board, for example.
 
 Before moving on to the next section, you can also check
-\code{/sys/kernel/debug/gpio} again, and see that \code{gpio-65} is now
+\code{/sys/kernel/debug/gpio} again, and see that {\tt gpio-\gpionum} is now
 in use, through the sysfs interface, and is configured as an input pin.
 
 When you're done, you can see your GPIO free:
 
 \begin{bashinput}
-# echo 65 > unexport
+# echo %\gpionum% > unexport
 \end{bashinput}
 
 \section{Driving LEDs}
 
-Go to \code{/sys/class/leds} to see all the LEDs that you are allowed
+First, make sure your kernel is compiled with
+\kconfigval{CONFIG_LED_CLASS}{y}, \kconfigval{CONFIG_LEDS_GPIO}{y}
+and \kconfigval{CONFIG_LEDS_TRIGGER_TIMER}{y}.
+
+Then, go to \code{/sys/class/leds} to see all the LEDs that you are allowed
 to control.
 
-Currently, on the DK1 board, at least with the default Device Tree and
-kernel configuration, you can only control the \code{heartbeat} LED.
+Let's control the LED which is called
+\code{heartbeat}.
 
 Go into the directory for this LED, and check its trigger (what
 routine is used to drive its value):
@@ -280,6 +283,9 @@ we can find what is the base address of the registers for the
 
 \subsection{Customizing the Device Tree}
 
+To enable \busname\ on our system, we need to assign set \code{status =
+"okay";} in the corresponding Device Tree node.
+
 Fortunately, I2C5 is already defined in the one of the DTS includes
 used by the Device Tree for our board. In our case, that's in
 \kfile{arch/arm/boot/dts/stm32mp151.dtsi}. Look by yourself in this
@@ -326,17 +332,6 @@ Modify the \kfile{arch/arm/boot/dts/Makefile} file to add your custom
 Device Tree, and then have it compiled (\code{make dtbs}).
 
 Reboot your board with the update.
-
-When this works, create a branch for your kernel changes. {\bf Please
-don't skip this step} as it would interfere with the version assigned
-to the kernel and its modules, and with the way we will refer to our
-kernel sources in the upcoming labs.
-
-\begin{bashinput}
-git checkout -b bootlin-labs
-git add arch/arm/boot/dts/stm32mp157a-dk1-custom.dts
-git commit -as -m "Custom DTS for Bootlin lab"
-\end{bashinput}
 
 Back to the running system, we can now see that there is one more
 I2C bus. We can also recognize the I2C5 address (\code{0x40015000})
@@ -412,7 +407,7 @@ Let's connect the Nunchuk provided by your instructor
 to the I2C5 bus on the board, using breadboard wires:
 
 \includegraphics[width=4cm]{common/nunchuk-pinout.pdf}
-\includegraphics[width=6cm]{labs/sysdev-accessing-hardware/dk1-board-nunchuk-connected.jpg}
+\includegraphics[width=6cm]{labs/sysdev-accessing-hardware-stm32/dk1-board-nunchuk-connected.jpg}
 
 \begin{itemize}
 \item Connect the Nunchuk PWR pin to pin 4 (3V3) of connector CN16
@@ -462,12 +457,13 @@ additional device:
 \begin{bashinput}
 # lsusb
 Bus 001 Device 001: ID 1d6b:0002
-Bus 001 Device 005: ID 1b1c:0a06
+Bus 001 Device 004: ID 1b3f:2008
 Bus 001 Device 002: ID 0424:2514
 \end{bashinput}
 
-The device of vendor ID \code{1b1c} and product ID \code{0a06} has
-appeared.
+The device of vendor ID \code{1b3f} and product ID \code{2008} has
+appeared. Of course, this depends on the actual USB audio device
+that you used.
 
 The device also appears in \code{/sys/bus/usb/devices/}, in a
 directory whose name depends on the topology of the USB bus. When the
@@ -483,15 +479,15 @@ sysfs} representation of this USB device:
 \begin{bashinput}
 # cd /sys/bus/usb/devices/1-1.1
 # cat idVendor
-1b1c
+1b3f
 # cat idProduct
-0a06
+2008
 # cat busnum
 1
 # cat devnum
-6
+4
 # cat product
-Raptor HS40
+USB Audio Device
 \end{bashinput}
 
 However, while the USB device is detected, we currently do not have
@@ -515,6 +511,13 @@ kernel if necessary (in case you just compiled the \code{zImage} and
 DTB files), and then install them in our NFS root filesystem
 (\code{$HOME/__SESSION_NAME__-labs/tinysystem/nfsroot}).
 
+Also make sure reinstall the kernel image, and reboot the board.
+Indeed, due to the changes we have made to the kernel source code,
+the kernel version is now \code{5.15.<x>-dirty}, the {\em dirty}
+keyword indicating that the Git working tree has uncommitted changes.
+The modules are therefore installed in \code{/lib/modules/5.15.<x>-dirty/},
+and the version of the running Linux kernel must match this.
+
 After rebooting, try to load the module that we need:
 
 \begin{bashinput}
@@ -534,8 +537,8 @@ card is available:
 
 \begin{bashinput}
 # cat /proc/asound/cards
- 0 [H340           ]: USB-Audio - Logitech USB Headset H340
-                      Logitech Inc. Logitech USB Headset H340 at usb-5800d000.usb-1.3, full speed
+ 0 [Device         ]: USB-Audio - USB Audio Device
+                      GeneralPlus USB Audio Device at usb-musb-hdrc.1-1, full speed
 \end{bashinput}
 
 Check also the \code{/dev/snd} directory, which should now contain
@@ -621,7 +624,7 @@ see some devices, but not the Nunchuk one yet.
 \section{Declaring an I2C device}
 
 To allow the kernel to manage our Nunchuk device, let's declare the
-device in the custom Device Tree for our board. The declaration of the I2C5
+device in the custom Device Tree for our board. The declaration of the \busname\ 
 bus will then look as follows:
 
 \begin{verbatim}
@@ -686,7 +689,7 @@ We will use the Nunchuk to control audio playback in an upcoming lab.
 
 Modify the custom Device Tree file one last time to override the model
 name for your system. Set the \code{model} property to
-\code{STM32MP157A-DK1 media player}. Don't hesitate to ask your
+\code{STM32MP1 media player}. Don't hesitate to ask your
 instructor if you're not sure how.
 
 Recompile the device tree, and reboot the board with it. You should see
@@ -700,5 +703,26 @@ the new model name in two different places:
       find that every subdirectory corresponds to a DT node, and every
       file corresponds to a DT property.
 \end{itemize}
+
+\section{Committing kernel tree changes}
+
+Now that our changes to the kernel sources are over,
+create a branch for your changes. {\bf Please
+don't skip this step} as it would interfere with the version assigned
+to the kernel and its modules, and with the way we will refer to our
+kernel sources in the upcoming labs.
+
+\begin{bashinput}
+git checkout -b bootlin-labs
+git add arch/arm/boot/dts/stm32mp157a-dk1-custom.dts
+git commit -as -m "Custom DTS for Bootlin lab"
+\end{bashinput}
+
+Doing this will impact the versions of the kernel and the modules.
+Compile your kernel and install your modules again (not necessary for the
+Nunchuk one for the moment) and see the version changes through the
+new based directory for modules.
+
+Don't forget to update the kernel your board boots.
 
 That's all for now!

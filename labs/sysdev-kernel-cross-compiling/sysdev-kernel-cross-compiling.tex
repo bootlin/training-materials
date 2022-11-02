@@ -67,47 +67,65 @@ Also, don't forget to either:
 
 \section{Linux kernel configuration}
 
+By running \code{make help}, look for the proper Makefile target to
+configure the kernel for your processor.
+
 \ifdefstring{\labboard}{stm32mp1}
-{
-The standard configuration for this kernel is \code{multi_v7_defconfig},
+{The standard configuration for this kernel is actually \code{multi_v7_defconfig},
 but this will generate a pretty big kernel with support for many other
 SoCs. However, we can reduce it to compile faster and get a small
-kernel.
+kernel.}{}
 
-So, apply this configuration, and than run \code{make menuconfig}, and
-in the \code{System Type} menu, remove support for all the SoCs except
-the STM32MP157 ones. Don't forget to disable the TI ones too which are
-in a submenu.
+\ifdefstring{\labboard}{beaglebone}
+{In our case look for a configuration for boards in the OMAP2 and
+later family which the AM335x found in the BeagleBone belongs to.}{}
+\ifdefstring{\labboard}{qemu}
+{In course case, use the configuration for the ARM Vexpress boards
+(\code{vexpress_defconfig}).}{}
 
-Also disable:
+
+So, apply this configuration, and than run \code{make menuconfig}.
 
 \begin{itemize}
-
-\item \kconfig{CONFIG_DRM}, which will skip support for many display
-controller and GPU drivers
-
-\item \kconfig{CONFIG_GCC_PLUGINS}, which will skip building special
+\item Disable \kconfig{CONFIG_GCC_PLUGINS}, which will skip building special
   {\em gcc} plugins, which would require extra dependencies for the
-  build
-
+  build.
+\ifdefstring{\labboard}{stm32mp1}{
+  \item In the \code{System Type} menu, remove support for all the SoCs except
+  the STM32MP157 ones. Don't forget to disable the TI ones too which are
+  in a submenu.
+  \item Disable \kconfig{CONFIG_DRM}, which will skip support for many display
+  controller and GPU drivers.}{}
+\ifdefstring{\labboard}{qemu}{
+  Also start \code{make menuconfig} to
+  add \kconfig{CONFIG_DEVTMPFS_MOUNT} to your configuration.}{}
+\ifdefstring{\labboard}{beaglebone}{
+\item Add options to support USB host and networking over USB device:
+\begin{itemize}
+  \item \kconfigval{CONFIG_USB}{y}
+  \item \kconfigval{CONFIG_USB_GADGET}{y}
+  \item \kconfigval{CONFIG_USB_MUSB_DSPS}{y}
+  \item \kconfigval{CONFIG_USB_MUSB_HDRC}{y} {\em Driver for the USB OTG
+        controller}
+  \item \kconfigval{CONFIG_USB_MUSB_DUAL_ROLE}{y} {\em Use the USB OTG
+        both in host and device (gadget) modes. This will be needed
+        later to use the board's USB host port.}
+  \item Check the dependencies of \kconfig{CONFIG_AM335X_PHY_USB}
+        and find the way to set \kconfigval{CONFIG_AM335X_PHY_USB}{y}
+  \item Find the "USB Gadget precomposed configurations" menu
+        and set it to {\em static} instead of {\em module}
+        so that \kconfigval{CONFIG_USB_ETH}{y}
+\end{itemize}
+\item Also compile your kernel with \kconfigval{CONFIG_INPUT_EVDEV}{y},
+  to have the same default setting as in our labs with the STM32MP1 boards.
+}{}
 \end{itemize}
 
+\ifdefstring{\labboard}{stm32mp1}{
 Please note that this will definitely not build the smallest
 and most optimized kernel for STM32MP1: \code{multi_v7_defconfig}
 enables plenty of features and drivers that will not be useful on our
-particular board.
-}
-{
-By running \code{make help}, find the proper Makefile target to
-configure the kernel
-\ifdefstring{\labboard}{qemu}
-{for the ARM Vexpress boards (\code{vexpress_defconfig}).}
-}
-
-\ifdefstring{\labboard}{qemu}
-{Also start \code{make menuconfig} to
-add \kconfig{CONFIG_DEVTMPFS_MOUNT} to your configuration.}
-{}
+particular board.}{}
 
 \section{Cross compiling}
 
@@ -122,6 +140,12 @@ Look at the end of the kernel build output to see which file contains
 the kernel image. You can also see the Device Tree \code{.dtb} files
 which got compiled. Find which \code{.dtb} file corresponds to your
 board.
+
+\ifdefstring{\labboard}{beaglebone}
+{For the BeagleBone Black, its \code{am335x-boneblack.dtb},
+and for the BeagleBone Black Wireless, its
+\code{am335x-boneblack-wireless.dtb}.}
+{}
 
 Copy the linux kernel image and DTB files to the TFTP server
 home directory.
@@ -173,9 +197,3 @@ reset. Reset the board, and customize \code{bootcmd}:
 \end{ubootinput}
 
 Restart the board to make sure that booting the kernel is now automated.
-
-\ifdefstring{\labboard}{stm32mp1}
-{
-\input{sysdev-kernel-cross-compiling-stm32mp1.tex}
-}
-{}

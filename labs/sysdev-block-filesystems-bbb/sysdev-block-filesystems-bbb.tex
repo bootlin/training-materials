@@ -43,30 +43,23 @@ unmount them:
 
 \bashcmd{$ sudo umount /dev/mmcblk0p*}
 
-Using \code{parted}, add two partitions, starting from the beginning
+Using \code{cfdisk}, add two partitions, starting from the beginning
 of the remaining space, with the following properties:
+
 \begin{itemize}
-
-\item One partition, for the root filesystem, 8 MB big:
-\begin{verbatim}
-mkpart rootfs 131072s 147455s
-\end{verbatim}
-
-\item One partition, that fills the rest of the SD card, that will be
-  used for the data filesystem:
-\begin{verbatim}
-mkpart data 147456s 100%
-\end{verbatim}
+\item A second primary partition, 8 MB big, for the root filesystem
+\item A third primary partition, that fills the rest of the SD card, that will be
+  used for the data filesystem
 \end{itemize}
 
-Use \code{quit} when you are done.
+Save and exit when you are done.
 
 \section{Data partition on the SD card}
 
 Using the \code{mkfs.ext4} create a journaled file system on the
-sixth partition of the SD card:
+third partition of the SD card:
 
-\bashcmd{$ sudo mkfs.ext4 -L data -E nodiscard /dev/mmcblk0p6}
+\bashcmd{$ sudo mkfs.ext4 -L data -E nodiscard /dev/mmcblk0p3}
 
 \begin{itemize}
 \item \code{-L} assigns a volume name to the partition
@@ -117,19 +110,19 @@ Reboot your system and check that it works as expected.
 \section{Making a SquashFS image}
 
 We are going to store the root filesystem in a SquashFS filesystem in
-the fifth partition of the SD card.
+the second partition of the SD card.
 
 In order to create SquashFS images on your host, you need to install
 the \code{squashfs-tools} package. Now create a SquashFS image of your
 NFS root directory.
 
 Finally, using the \code{dd} command, copy the file system image to
-the fifth partition of the SD card.
+the second partition of the SD card.
 
 \section{Booting on the SquashFS partition}
 
 In the U-boot shell, configure the kernel command line to use the
-fifth partition of the SD card as the root file system. Also add the
+second partition of the SD card as the root file system. Also add the
 \code{rootwait} boot argument, to wait for the SD card to be properly
 initialized before trying to mount the root filesystem. Since the SD
 cards are detected asynchronously by the kernel, the kernel might try

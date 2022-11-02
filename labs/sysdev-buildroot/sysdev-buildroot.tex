@@ -65,13 +65,13 @@ and a custom filesystem, let's add our own subdirectory under
 \code{board}:
 
 \begin{bashinput}
-mkdir -p board/bootlin/stm32mp1-training
+mkdir -p board/bootlin/training
 \end{bashinput}
 
 Then, copy your kernel configuration:
 
 \begin{bashinput}
-cp ../../kernel/linux/.config board/bootlin/stm32mp1-training/linux.config
+cp ../../kernel/linux/.config board/bootlin/training/linux.config
 \end{bashinput}
 
 We will configure Buildroot to use this kernel configuration.
@@ -102,16 +102,17 @@ button whenever you need more details about a given option:
 \item \code{Target options}
   \begin{itemize}
   \item \code{Target Architecture}: \code{ARM (little endian)}
-  \ifdefstring{\labboard}{stm32mp1}{
-  \item \code{Target Architecture Variant}: \code{cortex-A7}
+   \ifdefstring{\labboard}{stm32mp1}{
+   \item \code{Target Architecture Variant}: \code{cortex-A7}
+   \item \code{Enable VFP extension support}: Enabled
   }{
    \ifdefstring{\labboard}{qemu}{
    \item \code{Target Architecture Variant}: \code{cortex-A9}
    \item \code{Enable NEON SIMD extension support}: Enabled
-   }{
-   \item \code{Target Architecture Variant}: \code{cortex-A5}
-   }
    \item \code{Enable VFP extension support}: Enabled
+   }{%beaglebone
+   \item \code{Target Architecture Variant}: \code{cortex-A8}
+   }
   }
   \item \code{Target ABI}: \code{EABIhf}
   \ifdefstring{\labboard}{stm32mp1}{
@@ -119,8 +120,8 @@ button whenever you need more details about a given option:
   }{
    \ifdefstring{\labboard}{qemu}{
    \item \code{Floating point strategy}: \code{VFPv3-D16}
-   }{
-   \item \code{Floating point strategy}: \code{VFPv4-D16}
+   }{%beaglebone
+   \item \code{Floating point strategy}: \code{VFPv3-D16}
    }
   }
   \end{itemize}
@@ -132,7 +133,7 @@ button whenever you need more details about a given option:
     \code{/home/<user>/x-tools/arm-training-linux-uclibcgnueabihf}
     (replace \code{<user>} by your actual user name)
   \item \code{External toolchain gcc version}: \code{11.x}
-  \item \code{External toolchain kernel headers series}: \code{5.16.x or later}
+  \item \code{External toolchain kernel headers series}: \code{6.0.x or later}
   \item \code{External toolchain C library}: \code{uClibc/uClibc-ng}
   \item We must tell Buildroot about our toolchain configuration, so
     select \code{Toolchain has WCHAR support?},
@@ -144,13 +145,14 @@ button whenever you need more details about a given option:
   \begin{itemize}
   \item Enable \code{Linux Kernel}
   \item Set \code{Kernel version} to \code{Custom Git repository}
+  \item Set \code{URL of custom repository} to \code{file://$(HOME)/__SESSION_NAME__-labs/kernel/linux}
   \item Set \code{Custom repository version} to \code{bootlin-labs}
-  \item Set \code{URL of custom repository} to \code{file://$(HOME)/embedded-linux-labs/kernel/linux}
-	(you can also use an absolute path)
   \item Set \code{Kernel configuration} to \code{Using a custom (def)config file})
-  \item Set \code{Configuration file path} to \code{board/bootlin/stm32mp1-training/linux.config}
+  \item Set \code{Configuration file path} to \code{board/bootlin/training/linux.config}
   \item Select \code{Build a Device Tree Blob (DTB)}
-  \item Set \code{In-tree Device Tree Source file names} to \code{stm32mp157a-dk1-custom}
+  \item Set \code{In-tree Device Tree Source file names} to
+        \ifdefstring{\labboard}{stm32mp1}{\code{stm32mp157a-dk1-custom}}{}
+        \ifdefstring{\labboard}{beaglebone}{\code{am335x-boneblack-custom}}{}
 \end{itemize}
 \item \code{Target packages}
   \begin{itemize}
@@ -273,7 +275,7 @@ our board specific directory, that Buildroot will add after building the
 root filesystem:
 
 \begin{bashinput}
-mkdir -p board/bootlin/stm32mp1-training/rootfs-overlay/
+mkdir -p board/bootlin/training/rootfs-overlay/
 \end{bashinput}
 
 Then add a custom startup script, by adding an \code{etc/init.d/S03modprobe}
@@ -289,7 +291,7 @@ Then, go back to Buildroot's configuration interface:
 \item \code{System configuration}
   \begin{itemize}
   \item Set \code{Root filesystem overlay directories} to
-        \code{board/bootlin/stm32mp1-training/rootfs-overlay}
+        \code{board/bootlin/training/rootfs-overlay}
   \end{itemize}
 \end{itemize}
 
@@ -311,9 +313,11 @@ file in the directory containing the files.}
 for MPD to play:
 
 \begin{bashinput}
-mkdir -p board/bootlin/stm32mp1-training/rootfs-overlay/var/lib/mpd/music
-cp ../data/music/* board/bootlin/stm32mp1-training/rootfs-overlay/var/lib/mpd/music
+mkdir -p board/bootlin/training/rootfs-overlay/var/lib/mpd/music
+cp ../data/music/* board/bootlin/training/rootfs-overlay/var/lib/mpd/music
 \end{bashinput}
+
+Update your root filesystem, and restart your system.
 
 Using the \code{ps} command, check that the \code{mpd} server
 was started by the system, as implemented by the
@@ -376,7 +380,7 @@ playback volume with all sound cards we have tested. We will simply
 add this file to our overlay:
 
 \begin{bashinput}
-cp ../data/mpd.conf board/bootlin/stm32mp1-training/rootfs-overlay/etc/
+cp ../data/mpd.conf board/bootlin/training/rootfs-overlay/etc/
 \end{bashinput}
 
 Run Buildroot again, update your root filesystem, reboot (to get MPD
@@ -476,7 +480,7 @@ You can now press the Nunchuk buttons, use the joypad, and see which
 input events are emitted.
 
 By the way, you can also test which input events are exposed by the
-driver for your audio headset, which doesn't mean that they physically
+driver for your audio headset (if any), which doesn't mean that they physically
 exist.
 
 \section{Commit your changes}

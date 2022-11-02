@@ -82,20 +82,27 @@ NFS, by setting some kernel parameters.
 So add settings to the \code{bootargs} environment variable,
 {\bf in just 1 line}:
 
-{\footnotesize
+\if\defstring{\labboard}{stm32mp1}
 \begin{ubootinput}
 => setenv bootargs ${bootargs} root=/dev/nfs ip=192.168.0.100
-    nfsroot=192.168.0.1:/home/<user>/__SESSION_NAME__-labs/tinysystem/nfsroot,nfsvers=3,tcp rw
-  \end{ubootinput}
-}
+   nfsroot=192.168.0.1:/home/<user>/__SESSION_NAME__-labs/tinysystem/nfsroot,
+   nfsvers=3,tcp rw
+\end{ubootinput}
+\fi
+
+\if\defstring{\labboard}{beaglebone}
+\begin{ubootinput}
+=> setenv bootargs ${bootargs} root=/dev/nfs ip=192.168.0.100:::::usb0
+   g_ether.dev_addr=f8:dc:7a:00:00:02 g_ether.host_addr=f8:dc:7a:00:00:01
+   nfsroot=192.168.0.1:/home/<user>/__SESSION_NAME__-labs/tinysystem/nfsroot,
+   nfsvers=3,tcp rw
+\end{ubootinput}
+\fi
 
 Once again, replace \code{<user>} by your actual user name.
 
 Of course, you need to adapt the IP addresses to your exact network
 setup. Save the environment variables (with \code{saveenv}).
-
-You will later need to make changes to the \code{bootargs} value.
-Don't forget you can do this with the \code{editenv} command.
 
 Now, boot your system. The kernel should be able to mount the root
 filesystem over NFS:
@@ -219,14 +226,7 @@ suspend jobs.
 So, to get rid of the warning message, we need \code{init} to run
 \code{/bin/sh} in a real terminal device:
 
-\ifdefstring{\labboard}{stm32mp1}{
-\code{ttySTM0::askfirst:/bin/sh}
-}{
-\ifdefstring{\labboard}{qemu}{
-\code{ttyAMA0::askfirst:/bin/sh}
-}{
-\code{ttyS0::askfirst:/bin/sh}
-}}
+{\tt \ttyname:askfirst:/bin/sh}
 
 Reboot the system and the message will be gone!
 

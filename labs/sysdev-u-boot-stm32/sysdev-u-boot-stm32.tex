@@ -38,7 +38,7 @@ Plug the USB-A to micro USB-B cable on the Discovery board. There is
 only one micro USB port on the board, it is CN11, also named ST-LINK.
 This is a debug interface and exposes multiple debugging interfaces,
 including a serial interface. When plugged in your computer, a serial
-port should appear, \code{/dev/ttyACM0}.
+port should appear, {\tt \hosttty}.
 
 You can also see this device appear by looking at the output of
 \code{dmesg}.
@@ -48,8 +48,10 @@ serial communication program, such as \code{picocom}:
 
 \bashcmd{$ sudo apt install picocom}
 
-You also need to make your user belong to the \code{dialout} group to be
-allowed to write to the serial console:
+If you run \code{ls -l /dev/ttyUSB0}, you can also see that only
+\code{root} and users belonging to the \code{dialout} group have
+read and write access to the serial console. Therefore, you need
+to add your user to the \code{dialout} group:
 
 \bashcmd{$ sudo adduser $USER dialout}
 
@@ -58,15 +60,12 @@ allowed to write to the serial console:
 reboot). A workaround is to run \code{newgrp dialout}, but it is not global.
 You have to run it in each terminal.
 
-Run \inlinebash{$ picocom -b 115200 /dev/ttyACM0}, to start serial
-communication on \code{/dev/ttyACM0}, with a baudrate of 115200.
+Run {\tt picocom -b 115200 \hosttty}, to start serial
+communication on {\tt \hosttty}, with a baudrate of 115200.
 
 Don't be surprised if you don't get anything on the serial console yet,
 even if you reset the board. That's because the SoC has nothing to boot
 on yet. We will prepare a micro SD card to boot on in the next paragraphs.
-
-If you wish to exit \code{picocom}, press \code{[Ctrl][a]} followed by
-\code{[Ctrl][x]}.
 
 \section{TF-A and U-Boot relationship}
 
@@ -112,6 +111,7 @@ Basically, you need to:
 
 \item Now that you have a valid initial configuration, you can now
   run \inlinebash{$ make menuconfig} to further edit your bootloader features.
+
   \begin{itemize}
 
   \item In the \code{Environment} submenu, we will configure U-Boot so
@@ -145,14 +145,15 @@ $ sudo apt install libssl-dev device-tree-compiler swig \
        python3-distutils python3-dev
 \end{bashinput}
 
-\item Finally, run \inlinebash{$ make
-    DEVICE_TREE=stm32mp157a-dk1}\footnote{You can speed up the
-    compiling by using the \code{-jX} option with \code{make}, where X
-    is the number of parallel jobs used for compiling. Twice the
-    number of CPU cores is a good value.}, which will build
-  U-Boot. The \code{DEVICE_TREE} variable specifies the specific
-  Device Tree that describes our hardware board, in our case the
-  STM32MP1 Discover Kit 1. You can see that in this case, U-Boot
+\item Finally, run \bashcmd{make DEVICE_TREE=stm32mp157a-dk1}
+  which will build U-Boot
+  \footnote{You can speed up the
+  compiling by using the \code{-jX} option with \code{make}, where X
+  is the number of parallel jobs used for compiling. Twice the
+  number of CPU cores is a good value.}.
+  The \code{DEVICE_TREE} variable specifies the specific
+  Device Tree that describes our hardware board.
+  You can see that in this case, U-Boot
   only ships a Device Tree for the board with the previous version
   of the chip ({\em stm32mp157a} instead of {\em stm32mp157d}).
   Alternatively, if you wish to run just \code{make},
@@ -414,14 +415,11 @@ still defined.
 Now reset the environment to its default settings using \code{env
   default -a}, and save these changes using \code{saveenv}.
 
-\section{Setting up Ethernet communication}
+\section{Setting up networking}
 
-Later on, we will transfer files from the development workstation to
-the board using the TFTP protocol, which works on top of an Ethernet
-connection.
-
-To start with, install and configure a TFTP server on your development
-workstation, as detailed in the bootloader slides.
+The next step is to configure U-boot and your workstation to let your
+board download files, such as the kernel image and Device Tree Binary
+(DTB), using the TFTP protocol through a network connection.
 
 With a network cable, connect the Ethernet port of
 your board to the one of your computer. If your computer already has a
@@ -429,8 +427,36 @@ wired connection to the network, your instructor will provide you with
 a USB Ethernet adapter. A new network interface should appear on your
 Linux system.
 
+\subsection{Network configuration on the target}
+
+Let's configure networking in U-Boot:
+
+\begin{itemize}
+  \item \code{ipaddr}: IP address of the board
+  \item \code{serverip}: IP address of the PC host
+\end{itemize}
+
+\begin{ubootinput}
+=> setenv ipaddr 192.168.0.100
+=> setenv serverip 192.168.0.1
+\end{ubootinput}
+
+Of course, make sure that this address belongs to a separate network
+segment from the one of the main company network.
+
+To make these settings permanent, save the environment:
+
+\begin{ubootinput}
+=> saveenv
+\end{ubootinput}
+
+\subsection{Network configuration on the PC host}
+
+To configure your network interface on the workstation side, we need
+to know the name of the network interface connected to your board.
+
 Find the name of this interface by typing:
-\ubootcmd{=> ip a}
+\bashcmd{=> ip a}
 
 The network interface name is likely to be
 \code{enxxx}\footnote{Following the {\em Predictable Network Interface
@@ -439,52 +465,47 @@ Names} convention:
 If you have a pluggable Ethernet device, it's easy to identify as it's
 the one that shows up after pluging in the device.
 
-Then, instead of configuring the host IP address from NetWork Manager’s graphical interface,
-let’s do it through its command line interface, which is so much easier to use:
+Then, instead of configuring the host IP address from NetWork Manager's
+graphical interface, let's do it through its command line interface,
+which is so much easier to use:
 
 \bashcmd{$ nmcli con add type ethernet ifname en... ip4 192.168.0.1/24}
 
-Now, configure the network on the board in U-Boot by setting the \code{ipaddr}
-and \code{serverip} environment variables:
+\section{Setting up the TFTP server}
 
-\begin{ubootinput}
-=> setenv ipaddr 192.168.0.100
-=> setenv serverip 192.168.0.1
-\end{ubootinput}
+Let's install a TFTP server on your development workstation:
 
-To make these settings permanent, save the environment:
-
-\begin{ubootinput}
-=> saveenv
-\end{ubootinput}
+\begin{verbatim}
+sudo apt install tftpd-hpa
+\end{verbatim}
 
 You can then test the TFTP connection. First, put a small text file in
 the directory exported through TFTP on your development
 workstation. Then, from U-Boot, do:
 
 \begin{ubootinput}
-=> tftp 0xc4000000 textfile.txt
+=> tftp %\zimageboardaddr% textfile.txt
 \end{ubootinput}
 
 The \code{tftp} command should have downloaded the
 \code{textfile.txt} file from your development workstation into
-the board's memory at location \code{0xc4000000}\footnote{
+the board's memory at location {\tt \zimageboardaddr}\footnote{
 This location is part of the board DRAM. If you want
-to check where this value comes from, you can check the stm32mp157
+to check where this value comes from, you can check the SoC
 datasheet at
 \url{https://www.st.com/resource/en/reference_manual/dm00327659.pdf}.
 It's a big document (more than 4,000 pages). In this document, look
 for \code{Memory organization} and you will find the SoC memory map.
-You will see that the address range for the memory controller ({\em
-DDRC}) starts at \code{0xc0000000} and ends at \code{0xdfffffff}. This
-shows that the \code{0xc4000000} address is within the address range
-for RAM. You can also try with other values in the same address range.}.
+You will see that the address range for the memory controller
+({\em DDRC})
+starts at the address we are looking for.
+You can also try with other values in the RAM address range.}.
 
 You can verify that the download was successful by dumping the
 contents of the memory:
 
 \begin{ubootinput}
-=> md 0xc4000000
+=> md %\zimageboardaddr%
 \end{ubootinput}
 
 We will see in the next labs how to use U-Boot to download, flash and

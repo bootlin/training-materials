@@ -26,12 +26,12 @@ $ sudo apt install build-essential git autoconf bison flex texinfo help2man gawk
 \section{Getting Crosstool-ng}
 
 Let's download the sources of Crosstool-ng, through its git
-source repository, and switch to the 1.25 release:
+source repository, and switch to a commit that we have tested:
 
 \begin{bashinput}
 $ git clone https://github.com/crosstool-ng/crosstool-ng
 $ cd crosstool-ng/
-$ git checkout crosstool-ng-1.25.0
+$ git checkout 7622b490
 \end{bashinput}
 
 \section{Building and installing Crosstool-ng}
@@ -72,7 +72,9 @@ various typical setups: Crosstool-ng calls them {\em samples}. They can be
 listed by using \code{./ct-ng list-samples}.
 
 We will load the
-\ifdefstring{\labboard}{qemu}{Cortex A9}{Cortex A5}
+\ifdefstring{\labboard}{qemu}{Cortex A9}{}
+\ifdefstring{\labboard}{beaglebone}{Cortex A8}{}
+\ifdefstring{\labboard}{stm32mp1}{Cortex A5}{}
 sample\ifdefstring{\labboard}{stm32mp1}{, as Crosstool-ng doesn't have
 any sample for Cortex A7 yet}. Load it with the \code{./ct-ng} command.
 
@@ -95,6 +97,14 @@ In \code{Target options}:
 \begin{itemize}
 \item Set \code{Emit assembly for CPU} (\code{ARCH_CPU}) to \code{cortex-a7}.
 \item Set \code{Use specific FPU} (\code{ARCH_FPU}) to \code{vfpv4}.
+\end{itemize}
+}{}
+
+\ifdefstring{\labboard}{beaglebone}{
+In \code{Target options}:
+\begin{itemize}
+\item Set \code{Use specific FPU} (\code{ARCH_FPU}) to \code{vfpv3}.
+\item Set \code{Floating point} to \code{hardware (FPU)}.
 \end{itemize}
 }{}
 
@@ -123,8 +133,8 @@ In \code{C-library}:
 
 In \code{C compiler}:
 \begin{itemize}
-  \item Keep \code{Version of gcc} set to \code{11.2.0}, as it is by
-        default. We need to stick to gcc 11.x, as Buildroot 2022.02
+  \item Set \code{Version of gcc} to \code{11.3.0}.
+        We need to stick to gcc 11.x, as Buildroot 2022.02
         which we are going to use later doesn't support gcc 12.x
         toolchains yet: gcc 12.x was released after Buildroot 2022.02.
   \item Make sure that \code{C++} (\code{CC_LANG_CXX}) is enabled

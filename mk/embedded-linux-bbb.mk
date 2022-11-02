@@ -1,10 +1,10 @@
-EMBEDDED_LINUX_SLIDES = \
+EMBEDDED_LINUX_BBB_SLIDES = \
 		first-slides \
 		about-us \
 		course-information-title \
-		discovery-board-dk1 \
-		sysdev-shopping-list-stm32 \
-		beagleboneblack-board-also-supported \
+		beagleboneblack-board \
+		sysdev-shopping-list-bbb \
+                discovery-board-also-supported \
 		qemu-also-supported \
 		course-information \
 		sysdev-intro \
@@ -48,15 +48,15 @@ EMBEDDED_LINUX_SLIDES = \
 		sysdev-references \
 		last-slides
 
-EMBEDDED_LINUX_LABS   = setup \
+EMBEDDED_LINUX_BBB_LABS = setup \
 		sysdev-toolchain \
-		sysdev-u-boot-stm32 \
+		sysdev-u-boot-bbb \
 		sysdev-kernel-fetch-sources \
 		sysdev-kernel-cross-compiling \
 		sysdev-tinysystem \
-		sysdev-accessing-hardware-stm32 \
-		sysdev-block-filesystems-stm32 \
-		sysdev-thirdparty-stm32 \
+		sysdev-accessing-hardware-bbb \
+		sysdev-block-filesystems-bbb \
+		sysdev-thirdparty-bbb \
 		sysdev-buildroot \
 		sysdev-system-integration \
 		sysdev-application-development-and-debugging
