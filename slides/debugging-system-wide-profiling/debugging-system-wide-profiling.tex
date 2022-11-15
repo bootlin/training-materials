@@ -166,6 +166,7 @@ $ perf record -e syscalls:sys_enter_read sha256sum /bin/busybox
   \end{itemize}
   \begin{block}{}
     \begin{minted}[fontsize=\tiny]{C}
+$ perf report
 Samples: 591  of event 'cycles', Event count (approx.): 393877062
 Overhead  Command      Shared Object                   Symbol
   22,88%  firefox-esr  [nvidia]                        [k] _nv031568rm
@@ -338,6 +339,7 @@ kworker/0:2-mm_    44 [000]   208.620653:     133104   cycles:          c0a44c84
 
   \begin{block}{}
     \begin{minted}[fontsize=\tiny]{console}
+$ perf top
 Samples: 19K of event 'cycles', 4000 Hz, Event count (approx.): 4571734204 lost: 0/0 drop: 0/0
 Overhead  Shared Object                         Symbol
    2,01%  [nvidia]                              [k] _nv023368rm
@@ -787,7 +789,7 @@ void any_func(void)
           for network packet filtering
     \item \href{https://ebpf.io/}{eBPF} framework in the kernel allows running
           user-written BPF programs within the kernel in a safe and efficient
-          way
+          way (Added in kernel 3.15)
     \item Execution is event-driven and can be hooked using Kprobes, tracepoints
           and other methods of tracing
     \item Allow to execute complex actions and report data to userspace for
@@ -823,53 +825,71 @@ void any_func(void)
 
 \begin{frame}[fragile]
   \frametitle{Writing eBPF programs}
-    \begin{columns}
-      \column{0.75\textwidth}
-      \begin{itemize}
-        \item eBPF programs can be written in (a restricted) C and are compiled
-              using clang compiler
-        \item BCC (BPF Compiler Collection) provides a toolkit to write BPF
-              programs more easily using C language (also provides LUA and Python
-              front-ends)
-        \begin{itemize}
-          \item Allows to write tracing and profiling program easily
-        \end{itemize}
-        \item {\em bpftrace} is a high level language allowing to easily write tracing
-              functions
-      \end{itemize}
-      \column{0.25\textwidth}
-      \vspace{0.5cm}
-      \includegraphics[height=0.2\textheight]{slides/debugging-linux-application-stack/logo_bcc.png}\\ 
-      \tiny Image credits: \url{https://github.com/iovisor/bcc}
-    \end{columns}
-  \end{frame}
+  \begin{itemize}
+    \item eBPF programs can be written in (a restricted) C and are compiled
+          using clang compiler
+    \item BCC (BPF Compiler Collection) provides a toolkit to write BPF
+          programs more easily using C language (also provides LUA and Python
+          front-ends)
+    \begin{itemize}
+      \item Allows to write tracing and profiling program easily
+    \end{itemize}
+    \item {\em bpftrace} is a high level language allowing to easily write tracing
+          functions
+  \end{itemize}
+\end{frame}
 
 \begin{frame}[fragile]
   \frametitle{BCC}
-  \begin{itemize}
-    \item BCC provides a large number of ready-to-use tools written in BPF.
-    \item Also provides an interface to write BPF programs more easily than
-          using "raw" BPF language.
-  \end{itemize}
-  \center\includegraphics[height=0.7\textheight]{slides/debugging-system-wide-profiling/bcc_tracing_tools_2019.png}\\ 
+  \begin{columns}
+    \column{0.75\textwidth}
+    \begin{itemize}
+      \item BPF Compiler Collection (BCC) is (as its name suggest) a collection
+            of BPF based tools.
+      \item BCC provides a large number of ready-to-use tools written in BPF.
+      \item Also provides an interface to write, load and hook BPF programs more
+            easily than using "raw" BPF language.
+      \item Available on a large number of architecture (Unfortunately, not arm32).
+      \begin{itemize}
+        \item On debian, when installed, all tools are named \code{<tool>-bpfcc}.
+      \end{itemize}
+      \item BCC requires a kernel version >= 4.1.
+    \end{itemize}
+  \column{0.25\textwidth}
+  \vspace{0.5cm}
+  \includegraphics[height=0.2\textheight]{slides/debugging-linux-application-stack/logo_bcc.png}\\ 
+  \tiny Image credits: \url{https://github.com/iovisor/bcc}
+  \end{columns}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{BCC tools}
+  \center\includegraphics[height=0.9\textheight]{slides/debugging-system-wide-profiling/bcc_tracing_tools_2019.png}\\ 
   \tiny Image credits: \url{https://www.brendangregg.com/ebpf.html}
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{BCC tcpconnect tool example}
+  \frametitle{BCC Tools example}
+  \begin{itemize}
+    \item \code{profile.py} is a CPU profiler allowing to capture stack traces of
+          current execution. Its output can be used for flamegraph generation:
+  \end{itemize}
   \begin{block}{}
-    \begin{minted}[fontsize=\small]{console}
+    \begin{minted}[fontsize=\footnotesize]{console}
+$ profile.py -df -F 99 10 | ./FlameGraph/flamegraph.pl > flamegraph.svg
+    \end{minted}
+  \end{block}
+  \begin{itemize}
+    \item \code{tcpconnect.py} script displays all new TCP connection live
+  \end{itemize}
+  \begin{block}{}
+    \begin{minted}[fontsize=\footnotesize]{console}
 $ tcpconnect
 PID    COMM         IP SADDR            DADDR            DPORT
 220321 ssh          6  ::1              ::1              22   
 220321 ssh          4  127.0.0.1        127.0.0.1        22   
 17676  Chrome_Child 6  2a01:cb15:81e4:8100:37cf:d45b:d87d:d97d 2606:50c0:8003::154 443  
-17777  code         4  192.168.1.105    20.189.173.5     443  
-17777  code         4  192.168.1.105    20.189.173.5     443  
-17815  code         4  192.168.1.105    20.189.173.5     443  
-17777  code         4  192.168.1.105    20.42.73.27      443  
-17815  code         4  192.168.1.105    20.42.73.27      443  
-17777  code         4  192.168.1.105    20.42.73.27      443
+[...]
     \end{minted}
   \end{block}
 \end{frame}
