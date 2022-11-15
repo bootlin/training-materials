@@ -974,11 +974,9 @@ Attaching 1 probe...
         \item Also expose a \code{/dev/lttng-logger} that can be used from any
               application.
       \end{itemize}
-      \item Tracepoints are associated with a payload (data associated to it).
+      \item Tracepoints are associated with a payload (data).
       \item LTTng is focused on low-overhead tracing.
       \item LTTng provides a unified logging of all events (kernel/user).
-      \item Uses the \url{https://diamon.org/ctf/}{CTF} trace format (Common
-            Trace Format).
     \end{itemize}
     \column{0.35\textwidth}
     \includegraphics[height=0.3\textheight]{slides/debugging-system-wide-profiling/lttng-logo.jpg}
@@ -988,6 +986,8 @@ Attaching 1 probe...
 \begin{frame}
   \frametitle{{\em LTTng} (2/2)}
   \begin{itemize}
+    \item Uses the \url{https://diamon.org/ctf/}{CTF} trace format (Common
+          Trace Format).
     \item LTTng is made of multiple components:
     \begin{itemize}
       \item LTTng-tools: Libraries and command-line interface to control tracing.
@@ -1133,6 +1133,32 @@ $ lttng destroy
 $ babeltrace2 ./my_traces
    \end{minted}
   \end{block}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Remote tracing with {\em LTTng}}
+  \begin{itemize}
+    \item LTTng allows to record traces over network.
+    \item Useful for embedded systems that do not have a lot of storage
+          immediatly available.
+    \item On the remote computer, run \code{lttng-relayd} command
+  \end{itemize}
+  \begin{block}{}
+    \begin{minted}[fontsize=\small]{console}
+$ lttng-relayd --output=${PWD}/traces
+   \end{minted}
+  \end{block}
+  \begin{itemize}
+    \item Then on the target, at session creation, use the \code{--set-url}
+  \end{itemize}
+  \begin{block}{}
+    \begin{minted}[fontsize=\small]{console}
+$ lttng create my-session --set-url=net://remote-system
+   \end{minted}
+  \end{block}
+  \begin{itemize}
+    \item Traces will then be recorded directly on the remote computer.
+  \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]
