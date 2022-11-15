@@ -72,9 +72,6 @@ int main(int argc, char **argv)
 
 	while (1) {
 
-		clock_gettime(CLOCK_MONOTONIC, &start);
-		start_nano = timespec_to_nano(&start);
-
 		ret = read(urandom_fd, data, RANDOM_SIZE);
 		if (ret < 0) {
 			perror("Failed to read random data\n");
@@ -82,8 +79,9 @@ int main(int argc, char **argv)
 			return EXIT_FAILURE;
 		}
 
+		clock_gettime(CLOCK_MONOTONIC, &start);
+		start_nano = timespec_to_nano(&start);
 		crc32(data, RANDOM_SIZE);
-
 		clock_gettime(CLOCK_MONOTONIC, &end);
 		end_nano = timespec_to_nano(&end);
 

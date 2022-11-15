@@ -2,16 +2,12 @@
 {System wide profiling and tracing}
 {Objectives:
   \begin{itemize}
-    \item System profiling with {\em perf}.
     \item IRQ latencies using {\em ftrace}.
     \item Tracing and visualizing system activity using {\em kernelshark} or
           {\em LTTng}
+    \item System profiling with {\em perf}.
   \end{itemize}
 }
-
-\section{System profiling with {\em perf}}
-
-
 
 \section{IRQ latencies using {\em ftrace}}
 
@@ -37,50 +33,61 @@ latency ?
 
 \section{LTTng}
 
-Go into the primes directory and open the \code{primes.c} file. This file
-computes primes number and output them in a file provided as an argument.
-Compile it using the provided toolchain
+Go into the \code{crc_random} directory and open the \code{crc_random.c} file. This file
+computes crc32 on a buffer of random data. Compile it using the provided toolchain
 
 \begin{bashinput}
-  $(CROSS_COMPILE)-gcc -Wall -Werror primes.c -o primes
+$ cd /home/<user>/debugging-labs/nfsroot/root/system_profiling
+$  $(CROSS_COMPILE)-gcc -Wall -Werror crc_random.c -o crc_random
 \end{bashinput}
 
 In order to observe our program performances, we want to instrument it with
-tracepoints. We would like to know two things:
-
-\begin{itemize}
-  \item How much time it takes to generate a prime number.
-  \item How much times it takes to write data to the output file.
-\end{itemize}
+tracepoints. We would like to know how much times it takes to compute the
+crc32 of a specific buffer.
 
 In order to do so, add tracepoints to your program which will allows to measure
-this. We'll add 4 tracepoints:
+this. We'll add 2 tracepoints:
 
 \begin{itemize}
-  \item One for the start of prime number computation
-  \item Another for the end of computation
-  \item One for the start of writing to disk
-  \item Another for the end of writing to disk
+  \item One for the start of crc32 computation (\code{compute_crc_entry})
+  \item Another for the end of crc32 computation (\code{compute_crc_exit})
 \end{itemize}
 
 For that, create a tracepoint provider header file template named
-\code{primes-tp.h} and another one for the tracepoint provider named
-\code{primes-tp.c}. You can then use the new tracepoints in your program to
-trace specific points of execution.
+\code{crc_random-tp.h} and another one for the tracepoint provider named
+\code{crc_random-tp.c}. These tracepoints should belong to the \code{crc_random}
+provider namespace.
 
-Once added, you can compile your application using the following command.
+You can then use the new tracepoints in your program to trace specific points
+of execution. Once added, you can compile your application using the following
+command:
 
 \begin{bashinput}
-$ $(CROSS_COMPILE)-gcc -I. primes-tp.c primes.c  -llttng-ust -o primes
+$ $(CROSS_COMPILE)-gcc -I. crc_random-tp.c crc_random.c  -llttng-ust -o crc_random
 \end{bashinput}
 
-Enable the program tracepoints, run it and collect tracepoints.
-
-Download \code{tracecompass} latest version from the eclipse website:
-(https://www.eclipse.org/tracecompass/) and extract it using:
+Finally, on the target, enable the program tracepoints, run it and collect
+tracepoints.
 
 \begin{bashinput}
-  tar -xvf trace-compass-*.tar.gz
+$ lttng-sessiond --daemonize
+$ lttng create crc_session
+$ lttng enable-event --userspace crc_random:compute_crc_entry
+$ lttng enable-event --userspace crc_random:compute_crc_exit
+$ lttng start
+$ ./crc_random
+$ lttng destroy
+\end{bashinput}
+
+Using \code{babeltrace2}, analyze the traces and see the time that is spent
+between the tracepoints.
+
+In order to analyze our traces, we are going to use tracecompass. Download
+\code{tracecompass} latest version and extract it using:
+
+\begin{bashinput}
+$ wget https://ftp.fau.de/eclipse/tracecompass/releases/8.1.0/rcp/trace-compass-8.1.0-20220919-0815-linux.gtk.x86_64.tar.gz
+$ tar -xvf trace-compass-*.tar.gz
 \end{bashinput}
 
 Run it
@@ -88,3 +95,43 @@ Run it
 $ cd trace-compass*
 $ ./tracecompass
 \end{bashinput}
+
+\section{System profiling with {\em perf}}
+
+In order to profile the whole system, we are going to use perf and try to find
+the function that takes most of the time executing.
+
+First of all, we will run a global recording of functions and their backtrace on
+(all CPUs) during 10 seconds using the following command:
+
+\begin{bashinput}
+$ perf record -F 99 -g -- sleep 10
+\end{bashinput}
+
+This command will generate a \code{perf.data} file that can be used on a remote
+computer for further analysis. Copy that file and fix the permissions using
+\code{chown}:
+
+\begin{bashinput}
+$ sudo cp /home/<user>/debugging-labs/nfsroot/root/system_profiling/perf.data .
+$ sudo chown <user>:<user> perf.data
+\end{bashinput}
+
+We will then use perf report to visualize the aquired data:
+
+\begin{bashinput}
+$ perf report -k /home/<user>/debugging-labs/nfsroot/root/vmlinux
+\end{bashinput}
+
+
+Another useful tool for performance analysis is the Flamegraphs. latest perf
+version includes a builtin support for flamegraphs but the template is not
+available on debian so we will use another support provided by Brendan Gregg
+scripts.
+
+\begin{bashinput}
+$ git clone https://github.com/brendangregg/FlameGraph.git
+$ perf script | ./FlameGraph/stackcollapse-perf.pl | ./FlameGraph/flamegraph.pl > flame.html
+\end{bashinput}
+
+Using this flamegraph, analyze the system load.
