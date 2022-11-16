@@ -193,11 +193,13 @@ debugged using gdb or crash.
 First of all we need to setup a kexec sutiable memory zone for our crash kernel
 image. THis is achieved via the linux command line. Reboot, interrupt U-Boot and
 add the \code{crashkernel=80M} parameter. This will tell the kernel to reserve
-80M of memory to load a "rescue" kernel that will be booted on panic.
+80M of memory to load a "rescue" kernel that will be booted on panic. We will
+also add an option which will panic the kernel on oops to allow executing the
+kexec kernel.
 
 \begin{bashinput}
 STM32MP> env edit bootargs
-STM32MP> <existing bootargs> crashkernel=80M
+STM32MP> <existing bootargs> crashkernel=80M oops=panic
 STM32MP> boot
 \end{bashinput}
 
@@ -219,10 +221,12 @@ following command:
 
 \begin{bashinput}
 $ kexec --type zImage -p /mnt/boot/zImage --dtb=/mnt/boot/stm32mp157a-dk1.dtb
-        --append="console=ttySTM0 maxcpus=1 reset_devices"
+  --command-line="root=/dev/nfs ip=192.168.1.215:::::eth0
+  nfsroot=192.168.1.105:/srv/nfs/stm32_debug,nfsvers=3,tcp rw console=ttySTM0
+  maxcpus=1 reset_devices"
 \end{bashinput}
 
-Once done, you can trigger a crash using the previously mentionned watchdog
+Once done, you can trigger a crash using the previously mentioned watchdog
 command:
 
 \begin{bashinput}
