@@ -2,11 +2,46 @@
 {Application profiling}
 {Objectives:
   \begin{itemize}
+    \item Visualizing application heap using {\em Massif}.
     \item Profiling an application with {\em Cachegrind}, {\em Callgrind} and
           {\em KCachegrind}.
     \item Analyzing application performances with {\em perf}.
   \end{itemize}
 }
+
+\section{Massif}
+
+Massif is really helpful to understand what is going on the memory allocation
+side of an application. Compile the \code{heap_profile} example that we did provide
+using the following command:
+
+\begin{bashinput}
+$ cd /home/<user>/debugging-labs/nfsroot/root/heap_profile
+$ ${CROSS_COMPILE}-gcc -g3 heap_profile.c -o heap_profile
+\end{bashinput}
+
+Once compile, on the target run it under massif using the following command:
+
+\begin{bashinput}
+$ cd /root/heap_profile
+$ valgrind --tool=massif --time-unit=B ./heap_profile
+\end{bashinput}
+
+NOTE: we use \code{--time-unit=B} to set the X axis to be based on the allocated
+size.
+
+Once done, a \code{massif.out.<pid>} file will be created. This file can be
+displayed with \code{ms_print}. Based on the result, can you answer the
+following questions:
+\begin{itemize}
+  \item What is the peak allocation size of this program ?
+  \item How much memory was allocated during the program lifetime ?
+  \item Do we have memory leaks at the end of execution ?
+\end{itemize}
+
+Note: \code{heaptrack} is not available on buildroot but is available on debian.
+You can try the same experience using heaptrack on your computer and visualizing
+the results with \code{heaptrack_gui}.
 
 \section{Cachegrind \& Callgrind}
 
