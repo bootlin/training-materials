@@ -131,29 +131,48 @@
   \end{itemize}
 \end{frame}
 
-\begin{frame}
-  \frametitle{kexec \& kdump}
+\begin{frame}[fragile]
+  \frametitle{kexec \& kdump (1/2)}
   \begin{itemize}
-    \item On panic, kdump will start a "dump-capture kernel" directly from the
+    \item On panic, kdump will start a "kdump kernel" directly from the
       kernel that crashed
     \begin{itemize}
-      \item Most of the time, a specific minimal dump-capture kernel is compiled
+      \item Most of the time, a specific minimal kdump kernel is compiled
         for that task
     \end{itemize}
-    \item This kernel will allow to dump the \code{/proc/vmcore} file from
-      {\em procfs}
-    \item {\em kexec} works by saving some RAM for the crash kernel execution at
+    \item {\em kexec} works by saving some RAM for the kdump kernel execution at
           startup
     \begin{itemize}
       \item \code{crashkernel} parameter should be set to specify the crash
             kernel dedicated physical memory region
       \item \code{crashkernel=size[KMG][@offset[KMG]]}
     \end{itemize}
-    \item {\em kexec-tools} are then used to prepare a kernel to be executed in
-      this memory zone.
+    \item {\em kexec-tools} are then used to prepare a kdump kernel to be
+      executed in this memory zone using the \code{kexec} command
+  \end{itemize}
+  \begin{block}{}
+    \begin{minted}[fontsize=\footnotesize]{console}
+$ kexec --type zImage --dtb=my_dtb.dtb --initrd=myinitrd --append="ttyS0
+  max_cpus=1 reset_devices" -p myzImage 
+    \end{minted}
+  \end{block}
+\end{frame}
+
+\begin{frame}
+  \frametitle{kexec \& kdump (2/2)}
+  \begin{itemize}
+    \item The command line additional options depends on the architecture
+    \item See \kdochtml{admin-guide/kdump/kdump} for more comprehensive
+      explanations on how to setup the kdump kernel with \code{kexec}.
+    \item Finally, on panic, the kernel will reboot into the kdump kernel
+      allowing the user to dump \code{/dev/vmcore} onto whatever media
     \item Additional user-space services and tools allows to automatically
       collect and dump the vmcore file to remote location.
-    \item \kdochtml{admin-guide/kdump/kdump}
+    \begin{itemize}
+      \item See kdump systemd service and the \code{makedumpfile} tool which
+        can also compress the vmcore file into a smaller file.
+      \item \url{https://github.com/makedumpfile/makedumpfile}
+    \end{itemize}
   \end{itemize}
 \end{frame}
 
@@ -179,7 +198,6 @@
     \item Hosted at \url{https://github.com/crash-utility/crash}
   \end{itemize}
 \end{frame}
-
 
 \begin{frame}[fragile]
   \frametitle{{\em crash} example}
