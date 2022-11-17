@@ -51,6 +51,7 @@ static uint32_t crc32(const void *data, size_t n_bytes)
 int main(int argc, char **argv)
 {
 	int urandom_fd;
+	uint32_t crc;
 	char *data;
 	ssize_t ret;
 	uint64_t start_nano, end_nano;
@@ -81,11 +82,11 @@ int main(int argc, char **argv)
 
 		clock_gettime(CLOCK_MONOTONIC, &start);
 		start_nano = timespec_to_nano(&start);
-		crc32(data, RANDOM_SIZE);
+		crc = crc32(data, RANDOM_SIZE);
 		clock_gettime(CLOCK_MONOTONIC, &end);
 		end_nano = timespec_to_nano(&end);
 
-		printf("Computed crc in %" PRIu64 " nano\n", end_nano - start_nano);
+		printf("Computed crc %" PRIu32 " in %" PRIu64 " nano\n", crc, end_nano - start_nano);
 	}
 
 	free(data);
