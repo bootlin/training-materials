@@ -86,7 +86,7 @@ int main(int argc, char **argv)
 		clock_gettime(CLOCK_MONOTONIC, &end);
 		end_nano = timespec_to_nano(&end);
 
-		printf("Computed crc %" PRIu32 " in %" PRIu64 " nano\n", crc, end_nano - start_nano);
+		printf("Computed crc 0x%" PRIx32 " in %" PRIu64 " nano\n", crc, end_nano - start_nano);
 	}
 
 	free(data);
