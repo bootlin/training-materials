@@ -98,31 +98,19 @@ When developping and debugging applications, sometimes we often uses the same
 set of commands over and over under GDB. Rather than doing so, we can create 
 python scripts that are integrated with GDB.
 
-In order to display our program list from GDB, create a python GDB script named
-\code{linked_list.py} that displays this list. You will add a new command which
-will be of type \code{COMMAND_USER} and will be named \code{printslist}. This
-command will use the \code{name_list} struct to traverse the list. You can use
-\code{gdb.parse_and_eval("name_list")} to obtain a python \code{GDB.Value}
-object that can be inspected. If the object is a struct then you can access
-the fields using \code{value['field']}.
+In order to display our program list from GDB, we provide a python GDB script
+named \code{linked_list.py} that displays this list. You will need to fill two
+parts of this script to display a complete list correctly. This python script
+takes the list head name and the next field name as parameters.
 
-Once done, in GDB, check that it works by sourcing your python script and
-executing it:
+The part to be filled in are the pretty printer struct formatting and the
+iteration on the list. We would like to display each \code{struct name} as
+\code{index: name}. In order to access a struct field in gdb python, you can use
+\code{self.val['field_name']}.
+
+Once done, you can use the following commands to test your script:
 
 \begin{bashinput}
 (gdb) source linked_list.py
-(gdb) printslist
-\end{bashinput}
-
-In order to display something more user friendly, we will create a pretty
-printer for the \code{struct name} and modify the printslist command to take
-two arguments which are the list name and the field name to be used for list
-traversal. In our case, the command would be called
-like this:
-
-\begin{bashinput}
 (gdb) printslist name_list next
 \end{bashinput}
-
-You can use the \code{gdb.string_to_argv(args)} to convert the args into an
-array of arguments.
