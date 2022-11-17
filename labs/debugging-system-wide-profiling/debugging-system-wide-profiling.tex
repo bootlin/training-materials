@@ -27,19 +27,70 @@ using:
 $ trace-cmd report
 \end{bashinput}
 
-This will display a trace of the longest chain of calls while itnerrupts were
+This will display a trace of the longest chain of calls while interrupts were
 disabled. Based on this report, can you find the code that generates this
 latency ?
 
-\section{LTTng}
+\section{ftrace \& uprobes}
 
-Go into the \code{crc_random} directory and open the \code{crc_random.c} file. This file
-computes crc32 on a buffer of random data. Compile it using the provided toolchain
+First of all, we will start a small program using the following command:
+
+\begin{bashinput}
+$ mystery_program 1000 200 2 &
+\end{bashinput}
+
+In order to trace a full system, we can use ftrace. However, if we want to trace
+the userspace, we'll need to add new tracepoints using uprobes. This can be done
+manually with the uprobe sysfs interface or using \code{perf probe}.
+
+Before starting to profile, we will compile our program to be instrumented:
 
 \begin{bashinput}
 $ cd /home/<user>/debugging-labs/nfsroot/root/system_profiling
 $  $(CROSS_COMPILE)-gcc -Wall -Werror -g3 crc_random.c -o crc_random
 \end{bashinput}
+
+On the target, we will create a uprobe in the main function of the
+\code{crc_random} program each time a crc is computed. First, let list the lines
+number that are recognized by perf to add a uprobe:
+
+\begin{bashinput}
+$ perf probe --source=./ -x ./crc_random -L main
+\end{bashinput}
+
+\em Note: in order to be able to add such userspace probe, perf needs to access
+symbols and source file
+
+Then, we can create a uprobe and capture the crc value using:
+
+\begin{bashinput}
+$ perf probe --source=./ -x ./crc_random main:35 crc
+\end{bashinput}
+
+We can finally trace the application using trace-cmd with this event
+
+\begin{bashinput}
+$ trace-cmd record -e probe_crc_random:main_L35 ./crc_random
+^C
+\end{bashinput}
+
+Then, using kernelshark tool on the host, analyze the trace:
+
+\begin{bashinput}
+$ kernelshark
+\end{bashinput}
+
+We can see that something is wrong, our process does not seems to compute crc at
+a fixed rate. Let's trace the \code{sched_switch} events to see whats happening:
+
+\begin{bashinput}
+$ trace-cmd record -e probe_crc_random:main_L35 ./crc_random
+^C
+\end{bashinput}
+
+Reanalyze the traces with kernel shark and try to understand what is going on.
+
+\section{LTTng}
 
 In order to observe our program performances, we want to instrument it with
 tracepoints. We would like to know how much times it takes to compute the
