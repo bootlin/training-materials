@@ -5,7 +5,7 @@
   \begin{itemize}
     \item Sometimes, the problems are not tied to an application but rather
           due to the usage of multiple layers (drivers, application, kernel).
-    \item In that case, it might be useful to analyze the whole stack
+    \item In that case, it might be useful to analyze the whole stack.
     \item The kernel already includes a large number of tracepoints that can be
           recorded using specific tools.
     \item New tracepoints can also be created statically or dynamically using
@@ -22,9 +22,9 @@
     \item Uses code patching to modify text code to insert calls to specific
           handlers
     \begin{itemize}
-      \item Kprobes allows to execute specific handlers when the hooked
+      \item \code{kprobes} allows to execute specific handlers when the hooked
             instruction is executed
-      \item kretprobes will trigger when returning from a function allowing to
+      \item \code{kretprobes} will trigger when returning from a function allowing to
             extract the return value of functions but also display the
             parameters that were used for the function call
     \end{itemize}
@@ -41,9 +41,9 @@
 \begin{frame}[fragile]
   \frametitle{Registering a Kprobe}
   \begin{itemize}
-    \item Kprobes can be registered dynamically by loading a module that
+    \item \code{kprobes} can be registered dynamically by loading a module that
           registers a \kstruct{kprobe} with \kfunc{register_kprobe}
-    \item Probe should be unregistered at module exit using
+    \item Probes should be unregistered at module exit using
           \kfunc{unregister_kprobe}
   \end{itemize}
 
@@ -63,7 +63,7 @@ register_kprobe(&probe);
 \begin{frame}[fragile]
   \frametitle{Registering a kretprobe}
   \begin{itemize}
-    \item kretprobes can be registered the same way than regular probe but using
+    \item \code{kretprobes} can be registered the same way than regular probes but using
           a \kstruct{kretprobe} with \kfunc{register_kretprobe}
     \begin{itemize}
       \item Provided handlers will be called on function entry and exit
@@ -94,7 +94,7 @@ register_kretprobe(&probe);
 \begin{frame}
   \frametitle{{\em perf}}
   \begin{itemize}
-    \item Perf allows to do a wide range of tracing and recording operations.
+    \item {\em perf} allows to do a wide range of tracing and recording operations.
     \item The kernel already contains events and tracepoints that can be used.
           The list is given using \code{perf list}.
     \item Syscall tracepoints should be enabled in kernel configuration using
@@ -171,7 +171,7 @@ Overhead  Command      Shared Object                   Symbol
 \begin{frame}
   \frametitle{{\em perf probe}}
   \begin{itemize}
-    \item perf allows to create dynamic tracepoints on both kernel functions and
+    \item {\em perf} allows to create dynamic tracepoints on both kernel functions and
           user-space functions.
     \item In order to be able to insert probes, \kconfig{CONFIG_KPROBE} must be
           enabled in the kernel.
@@ -181,7 +181,7 @@ Overhead  Command      Shared Object                   Symbol
     \end{itemize}
     \item New dynamic probes can be created and then used using
           {\em perf record}.
-    \item Often on embedded platform, \kconfig{vmlinux} is not present on the
+    \item Often on embedded platforms, \kconfig{vmlinux} is not present on the
           target and thus only symbols and registers can be used.
   \end{itemize}
 \end{frame}
@@ -312,7 +312,7 @@ kworker/0:2-mm_    44 [000]   208.620653:     133104   cycles:          c0a44c84
 \begin{frame}[fragile]
   \frametitle{Using {\em perf top} }
   \begin{itemize}
-    \item  \code{perf top} allows to do a live analysis of the running kernel
+    \item \code{perf top} allows to do a live analysis of the running kernel
     \item It will sample all function calls and display them ordered by most
           time consuming one.
     \item This allows to profile the whole system usage
@@ -342,7 +342,7 @@ Overhead  Shared Object                         Symbol
 \begin{frame}
   \frametitle{ftrace}
   \begin{itemize}
-    \item ftrace is a tracing framework within the kernel which stands for
+    \item {\em ftrace} is a tracing framework within the kernel which stands for
           "Function Tracer".
     \item It offers a wide range of tracing capabilities allowing to observe the
           system behavior.
@@ -350,14 +350,14 @@ Overhead  Shared Object                         Symbol
       \item Trace static tracepoints already inserted in the kernel various
             parts (scheduler, interrupts, etc).
       \item Relies on GCC mcount() capability and kernel code patching mechanism
-            to call ftrace tracing handlers.
+            to call {\em ftrace} tracing handlers.
     \end{itemize}
     \item All traces are recorded in a ring buffer that is optimized for tracing.
     \item Uses {\em tracefs} filesystem to control and display tracing events.
     \begin{itemize}
       \item \codewithhash{\# mount -t tracefs nodev /sys/kernel/tracing}.
     \end{itemize}
-    \item ftrace support must be enabled in the kernel using
+    \item {\em ftrace} support must be enabled in the kernel using
           \kconfigval{CONFIG_FTRACE}{y}.
     \item \kconfig{CONFIG_DYNAMIC_FTRACE} allows to have a zero overhead tracing
           support.
@@ -367,7 +367,7 @@ Overhead  Shared Object                         Symbol
 \begin{frame}
   \frametitle{ftrace files}
   \begin{itemize}
-    \item ftrace control is exposed through some specific files located under
+    \item {\em ftrace} controls are exposed through some specific files located under
           \code{/sys/kernel/tracing}.
     \begin{itemize}
       \item \code{current_tracer}: Current tracer that is used.
@@ -382,7 +382,7 @@ Overhead  Shared Object                         Symbol
       \item \code{set_graph_function}: Graph only the specified functions child.
     \end{itemize}
     \item Many other files are exposed, see \kdochtml{trace/ftrace.html}.
-    \item {\em trace-cmd} CLI and {\em Kernelshark} GUI tools allows to record
+    \item {\em trace-cmd} CLI and {\em Kernelshark} GUI tools allow to record
           and visualize tracing data more easily.
   \end{itemize}
 \end{frame}
@@ -390,14 +390,14 @@ Overhead  Shared Object                         Symbol
 \begin{frame}[fragile]
   \frametitle{ftrace tracers}
   \begin{itemize}
-    \item ftrace provides several "tracers" which allow to trace different thing.
+    \item ftrace provides several "tracers" which allow to trace different things.
     \item The tracer to be used should be written to the \code{current_tracer} file
     \begin{itemize}
-      \item \code{nop}: Trace nothing, use to disable all tracing.
+      \item \code{nop}: Trace nothing, used to disable all tracing.
       \item \code{function}: Trace all kernel functions that are called.
-      \item \code{function_graph}: Similar to {function} but traces both entry and exit.
+      \item \code{function_graph}: Similar to \code{function} but traces both entry and exit.
       \item \code{hwlat}: Trace hardware latency.
-      \item \code{irqsoff}: Trace interrupts disable sections.
+      \item \code{irqsoff}: Trace sections where interrupts are disabled.
       \item \code{branch}: Trace likely()/unlikely() prediction errors.
       \item \code{mmiotrace}: Trace all accesses to the hardware (\code{read[bwlq]/write[bwlq]}).
     \end{itemize}
@@ -413,9 +413,9 @@ Overhead  Shared Object                         Symbol
 \begin{frame}[fragile]
   \frametitle{{\em function\_graph} tracer report example}
   \begin{itemize}
-    \item The {\em function\_graph} traces all the function and their associated
-          callgraph that executed will acquiring the trace.
-    \item Will display the process, CPU, timestamp and function graph.
+    \item The {\em function\_graph} traces all the function that
+      executed and their associated callgraphs
+    \item Will display the process, CPU, timestamp and function graph:
   \end{itemize}
   \begin{block}{}
     \begin{minted}[fontsize=\tiny]{console}
@@ -445,11 +445,10 @@ dd-113   [000]   304.526719: funcgraph_exit:       + 18.083 us  |      }
 \begin{frame}
   \frametitle{{\em irqsoff} tracer}
   \begin{itemize}
-    \item ftrace {\em irqsoff} tracer allows to trace the irqs latency due to 
+    \item ftrace {\em irqsoff} tracer allows to trace the irqs latency due to
           interrupts being disabled for too long.
-    \item Helpful to find why interrupt have a high latency on a system.
-    \item This tracer will record the longest trace leading to the interrupts
-          being disabled.
+    \item Helpful to find why interrupts have high latencies on a system.
+    \item This tracer will record the longest trace with interrupts being disabled.
     \item This tracer needs to be enabled with \kconfigval{IRQSOFF_TRACER}{y}.
     \begin{itemize}
       \item \code{preemptoff}, \code{premptirqsoff} tracers also exist to trace
@@ -494,11 +493,11 @@ stress-n-114       0d.s.  290us : <stack trace>
 \begin{frame}
   \frametitle{Hardware latency detector}
   \begin{itemize}
-    \item ftrace {\em hwlat} tracer will help to find if the hardware generate
+    \item ftrace {\em hwlat} tracer will help to find if the hardware generates
           latency.
     \begin{itemize}
       \item Sytem Management interrupts for instance are non maskable and
-            directly triggers some firmware support feature, suspending CPU execution.
+            directly trigger some firmware support feature, suspending CPU execution.
       \item Interrupts handled by secure monitor can also cause this kind of
             latency.
     \end{itemize}
@@ -515,7 +514,7 @@ stress-n-114       0d.s.  290us : <stack trace>
 \begin{frame}[fragile]
   \frametitle{\kfunc{trace_printk}}
   \begin{itemize}
-    \item \kfunc{trace_printk} allow to emit string in the trace buffer
+    \item \kfunc{trace_printk} allows to emit strings in the trace buffer
     \item Useful to trace some specific conditions in your code and display it in the trace buffer 
   \end{itemize}
   \begin{block}{}
@@ -543,13 +542,13 @@ void read_hw()
 \begin{frame}
   \frametitle{{\em trace-cmd}}
   \begin{itemize}
-    \item {\em trace-cmd} is a tool written by Steven Rostedt which allow
-          interacting with kernel ftrace support (\manpage{trace-cmd}{1}).
-    \item The tracer supported by {\em trace-cmd} are those exposed by ftrace.
+    \item {\em trace-cmd} is a tool written by Steven Rostedt which allows
+          interacting with {\em ftrace} (\manpage{trace-cmd}{1}).
+    \item The tracers supported by {\em trace-cmd} are those exposed by ftrace.
     \item {\em trace-cmd} offers multiple commands:
     \begin{itemize}
-      \item {\em list}: list available plugins/events that can be recorded
-      \item {\em record}: record a trace into \code{trace.dat} file.
+      \item {\em list}: List available plugins/events that can be recorded.
+      \item {\em record}: Record a trace into the file \code{trace.dat}.
       \item {\em report}: Display \code{trace.dat} acquisition results.
     \end{itemize}
   \end{itemize}
@@ -558,13 +557,13 @@ void read_hw()
 \begin{frame}
   \frametitle{Remote tracing with {\em trace-cmd}}
   \begin{itemize}
-    \item {\em trace-cmd} output can be quite big and thus difficult to be
-          stored on an embedded platform with not much storage space.
-    \item For that purpose, a listen command is available and allows sending
-          the traces over network.
+    \item {\em trace-cmd} output can be quite big and thus difficult to
+          store on an embedded platform with limited storage.
+    \item For that purpose, a \code{listen} command is available and allows sending
+          the acquisitions over the network:
     \begin{itemize}
       \item Run \code{trace-cmd listen -p 6578} on the target system
-      \item On the remote system that will be collecting the traces, use 
+      \item On the remote system that will be collecting the traces, use
             \code{trace record -N <target_ip>:6578}
     \end{itemize}
   \end{itemize}
@@ -637,7 +636,7 @@ $ trace-cmd record -l spi_* -p function
   \end{block}
 
   \begin{itemize}
-    \item Trace the dd command using the function graph tracer:
+    \item Trace the {\em dd} command using the function graph tracer:
   \end{itemize}
   \begin{block}{}
     \begin{minted}[fontsize=\tiny]{console}
@@ -658,7 +657,7 @@ $ trace-cmd show
 \begin{frame}[fragile]
   \frametitle{{\em trace-cmd} examples (3/2)}
   \begin{itemize}
-    \item Reset all the ftrace buffers and remove tracers
+    \item Reset all the {\em ftrace} buffers and remove tracers
   \end{itemize}
   \begin{block}{}
     \begin{minted}[fontsize=\tiny]{console}
@@ -667,7 +666,7 @@ $ trace-cmd reset
   \end{block}
 
   \begin{itemize}
-    \item Run the irqsoff tracers on the system:
+    \item Run the {\em irqsoff} tracer on the system:
   \end{itemize}
   \begin{block}{}
     \begin{minted}[fontsize=\tiny]{console}
@@ -773,8 +772,8 @@ void any_func(void)
           way (Added in kernel 3.15)
     \item Execution is event-driven and can be hooked using Kprobes, tracepoints
           and other methods of tracing
-    \item Allow to execute complex actions and report data to userspace for
-          events that take place in the kernel.
+    \item Executes complex actions and reports data to userspace for
+          events that took place in the kernel.
     \item Used to hook into various places of the kernel: VFS, Network stack,
           syscalls, load balancing, security, etc
   \end{itemize}
@@ -796,10 +795,10 @@ void any_func(void)
     \item Almost all architectures have a BPF JIT support which allows
           translating the BPF format into native CPU instruction, thus being
           (almost) as fast as natively compiled code
-    \item BPF programs can returned value in maps of various types (hash tables,
+    \item BPF programs can return values in maps of various types (hash tables,
           arrays, etc) which allows sharing data between user-space, eBPF
           programs and kernel space.
-    \item Only some function (called helpers) can be called in eBPF programs.
+    \item Only some functions (called helpers) can be called in eBPF programs.
     \item eBPF programs are attached to events (invoked on trigger).
   \end{itemize}
 \end{frame}
@@ -807,7 +806,7 @@ void any_func(void)
 \begin{frame}[fragile]
   \frametitle{Writing eBPF programs}
   \begin{itemize}
-    \item eBPF programs can be written in (a restricted) C and are compiled
+    \item eBPF programs can be written in (restricted) C and are compiled
           using clang compiler
     \item BCC (BPF Compiler Collection) provides a toolkit to write BPF
           programs more easily using C language (also provides LUA and Python
@@ -825,7 +824,7 @@ void any_func(void)
   \begin{columns}
     \column{0.75\textwidth}
     \begin{itemize}
-      \item BPF Compiler Collection (BCC) is (as its name suggest) a collection
+      \item BPF Compiler Collection (BCC) is (as its name suggests) a collection
             of BPF based tools.
       \item BCC provides a large number of ready-to-use tools written in BPF.
       \item Also provides an interface to write, load and hook BPF programs more
@@ -885,7 +884,7 @@ PID    COMM         IP SADDR            DADDR            DPORT
   \begin{itemize}
     \item BCC python support allows to easily write and hook C program for BPF
           tracing.
-    \item Hook with a kprobe on the \code{clone()} system call and display \verb+"Hello, World!"+ each
+    \item Hook with a {\em kprobe} on the \code{clone()} system call and display \verb+"Hello, World!"+ each
           time it is called
   \end{itemize}
   \begin{block}{}
@@ -912,8 +911,8 @@ b.attach_kprobe(event=b.get_syscall_fnname("clone"), fn_name="hello")
       \column{0.75\textwidth}
       \begin{itemize}
         \item bpftrace is a high level tracing language allowing to write tracing
-              expression easily (\url{https://bpftrace.org/})
-        \item Also provide tools that allows tracing various part of the kernel
+              expressions easily (\url{https://bpftrace.org/})
+        \item Also provide tools to trace various parts of the kernel
         \begin{itemize}
           \item Internally uses LLVM to compile script and BCC to interact with the BPF programs
         \end{itemize}
@@ -976,7 +975,7 @@ Attaching 1 probe...
     \column{0.65\textwidth}
     \begin{itemize}
       \item LTTng is an open source tracing framework for Linux maintained by
-            the \url{https://www.efficios.com/}{EfficiOS} company.
+            the \href{https://www.efficios.com/}{EfficiOS} company.
       \item LTTng allows understanding the interactions between the kernel and
             applications (C, C++, Java, Python).
       \begin{itemize}
@@ -995,7 +994,7 @@ Attaching 1 probe...
 \begin{frame}
   \frametitle{{\em LTTng} (2/2)}
   \begin{itemize}
-    \item Uses the \url{https://diamon.org/ctf/}{CTF} trace format (Common
+    \item Uses the \href{https://diamon.org/ctf/}{CTF} trace format (Common
           Trace Format).
     \item LTTng is made of multiple components:
     \begin{itemize}
@@ -1155,9 +1154,8 @@ $ babeltrace2 ./my_traces
 \begin{frame}[fragile]
   \frametitle{Remote tracing with {\em LTTng}}
   \begin{itemize}
-    \item LTTng allows to record traces over network.
-    \item Useful for embedded systems that do not have a lot of storage
-          immediatly available.
+    \item LTTng allows to record traces over the network.
+    \item Useful for embedded systems with limited storage capabilities.
     \item On the remote computer, run \code{lttng-relayd} command
   \end{itemize}
   \begin{block}{}

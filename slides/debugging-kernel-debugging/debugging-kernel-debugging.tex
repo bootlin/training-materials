@@ -26,9 +26,9 @@
   \begin{itemize}
     \item Compiling the kernel yields a number of files
     \item Amongst the various images and files that are generated, some of them
-          are interesting for the debug
+          are interesting for debugging purposes:
     \begin{itemize}
-      \item \code{vmlinux}: Kernel elf file used for debug and to derivate other
+      \item \code{vmlinux}: Kernel ELF file used for debug and to derivate other
             images
       \item \code{System.map}: Contain a list of addresses/symbols that are
             embedded in the kernel
@@ -44,7 +44,7 @@
           crashes
     \begin{itemize}
       \item Memory access error (NULL pointer, out of bounds access, etc)
-      \item Voluntarily panicking on error detection (Using {\em PANIC()})
+      \item Voluntarily panicking on error detection (using \kfunc{panic})
       \item Kernel incorrect execution mode (sleeping in atomic context)
       \item Deadlocks detected by the kernel (Soft lockup/locking problem)
     \end{itemize}
@@ -103,8 +103,8 @@
     \item \kconfig{CONFIG_PANIC_TIMEOUT}: Number of second after which the
           kernel will reboot
     \begin{itemize}
-      \item 0: Never reboot
-      \item Negative value: Reboot immediately
+      \item 0: never reboots
+      \item Negative value: reboot immediately
       \item Positive value: seconds to wait before rebooting
     \end{itemize}
     \item Tasks that are taking too much time to execute and that are hung can
@@ -118,15 +118,15 @@
   \frametitle{Kernel crash post-mortem analysis}
   \begin{itemize}
     \item Sometimes, accessing the crashed system is not possible or the system
-          can't stay offline while waiting to be debugued
+          can't stay offline while waiting to be debugged
     \item Kernel can generate crash dumps (a {\em vmcore} file) to a remote
-          location allowing to restart system quickly and do a post mortem
-          analysis of crash using GDB.
-    \item This feature relies on {\em kexec} and {\em kdump} which allows
-          booting another kernel as soon as the crash occurs and dumping the
-          vmcore
+          location, allowing to quickly restart the system while still
+          be able to perform post-mortem analysis with GDB.
+    \item This feature relies on {\em kexec} and {\em kdump} which will
+          boot another kernel as soon as the crash occurs right after dumping the
+          {\em vmcore} file.
     \begin{itemize}
-      \item {\em vmcore} file can be saved on local storage, via SSH, FTP etc.
+      \item The {\em vmcore} file can be saved on local storage, via SSH, FTP etc.
     \end{itemize}
   \end{itemize}
 \end{frame}
@@ -467,10 +467,10 @@ $ target remote localhost:5551
       \item Locking issues (unbalanced locking)
       \item Address space issues, such as accessing user space pointer directly
     \end{itemize}
-    \item Analysis can be run using \code{make C=2} to run only on file that are
+    \item Analysis can be run using \code{make C=2} to run only on files that are
           recompiled
     \item Or with \code{make C=1} to run on all files
-    \item Example of a unbalanced locking scheme:
+    \item Example of an unbalanced locking scheme:
   \end{itemize}
   \begin{block}{}
     \begin{minted}[fontsize=\small]{console}
@@ -544,7 +544,11 @@ R13: 0000000000005490 R14: 00000000006ed530 R15: 00007fb5ef0e3700
     \item When writing driver code, never expect the user to provide correct
           values. Always check these values.
     \item Use the \kfunc{WARN_ON} macro if you want to display a stacktrace when
-          a specific condition did happen
+      a specific condition did happen.
+    \begin{itemize}
+      \item \kfunc{dump_stack} can also be used during debugging to
+        show the current call stack.
+    \end{itemize}
   \end{itemize}
   \begin{block}{}
     \begin{minted}[fontsize=\small]{C}
@@ -561,8 +565,8 @@ static bool check_flags(u32 flags)
 \begin{frame}[fragile]
   \frametitle{Good practices in kernel development (2/2)}
   \begin{itemize}
-    \item If the value can be checked at compile time (configuration input,
-          sizeof struct fields), use the \kfunc{BUILD_BUG_ON} macro to
+    \item If the values can be checked at compile time (configuration input,
+          \kfunc{sizeof} structure fields), use the \kfunc{BUILD_BUG_ON} macro to
           ensure the condition is true.
   \end{itemize}
   \begin{block}{}
@@ -573,7 +577,7 @@ BUILD_BUG_ON(sizeof(ctx->__reserved) != sizeof(reserved));
   \begin{itemize}
     \item If during compilation you have some warnings about unused
           variables/parameters, they must be fixed.
-    \item Apply \code{checkpatch.pl} when possible which might find some
+    \item Apply \code{checkpatch.pl --strict} when possible which might find some
           potential problems in your code.
   \end{itemize}
 \end{frame}
