@@ -40,10 +40,10 @@ $ ./linked_list
 From what you can see, it actually crashes ! So we will use GDB to debug that
 program. We will do that remotely since our target does not embed a full gdb,
 only a gdbserver, a lightweight gdb server that allows connecting with a remote
-full feature GDB. Start our program using gdbserver:
+full feature GDB. Start our program using gdbserver in multi mode:
 
 \begin{bashinput}
-$ gdbserver localhost:2000 ./linked_list
+$ gdbserver --multi :2000 ./linked_list
 \end{bashinput}
 
 On the host side install gdb-multiarch if not already done and attach to this
@@ -52,7 +52,8 @@ process using gdb-multiarch:
 \begin{bashinput}
 $ sudo apt install gdb-multiarch
 $ gdb-multiarch ./linked_list
-(gdb) target remote <target_ip>:2000
+(gdb) target extended-remote 192.168.0.100:2000
+(gdb) set sysroot /home/<user>/debugging-labs/buildroot/output/target/
 \end{bashinput}
 
 Then continue the execution and try to find the error using GDB. There are
@@ -62,6 +63,9 @@ to understand
 {\em TIP: in gdb, not only values can be displayed using \code{p} command but
 functions can also be called directly from gdb ! Try to call
 \code{display_linked_list()}.}
+
+{\note NOTE: you can exit gdbserver from the connected gdb process using the
+\code{monitor exit} command.}
 
 \section{Using a coredump with GDB}
 
