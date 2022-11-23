@@ -1,4 +1,4 @@
 CC=${CROSS_COMPILE}gcc
 
-primes: primes.c
-	${CC} $< -g3 -lpng -o $@
+crc_random: crc_random.c
+	${CC} $< -g3 -o $@
