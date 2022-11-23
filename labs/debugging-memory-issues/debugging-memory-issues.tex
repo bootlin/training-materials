@@ -14,7 +14,7 @@ information using:
 
 \begin{bashinput}
 $ cd /home/<user>/debugging-labs/nfsroot/root/valgrind
-$ ${CROSS_COMPILE}-gcc -g3 valgrind.c -o test_valgrind
+$ make
 \end{bashinput}
 
 Then run it on the target. Do you notice any problem ? Does it run correctly ?
@@ -24,7 +24,7 @@ or even out-of-bounds accesses, uninitialized memory, etc.
 Now, run the command again with valgrind using the following command:
 
 \begin{bashinput}
-$ valgrind --leak-check=full ./test_valgrind
+$ valgrind --leak-check=full ./valgrind
 \end{bashinput}
 
 You'll see various errors found by valgrind
@@ -40,7 +40,7 @@ need to run valgrind with vgdb enabled on the target:
 
 \begin{bashinput}
 $ cd /root/valgrind
-$ valgrind --vgdb-error=0 --leak-check=full ./test_valgrind
+$ valgrind --vgdb-error=0 --leak-check=full ./valgrind
 \end{bashinput}
 
 Then, in order to do remote debugging, we also need to run vgdb in listen mode.
@@ -50,10 +50,10 @@ Start another terminal in SSH on the target and run the following command:
 $ vgdb --port=1234
 \end{bashinput}
 
-On the computer side, start gdb-multiarch and give it the \code{test_valgrind}
+On the computer side, start gdb-multiarch and give it the \code{valgrind}
 binary which will allow to detect the architecture and read symbols:
 \begin{bashinput}
-$ gdb-multiarch ./test_valgrind
+$ gdb-multiarch ./valgrind
 \end{bashinput}
 
 Finally, we'll need to connect to vgdb using the following gdb command:
