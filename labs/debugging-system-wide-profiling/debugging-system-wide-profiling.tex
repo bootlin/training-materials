@@ -118,11 +118,19 @@ $ $(CROSS_COMPILE)-gcc -I. crc_random-tp.c crc_random.c  -llttng-ust -o crc_rand
 \end{bashinput}
 
 Finally, on the target, enable the program tracepoints, run it and collect
-tracepoints.
+tracepoints. We are going to do that remotely using the \code{lttng-relayd} tool
+on the remote computer:
+
+\begin{bashinput}
+$ sudo apt install lttng-tools
+$ lttng-relayd --output=$PWD/traces
+\end{bashinput}
+
+Then on the target, start the trace acquisition using:
 
 \begin{bashinput}
 $ lttng-sessiond --daemonize
-$ lttng create crc_session
+$ lttng create crc_session --set-url=net://192.168.0.1
 $ lttng enable-event --userspace crc_random:compute_crc_entry
 $ lttng enable-event --userspace crc_random:compute_crc_exit
 $ lttng enable-event --kernel sched_switch
@@ -131,11 +139,17 @@ $ ./crc_random
 $ lttng destroy
 \end{bashinput}
 
-Using \code{babeltrace2}, analyze the traces and see the time that is spent
-between the tracepoints.
+Once finished, the traces will be visible in \code{$PWD/traces/<hostname>/<session>}
+on the remtoe computer. In our case, the hostname is buildroot so traces will be
+located in \code{$PWD/traces/buildroot/<session>}
 
-In order to analyze our traces, we are going to use tracecompass. Download
-\code{tracecompass} latest version and extract it using:
+Using \code{babeltrace2}, you can display the raw traces that were acquired:
+\begin{bashinput}
+$ babeltrace2 $PWD/traces/buildroot/<session>/
+\end{bashinput}
+
+In order to analyze our traces more visually, we are going to use tracecompass.
+Download \code{tracecompass} latest version and extract it using:
 
 \begin{bashinput}
 $ wget https://ftp.fau.de/eclipse/tracecompass/releases/8.1.0/rcp/trace-compass-8.1.0-20220919-0815-linux.gtk.x86_64.tar.gz
@@ -147,6 +161,20 @@ Run it
 $ cd trace-compass*
 $ ./tracecompass
 \end{bashinput}
+
+We are going to merge the kernel and the user traces in tracecompass./ To do so,
+open the traces using the \code{File -> Open Trace...} menu and open the traces
+by loading both the \code{kernel} (\code{kernel/channel0_0}) and the \code{ust}
+(\code{ust/uid/0/32-bit/channel0_0}) folders.
+
+Once opened, in the left pane, expand the \code{Tracing} item and right click
+on \code{Experiments[0]}. Select \code{New}, name the new experiment
+\code{debugging_lab}. Then expand the \code{Experiments[1]} item and right click on
+the \code{debugging_lab} one and click on \code{Select traces...}, In the new
+window, check the 32-bit box and the kernel one, then click on \code{Finish}.
+Finally, double click on the \code{debugging_lab[2]} item to display the merged
+trace. Explore the interface, and try to follow the task execution on both the
+Resources view and in the Control flow one.
 
 \section{System profiling with {\em perf}}
 
