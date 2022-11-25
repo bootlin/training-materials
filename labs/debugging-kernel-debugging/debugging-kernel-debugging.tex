@@ -214,6 +214,51 @@ the problem using the \code{watchdog} command.
 was modified but the arm32 platforms do not provide watchpoints support with
 KGDB.}
 
+\subsection{Debugging a module}
+
+KGDB also allows to debug modules and thanks to the GDB python scripts
+(\code{lx-symbols}) mainly, it is as easy as debugging kernel core code. In
+order to test that feature, we are going to compile a test module and break on
+it.
+
+\begin{bashinput}
+$ cd /root/kgdb
+$ make
+\end{bashinput}
+
+Then on the target, insert the module using insmod:
+\begin{bashinput}
+# cd /root/kgdb_test
+# insmod kgdb_test.ko
+\end{bashinput}
+
+If KGDB was connected and the lx scripts were loaded, then it will be detected
+automatically and the symbols will be loaded:
+
+\begin{bashinput}
+# scanning for modules in /home/<user>/debugging-labs/nfsroot/root
+# loading @0xbf000000: /home/<user>/debugging-labs/nfsroot/root/kgdb_test/kgdb_test.ko
+\end{bashinput}
+
+If you attach KGDB after module loading, then you will need to execute the \code{lx-symbols}
+command in GDB:
+\begin{bashinput}
+(gdb) lx-symbols
+loading vmlinux
+# scanning for modules in /home/<user>/debugging-labs/nfsroot/root
+# loading @0xbf000000: /home/<user>/debugging-labs/nfsroot/root/kgdb_test/kgdb_test.ko
+\end{bashinput}
+
+Finally, add a breakpoint right after the \code{pr_debug()} call continue the
+execution to trigger it.
+
+Note: Due to a GDB bug, the execution after the breakpoint will crash. You can
+use a temporary breakpoint using \code{tbreak} command to workaround this
+problem.
+
+Note: a side quest you can also try to enable the \code{pr_debug()} call using
+the dynamic debug feature of the kernel.
+
 \section{kdump \& kexec}
 
 As presented in the course, kdump/kexec allows to boot a new kernel and dump a
