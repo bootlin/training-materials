@@ -139,43 +139,41 @@
 \begin{frame}[fragile]
   \frametitle{kexec \& kdump (1/2)}
   \begin{itemize}
-    \item On panic, kdump will start a "kdump kernel" directly from the
-      kernel that crashed
+    \item On panic, the kernel kexec support will execute a "dump-caopture
+      kernel" directly from the kernel that crashed
     \begin{itemize}
-      \item Most of the time, a specific minimal kdump kernel is compiled
-        for that task
+      \item Most of the time, a specific dump-capture kernel is compiled
+        for that task (minimal config with specific initramfs/initrd)
     \end{itemize}
-    \item {\em kexec} works by saving some RAM for the kdump kernel execution at
-          startup
+    \item {\em kexec} system works by saving some RAM for the kdump kernel
+      execution at startup
     \begin{itemize}
       \item \code{crashkernel} parameter should be set to specify the crash
             kernel dedicated physical memory region
-      \item \code{crashkernel=size[KMG][@offset[KMG]]}
     \end{itemize}
-    \item {\em kexec-tools} are then used to prepare a kdump kernel to be
-      executed in this memory zone using the \code{kexec} command
+    \item {\em kexec-tools} are then used to prepare load dump-capture kernel
+      into be this memory zone using the \code{kexec} command
+    \begin{itemize}
+      \item Internally uses the \code{kexec_load} system call
+        \manpage{kexec_load}{2}
+    \end{itemize}
   \end{itemize}
-  \begin{block}{}
-    \begin{minted}[fontsize=\footnotesize]{console}
-$ kexec --type zImage --dtb=my_dtb.dtb --initrd=myinitrd --append="ttyS0
-  max_cpus=1 reset_devices" -p myzImage 
-    \end{minted}
-  \end{block}
 \end{frame}
 
 \begin{frame}
   \frametitle{kexec \& kdump (2/2)}
   \begin{itemize}
-    \item The command line additional options depends on the architecture
-    \item See \kdochtml{admin-guide/kdump/kdump} for more comprehensive
-      explanations on how to setup the kdump kernel with \code{kexec}.
     \item Finally, on panic, the kernel will reboot into the kdump kernel
       allowing the user to dump \code{/dev/vmcore} onto whatever media
+    \item Command line additional options depends on the architecture
+    \item See \kdochtml{admin-guide/kdump/kdump} for more comprehensive
+      explanations on how to setup the kdump kernel with \code{kexec}.
     \item Additional user-space services and tools allows to automatically
       collect and dump the vmcore file to remote location.
     \begin{itemize}
       \item See kdump systemd service and the \code{makedumpfile} tool which
-        can also compress the vmcore file into a smaller file.
+        can also compress the vmcore file into a smaller file (Only for x86,
+        PPC, IA64, S390).
       \item \url{https://github.com/makedumpfile/makedumpfile}
     \end{itemize}
   \end{itemize}
@@ -185,6 +183,35 @@ $ kexec --type zImage --dtb=my_dtb.dtb --initrd=myinitrd --append="ttyS0
   \frametitle{kdump}
   \center\includegraphics[height=0.8\textheight]{slides/debugging-kernel-debugging/kdump.png}\\
   \tiny Image credits: Wikipedia
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{kexec config and setup}
+  \begin{itemize}
+    \item On the standard kernel:
+    \begin{itemize}
+      \item \kconfigval{CONFIG_KEXEC}{y} to enabled KEXEC support
+      \item \code{kexec-tools} to provide the \code{kexec} command
+      \item A zImage and a DTB accessible by \code{kexec}
+    \end{itemize}
+    \item On the dump-capture kernel:
+    \begin{itemize}
+      \item \kconfigval{CONFIG_CRASH_DUMP}{y} to enabled dumping the crash
+            kernel
+      \item \kconfigval{CONFIG_PROC_VMCORE}{y} to enabled /proc/vmcore support
+      \item \kconfigval{CONFIG_AUTO_ZRELADDR}{y} on ARM32 platforms
+    \end{itemize}
+    \item Set the correct \code{crashkernel} command line option:
+    \begin{itemize}
+      \item \code{crashkernel=size[KMG][@offset[KMG]]}
+    \end{itemize}
+    \item Load a dump-capture kernel on the first kernel with \code{kexec}:
+    \begin{itemize}
+      \item \code{kexec --type zImage -p my_zImage --dtb=my_dtb.dtb
+        --initrd=my_initrd --append="command line option"}
+    \end{itemize}
+    \item Then simply wait for a crash to happen !
+  \end{itemize}
 \end{frame}
 
 \begin{frame}
