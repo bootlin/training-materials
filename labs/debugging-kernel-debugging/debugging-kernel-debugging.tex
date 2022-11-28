@@ -281,41 +281,51 @@ As presented in the course, kdump/kexec allows to boot a new kernel and dump a
 perfect copy of the crashed kernel (memory, registers, etc) which can be then
 debugged using gdb or crash. 
 
+\subsection{Building the dump-capture kernel}
+
+We will now build the dump-capture kernel which will be booted on crash using
+kexec. For that, we will use a simple buildroot image with a builtin initramfs
+using the following commands:
+
+\begin{bashinput}
+$ cd /home/<user>/debugging-labs/buildroot
+$ make O=build_kexec stm32mp157a_dk1_debugging_kexec_defconfig
+$ cd build_kexec
+$ make -j<x>
+\end{bashinput}
+
+Then, we'll copy the zImage and the device-tree to the nfs /root/kexec
+directory:
+
+\begin{bashinput}
+$ mkdir /home/<user>/debugging-labs/nfsroot/root/kexec
+$ cp build_kexec/images/zImage /home/<user>/debugging-labs/nfsroot/root/kexec
+$ cp build_kexec/images/stm32mp157a-dk1.dtb /home/<user>/debugging-labs/nfsroot/root/kexec
+\end{bashinput}
+
+These files are now ready to be used from the target using kexec.
+
 \subsection{Configuring kexec}
+
 First of all we need to setup a kexec suitable memory zone for our crash kernel
 image. This is achieved via the linux command line. Reboot, interrupt U-Boot and
-add the \code{crashkernel=80M} parameter. This will tell the kernel to reserve
-80M of memory to load a "rescue" kernel that will be booted on panic. We will
+add the \code{crashkernel=60M} parameter. This will tell the kernel to reserve
+60M of memory to load a "rescue" kernel that will be booted on panic. We will
 also add an option which will panic the kernel on oops to allow executing the
 kexec kernel.
 
 \begin{bashinput}
 STM32MP> env edit bootargs
-STM32MP> <existing bootargs> crashkernel=80M oops=panic
+STM32MP> <existing bootargs> crashkernel=60M oops=panic
 STM32MP> boot
 \end{bashinput}
-
-Once done, we'll need to configure the kernel to be booted on crash using kexec.
-We will use the same kernel image for both the currently running one and the one
-booted on crash. In order to do that, we will need to mount the sdcard boot
-partition that contains the zImage and dtb:
-
-\begin{bashinput}
-# mount -t ext4 /dev/mmcblk0p4 /mnt/
-\end{bashinput}
-
-Note: normally, one would recompile a custom slim kernel to be as lightweight
-as possible instead of reusing a full feature kernel. A specific initrd/rootfs
-would also be provided to avoid any more risks of crashing.
 
 To load the crash kernel into the previously reserved memory zone, run the
 following command:
 
 \begin{bashinput}
-# kexec --type zImage -p /mnt/boot/zImage --dtb=/mnt/boot/stm32mp157a-dk1.dtb
-  --command-line="root=/dev/nfs ip=192.168.0.100:::::eth0
-  nfsroot=192.168.0.1:/srv/nfs/stm32_debug,nfsvers=3,tcp rw console=ttySTM0
-  maxcpus=1 reset_devices"
+# kexec --type zImage -p /root/kexec/zImage --dtb=/root/kexec/stm32mp157a-dk1.dtb
+  --command-line="console=ttySTM0,115200n8 maxcpus=1 reset_devices"
 \end{bashinput}
 
 Once done, you can trigger a crash using the previously mentioned watchdog
@@ -333,12 +343,19 @@ kernel after displaying the backtrace and a message:
 [ 1181.990839] Bye!
 \end{bashinput}
 
-For some reason, the console is not working after rebooting. But the kernel is
-actually booting correctly. Wait a bit, connect with ssh and copy the coredump:
+After reboot, log into the new kernel normally and bring up the eth0 interface:
+(We will use 192.168.0.101 to avoid cloberring ssh \code{know_hosts} file for
+the 192.168.0.100 entry).
+\begin{bashinput}
+$ ifconfig eth0 192.168.0.101
+\end{bashinput}
+
+{\textbf Note: ethernet setup might timeout due to some init issues after kexec
+boot so this commands needs to be run another time.}
 
 \begin{bashinput}
-$ ssh root@192.168.0.100
-$ cp /proc/vmcore /root/vmcore
+$ cd /home/<user>/debugging-labs/
+$ scp root@192.168.0.100:/proc/vmcore ./vmcore
 \end{bashinput}
 
 Finally, we will be able to debug that kernel coredump using crash.
@@ -359,9 +376,8 @@ $ make target=ARM
 
 Once done, you can open the vmcore file with crash using
 \begin{bashinput}
-$ sudo chown <user>:<user> /home/<user>/debugging-labs/nfsroot/root/vmcore
-$ ./crash /home/<user>/debugging-labs/nfsroot/root/vmlinux 
-  /home/<user>/debugging-labs/nfsroot/root/vmcore
+$ ./crash /home/<user>/debugging-labs/buildroot/output/build/linux-5.13/vmlinux 
+  /home/<user>/debugging-labs/vmcore
 \end{bashinput}
 
 Take some times to analyze the content of the dump using the commands that are
