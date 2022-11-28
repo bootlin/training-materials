@@ -151,8 +151,8 @@
       \item \code{crashkernel} parameter should be set to specify the crash
             kernel dedicated physical memory region
     \end{itemize}
-    \item {\em kexec-tools} are then used to prepare load dump-capture kernel
-      into be this memory zone using the \code{kexec} command
+    \item {\em kexec-tools} are then used to load dump-capture kernel into
+      this memory zone using the \code{kexec} command
     \begin{itemize}
       \item Internally uses the \code{kexec_load} system call
         \manpage{kexec_load}{2}
@@ -164,7 +164,8 @@
   \frametitle{kexec \& kdump (2/2)}
   \begin{itemize}
     \item Finally, on panic, the kernel will reboot into the kdump kernel
-      allowing the user to dump \code{/dev/vmcore} onto whatever media
+      allowing the user to dump the kernel coredump (\code{/dev/vmcore}) onto
+      whatever media
     \item Command line additional options depends on the architecture
     \item See \kdochtml{admin-guide/kdump/kdump} for more comprehensive
       explanations on how to setup the kdump kernel with \code{kexec}.
@@ -192,13 +193,14 @@
     \begin{itemize}
       \item \kconfigval{CONFIG_KEXEC}{y} to enabled KEXEC support
       \item \code{kexec-tools} to provide the \code{kexec} command
-      \item A zImage and a DTB accessible by \code{kexec}
+      \item A kernel and a DTB accessible by \code{kexec}
     \end{itemize}
     \item On the dump-capture kernel:
     \begin{itemize}
       \item \kconfigval{CONFIG_CRASH_DUMP}{y} to enabled dumping the crash
             kernel
-      \item \kconfigval{CONFIG_PROC_VMCORE}{y} to enabled /proc/vmcore support
+      \item \kconfigval{CONFIG_PROC_VMCORE}{y} to enabled \code{/proc/vmcore}
+        support
       \item \kconfigval{CONFIG_AUTO_ZRELADDR}{y} on ARM32 platforms
     \end{itemize}
     \item Set the correct \code{crashkernel} command line option:
@@ -217,9 +219,13 @@
 \begin{frame}
   \frametitle{{\em crash}}
   \begin{itemize}
-    \item {\em crash} is a tool allowing to investigate kernel (dead or alive !)
+    \item {\em crash} is a CLI tool allowing to investigate kernel (dead or
+      alive !)
+    \begin{itemize}
+      \item Uses /dev/mem or /proc/kcore on live systems
+      \item Requires \kconfigval{CONFIG_STRICT_DEVMEM}{n}
+    \end{itemize}
     \item Can use a coredump generated using kdump, kvmdump, etc.
-    \item Also works on a live system using /dev/mem or /proc/kcore.
     \item Based on \code{gdb} and provides many specific commands to inspect the
       kernel state.
     \begin{itemize}
