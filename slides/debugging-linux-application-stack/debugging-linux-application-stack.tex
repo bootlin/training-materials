@@ -137,12 +137,12 @@
 \begin{frame}[fragile]
   \frametitle{Userspace memory segments}
   \begin{itemize}
-    \item When starting a process, the kernel setups a number of various memory
+    \item When starting a process, the kernel sets up a number of various memory
           segments (named VMAs and backed by \kstruct{vma}) that have
           different execution attributes.
     \item VMA are actually memory zones that are mapped with specific
           attributes (R/W/X).
-    \item Segmentation fault happens when a program tries to access a non
+    \item A segmentation fault happens when a program tries to access a non
           existent VMA or a correct one but in a way that is not allowed.
     \begin{itemize}
       \item Writing data in a read-only segment
@@ -188,7 +188,7 @@
   \begin{itemize}
     \item The \emph{process context} can be seen as the content of
     the CPU registers associated to a process: execution register, stack register...
-    \item This context also designate an execution state and allows to sleep
+    \item This context also designates an execution state and allows to sleep
           inside kernel mode.
     \item A process that is executing in process context can be preempted.
     \item While executing in such context, the current process
@@ -231,14 +231,14 @@
       \item Implicitly when receiving exceptions (MMU fault, interrupts,
             breakpoints, etc).
     \end{itemize}
-    \item This state change will end up in kernel entrypoint (often call vectors)
+    \item This state change will end up in a kernel entrypoint (often call vectors)
           that will execute necessary code to setup a correct state for kernel
           mode execution.
     \item The kernel takes care of saving registers, switching to the kernel
           stack and potentially other things depending on the architecture.
     \begin{itemize}
       \item Does not use the user stack but a specific kernel fixed size stack
-            for security purpose.
+            for security purposes.
     \end{itemize}
   \end{itemize}
 \end{frame}
@@ -247,9 +247,9 @@
 \begin{frame}
   \frametitle{Exceptions}
   \begin{itemize}
-    \item Exceptions designate the kind of event that will trigger a CPU
+    \item Exceptions designate the kind of events that will trigger a CPU
           execution mode change to handle the exception.
-    \item Two main types of exceptions exists: synchronous and asynchronous.
+    \item Two main types of exceptions exist: synchronous and asynchronous.
     \begin{itemize}
       \item Asynchronous exceptions when a fault happens while executing (MMU,
             bus abort, etc) or when an interrupt is received (either software
@@ -273,11 +273,11 @@
             ({\bf I}nter {\bf P}rocessor {\bf I}nterrupts for instance).
     \end{itemize}
     \item When receiving an interrupt, the CPU will change its execution mode by
-          jump to a specific vector and switching to kernel mode to handle the
+          jumping to a specific vector and switching to kernel mode to handle the
           interrupt.
     \item When multiple CPUs (cores) are present, interrupts are often directed
           to a single core.
-    \item This is called "IRQ affinity" and it allow to control the IRQ load for
+    \item This is called "IRQ affinity" and it allows to control the IRQ load for
           each CPU
     \begin{itemize}
       \item See \kdochtml{core-api/irq/irq-affinity} and
@@ -294,7 +294,7 @@
     \item This context does not have access to userspace and should not use
           \kfunc{get_current}.
     \item Depending on the architecture, might use an IRQ stack.
-    \item Interrupts are disabled ! (no nested interrupt support)
+    \item Interrupts are disabled (no nested interrupt support)!
   \end{itemize}
   \begin{center}
     \includegraphics[height=0.2\textheight]{slides/debugging-linux-application-stack/interrupt_context.pdf}
@@ -350,7 +350,7 @@
 \begin{frame}[fragile]
   \frametitle{Kernel execution contexts}
   \begin{itemize}
-    \item The kernel runs code in various context depending on the event it is
+    \item The kernel runs code in various contexts depending on the event it is
           handling.
     \item Might have interrupts disabled, specific stack, etc.
   \end{itemize}
@@ -403,7 +403,7 @@ root          11       2 [rcu_tasks_kthread]          TS
   \begin{itemize}
     \item SoftIRQs is a specific kernel mecanism that is executed in
           software interrupt context.
-    \item Allows to execute code that need to be defered after interrupt
+    \item Allows to execute code that needs to be defered after interrupt
           handling but needs low latency.
     \begin{itemize}
       \item Executed right after hardware IRQ have been handled in interrupt
@@ -412,7 +412,7 @@ root          11       2 [rcu_tasks_kthread]          TS
             allowed.
     \end{itemize}
     \item Tasklets are using softirqs to execute their work so they run in the
-          same context and the same constraints applied.
+          same context and the same constraints are applied.
   \end{itemize}
 \end{frame}
 
@@ -426,7 +426,7 @@ root          11       2 [rcu_tasks_kthread]          TS
   \begin{itemize}
     \item Threaded interrupts are a mecanism that allows to handle the interrupt
           using a hard IRQ handler and a threaded IRQ handler.
-    \item Threaded IRQ handler will allow to execute work that can potentially
+    \item A threaded IRQ handler will allow to execute work that can potentially
           sleep in a kthread.
     \item One kthread is created for each interrupt line that was requested as
           a threaded IRQ.
@@ -445,12 +445,12 @@ root          11       2 [rcu_tasks_kthread]          TS
       \item \mint{c}+void *kzalloc(size_t size, gfp_t flags);+
       \item \mint{c}+unsigned long __get_free_pages(int flags, unsigned int order)+
     \end{itemize}
-    \item All allocation functions take a flag parameters which allow to
+    \item All allocation functions take a flags parameter which allows to
           designate the kind of memory that is needed.
     \begin{itemize}
-      \item \kfunc{GFP_KERNEL}: Normal allocation, can sleep while allocating
+      \item \ksym{GFP_KERNEL}: Normal allocation, can sleep while allocating
             memory (can not be used in interrupt context).
-      \item \kfunc{GFP_ATOMIC}: Atomic allocation, won't sleep while allocating
+      \item \ksym{GFP_ATOMIC}: Atomic allocation, won't sleep while allocating
             data.
     \end{itemize}
   \end{itemize}
@@ -469,7 +469,7 @@ root          11       2 [rcu_tasks_kthread]          TS
           \item \code{.text} section: Code
           \item \code{.data} section: Data
           \item \code{.rodata} section: Read-only Data
-          \item \code{.debug_info} section: Contains debug information
+          \item \code{.debug_info} section: Contains debugging information
         \end{itemize}
         \item Sections are part of a segment which can be loadable in memory
         \item Same format for all architectures supported by the kernel and also
@@ -491,14 +491,14 @@ root          11       2 [rcu_tasks_kthread]          TS
   \begin{columns}
     \column{0.75\textwidth}
     \begin{itemize}
-      \item GDB uses ELF files since they are containing the debug information
-      \item Debug information uses the DWARF format
+      \item GDB uses ELF files since they are containing the debugging information
+      \item Debugging information uses the DWARF format
       \item Allows the debugger to match addresses and symbol names, call
             sites, etc
-      \item Debugging information are generated by GDB and are included in the
+      \item Debugging information is generated by GDB and included in the
             ELF file if compiled with \code{-g}
       \begin{itemize}
-        \item Can even use -g3 to include extra debugging information (macros,
+        \item Can even use \code{-g3} to include extra debugging information (macros,
               etc)
       \end{itemize}
     \end{itemize}
@@ -515,16 +515,16 @@ $ gcc -g file.c -o program
 \begin{frame}[fragile]
   \frametitle{Debugging with compiler optimizations}
   \begin{itemize}
-    \item Compiler optimization (\code{-O<level>}) can lead to optimizing out some variables
-          and functions calls.
+    \item Compiler optimizations (\code{-O<level>}) can lead to optimizing out some variables
+          and function calls.
     \item Trying to display them with GDB will display
     \begin{itemize}
       \item \code{$1 = <value optimized out>}
     \end{itemize}
     \item If one wants to inspect variables and functions, it is possible to
-          compile the code using -O0 (no optimization).
+          compile the code using \code{-O0} (no optimization).
     \begin{itemize}
-      \item {\em Note: The kernel can only be compiled with -O2 or -Os}
+      \item {\em Note: The kernel can only be compiled with \code{-O2} or \code{-Os}}
     \end{itemize}
     \item It is also possible to annotate function with compiler attributes:
     \begin{itemize}
@@ -534,15 +534,15 @@ $ gcc -g file.c -o program
     \begin{itemize}
       \item {\em Note: LTO (Link Time Optimization) can defeat this.}
     \end{itemize}
-    \item Set a specific variable as \code{volatile} to avoid the compiler
-          optimizing them out.
+    \item Set a specific variable as \code{volatile} to prevent the compiler
+          from optimizing it out.
   \end{itemize}
 \end{frame}
 
 \begin{frame}
   \frametitle{Shared libraries}
   \begin{itemize}
-    \item Shared libraries are provided as {\em .so} file that are actually ELF files
+    \item Shared libraries are provided as {\em .so} files that are actually ELF files
     \begin{itemize}
       \item Loaded at startup by \code{ld.so} (the dynamic loader)
       \item Or at runtime using \code{dlopen()} from your code
@@ -566,13 +566,13 @@ $ gcc -g file.c -o program
 \begin{frame}
   \frametitle{Kernel debug features}
   \begin{itemize}
-    \item The kernel contains multiple mechanism to analyze functions calls,
+    \item The kernel contains multiple mechanisms to analyze functions calls,
           arguments, hook specific handlers and much more
     \begin{itemize}
-      \item ptrace allows tracing another process
-      \item kprobes can hook handlers on almost any code site
-      \item ftrace allows tracing functions using different tracers
-      \item eBPF is a powerful framework in the kernel allowing to use BPF
+      \item {\em ptrace} allows tracing another process
+      \item {\em kprobes} can hook handlers on almost any code site
+      \item {\em ftrace} allows tracing functions using different tracers
+      \item {\em eBPF} is a powerful framework in the kernel allowing to use BPF
             language in sandboxed environments and execute complex actions and
             data gathering
     \end{itemize}
@@ -587,7 +587,7 @@ $ gcc -g file.c -o program
 \begin{frame}[fragile]
   \frametitle{ptrace}
   \begin{itemize}
-    \item ptrace mechanism allows processes to trace other processes by
+    \item The {\em ptrace} mechanism allows processes to trace other processes by
           accessing tracee memory and register contents
     \item A tracer can observe and control the execution state of another
           process
@@ -604,7 +604,7 @@ long ptrace(enum __ptrace_request request, pid_t pid, void *addr, void *data);
   \end{block}
 
   \begin{itemize}
-    \item Used by {\em GDB}, {\em strace} and all debugging tools that needs access to the
+    \item Used by {\em GDB}, {\em strace} and all debugging tools that need access to the
           tracee process state
   \end{itemize}
 \end{frame}
