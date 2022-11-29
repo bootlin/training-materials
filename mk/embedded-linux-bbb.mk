@@ -5,7 +5,6 @@ EMBEDDED_LINUX_BBB_SLIDES = \
 		beagleboneblack-board \
 		sysdev-shopping-list-bbb \
                 discovery-board-also-supported \
-		qemu-also-supported \
 		course-information \
 		sysdev-intro \
 		sysdev-dev-environment \
