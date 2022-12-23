@@ -519,37 +519,20 @@ Cleaning targets:
 \subsection{Booting the kernel}
 
 \begin{frame}
-  \frametitle{Device Tree 1/2}
+  \frametitle{Hardware description}
   \begin{itemize}
   \item Many embedded architectures have a lot of non-discoverable
-    hardware (serial, Ethernet, I2C, Nand flash, USB  controllers...)
-  \item Depending on the architecture, such hardware is either
-    described in ACPI tables (x86), using C code directly within the kernel,
-    or using a special hardware description language in a {\em Device Tree}.
-  \item The Device Tree (DT) was initially used for SPARC and PowerPC, and
-    later was adopted by other architectures (ARM, ARC...). Now Linux
-    has DT support in most architectures.
-  \item Its main purpose is to describe the hardware and its integration:
-    non-discoverable devices, clocks, interrupts, DMA channels, pin
-    muxing, etc.
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Device Tree 2/2}
-  \begin{itemize}
-  \item A {\em Device Tree Source (DTS)}, written by kernel developers,
-    is compiled into a binary {\em Device Tree Blob (DTB)}, and needs to
-    be passed to the kernel at boot time.
+    hardware (serial, Ethernet, I2C, Nand flash, USB controllers...)
+  \item This hardware needs to be described and passed to the Linux
+    kernel.
+  \item Using C code directly within the kernel is legacy, nowadays the
+    bootloader/firmware is expected to provide this description when
+    starting the kernel:
     \begin{itemize}
-    \item There is one different Device Tree for each board/platform
-      supported by the kernel, available in
-      \code{arch/arm/boot/dts/<board>.dtb}.
-     \item See \kfile{arch/arm/boot/dts/stm32mp157a-dk1.dts} for
-      example.
+    \item On x86: using ACPI tables
+    \item On most embedded devices: using an OpenFirmware Device Tree
+      (DT)
     \end{itemize}
-  \item The bootloader must load both the kernel image and the DTB
-    in memory before starting the kernel.
   \item This way, a kernel supporting different SoCs knows which
     SoC and device initialization hooks to run on the current board.
   \end{itemize}
