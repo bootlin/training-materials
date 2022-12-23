@@ -20,6 +20,7 @@ LINUX_KERNEL_SLIDES = \
 		kernel-intro-modules \
 		kernel-driver-development-modules \
 		kernel-driver-development-lab-modules \
+		kernel-hw-devices \
 		kernel-driver-development-general-apis \
 		kernel-device-model \
 		kernel-i2c \
