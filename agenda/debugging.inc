@@ -81,3 +81,18 @@
     \prerequisiteenglish
   \end{itemize}
 }
+
+% Training audience
+\ifthenelse{\equal{\agendalanguage}{french}}{
+  \def \trainingaudience{
+    Sociétés et ingénieurs intéressés dans le debug, profiling et
+    tracing de systèmes et d'applications Linux, afin d'analyser et
+    résoudre des problèmes de performance ou de latence.
+  }
+}{
+  \def \trainingaudience{
+    Companies and engineers interested in debugging, profiling and
+    tracing Linux systems and applications, to analyze and address
+    performance or latency problems.
+  }
+}

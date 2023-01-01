@@ -78,3 +78,16 @@
     \prerequisiteenglish
   \end{itemize}
 }
+
+% Training audience
+\ifthenelse{\equal{\agendalanguage}{french}}{
+  \def \trainingaudience{
+    Sociétés qui utilisent déjà Buildroot ou qui sont intéressées par
+    l'utiliser pour construire leurs systèmes Linux embarqué.
+  }
+}{
+  \def \trainingaudience{
+    Companies already using or interested in using
+    Buildroot to build their embedded Linux systems.
+  }
+}

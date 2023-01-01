@@ -83,3 +83,16 @@
     \prerequisiteenglish
   \end{itemize}
 }
+
+% Training audience
+\ifthenelse{\equal{\agendalanguage}{french}}{
+  \def \trainingaudience{
+    Ingénieurs développant des systèmes reposant sur le noyau Linux.
+    \newline Ingénieurs supportant des développeurs Linux embarqué.
+  }
+}{
+  \def \trainingaudience{
+    People developing devices using the Linux kernel
+    \newline People supporting embedded Linux system developers.
+  }
+}

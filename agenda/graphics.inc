@@ -57,3 +57,14 @@
     \prerequisiteenglish
   \end{itemize}
 }
+
+% Training audience
+\ifthenelse{\equal{\agendalanguage}{french}}{
+  \def \trainingaudience{
+    Développeurs de systèmes multimédia utilisant le noyau Linux
+  }
+}{
+  \def \trainingaudience{
+    People developing multimedia devices using the Linux kernel
+  }
+}

@@ -66,3 +66,16 @@
     \prerequisiteenglish
   \end{itemize}
 }
+
+% Training audience
+\ifthenelse{\equal{\agendalanguage}{french}}{
+  \def \trainingaudience{
+    Sociétés et ingénieurs intéressés par l'utilisation de Yocto
+    Project pour construire leur système Linux embarqué.
+  }
+}{
+  \def \trainingaudience{
+    Companies and engineers interested in using the Yocto Project to
+    build their embedded Linux system.
+  }
+}

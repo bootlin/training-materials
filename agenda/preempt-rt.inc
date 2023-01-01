@@ -59,3 +59,17 @@
     \prerequisiteenglish
   \end{itemize}
 }
+
+% Training audience
+\ifthenelse{\equal{\agendalanguage}{french}}{
+  \def \trainingaudience{
+    Entreprises et ingénieurs intéressés dans le développement et le
+    benchmarking d'applications et de drivers temps-réel pour un
+    système Linux embarqué.
+  }
+}{
+  \def \trainingaudience{
+    Companies and engineers interested in writing and benchmarking
+    real-time applications and drivers on an embedded Linux system.
+  }
+}

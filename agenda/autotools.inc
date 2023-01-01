@@ -34,3 +34,9 @@
     \prerequisitecommandline
   \end{itemize}
 }
+
+% Training audience
+\def \trainingaudience{
+  Companies already using or interested in using
+  {\em autotools} to build their software components.
+}
