@@ -19,6 +19,17 @@
 \usepackage{colortbl}
 \usepackage{calc}
 \usepackage{ifthen}
+\usepackage{fp}
+\usepackage{fmtcount}
+
+% Setting the babel language is important for fmtcount to return
+% strings in the appropriate language.
+\ifthenelse{\equal{\agendalanguage}{french}}{
+  \usepackage[french]{babel}
+  \frenchbsetup{StandardItemLabels=true}
+}{
+  \usepackage[english]{babel}
+}
 
 \input{last-update}
 
@@ -28,6 +39,8 @@
 \setmainfont{Liberation Serif}
 \setsansfont{Liberation Sans}
 \setmonofont{Liberation Mono}
+
+\FCloadlang{french}
 
 %% Remove indentation on the first line of each paragraph, and add
 %% some space between each paragraph.
@@ -87,6 +100,32 @@
 \newcommand{\code}[1]
 {\path{#1}}
 
+
+\FPset{\totaltraininghours}{\trainingduration}
+\ifthenelse{\equal{\trainingtype}{onsite}}{
+  \FPset{\trainingsessionhours}{8}
+}{
+  \FPset{\trainingsessionhours}{4}
+}
+\FPmul{\totaltraininghours}{\totaltraininghours}{\trainingsessionhours}
+\FPround{\totaltraininghours}{\totaltraininghours}{0}
+
+\newcommand\feshowduration{
+  \ifthenelse{\equal{\agendalanguage}{english}}{
+    \ifthenelse{\equal{\trainingtype}{onsite}}{
+      {\bf \Numberstringnum{\trainingduration}} days - \FPprint{\totaltraininghours} hours (\trainingsessionhours{} hours per day)
+    }{
+      {\bf \Numberstringnum{\trainingduration}} half days - \FPprint{\totaltraininghours} hours (\trainingsessionhours{} hours per half day)
+    }
+  }{
+    \ifthenelse{\equal{\trainingtype}{onsite}}{
+      {\bf \Numberstringnum{\trainingduration}} jours - \FPprint{\totaltraininghours} h (\trainingsessionhours{} h par jour)
+    }{
+      {\bf \Numberstringnum{\trainingduration}} demi-journées - \FPprint{\totaltraininghours} h (\trainingsessionhours{} h par demi-journée)
+    }
+  }
+}
+
 \newcommand\feagendasummaryitem[2]{
   \begin{tabularx}{\textwidth}{gh}
     {\bf #1} & #2 \\
@@ -126,7 +165,19 @@
     \LARGE
     \trainingtitle{}\\
     \large
-    \trainingduration{}\\
+    \ifthenelse{\equal{\agendalanguage}{english}}{
+      \ifthenelse{\equal{\trainingtype}{onsite}}{
+        On-site training, \trainingduration{}~days
+      }{
+        On-line seminar, \trainingduration{} sessions of 4 hours
+      }
+    }{
+      \ifthenelse{\equal{\trainingtype}{onsite}}{
+        Formation sur site, \trainingduration{}~jours
+      }{
+        Séminaire en ligne, \trainingduration{} sessions de 4 hours
+      }
+    }\\
     \small
     \ifthenelse{\equal{\agendalanguage}{french}}{
       Dernière mise à jour: \lastupdatefr{}
