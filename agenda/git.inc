@@ -21,3 +21,11 @@
     control with Git
   \end{itemize}
 }
+
+% Training prerequisites
+\def \trainingprerequisites{
+  \begin{itemize}
+    \prerequisitecommandline
+    \prerequisiteenglish
+  \end{itemize}
+}

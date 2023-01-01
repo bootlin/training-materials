@@ -48,3 +48,12 @@
     \end{itemize}
   }
 }
+
+% Training prerequisites
+\def \trainingprerequisites{
+  \begin{itemize}
+    \prerequisiteclanguage
+    \prerequisitekernel
+    \prerequisiteenglish
+  \end{itemize}
+}

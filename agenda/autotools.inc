@@ -27,3 +27,10 @@
     etc.
   \end{itemize}
 }
+
+% Training prerequisites
+\def \trainingprerequisites{
+  \begin{itemize}
+    \prerequisitecommandline
+  \end{itemize}
+}

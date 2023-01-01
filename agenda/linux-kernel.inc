@@ -73,3 +73,13 @@
     \end{itemize}
   }
 }
+
+% Training prerequisites
+\def \trainingprerequisites{
+  \begin{itemize}
+    \prerequisiteclanguage
+    \prerequisitecommandline
+    \prerequisiteembeddedlinux
+    \prerequisiteenglish
+  \end{itemize}
+}

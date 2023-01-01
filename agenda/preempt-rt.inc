@@ -50,3 +50,12 @@
     \end{itemize}
   }
 }
+
+% Training prerequisites
+\def \trainingprerequisites{
+  \begin{itemize}
+    \prerequisitecommandline
+    \prerequisiteembeddedlinux
+    \prerequisiteenglish
+  \end{itemize}
+}
