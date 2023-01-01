@@ -14,3 +14,46 @@
 }{
   \def \trainingduration{3}
 }
+
+% Training objectives
+\ifthenelse{\equal{\agendalanguage}{french}}{
+  \def \traininggoals{
+    \begin{itemize}
+    \item Être capable de comprendre le rôle et le principe d'un build
+      system Linux embarqué, et comparer Yocto Project/OpenEmbedded aux
+      autres outils offrant des fonctionnalités similaires.
+    \item Être capable de configurer et de réaliser la compilation d'un
+      système Linux embarqué simple avec Yocto, et d'installer le
+      résultat sur une plateforme embarquée.
+    \item Être capable d'écrire ou d'étendre des recettes de paquets,
+      pour vos propres paquets ou personnalisations.
+    \item Être capable d'utiliser des {\em layers} de recettes
+      existants, et de créer votre propre nouveau {\em layer}.
+    \item Être capable d'intégrer le support pour votre carte embarqué
+      dans un {\em layer BSP}.
+    \item Être capable de créer des images personnalisées.
+    \item Être capable d'utiliser les outils et les {\em workflows}
+      appropriés pour développer des applications avec le SDK du Yocto
+      Project.
+    \end{itemize}
+  }
+}{
+  \def \traininggoals{
+    \begin{itemize}
+    \item Be able to understand the role and principle of an embedded
+      Linux build system, and compare Yocto Project/OpenEmbedded to
+      other tools offering similar functionality.
+    \item Be able to configure and build basic embedded Linux system
+      with Yocto, and install the result on an embedded platform.
+    \item Be able to write and extend recipes, for your own packages or
+      customizations.
+    \item Be able to use existing layers of recipes, and create your own
+      new layers.
+    \item Be able to integrate support for your own embedded board into
+      a BSP layer.
+    \item Be able to create custom images.
+    \item Be able to use the tools and workflows suitable to develop
+      applications with the Yocto Project SDK.
+    \end{itemize}
+  }
+}
