@@ -42,7 +42,9 @@ RUN dnf -y update && \
 	texlive-textpos \
 	texlive-makecell \
 	texlive-stmaryrd \
-	texlive-fmtcount
+	texlive-fmtcount \
+	texlive-babel-english \
+	texlive-babel-french
 
 ENV HOME /tmp
 
