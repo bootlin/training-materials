@@ -40,3 +40,11 @@
   Companies already using or interested in using
   {\em autotools} to build their software components.
 }
+
+% Trainers
+\def \trainers {
+  {\bf Thomas Petazzoni}. Thomas is a major
+  Buildroot developer since 2009, an activity through which he has
+  gained a good knowledge of {\em autoconf}, {\em automake} and {\em
+    libtool}.
+}

@@ -73,3 +73,9 @@
     real-time applications and drivers on an embedded Linux system.
   }
 }
+
+% Trainers
+\def \trainers {
+  Maxime Chevallier
+  \newline \url{https://bootlin.com/company/staff/maxime-chevallier/}
+}
