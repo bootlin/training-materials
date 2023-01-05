@@ -104,3 +104,6 @@
     \newline People supporting embedded Linux system developers.
   }
 }
+
+% Ubuntu version
+\def \ubuntuversion{22.04}

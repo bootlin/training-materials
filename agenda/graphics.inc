@@ -68,3 +68,27 @@
     People developing multimedia devices using the Linux kernel
   }
 }
+
+% Required equipment on-site
+\ifthenelse{\equal{\trainingtype}{onsite}}{
+  \ifthenelse{\equal{\agendalanguage}{french}}{
+    \def \requiredequipment {
+      {\bf Pour les sessions en présentiel dans les locaux de nos clients,
+        notre client doit fournir}:
+      \begin{itemize}
+      \item Projecteur vidéo
+      \item Un grand moniteur
+      \item Un tableau pour écrire
+      \end{itemize}
+    }
+  }{
+    \def \requiredequipment {
+      {\bf For on-site sessions at our customer location, the customer must provide}:
+      \begin{itemize}
+      \item Video projector
+      \item Large monitor
+      \item Drawing board
+      \end{itemize}
+    }
+  }
+}{}
