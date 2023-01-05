@@ -79,3 +79,7 @@
     build their embedded Linux system.
   }
 }
+
+% Time ratio
+\def \onsitelecturetimeratio{40}
+\def \onsitelabtimeratio{60}

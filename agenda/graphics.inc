@@ -95,3 +95,7 @@
 
 % No labs in graphics course
 \def \haslabs{false}
+
+% Time ratio
+\def \onsitelecturetimeratio{75}
+\def \onsitedemotimeratio{25}

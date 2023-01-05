@@ -91,3 +91,7 @@
     Buildroot to build their embedded Linux systems.
   }
 }
+
+% Time ratio
+\def \onsitelecturetimeratio{40}
+\def \onsitelabtimeratio{60}

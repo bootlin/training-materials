@@ -79,3 +79,7 @@
   Maxime Chevallier
   \newline \url{https://bootlin.com/company/staff/maxime-chevallier/}
 }
+
+% Time ratio
+\def \onsitelecturetimeratio{50}
+\def \onsitelabtimeratio{50}

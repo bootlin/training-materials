@@ -96,3 +96,7 @@
     \newline People supporting embedded Linux system developers.
   }
 }
+
+% Time ratio
+\def \onsitelecturetimeratio{50}
+\def \onsitelabtimeratio{50}

@@ -48,3 +48,7 @@
   gained a good knowledge of {\em autoconf}, {\em automake} and {\em
     libtool}.
 }
+
+% Time ratio
+\def \onsitelecturetimeratio{40}
+\def \onsitelabtimeratio{60}

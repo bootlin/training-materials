@@ -35,3 +35,7 @@
   Companies already using or interested in using
   Git to manage their source code.
 }
+
+% Time ratio
+\def \onsitelecturetimeratio{40}
+\def \onsitelabtimeratio{60}
