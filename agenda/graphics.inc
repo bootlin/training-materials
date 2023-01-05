@@ -92,3 +92,6 @@
     }
   }
 }{}
+
+% No labs in graphics course
+\def \haslabs{false}
