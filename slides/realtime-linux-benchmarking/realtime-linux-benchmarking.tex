@@ -74,6 +74,41 @@ cat /sys/kernel/tracing/tracing_max_latency
 \end{frame}
 
 \begin{frame}
+	\frametitle{hwlatdetect}
+	Tool provided by \code{rt-tests}, relying on a dedicated kernel feature
+	\begin{itemize}
+		\item Allows detecting NMIs and Hardware latencies the kernel is normally unaware of
+		\item Runs a loop on all CPU cores with local interrupts disabled
+		\item Only NMIs and Hardware Latencies can interrupt the loop
+		\item Samples a high precision timer and looks for large gaps between samples
+		\item Useful to benchmark and validate a hardware platform
+		\item Must \textbf{not} be used in production environment, introduces huge latencies
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+	\frametitle{osnoise}
+	\begin{itemize}
+		\item Gives an overview of "noise" sources from the Kernel and the Hardware
+		\item Uses a similar measurement loop as \code{hwlatdetect}
+		\item Uses \code{tracepoints} to detect the source of noise :
+			\begin{itemize}
+				\item Thread Latency : Latencies due to the measuring thread being preempted
+				\item SoftIRQ Latency : Latencies due to softIRQ processing
+				\item IRQ Latency : Latencies introduced by IRQs
+				\item NMI Latency : Latencies introduced by NMIs
+				\item Hardware Latency : Latencies that aren't explained by any of the above
+			\end{itemize}
+		\item \code{trace-cmd start -p osnoise} : Start recording os noise events
+		\item \code{trace-cmd start -p osnoise -e osnoise} : Start recording noise events and trace their cause
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+	\frametitle{timerlat}
+\end{frame}
+
+\begin{frame}
 	\frametitle{kernelshark}
 	\begin{itemize}
 		\item Kernelshark is a graphical interface for processing ftrace reports
@@ -86,16 +121,14 @@ cat /sys/kernel/tracing/tracing_max_latency
 \end{frame}
 
 \begin{frame}
-	\frametitle{hwlatdetect}
-	Tool provided by \code{rt-tests}, relying on a dedicated kernel feature
+	\frametitle{rtla}
+	\textbf{R}eal\textbf{T}ime \textbf{L}inux \textbf{A}nalysis tool
 	\begin{itemize}
-		\item Allows detecting NMIs, that the kernel is normally unaware of
-		\item Runs a loop on all CPU cores with local interrupts disabled
-		\item Only NMIs can interrupt the loop
-		\item Samples a high precision timer and looks for large latencies
-		\item Useful to benchmark and validate a hardware platform
-		\item Must \textbf{not} be used in production environment, introduces huge latencies
+		\item Developped by Daniel Bristot de Oliveira
+		\item High-level interface to the \code{timerlat} and \code{osnoise} tracers
+		\item \code{rtla osnoise|timerlat top|hist} gives high-level view of noise and latencies
 	\end{itemize}
+
 \end{frame}
 
 \begin{frame}
