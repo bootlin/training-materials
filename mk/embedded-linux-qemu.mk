@@ -45,7 +45,7 @@ EMBEDDED_LINUX_QEMU_SLIDES = \
 		sysdev-references \
 		last-slides
 
-EMBEDDED_LINUX_QEMU_LABS   = ubuntu-vm \
+EMBEDDED_LINUX_QEMU_LABS   = \
                 setup \
                 sysdev-toolchain \
                 sysdev-u-boot-qemu \
