@@ -9,14 +9,14 @@ Go to the \code{$HOME/__SESSION_NAME__-labs/bootloader} directory.
 Install the \code{qemu-system-arm} package. In this lab and in the
 following ones, we will use a QEMU emulated ARM Vexpress Cortex A9 board.
 
-\section{Configuring U-Boot}
+\section{Configuring and building U-Boot}
 
-Download U-Boot v2020.04.
+Download U-Boot:
 
-First apply a patch that fixes the \code{editenv} command in U-Boot:
 \begin{bashinput}
-$ cd u-boot-2020.04
-$ cat ../data/vexpress_flags_reset.patch | patch -p1
+$ git clone https://gitlab.denx.de/u-boot/u-boot
+$ cd u-boot
+$ git checkout v2023.01
 \end{bashinput}
 
 Now configure U-Boot to support the ARM Vexpress Cortex A9 board
@@ -90,6 +90,8 @@ to see available commands. One of them is \code{[Ctrl][a]} followed by
 \code{[x]}, which allows to exit the emulator.
 
 \section{SD card setup}
+
+Go back to the main \code{bootloader} directory.
 
 We now need to add an SD card image to the QEMU virtual machine,
 in particular to get a way to store U-Boot's environment.
@@ -170,7 +172,7 @@ Start QEMU again, but this time with the emulated SD card
 
 \begin{bashinput}
 $ qemu-system-arm -M vexpress-a9 -m 128M -nographic \
-		  -kernel u-boot-2020.04/u-boot \
+		  -kernel u-boot/u-boot \
 		  -sd sd.img
 \end{bashinput}
 
@@ -213,7 +215,7 @@ because of the need to bring up the network interface:
 
 \begin{bashinput}
 $ sudo qemu-system-arm -M vexpress-a9 -m 128M -nographic \
-	-kernel u-boot-2020.04/u-boot \
+	-kernel u-boot/u-boot \
 	-sd sd.img \
 	-net tap,script=./qemu-myifup -net nic
 \end{bashinput}
