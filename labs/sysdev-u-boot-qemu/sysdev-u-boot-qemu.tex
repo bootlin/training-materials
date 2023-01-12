@@ -52,15 +52,20 @@ to further edit your bootloader features:
     that are not present in the default configuration for our board.
 \end{itemize}
 
-Install the following packages which may be needed to compile U-Boot for
+Install the following packages which should be needed to compile U-Boot for
 your board:
 
-\bashcmd{$ sudo apt install libssl-dev device-tree-compiler}
+\begin{bashinput}
+$ sudo apt install libssl-dev device-tree-compiler swig \
+       python3-distutils python3-dev
+\end{bashinput}
 
-Finally, run \code{make}\footnote{You can speed up the
+Finally, run \bashcmd{make}
+ which will build U-Boot
+\footnote{You can speed up the
 compiling by using the \code{-jX} option with \code{make}, where X
 is the number of parallel jobs used for compiling. Twice the
-number of CPU cores is a good value.}, which will build U-Boot.
+number of CPU cores is a good value.}.
 
 This generates several binaries, including \code{u-boot} and
 \code{u-boot.bin}.
@@ -202,6 +207,9 @@ network interface between QEMU and the host.  Here are its contents:
 /sbin/ip link set $1 up
 \end{verbatim}
 
+If necessary, modify the above network address range so that
+it doesn't collide with the one of the main company network.
+
 Of course, make this script executable:
 \bashcmd{$ chmod +x qemu-myifup}
 
@@ -236,6 +244,11 @@ variables for networking:
 \begin{ubootinput}
 => setenv ipaddr 192.168.0.100
 => setenv serverip 192.168.0.1
+\end{ubootinput}
+
+To make these settings permanent, save the environment:
+
+\begin{ubootinput}
 => saveenv
 \end{ubootinput}
 
@@ -247,9 +260,14 @@ It should finish by:
 host 192.168.0.1 is alive
 \end{verbatim}
 
-\section{tftp setup}
+\section{Setting up the TFTP server}
 
-Install a {\em tftp} server on your host as explained in the slides.
+Let's install a TFTP server on your development workstation:
+
+\begin{verbatim}
+sudo apt install tftpd-hpa
+\end{verbatim}
+
 
 Back in U-Boot, run \code{bdinfo}, which will allow you to find out that
 RAM starts at \code{0x60000000}. Therefore, we will use the \code{0x61000000}
@@ -268,7 +286,9 @@ the board's memory at location \code{0x61000000}.
 You can verify that the download was successful by dumping the
 contents of the memory:
 
-\ubootcmd{=> md 0x61000000}
+\begin{ubootinput}
+=> md %\zimageboardaddr%
+\end{ubootinput}
 
 \section{Rescue binary}
 
