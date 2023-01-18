@@ -48,6 +48,32 @@
 	\code{isolcpus=0,2,3}
 \end{frame}
 
+\begin{frame}
+	\frametitle{CPU Isolation - cpusets}
+	\begin{itemize}
+		\item \code{cpuset} is a mechanism allowing to subdivide the CPU scheduling pool
+		\item They are created at runtime, through the \code{cpusetfs}
+			\begin{itemize}
+				\item \code{mount -t cpuset none /dev/cpuset}
+			\end{itemize}
+		\item cpusets are created at will in the cpuset main directory
+			\begin{itemize}
+				\item \code{mkdir /dev/cpuset/rt-set}
+				\item \code{mkdir /dev/cpuset/non-rt-set}
+			\end{itemize}
+		\item Each cpuset is assigned a pool of cpu cores
+			\begin{itemize}
+				\item \code{/bin/echo 2,3 > /dev/cpuset/rt-set}
+				\item \code{/bin/echo 0,1 > /dev/cpuset/non-rt-set}
+			\end{itemize}
+		\item We can then select which task gets to run in each cpuset
+			\begin{itemize}
+				\item \code{while read i; do /bin/echo $i; done < /dev/cpuset/tasks > /dev/cpuset/nontrt-set/tasks}
+				\item \code{/bin/echo $$ > /dev/cpuset/rt-set/tasks}
+			\end{itemize}
+	\end{itemize}
+\end{frame}
+
 % irq assignment
 \begin{frame}
 	\frametitle{IRQ affinity}
@@ -74,6 +100,7 @@
 		\item \code{/proc/sys/kernel/sched_rt_period_us} defines a window in microseconds that the scheduler will share between RT and non-RT tasks
 		\item \code{/proc/sys/kernel/sched_rt_runtime_us} defines how-much of that window is going to be dedicated to RT tasks.
 		\item The default values allocates 95\% of the CPU time to RT tasks
+		\item This mechanism is also called \textbf{RT Throttling}
 	\end{itemize}
 \end{frame}
 
