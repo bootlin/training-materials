@@ -1,3 +1,4 @@
+#include <malloc.h>
 #include <time.h>
 #include <fcntl.h>
 #include <stdio.h>
@@ -7,11 +8,10 @@
 #include <unistd.h>
 #include <stdbool.h>
 #include <inttypes.h>
+#include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#include <malloc.h>
-#include <sys/mman.h>
 
 #define DATA_SIZE	(16 * 1024 * 1024)
 
@@ -52,16 +52,7 @@ static uint32_t crc32(const void *data, size_t n_bytes)
 }
 
 void init_rt() {
-	char *buff;
-
-	mlockall(MCL_CURRENT | MCL_FUTURE);
-	mallopt(M_TRIM_THRESHOLD, -1);
-	mallopt(M_MMAP_MAX, 0);
-
-	buff= malloc(2 * DATA_SIZE);
-	memset(buff, 0, 2 * DATA_SIZE);
-	free(buff);
-
+	/*  Perform your init steps here... */
 }
 
 int main(int argc, char **argv)
@@ -76,28 +67,37 @@ int main(int argc, char **argv)
 
 	init_crc_table();
 
-	//init_rt();
+	/* Perform some initialisation steps to make sure we can safely run
+	 * without much interferences
+	 */
+	init_rt();
 
 	data = malloc(DATA_SIZE);
-	while (1) {
+	if (!data) {
+		fprintf(stderr, "Failed to allocate %d bytes\n", DATA_SIZE);
+		return EXIT_FAILURE;
+	}
 
+
+	while (1) {
 
 		clock_gettime(CLOCK_MONOTONIC, &start);
 		start_nano = timespec_to_nano(&start);
 
-		if (!data) {
-			fprintf(stderr, "Failed to allocate %d bytes\n", DATA_SIZE);
-			return EXIT_FAILURE;
-		}
-
+		/* Beginning of critical section */
 		memset(data, i++, DATA_SIZE);
 		crc = crc32(data, DATA_SIZE);
+		/* End of critical section */
 
 		clock_gettime(CLOCK_MONOTONIC, &end);
 		end_nano = timespec_to_nano(&end);
 
 
 		printf("Computed crc 0x%" PRIx32 " in %" PRIu64 " nano\n", crc, end_nano - start_nano);
+
+		/* Sleeping here as an example, but we could just wait for any
+		 * kind of external event
+		 */
 		sleep(1);
 	}
 	free(data);
