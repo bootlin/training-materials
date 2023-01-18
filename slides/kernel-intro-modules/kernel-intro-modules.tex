@@ -37,39 +37,31 @@
 \end{frame}
 
 \begin{frame}
-  \frametitle{Kernel log}
-
-  When a new module is loaded, related information is available in the
-  kernel log.
-  \begin{itemize}
-  \item The kernel keeps its messages in a circular buffer (so that it
-    doesn't consume more memory with many messages)
-  \item Kernel log messages are available through the \code{dmesg}
-    command ({\bf d}iagnostic {\bf mes}sa{\bf g}e)
-  \item Kernel log messages are also displayed in the system console
-    (console messages can be filtered by level using the
-    \code{loglevel} kernel command line parameter,
-     or completely disabled with the
-    \code{quiet} parameter). Example:\\
-    \code{console=ttyS0 root=/dev/mmcblk0p2 loglevel=5} 
-  \item Note that you can write to the kernel log from user space too.
-    That's useful when your device's serial console is being monitored
-    for critical messages:
-    \code{echo "<n>Debug info" > /dev/kmsg}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Module utilities (1)}
+  \frametitle{Module utilities: extracting information}
   \code{<module_name>}: name of the module file without the trailing \code{.ko}\\
   \begin{itemize}
   \item \code{modinfo <module_name>} (for modules in \code{/lib/modules})\\
     \code{modinfo <module_path>.ko}\\
     Gets information about a module without loading it: parameters, license,
     description and dependencies.\\
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Module utilities: loading}
+  \begin{itemize}
   \item \code{sudo insmod <module_path>.ko}\\
     Tries to load the given module. The full path to the module object
     file must be given.
+  \item \code{sudo modprobe <top_module_name>}\\
+    Most common usage of \code{modprobe}: tries to load all the
+    dependencies of the given top module, and then this module. Lots of
+    other options are available. \code{modprobe} automatically looks in
+    \code{/lib/modules/<version>/} for the object file corresponding
+    to the given module name.
+  \item \code{lsmod}\\
+    Displays the list of loaded modules\\
+    Compare its output with the contents of \code{/proc/modules}!
   \end{itemize}
 \end{frame}
 
@@ -91,22 +83,7 @@ $ dmesg
 \end{frame}
 
 \begin{frame}
-  \frametitle{Module utilities (2)}
-  \begin{itemize}
-  \item \code{sudo modprobe <top_module_name>}\\
-    Most common usage of \code{modprobe}: tries to load all the
-    dependencies of the given top module, and then this module. Lots of
-    other options are available. \code{modprobe} automatically looks in
-    \code{/lib/modules/<version>/} for the object file corresponding
-    to the given module name.
-  \item \code{lsmod}\\
-    Displays the list of loaded modules\\
-    Compare its output with the contents of \code{/proc/modules}!
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Module utilities (3)}
+  \frametitle{Module utilities: removals}
   \begin{itemize}
   \item \code{sudo rmmod <module_name>}\\
     Tries to remove the given module.\\
