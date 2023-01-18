@@ -1,0 +1,65 @@
+From 6d119252b88ce163bdee6da594180caf27f3fdc0 Mon Sep 17 00:00:00 2001
+From: Maxime Chevallier <maxime.chevallier@bootlin.com>
+Date: Wed, 18 Jan 2023 09:38:08 +0100
+Subject: [PATCH 3/3] package/linux-tools: Add support for the rtla tool
+
+Signed-off-by: Maxime Chevallier <maxime.chevallier@bootlin.com>
+---
+ package/linux-tools/Config.in             |  7 ++++++
+ package/linux-tools/linux-tool-rtla.mk.in | 26 +++++++++++++++++++++++
+ 2 files changed, 33 insertions(+)
+ create mode 100644 package/linux-tools/linux-tool-rtla.mk.in
+
+diff --git a/package/linux-tools/Config.in b/package/linux-tools/Config.in
+index 8a0b6d5802..be1712d4e6 100644
+--- a/package/linux-tools/Config.in
++++ b/package/linux-tools/Config.in
+@@ -102,6 +102,13 @@ config BR2_PACKAGE_LINUX_TOOLS_PERF_NEEDS_HOST_PYTHON3
+ 
+ endif
+ 
++config BR2_PACKAGE_LINUX_TOOLS_RTLA
++	bool "rtla"
++	select BR2_PACKAGE_LINUX_TOOLS
++	select BR2_PACKAGE_LIBTRACEFS
++	help
++	  Install the RTLA suite
++
+ config BR2_PACKAGE_LINUX_TOOLS_SELFTESTS
+ 	bool"selftests"
+ 	depends on BR2_PACKAGE_BUSYBOX_SHOW_OTHERS # bash
+diff --git a/package/linux-tools/linux-tool-rtla.mk.in b/package/linux-tools/linux-tool-rtla.mk.in
+new file mode 100644
+index 0000000000..8c480ecbb7
+--- /dev/null
++++ b/package/linux-tools/linux-tool-rtla.mk.in
+@@ -0,0 +1,26 @@
++################################################################################
++#
++# rtla
++#
++################################################################################
++
++LINUX_TOOLS += rtla
++
++RTLA_DEPENDENCIES = host-pkgconf libtracefs
++RTLA_MAKE_OPTS = $(LINUX_MAKE_FLAGS) \
++	CC=$(TARGET_CC) \
++	LDFLAGS="$(TARGET_LDFLAGS)" \
++	CFLAGS="$(TARGET_CFLAGS) $($(HOST_DIR)/bin/pkg-config --cflags libtracefs)"
++	PKG_CONFIG_PATH=$(STAGING_DIR)/usr/lib/pkgconfig
++
++define RTLA_BUILD_CMDS
++	$(TARGET_MAKE_ENV) $(TARGET_CONFIGURE_OPTS) $(RTLA_MAKE_OPTS) \
++	$(MAKE) -C $(LINUX_DIR)/tools/tracing rtla
++endef
++
++define RTLA_INSTALL_TARGET_CMDS
++	$(TARGET_MAKE_ENV) $(MAKE) -C $(LINUX_DIR)/tools/tracing \
++		$(RTLA_MAKE_OPTS) \
++		DESTDIR=$(TARGET_DIR) \
++		rtla_install
++endef
+-- 
+2.39.0
+

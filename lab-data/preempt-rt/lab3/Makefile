@@ -1,13 +1,15 @@
-all: pgflt gpiotest
+CC?=$(CROSS_COMPILE)gcc
 
-pgflt: pgflt.c
-	$(CROSS_COMPILE)gcc -O0 -o$@ $^ -lrt
+all: crc_test gpiotest
+
+crc_test: crc_test.c
+	$(CC) -O0 -o$@ $^ -lrt
 
 gpiotest: gpiotest.c
-	$(CROSS_COMPILE)gcc -O0 -o$@ $^ -lrt -lgpiod
+	$(CC) -O0 -o$@ $^ -lrt -lgpiod
 
 clean:
-	rm -f pgflt
+	rm -f crc_test
 	rm -f gpiotest
 
 .PHONY: clean

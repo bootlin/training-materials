@@ -1,0 +1,84 @@
+From f91cb89114ff9694c0944354bfc2c73014a2dabf Mon Sep 17 00:00:00 2001
+From: Maxime Chevallier <maxime.chevallier@bootlin.com>
+Date: Wed, 18 Jan 2023 09:37:43 +0100
+Subject: [PATCH 2/3] package: Introduce libtracefs package
+
+Signed-off-by: Maxime Chevallier <maxime.chevallier@bootlin.com>
+---
+ package/Config.in                |  1 +
+ package/libtracefs/Config.in     |  5 +++++
+ package/libtracefs/libtracefs.mk | 38 ++++++++++++++++++++++++++++++++
+ 3 files changed, 44 insertions(+)
+ create mode 100644 package/libtracefs/Config.in
+ create mode 100644 package/libtracefs/libtracefs.mk
+
+diff --git a/package/Config.in b/package/Config.in
+index 4624ab7496..30dd98db73 100644
+--- a/package/Config.in
++++ b/package/Config.in
+@@ -118,6 +118,7 @@ menu "Debugging, profiling and benchmark"
+ 	source "package/latencytop/Config.in"
+ 	source "package/libbpf/Config.in"
+ 	source "package/libtraceevent/Config.in"
++	source "package/libtracefs/Config.in"
+ 	source "package/lmbench/Config.in"
+ 	source "package/lsof/Config.in"
+ 	source "package/ltp-testsuite/Config.in"
+diff --git a/package/libtracefs/Config.in b/package/libtracefs/Config.in
+new file mode 100644
+index 0000000000..03000ea459
+--- /dev/null
++++ b/package/libtracefs/Config.in
+@@ -0,0 +1,5 @@
++config BR2_PACKAGE_LIBTRACEFS
++	bool "libtracefs"
++	select BR2_PACKAGE_LIBTRACEEVENT
++	help
++	  libtracefs
+diff --git a/package/libtracefs/libtracefs.mk b/package/libtracefs/libtracefs.mk
+new file mode 100644
+index 0000000000..5d6501deaf
+--- /dev/null
++++ b/package/libtracefs/libtracefs.mk
+@@ -0,0 +1,38 @@
++################################################################################
++#
++# libtracefs
++#
++################################################################################
++
++LIBTRACEFS_VERSION = 1.6.4
++LIBTRACEFS_SOURCE = libtracefs-$(LIBTRACEFS_VERSION).tar.gz 
++LIBTRACEFS_SITE = https://git.kernel.org/pub/scm/libs/libtrace/libtracefs.git/snapshot
++LIBTRACEFS_INSTALL_STAGING = YES
++LIBTRACEFS_LICENSE = GPL-2.0, LGPL-2.1
++LIBTRACEFS_LICENSE_FILES = LICENSES/GPL-2.0 LICENSES/LGPL-2.1
++
++LIBTRACEFS_DEPENDENCIES = host-pkgconf libtraceevent
++
++LIBTRACEFS_CFLAGS = $(TARGET_CFLAGS)
++LIBTRACEFS_CFLAGS += $($(HOST_DIR)/bin/pkg-config --cflags libtraceevent)
++
++define LIBTRACEFS_BUILD_CMDS
++	$(TARGET_MAKE_ENV) $(TARGET_CONFIGURE_OPTS) \
++	CFLAGS="$(LIBTRACEFS_CFLAGS)" \
++	$(MAKE) -C $(@D)
++endef
++
++define LIBTRACEFS_INSTALL_STAGING_CMDS
++	$(TARGET_MAKE_ENV) $(MAKE1) -C $(@D) $(TARGET_CONFIGURE_OPTS) \
++	DESTDIR=$(STAGING_DIR) \
++	pkgconfig_dir="/usr/lib/pkgconfig" prefix="/usr" \
++	install
++endef
++
++define LIBTRACEFS_INSTALL_TARGET_CMDS
++	$(TARGET_MAKE_ENV) $(MAKE1) -C $(@D) $(TARGET_CONFIGURE_OPTS) \
++	DESTDIR=$(TARGET_DIR) pkgconfig_dir="" prefix="/usr" \
++	install
++endef
++
++$(eval $(generic-package))
+-- 
+2.39.0
+
