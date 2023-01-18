@@ -23,6 +23,7 @@ In the Buildroot \code{make menuconfig} interface, enable the following packages
 	\item scheduling utilites from the util-linux package
 	\item python3
 	\item screen
+	\item dropbear
 \end{itemize}
 
 You'll also need to enable a few features in the kernel. Run \code{make linux-menuconfig} and select
@@ -33,7 +34,7 @@ the following options, located in "Kernel Hacking" :
 	\item Tracers -> Function tracer, Interrupts-off tracer, Preemption off tracer, scheduling latency tracer...
 \end{itemize}
 
-Re-build the image, and boot it on the board : \code {make linux-rebuild && make}
+Re-build the image, and boot it on the board : \code {make linux-rebuild all}
 
 Let's first start by establishing the baseline latency by simply running \code{cyclictest} :
 
@@ -79,13 +80,13 @@ Some kernel options can also be useful :
 
 To get a first idea of the wakeup latencies you can expect on your system, launch
 \code{cyclictest} on the target, and take a look at the Max latency. The lower, the
-better. You shouldn't get bit latency spikes.
+better. You shouldn't get big latency spikes.
 
 By running \code{cyclictest} as is, you will run the benchmark with the default
 scheduling policy (\code{SCHED_OTHER}), and without any CPU pinning.
 
 You may not notice huge latencies right away, since the system at that point isn't
-doint much else. You can try to load the system and see how that affects the latencies
+doing much. You can try to load the system and see how that affects the latencies
 
 To run cyclictest with a real-time scheduling policy, use the \code{-p <prio>} option.
 Cyclictest doesn't play well with the \code{chrt} command, since it will itself re-set
@@ -102,14 +103,17 @@ First, setup the board's network interface :
 
 \code{ip link set eth0 up}
 
-\code{udhcpc -i eth0}
+\code{ip address add 192.168.0.2/24 dev eth0}
 
-Then run the \code{iperf3} server in the background :
+Make sure that your computer has its network interface on the same subnet as your
+target.
+
+On the board,run the \code{iperf3} server in the background :
 
 \code{iperf3 -s -D}
 
 Re-run your cyclictest benchmark, and start sending traffic to your target. From
-you host computer, run \code{iperf3 -c <addr_of_your_board>}. You should start
+you host computer, run \code{iperf3 -c 192.168.0.2}. You should start
 seeing the latency rising up.
 
 Try comparing the latencies you get between \code{cyclictest} and \code{cyclictest -p 40}. Do you
@@ -157,7 +161,7 @@ also to change the interrupt CPU affinity.
 For cyclictest, you can either run cyclictest with the \code{-a <cpu_num>} option,
 or use \code{taskset -c <cpu_num> cyclictest ...}.
 
-Try running hackbench and cyclictest on the same CPU, and then on differenc CPU and
+Try running hackbench and cyclictest on the same CPU, and then on different CPU and
 compare the induced latencies.
 
 \subsection{Interrupt Pinning}
@@ -308,4 +312,13 @@ stopped automatically when cyclictest detects a high latency :
 	# When the high latency is hit, you can display the trace
 	trace-cmd show
 \end{bashinput}
+
+\section{Using the osnoise tracer}
+
+The following command is used to generate an histogram of os noises with the 
+\code{osnoise} tracer :
+
+\code{osnoise hist -c 1 -P f:49 -d 1m}
+
+The output shoud show a maximum latency around 50 000 microseconds. Why is that ?
 
