@@ -52,6 +52,7 @@ EMBEDDED_LINUX_QEMU_LABS   = \
                 sysdev-kernel-fetch-sources \
                 sysdev-kernel-cross-compiling \
                 sysdev-tinysystem \
+                sysdev-accessing-hardware-qemu \
                 sysdev-block-filesystems-qemu \
                 sysdev-thirdparty-qemu \
                 sysdev-buildroot \
