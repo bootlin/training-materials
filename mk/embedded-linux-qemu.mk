@@ -56,4 +56,5 @@ EMBEDDED_LINUX_QEMU_LABS   = \
                 sysdev-block-filesystems-qemu \
                 sysdev-thirdparty-qemu \
                 sysdev-buildroot-qemu \
-		sysdev-application-development-and-debugging
+		sysdev-application-development-qemu \
+		sysdev-application-debugging-qemu \
