@@ -1,0 +1,249 @@
+\subchapter{Using a build system, example with Buildroot}{Objectives:
+  discover how a build system is used and how it works, with the
+  example of the Buildroot build system.}
+
+\section{Goals}
+
+Compared to the previous lab, we are going to build a more elaborate
+system, still containing {\em alsa-utils} (and of course its {\em
+alsa-lib} dependency), but this time using Buildroot,
+an automated build system.
+
+The automated build system will also allow us to add more packages
+and play real audio on our system, thanks to the {\em Music Player
+Daemon (mpd)} (\url{https://www.musicpd.org/} and its {\em mpc} client.
+
+{\em Important note: because of the current sound playing issues
+mentioned before, this lab will be less exhaustive compared to our
+instructions on real hardware. You should be able to run the commands
+in the QEMU emulated machine though, proving that the tools were built
+correctly. So, we will build tools like mpd and mpc, but won't test
+them because of the absence of sound.}
+
+\section{Setup}
+
+Go to the \code{$HOME/__SESSION_NAME__-labs/buildroot} directory.
+
+\section{Get Buildroot and explore the source code}
+
+The official Buildroot website is available at
+\url{https://buildroot.org/}. Clone the {\em Git} repository, and
+checkout the tag corresponding to the latest 2022.02.<n> release (Long
+Term Support), which we have tested for this lab.
+
+Several subdirectories or files are visible, the most important ones
+are:
+
+\begin{itemize}
+\item \code{boot} contains the Makefiles and configuration items
+  related to the compilation of common bootloaders (GRUB, U-Boot,
+  Barebox, etc.)
+\item \code{board} contains board specific configurations and
+  root filesystem overlays.
+\item \code{configs} contains a set of predefined configurations,
+  similar to the concept of defconfig in the kernel.
+\item \code{docs} contains the documentation for Buildroot. You can
+  start reading \code{manual/manual.html} which is the main Buildroot
+  documentation;
+\item \code{fs} contains the code used to generate the various root
+  filesystem image formats
+\item \code{linux} contains the Makefile and configuration items
+  related to the compilation of the Linux kernel
+\item \code{Makefile} is the main Makefile that we will use to use
+  Buildroot: everything works through Makefiles in Buildroot;
+\item \code{package} is a directory that contains all the Makefiles,
+  patches and configuration items to compile the user space
+  applications and libraries of your embedded Linux system. Have a
+  look at various subdirectories and see what they contain;
+\item \code{system} contains the root filesystem skeleton and the {\em
+    device tables} used when a static \code{/dev} is used;
+\item \code{toolchain} contains the Makefiles, patches and
+  configuration items to generate the cross-compiling toolchain.
+\end{itemize}
+
+
+\section{Configure Buildroot}
+
+In our case, we would like to:
+
+\begin{itemize}
+\item Generate an embedded Linux system for ARM;
+\item Use an already existing external toolchain instead of having
+  Buildroot generating one for us;
+\item Compile the Linux kernel and deploy its modules in the root
+  filesystem;
+\item Integrate {\em BusyBox}, {\em alsa-utils},
+  {\em mpd}, {\em mpc} and {\em evtest} in our embedded Linux system;
+\item Integrate the target filesystem into a tarball
+\end{itemize}
+
+To run the configuration utility of Buildroot, simply run:
+
+\bashcmd{$ make menuconfig}
+
+Set the following options. Don't hesitate to press the \code{Help}
+button whenever you need more details about a given option:
+
+\begin{itemize}
+\item \code{Target options}
+  \begin{itemize}
+  \item \code{Target Architecture}: \code{ARM (little endian)}
+   \ifdefstring{\labboard}{stm32mp1}{
+   \item \code{Target Architecture Variant}: \code{cortex-A7}
+   \item \code{Enable VFP extension support}: Enabled
+  }{
+   \ifdefstring{\labboard}{qemu}{
+   \item \code{Target Architecture Variant}: \code{cortex-A9}
+   \item \code{Enable NEON SIMD extension support}: Enabled
+   \item \code{Enable VFP extension support}: Enabled
+   }{%beaglebone
+   \item \code{Target Architecture Variant}: \code{cortex-A8}
+   }
+  }
+  \item \code{Target ABI}: \code{EABIhf}
+  \ifdefstring{\labboard}{stm32mp1}{
+  \item \code{Floating point strategy}: \code{VFPv4}
+  }{
+   \ifdefstring{\labboard}{qemu}{
+   \item \code{Floating point strategy}: \code{VFPv3-D16}
+   }{%beaglebone
+   \item \code{Floating point strategy}: \code{VFPv3-D16}
+   }
+  }
+  \end{itemize}
+\item \code{Toolchain}
+  \begin{itemize}
+  \item \code{Toolchain type}: \code{External toolchain}
+  \item \code{Toolchain}: \code{Custom toolchain}
+  \item \code{Toolchain path}: use the toolchain you built:
+    \code{/home/<user>/x-tools/arm-training-linux-uclibcgnueabihf}
+    (replace \code{<user>} by your actual user name)
+  \item \code{External toolchain gcc version}: \code{11.x}
+  \item \code{External toolchain kernel headers series}: \texttt{\workingkernel.x}
+  \item \code{External toolchain C library}: \code{uClibc/uClibc-ng}
+  \item We must tell Buildroot about our toolchain configuration, so
+    select \code{Toolchain has WCHAR support?},
+    \code{Toolchain has SSP support?} and
+    \code{Toolchain has C++ support?}.
+    Buildroot will check these parameters anyway.
+  \end{itemize}
+\item \code{Target packages}
+  \begin{itemize}
+  \item Keep \code{BusyBox} (default version) and keep the BusyBox
+    configuration proposed by Buildroot;
+  \item \code{Audio and video applications}
+    \begin{itemize}
+    \item Select \code{alsa-utils}, and in the submenu:
+    \begin{itemize}
+         \item Only keep \code{speaker-test}
+    \end{itemize}
+    \item Select \code{mpd}, and in the submenu:
+    \begin{itemize}
+         \item Keep only \code{alsa}, \code{vorbis} and \code{tcp sockets}
+    \end{itemize}
+    \item Select \code{mpd-mpc}.
+    \end{itemize}
+  \end{itemize}
+\item \code{Filesystem images}
+  \begin{itemize}
+  \item Select \code{tar the root filesystem}
+  \end{itemize}
+\end{itemize}
+
+Exit the menuconfig interface. Your configuration has now been saved
+to the \code{.config} file.
+
+\section{Generate the embedded Linux system}
+
+Just run:
+
+\bashcmd{$ make}
+
+Buildroot will first create a small environment with the external
+toolchain, then download, extract, configure, compile and install each
+component of the embedded system.
+
+All the compilation has taken place in the \code{output/} subdirectory. Let's
+explore its contents:
+
+\begin{itemize}
+
+\item \code{build}, is the directory in which each component built by
+  Buildroot is extracted, and where the build actually takes place
+
+\item \code{host}, is the directory where Buildroot installs some
+  components for the host. As Buildroot doesn't want to depend on too
+  many things installed in the developer machines, it installs some
+  tools needed to compile the packages for the target. In our case it
+  installed {\em pkg-config} (since the version of the host may be ancient)
+  and tools to generate the root filesystem image ({\em genext2fs},
+  {\em makedevs}, {\em fakeroot}).
+
+\item \code{images}, which contains the final images produced by
+  Buildroot. In our case it contains a tarball of the filesystem, called
+  \code{rootfs.tar}, plus the compressed kernel and Device Tree binary.
+  Depending on the configuration, there could also a bootloader binary
+  or a full SD card image.
+
+\item \code{staging}, which contains the “build” space of the target
+  system. All the target libraries, with headers and documentation. It
+  also contains the system headers and the C library, which in our
+  case have been copied from the cross-compiling toolchain.
+
+\item \code{target}, is the target root filesystem. All applications
+  and libraries, usually stripped, are installed in this
+  directory. However, it cannot be used directly as the root
+  filesystem, as all the device files are missing: it is not possible
+  to create them without being root, and Buildroot has a policy of not
+  running anything as root.
+
+\end{itemize}
+
+\section{Run the generated system}
+
+Go back to the \code{$HOME/__SESSION_NAME__-labs/buildroot/} directory. Create
+a new \code{nfsroot} directory that is going to hold our system,
+exported over NFS. Go into this directory, and untar the rootfs using:
+
+\bashcmd{$ tar xvf ../buildroot/output/images/rootfs.tar}
+
+Add our \code{nfsroot} directory to the list of directories exported
+by NFS in \code{/etc/exports}.
+
+Also update the kernel and Device Tree binaries used by your board,
+from the ones compiled by Buildroot in \code{output/images/}.
+
+Boot the board, and log in (\code{root} account, no password).
+
+You should now reach a shell.
+
+You can run \code{speaker-test} to check that this application works.
+
+By running the \code{ps} command, you may also check whether the \code{mpd}
+server was started on your system. However, as said earlier, we won't try
+to test it as we currently have no sound in QEMU on Ubuntu 22.04.
+
+\section{Analyzing dependencies}
+
+It's always useful to understand the dependencies drawn by the
+packages we build.
+
+First we need to install a {\em Graphviz}:
+
+\bashcmd{$ sudo apt install graphviz}
+
+Now, let's use Buildroot's target to generate a
+dependency graph:
+
+\bashcmd{$ make graph-depends}
+
+We can now study the dependency graph:
+
+\bashcmd{$ evince output/graphs/graph-depends.pdf}
+
+In particular, you can see that adding MPD and its client
+required to compile {\em Meson} for the host, and in turn,
+{\em Python 3} for the host too. This substantially contributed to the
+build time.
+
+
