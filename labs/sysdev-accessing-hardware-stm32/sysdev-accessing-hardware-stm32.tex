@@ -1,16 +1,12 @@
 \subchapter{Accessing Hardware Devices}
-{Objective: learn how to access hardware devices.}
+{Objective: learn how to access hardware devices and declare new ones.}
 
 \section{Goals}
 
 Now that we have access to a command line shell thanks to a working root
-filesystem, we can now explore existing devices.
-
-{\bf Important:} {\em The manipulations in this lab are limited because
-we're working with an emulated platform, not with real hardware.
-It would be best to get your hands on the hardware platforms
-we support. Our instructions for such platforms really cover
-practising with internal and external hardware devices.}
+filesystem, we can now explore existing devices and make new ones
+available. In particular, we will make changes to the Device Tree
+and compile an out-of-tree Linux kernel module.
 
 \section{Setup}
 
@@ -40,6 +36,10 @@ noteworthy device files that you will see:
  \item {MMC device(s) and partitions}: devices starting with
        \code{mmcblk}. You should here recognize the MMC device(s)
        on your system and the associated partitions.
+ \item If you have a real board (not QEMU) and a USB stick, you could
+       plug it in and if your kernel was built with USB host and mass
+       storage support, you should see a new \code{sda} device appear,
+       together with the \code{sda<n>} devices for its partitions.
 \end{itemize}
 
 Don't hesitate to explore \code{/dev} on your workstation too
@@ -91,5 +91,639 @@ and check several files (for example):
 
 Don't hesitate to spend more time exploring \code{/sys} on your system
 and asking questions to your instructor.
+
+\section{Driving GPIOs}
+
+At this stage, we can only explore GPIOs through the legacy interface
+in \code{/sys/class/gpio}, because the {\em libgpiod} interface
+commands are provided through a dedicated project which we have to
+build separately, and {\em Busybox} does not provide a
+re-implementation for the {\em libgpiod} tools. In a later lab, we
+will build {\em libgpiod} tools which use the modern
+\code{/dev/gpiochipX} interface.
+
+The first thing to do is to enable this legacy interface by enabling
+\kconfig{CONFIG_GPIO_SYSFS} in the kernel configuration. Also make sure
+{\em Debugfs} is enabled (\kconfig{CONFIG_DEBUG_FS} and
+\kconfig{CONFIG_DEBUG_FS_ALLOW_ALL}).
+
+After rebooting the new kernel, the first thing to do is to mount
+the {\em Debugfs} filesystem:
+
+\begin{bashinput}
+# mount -t debugfs debugfs /sys/kernel/debug/
+\end{bashinput}
+
+Then, you can check information about available GPIOs banks and which
+GPIOs are already in use:
+
+\begin{bashinput}
+# cat /sys/kernel/debug/gpio
+\end{bashinput}
+
+We are now going to use one of the Arduino Uno header pins at the back
+of the board, which is not already used by another device.
+
+Take one of the M-M breadboard wires provided by your instructor and:
+\begin{itemize}
+  \item Connect one end to pin D2 of connector CN14
+  \item Connect the other end to pin 7 (GND) of connector CN16
+\end{itemize}
+
+\includegraphics[width=6cm]{labs/sysdev-accessing-hardware-stm32/dk1-board-gpio-connected-to-gnd.jpg}
+
+If you check the {\em Pinout of the Arduino™ connectors} table in the board
+documentation
+\footnote{\url{https://www.st.com/resource/en/user_manual/dm00591354-discovery-kits-with-stm32mp157-mpus-stmicroelectronics.pdf}},
+you will see that the ARD\_D2 pin on the board is connected to the PE1
+STM32 pin. PE1 is actually a GPIO pin on GPIO bank E, and is configured
+as a GPIO by default (no need to change pin muxing to use this pin as
+a GPIO).
+
+If you get back to the contents of \code{/sys/kernel/debug/gpio}, you'll
+find that GPIO bank E corresponds to \code{gpiochip4} and to GPIO
+numbers 64 to 79. Hence, PE1, the second pin on this bank corresponds to
+GPIO number 65.
+
+We now have everything we need to drive this GPIO using the legacy
+interface. First, let's enable it:
+
+\begin{bashinput}
+# cd /sys/class/gpio
+# echo %\gpionum% > export
+\end{bashinput}
+
+If indeed the pin is still available, this should create a new
+{\tt gpio\gpionum} file should appear in \code{/sys/class/gpio}.
+
+We can now configure this pin as input:
+
+\begin{bashinput}
+# echo in > gpio%\gpionum%/direction
+\end{bashinput}
+
+And check its value:
+
+\begin{bashinput}
+# cat gpio%\gpionum%/value
+0
+\end{bashinput}
+
+The value should be \code{0} as the pin is connected to a ground level.
+
+{Now, let's connect our GPIO pin to pin 2 (IOREF 3V3) of connector CN16.
+That's the same connector as before, just the second pin from the top
+(in the board picture above), instead of the seventh one.
+
+Let's check the value again:
+
+\begin{bashinput}
+# cat gpio%\gpionum%/value
+1
+\end{bashinput}
+
+The value is \code{1} because our pin is connected to a 3.3V level now.
+
+You could use this GPIO to add a button switch to your board, for
+example.
+
+Note that you could also configure the pin as output and set its value
+through the \code{value} file. This way, you could add an external LED
+to your board, for example.
+
+Before moving on to the next section, you can also check
+\code{/sys/kernel/debug/gpio} again, and see that {\tt gpio-\gpionum} is now
+in use, through the sysfs interface, and is configured as an input pin.
+
+When you're done, you can see your GPIO free:
+
+\begin{bashinput}
+# echo %\gpionum% > unexport
+\end{bashinput}
+
+\section{Driving LEDs}
+
+First, make sure your kernel is compiled with
+\kconfigval{CONFIG_LEDS_CLASS}{y}, \kconfigval{CONFIG_LEDS_GPIO}{y}
+and \kconfigval{CONFIG_LEDS_TRIGGER_TIMER}{y}.
+
+Then, go to \code{/sys/class/leds} to see all the LEDs that you are allowed
+to control.
+
+Let's control the LED which is called
+\code{heartbeat}.
+
+Go into the directory for this LED, and check its trigger (what
+routine is used to drive its value):
+
+\begin{bashinput}
+# cat trigger
+\end{bashinput}
+
+As you can see, there are many triggers to choose from, the current
+being \code{heartbeat}, corresponding to the CPU activity.
+
+You can disable all triggers by:
+
+\begin{bashinput}
+# echo none > trigger
+\end{bashinput}
+
+And then directly control the LED:
+
+\begin{bashinput}
+# echo 1 > brightness
+# echo 0 > brightness
+\end{bashinput}
+
+You could also use the \code{timer} trigger to light the LED
+with specified time on and time off:
+
+\begin{bashinput}
+# echo timer > trigger
+# echo 10 > delay_on
+# echo 200 > delay_off
+\end{bashinput}
+
+\section{Managing the I2C buses and devices}
+
+\subsection{Enabling an I2C bus}
+
+The next thing we want to do is connect an Nunchuk joystick
+to an I2C bus on our board. The I2C bus is very frequently used
+to connect all sorts of external devices. That's why we're covering
+it here.
+
+The first task is to find a suitable bus. If you study the
+same document about the board, you will find that only I2C5 is
+conveniently available through the Arduino headers. Let's try
+to use this one!
+
+First, let's see which I2C buses are already enabled:
+
+\begin{bashinput}
+# i2cdetect -l
+i2c-1	i2c             STM32F7 I2C(0x5c002000)                 I2C adapter
+i2c-0	i2c             STM32F7 I2C(0x40012000)                 I2C adapter
+\end{bashinput}
+
+\code{i2c-0} is the I2C controller with registers at
+\code{0x40012000}, which is \code{I2C1} in the STM32MP1
+nomenclature. \code{i2c-1} is the I2C controller with registers at
+\code{0x5c002000}, which is \code{I2C4} in the STM32MP1
+nomenclature. Refer to the STM32MP1 memory map in the datasheet for
+details. Pay attention to the numbering difference: \code{i2c-0},
+\code{i2c-1} is the Linux numbering, based on the registration order
+of enabled I2C busses. Here, because only I2C1 and I2C4 are enabled,
+they are called \code{i2c-0} and \code{i2c-1}.
+
+Using the datasheet for the SoC
+\footnote{\url{https://www.st.com/resource/en/reference_manual/dm00327659-stm32mp157-advanced-arm-based-32-bit-mpus-stmicroelectronics.pdf}},
+we can find what is the base address of the registers for the
+\code{I2C5} controller: it is \code{0x40015000}.
+
+\subsection{Customizing the Device Tree}
+
+To enable \busname\ on our system, we need to assign set \code{status =
+"okay";} in the corresponding Device Tree node.
+
+Fortunately, I2C5 is already defined in the one of the DTS includes
+used by the Device Tree for our board. In our case, that's in
+\kfile{arch/arm/boot/dts/stm32mp151.dtsi}. Look by yourself in this
+file, and you will find its definition, but with \code{status =
+"disabled";}. This means that this I2C controller is not enabled yet,
+and it's up to boards using it to do so.
+
+We could modify the \kfile{arch/arm/boot/dts/stm32mp157a-dk1.dts} file
+for our board, but that's not a very good idea as this file is
+maintained by the kernel developers. The changes that you make could
+collide with future changes made by the maintainers for this file.
+
+A more futureproof idea is to create a new Device Tree file which
+includes the standard one, and adds custom definitions. So, create a
+new \code{arch/arm/boot/dts/stm32mp157a-dk1-custom.dts} file containing:
+
+\begin{verbatim}
+/dts-v1/;
+#include "stm32mp157a-dk1.dts"
+
+&i2c5 {
+        status = "okay";
+        /delete-property/ pinctrl-names;
+};
+\end{verbatim}
+
+As you can see, it's also possible to include \code{dts} files, and not
+only \code{dtsi} ones.
+
+Why the \code{/delete-property/} statement? That's because we want
+to see what happens when a device doesn't have associated pin
+definitions yet.
+
+A device like an I2C controller node is typically declared in the DTSI
+files for the SoC, without pin settings as these are board
+specific. Pin definitions are then usually defined at board level.
+
+In our case, we don't see such definitions, but they are actually
+found in the \kfile{arch/arm/boot/dts/stm32mp15xx-dkx.dtsi}
+file, shared between multiple stm32mp15 DK boards, which is included
+by the toplevel Device Tree for our board.
+
+Modify the \kfile{arch/arm/boot/dts/Makefile} file to add your custom
+Device Tree, and then have it compiled (\code{make dtbs}).
+
+Reboot your board with the update.
+
+Back to the running system, we can now see that there is one more
+I2C bus. We can also recognize the I2C5 address (\code{0x40015000})
+though it's now associated to the \code{i2c-1} device name, which
+already existed previously, but mapped to a different physical device:
+
+\begin{bashinput}
+# i2cdetect -l
+i2c-1	i2c             STM32F7 I2C(0x40015000)                 I2C adapter
+i2c-2	i2c             STM32F7 I2C(0x5c002000)                 I2C adapter
+i2c-0	i2c             STM32F7 I2C(0x40012000)                 I2C adapter
+\end{bashinput}
+
+Now, let's use \code{i2cdetect}'s capability to probe a bus for devices.
+Let's start by the bus associated to \code{i2c-2}:
+
+\begin{bashinput}
+# i2cdetect -r 2
+i2cdetect: WARNING! This program can confuse your I2C bus
+Continue? [y/N] y
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+00:          -- -- -- -- -- -- -- -- -- -- -- -- --
+10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+20: -- -- -- -- -- -- -- -- 28 -- -- -- -- -- -- --
+30: -- -- -- UU -- -- -- -- -- -- -- -- -- -- -- --
+40: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+50: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+60: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+70: -- -- -- -- -- -- -- --
+\end{bashinput}
+
+We can see two devices here:
+\begin{itemize}
+\item One at address \code{0x33}, indicated by \code{UU},
+      which means that there is a kernel driver actively
+      driving this device.
+\item Another one at address \code{0x28}. We just know that
+      it's currently not bound to a kernel driver.
+\end{itemize}
+
+Now try to probe I2C5 through \code{i2cdetect -r 1}.
+
+You will see that the command will fail to connect to
+the bus. That's because the corresponding signals are
+not exposed yet to the outside connectors through pin muxing.
+
+So, get back to your Device Tree and remove the \code{/delete-property/}
+line. Recompile your Device Tree and reboot.
+
+You should now be able to probe your bus:
+
+\begin{bashinput}
+# i2cdetect -r 1
+i2cdetect: WARNING! This program can confuse your I2C bus
+Continue? [y/N] y
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+00:          -- -- -- -- -- -- -- -- -- -- -- -- --
+10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+30: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+40: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+50: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+60: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+70: -- -- -- -- -- -- -- --
+\end{bashinput}
+
+No device is detected yet, because this bus is just
+used for external devices. It's time to add one though.
+
+\subsection{Adding and enabling an I2C device}
+
+Let's connect the Nunchuk provided by your instructor
+to the I2C5 bus on the board, using breadboard wires:
+
+\includegraphics[width=4cm]{common/nunchuk-pinout.pdf}
+\includegraphics[width=6cm]{labs/sysdev-accessing-hardware-stm32/dk1-board-nunchuk-connected.jpg}
+
+\begin{itemize}
+\item Connect the Nunchuk PWR pin to pin 4 (3V3) of connector CN16
+\item Connect the Nunchuk GND pin to pin 6 (GND) of connector CN16
+\item Connect the Nunchuk SCL pin to pin 10 (D15 - I2C5\_SCL) of connector CN13
+\item Connect the Nunchuk SDA pin to pin 9 (D14 - I2C5\_SDA) of connector CN13
+\end{itemize}
+
+If you didn't do any mistake, your new device should be detected at
+address \code{0x52}:
+
+\begin{bashinput}
+# i2cdetect -r 1
+i2cdetect: WARNING! This program can confuse your I2C bus
+Continue? [y/N] y
+     0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
+00:          -- -- -- -- -- -- -- -- -- -- -- -- --
+10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+30: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+40: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+50: -- -- 52 -- -- -- -- -- -- -- -- -- -- -- -- --
+60: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+70: -- -- -- -- -- -- -- --
+\end{bashinput}
+
+We will later compile an out-of-tree kernel module to support this device.
+
+\section{Plugging a USB audio headset}
+
+In the next labs, we are going to play audio using a USB audio headset.
+Let's see whether our kernel supports such hardware by plugging the
+headset provided by your instructor.
+
+Before plugging the device, look at the output of \code{lsusb}:
+
+\begin{bashinput}
+# lsusb
+Bus 001 Device 001: ID 1d6b:0002
+Bus 001 Device 002: ID 0424:2514
+\end{bashinput}
+
+Now, when you plug the USB headset, a number of messages should appear
+on the console, and running \code{lsusb} again should show an
+additional device:
+
+\begin{bashinput}
+# lsusb
+Bus 001 Device 001: ID 1d6b:0002
+Bus 001 Device 004: ID 1b3f:2008
+Bus 001 Device 002: ID 0424:2514
+\end{bashinput}
+
+The device of vendor ID \code{1b3f} and product ID \code{2008} has
+appeared. Of course, this depends on the actual USB audio device
+that you used.
+
+The device also appears in \code{/sys/bus/usb/devices/}, in a
+directory whose name depends on the topology of the USB bus. When the
+device is plugged in the kernel messages show:
+
+\begin{bashinput}
+usb 1-1.1: new full-speed USB device number 3 using ehci-platform
+\end{bashinput}
+
+So if we go in \code{/sys/bus/usb/devices/1-1.1}, we get the {\em
+sysfs} representation of this USB device:
+
+\begin{bashinput}
+# cd /sys/bus/usb/devices/1-1.1
+# cat idVendor
+1b3f
+# cat idProduct
+2008
+# cat busnum
+1
+# cat devnum
+4
+# cat product
+USB Audio Device
+\end{bashinput}
+
+However, while the USB device is detected, we currently do not have
+any driver for this device, so no actual sound card is detected.
+
+\section{Enabling, installing and using in-tree kernel modules}
+
+Go back to the kernel source directory.
+
+The Linux kernel has a generic driver supporting all USB audio devices
+supporting the standard USB audio class. This driver can be enabled
+using the \kconfig{CONFIG_SND_USB_AUDIO} configuration option. Look
+for this parameter in the kernel configuration, and you should find
+that it is already enabled as a module.
+
+So, instead of compiling the corresponding driver as a built-in, that's
+a good opportunity to practice with kernel modules.
+
+Following details given in the lectures, compile the modules for your
+kernel if necessary (in case you just compiled the \code{zImage} and
+DTB files), and then install them in our NFS root filesystem
+(\code{$HOME/__SESSION_NAME__-labs/tinysystem/nfsroot}).
+
+Also make sure reinstall the kernel image, and reboot the board.
+Indeed, due to the changes we have made to the kernel source code,
+the kernel version is now \code{5.15.<x>-dirty}, the {\em dirty}
+keyword indicating that the Git working tree has uncommitted changes.
+The modules are therefore installed in \code{/lib/modules/5.15.<x>-dirty/},
+and the version of the running Linux kernel must match this.
+
+After rebooting, try to load the module that we need:
+
+\begin{bashinput}
+modprobe snd-usb-audio
+\end{bashinput}
+
+By running \code{lsmod}, see all the module dependencies that
+were loaded too.
+
+You can also see that a new USB device driver in
+\code{/sys/bus/usb/drivers/snd-usb-audio}. This directory shows which
+USB devices are bound to this driver.
+
+You can check that \code{/proc/asound} now exists (thanks to loading
+modules for the ALSA, the Linux sound subsystem), and that one sound
+card is available:
+
+\begin{bashinput}
+# cat /proc/asound/cards
+ 0 [Device         ]: USB-Audio - USB Audio Device
+                      GeneralPlus USB Audio Device at usb-musb-hdrc.1-1, full speed
+\end{bashinput}
+
+Check also the \code{/dev/snd} directory, which should now contain
+some character device files. These will be used by the user-space
+libraries and applications to access the audio devices.
+
+Modify your startup scripts so that the \code{snd-usb-audio} module
+is always loaded at startup.
+
+We cannot test the sound card yet, as we will need to build some
+software first. Be patient, this is coming soon.
+
+\section{Compiling and installing an out-of-tree kernel module}
+
+The next device we want to support is the I2C Nunchuk. There is a driver
+in the kernel to support it when connected to a Wiimote controller, but
+there is no such driver to support it as an I2C device.
+
+Fortunately, one is provided in
+\code{$HOME/__SESSION_NAME__-labs/hardware/data/nunchuk/nunchuk.c}. You can check
+\href{https://bootlin.com/training/kernel/}{Bootlin's Linux kernel and
+driver development course} to learn how to implement all sorts of device
+drivers for Linux.
+
+Go to this directory, and compile the out-of-tree module as follows:
+
+\begin{bashinput}
+make -C $HOME/__SESSION_NAME__-labs/kernel/linux M=$PWD
+\end{bashinput}
+
+Here are a few explanations:
+\begin{itemize}
+\item The \code{-C} option lets \code{make} know which Makefile to
+      use, here the toplevel Makefile in the kernel sources.
+\item \code{M=$PWD} tells the kernel Makefile to build external
+      module(s) from the file(s) in the current directory.
+\end{itemize}
+
+Now, you can install the compiled module in the NFS root filesystem
+by passing the \code{modules_install} target and specifying the
+target directory through the \code{INSTALL_MOD_PATH} variable:
+
+\begin{bashinput}
+make -C $HOME/__SESSION_NAME__-labs/kernel/linux \
+     M=$PWD \
+     INSTALL_MOD_PATH=$HOME/__SESSION_NAME__-labs/tinysystem/nfsroot \
+     modules_install
+\end{bashinput}
+
+You can see that this installs out-of-tree kernel modules under
+\code{lib/modules/<version>/extra/}.
+
+Back on the target, you can now check that your custom module can
+be loaded:
+
+\begin{bashinput}
+# modprobe nunchuk
+[ 4317.737978] nunchuk: loading out-of-tree module taints kernel.
+\end{bashinput}
+
+See \kdochtml{kbuild/modules} in kernel documentation
+for details about building out-of-tree kernel modules.
+
+However, run \code{i2cdetect -r 1} again. You will see that the
+Nunchuk is still detected, but still not driven by the kernel.
+Otherwise, it would be signaled by the \code{UU} character. You
+may also look at the \code{nunchuk.c} file and notice a
+\code{Nunchuk device probed successfully} message that you didn't
+see when loading the module.
+
+That's because the Linux kernel doesn't know about the Nunchuk
+device yet, even though the driver for this kind of devices is
+already loaded. Our device also has to be described in the Device Tree.
+
+You can confirm this by having a look at the contents of the
+\code{/sys/bus/i2c} directory.  It contains two subdirectories:
+\code{devices} and \code{drivers}.
+
+In \code{drivers}, there should be a \code{nunchuk} subdirectory,
+but no symbolic link to a device yet. In \code{devices} you should
+see some devices, but not the Nunchuk one yet.
+
+\section{Declaring an I2C device}
+
+To allow the kernel to manage our Nunchuk device, let's declare the
+device in the custom Device Tree for our board. The declaration of the \busname\ 
+bus will then look as follows:
+
+\begin{verbatim}
+&i2c5 {
+        status = "okay";
+        clock-frequency = <100000>;
+
+        nunchuk: joystick@52 {
+                compatible = "nintendo,nunchuk";
+                reg = <0x52>;
+        };
+};
+\end{verbatim}
+
+Here are a few notes:
+\begin{itemize}
+\item The \code{clock-frequency} property is used to configure the bus
+      to operate at 100 KHz. This is supposed to be required for the
+      Nunchuk.
+\item The Nunchuk device is added through a child node in the I2C
+      controller node.
+\item For the kernel to {\em probe} and drive our device, it's required
+      that the \code{compatible} string matches one of the
+      \code{compatible} strings supported by the driver.
+\item The \code{reg} property is the address of the device on the
+      I2C bus. If it doesn't match, the driver will probe the device
+      but won't be able to communicate with it.
+\end{itemize}
+
+Recompile your Device Tree and reboot your kernel with the new binary.
+
+You can now load your module again, and this time, you should see that
+the Nunchuk driver probed the Nunchuk device:
+
+\begin{bashinput}
+# modprobe nunchuk
+[   66.680455] nunchuk: loading out-of-tree module taints kernel.
+[   66.687645] input: Wii Nunchuk as /devices/platform/soc/40015000.i2c/i2c-1/1-0052/input/input3
+[   66.695421] Nunchuk device probed successfully
+\end{bashinput}
+
+List the contents of \code{/sys/bus/i2c/drivers/nunchuk} once again. You
+should now see a symbolic link corresponding to our new device.
+
+Also list \code{/sys/bus/i2c/devices/} again. You should now see the
+Nunchuk device, which can be recognized through its \code{0052} address.
+Follow the link and you should see a symbolic link back to the Nunchuk
+driver!
+
+We are not ready to use this input device yet, but at least we can test
+that we get bytes when buttons or the joypad are used. In the below
+command, use the same number as in the message you got in the console
+(\code{event3} for \code{input3} for example):
+
+\begin{bashinput}
+# od -x /dev/input/event3
+\end{bashinput}
+
+We will use the Nunchuk to control audio playback in an upcoming lab.
+
+\section{Setting the board's model name}
+
+Modify the custom Device Tree file one last time to override the model
+name for your system. Set the \code{model} property to
+\code{STM32MP1 media player}. Don't hesitate to ask your
+instructor if you're not sure how.
+
+Recompile the device tree, and reboot the board with it. You should see
+the new model name in two different places:
+
+\begin{itemize}
+\item In the first kernel messages on the serial console.
+\item In \code{/sys/firmware/devicetree/base/model}. This can be
+      handy for a distribution to identify the device it's running on.
+      By the way, you can explore \code{/sys/firmware/devicetree} and
+      find that every subdirectory corresponds to a DT node, and every
+      file corresponds to a DT property.
+\end{itemize}
+
+\section{Committing kernel tree changes}
+
+Now that our changes to the kernel sources are over,
+create a branch for your changes. {\bf Please
+don't skip this step} as it would interfere with the version assigned
+to the kernel and its modules, and with the way we will refer to our
+kernel sources in the upcoming labs.
+
+\begin{bashinput}
+git checkout -b bootlin-labs
+git add arch/arm/boot/dts/stm32mp157a-dk1-custom.dts
+git commit -as -m "Custom DTS for Bootlin lab"
+\end{bashinput}
+
+Doing this will impact the versions of the kernel and the modules.
+Compile your kernel and install your modules again (not necessary for the
+Nunchuk one for the moment) and see the version changes through the
+new based directory for modules.
+
+Don't forget to update the kernel your board boots.
 
 That's all for now!
