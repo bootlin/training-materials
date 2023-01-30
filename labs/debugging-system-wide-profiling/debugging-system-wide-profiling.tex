@@ -104,21 +104,29 @@ this. We'll add 2 tracepoints:
   \item One for the start of crc32 computation (\code{compute_crc_start})
     without any arguments.
   \item Another for the end of crc32 computation (\code{compute_crc_end}) with
-      a crc argument that will be displayed as an hexadecimal integer.
+      a crc \code{int} argument that will be displayed as an hexadecimal integer
+      using \code{lttng_ust_field_integer_hex()} output formatter.
 \end{itemize}
 
-For that, create a tracepoint provider header file template named
-\code{crc_random-tp.h} and another one for the tracepoint provider named
-\code{crc_random-tp.c}. These tracepoints should belong to the \code{crc_random}
-provider namespace.
+In order to create these tracepoints easily, we will create a
+\code{crc_random-tp.tp} file and generate the tracepoints using
+\code{lttng-gen-tp}. These tracepoints should belong to the \code{crc_random}
+provider namespace. Once written, generate the tracepoints provider package
+header and template using:
 
-You can then use the new tracepoints in your program to trace specific points
-of execution. Once added, you can compile your application using the following
-command:
+Once added, you can modify the \code{Makefile} by adding a new rule and
+modifying the existing one to use the generated files.
 
 \begin{bashinput}
-$ $(CROSS_COMPILE)-gcc -I. crc_random-tp.c crc_random.c  -llttng-ust -o crc_random
-\end{bashinput}
+  crc_random-tp.o: crc_random-tp.tp
+    lttng-gen-tp $<
+  
+  crc_random: crc_random.c crc_random-tp.o
+    ${CC} $^ -g3 -I. -llttng-ust -o $@
+  \end{bashinput}
+
+You can then use the new tracepoints in your program to trace specific points
+of execution as requested.
 
 Finally, on the target, enable the program tracepoints, run it and collect
 tracepoints. We are going to do that remotely using the \code{lttng-relayd} tool
@@ -143,7 +151,7 @@ $ lttng destroy
 \end{bashinput}
 
 Once finished, the traces will be visible in \code{$PWD/traces/<hostname>/<session>}
-on the remtoe computer. In our case, the hostname is buildroot so traces will be
+on the remote computer. In our case, the hostname is buildroot so traces will be
 located in \code{$PWD/traces/buildroot/<session>}
 
 Using \code{babeltrace2}, you can display the raw traces that were acquired:
