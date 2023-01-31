@@ -1,13 +1,13 @@
 import gdb
 
 class StructNamePrinter:
-    "Print a struct name"
+	"Print a struct name"
 
-    def __init__(self, val):
-        self.val = val
+	def __init__(self, val):
+		self.val = val
 
-    def to_string(self):
-	return "TODO"
+	def to_string(self):
+		return "TODO"
 
 def struct_name_lookup_function(val):
 	if str(val.type) == 'struct name':
