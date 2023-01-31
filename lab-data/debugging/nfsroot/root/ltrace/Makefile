@@ -1,6 +1,6 @@
 CC=${CROSS_COMPILE}gcc
 
-all: app
+all: authent
 
 libauthent.so: authent_library.c authent_library.h
 	${CC} $< -g3 -fPIC -shared -o $@
