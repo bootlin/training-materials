@@ -104,8 +104,27 @@ CPU time
 \section{Perf}
 
 In order to have a better view of the performance of our program in a real
-system, we will use \code{perf}. First of all, we will record our program
-execution using the \code{perf record} command.
+system, we will use \code{perf}. In order to gather performance counter from
+the hardware, we will run our program using \code{perf stat}. We would like to
+observe the number of L1 data cache store misses. In order to select the correct
+event, use \code{perf list} to find it amongst the cache events:
+
+\begin{bashinput}
+$ perf list cache
+\end{bashinput}
+
+Once found, execute the program using perf stat and specified that event using
+-e:
+
+\begin{bashinput}
+$ perf stat -e L1-dcache-store-misses ./png_convert tux.png out.png
+\end{bashinput}
+  
+Revert the modifications that we did to invert the program loops and again,
+measure the amount of misses.
+
+After that, we will record our program execution using the \code{perf record}
+command to obtain a callgrind like result.
 
 \begin{bashinput}
 $ perf record ./png_convert tux_small.png out.png
@@ -124,9 +143,9 @@ $ perf record --call-graph dwarf ./png_convert tux_small.png out.png
 \end{bashinput}
 
 We specify that we want to record the call graph using the DWARF information
-that are contained in ELF file (compiled with \code{-g}). Once recorded, display
-the results with \code{perf report} and compare them with callgrind ones:
-
+that are contained in ELF file (compiled with \code{-g}). Once recorded, on the
+desktop platform, display the results with \code{perf report} and compare them
+with callgrind ones:
 
 \begin{bashinput}
 $ perf report --symfs=/home/<user>/debugging-labs/buildroot/output/staging/
