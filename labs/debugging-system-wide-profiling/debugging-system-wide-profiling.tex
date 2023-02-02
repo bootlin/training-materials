@@ -46,7 +46,7 @@ manually with the uprobe sysfs interface or using \code{perf probe}.
 Before starting to profile, we will compile our program to be instrumented:
 
 \begin{bashinput}
-$ cd /home/<user>/debugging-labs/nfsroot/root/system_profiling
+$ cd /home/$USER/debugging-labs/nfsroot/root/system_profiling
 $ make
 \end{bashinput}
 
@@ -67,10 +67,20 @@ Then, we can create a uprobe and capture the crc value using:
 $ perf probe --source=./ -x ./crc_random main:35 crc
 \end{bashinput}
 
-We can finally trace the application using trace-cmd with this event
+We can finally trace the application using \code{trace-cmd} with this event. We will
+use the remote tracing capabilities of \code{trace-cmd} top do that. First, we will
+start the \code{trace-cmd} server on the desktop platform:
 
 \begin{bashinput}
-$ trace-cmd record -e probe_crc_random:main_L35 ./crc_random
+trace-cmd listen -p 4567
+\end{bashinput}
+
+Then, on the target, run \code{trace-cmd} with the \code{-N} parameter to
+specify the remote trace-cmd server. Interrupt it after a few (~50) crc
+computations in order to have a meaningful trace.
+
+\begin{bashinput}
+$ trace-cmd record -N 192.168.0.1:4567 -e probe_crc_random:main_L35 ./crc_random
 ^C
 \end{bashinput}
 
@@ -204,15 +214,15 @@ computer for further analysis. Copy that file and fix the permissions using
 \code{chown}:
 
 \begin{bashinput}
-$ sudo cp /home/<user>/debugging-labs/nfsroot/root/system_profiling/perf.data .
-$ sudo chown <user>:<user> perf.data
+$ sudo cp /home/$USER/debugging-labs/nfsroot/root/system_profiling/perf.data .
+$ sudo chown $USER:$USER perf.data
 \end{bashinput}
 
 We will then use perf report to visualize the aquired data:
 
 \begin{bashinput}
-$ perf report --symfs=/home/<user>/debugging-labs/buildroot/output/staging/
-  -k /home/<user>/debugging-labs/buildroot/output/build/linux-5.13/vmlinux
+$ perf report --symfs=/home/$USER/debugging-labs/buildroot/output/staging/
+  -k /home/$USER/debugging-labs/buildroot/output/build/linux-5.13/vmlinux
 \end{bashinput}
 
 Another useful tool for performance analysis is flamegraphs. Latest perf
