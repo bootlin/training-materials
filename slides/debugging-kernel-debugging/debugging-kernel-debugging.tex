@@ -22,19 +22,20 @@
 \input{../common/printk.tex}
 
 \begin{frame}
-  \frametitle{Linux kernel compilation products}
+  \frametitle{Kernel early debug}
   \begin{itemize}
-    \item Compiling the kernel yields a number of files
-    \item Amongst the various images and files that are generated, some of them
-          are interesting for debugging purposes:
-    \begin{itemize}
-      \item \code{vmlinux}: Kernel ELF file used for debug and to derivate other
-            images
-      \item \code{System.map}: Contain a list of addresses/symbols that are
-            embedded in the kernel
-      \item \code{vmlinux-gdb.py}: Scripts to ease kernel debugging with GDB
-      \item \code{*.ko}: Modules files located in the build tree subdirectories
-    \end{itemize}
+  \item When booting, the kernel sometimes crashes before even displaying
+    the system messages
+  \item On ARM, if your kernel doesn't boot or hangs without any
+    message, you can activate early debugging options
+  \begin{itemize}
+    \item \kconfigval{CONFIG_DEBUG_LL}{y} to enable ARM early serial output
+      capabilities
+    \item \kconfigval{CONFIG_EARLYPRINTK}{y} will allow printk to output the
+      prints earlier
+  \end{itemize}
+  \item \code{earlyprintk} command line parameter should be given to enable
+    early printk output
   \end{itemize}
 \end{frame}
 
@@ -49,7 +50,7 @@
       \item Kernel incorrect execution mode (sleeping in atomic context)
       \item Deadlocks detected by the kernel (Soft lockup/locking problem)
     \end{itemize}
-    \item When crashing, the kernel will display a message on the console that
+    \item On error, the kernel will display a message on the console that
           is called a "Kernel oops"
   \end{itemize}
   \begin{center}
@@ -59,7 +60,7 @@
 \end{frame}
 
 \begin{frame}
-  \frametitle{Kernel oops}
+  \frametitle{Kernel oops (1/2)}
   \begin{itemize}
     \item The content of this message depends on the architecture that is used.
     \item Almost all architectures display at least the following information:
@@ -74,10 +75,25 @@
     \item To have a meaningful backtrace with symbol names use
           \kconfigval{CONFIG_KALLSYMS}{y} which will embed the
           symbol names in the kernel image.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Kernel oops (1/2)}
+  \begin{itemize}
     \item Symbols are displayed in the backtrace using the following format:
     \begin{itemize}
       \item \code{<symbol_name>\+<hex_offset>/<symbol_size>}
     \end{itemize}
+    \item If the oops is not critical (taken in process context), then the
+          kernel will kill process and continue its execution
+    \begin{itemize}
+      \item Kernel stability might be compromise !
+    \end{itemize}
+    \item Tasks that are taking too much time to execute and that are hung can
+          also generate oops (\kconfig{CONFIG_DETECT_HUNG_TASK})
+    \item If KGDB support is present and configured, on oops, the kernel will
+          switch to KGDB mode.
   \end{itemize}
 \end{frame}
 
@@ -118,10 +134,8 @@
 \end{frame}
 
 \begin{frame}
-  \frametitle{Oops behavior}
+  \frametitle{Oops behavior configuration}
   \begin{itemize}
-    \item If the oops is not critical, then the kernel will continue its
-          execution although its stability might be compromised
     \item Sometimes, crash might be so bad that the kernel will panic and halt
           its execution entirely by stopping scheduling application and staying
           in a busy loop.
@@ -134,10 +148,8 @@
       \item Negative value: reboot immediately
       \item Positive value: seconds to wait before rebooting
     \end{itemize}
-    \item Tasks that are taking too much time to execute and that are hung can
-          also generate oops (\kconfig{CONFIG_DETECT_HUNG_TASK})
-    \item If a console is attached to kgdboc, then on panic, the kernel will
-          switch to KGDB mode.
+    \item OOPS can be configured at boot time to force a \code{panic()} call
+          using the \code{oops=panic} command line parameter.
   \end{itemize}
 \end{frame}
 
