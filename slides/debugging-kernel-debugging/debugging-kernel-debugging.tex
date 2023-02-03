@@ -69,8 +69,8 @@
       \item Backtrace of function calls that lead to the crash
       \item Stack content (last X bytes)
     \end{itemize}
-    \item These information allows to find the original code site which did
-          trigger the oops
+    \item Depending on the architecture, the crash location can be identified
+          using the content of the PC registers (sometimes named IP, EIP, etc).
     \item To have a meaningful backtrace with symbol names use
           \kconfigval{CONFIG_KALLSYMS}{y} which will embed the
           symbol names in the kernel image.
@@ -93,6 +93,28 @@
   \begin{center}
     \includegraphics[height=0.8\textheight]{slides/debugging-kernel-debugging/oops2.pdf}
   \end{center}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Kernel oops debugging}
+  \begin{itemize}
+    \item In order to convert addresses/symbol name from this display to source
+      code lines, one can use addr2line
+    \begin{itemize}
+      \item \code{addr2line -e vmlinux <symbol_name>+<off>}
+    \end{itemize}
+    \item This decoding can be automated using \code{decode_stacktraces.sh}
+      script which is provided in the kernel sources.
+    \item This script will translate all symbol names/addresses to the matching
+      file/lines and will display the assembly code where the crash did trigger.
+    \item The kernel must have been compiled with
+      \kconfigval{CONFIG_DEBUG_INFO}{y} to embed the debugging information into
+      the vmlinux file.
+    \item \code{./scripts/decode_stacktrace.sh vmlinux linux_source_path/ < oops_report.txt > decoded_oops.txt}
+
+    \item NOTE: \code{CROSS_COMPILE} should be set to obtain the correct
+      disassembly dump.
+  \end{itemize}
 \end{frame}
 
 \begin{frame}
@@ -479,60 +501,31 @@ R13: 0000000000005490 R14: 00000000006ed530 R15: 00007fb5ef0e3700
   \end{itemize}
 \end{frame}
 
-\begin{frame}
-  \frametitle{{\em agent-proxy}}
-  \begin{itemize}
-    \item When the system has only a single serial port, it is possible to use
-          {\em agent-proxy} to use both KGDB and serial output.
-    \item {\em agent-proxy} runs on the host computer and split out the serial
-          in two ports accessible via telnet.
-    \begin{itemize}
-      \item https://git.kernel.org/pub/scm/utils/kernel/kgdb/agent-proxy.git
-    \end{itemize}
-  \end{itemize}
-  \center\includegraphics[height=0.4\textheight]{slides/debugging-kernel-debugging/agent-proxy.pdf}
-\end{frame}
-
 \begin{frame}[fragile]
-  \frametitle{Using {\em agent-proxy}}
-  \begin{itemize}
-    \item First, start {\em agent-proxy} in background by specifying the
-          serial/KGDB output telnet ports and the input serial port:
-  \end{itemize}
-  \begin{block}{}
-    \begin{minted}[fontsize=\small]{console}
-$ agent-proxy 5550^5551 0 /dev/ttyACM0,115200 &
-    \end{minted}
-  \end{block}
-  \begin{itemize}
-    \item System console is then accessible using telnet:
-  \end{itemize}
-  \begin{block}{}
-    \begin{minted}[fontsize=\small]{console}
-$ telnet localhost 5550
-    \end{minted}
-  \end{block}
-  \begin{itemize}
-    \item The second telnet port can then be used to debug the kernel using GDB:
-  \end{itemize}
-  \begin{block}{}
-    \begin{minted}[fontsize=\small]{console}
-$ gdb ./vmlinux
-$ target remote localhost:5551
-    \end{minted}
-  \end{block}
-\end{frame}
-
-\begin{frame}
   \frametitle{{\em kdmx}}
   \begin{itemize}
-    \item kdmx stands for "kgdb muxing" and is present in agent-proxy git.
+    \item When the system has only a single serial port, it is not possible to
+          use both KGDB and the serial line as an output terminal since only one
+          program can access that port.
+    \item Fortunately, the {\em kdmx} tool allows to use both KGDB and serial
+          output by splitting GDB messages and standard console from a single
+          port to 2 slave pty (\code{/dev/pts/x})
+    \item https://git.kernel.org/pub/scm/utils/kernel/kgdb/agent-proxy.git
     \begin{itemize}
       \item Located in the subdirectory \code{kdmx}
     \end{itemize}
-    \item Instead of exposing telnet services, it expose 2 slave pty.
-    \item \code{./kdmx -n -d -p/dev/ttyACM0 -b115200}
   \end{itemize}
+  \begin{block}{}
+    \begin{minted}[fontsize=\tiny]{console}
+$ kdmx -n -d -p/dev/ttyACM0 -b115200
+serial port: /dev/ttyACM0
+Initalizing the serial port to 115200 8n1
+/dev/pts/6 is slave pty for terminal emulator
+/dev/pts/7 is slave pty for gdb
+
+Use <ctrl>C to terminate program
+    \end{minted}
+  \end{block}
   \center\includegraphics[height=0.4\textheight]{slides/debugging-kernel-debugging/kdmx.pdf}
 \end{frame}
 
