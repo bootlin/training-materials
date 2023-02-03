@@ -267,17 +267,33 @@ automatically and the symbols will be loaded:
 # loading @0xbf000000: /home/<user>/debugging-labs/nfsroot/root/kgdb_test/kgdb_test.ko
 \end{bashinput}
 
-If you attach KGDB after module loading, then you will need to execute the \code{lx-symbols}
-command in GDB:
+If not, you need to enter KGDB mode using the magic SySrq:
+
 \begin{bashinput}
-(gdb) lx-symbols
+# echo g > /proc/sysrq_trigger
+\end{bashinput}
+
+Then you will need to execute the \code{lx-symbols} command in GDB to reload the
+symbols from the module. You'll also need to pass a list of path that may
+contain the external modules:
+
+\begin{bashinput}
+(gdb) lx-symbols /home/<user>/debugging-labs/nfsroot/root/kgdb_test/
 loading vmlinux
 # scanning for modules in /home/<user>/debugging-labs/nfsroot/root
 # loading @0xbf000000: /home/<user>/debugging-labs/nfsroot/root/kgdb_test/kgdb_test.ko
 \end{bashinput}
 
 Finally, add a breakpoint right after the \code{pr_debug()} call and continue
-the execution to trigger it.
+the execution to trigger it:
+
+\begin{bashinput}
+(gdb) tbreak kgdb_test.c:16
+(gdb) continue
+\end{bashinput}
+
+At some point, the breakpoint will be triggered. Try to display the variable
+\code{i} to display the current loop value.
 
 Note: Due to a GDB bug, the execution after the breakpoint will crash. You can
 use a temporary breakpoint using \code{tbreak} command to workaround this
@@ -370,26 +386,9 @@ $ scp root@192.168.0.101:/proc/vmcore .
 \end{bashinput}
 
 Finally, we will be able to debug that kernel coredump using crash.
-
-\subsection{Compiling crash}
-
-\code{crash} utility that is available on your computer does not support ARM
-so we will need to recompile it for the ARM target. This can be done using the
-following commands:
+Using gdb, you can load the \code{vmcore} file using \code{gdb-multiarch}:
 
 \begin{bashinput}
-$ sudo apt install gcc-multilib g++-multilib lib32z1-dev lib32ncurses5-dev texinfo bison
-$ cd /home/$USER/debugging-labs/
-$ git clone https://github.com/crash-utility/crash.git
-$ cd crash
-$ make target=ARM
+$ gdb-multiarch /home/$USER/debugging-labs/buildroot/output/build/linux-5.13/vmlinux \
+  vmcore
 \end{bashinput}
-
-Once done, you can open the vmcore file with crash using
-\begin{bashinput}
-$ ./crash /home/$USER/debugging-labs/buildroot/output/build/linux-5.13/vmlinux 
-  /home/$USER/debugging-labs/vmcore
-\end{bashinput}
-
-Take some times to analyze the content of the dump using the commands that are
-offered by \code{crash}.

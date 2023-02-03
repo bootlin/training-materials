@@ -8,10 +8,13 @@ static struct task_struct *kthread;
 
 static int kgdb_test_thread_routine(void *data)
 {
+	unsigned long i = 0;
+
 	while(1) {
+		i++;
 		usleep_range(1000, 2000);
 
-		pr_debug("I'm awake !\n");
+		pr_debug("I'm awake for (%ld) !\n", i);
 
 		if (kthread_should_stop())
 			break;
