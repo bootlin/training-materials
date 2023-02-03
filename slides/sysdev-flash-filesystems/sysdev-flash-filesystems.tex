@@ -90,35 +90,25 @@
     \item Specified in the board Device Tree (default partitions, not always relevant)
     \item Specified through the kernel command line
     \end{itemize}
-  \item Each partition becomes a separate MTD device
-    \begin{itemize}
-    \item Different from block device labeling (\code{sda3},
-      \code{mmcblk0p2})
-    \item \code{/dev/mtd1} is the second enumerated partition on the
-      system (either from a single flash chip or from a different one).
-    \item Note that the master MTD device (the device those partitions
-      belong to) is not exposed in \code{/dev}
-    \end{itemize}
+  \item MTD partitions are defined through the \code{mtdparts} variable in
+    the kernel command line
+  \item U-Boot understands the Linux syntax via the \code{mtdparts} and
+    \code{mtdids} variables
   \end{itemize}
 \end{frame}
 
-\begin{frame}[fragile]
-  \frametitle{Defining MTD partitions}
-  \scriptsize
+\begin{frame}
+  \frametitle{MTD partitions on Linux}
   \begin{itemize}
-  \item MTD partitions must start and end at erase block boundaries
-  \item MTD partitions are defined through the kernel command line. Example:\\
-        \code{mtdparts=omap2-nand.0:512k(XLoader)ro,1536k(UBoot)ro,512k(Env),4m(Kernel),-(Root)}\\
-	(\code{omap2-nand.0} is the NAND device name for Linux, check the boot log)
-  \item U-Boot understands the Linux syntax:
-  \begin{verbatim}
-# Association between flash device U-Boot name (nand info) and Linux name
-setenv mtdids nand0=omap2-nand.0
-# Partition definitions
-setenv mtdparts mtdparts=omap2-nand.0:512k(XLoader)ro,1536k(UBoot)ro...
-  \end{verbatim}
+  \item Each partition becomes a separate MTD device
+  \item Different from block device labeling (\code{sda3},
+    \code{mmcblk0p2})
+  \item \code{/dev/mtd0} is the fisrt enumerated partition on the system
+  \item \code{/dev/mtd1} is the second enumerated partition on the system
+    (either from a single flash chip or from a different one).
+  \item Note that the master MTD device (the device those partitions
+    belong to) is not exposed in \code{/dev}
   \end{itemize}
-  \includegraphics[height=0.35\textheight]{slides/sysdev-flash-filesystems/kernel-mtd-log.pdf}
 \end{frame}
 
 \begin{frame}[fragile]
