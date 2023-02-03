@@ -358,6 +358,59 @@ unreferenced object 0x82d43100 (size 64):
   \end{block}
 \end{frame}
 
+\begin{frame}
+  \frametitle{{\em UBSAN}}
+  \begin{itemize}
+    \item UBSAN is a runtime checker for code with undefined behavior
+    \begin{itemize}
+      \item Shifting with a value larger than the type
+      \item Overflow of integers (signed and unsigned)
+      \item Misaligned pointer access
+      \item Out of bound access to static arrays
+      \item https://clang.llvm.org/docs/UndefinedBehaviorSanitizer.html
+    \end{itemize}
+    \item It uses compile-time instrumentation to insert checks that will be
+          executed at runtime
+    \item Must be enabled using \kconfigval{CONFIG_UBSAN}{y}
+    \item Then, can be enabled for specific files by modifying Makefile
+    \begin{itemize}
+      \item \code{UBSAN_SANITIZE_file.o := y} for a specific file
+      \item \code{UBSAN_SANITIZE := y} for all files in the Makefile folder
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{{\em UBSAN} example of UBSAN report}
+  \begin{itemize}
+    \item Report for an undefined behavior due to a shift with a value > 32.
+  \end{itemize}
+  \begin{block}{}
+    \begin{minted}[fontsize=\tiny]{console}
+UBSAN: Undefined behaviour in mm/page_alloc.c:3117:19
+shift exponent 51 is too large for 32-bit type 'int'
+CPU: 0 PID: 6520 Comm: syz-executor1 Not tainted 4.19.0-rc2 #1
+Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Bochs 01/01/2011
+Call Trace:
+__dump_stack lib/dump_stack.c:77 [inline]
+dump_stack+0xd2/0x148 lib/dump_stack.c:113
+ubsan_epilogue+0x12/0x94 lib/ubsan.c:159
+__ubsan_handle_shift_out_of_bounds+0x2b6/0x30b lib/ubsan.c:425
+...
+RIP: 0033:0x4497b9
+Code: e8 8c 9f 02 00 48 83 c4 18 c3 0f 1f 80 00 00 00 00 48 89 f8 48
+89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d
+01 f0 ff ff 0f 83 9b 6b fc ff c3 66 2e 0f 1f 84 00 00 00 00
+RSP: 002b:00007fb5ef0e2c68 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
+RAX: ffffffffffffffda RBX: 00007fb5ef0e36cc RCX: 00000000004497b9
+RDX: 0000000020000040 RSI: 0000000000000258 RDI: 0000000000000014
+RBP: 000000000071bea0 R08: 0000000000000000 R09: 0000000000000000
+R10: 0000000000000000 R11: 0000000000000246 R12: 00000000ffffffff
+R13: 0000000000005490 R14: 00000000006ed530 R15: 00007fb5ef0e3700 
+    \end{minted}
+  \end{block}
+\end{frame}
+
 \begin{frame}[fragile]
   \frametitle{Using Magic SysRq}
   Functionality provided by serial drivers
@@ -500,59 +553,6 @@ $ target remote localhost:5551
 \end{frame}
 
 \input{../common/prove-locking.tex}
-
-\begin{frame}
-  \frametitle{{\em UBSAN}}
-  \begin{itemize}
-    \item UBSAN is a runtime checker for code with undefined behavior
-    \begin{itemize}
-      \item Shifting with a value larger than the type
-      \item Overflow of integers (signed and unsigned)
-      \item Misaligned pointer access
-      \item Out of bound access to static arrays
-      \item https://clang.llvm.org/docs/UndefinedBehaviorSanitizer.html
-    \end{itemize}
-    \item It uses compile-time instrumentation to insert checks that will be
-          executed at runtime
-    \item Must be enabled using \kconfigval{CONFIG_UBSAN}{y}
-    \item Then, can be enabled for specific files by modifying Makefile
-    \begin{itemize}
-      \item \code{UBSAN_SANITIZE_file.o := y} for a specific file
-      \item \code{UBSAN_SANITIZE := y} for all files in the Makefile folder
-    \end{itemize}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}[fragile]
-  \frametitle{{\em UBSAN} example of UBSAN report}
-  \begin{itemize}
-    \item Report for an undefined behavior due to a shift with a value > 32.
-  \end{itemize}
-  \begin{block}{}
-    \begin{minted}[fontsize=\tiny]{console}
-UBSAN: Undefined behaviour in mm/page_alloc.c:3117:19
-shift exponent 51 is too large for 32-bit type 'int'
-CPU: 0 PID: 6520 Comm: syz-executor1 Not tainted 4.19.0-rc2 #1
-Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS Bochs 01/01/2011
-Call Trace:
-__dump_stack lib/dump_stack.c:77 [inline]
-dump_stack+0xd2/0x148 lib/dump_stack.c:113
-ubsan_epilogue+0x12/0x94 lib/ubsan.c:159
-__ubsan_handle_shift_out_of_bounds+0x2b6/0x30b lib/ubsan.c:425
-...
-RIP: 0033:0x4497b9
-Code: e8 8c 9f 02 00 48 83 c4 18 c3 0f 1f 80 00 00 00 00 48 89 f8 48
-89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d
-01 f0 ff ff 0f 83 9b 6b fc ff c3 66 2e 0f 1f 84 00 00 00 00
-RSP: 002b:00007fb5ef0e2c68 EFLAGS: 00000246 ORIG_RAX: 0000000000000010
-RAX: ffffffffffffffda RBX: 00007fb5ef0e36cc RCX: 00000000004497b9
-RDX: 0000000020000040 RSI: 0000000000000258 RDI: 0000000000000014
-RBP: 000000000071bea0 R08: 0000000000000000 R09: 0000000000000000
-R10: 0000000000000000 R11: 0000000000000246 R12: 00000000ffffffff
-R13: 0000000000005490 R14: 00000000006ed530 R15: 00007fb5ef0e3700 
-    \end{minted}
-  \end{block}
-\end{frame}
 
 \begin{frame}[fragile]
   \frametitle{Static code analysis}
