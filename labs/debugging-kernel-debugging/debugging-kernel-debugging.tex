@@ -4,7 +4,7 @@
   \begin{itemize}
     \item Debugging a deadlock problem using {\em PROVE\_LOCKING} options.
     \item Find a module memory leak using {\em kmemleak}.
-    \item Analyzing an {\em oops} with {\em addr2line}.
+    \item Analyzing an {\em oops}.
     \item Debugging with {\em KGDB}.
     \item Setting up {\em Kexec \& kdump}.
   \end{itemize}
@@ -128,6 +128,15 @@ locate the function and corresponding offset in assembly
 \begin{bashinput}
 $ gdb-multiarch /home/$USER/debugging-labs/buildroot/output/build/linux-5.13/vmlinux
 (gdb) disassemble <function>
+\end{bashinput}
+
+This can also be done automatically using \code{decode_stacktraces.sh}. First,
+copy/paste the OOPS message into the \code{~/debugging-labs/oops.txt} file.
+Then, using the script provided by the kernel, execute the following command:
+
+\begin{bashinput}
+$ cd /home/$USER/debugging-labs/buildroot/output/build/linux-5.13/
+$ ./scripts/decode_stacktraces vmlinux < ~/debugging-labs/oops.txt
 \end{bashinput}
 
 \section{KGDB debugging}
@@ -265,8 +274,8 @@ loading vmlinux
 # loading @0xbf000000: /home/<user>/debugging-labs/nfsroot/root/kgdb_test/kgdb_test.ko
 \end{bashinput}
 
-Finally, add a breakpoint right after the \code{pr_debug()} call continue the
-execution to trigger it.
+Finally, add a breakpoint right after the \code{pr_debug()} call and continue
+the execution to trigger it.
 
 Note: Due to a GDB bug, the execution after the breakpoint will crash. You can
 use a temporary breakpoint using \code{tbreak} command to workaround this
