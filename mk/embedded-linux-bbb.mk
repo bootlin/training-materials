@@ -45,7 +45,8 @@ EMBEDDED_LINUX_BBB_SLIDES = \
 		sysdev-software-stacks \
 		sysdev-application-development \
 		sysdev-references \
-		last-slides
+		last-slides \
+		sysdev-extra-slides
 
 EMBEDDED_LINUX_BBB_LABS = setup \
 		sysdev-toolchain \
