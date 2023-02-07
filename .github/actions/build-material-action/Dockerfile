@@ -44,7 +44,8 @@ RUN dnf -y update && \
 	texlive-stmaryrd \
 	texlive-fmtcount \
 	texlive-babel-english \
-	texlive-babel-french
+	texlive-babel-french \
+	texlive-appendixnumberbeamer
 
 ENV HOME /tmp
 
