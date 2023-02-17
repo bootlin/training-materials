@@ -80,6 +80,18 @@
   }
 }
 
+\ifthenelse{\equal{\agendalanguage}{french}}{
+  \def \traininglanguages{
+    Présentations : Français
+    \newline Supports : Anglais
+  }
+}{
+  \def \traininglanguages{
+    Oral lectures: English, French, Italian.
+    \newline Materials: English.
+  }
+}
+
 % Time ratio
 \def \onsitelecturetimeratio{40}
 \def \onsitelabtimeratio{60}
