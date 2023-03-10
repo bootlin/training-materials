@@ -68,29 +68,45 @@ do_install() {
 \begin{frame}[fragile]
   \frametitle{Variable flags}
   \begin{itemize}
-    \item {\em Variable flags} are used to store extra information on
-      tasks and variables.
+    \item {\em Variable flags}, or {\em varflags}, are used to store extra
+      information on tasks and variables.
+    \item They are used to control task functionalities.
+    \item A typical example:
   \begin{minted}{sh}
 SRC_URI[md5sum] = "97b2c3fb082241ab5c56ab728522622b"
   \end{minted}
-    \item They are used to control task functionalities.
-    \item A number of these flags are already used by BitBake:
-      \begin{itemize}
-        \item \code{dirs}: directories that should be created before the
-          task runs. The last one becomes the work directory for the
-          task.
-        \item \code{noexec}: disable the execution of the task.
-        \item \code{nostamp}: do not create a {\em stamp} file when
-          running the task. The task will always be executed.
-        \item \code{doc}: task documentation displayed by {\em
-          listtasks}.
-      \end{itemize}
+  \item See
+    \href{https://docs.yoctoproject.org/bitbake/2.2/bitbake-user-manual/bitbake-user-manual-metadata.html#variable-flags}{the list of varflags supported by Bitbake}.
+  \item More varflags can be added freely.
   \end{itemize}
-  \begin{minted}{sh}
-do_menuconfig[nostamp] = "1"
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Examples}
+  \begin{itemize}
+    \item \code{dirs}: directories that should be created before the task
+      runs. The last one becomes the work directory for the task.
+      \begin{minted}{sh}
+do_compile[dirs] = "${B}"
+      \end{minted}
+    \item \code{noexec}: disable the execution of the task.
+      \begin{minted}{sh}
 do_settime[noexec] = "1"
+      \end{minted}
+    \item \code{nostamp}: do not create a {\em stamp} file when running the
+      task. The task will always be executed.
+      \begin{minted}{sh}
+do_menuconfig[nostamp] = "1"
+      \end{minted}
+    \item \code{doc}: task documentation displayed by {\em listtasks}.
+      \begin{minted}{sh}
 do_settime[doc] = "Set the current time in ${TIME}"
-  \end{minted}
+      \end{minted}
+    \item \code{depends}: add a dependency between specific tasks
+      \begin{minted}{sh}
+do_patch[depends] = "quilt-native:do_populate_sysroot"
+      \end{minted}
+  \end{itemize}
 \end{frame}
 
 \subsection{Packages features}
