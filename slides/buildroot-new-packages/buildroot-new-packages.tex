@@ -897,22 +897,25 @@ LINUX_INSTALL_IMAGES = YES
   \end{itemize}
 \end{frame}
 
-\begin{frame}[fragile]{Describing actions: {\tt iostat.mk} example}
+\begin{frame}[fragile]{Describing actions: {\tt iodine.mk} example}
   \begin{block}{}
     \begin{minted}[fontsize=\scriptsize]{make}
-IOSTAT_VERSION = 2.2
-IOSTAT_SITE = http://linuxinsight.com/sites/default/files
-IOSTAT_LICENSE = GPL
-IOSTAT_LICENSE_FILES = LICENSE
+IODINE_VERSION = 0.7.0
+IODINE_SITE = http://code.kryo.se/iodine
+IODINE_DEPENDENCIES = zlib
+IODINE_LICENSE = MIT
+IODINE_LICENSE_FILES = README
 
-define IOSTAT_BUILD_CMDS
-        $(MAKE) -C $(@D) $(TARGET_CONFIGURE_OPTS) \
-                CFLAGS="$(TARGET_CFLAGS) -DHZ=100"
+IODINE_CFLAGS = $(TARGET_CFLAGS)
+[...]
+
+define IODINE_BUILD_CMDS
+        $(TARGET_CONFIGURE_OPTS) CFLAGS="$(IODINE_CFLAGS)" \
+                $(MAKE) ARCH=$(BR2_ARCH) -C $(@D)
 endef
 
-define IOSTAT_INSTALL_TARGET_CMDS
-        $(INSTALL) -D -m 0755 $(IOSTAT_DIR)/iostat \
-                $(TARGET_DIR)/usr/bin/iostat
+define IODINE_INSTALL_TARGET_CMDS
+        $(TARGET_CONFIGURE_OPTS) $(MAKE) -C $(@D) install DESTDIR="$(TARGET_DIR)" prefix=/usr
 endef
 
 $(eval $(generic-package))
