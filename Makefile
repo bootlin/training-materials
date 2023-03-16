@@ -226,7 +226,7 @@ endif
 %-labs.tar.xz:
 	rm -rf $(OUT_LAB_DATA)
 	mkdir -p $(OUT_LAB_DATA)
-	rsync --exclude=.git -a -k --delete lab-data/$(LAB_DATA)/ $(OUT_LAB_DATA)
+	rsync --exclude=.git -a -k --delete --copy-links lab-data/$(LAB_DATA)/ $(OUT_LAB_DATA)
 	fakeroot common/process-lab-data.sh $(OUT_LAB_DATA)
 	find $(OUT_LAB_DATA) -name '*.xz' -exec unxz {} \;
 	(cd $(OUTDIR); tar Jcf $@ $(LAB_DATA)-labs)
