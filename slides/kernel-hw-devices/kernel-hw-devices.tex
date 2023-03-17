@@ -910,6 +910,77 @@ sai4: sai@50027000 {
   \end{itemize}
 \end{frame}
 
+\begin{frame}[fragile]{Property {\tt cells}}
+  \begin{itemize}
+  \item Property numbers shall fit into 32-bit containers called
+    \code{cells}
+  \item The compiler does not maintain information about the number of
+    entries, the OS just receives 4 independent \code{cells}
+    \begin{itemize}
+      \begin{onlyenv}<1>
+      \item Example with a \code{reg} property using 2 entries of 2 cells:
+        \begin{block}{}
+\begin{verbatim}
+    reg = <0x50027000 0x4>, <0x500273f0 0x10>;
+\end{verbatim}
+        \end{block}
+      \item The OS cannot make the difference with:
+        \begin{block}{}
+\begin{verbatim}
+    reg = <0x50027000>, <0x4>, <0x500273f0>, <0x10>;
+    reg = <0x50027000 0x4 0x500273f0>, <0x10>;
+    reg = <0x50027000>, <0x4 0x500273f0 0x10>;
+    reg = <0x50027000 0x4 0x500273f0 0x10>;
+\end{verbatim}
+        \end{block}
+      \end{onlyenv}
+    \end{itemize}
+    \pause
+  \item Need for other properties to declare the right formatting:
+    \begin{itemize}
+    \item {\tt \#address-cells}: Indicates the number of cells
+      used to carry the address
+    \item {\tt \#size-cells}: Indicates the number of cells
+      used to carry the size of the range
+    \end{itemize}
+  \item The parent-node declares the children \code{reg} property
+    formatting
+    \begin{itemize}
+    \item Platform devices need memory ranges
+      \begin{onlyenv}<2>
+        \begin{block}{}
+\begin{verbatim}
+module@a0000 {
+    #address-cells = <1>;
+    #size-cells = <1>;
+
+    serial@1000 {
+        reg = <0x1000 0x10>, <0x2000 0x10>;
+    };
+};
+\end{verbatim}
+        \end{block}
+      \end{onlyenv}
+      \pause
+    \item SPI devices need chip-selects
+      \begin{onlyenv}<3>
+        \begin{block}{}
+\begin{verbatim}
+spi@300000 {
+    #address-cells = <1>;
+    #size-cells = <0>;
+
+    flash@1 {
+        reg = <1>;
+    };
+};
+\end{verbatim}
+        \end{block}
+      \end{onlyenv}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
 \begin{frame}{Status property}
   \begin{itemize}
   \item The \code{status} property indicates if the device is really in
