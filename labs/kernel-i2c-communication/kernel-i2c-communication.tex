@@ -1,219 +1,151 @@
-\subchapter{Using the I2C bus}{Objective: make the I2C bus work and
-use it to implement communication with the Nunchuk device}
+\subchapter{Using the I2C bus}
+{Objective: Use the I2C bus to implement communication with the Nunchuk device}
+
+\section{Goals}
 
 After this lab, you will be able to:
-
 \begin{itemize}
-\item Declare pinctrl settings.
+\item Find your driver and device in \code{/sys}.
+\item Implement basic \code{probe()} and \code{remove()} driver
+  functions and make sure that they are called when there is a
+  device/driver match.
 \item Access I2C device registers through the bus.
 \end{itemize}
 
 \section{Setup}
 
 Stay in the \code{~/linux-kernel-labs/src/linux} directory for kernel and DTB
-compiling (stay in the \code{nunchuk} branch), and in
-\code{~/linux-kernel-labs/modules/nfsroot/root/nunchuk} for module compiling
-(use two different terminals).
+compiling (stay in the \code{nunchuk} branch).
 
-\section{Remove debugging messages}
+In a new terminal, go to
+\code{~/linux-kernel-labs/modules/nfsroot/root/nunchuk/}.  This directory
+contains a Makefile and an almost empty \code{nunchuk.c} file.
 
-Now that we have checked that the \code{probe()} and \code{remove()} functions
-are called, remove the \kfunc{pr_info} messages that you added to
-trace the execution of these functions.
+\section{Exploring /dev}
 
-\section{Connecting the nunchuk}
-
-Take the nunchuk device provided by your instructor.
-
-We will connect it to the second I2C port of the CPU (\code{i2c1}),
-which pins are available on the \code{P9} connector.
-
-Now we can identify the 4 pins of the nunchuk connector:
-
-\begin{center}
-\includegraphics[width=4cm]{common/nunchuk-pinout.pdf}
-\end{center}
-
-Open the System Reference Manual that you downloaded earlier,
-and look for "connector P9" in the table of contents, and then
-follow the link to the corresponding section. Look at the table listing
-the pinout of the P9 connector.
-
-Now connect the nunchuk pins:
-\begin{itemize}
-\item The \code{GND} pin to P9 pins 1 or 2 (\code{GND})
-\item The \code{PWR} pin to P9 pins 3 or 4 (\code{DC_3.3V})
-\item The \code{SCL} pin to P9 pin 17 (\code{I2C1_SCL})
-\item The \code{SDA} pin to P9 pin 18 (\code{I2C1_SDA})
-\end{itemize}
-
-\begin{center}
-\includegraphics[width=12cm]{common/bbb-connect-nunchuk.pdf}
-\end{center}
-
-\section{Find pin muxing configuration information for i2c1}
-
-As you found in the previous lab, we now managed to have our nunchuk
-device enumerated on the \code{i2c1} bus.
-
-However, to access the bus data and clock signals, we need to configure
-the pin muxing of the SoC.
-
-If you go back to the BeagleBone Black System Reference Manual, in the
-{\em Connector P9} section, you can see that the pins \code{17} and
-\code{18} that we are using correspond to pins \code{A16} and \code{B16}
-of the AM335 SoC. You can also see that such pins need to be configured
-as \code{MODE2} to get the functionality that we need (\code{I2C1_SCL}
-and \code{I2C1_SDA}).
-
-The second step is to open the CPU datasheet (\code{am3359.pdf}), and
-look for pin assignment information ({\em Pin Assignments} section).
-You will find that the processor is available through two types of
-packages: \code{ZCE} and \code{ZCZ}. If you have an original
-BeagleBoneBlack board, you can have a very close look at the CPU
-(with your glasses on!) and you will see that the CPU has \code{ZCZ} written
-on its lower right corner. On BeagleBoneBlack Wireless with the
-Octavo System In Package, you can no longer find such information.
-Anyway, the \code{ZCZ} package information applies to both types of
-boards.
-
-So, in the {\em ZCZ Package Pin Maps (Top View)} section\footnote{Caution: you
-won't be able to search the PDF file for this section name, for obscure
-reasons. At the time of this writing, this section is numbered 4.1.2.}, you can find
-hyperlinks to the descriptions of the \code{A16} and \code{B16} pins.
-That's where you can find reference pin muxing information for these
-pins.  You can find that the pin name for \code{A16} is \code{SPI0_CS0}
-and that the pin name for \code{B16} is \code{SPI0_D1}.
-You can also get confirmation that to obtain the (\code{I2C1_SCL} and
-\code{I2C1_SDA}) signals, you need to configure muxing mode number 2.
-You can also see that both pins support pull-up and pull-down
-modes\footnote{See \url{https://en.wikipedia.org/wiki/Pull-up_resistor}}
-(see the \code{PULLUP /DOWN TYPE} column).
-
-The next thing to do is to open the big TRM document and look for the
-address of the registers that control pin muxing. First, look for
-{\em L4\_WKUP Peripheral Memory Map} with your PDF reader search
-utility. You will find a table containing a
-\code{Control Module Registers} entry with its address:
-\code{0x44E1_0000}.
-
-Last but not least, look for the \code{SPI0_CS0} and \code{SPI0_D1}
-pin names, and you will find the offsets for the registers controlling
-muxing for these pins in the {\em CONTROL\_MODULE REGISTERS} table:
-respectively \code{0x95c} and \code{0x958}.
-
-We now know which registers we can write to to enable \code{i2c1}
-signals.
-
-\section{Add pinctrl properties to the Device Tree}
-
-Now that we know the register offsets, let's try to understand
-how they are used in existing code. For example, open the
-the Device Tree for the AM335x EVM board
-(\kfile{arch/arm/boot/dts/am335x-evm.dts}), which is using
-\code{i2c1} too. Look for \code{i2c1_pins}, and you will see how
-offsets are declared and what values they are given:
-
-{\small
-\begin{verbatim}
-i2c1_pins: pinmux_i2c1_pins {
-        pinctrl-single,pins = <
-                /* spi0_d1.i2c1_sda */
-                AM33XX_PADCONF(AM335X_PIN_SPI0_D1, PIN_INPUT_PULLUP, MUX_MODE2)
-                /* spi0_cs0.i2c1_scl */
-                AM33XX_PADCONF(AM335X_PIN_SPI0_CS0, PIN_INPUT_PULLUP, MUX_MODE2)
-        >;
-};
-\end{verbatim}
-}
-
-Here are details about the values:
+Start by exploring \code{/dev} on your target system. Here are a few
+noteworthy device files that you will see:
 
 \begin{itemize}
-\item \ksym{AM335X_PIN_SPI0_D1} and \ksym{AM335X_PIN_SPI0_CS0} offsets
-      in the Pin Controller registers to control muxing on the
-      corresponding package pins.
-\item \ksym{MUX_MODE2} corresponds to muxing mode 2, as explained in the
-      datasheet.
-\item \ksym{PIN_INPUT_PULLUP} puts the pin in pull-up mode (remember
-      that our pins support both pull-up and pull-down). By design, an
-      I2C line is never actively driven high, devices either pull the
-      line low or let it floating. As we plug our device directly on the
-      bus without more analog electronics, we need to enable the
-      internal pull-up.
+ \item {\em Terminal devices}: devices starting with \code{tty}.
+       Terminals are user interfaces taking text as
+       input and producing text as output, and are typically used by
+       interactive shells. In particular, you will find
+       \code{console} which matches the device specified through
+       \code{console=} in the kernel command line. You will also find
+       the {\tt ttyS0} device file.
+ \item {\em Pseudo-terminal devices}: devices starting with \code{pty},
+       used when you connect through SSH for example. Those are virtual
+       devices, but there are so many in \code{/dev} that we wanted
+       to give a description here.
+ \item {MMC device(s) and partitions}: devices starting with
+       \code{mmcblk}. You should here recognize the MMC device(s)
+       on your system and the associated partitions.
+ \item If you have a real board (not QEMU) and a USB stick, you could
+       plug it in and if your kernel was built with USB host and mass
+       storage support, you should see a new \code{sda} device appear,
+       together with the \code{sda<n>} devices for its partitions.
 \end{itemize}
 
-Now that pin muxing settings have been explained, edit your board
-DTS file to add the same definitions to enable pin muxing for \code{i2c1}.
-Don't forget that you don't have to repeat definitions that are
-already present in the \code{.dtsi} files. Just add new declarations, or
-settings that override common definitions.
+Don't hesitate to explore \code{/dev} on your workstation too
+and ask any questions to your instructor.
 
-Rebuild and update your DTB, and eventually reboot the board.
+\section{Exploring /sys}
 
-\section{I2C bus tests}
+The next thing you can explore is the {\em Sysfs} filesystem.
 
-We will use the \code{i2cdetect} command to make sure that
-everything works fine for \code{i2c1}:
+A good place to start is \code{/sys/class}, which exposes devices
+classified by the kernel frameworks which manage them.
 
-\begin{verbatim}
-# i2cdetect -l
-i2c-0	i2c       	OMAP I2C adapter                	I2C adapter
-i2c-2	i2c       	OMAP I2C adapter                	I2C adapter
-i2c-1	i2c       	OMAP I2C adapter                	I2C adapter
-\end{verbatim}
+For example, go to \code{/sys/class/net}, and you will see all the
+networking interfaces on your system, whether they are internal,
+external or virtual ones.
 
-\begin{verbatim}
-# i2cdetect -F 1
-Functionalities implemented by /dev/i2c-1:
-I2C                              yes
-SMBus Quick Command              no
-SMBus Send Byte                  yes
-SMBus Receive Byte               yes
-SMBus Write Byte                 yes
-SMBus Read Byte                  yes
-SMBus Write Word                 yes
-SMBus Read Word                  yes
-SMBus Process Call               yes
-SMBus Block Write                yes
-SMBus Block Read                 no
-SMBus Block Process Call         no
-SMBus PEC                        yes
-I2C Block Write                  yes
-I2C Block Read                   yes
-\end{verbatim}
+Find which subdirectory corresponds to the network connection
+to your host system, and then check device properties such as:
+\begin{itemize}
+   \item \code{speed}: will show you whether this is a gigabit
+         or hundred megabit interface.
+   \item \code{address}: will show the device MAC address. No
+	 need to get it from a complex command!
+   \item \code{statistics/rx_bytes} will show you how many bytes
+	 were received on this interface.
+\end{itemize}
 
-You can see that the {\em SMBus Quick Commands} are not available on
-this driver, yet \code{i2cdetect} uses them by default to scan the i2c
-bus. You can use \code{i2cdetect -r} to use the usual set of i2c
-commands, and be able to detect the devices on your bus.
+Don't hesitate to look for further interesting properties by yourself!
 
-To test if everything works fine, run \code{i2cdetect -r 1}. This will
-scan the \code{i2c1} bus for devices. You should see a device at the
-address \code{0x52}. This is your nunchuk.
+You can also check whether \code{/sys/class/thermal} exists and is not
+empty on your system. That's the thermal framework, and it allows
+to access temperature measures from the thermal sensors on your system.
 
-If everything works as expected, commit your Device Tree changes. This
-will be required to switch to another branch later:
+Next, you can now explore all the buses (virtual or physical) available
+on your system, by checking the contents of \code{/sys/bus}.
 
-\begin{verbatim}
-git commit -as
-\end{verbatim}
+In particular, go to \code{/sys/bus/mmc/devices} to see all the
+MMC devices on your system. Go inside the directory for the first device
+and check several files (for example):
 
 \begin{itemize}
-\item \code{git commit -a} adds all the files already known to
-      \code{git} to the commit.
-\item \code{git commit -s} adds a \code{Signed-off-by} line (required
-      for all contributions to the Linux kernel).
+\item \code{serial}: the serial number for your device.
+\item \code{preferred_erase_size}: the preferred erase block for your
+      device. It's recommended that partitions start at multiples of this
+      size.
+\item \code{name}: the product name for your device. You could display
+      it in a user interface or log file, for example.
 \end{itemize}
+
+Don't hesitate to spend more time exploring \code{/sys} on your system
+and asking questions to your instructor.
+
+\section{Implement a basic I2C driver for the Nunchuk}
+
+It is now time to start writing the first building blocks of the I2C
+driver for our Nunchuk.
+
+Relying on explanations given during the lectures, fill the
+\code{nunchuk.c} file to implement:
+
+\begin{itemize}
+\item \code{probe()} and \code{remove()} functions that will
+      be called when a Nunchuk is found.
+      For the moment, just put a call to \kfunc{pr_info} inside
+      to confirm that these functions are called.
+\item Initialize a \ksym{i2c_driver} structure, and register
+      the i2c driver using it. Make sure that you use
+      a \code{compatible} property that matches the one in the
+      Device Tree.
+\end{itemize}
+
+You can now compile your module and reboot your board, to
+boot with the updated DTB.
+
+\section{Driver tests}
+
+You can now load the \code{/root/nunchuk/nunchuk.ko} file.
+You need to check that the \code{probe()} function gets called
+then, and that the \code{remove()} function gets called too
+when you remove the module.
+
+List the contents of \code{/sys/bus/i2c/drivers/nunchuk}. You
+should now see a symbolic link corresponding to our new device.
+
+Also list \code{/sys/bus/i2c/devices/}. You should now see the
+Nunchuk device, which can be recognized through its \code{0052} address.
+Follow the link and you should see a symbolic link back to the Nunchuk
+driver.
 
 \section{Device initialization}
+
+Now that we have checked that the \code{probe()} and \code{remove()}
+functions are called, remove the messages that you added to trace the
+execution of these functions.
 
 The next step is to read the state of the nunchuk registers, to find out
 whether buttons are pressed or not, for example.
 
 Before being able to read nunchuk registers, the first thing to do is
 to send initialization commands to it. That's also a nice way of making
-sure i2c communication works as expected.
+sure I2C communication works as expected.
 
 In the probe routine (run every time a matching device is found):
 

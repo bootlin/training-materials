@@ -1,0 +1,219 @@
+\subchapter{Describing Hardware Devices}
+{Objective: learn how to describe hardware devices.}
+
+\section{Goals}
+
+Now that we covered the Device Tree theory, we can explore the list of
+existing devices and make new ones available. In particular, we will
+create a custom Device Tree to describe the few extensions we will make
+to our BBB.
+
+\section{Setup}
+
+Go to the \code{~/linux-kernel-labs/src/linux} directory. Check out the
+\code{5.10.bootlin} branch.
+
+Now create a new \code{nunchuk} branch starting from this branch,
+for your upcoming work on the Nunchuk driver.
+
+Download a useful document sharing useful details about the Nunchuk
+and its connector:\\
+\url{https://bootlin.com/labs/doc/nunchuk.pdf}
+
+\section{Create a custom device tree}
+
+To let the Linux kernel handle a new device, we need to add a
+description of this device in the board device tree.
+
+As the Beaglebone Black device tree is provided by the kernel community,
+and will continue to evolve on its own, we don't want to make changes
+directly to the device tree file for this board.
+
+The easiest way to customize the board DTS is to create a new DTS file
+that includes the Beaglebone Black or Black Wireless DTS, and add
+its own definitions.
+
+So, create a new \code{am335x-customboneblack.dts} file in which you
+just include the regular board DTS file. We will add further definitions
+in the next sections.
+
+\begin{verbatim}
+// SPDX-License-Identifier: GPL-2.0
+#include "am335x-boneblack-wireless.dts"
+\end{verbatim}
+
+Modify the \kfile{arch/arm/boot/dts/Makefile} file to add your custom
+Device Tree, and then have it compiled with (\code{make dtbs}). Now,
+copy the new DTB to the tftp server home directory, change the DTB file
+name in the U-Boot configuration\footnote{Tip: you just need to run
+\code{editenv bootcmd} and \code{saveenv}.}, and boot the board.
+
+\section{Setting the board's model name}
+
+Modify the custom Device Tree file to override the model name for your
+system. Set the \code{model} property to \code{Training Beagle Bone
+Black}. Don't hesitate to ask your instructor if you're not sure how.
+
+Recompile the device tree, and reboot the board with it. You should see
+the new model name in two different places:
+
+\begin{itemize}
+\item In the first kernel messages on the serial console.
+\item In \code{/sys/firmware/devicetree/base/model}. This can be
+      handy for a distribution to identify the device it's running on.
+\end{itemize}
+
+\section{Driving LEDs}
+
+The BBB features four user LEDs (\code{USR0}, \code{USR1}, \code{USR2},
+\code{USR3}) in the corner near the micro-USB connector. When the board
+is running, none of them is currently enabled.
+
+Start by looking at the different description files and look for a node
+that would be defining the LEDs.
+
+The four LEDs are actually supposed to be triggered by a driver matching
+the compatible \code{gpio-leds}. This is a generic driver which acts on
+LEDs connected to GPIOs. But as you can observe, despite being part of
+the in-use Device Tree, the LEDs remain off.
+
+If you look at the bindings documents
+\kfile{Documentation/devicetree/bindings/leds/common.yaml} and
+\kfile{Documentation/devicetree/bindings/leds/leds-gpio.yaml}, you'll
+notice we can easily tweak the \code{default-state} in order to see if
+forcing the default state make them bright.
+
+You will need to modify a core file in order to do that. But becauase we
+do not want to mess with a shared file, we might instead add a label to
+the node describing the LED we want to turn on and reference this new
+label in our custom DTS.
+
+Reboot the board using the new DTS and observe the LEDs default states
+change.
+
+If you look again at the common file defining the LEDs, they are
+actually all linked to a \code{linux,default-trigger}. If you want to
+see these triggers in action (and overwrite the default state), make
+sure your kernel is compiled with \kconfigval{CONFIG_LEDS_CLASS}{y},
+\kconfigval{CONFIG_LEDS_GPIO}{y} and
+\kconfigval{CONFIG_LEDS_TRIGGER_HEARTBEAT}{y}, for instance.
+
+\section{Managing I2C buses and devices}
+
+The next thing we want to do is connect an Nunchuk joystick
+to an I2C bus on our board. The I2C bus is very frequently used
+to connect all sorts of external devices. That's why we're covering
+it here.
+
+\subsection{Enabling an I2C bus}
+
+As shown on the below picture found on
+\url{https://elinux.org/Beagleboard:Cape_Expansion_Headers}, the
+BeagleBone Black has two I2C busses available on its expansion headers:
+I2C1 and I2C2. Another one exists (I2C0), but it's not
+available on the external headers.
+
+\includegraphics[width=0.7\textwidth]{labs/kernel-i2c-describing-hardware/bbb-i2c.png}
+
+In this lab, we will try to use I2C1, because it's more interesting to
+use than I2C2 which is already enabled by default.
+
+So, let's see which I2C buses are already enabled:
+
+\begin{bashinput}
+# i2cdetect -l
+i2c-2	i2c             OMAP I2C adapter                        I2C adapter
+i2c-0	i2c             OMAP I2C adapter                        I2C adapter
+\end{bashinput}
+
+Here you can see that I2C1 is missing.
+
+As the bus numbering scheme in Linux doesn't always match the one
+on the datasheets, let's check the base addresses of the registers
+of these controllers:
+
+\begin{bashinput}
+# ls -l /sys/bus/i2c/devices/i2c-*
+lrwxrwxrwx    1         0 Jan  1 00:59 /sys/bus/i2c/devices/i2c-0 -> ../../../devices/platform/ocp/44c00000.interconnect/44c00000.interconnect:segment@200000/44e0b000.target-module/44e0b000.i2c/i2c-0
+lrwxrwxrwx    1         0 Jan  1 00:59 /sys/bus/i2c/devices/i2c-2 -> ../../../devices/platform/ocp/48000000.interconnect/48000000.interconnect:segment@100000/4819c000.target-module/4819c000.i2c/i2c-2
+\end{bashinput}
+
+That's not completely straighforward, but you can suppose that:
+\begin{itemize}
+\item I2C0 is at address \code{0x44e0b000}
+\item I2C2 is at address \code{0x4819c000}
+\end{itemize}
+
+Now let's double check the addressings by looking at the
+\href{https://www.ti.com/lit/ug/spruh73q/spruh73q.pdf}{TI AM335x SoC
+datasheet}, in the \code{L4_WKUP Peripheral Memory Map} section:
+
+\begin{itemize}
+\item I2C0 is indeed at address \code{0x44e0b000}
+\item I2C1 is at address \code{0x4802a000}
+\item I2C2 is indeed at address \code{0x4819c000}
+\end{itemize}
+
+So, we are lucky that \code{i2c-0} in Linux corresponds to I2C0 in the
+datasheet, and that \code{i2c-2} corresponds to I2C2.
+We're just missing \code{i2c-1}.
+
+Fortunately, I2C1 is already defined in the one of the DTS includes
+used by the Device Tree for our board. In our case, that's in
+\kfile{arch/arm/boot/dts/am33xx-l4.dtsi}. Look by yourself in this
+file, and you will find its definition, but with \code{status =
+"disabled";}. This means that this I2C controller is not enabled yet,
+and it's up to boards using it to do so.
+
+Make a reference to this definition in your custom DTS and enable this
+bus. Also configure it to function at 100 KHz. Reboot your board with
+the update.
+
+Back to the running system, we can now see that there is one more
+I2C bus:
+
+\begin{bashinput}
+# i2cdetect -l
+i2c-1	i2c             OMAP I2C adapter                        I2C adapter
+i2c-2	i2c             OMAP I2C adapter                        I2C adapter
+i2c-0	i2c             OMAP I2C adapter                        I2C adapter
+\end{bashinput}
+
+Run the below command to confirm that the new bus has the same address
+as in the datasheet (\code{0x4802a000}):
+
+\bashcmd{ls -l /sys/bus/i2c/devices/i2c-1}
+
+\subsection{Declare the Nunchuk device}
+
+As a child node to the \code{i2c1} bus, now declare an I2C device
+for the Nunchuk, choosing \code{nintendo,nunchuk} for its \code{compatible}
+property. You will find the I2C slave address of the Nunchuk on the
+nunckuk document that we have downloaded earlier\footnote{This I2C slave
+address is enforced by the device itself. You can't change it.}.
+The node name should be \code{joystick@addr}, the convention for node
+names is \code{<device-type>@<addr>}.
+
+After updating the running Device Tree, explore
+\code{/sys/firmware/devicetree}, where every subdirectory corresponds to
+a DT node, and every file corresponds to a DT property. You can search
+for presence of the new \code{joystick} node:
+
+{\small
+\begin{verbatim}
+# find /sys/firmware/devicetree -name "*joystick*"
+/sys/firmware/devicetree/base/ocp/interconnect@48000000/segment@0/target-module@2a000/i2c@0/joystick@52
+\end{verbatim}
+}
+
+You can also check the whole structure of the loaded Device Tree, using
+the Device Tree Compiler (\code{dtc}), which we put in the root
+filesystem:
+\begin{verbatim}
+# dtc -I fs /sys/firmware/devicetree/base/ > /tmp/dts
+# grep -C10 nunchuk /tmp/dts
+\end{verbatim}
+
+Once your new Device Tree seems correct, commit your changes. As you
+modified a shared file and a custom file, it is good practice to commit
+these changes in two different patches.

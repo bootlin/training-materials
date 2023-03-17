@@ -21,9 +21,9 @@ LINUX_KERNEL_SLIDES = \
 		kernel-driver-development-modules \
 		kernel-driver-development-lab-modules \
 		kernel-hw-devices \
+		kernel-pinmuxing \
 		kernel-device-model \
 		kernel-i2c \
-		kernel-pinmuxing \
 		kernel-frameworks \
 		kernel-input \
 		kernel-driver-development-memory \
@@ -59,7 +59,8 @@ LINUX_KERNEL_LABS   = setup \
 		kernel-board-setup \
 		kernel-compiling-and-nfs-booting \
 		kernel-module-simple \
-		kernel-i2c-device-model \
+		kernel-i2c-describing-hardware \
+		kernel-i2c-multiplexing \
 		kernel-i2c-communication \
 		kernel-i2c-input-interface \
 		kernel-serial-iomem \
