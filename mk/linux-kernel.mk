@@ -21,7 +21,6 @@ LINUX_KERNEL_SLIDES = \
 		kernel-driver-development-modules \
 		kernel-driver-development-lab-modules \
 		kernel-hw-devices \
-		kernel-driver-development-general-apis \
 		kernel-device-model \
 		kernel-i2c \
 		kernel-pinmuxing \
@@ -52,6 +51,7 @@ LINUX_KERNEL_SLIDES = \
 		kernel-backup-slides-title \
 		kernel-driver-development-dma \
 		kernel-driver-development-mmap \
+		kernel-driver-development-general-apis
 
 LINUX_KERNEL_LABS   = setup \
 		kernel-sources-download \
