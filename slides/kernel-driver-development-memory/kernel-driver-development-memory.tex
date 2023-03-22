@@ -8,54 +8,53 @@
 \end{frame}
 
 \begin{frame}
-  \frametitle{Virtual memory organization (on 32 bit)}
+  \frametitle{Virtual memory organization}
   \begin{columns}
     \column{0.3\textwidth}
     \includegraphics[height=0.8\textheight]{slides/kernel-driver-development-memory/memory-organization.pdf}
     \column{0.7\textwidth}
     \begin{itemize}
-    \item 1GB reserved for kernel-space
+    \item The top quarter reserved for kernel-space
       \begin{itemize}
-      \item Contains kernel code and core data structures, identical
-        in all address spaces
-      \item Most memory can be a direct mapping of physical memory at
-        a fixed offset
+      \item Contains kernel code and core data structures
+      \item Allocations for loading modules
+      \item All kernel physical mappings
+      \item Identical in all address spaces
       \end{itemize}
-    \item Complete 3GB exclusive mapping available for each user space
-      process
+    \item The lower part is a per user process exclusive mapping
       \begin{itemize}
       \item Process code and data (program, stack, ...)
       \item Memory-mapped files
-      \item Not necessarily mapped to physical memory (demand fault
-        paging used for dynamic mapping to physical memory pages)
-      \item Differs from one address space to another
+      \item Each process has its own address space!
       \end{itemize}
+    \item The exact virtual mapping in-use is displayed in the kernel log
+      early at boot time
     \end{itemize}
   \end{columns}
 \end{frame}
 
 \begin{frame}
-  \frametitle{Physical / virtual memory mapping (on 32 bit)}
+  \frametitle{Physical/virtual memory mapping on 32-bit systems}
   \begin{center}
-    \includegraphics[height=0.8\textheight]{slides/kernel-driver-development-memory/memory-mapping.pdf}
+    \includegraphics[height=0.8\textheight]{slides/kernel-driver-development-memory/memory-mapping-32b.pdf}
   \end{center}
 \end{frame}
 
 \begin{frame}
-  \frametitle{Accessing more physical memory on 32 bit}
-  If you cannot use a 64 bit system (see \kdochtml{x86/x86_64/mm} for example)
+  \frametitle{32-bit systems limitations}
   \begin{itemize}
-  \item Only less than 1GB memory addressable directly through kernel virtual addresses
+  \item Only less than 1GB memory addressable directly through kernel
+    virtual addresses
   \item If more physical memory is present on the platform, part of
-        the memory will not be accessible by kernel space, but can be used
-         by user space
+    the memory will not be accessible by kernel space, but can be used
+    by user space
   \item To allow the kernel to access more physical memory:
     \begin{itemize}
     \item Change the 3GB/1GB memory split to 2GB/2GB or 1GB/3GB
-          (\kconfig{CONFIG_VMSPLIT_2G} or \kconfig{CONFIG_VMSPLIT_1G)}
-          $\Rightarrow$ reduce total user memory available for each process
+      (\kconfig{CONFIG_VMSPLIT_2G} or \kconfig{CONFIG_VMSPLIT_1G)}
+      $\Rightarrow$ reduce total user memory available for each process
     \item Activate \emph{highmem} support if available for your
-          architecture:
+      architecture:
       \begin{itemize}
       \item Allows kernel to map parts of its non-directly accessible
             memory
@@ -69,9 +68,36 @@
 \end{frame}
 
 \begin{frame}
-  \frametitle{Notes on user space memory}
+  \frametitle{Physical/virtual memory mapping on 64-bit systems (4kiB-pages)}
+  \begin{center}
+    \includegraphics[height=0.8\textheight]{slides/kernel-driver-development-memory/memory-mapping-64b.pdf}
+  \end{center}
+\end{frame}
+
+\begin{frame}
+  \frametitle{User space virtual address space}
+  \begin{columns}
+    \column{0.3\textwidth}
+    \begin{itemize}
+    \item When a process starts, the executable code is loaded in RAM and
+      mapped into the process virtual address space.
+    \item During execution, additional mappings can be created:
+      \begin{itemize}
+      \item Memory allocations
+      \item Memory mapped files
+      \item \code{mmap}'ed areas
+      \item ...
+      \end{itemize}
+    \end{itemize}
+    \column{0.7\textwidth}
+    \includegraphics[height=0.7\textheight]{slides/kernel-driver-development-memory/userspace-mappings.pdf}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Userspace memory allocations}
   \begin{itemize}
-  \item Note that memory allocated may not be physically allocated:
+  \item Userspace mappings can target the full memory
+  \item When allocated, memory may not be physically allocated:
     \begin{itemize}
     \item Kernel uses demand fault paging to allocate the physical
       page (the physical page is allocated when access to the virtual
@@ -92,7 +118,7 @@
 \end{frame}
 
 \begin{frame}
-  \frametitle{Allocators in the kernel}
+  \frametitle{Kernel memory allocators}
   \begin{center}
     \includegraphics[height=0.8\textheight]{slides/kernel-driver-development-memory/allocators.pdf}
   \end{center}
