@@ -132,11 +132,19 @@ $ perf record ./png_convert tux_small.png out.png
 
 Once recorded, a \code{perf.data} file will be generated. This file will
 contain the traces that have been recorded. These traces can be analyzed using
-\code{perf report}. You will quickly notice that the output is not the same as
-valgrind because it displays a time spent per function (excluding function
-calls inside them). This allows to find which function takes most of the
-execution time. In order to compare this output to the valgrind one, we can
-run perf and also record the callgraph using the \code{--call-graph} option.
+\code{perf report} on the development platform:
+
+\begin{bashinput}
+$ sudo chown $USER:$USER perf.data
+$ perf report --symfs=/home/$USER/debugging-labs/buildroot/output/staging/
+    -k /home/$USER/debugging-labs/buildroot/output/build/linux-5.13/vmlinux
+\end{bashinput}
+
+You will quickly notice that the output is not the same as valgrind because it
+displays the time spent per function (excluding function calls inside them).
+This allows to find which function takes most of the execution time. In order to
+compare this output to the valgrind one, we can run perf and also record the
+callgraph using the \code{--call-graph} option.
 
 \begin{bashinput}
 $ perf record --call-graph dwarf ./png_convert tux_small.png out.png
@@ -145,9 +153,16 @@ $ perf record --call-graph dwarf ./png_convert tux_small.png out.png
 We specify that we want to record the call graph using the DWARF information
 that are contained in ELF file (compiled with \code{-g}). Once recorded, on the
 desktop platform, display the results with \code{perf report} and compare them
-with callgrind ones:
+with callgrind ones on your development platform:
 
 \begin{bashinput}
+$ sudo chown $USER:$USER perf.data
 $ perf report --symfs=/home/$USER/debugging-labs/buildroot/output/staging/
    -k /home/$USER/debugging-labs/buildroot/output/build/linux-5.13/vmlinux
 \end{bashinput}
+
+{\em NOTE: the vmlinux file used for the \code{-k} option must match the kernel
+build id that is running on the board or perf will not use it.}
+
+{\em NOTE: in order to annotate the dissasembled code and display the time spent,
+for each instruction, \code{CROSS_COMPILE} must be set.}
