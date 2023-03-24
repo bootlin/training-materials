@@ -76,6 +76,14 @@ been identified. Display them and analyze them using:
 # cat /sys/kernel/debug/kmemleak
 \end{bashinput}
 
+You will see that the symbols addresses do not make sense. This is due to the
+\code{kptr_restrict} configuration which must be change to allow displaying
+pointer addresses. To do so, use the following command on the target:
+
+\begin{bashinput}
+# sysctl kernel.kptr_restrict=1
+\end{bashinput}
+
 You can use \code{addr2line} to identify the location in source code of the
 lines that did cause the reports. You will also notice other memory leaks that
 are actually some real memory leaks that did exist in the 5.13 kernel version !
@@ -88,7 +96,7 @@ to reproduce the crash, run the following command:
 $ watchdog -T 10 -t 5 /dev/watchdog0
 \end{bashinput}
 
-Immediatly after executing this commands, you'll see that the kernel reported
+Immediatly after executing this commands, you'll see that the kernel will report
 an OOPS !
 
 \subsection{Analyzing the crash message}
@@ -265,23 +273,24 @@ Then on the target, insert the module using insmod:
 # insmod kgdb_test.ko
 \end{bashinput}
 
-If KGDB was connected and the lx scripts were loaded, then it will be detected
-automatically and the symbols will be loaded:
-
-\begin{bashinput}
-# scanning for modules in /home/<user>/debugging-labs/nfsroot/root
-# loading @0xbf000000: /home/<user>/debugging-labs/nfsroot/root/kgdb_test/kgdb_test.ko
-\end{bashinput}
-
-If not, you need to enter KGDB mode using the magic SySrq:
+We can now enter KGDB mode and attach the external gdb to it. We will do that
+using using the magic SySrq 'g' key:
 
 \begin{bashinput}
 # echo g > /proc/sysrq_trigger
 \end{bashinput}
 
-Then you will need to execute the \code{lx-symbols} command in GDB to reload the
-symbols from the module. You'll also need to pass a list of path that may
-contain the external modules:
+The kernel will then enter KGDB mode and will wait for a gdb connection. On the
+development platform, start it and attach to the target:
+
+\begin{bashinput}$
+$ gdb-multiarch /home/$USER/debugging-labs/buildroot/output/build/linux-5.13/vmlinux
+(gdb) target remote /dev/pts/8
+\end{bashinput}
+
+Then you will need to execute the \code{lx-symbols} command in gdb to reload the
+symbols from the module. You'll also need to pass a list of path that contains
+the external modules:
 
 \begin{bashinput}
 (gdb) lx-symbols /home/<user>/debugging-labs/nfsroot/root/kgdb_test/
@@ -290,23 +299,27 @@ loading vmlinux
 # loading @0xbf000000: /home/<user>/debugging-labs/nfsroot/root/kgdb_test/kgdb_test.ko
 \end{bashinput}
 
+{\em NOTE: If KGDB was already connected and the lx scripts were loaded, then
+\code{lx-symbols} will be run automatically on module loading.}
+
 Finally, add a breakpoint right after the \code{pr_debug()} call and continue
 the execution to trigger it:
 
 \begin{bashinput}
-(gdb) tbreak kgdb_test.c:16
+(gdb) break kgdb_test.c:17
 (gdb) continue
 \end{bashinput}
 
 At some point, the breakpoint will be triggered. Try to display the variable
 \code{i} to display the current loop value.
 
-Note: Due to a GDB bug, the execution after the breakpoint will crash. You can
-use a temporary breakpoint using \code{tbreak} command to workaround this
-problem.
+Note: Due to a GDB bug, sometimes, gdb will crash when continuing. You can
+use a temporary breakpoint using the gdb \code{tbreak} command to workaround
+this problem.
 
-Note: a side quest you can also try to enable the \code{pr_debug()} call using
-the dynamic debug feature of the kernel.
+Bonus: as a side quest you can try to enable the \code{pr_debug()} call using
+the dynamic debug feature of the kernel. This can be done using the
+\code{/sys/kernel/debug/dynamic_debug/control} file.
 
 \section{kdump \& kexec}
 

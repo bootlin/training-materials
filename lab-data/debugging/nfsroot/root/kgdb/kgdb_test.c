@@ -14,7 +14,7 @@ static int kgdb_test_thread_routine(void *data)
 		i++;
 		usleep_range(1000, 2000);
 
-		pr_debug("I'm awake for (%ld) !\n", i);
+		pr_debug("I'm awake ! (loop %ld)\n", i);
 
 		if (kthread_should_stop())
 			break;
