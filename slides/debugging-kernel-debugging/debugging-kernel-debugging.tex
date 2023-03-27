@@ -112,20 +112,36 @@
 \end{frame}
 
 \begin{frame}
-  \frametitle{Kernel oops debugging}
+  \frametitle{Kernel oops debugging: \code{addr2line}}
   \begin{itemize}
     \item In order to convert addresses/symbol name from this display to source
       code lines, one can use addr2line
     \begin{itemize}
+      \item \code{addr2line -e vmlinux <address>}
+    \end{itemize}
+    \item GNU binutils >= 2.39 takes the symbol+offset notation too:
+    \begin{itemize}
       \item \code{addr2line -e vmlinux <symbol_name>+<off>}
     \end{itemize}
-    \item This decoding can be automated using \code{decode_stacktraces.sh}
-      script which is provided in the kernel sources.
-    \item This script will translate all symbol names/addresses to the matching
-      file/lines and will display the assembly code where the crash did trigger.
+    \item The symbol+offset notation can be used with older binutils
+      versions via the \code{faddr2line} script in the kernel sources:
+    \begin{itemize}
+      \item \code{scripts/faddr2line vmlinux <symbol_name>+<off>}
+    \end{itemize}
     \item The kernel must have been compiled with
       \kconfigval{CONFIG_DEBUG_INFO}{y} to embed the debugging information into
       the vmlinux file.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Kernel oops debugging: \code{decode_stacktraces.sh}}
+  \begin{itemize}
+    \item \code{addr2line} decoding of oopses can be automated using
+      \code{decode_stacktraces.sh} script which is provided in the kernel
+      sources.
+    \item This script will translate all symbol names/addresses to the matching
+      file/lines and will display the assembly code where the crash did trigger.
     \item \code{./scripts/decode_stacktrace.sh vmlinux linux_source_path/ < oops_report.txt > decoded_oops.txt}
 
     \item NOTE: \code{CROSS_COMPILE} and \code{ARCH} env var should be set to
