@@ -1,0 +1,299 @@
+\subsection{regmap}
+
+\begin{frame}[fragile]{regmap}
+  \begin{itemize}
+    \item has its roots in ASoC (ALSA)
+    \item can use I2C, SPI and MMIO (also SPMI)
+    \item actually abstracts the underlying bus
+    \item can handle locking when necessary
+    \item can cache registers
+    \item can handle endianness conversion
+    \item can handle IRQ chips and IRQs
+    \item can check register ranges
+    \item handles read only, write only, volatile, precious registers
+    \item handles register pages
+    \item API is defined in \code{include/linux/regmap.h}
+    \item implemented in \code{drivers/base/regmap/}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{regmap: creation}
+  \begin{itemize}
+    \item 
+      \begin{block}{}
+        \begin{minted}{c}
+#define regmap_init(dev, bus, bus_context, config)                        \
+        __regmap_lockdep_wrapper(__regmap_init, #config,                  \
+                                dev, bus, bus_context, config)
+        \end{minted}
+      \end{block}
+    \item 
+      \begin{block}{}
+        \begin{minted}{c}
+#define regmap_init_i2c(i2c, config)                                        \
+        __regmap_lockdep_wrapper(__regmap_init_i2c, #config,                \
+                                i2c, config)
+        \end{minted}
+      \end{block}
+    \item 
+      \begin{block}{}
+        \begin{minted}{c}
+#define regmap_init_spi(dev, config)                                        \
+        __regmap_lockdep_wrapper(__regmap_init_spi, #config,                \
+                                dev, config)
+        \end{minted}
+      \end{block}
+  \end{itemize}
+  \begin{itemize}
+    \item Also \code{devm_} versions
+    \item and \code{_clk} versions, preparing, enabling and disabling
+      clocks when necessary
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{regmap: config}
+  \begin{block}{\code{include/linux/regmap.h}}
+    \fontsize{9}{9}\selectfont
+    \begin{minted}{c}
+struct regmap_config {
+[...]
+        int reg_bits;
+        int reg_stride;
+[...]
+        bool (*writeable_reg)(struct device *dev, unsigned int reg);
+        bool (*readable_reg)(struct device *dev, unsigned int reg);
+        bool (*volatile_reg)(struct device *dev, unsigned int reg);
+        bool (*precious_reg)(struct device *dev, unsigned int reg);
+[...]
+        int (*reg_read)(void *context, unsigned int reg, unsigned int *val);
+        int (*reg_write)(void *context, unsigned int reg, unsigned int val);
+        int (*reg_update_bits)(void *context, unsigned int reg,
+                               unsigned int mask, unsigned int val);
+
+[...]
+        const struct reg_default *reg_defaults;
+        unsigned int num_reg_defaults;
+[...]
+};
+    \end{minted}
+  \end{block}
+\end{frame}
+
+\begin{frame}[fragile]{regmap: config}
+  \begin{itemize}
+  \item \code{reg_bits} Number of bits in a register address, mandatory.
+  \item \code{reg_stride} The register address stride. Valid register
+    addresses are a multiple of this value. If set to 0, a value of 1
+    will be used.
+  \item \code{writeable_reg}, \code{readable_reg},
+    \code{volatile_reg}, \code{precious_reg}: Optional callbacks
+    returning true if the register is writeable, readable, volatile or
+    precious. volatile registers wont be cached. precious registers
+    will not be read unless the driver explicitly calls a read
+    function. There are also tables in the \code{struct regmap_config}
+    for the same purpose.
+  \item \code{reg_read}, \code{reg_write}, \code{reg_update_bits}:
+    Optional callbacks that if filled will be used to perform
+    accesses. \code{reg_update_bits} should only be provided is
+    specific locking is required.
+  \item \code{reg_defaults}: Power on reset values for registers (for
+    use with register cache support).
+  \item \code{num_reg_defaults}: Number of elements in
+    \code{reg_defaults}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{regmap: access}
+  \begin{itemize}
+    \fontsize{9}{9}\selectfont
+    \item 
+      \begin{block}{}
+        \begin{minted}{c}
+int regmap_read(struct regmap *map, unsigned int reg, unsigned int *val);
+        \end{minted}
+      \end{block}
+    \item 
+      \begin{block}{}
+        \begin{minted}{c}
+int regmap_write(struct regmap *map, unsigned int reg, unsigned int val);
+        \end{minted}
+      \end{block}
+    \item 
+      \begin{block}{}
+        \begin{minted}{c}
+static inline int regmap_update_bits(struct regmap *map, unsigned int reg,
+                                     unsigned int mask, unsigned int val)
+        \end{minted}
+      \end{block}
+    \item 
+      \begin{block}{}
+        \begin{minted}{c}
+#define regmap_read_poll_timeout(map, addr, val, cond, sleep_us, timeout_us)
+        \end{minted}
+      \end{block}
+    \item 
+      \begin{block}{}
+        \begin{minted}{c}
+int regmap_test_bits(struct regmap *map, unsigned int reg, unsigned int bits);
+        \end{minted}
+      \end{block}
+    \item 
+      \begin{block}{}
+        \begin{minted}{c}
+static inline int regmap_update_bits_check(struct regmap *map, unsigned int reg,
+                                           unsigned int mask, unsigned int val,
+                                           bool *change)
+        \end{minted}
+      \end{block}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{regmap: cache management}
+  \begin{itemize}
+    \item
+      \begin{block}{}
+        \begin{minted}{c}
+int regcache_sync(struct regmap *map);
+        \end{minted}
+      \end{block}
+    \item 
+      \begin{block}{}
+        \begin{minted}{c}
+int regcache_sync_region(struct regmap *map, unsigned int min,
+                         unsigned int max);
+        \end{minted}
+      \end{block}
+    \item 
+      \begin{block}{}
+        \begin{minted}{c}
+int regcache_drop_region(struct regmap *map, unsigned int min,
+                         unsigned int max);
+        \end{minted}
+      \end{block}
+    \item 
+      \begin{block}{}
+        \begin{minted}{c}
+void regcache_cache_only(struct regmap *map, bool enable);
+        \end{minted}
+      \end{block}
+    \item 
+      \begin{block}{}
+        \begin{minted}{c}
+void regcache_cache_bypass(struct regmap *map, bool enable);
+        \end{minted}
+      \end{block}
+    \item 
+      \begin{block}{}
+        \begin{minted}{c}
+void regcache_mark_dirty(struct regmap *map);
+        \end{minted}
+      \end{block}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{regmap: example}
+  \begin{block}{sound/soc/codecs/max9877.c}
+  \fontsize{8}{8}\selectfont
+    \begin{minted}{c}
+static const struct regmap_config max9877_regmap = {
+        .reg_bits = 8,
+        .val_bits = 8,
+
+        .reg_defaults = max9877_regs,
+        .num_reg_defaults = ARRAY_SIZE(max9877_regs),
+        .cache_type = REGCACHE_RBTREE,
+};
+
+static int max9877_i2c_probe(struct i2c_client *client)
+{
+        struct regmap *regmap;
+        int i;
+
+        regmap = devm_regmap_init_i2c(client, &max9877_regmap);
+        if (IS_ERR(regmap))
+                return PTR_ERR(regmap);
+
+        /* Ensure the device is in reset state */
+        for (i = 0; i < ARRAY_SIZE(max9877_regs); i++)
+                regmap_write(regmap, max9877_regs[i].reg, max9877_regs[i].def);
+
+        return devm_snd_soc_register_component(&client->dev,
+                        &max9877_component_driver, NULL, 0);
+}
+    \end{minted}
+  \end{block}
+\end{frame}
+
+\begin{frame}[fragile]{regmap: i2c and spi device example}
+  \begin{block}{sound/soc/codecs/adau1372.c}
+  \fontsize{8}{8}\selectfont
+    \begin{minted}{c}
+const struct regmap_config adau1372_regmap_config = {
+        .val_bits = 8,
+        .reg_bits = 16,
+        .max_register = 0x4d,
+
+        .reg_defaults = adau1372_reg_defaults,
+        .num_reg_defaults = ARRAY_SIZE(adau1372_reg_defaults),
+        .volatile_reg = adau1372_volatile_register,
+        .cache_type = REGCACHE_RBTREE,
+};
+EXPORT_SYMBOL_GPL(adau1372_regmap_config);
+    \end{minted}
+  \end{block}
+  \begin{block}{sound/soc/codecs/adau1372-i2c.c}
+  \fontsize{8}{8}\selectfont
+    \begin{minted}{c}
+static int adau1372_i2c_probe(struct i2c_client *client)
+{
+        return adau1372_probe(&client->dev,
+                devm_regmap_init_i2c(client, &adau1372_regmap_config), NULL);
+}
+    \end{minted}
+  \end{block}
+\end{frame}
+
+\begin{frame}[fragile]{regmap: i2c and spi device example}
+  \begin{block}{sound/soc/codecs/adau1372-spi.c}
+  \fontsize{8}{8}\selectfont
+    \begin{minted}{c}
+static int adau1372_spi_probe(struct spi_device *spi)
+{
+        struct regmap_config config;
+
+        config = adau1372_regmap_config;
+        config.read_flag_mask = 0x1;
+
+        return adau1372_probe(&spi->dev,
+                devm_regmap_init_spi(spi, &config), adau1372_spi_switch_mode);
+}
+    \end{minted}
+  \end{block}
+\end{frame}
+
+\begin{frame}[fragile]{regmap: ASoC components}
+  \begin{itemize}
+  \item \code{snd_soc_component} regmap accessors also exist, they are
+    available either implicitly as the component core calls
+    \code{dev_get_regmap(component->dev, NULL)} to retrieve or create
+    a regmap for the device or explicitly by calling
+    \code{snd_soc_component_init_regmap()}
+  \end{itemize}
+  \begin{block}{include/sound/soc-component.h}
+  \fontsize{9}{9}\selectfont
+    \begin{minted}{c}
+/* component IO */
+unsigned int snd_soc_component_read(struct snd_soc_component *component,
+                                      unsigned int reg);
+int snd_soc_component_write(struct snd_soc_component *component,
+                            unsigned int reg, unsigned int val);
+int snd_soc_component_update_bits(struct snd_soc_component *component,
+                                  unsigned int reg, unsigned int mask,
+                                  unsigned int val);
+[...]
+int snd_soc_component_test_bits(struct snd_soc_component *component,
+                                unsigned int reg, unsigned int mask,
+                                unsigned int value);
+    \end{minted}
+  \end{block}
+\end{frame}

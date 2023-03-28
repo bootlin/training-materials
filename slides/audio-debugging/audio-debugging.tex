@@ -1,0 +1,94 @@
+\section{Troubleshooting}
+
+\begin{frame}{Troubleshooting: no sound}
+  Audio seems to play for the correct duration but there is no sound:
+  \begin{itemize}
+  \item Unmute \code{Master} and the relevant widgets
+  \item Turn up the volume
+  \item Check the codec analog muxing and mixing (use alsamixer)
+  \item Check the amplifier configuration
+  \item Check the routing
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Troubleshooting: no sound}
+  When trying to play sound but it seems stuck:
+  \begin{itemize}
+  \item Check pinmuxing
+  \item Check the configured clock directions
+  \item Check the producer/consumer configuration
+  \item Check the clocks using an oscilloscope
+  \item Check pinmuxing
+  \item Some SoCs also have more muxing (NXP i.Mx AUDMUX, TI McASP)
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Troubleshooting: write error}
+  \begin{block}{}
+    \fontsize{10}{10}\selectfont
+    \begin{minted}{console}
+# aplay test.wav
+Playing WAVE 'test.wav' : Signed 16 bit Little Endian, Rate 44100 Hz, Stereo
+aplay: pcm_write:1737: write error: Input/output error
+    \end{minted}
+  \end{block}
+  \begin{itemize}
+  \item Usually caused by an issue in the routing
+  \item Check that the codec driver exposes a stream named "Playback"
+  \item Use \code{vizdapm}:
+    \url{https://github.com/mihais/asoc-tools}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Troubleshooting: over/underruns}
+  \begin{block}{}
+    \fontsize{10}{10}\selectfont
+    \begin{minted}{console}
+# aplay test.wav 
+Playing WAVE 'test.wav' : Signed 16 bit Little Endian, Rate 44100 Hz, Stereo
+underrun!!! (at least 1.899 ms long)
+underrun!!! (at least 0.818 ms long)
+underrun!!! (at least 2.912 ms long)
+underrun!!! (at least 8.558 ms long)
+    \end{minted}
+  \end{block}
+  \begin{itemize}
+  \item Usually caused by an imprecise BCLK
+  \item Try to find a better PLL and dividers combination
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Troubleshooting: going further}
+  \begin{itemize}
+  \item Use \code{speaker-test} to generate audio an play tones.
+  \item Be careful with the 440Hz tone, it may not expose all the
+    errors. Rather play something that is not commonly divisible (e.g.
+    441Hz)
+  \item Generate tone with fade in and fade out as this allows to
+    catch DMA transfer issues more easily.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Troubleshooting: going further}
+  \begin{itemize}
+  \item Have a look at the CPU DAI driver and its callback. In
+    particular: \code{.set_clkdiv} and \code{.set_sysclk} to
+    understand how the various clock dividers are setup.
+    \code{.hw_params} or \code{.set_dai_fmt} may do some muxing
+  \item Have a look at the codec driver callbacks, \code{.set_sysclk}
+    as the \code{clk_id} parameter is codec specific.
+  \item Remember using a codec as a clock consumer is an uncommon
+    configuration and is probably untested.
+  \item When in doubt, use \code{devmem} or \code{i2cget}
+  \end{itemize}
+\end{frame}
+
+\setupdemoframe
+{Troubleshooting}
+{
+  \begin{itemize}
+  \item Using debugfs to find issues
+  \item Using vizdapm
+  \item Using ftrace to trace register writes and DAPM states
+  \end{itemize}
+}

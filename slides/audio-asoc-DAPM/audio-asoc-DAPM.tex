@@ -1,0 +1,199 @@
+\subsection{ASoC DAPM}
+
+\begin{frame}{DAPM}
+  \begin{itemize}
+  \item DAPM stands for Dynamic Audio Power Management.
+  \item The goal is to save as much power as possible by shutting down
+    audio routes that are not in use.
+  \item This may affect the whole card or just part of it.
+  \item To achieve this, the topology needs to be described. For this
+    we have two objects: DAPM widgets and DAPM routes.
+  \item The DAPM widgets represent various components of an audio
+    system, such as audio inputs, outputs, mixers, and amplifiers.
+  \item The routes are connecting widgets together.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{\code{snd_soc_dapm_widget}}
+  \begin{itemize}
+  \item An array of \code{struct snd_soc_dapm_widget} is registered
+    by the component.
+  \item Many helpers exist to avoid filling the struct manually:
+  \begin{block}{\code{include/sound/soc-dapm.h}}
+    \fontsize{8}{7}\selectfont
+    \begin{minted}{c}
+#define SND_SOC_DAPM_INPUT(wname) \
+{       .id = snd_soc_dapm_input, .name = wname, .kcontrol_news = NULL, \
+        .num_kcontrols = 0, .reg = SND_SOC_NOPM }
+#define SND_SOC_DAPM_OUTPUT(wname) \
+{       .id = snd_soc_dapm_output, .name = wname, .kcontrol_news = NULL, \
+        .num_kcontrols = 0, .reg = SND_SOC_NOPM }
+#define SND_SOC_DAPM_MIC(wname, wevent) \
+{       .id = snd_soc_dapm_mic, .name = wname, .kcontrol_news = NULL, \
+        .num_kcontrols = 0, .reg = SND_SOC_NOPM, .event = wevent, \
+        .event_flags = SND_SOC_DAPM_PRE_PMU | SND_SOC_DAPM_POST_PMD}
+[...]
+#define SND_SOC_DAPM_PGA(wname, wreg, wshift, winvert,\
+         wcontrols, wncontrols) \
+{       .id = snd_soc_dapm_pga, .name = wname, \
+        SND_SOC_DAPM_INIT_REG_VAL(wreg, wshift, winvert), \
+        .kcontrol_news = wcontrols, .num_kcontrols = wncontrols}
+[...]
+#define SND_SOC_DAPM_MUX(wname, wreg, wshift, winvert, wcontrols) \
+{       .id = snd_soc_dapm_mux, .name = wname, \
+        SND_SOC_DAPM_INIT_REG_VAL(wreg, wshift, winvert), \
+        .kcontrol_news = wcontrols, .num_kcontrols = 1}
+#define SND_SOC_DAPM_DEMUX(wname, wreg, wshift, winvert, wcontrols) \
+{       .id = snd_soc_dapm_demux, .name = wname, \
+        SND_SOC_DAPM_INIT_REG_VAL(wreg, wshift, winvert), \
+        .kcontrol_news = wcontrols, .num_kcontrols = 1}
+    \end{minted}
+  \end{block}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{\code{snd_soc_dapm_widget}}
+  \begin{block}{\code{include/sound/soc-dapm.h}}
+    \fontsize{8}{7}\selectfont
+    \begin{minted}{c}
+#define SND_SOC_DAPM_DAC(wname, stname, wreg, wshift, winvert) \
+{       .id = snd_soc_dapm_dac, .name = wname, .sname = stname, \
+        SND_SOC_DAPM_INIT_REG_VAL(wreg, wshift, winvert) }
+#define SND_SOC_DAPM_DAC_E(wname, stname, wreg, wshift, winvert, \
+                           wevent, wflags)                                \
+{       .id = snd_soc_dapm_dac, .name = wname, .sname = stname, \
+        SND_SOC_DAPM_INIT_REG_VAL(wreg, wshift, winvert), \
+        .event = wevent, .event_flags = wflags}
+
+#define SND_SOC_DAPM_ADC(wname, stname, wreg, wshift, winvert) \
+{       .id = snd_soc_dapm_adc, .name = wname, .sname = stname, \
+        SND_SOC_DAPM_INIT_REG_VAL(wreg, wshift, winvert), }
+#define SND_SOC_DAPM_ADC_E(wname, stname, wreg, wshift, winvert, \
+                           wevent, wflags)                                \
+{       .id = snd_soc_dapm_adc, .name = wname, .sname = stname, \
+        SND_SOC_DAPM_INIT_REG_VAL(wreg, wshift, winvert), \
+        .event = wevent, .event_flags = wflags}
+
+
+/* generic widgets */
+#define SND_SOC_DAPM_REG(wid, wname, wreg, wshift, wmask, won_val, woff_val) \
+{       .id = wid, .name = wname, .kcontrol_news = NULL, .num_kcontrols = 0, \
+        .reg = wreg, .shift = wshift, .mask = wmask, \
+        .on_val = won_val, .off_val = woff_val, }
+#define SND_SOC_DAPM_SUPPLY(wname, wreg, wshift, winvert, wevent, wflags) \
+{       .id = snd_soc_dapm_supply, .name = wname, \
+        SND_SOC_DAPM_INIT_REG_VAL(wreg, wshift, winvert), \
+        .event = wevent, .event_flags = wflags}
+#define SND_SOC_DAPM_REGULATOR_SUPPLY(wname, wdelay, wflags)            \
+{       .id = snd_soc_dapm_regulator_supply, .name = wname, \
+        .reg = SND_SOC_NOPM, .shift = wdelay, .event = dapm_regulator_event, \
+        .event_flags = SND_SOC_DAPM_PRE_PMU | SND_SOC_DAPM_POST_PMD, \
+        .on_val = wflags}
+    \end{minted}
+  \end{block}
+\end{frame}
+
+\begin{frame}[fragile]{DAPM example}
+  \begin{block}{\code{sound/soc/codecs/pcm3168a.c}}
+    \fontsize{8}{7}\selectfont
+    \begin{minted}{c}
+static const struct snd_soc_dapm_widget pcm3168a_dapm_widgets[] = {
+        SND_SOC_DAPM_DAC("DAC1", "Playback", PCM3168A_DAC_OP_FLT,
+                        PCM3168A_DAC_OPEDA_SHIFT, 1),
+        SND_SOC_DAPM_DAC("DAC2", "Playback", PCM3168A_DAC_OP_FLT,
+                        PCM3168A_DAC_OPEDA_SHIFT + 1, 1),
+        SND_SOC_DAPM_DAC("DAC3", "Playback", PCM3168A_DAC_OP_FLT,
+                        PCM3168A_DAC_OPEDA_SHIFT + 2, 1),
+        SND_SOC_DAPM_DAC("DAC4", "Playback", PCM3168A_DAC_OP_FLT,
+                        PCM3168A_DAC_OPEDA_SHIFT + 3, 1),
+
+        SND_SOC_DAPM_OUTPUT("AOUT1L"),
+        SND_SOC_DAPM_OUTPUT("AOUT1R"),
+        SND_SOC_DAPM_OUTPUT("AOUT2L"),
+        SND_SOC_DAPM_OUTPUT("AOUT2R"),
+        SND_SOC_DAPM_OUTPUT("AOUT3L"),
+        SND_SOC_DAPM_OUTPUT("AOUT3R"),
+        SND_SOC_DAPM_OUTPUT("AOUT4L"),
+        SND_SOC_DAPM_OUTPUT("AOUT4R"),
+    \end{minted}
+  \end{block}
+\end{frame}
+
+\begin{frame}[fragile]{DAPM example}
+  \begin{block}{\code{sound/soc/codecs/pcm3168a.c}}
+    \fontsize{8}{7}\selectfont
+    \begin{minted}{c}
+        SND_SOC_DAPM_ADC("ADC1", "Capture", PCM3168A_ADC_PWR_HPFB,
+                        PCM3168A_ADC_PSVAD_SHIFT, 1),
+        SND_SOC_DAPM_ADC("ADC2", "Capture", PCM3168A_ADC_PWR_HPFB,
+                        PCM3168A_ADC_PSVAD_SHIFT + 1, 1),
+        SND_SOC_DAPM_ADC("ADC3", "Capture", PCM3168A_ADC_PWR_HPFB,
+                        PCM3168A_ADC_PSVAD_SHIFT + 2, 1),
+
+        SND_SOC_DAPM_INPUT("AIN1L"),
+        SND_SOC_DAPM_INPUT("AIN1R"),
+        SND_SOC_DAPM_INPUT("AIN2L"),
+        SND_SOC_DAPM_INPUT("AIN2R"),
+        SND_SOC_DAPM_INPUT("AIN3L"),
+        SND_SOC_DAPM_INPUT("AIN3R")
+};
+    \end{minted}
+  \end{block}
+\end{frame}
+
+\begin{frame}[fragile]{\code{snd_soc_dapm_route}}
+  \begin{itemize}
+  \item An array of \code{struct snd_soc_dapm_route} is registered
+    by the component to define the routes.
+  \end{itemize}
+  \begin{block}{\code{include/sound/soc-dapm.h}}
+    \fontsize{9}{9}\selectfont
+    \begin{minted}{c}
+struct snd_soc_dapm_route {
+        const char *sink;
+        const char *control;
+        const char *source;
+
+        /* Note: currently only supported for links where source is a supply */
+        int (*connected)(struct snd_soc_dapm_widget *source,
+                         struct snd_soc_dapm_widget *sink);
+
+        struct snd_soc_dobj dobj;
+};
+    \end{minted}
+  \end{block}
+\end{frame}
+
+\begin{frame}[fragile]{DAPM routes example}
+  \begin{block}{\code{sound/soc/codecs/pcm3168a.c}}
+    \fontsize{8}{7}\selectfont
+    \begin{minted}{c}
+static const struct snd_soc_dapm_route pcm3168a_dapm_routes[] = {
+        /* Playback */
+        { "AOUT1L", NULL, "DAC1" },
+        { "AOUT1R", NULL, "DAC1" },
+
+        { "AOUT2L", NULL, "DAC2" },
+        { "AOUT2R", NULL, "DAC2" },
+
+        { "AOUT3L", NULL, "DAC3" },
+        { "AOUT3R", NULL, "DAC3" },
+
+        { "AOUT4L", NULL, "DAC4" },
+        { "AOUT4R", NULL, "DAC4" },
+
+        /* Capture */
+        { "ADC1", NULL, "AIN1L" },
+        { "ADC1", NULL, "AIN1R" },
+
+        { "ADC2", NULL, "AIN2L" },
+        { "ADC2", NULL, "AIN2R" },
+
+        { "ADC3", NULL, "AIN3L" },
+        { "ADC3", NULL, "AIN3R" }
+};
+    \end{minted}
+  \end{block}
+\end{frame}
+
+

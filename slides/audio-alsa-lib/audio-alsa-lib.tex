@@ -1,0 +1,357 @@
+\section{Userspace ALSA}
+
+\subsection{alsa-lib}
+
+\begin{frame}{alsa-lib}
+  \begin{itemize}
+  \item The main way to interact with ALSA devices is to use alsa-lib.
+  \item \url{https://github.com/alsa-project/alsa-lib.git}
+  \item It provides mainly access to the devices but also goes further
+    and allows handling audio in userspace
+  \item The library itself is actually named \code{libasound}
+  \item The include file is \code{alsa/asoundlib.h}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{alsa-lib API}
+  \begin{itemize}
+  \item 
+    \begin{block}{}
+    \fontsize{9}{9}\selectfont
+      \begin{minted}{c}
+int snd_pcm_open(snd_pcm_t ** pcmp, const char * name, snd_pcm_stream_t stream, int mode)
+      \end{minted}
+    \end{block}
+  \item \code{name} is the name of the PCM to be opened.
+  \item \code{stream} can be either \code{SND_PCM_STREAM_PLAYBACK} or
+    \code{SND_PCM_STREAM_CAPTURE}
+  \item \code{mode} can be a combination of \code{SND_PCM_NONBLOCK}
+    and \code{SND_PCM_ASYNC}
+  \item 
+    \begin{block}{}
+    \fontsize{9}{9}\selectfont
+      \begin{minted}{c}
+int snd_pcm_close(snd_pcm_t *pcm)
+      \end{minted}
+    \end{block}
+  \item Closes the PCM.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{PCM name}
+  \begin{itemize}
+  \item This can be specified as a hardware device. The three
+    arguments (in order: CARD,DEV,SUBDEV) specify card number or
+    identifier, device number and subdevice number (-1 means any). For
+    example: \code{hw:0} or \code{hw:1,0}
+  \item Or through the \code{plug} plugin: \code{plug:mypcmdef},
+    \code{plug:hw:0,0}
+  \item The list of available names can be generated using
+    \code{snd_card_next} to iterate over all the physical cards. See
+    \code{device_list} in \code{aplay}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{alsa-lib API - PCM}
+  \begin{itemize}
+  \item The next step is to handle the PCM stream parameters
+  \item
+    \begin{block}{}
+    \fontsize{9}{9}\selectfont
+      \begin{minted}{c}
+snd_pcm_hw_params_t *hw_params;
+int snd_pcm_hw_params_malloc(snd_pcm_hw_params_t ** ptr)
+int snd_pcm_hw_params_any(snd_pcm_t * pcm, snd_pcm_hw_params_t * params)
+      \end{minted}
+      \end{block}
+    \item This will allocate a \code{snd_pcm_hw_params_t} and fill it
+      with the range of parameters supported by \code{pcm}.
+  \item
+    \begin{block}{}
+    \fontsize{9}{9}\selectfont
+      \begin{minted}{c}
+int snd_pcm_hw_params_set_access(snd_pcm_t *pcm, snd_pcm_hw_params_t *params,
+                                 snd_pcm_access_t _access)
+      \end{minted}
+    \end{block}
+    \item This set the proper access type: interleaved or
+      non-interleaved, mmap or not.
+  \item
+    \begin{block}{}
+    \fontsize{9}{9}\selectfont
+      \begin{minted}{c}
+int snd_pcm_hw_params_set_format(snd_pcm_t *pcm, snd_pcm_hw_params_t *params,
+                                 snd_pcm_format_t val)
+      \end{minted}
+    \end{block}
+    \item This set the format, using a \code{SND_PCM_FORMAT_} macro.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{alsa-lib API - PCM}
+  \begin{itemize}
+  \item
+    \begin{block}{}
+    \fontsize{9}{9}\selectfont
+      \begin{minted}{c}
+int snd_pcm_hw_params_set_channels(snd_pcm_t *pcm, snd_pcm_hw_params_t *params,
+                                   unsigned int val)
+      \end{minted}
+    \end{block}
+    \item Sets the number of channels.
+  \item
+    \begin{block}{}
+    \fontsize{9}{9}\selectfont
+      \begin{minted}{c}
+int snd_pcm_hw_params_set_rate_near(snd_pcm_t *pcm, snd_pcm_hw_params_t *params,
+                                    unsigned int *val, int *dir)
+      \end{minted}
+    \end{block}
+    \item Sets the sample rate, setting \code{dir} to 0 will require
+      the exact rate.
+  \item
+    \begin{block}{}
+    \fontsize{9}{9}\selectfont
+      \begin{minted}{c}
+int snd_pcm_hw_params_set_periods(snd_pcm_t *pcm, snd_pcm_hw_params_t *params,
+                                  unsigned int val, int dir)
+int snd_pcm_hw_params_set_period_size(snd_pcm_t *pcm, snd_pcm_hw_params_t *params,
+                                      snd_pcm_uframes_t val, int dir)
+int snd_pcm_hw_params_set_buffer_size(snd_pcm_t *pcm, snd_pcm_hw_params_t *params,
+                                      snd_pcm_uframes_t val)
+      \end{minted}
+    \end{block}
+  \item Sets the number of periods and the period size in the
+      buffer or the buffer size.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{alsa-lib API - PCM}
+  \begin{itemize}
+  \item
+    \begin{block}{}
+    \fontsize{9}{9}\selectfont
+      \begin{minted}{c}
+int snd_pcm_hw_params(snd_pcm_t * pcm, snd_pcm_hw_params_t * params)
+       \end{minted}
+    \end{block}
+  \item Installs the parameters and calls \code{snd_pcm_prepare} on
+    the stream.
+  \item
+    \begin{block}{}
+    \fontsize{9}{9}\selectfont
+      \begin{minted}{c}
+void snd_pcm_hw_params_free(snd_pcm_hw_params_t * obj)
+      \end{minted}
+    \end{block}
+  \item Frees the allocated \code{snd_pcm_hw_params_t}.
+  \item
+    \begin{block}{}
+    \fontsize{9}{9}\selectfont
+      \begin{minted}{c}
+int snd_pcm_prepare(snd_pcm_t * pcm)
+      \end{minted}
+    \end{block}
+  \item Prepares the stream.
+  \item
+    \begin{block}{}
+    \fontsize{9}{9}\selectfont
+      \begin{minted}{c}
+int snd_pcm_wait(snd_pcm_t * pcm, int timeout)
+      \end{minted}
+    \end{block}
+  \item Waits for the PCM to be ready.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{alsa-lib API - PCM}
+  \begin{itemize}
+  \item
+    \begin{block}{}
+    \fontsize{9}{9}\selectfont
+      \begin{minted}{c}
+snd_pcm_sframes_t snd_pcm_writei(snd_pcm_t *pcm, const void *buffer, snd_pcm_uframes_t size)
+snd_pcm_sframes_t snd_pcm_readi(snd_pcm_t *pcm, void *buffer, snd_pcm_uframes_t size)
+snd_pcm_sframes_t snd_pcm_writen(snd_pcm_t *pcm, void **bufs, snd_pcm_uframes_t size)
+snd_pcm_sframes_t snd_pcm_readn(snd_pcm_t *pcm, void **bufs, snd_pcm_uframes_t size)
+      \end{minted}
+    \end{block}
+  \item Write or read from an interleaved or non-interleaved buffer.
+  \item
+    \begin{block}{}
+    \fontsize{9}{9}\selectfont
+      \begin{minted}{c}
+int snd_pcm_mmap_begin(snd_pcm_t *pcm, const snd_pcm_channel_area_t **areas,
+                       snd_pcm_uframes_t *offset, snd_pcm_uframes_t *frames)
+snd_pcm_sframes_t snd_pcm_mmap_commit(snd_pcm_t *pcm, snd_pcm_uframes_t offset,
+                                      snd_pcm_uframes_t frames)
+snd_pcm_sframes_t snd_pcm_mmap_writei(snd_pcm_t *pcm, const void *buffer,
+                                      snd_pcm_uframes_t size)
+snd_pcm_sframes_t snd_pcm_mmap_readi(snd_pcm_t *pcm, void *buffer, snd_pcm_uframes_t size)
+snd_pcm_sframes_t snd_pcm_mmap_writen(snd_pcm_t *pcm, void **bufs, snd_pcm_uframes_t size)
+snd_pcm_sframes_t snd_pcm_mmap_readn(snd_pcm_t *pcm, void **bufs, snd_pcm_uframes_t size)
+      \end{minted}
+    \end{block}
+  \item Write or read from an interleaved or non-interleaved mmap buffer.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{alsa-lib API - controls}
+  \begin{itemize}
+  \item It is possible to set controls programatically.
+  \item
+    \begin{block}{}
+    \fontsize{9}{9}\selectfont
+      \begin{minted}{c}
+snd_ctl_t *handle;
+int snd_ctl_open (snd_ctl_t **ctl, const char *name, int mode)
+      \end{minted}
+    \end{block}
+    \item Opens the sound card to be controlled.
+  \item
+    \begin{block}{}
+    \fontsize{9}{9}\selectfont
+      \begin{minted}{c}
+snd_ctl_elem_id_t *id;
+#define snd_ctl_elem_id_alloca(ptr)
+snd_ctl_elem_value_t *value;
+#define snd_ctl_elem_value_alloca(ptr)
+      \end{minted}
+    \end{block}
+  \item Allocate a \code{snd_ctl_elem_id_t}, referring to a particular
+    control and a \code{snd_ctl_elem_value_t} to be set for this
+    control.
+  \item
+    \begin{block}{}
+    \fontsize{9}{9}\selectfont
+      \begin{minted}{c}
+void snd_ctl_elem_id_set_interface(snd_ctl_elem_id_t *obj, snd_ctl_elem_iface_t val)
+void snd_ctl_elem_id_set_name(snd_ctl_elem_id_t *obj, const char *val)
+      \end{minted}
+    \end{block}
+    \item Set the interface and name of the control to be set.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{alsa-lib API - controls}
+  \begin{itemize}
+  \item A lookup is needed to fill the \code{snd_ctl_elem_id_t}
+    completely
+  \end{itemize}
+  \begin{block}{}
+    \fontsize{9}{9}\selectfont
+    \begin{minted}{c}
+int lookup_id(snd_ctl_elem_id_t *id, snd_ctl_t *handle)
+{
+    int err;
+    snd_ctl_elem_info_t *info;
+    snd_ctl_elem_info_alloca(&info);
+
+    snd_ctl_elem_info_set_id(info, id);
+    if ((err = snd_ctl_elem_info(handle, info)) < 0) {
+        return err;
+    }
+    snd_ctl_elem_info_get_id(info, id);
+
+    return 0;
+}
+    \end{minted}
+  \end{block}
+\end{frame}
+
+\begin{frame}[fragile]{alsa-lib API - controls}
+  \begin{itemize}
+  \item
+    \begin{block}{}
+    \fontsize{9}{9}\selectfont
+      \begin{minted}{c}
+void snd_ctl_elem_value_set_id(snd_ctl_elem_value_t *obj, const snd_ctl_elem_id_t *ptr)
+      \end{minted}
+    \end{block}
+    \item Links the value with the control id.
+  \item
+    \begin{block}{}
+    \fontsize{9}{9}\selectfont
+      \begin{minted}{c}
+void snd_ctl_elem_value_set_boolean(snd_ctl_elem_value_t *obj, unsigned int idx, long val)
+void snd_ctl_elem_value_set_integer(snd_ctl_elem_value_t *obj, unsigned int idx, long val)
+void snd_ctl_elem_value_set_integer64(snd_ctl_elem_value_t *obj, unsigned int idx,
+                                      long long val)
+void snd_ctl_elem_value_set_enumerated(snd_ctl_elem_value_t *obj, unsigned int idx,
+                                       unsigned int val)
+void snd_ctl_elem_value_set_byte(snd_ctl_elem_value_t *obj, unsigned int idx,
+                                 unsigned char val)
+void snd_ctl_elem_set_bytes(snd_ctl_elem_value_t *obj, void *data, size_t size)
+      \end{minted}
+    \end{block}
+  \item Set the value in \code{snd_ctl_elem_value_t}.
+  \item
+    \begin{block}{}
+    \fontsize{9}{9}\selectfont
+      \begin{minted}{c}
+int snd_ctl_elem_write(snd_ctl_t *ctl, snd_ctl_elem_value_t *data)
+      \end{minted}
+    \end{block}
+  \item Actually set the control.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{alsa-lib API - controls}
+  \begin{itemize}
+  \item
+    \begin{block}{}
+    \fontsize{9}{9}\selectfont
+      \begin{minted}{c}
+void snd_ctl_elem_value_set_id(snd_ctl_elem_value_t *obj, const snd_ctl_elem_id_t *ptr)
+      \end{minted}
+    \end{block}
+    \item Links the value with the control id.
+  \item
+    \begin{block}{}
+    \fontsize{9}{9}\selectfont
+      \begin{minted}{c}
+void snd_ctl_elem_value_set_boolean(snd_ctl_elem_value_t *obj, unsigned int idx, long val)
+void snd_ctl_elem_value_set_integer(snd_ctl_elem_value_t *obj, unsigned int idx, long val)
+void snd_ctl_elem_value_set_integer64(snd_ctl_elem_value_t *obj, unsigned int idx,
+                                      long long val)
+void snd_ctl_elem_value_set_enumerated(snd_ctl_elem_value_t *obj, unsigned int idx,
+                                       unsigned int val)
+void snd_ctl_elem_value_set_byte(snd_ctl_elem_value_t *obj, unsigned int idx,
+                                 unsigned char val)
+void snd_ctl_elem_set_bytes(snd_ctl_elem_value_t *obj, void *data, size_t size)
+      \end{minted}
+    \end{block}
+  \item Set the value in \code{snd_ctl_elem_value_t}.
+  \item
+    \begin{block}{}
+    \fontsize{9}{9}\selectfont
+      \begin{minted}{c}
+int snd_ctl_elem_write(snd_ctl_t *ctl, snd_ctl_elem_value_t *data)
+      \end{minted}
+    \end{block}
+  \item Actually set the control.
+  \end{itemize}
+\end{frame}
+
+
+\begin{frame}{Going further}
+  \begin{itemize}
+  \item UCM: The ALSA Use Case Configuration:
+    \url{https://www.alsa-project.org/alsa-doc/alsa-lib/group__ucm__conf.html}
+  \item ALSA topology:
+    \url{https://www.alsa-project.org/wiki/ALSA_topology}
+  \end{itemize}
+\end{frame}
+
+\setupdemoframe
+{}
+{
+  Using \code{alsa-lib} tools to:
+  \begin{itemize}
+  \item Reorder channels
+  \item Split channels
+  \item Resample
+  \item Mix samples
+  \item Apply effects
+  \end{itemize}
+}
