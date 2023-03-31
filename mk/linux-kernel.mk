@@ -37,6 +37,7 @@ LINUX_KERNEL_SLIDES = \
 		kernel-driver-development-concurrency \
 		kernel-driver-development-lab-locking \
 		kernel-driver-development-dma \
+		kernel-driver-development-lab-dma \
 		kernel-driver-development-debugging \
 		kernel-driver-development-lab-debugging \
 		kernel-porting-title \
@@ -67,4 +68,5 @@ LINUX_KERNEL_LABS   = setup \
 		kernel-serial-output \
 		kernel-serial-interrupt \
 		kernel-locking \
+		kernel-serial-dma \
 		kernel-debugging \
