@@ -124,6 +124,30 @@
 \end{frame}
 
 \begin{frame}
+  \frametitle{Early traces}
+  \begin{itemize}
+  \item If something breaks before the \code{tty} layer, serial driver
+    and serial console are properly registered, you might just have
+    nothing else after "\code{Starting kernel...}"
+  \item On ARM, if your platform implements it, you can activate
+    (\kconfig{CONFIG_DEBUG_LL} and \kconfig{CONFIG_EARLYPRINTK}), and add
+    \code{earlyprintk} to the kernel command line
+    \begin{itemize}
+    \item Assembly routines to just push a character and wait for it to
+      be sent
+    \item Extremely basic, but is part of the uncompressed section, so
+      available even if the kernel does not uncompress correctly!
+    \end{itemize}
+  \item On other platforms, hoping that your serial driver implements
+    \kfunc{OF_EARLYCON_DECLARE}, you can enable \kconfig{SERIAL_EARLYCON}
+    \begin{itemize}
+    \item The kernel will try to hook an appropriate \code{earlycon}
+      UART driver using the \code{stdout-path} of the device-tree.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
   \frametitle{More kernel debugging tips}
   \begin{itemize}
   \item Make sure \kconfig{CONFIG_KALLSYMS_ALL} is enabled
@@ -131,9 +155,5 @@
     \item Is turned on by default
     \item To get oops messages with symbol names instead of raw addresses
     \end{itemize}
-  \item On ARM, if your kernel doesn't boot or hangs without any
-    message, you can activate early debugging options
-    (\kconfig{CONFIG_DEBUG_LL} and \kconfig{CONFIG_EARLYPRINTK}), and add
-    \code{earlyprintk} to the kernel command line.
   \end{itemize}
 \end{frame}
