@@ -36,6 +36,7 @@ LINUX_KERNEL_SLIDES = \
 		kernel-driver-development-lab-interrupts \
 		kernel-driver-development-concurrency \
 		kernel-driver-development-lab-locking \
+		kernel-driver-development-dma \
 		kernel-driver-development-debugging \
 		kernel-driver-development-lab-debugging \
 		kernel-porting-title \
@@ -49,7 +50,6 @@ LINUX_KERNEL_SLIDES = \
 		kernel-resources-references \
 		last-slides \
 		kernel-backup-slides-title \
-		kernel-driver-development-dma \
 		kernel-driver-development-mmap \
 		kernel-driver-development-general-apis
 
