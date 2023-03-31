@@ -1,4 +1,4 @@
-\subsection{DMA}
+\subsection{DMA main principles}
 
 \begin{frame}
   \frametitle{DMA integration}
@@ -35,107 +35,184 @@
   \end{center}
 \end{frame}
 
-\subsection{DMA usage}
-
 \begin{frame}
-  \frametitle{Constraints with a DMA}
+  \frametitle{Cache constraints}
   \begin{itemize}
-  \item A DMA deals with physical addresses, so:
-    \begin{itemize}
-    \item Programming a DMA requires retrieving a physical address at
-      some point (virtual addresses are usually used)
-    \item The memory accessed by the DMA shall be physically
-      contiguous
-    \end{itemize}
   \item The CPU can access memory through a data cache
     \begin{itemize}
     \item Using the cache can be more efficient (faster accesses to
       the cache than the bus)
-    \item But the DMA does not access the CPU cache, so one needs to
-      take care of cache coherency (cache content vs. memory content)
-    \item Either clean (write to memory) or invalidate the cache lines corresponding to
-      the buffer accessed by DMA and processor at the right times
     \end{itemize}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{DMA memory constraints}
-  \begin{itemize}
-  \item Need to use contiguous memory in physical space.
-  \item Can use any memory allocated by \kfunc{kmalloc} (up to 128 KB)
-    or \kfunc{__get_free_pages} (up to 8MB).
-  \item Can use block I/O and networking buffers, designed to support
-    DMA.
-  \item Can not use \kfunc{vmalloc} memory (would have to setup DMA on each
-    individual physical page).
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Memory synchronization issues}
-  Memory caching could interfere with DMA
-  \begin{itemize}
-  \item Before DMA to device
+  \item But the DMA does not access the CPU cache, so one needs to
+    take care of cache coherency (cache content vs. memory content):
     \begin{itemize}
-    \item Need to make sure that all writes to the DMA buffer are done
-          (corresponding cache lines cleaned)
-    \end{itemize}
-  \item After DMA from device
-    \begin{itemize}
-    \item Before drivers read from a DMA buffer, need to make sure
-      that the corresponding cache lines are invalidated.
-    \end{itemize}
-  \item Bidirectional DMA
-    \begin{itemize}
-    \item Need to do both of the above operations
+    \item When the CPU reads from memory accessed by DMA, the relevant
+      cache lines must be invalidated to force reading from memory
+      again
+    \item When the CPU writes to memory before starting DMA transfers,
+      the cache lines must be flushed/cleaned in order to force the data
+      to reach the memory
     \end{itemize}
   \end{itemize}
+  \begin{center}
+    \includegraphics[width=0.8\textwidth]{slides/kernel-driver-development-dma/caches.pdf}
+  \end{center}
 \end{frame}
 
 \begin{frame}
-  \frametitle{Linux DMA API}
-  The kernel DMA utilities can take care of:
+  \frametitle{DMA addressing constraints}
   \begin{itemize}
-  \item Either allocating a buffer in a cache coherent area,
-  \item Or making sure caches are handled when required,
-  \item Managing the DMA mappings and IOMMU (if any).
-  \item See \kdochtml{core-api/dma-api} for details about DMA
-    and the Linux DMA generic API.
-  \item Most subsystems (such as PCI or USB) supply their own DMA
-    API, derived from the generic one. May be sufficient for most
-    needs.
+  \item Memory and devices have physical addresses: \ksym{phys_addr_t}
+  \item CPUs usually access memory through an MMU, using virtual
+    pointers: \ksym{void *}
+  \item DMA controllers do not access memory through the MMU and thus
+    cannot manipulate virtual addresses, instead they access a
+    \ksym{dma_addr_t} through either:
+    \begin{itemize}
+    \item physical addresses directly
+    \item an IOMMU, in which case a specific mapping must be created
+    \end{itemize}
+  \end{itemize}
+  \begin{center}
+    \includegraphics[width=0.75\textwidth]{slides/kernel-driver-development-dma/addressing.pdf}
+  \end{center}
+\end{frame}
+
+\begin{frame}
+  \frametitle{DMA memory allocation constraints}
+  The APIs must remain generic and handle all cases transparently, hence:
+  \begin{itemize}
+  \item Each memory chunk accessed by the DMA shall be physically
+    contiguous, which means one can use:
+    \begin{itemize}
+    \item any memory allocated by \kfunc{kmalloc} (up to 128 KB)
+    \item any memory allocated by \kfunc{__get_free_pages} (up to 8MB)
+    \item block I/O and networking buffers, designed to support DMA
+    \end{itemize}
+  \item Unless the buffer is smaller than one page, one cannot use:
+    \begin{itemize}
+    \item kernel memory allocated with \kfunc{vmalloc}
+    \item user memory allocated with \code{malloc()}
+      \begin{itemize}
+      \item Almost all the time userspace relies on the kernel to allocate
+        the buffers and \kfunc{mmap} them to be usable from userspace
+        (requires a dedicated user API)
+      \end{itemize}
+    \end{itemize}
   \end{itemize}
 \end{frame}
 
 \begin{frame}
-  \frametitle{Coherent or streaming DMA mappings}
+  \frametitle{DMA memory allocation constraints}
+  The APIs must remain generic and handle all cases transparently, hence:
+  \begin{itemize}
+  \item Each memory chunk accessed by the DMA shall be physically
+    contiguous, which means one can use:
+    \begin{itemize}
+    \item any memory allocated by \kfunc{kmalloc} (up to 128 KB)
+    \item any memory allocated by \kfunc{__get_free_pages} (up to 8MB)
+    \item block I/O and networking buffers, designed to support DMA
+    \end{itemize}
+  \item Unless the buffer is smaller than one page, one cannot use:
+    \begin{itemize}
+    \item kernel memory allocated with \kfunc{vmalloc}
+    \item user memory allocated with \code{malloc()}
+      \begin{itemize}
+      \item Almost all the time userspace relies on the kernel to allocate
+        the buffers and \kfunc{mmap} them to be usable from userspace
+        (requires a dedicated user API)
+      \end{itemize}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\subsection{Kernel APIs for DMA}
+
+\begin{frame}
+  \frametitle{\code{dma} vs. \code{dmaengine} vs. \code{dma-buf}}
+  The \code{dma} API:
+  \begin{itemize}
+  \item Allocates and manages DMA buffers
+  \item Offers generic interfaces to handle coherency
+  \item Manages IO-MMU DMA mappings when relevant
+  \item See \kdochtml{core-api/dma-api} and
+    \kdochtml{core-api/dma-api-howto}
+  \end{itemize}
+  The \code{dmaengine} API:
+  \begin{itemize}
+  \item Abstracts the DMA controller
+  \item Offers generic functions to configure, queue, trigger, stop
+    transfers
+  \item Unused when dealing with peripheral DMA
+  \item See \kdochtml{driver-api/dmaengine/client} and
+  \end{itemize}
+  The \code{dma-buf} API:
+  \begin{itemize}
+  \item Enables sharing DMA buffers between devices within the kernel
+  \item Not covered in this training
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{\code{dma}: Coherent or streaming DMA mappings}
   \begin{itemize}
   \item Coherent mappings
     \begin{itemize}
     \item The kernel allocates a suitable buffer and sets the mapping
-      for the driver.
-    \item Can simultaneously be accessed by the CPU and device.
-    \item So, has to be in a cache coherent memory area.
-    \item Usually allocated for the whole time the module is loaded.
-    \item Can be expensive to setup and use on some platforms.
+      for the driver
+    \item Can simultaneously be accessed by the CPU and device
+    \item So, has to be in a cache coherent memory area
+    \item Usually allocated for the whole time the module is loaded
+      \begin{itemize}
+      \item Can be expensive to setup and use on some platforms
+      \item Typically implemented by disabling cache on \code{ARM}
+      \end{itemize}
     \end{itemize}
   \item Streaming mappings
     \begin{itemize}
-    \item The kernel just sets the mapping for a buffer provided by
-      the driver.
     \item Use an already allocated buffer
-    \item Mapping set up for each transfer. Keeps DMA registers free
-      on the hardware.
+    \item The driver provides a buffer, the kernel just sets the mapping
+    \item Mapping set up for each transfer (keeps DMA registers free on
+      the hardware)
     \end{itemize}
   \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{Allocating coherent mappings}
-  The kernel takes care of both buffer allocation and mapping
+  \frametitle{\code{dma}: memory addressing constraints}
+  \begin{itemize}
+  \item The default addressing capability of the DMA controllers is
+    assumed to be 32-bit.
+  \item If the platform supports it, the DMA addressing capability can be:
+    \begin{itemize}
+    \item increased (eg. need to access highmem)
+    \item decreased (eg. ISA devices, where \kfunc{kmalloc} buffers can
+      also be allocated in the first part of the RAM with
+      \ksym{GFP_DMA})
+    \end{itemize}
+  \item Linux stores this capability in a per-device mask, DMA mappings
+    can fail because a buffer is out of reach
+  \item In all cases, the \code{dma} mask shall be consistent before
+    allocating buffers
+  \end{itemize}
 \begin{minted}[fontsize=\small]{c}
-#include <asm/dma-mapping.h>
+int dma_set_mask_and_coherent(struct device *dev, u64 mask)
+\end{minted}
+  \begin{itemize}
+  \item Maximum and optimal buffer sizes can also be retrieved to
+    optimize allocations/buffer handling
+  \end{itemize}
+\begin{minted}[fontsize=\small]{c}
+size_t dma_max_mapping_size(struct device *dev);
+size_t dma_opt_mapping_size(struct device *dev);
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{\code{dma}: Allocating coherent memory mappings}
+  The kernel takes care of both buffer allocation and mapping:
+\begin{minted}[fontsize=\small]{c}
+#include <linux/dma-mapping.h>
 
 void *                       /* Output: buffer address */
     dma_alloc_coherent(
@@ -153,10 +230,10 @@ Note: called {\em consistent mappings} on PCI\\
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{Setting up streaming mappings}
-  Works on already allocated buffers
+  \frametitle{\code{dma}: Setting up streaming memory mappings (single)}
+  Works on already allocated buffers:
 \begin{minted}[fontsize=\small]{c}
-#include <linux/dmapool.h>
+#include <linux/dma-mapping.h>
 
 dma_addr_t dma_map_single(
       struct device *,        /* device structure */
@@ -172,28 +249,104 @@ void dma_unmap_single(struct device *dev, dma_addr_t handdle,
 \end{minted}
 \end{frame}
 
-\begin{frame}
-  \frametitle{DMA notes}
-  Streaming mapping notes:
+\begin{frame}[fragile]
+  \frametitle{\code{dma}: Setting up streaming memory mappings (multiples)}
+  A \code{scatterlist} using the \code{scatter-gather} library can be
+  used to map several buffers and link them together:
+\begin{minted}[fontsize=\scriptsize]{c}
+#include <linux/dma-mapping.h>
+#include <linux/scatterlist.h>
+
+struct scatterlist sglist[NENTS], *sg;
+int i, count;
+
+sg_init_table(sglist, NENTS);
+sg_set_buf(&sglist[0], buf0, len0);
+sg_set_buf(&sglist[1], buf1, len1);
+
+count = dma_map_sg(dev, sglist, NENTS, DMA_TO_DEVICE);
+
+for_each_sg(sglist, sg, count, i) {
+        dma_address[i] = sg_dma_address(sg);
+        dma_len[i] = sg_dma_len(sg);
+}
+
+...
+
+dma_unmap_sg(dev sglist, count, DMA_TO_DEVICE);
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{\code{dma}: Setting up streaming I/O mappings}
+  Physical addresses with MMIO registers shall also be remapped in case
+  they are accessed through an IO-MMU
+\begin{minted}[fontsize=\small]{c}
+#include <linux/dma-mapping.h>
+
+dma_addr_t dma_map_resource(
+      struct device *,         /* device structure */
+      phys_addr_t,             /* input: resource to use */
+      size_t,                  /* buffer size */
+      enum dma_data_direction, /* Either DMA_BIDIRECTIONAL,
+                                * DMA_TO_DEVICE or
+                                * DMA_FROM_DEVICE */
+      unsigned long attrs,     /* optional attributes */
+);
+
+void dma_unmap_resource(struct device *dev, dma_addr_t handdle,
+    size_t size, enum dma_data_direction dir, unsigned long attrs);
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{\code{dma}: Verifying DMA memory mappings}
   \begin{itemize}
-  \item When the mapping is active: only the device should access the
-    buffer (potential cache issues otherwise).
-  \item The CPU can access the buffer only after unmapping!
-  \item Another reason: if required, this API can create an
-    intermediate bounce buffer (used if the given buffer is not usable
-    for DMA).
-  \item The Linux API also supports scatter / gather DMA streaming
-    mappings.
-  \end{itemize}
-  Commented network driver example:
-  \begin{itemize}
-    \item See {\small \url{https://bootlin.com/pub/drivers/r6040-network-driver-with-comments.c}}
-    for a commmented network driver, which both streaming and coherent
-    mappings.
+  \item All mapping helpers can fail and return errors
+  \item The right way to check the validity of the returned
+    \ksym{dma_addr_t} is to call:
+\begin{minted}[fontsize=\small]{c}
+int dma_mapping_error(struct device *dev, dma_addr_t dma_addr)
+\end{minted}
+    \begin{itemize}
+    \item May give additional clues if \ksym{CONFIG_DMA_API_DEBUG} is
+      enabled.
+    \end{itemize}
   \end{itemize}
 \end{frame}
 
-\subsection{DMA transfers}
+\begin{frame}[fragile]
+  \frametitle{\code{dma}: Syncing streaming DMA mappings}
+  \begin{itemize}
+  \item In general streaming mappings are:
+    \begin{itemize}
+    \item mapped right before use with DMA
+      \begin{itemize}
+      \item \code{MEM_TO_DEV}: caches are flushed
+      \end{itemize}
+    \item unmapped right after
+      \begin{itemize}
+      \item \code{DEV_TO_MEM}: cache lines are invalidated
+      \end{itemize}
+    \end{itemize}
+  \item The CPU shall only access the buffer after unmapping!
+  \item If however the same memory region has to be used for several DMA
+    tansfers, the same mapping can be kept in place. In this case the
+    data must be synchronized before CPU access:
+    \begin{itemize}
+    \item The CPU needs to access the data:
+\begin{minted}[fontsize=\small]{c}
+dma_sync_single_for_cpu(dev, dma_handle, size, direction);
+dma_sync_sg_for_cpu(dev, sglist, nents, direction);
+\end{minted}
+    \item The device needs to access the data:
+\begin{minted}[fontsize=\small]{c}
+dma_sync_single_for_device(dev, dma_handle, size, direction);
+dma_sync_sg_for_device(dev, sglist, nents, direction);
+\end{minted}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
 
 \begin{frame}
   \frametitle{Starting DMA transfers}
@@ -201,45 +354,115 @@ void dma_unmap_single(struct device *dev, dma_addr_t handdle,
   \item If the device you're writing a driver for is doing peripheral
     DMA, no external API is involved.
   \item If it relies on an external DMA controller, you'll need to
-    \begin{itemize}
+    \begin{enumerate}
     \item Ask the hardware to use DMA, so that it will drive its
       request line
-    \item Use Linux DMAEngine framework, especially its slave API
-    \end{itemize}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{DMAEngine slave API 1/2}
-    In order to start a DMA transfer with DMAEngine, you need to call the
-    following functions from your driver
-    \begin{enumerate}
-    \item Request a channel for exclusive use with
-      \kfunc{dma_request_channel}, or one of its variants
-    \item Configure it for our use case, by filling a
-      \kstruct{dma_slave_config} structure with various parameters
-      (source and destination addresses, accesses width, etc.) and
-      passing it as an argument to \kfunc{dmaengine_slave_config}
-    \item Start a new transaction with
-      \kfunc{dmaengine_prep_slave_single} or
-      \kfunc{dmaengine_prep_slave_sg}
-    \item Put the transaction in the driver pending queue using
-      \kfunc{dmaengine_submit}
-    \item And finally ask the driver to process all pending
-      transactions using \kfunc{dma_async_issue_pending}
+    \item Use Linux \code{dmaengine} framework, especially its slave API
     \end{enumerate}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{\code{dmaengine}: Slave API 1/3}
+  Steps to start a DMA transfer with \code{dmaengine}:
+  \begin{enumerate}
+  \item Request a channel for exclusive use with
+    \kfunc{dma_request_chan}, or one of its variants
+    \begin{itemize}
+    \item This channel pointer will be used all along
+    \item Returns a pointer over a \kstruct{dma_chan} which can also
+      be an error pointer
+    \end{itemize}
+  \item Configure the engine by filling a \kstruct{dma_slave_config}
+    structure and passing it to \kfunc{dmaengine_slave_config}:
+  \end{enumerate}
+\begin{minted}[fontsize=\scriptsize]{c}
+struct dma_slave_config txconf = {};
+
+/* Tell the engine what configuration we want on a given channel:
+ * direction, access size, burst length, source and destination).
+ * Source being memory, there is no buswidth or maxburst limitation
+ * and each buffer will be different. */
+txconf.direction = DMA_MEM_TO_DEV;
+txconf.dst_addr_width = DMA_SLAVE_BUSWIDTH_1_BYTE;
+txconf.dst_maxburst = TX_TRIGGER;
+txconf.dst_addr = fifo_dma_addr;
+ret = dmaengine_slave_config(dma->txchan, &txconf);
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{\code{dmaengine}: Slave API 2/3}
+  \begin{enumerate}
+    \setcounter{enumi}{2}
+  \item Create a descriptor with all the required configuration for the
+    next transfer with:
+  \end{enumerate}
+\begin{minted}[fontsize=\scriptsize]{c}
+struct dma_async_tx_descriptor *
+dmaengine_prep_slave_single(struct dma_chan *chan, dma_addr_t buf,
+                            size_t len, enum dma_transfer_direction dir,
+                            unsigned long flags);
+struct dma_async_tx_descriptor *
+dmaengine_prep_slave_sg(struct dma_chan *chan, struct scatterlist *sgl,
+                        unsigned int sg_len, enum dma_transfer_direction dir,
+                        unsigned long flags)
+struct dma_async_tx_descriptor *
+dmaengine_prep_dma_cyclic(struct dma_chan *chan, dma_addr_t buf, size_t buf_len,
+                          size_t period_len, enum dma_data_direction dir);
+\end{minted}
+  \begin{itemize}
+  \item Common flags are:
+    \begin{itemize}
+    \item \ksym{DMA_PREP_INTERRUPT}: Generates an interrupt once done
+    \item \ksym{DMA_CTRL_ACK}: No need for a manual ack of the
+      transaction
+    \end{itemize}
+  \item The descriptor returned can be used to fill-in a callback:
+  \end{itemize}
+\begin{minted}[fontsize=\scriptsize]{c}
+desc->callback = foo_dma_complete;
+desc->callback_param = foo_dev;
+\end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{\code{dmaengine}: Slave API 3/3}
+  \begin{enumerate}
+    \setcounter{enumi}{3}
+  \item Queue the next operation:
+  \end{enumerate}
+  \begin{minted}[fontsize=\small]{c}
+dma_cookie_t cookie;
+
+cookie = dmaengine_submit(desc);
+ret = dma_submit_error(cookie);
+if (ret)
+   ...
+\end{minted}
+  \begin{enumerate}
+    \setcounter{enumi}{4}
+  \item Trigger the queued transfers
+  \end{enumerate}
+  \begin{minted}[fontsize=\small]{c}
+dma_async_issue_pending(chan);
+\end{minted}
+  \begin{enumerate}
+  \item[5bis.] In case anything went wrong or the device should stop being
+    used, it is possible to terminate all ongoing transactions with:
+  \end{enumerate}
+  \begin{minted}[fontsize=\small]{c}
+dmaengine_terminate_sync(chan);
+\end{minted}
 \end{frame}
 
 \begin{frame}
-  \frametitle{DMAEngine slave API 2/2}
+  \frametitle{Examples}
   \begin{itemize}
-  \item Of course, all this needs to be done in addition to the DMA
-    mapping seen previously
-  \item Some frameworks abstract it away, such as {\em SPI}
-    and {\em ASoC}
-  \item Example usage of the slave API: look at the code
-    for \kfunc{stm32_i2c_prep_dma_xfer}.
+  \item Commented network driver, whith both streaming and coherent
+    mappings:\\
+    \small \url{https://bootlin.com/pub/drivers/r6040-network-driver-with-comments.c}
+  \item Example of usage of the slave API: look at the code for
+    \kfunc{stm32_i2c_prep_dma_xfer}.
   \end{itemize}
-  Details in kernel documentation: \kdochtml{driver-api/dmaengine/client}
 \end{frame}
-
