@@ -25,23 +25,88 @@
   \end{itemize}
 \end{frame}
 
-\begin{frame}
-  \frametitle{The Yocto Project lexicon}
+\begin{frame}{Lexicon: \code{bitbake}}
+  In Yocto / OpenEmbedded, the {\em build engine} is implemented by the
+  \code{bitbake} program
   \begin{itemize}
-  \item The core components of the Yocto Project are:
+    \item \code{bitbake} is a task scheduler, like \code{make}
+    \item \code{bitbake} parses text files
+      %called {\em metadata}
+      to know what it has to build and how
+    \item It is written in Python (need Python 3 on the development host)
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Lexicon: recipes}
+  \begin{columns}
+    \column{0.6\textwidth}
     \begin{itemize}
-      \item BitBake, the {\em build engine}. It is a task scheduler,
-        like \code{make}. It interprets configuration files and
-        recipes (also called {\em metadata}) to perform a set of
-        tasks, to download, configure and build specified applications
-        and filesystem images.
-      \item OpenEmbedded-Core, a set of base {\em layers}. It is a set
-        of recipes, layers and classes which are shared between all
-        OpenEmbedded based systems.
-      \item Poky, the {\em reference system}. It is a collection of
-        projects and tools, used to bootstrap a new distribution based
-        on the Yocto Project.
+      \item The main kind of text file parsed by bitbake is {\em recipes},
+        each describing a specific software component
+      \item Each {\em Recipe} describes how to fetch and build a software
+        component: e.g. a program, a library or an image
+      \item They have a specific syntax
+      \item bitbake can be asked to build any recipe, building all its
+        dependencies automatically beforehand
     \end{itemize}
+    \column{0.4\textwidth}
+    \begin{center}
+      \includegraphics[width=0.9\textwidth]{slides/yocto-overview/recipe-dependencies.pdf}
+    \end{center}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Lexicon: tasks}
+  \begin{columns}
+    \column{0.6\textwidth}
+    \begin{itemize}
+      \item The build process implemented by a recipe is split in several
+        {\em tasks}
+      \item Each task performs a specific step in the build
+      \item Examples: fetch, configure, compile, package
+      \item Tasks have dependencies over other tasks (including on tasks of
+        other recipes)
+    \end{itemize}
+    \column{0.4\textwidth}
+    \begin{center}
+      \includegraphics[width=1\textwidth]{slides/yocto-overview/recipe-dependencies-tasks.pdf}
+    \end{center}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Lexicon: metadata and layers}
+  \begin{itemize}
+    \item The input to \code{bitbake} is collectively called {\em metadata}
+    \item Metadata includes {\em configuration files}, {\em recipes}, {\em
+      classes} and {\em include files}
+    \item Metadata is organized in {\em layers}, which can be composed
+      together to get various components
+      \begin{itemize}
+        \item A layer is a set of recipes, configurations files and classes
+          matching a common purpose
+      \begin{itemize}
+        \item For Texas Instruments board support, the {\em meta-ti-bsp}
+          layer is used
+      \end{itemize}
+      \item Multiple layers are used for a project, depending on the needs
+      \end{itemize}
+    \item {\em openembedded-core} is the core layer
+      \begin{itemize}
+        \item All other layers are built on top of openembedded-core
+        \item It supports the ARM, MIPS (32 and 64 bits), PowerPC, RISC-V
+          and x86 (32 and 64 bits) architectures
+        \item It supports QEMU emulated machines for these architectures
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Lexicon: Poky}
+  \begin{itemize}
+  \item The word {\em Poky} has several meanings
+  \item Poky is a git repository that is assembled from other git
+    repositories: bitbake, openembedded-core, yocto-docs and meta-yocto
+  \item poky is the {\em reference distro} provided by the Yocto Project
+  \item meta-poky is the layer providing the poky reference distribution
   \end{itemize}
 \end{frame}
 
@@ -54,34 +119,11 @@
 \begin{frame}
   \frametitle{The Yocto Project lexicon}
   \begin{itemize}
-    \item Organization of OpenEmbedded-Core:
-    \begin{itemize}
-      \item {\em Recipes} describe how to fetch, configure, compile
-        and package applications and images. They have a specific
-        syntax.
-      \item {\em Layers} are sets of recipes, matching a common
-        purpose. For Texas Instruments board support, the {\em
-        meta-ti-bsp} layer is used.
-      \item Multiple layers are used within a same distribution,
-        depending on the requirements.
-      \item It supports the ARM, MIPS (32 and 64 bits), PowerPC,
-        RISC-V and x86 (32 and 64 bits) architectures.
-      \item It supports QEMU emulated machines for these architectures.
-    \end{itemize}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{The Yocto Project lexicon}
-  \begin{itemize}
     \item The Yocto Project is \textbf{not used as} a finite set of
           layers and tools.
     \item Instead, it provides a \textbf{common base} of tools and
           layers on top of which custom and specific layers are added,
           depending on your target.
-    \item The main required element is \textbf{Poky}, the reference
-          system which includes OpenEmbedded-Core. Other available
-          tools are optional, but may be useful in some cases.
   \end{itemize}
 \end{frame}
 
