@@ -75,28 +75,35 @@ that would be defining the LEDs.
 The four LEDs are actually supposed to be triggered by a driver matching
 the compatible \code{gpio-leds}. This is a generic driver which acts on
 LEDs connected to GPIOs. But as you can observe, despite being part of
-the in-use Device Tree, the LEDs remain off.
+the in-use Device Tree, the LEDs remain off. The reason for that is the
+absence of driver for this node: nothing actually drives the LEDs even
+if they are described. So you can start by recompiling your kernel with
+\kconfigval{CONFIG_LEDS_CLASS}{y} and \kconfigval{CONFIG_LEDS_GPIO}{y}.
 
-If you look at the bindings documents
+You should now see one of the LEDs blink with the CPU activity, the
+others remain off. If you look at the bindings documents
 \kfile{Documentation/devicetree/bindings/leds/common.yaml} and
 \kfile{Documentation/devicetree/bindings/leds/leds-gpio.yaml}, you'll
-notice we can easily tweak the \code{default-state} in order to see if
-forcing the default state make them bright.
+notice we can easily tweak the \code{default-state} in order to try
+forcing the default state.
 
-You will need to modify a core file in order to do that. But becauase we
+You will need to modify a core file in order to do that. But because we
 do not want to mess with a shared file, we might instead add a label to
 the node describing the LED we want to turn on and reference this new
 label in our custom DTS.
 
 Reboot the board using the new DTS and observe the LEDs default states
-change.
+change, except one of them which will not turn on. It is expected. If
+you look again at the common file defining the LEDs, they are actually
+all linked to a \code{linux,default-trigger}. The default state only
+applies until the trigger starts its activity. The one that remains off
+is actually driven by the eMMC trigger, you can try to make it blink by
+creating a bit of activity on the eMMC bus (but do not overwrite its
+content!).
 
-If you look again at the common file defining the LEDs, they are
-actually all linked to a \code{linux,default-trigger}. If you want to
-see these triggers in action (and overwrite the default state), make
-sure your kernel is compiled with \kconfigval{CONFIG_LEDS_CLASS}{y},
-\kconfigval{CONFIG_LEDS_GPIO}{y} and
-\kconfigval{CONFIG_LEDS_TRIGGER_HEARTBEAT}{y}, for instance.
+One of the remaining LEDs is driven by the SD card and the other is
+supposed to be a heartbeat, which you can enable with
+\kconfigval{CONFIG_LEDS_TRIGGER_HEARTBEAT}{y}.
 
 \section{Managing I2C buses and devices}
 
