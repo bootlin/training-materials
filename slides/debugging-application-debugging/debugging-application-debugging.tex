@@ -13,7 +13,7 @@
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{libSegFault}
+  \frametitle{Instrumenting code crashes}
   \begin{itemize}
       \item Displaying a backtrace from your application were the crash happened
             is useful to debug and can be done using \code{backtrace()}
@@ -26,49 +26,73 @@ char **backtrace_symbols(void *const *buffer, int size);
     \end{block}
 
   \begin{itemize}
-    \item \code{libSegFault.so} is a library that will allow to automatically display a
-          backtrace and more information when your program does generate a
-          segfault.
-    \item It is provided by the glibc and is available for many architectures.
-    \item Can be used without recompilation by preloading it with \code{LD_PRELOAD}.
+    \item Thanks to \code{signal()} (\href{https://man7.org/linux/man-pages/man7/signal.7.html}{man signal(3)})
+          we can add hooks on specific signals to print our backtrace
+    \begin{itemize}
+      \item This is for example very useful to catch \code{SIGSEV} signal to dump our current backtrace
+    \end{itemize}
+    \begin{block}{}
+      \begin{minted}[fontsize=\small]{c}
+void (*signal(int sig, void (*func)(int)))(int);
+      \end{minted}
+    \end{block}
   \end{itemize}
-  \begin{block}{}
-    \begin{minted}[fontsize=\small]{console}
-$ LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libSegFault.so ./segfault
-    \end{minted}
-  \end{block}
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{libSegFault (condensed) report}
+  \frametitle{Custom code crash report}
+  \begin{columns}
+    \column{0.5\textwidth}
+    \begin{block}{}
+      \begin{minted}[fontsize=\tiny]{c}
+[...]
+void callee(void *ptr) {
+  int *myptr = (int *)ptr;
+  printf("Executing suspicious operation\n");
+  myptr[2] = 0;
+}
+
+void caller(void) {
+  void *ptr = NULL;
+  callee(ptr);
+}
+
+void segfault_handler(int sig) {
+  void *array[20];
+  size_t size;
+
+  fprintf(stderr, "Segmentation fault !\n");
+  size = backtrace(array, 20);
+  backtrace_symbols_fd(array, size, STDERR_FILENO);
+  exit(1);
+}
+
+int main() {
+  signal(SIGSEGV, segfault_handler);
+  printf("Calling a faulty function\n");
+  caller();
+  return 0;
+}
+      \end{minted}
+    \end{block}
+    \column{0.5\textwidth}
     \begin{block}{}
       \begin{minted}[fontsize=\tiny]{console}
-Register dump:
-RAX: 0000000000000000   RBX: 0000558cd999b190   RCX: 0000000000000000
-RDX: 000000000000000a   RSI: 0000000000000000   RDI: 0000000000000000
-RBP: 00007ffe401b9480   R8 : 0000000000000000   R9 : 00007f52bd5021f0
-R10: fffffffffffff4b9   R11: 00007f52bd44a140   R12: 0000558cd999b050
-R13: 0000000000000000   R14: 0000000000000000   R15: 0000000000000000
-RSP: 00007ffe401b9468
-
-RIP: 00007f52bd44a289   EFLAGS: 00010202
-
-Backtrace:
-/lib/x86_64-linux-gnu/libc.so.6(+0x15f289)[0x7f52bd44a289]
-./segfault(+0x115b)[0x558cd999b15b]
-./segfault(+0x117a)[0x558cd999b17a]
-/lib/x86_64-linux-gnu/libc.so.6(__libc_start_main+0xcd)[0x7f52bd30e7fd]
-./segfault(+0x107a)[0x558cd999b07a]
-
-Memory map:
-558cd999a000-558cd999b000 r--p 00000000 103:03 19547792     /home/cleger/segfault
-558cd999b000-558cd999c000 r-xp 00001000 103:03 19547792     /home/cleger/segfault
-558cd999c000-558cd999d000 r--p 00002000 103:03 19547792     /home/cleger/segfault
-558cd999d000-558cd999e000 r--p 00002000 103:03 19547792     /home/cleger/segfault
-558cd999e000-558cd999f000 rw-p 00003000 103:03 19547792     /home/cleger/segfault
-558cdafa8000-558cdafc9000 rw-p 00000000 00:00 0             [heap]
-    \end{minted}
-  \end{block}
+[root@arch-bootlin-alexis custom_backtrace]# ./main
+Calling a faulty function
+Executing suspicious operation
+Segmentation fault !
+./main(segfault_handler+0x60)[0x55c6e4c1723c]
+/usr/lib/libc.so.6(+0x38f50)[0x7fecb0a95f50]
+./main(callee+0x2b)[0x55c6e4c171b4]
+./main(caller+0x1c)[0x55c6e4c171d9]
+./main(main+0x2c)[0x55c6e4c1729a]
+/usr/lib/libc.so.6(+0x23790)[0x7fecb0a80790]
+/usr/lib/libc.so.6(__libc_start_main+0x8a)[0x7fecb0a8084a]
+./main(_start+0x25)[0x55c6e4c170b5]
+      \end{minted}
+    \end{block}
+  \end{columns}
 \end{frame}
 
 \input{../common/gdb.tex}
