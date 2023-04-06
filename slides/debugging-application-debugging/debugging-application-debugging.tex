@@ -1,17 +1,5 @@
 \section{Application Debugging}
 
-\begin{frame}
-  \frametitle{Compiler impact on debuggability}
-  \begin{itemize}
-    \item When compiling an application, optimizations that are applied by the
-          compiler have a direct impact on the debuggability.
-    \item Some values might be optimized out and thus not accessible when
-          debugging.
-    \item Same goes for static functions, they are often folded into the caller
-          and thus won't be displayed in backtraces.
-  \end{itemize}
-\end{frame}
-
 \begin{frame}[fragile]
   \frametitle{Instrumenting code crashes}
   \begin{itemize}
@@ -205,6 +193,26 @@ Temporary breakpoint 3 at 0x5555555587da
       \item GCC allows to do so using the \href{https://gcc.gnu.org/onlinedocs/gcc-11.1.0/gcc/Static-Analyzer-Options.html}{-fanalyzer} flag
       \item LLVM provides \href{https://clang-analyzer.llvm.org/command-line.html}{dedicated tools} that can be used in build process
     \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Common debugging issues}
+  \begin{itemize}
+    \item You will likely encounters some issues while debugging, like poor address->symbols conversion, "optimized out" values or functions, empty backtraces...
+    \item A quick checklist before starting debugging can spare you some troubles:
+    \begin{itemize}
+      \item Make sure your host binary has \href{https://gcc.gnu.org/onlinedocs/gcc/Debugging-Options.html}{debug symbols}: with gcc, ensure \code{-g} is provided, and use non-stripped version with host gdb
+      \item Disable \href {https://gcc.gnu.org/onlinedocs/gcc-4.9.2/gcc/Optimize-Options.html}{optimizations} on final binary (\code{-O0}) if possible, or at least use a less intrusive level (\code{-Og})
+      \begin {itemize}
+        \item Static functions can for example be folded into caller depending on the optimization level, so they would be missing from backtraces
+    \end{itemize}
+      \item Prevent code optimization from reusing frame pointer register: with GCC, make sure \code {-fno-omit-frame-pointer} option is set
+        \begin{itemize}
+          \item Not only true for debugging: any profiling/tracing tool relying on backtraces will benefit from it
+        \end{itemize}
+    \end{itemize}
+    \item Your application is probably composed of multiple libraries: you will need to apply those configurations on all used components !
   \end{itemize}
 \end{frame}
 
