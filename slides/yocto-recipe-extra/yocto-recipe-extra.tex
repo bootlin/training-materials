@@ -1,5 +1,70 @@
 \section{Writing recipes - going further}
 
+\subsection{The per-recipe sysroot}
+
+\begin{frame}{Sysroot}
+  \begin{itemize}
+    \item The {\em sysroot} is the the logical root directory for headers
+      and libraries
+    \item Where {\em gcc} looks for headers, and {\em ld} looks for
+      libraries
+    \item Contains:
+      \begin{itemize}
+        \item The kernel headers
+        \item The C library and headers
+        \item Other libraries and their headers
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Per-recipe sysroot}
+  \begin{itemize}
+    \item Instead of a global sysroot, bitbake implements a {\em
+      per-recipe sysroot}
+    \item Before the actual build, each recipe prepares its own sysroot
+      \begin{itemize}
+        \item Contains libraries and headers {\em only} for the recipes it
+          \code{DEPENDS} on
+        \item Ensures the configuration stage will not detect libraries not
+          explicitly listed in \code{DEPENDS} but already built for other
+          reasons
+        \item \code{${WORKDIR}/recipe-sysroot} for target recipes
+        \item \code{${WORKDIR}/recipe-sysroot-native} for native recipes
+      \end{itemize}
+    \item At the end of the build, each recipe produces its destination
+      sysroot
+      \begin{itemize}
+        \item Its own slice of sysroot, with the libraries and headers it
+          directly provides
+        \item Used as input for other recipes to generate their
+          recipe-sysroot
+        \item \code{${WORKDIR}/sysroot-destdir}
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Per-recipe sysroot}
+  \begin{center}
+    \includegraphics[width=1.00\textwidth]{slides/yocto-recipe-extra/per-recipe-sysroot.pdf}
+  \end{center}
+\end{frame}
+
+\begin{frame}{The complete sysroot}
+  \begin{itemize}
+  \item A complete sysroot is available:
+    \begin{itemize}
+      \item For each image
+        \begin{itemize}
+          \item In \code{${WORKDIR}/recipe-sysroot} just like any recipe
+        \end{itemize}
+      \item In the SDK
+        \begin{itemize}
+          \item Covered later
+        \end{itemize}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
 \subsection{Using Python code in metadata}
 
 \begin{frame}
@@ -398,54 +463,7 @@ ncurses
 \end{itemize}
 \end{frame}
 
-\subsection{The per-recipe sysroot}
-
-\begin{frame}{Sysroot}
-  \begin{itemize}
-    \item The {\em sysroot} is the the logical root directory for headers
-      and libraries
-    \item Where {\em gcc} looks for headers, and {\em ld} looks for
-      libraries
-    \item Contains:
-      \begin{itemize}
-        \item The kernel headers
-        \item The C library and headers
-        \item Other libraries and their headers
-      \end{itemize}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}{Per-recipe sysroot}
-  \begin{itemize}
-    \item Instead of a global sysroot, bitbake implements a {\em
-      per-recipe sysroot}
-    \item Before the actual build, each recipe prepares its own sysroot
-      \begin{itemize}
-        \item Contains libraries and headers {\em only} for the recipes it
-          \code{DEPENDS} on
-        \item Ensures the configuration stage will not detect libraries not
-          explicitly listed in \code{DEPENDS} but already built for other
-          reasons
-        \item \code{${WORKDIR}/recipe-sysroot} for target recipes
-        \item \code{${WORKDIR}/recipe-sysroot-native} for native recipes
-      \end{itemize}
-    \item At the end of the build, each recipe produces its destination
-      sysroot
-      \begin{itemize}
-        \item Its own slice of sysroot, with the libraries and headers it
-          directly provides
-        \item Used as input for other recipes to generate their
-          recipe-sysroot
-        \item \code{${WORKDIR}/sysroot-destdir}
-      \end{itemize}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}{Per-recipe sysroot}
-  \begin{center}
-    \includegraphics[width=1.00\textwidth]{slides/yocto-recipe-extra/per-recipe-sysroot.pdf}
-  \end{center}
-\end{frame}
+\subsection{Dependencies in detail}
 
 \begin{frame}{Per-recipe sysroot and dependencies}
   \begin{itemize}
@@ -472,22 +490,6 @@ ncurses
         \item And adds in the inetutils-ftpd RPM package a dependency on
           the xinetd RPM package
       \end{itemize}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}{The complete sysroot}
-  \begin{itemize}
-  \item A complete sysroot is available:
-    \begin{itemize}
-      \item For each image
-        \begin{itemize}
-          \item In \code{${WORKDIR}/recipe-sysroot} just like any recipe
-        \end{itemize}
-      \item In the SDK
-        \begin{itemize}
-          \item Covered later
-        \end{itemize}
-    \end{itemize}
   \end{itemize}
 \end{frame}
 
