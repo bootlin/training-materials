@@ -465,31 +465,56 @@ ncurses
 
 \subsection{Dependencies in detail}
 
-\begin{frame}{Per-recipe sysroot and dependencies}
+\begin{frame}{\code{DEPENDS}}
   \begin{itemize}
-    \item The per-recipe sysroot is implemented based on the \code{DEPENDS}
-      variable
+    \item \code{DEPENDS} describes a build-time dependency
+    \item Typical case: a program needs the library and headers files from
+      a library to be configured and/or built
+    \item In other words: it needs the library in its {\em sysroot}
+    \item In \code{ninvaders.bb}, the line\\
+      \code{DEPENDS = "ncurses"}\\
+      creates a dependency
       \begin{itemize}
-        \item In \code{ninvaders.bb}, the line\\
-          \code{DEPENDS = "ncurses"}\\
-          creates a dependency
-          \begin{itemize}
-            \item Of \code{ninvaders.do_prepare_recipe_sysroot}
-            \item On \code{ncurses.do_populate_sysroot}
-          \end{itemize}
+        \item Of \code{ninvaders.do_prepare_recipe_sysroot}
+        \item On \code{ncurses.do_populate_sysroot}
       \end{itemize}
-    \item However, \code{RDEPENDS} has nothing to do with the sysroot
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{\code{RDEPENDS}}
+  \begin{itemize}
+    \item \code{RDEPENDS} describes a runtime dependency
+    \item Typical case: a program uses another program at runtime via
+      sockets, DBUS, etc, or simply executes it
+    \item It does not need it at build time
+    \item In \code{inetutils_2.4.bb}, the line\\
+      \code{RDEPENDS:${PN}-ftpd += "xinetd"}\\
+      creates a dependency
       \begin{itemize}
-        \item In \code{inetutils_2.4.bb}, the line\\
-          \code{RDEPENDS:${PN}-ftpd += "xinetd"}\\
-          creates a dependency
-          \begin{itemize}
-            \item Of \code{inetutils-ftpd.do_build}
-            \item On \code{xinetd.do_package_write_rpm}
-          \end{itemize}
-        \item And adds in the inetutils-ftpd RPM package a dependency on
-          the xinetd RPM package
+      \item Of \code{inetutils-ftpd.do_build}
+      \item On \code{xinetd.do_package_write_rpm}
       \end{itemize}
+    \item And adds in the inetutils-ftpd RPM package a dependency on
+      the xinetd RPM package
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{\code{RRECOMMENDS}}
+  \begin{itemize}
+    \item \code{RRECOMMENDS} is similar to \code{RDEPENDS}
+    \item But if the dependency package is not built it will just be
+      skipped instead of failing the build
+    \item Typical cases:
+      \begin{itemize}
+        \item A package extends the feature of a program, but it is not
+          needed either for building nor for basic usage
+        \item Depending on a kernel module that might also be built-in in
+          the kernel Image
+      \end{itemize}
+    \item In \code{watchdog_5.16.bb}, the line\\
+      \code{RRECOMMENDS:${PN} += "kernel-module-softdog"}\\
+      does nothing if the \code{softdog} kernel module is not built by
+      the kernel (could be builtin)
   \end{itemize}
 \end{frame}
 
