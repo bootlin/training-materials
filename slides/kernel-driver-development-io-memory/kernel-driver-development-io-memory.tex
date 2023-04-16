@@ -134,78 +134,74 @@ if (IS_ERR(base))
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{Accessing MMIO devices}
+  \frametitle{Accessing MMIO devices: using accessor functions}
   \begin{itemize}
   \item Directly reading from or writing to addresses returned by
     \kfunc{ioremap} (\emph{pointer dereferencing}) may not work on some
     architectures.
-  \item To do PCI-style, little-endian accesses (byte swapping being done
-    automatically assuming a little-endian device):
-\begin{minted}[fontsize=\small]{c}
-u8  readb(void __iomem *addr);
-u16 readw(void __iomem *addr);
-u32 readl(void __iomem *addr);
-u64 readq(void __iomem *addr);
-void writeb(u8  val, void __iomem *addr);
-void writew(u16 val, void __iomem *addr);
-void writel(u32 val, void __iomem *addr);
-void writeq(u64 val, void __iomem *addr);
-\end{minted}
-  \item These helpers are protected against ordering issues and will
-    generally do the right thing for your architecture
-  \item Caching and speculative execution are disabled on I/O memory
+  \item A family of architecture-independent accessor functions are
+    available covering most needs.
+  \item A few architecture-specific accessor functions also exists.
   \end{itemize}
 \end{frame}
 
-\begin{frame}[fragile]
-  \frametitle{Byte endianness}
+\begin{frame}{MMIO access functions}
   \begin{itemize}
-  \item Not all devices are little-endian
-  \item Most networking protocols are big-endian
-  \item Manual handling of the endianness may sometimes be required
+  \item \code{read[b/w/l/q]} and \code{write[b/w/l/q]} for access to
+    little-endian devices, includes memory barriers
+  \item \code{ioread[8/16/32/64]} and \code{iowrite[8/16/32/64]} are
+    very similar to read/write but also work with port I/O (not
+    covered in the course), includes memory barriers
+  \item \code{ioread[8/16/32/64]be} and \code{iowrite[8/16/32/64]be]}
+    for access to big-endian devices, includes memory barriers
+  \item \code{__raw_read[b/w/l/q]} and \code{__raw_write[b/w/l/q]} for
+    raw access: no endianness conversion, no memory barriers
+  \item \code{read[b/w/l/q]_relaxed} and \code{write[b/q/l/w]_relaxed}
+    for access to little-endian devices, without memory barriers
+  \item All functions work on a \code{void __iomem *}
   \end{itemize}
-  \begin{columns}
-    \column{0.4\textwidth}
-    For portability purposes, drivers should handle all possibilities:
-    \begin{itemize}
-    \item \kfunc{cpu_to_be32}
-    \item \kfunc{cpu_to_le32}
-    \item \kfunc{be32_to_cpu}
-    \item \kfunc{le32_to_cpu}
-    \end{itemize}
-    \column{0.6\textwidth}
-    \begin{center}
-      \includegraphics[width=0.8\textwidth]{slides/kernel-driver-development-io-memory/endianness-conversion.pdf}
-    \end{center}
-  \end{columns}
+\end{frame}
+
+\begin{frame}{MMIO access functions summary}
+  \begin{center}
+    \begin{tabular}{|l|c|c|}
+      \hline
+      Name & Device endianness & Memory barriers \\
+      \hline
+      \code{read/write} & little & yes \\
+      \hline
+      \code{ioread/iowrite} & little & yes \\
+      \hline
+      \code{ioreadbe/iowritebe} & big & yes \\
+      \hline
+      \code{__raw_read/__raw_write} & native & no \\
+      \hline
+      \code{read_relaxed/write_relaxed} & little & no \\
+      \hline
+    \end{tabular}
+  \end{center}
+  More details at \url{https://docs.kernel.org/driver-api/device-io.html}
 \end{frame}
 
 \begin{frame}[fragile]
   \frametitle{Ordering}
   \begin{itemize}
-  \item The compiler and/or CPU can reorder memory accesses, which
-    might cause trouble for your devices is they expect one register
-    to be read/written before another one.
+  \item Reads/writes to MMIO-mapped registers of given device are done
+    in program order
+  \item However reads/writes to RAM can be re-ordered between
+    themselves, and between MMIO-mapped read/writes
+  \item Some of the accessor functions include memory barriers to help
+    with this:
     \begin{itemize}
-    \item Memory barriers are available to prevent this reordering
-    \item \code{write[bwlq]} starts with a write memory barrier which
-      prior writes cannot cross
-    \item \code{read[bwlq]} ends with a read memory barrier which
+    \item Write operation starts with a write memory barrier which prior
+      writes cannot cross
+    \item Read operation ends with a read memory barrier which
       guarantees the ordering with regard to the subsequent reads
     \end{itemize}
   \item Sometimes compiler/CPU reordering is not an issue, in this case
     the code may be optimized by dropping the memory barriers, using the
-    relaxed helpers:
-\begin{minted}{c}
-unsigned read[bwlq]_relaxed(void *addr);
-void write[bwlq]_relaxed(unsigned val, void *addr);
-\end{minted}
-  \item To do pure raw accesses, without barriers nor endianness
-    conversion:
-\begin{minted}{c}
-unsigned __raw_read[bwlq](void *addr);
-void __raw_write[bwlq](unsigned val, void *addr);
-\end{minted}
+    raw or relaxed helpers
+  \item See \kfile{Documentation/memory-barriers.txt}
   \end{itemize}
 \end{frame}
 
