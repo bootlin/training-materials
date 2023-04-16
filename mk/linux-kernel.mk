@@ -33,14 +33,11 @@ LINUX_KERNEL_SLIDES = \
 		kernel-driver-development-concurrency \
 		kernel-driver-development-dma \
 		kernel-driver-development-debugging \
-		kernel-porting-title \
-		kernel-porting-content \
-		kernel-power-management-title \
-		kernel-power-management-content \
+		kernel-porting \
+		kernel-power-management \
 		kernel-development-process-title \
 		sysdev-linux-intro-versioning \
 		kernel-contribution \
-		kernel-resources-title \
 		kernel-resources-references \
 		last-slides \
 		kernel-backup-slides-title \
