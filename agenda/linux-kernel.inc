@@ -40,8 +40,8 @@
       pour les périphériques.
     \item Être capable d'utiliser les principaux mécanismes du noyau
       Linux pour le développement de pilotes de périphériques: gestion
-      mémoire, verouillage, gestion des interruptions, mise en sommeil
-      et réveil de threads.
+      mémoire, verrouillage, gestion des interruptions, mise en sommeil
+      et réveil de threads, DMA.
     \item Être capable de débugger des problèmes dans le noyau Linux, en
       utilisant différents outils et mécanismes de debug.
     \end{itemize}
@@ -67,7 +67,7 @@
       devices, kernel subsystems.
     \item Be able to use the major kernel mechanisms needed for device
       driver development: memory management, locking, interrupt
-      handling, sleeping.
+      handling, sleeping, DMA.
     \item Be able to debug Linux kernel issues, using a variety of
       debugging techniques and mechanisms.
     \end{itemize}
