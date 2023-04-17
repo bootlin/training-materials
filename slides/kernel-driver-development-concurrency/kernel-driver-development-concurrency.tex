@@ -266,65 +266,53 @@ static unsigned int ulite_tx_empty(struct uart_port *port) {
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{RCU protected reads: accessing structure members in a consistent way}
-    \begin{block}{Unsafe read}<1:>
+  \frametitle{RCU example: ensuring consistent accesses (1/2)}
+    \begin{block}{Unsafe read/write}
       \begin{minted}[fontsize=\tiny]{c}
-struct myconf { int a, b; } *current_conf; /* initialized */
+struct myconf { int a, b; } *shared_conf; /* initialized */
 
 unsafe_get(int *cur_a, int *cur_b)
 {
-        *cur_a = current_conf->a;
+        *cur_a = shared_conf->a;
         /* What if *current_conf gets updated now? The assignement is inconsistent! */
-        *cur_b = current_conf->b;
+        *cur_b = shared_conf->b;
 };
-      \end{minted}
-    \end{block}
-  \begin{block}{Safe read}<2>
-    \begin{minted}[fontsize=\tiny]{c}
-struct myconf { int a, b; } *current_conf; /* initialized */
 
-safe_get(int *cur_a, int *cur_b)
+unsafe_set(int new_a, int new_b)
 {
-        struct myconf *conf;
-
-        rcu_read_lock();
-        conf = rcu_dereference(current_conf);
-        *cur_a = conf->a;
-        /* If *current_conf is updated, conf->a and conf->b will remain consistent! */
-        *cur_b = conf->b;
-        rcu_read_unlock();
+        shared_conf->a = new_a;
+        shared_conf->b = new_b;
 };
     \end{minted}
   \end{block}
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{RCU protected writes: updating a pointer in a consistent way}
-  \begin{block}{Unsafe write}<1:>
+  \frametitle{RCU example: ensuring consistent accesses (2/2)}
+  \begin{block}{Safe read/write with RCU}
     \begin{minted}[fontsize=\tiny]{c}
-struct myconf { int a, b; } *current_conf; /* initialized */
+struct myconf { int a, b; } *shared_conf; /* initialized */
 
-unsafe_set(int cur_a, int cur_b)
+safe_get(int *cur_a, int *cur_b)
 {
-        struct myconf *newconf = kmalloc(...), *oldconf;
-        newconf->a = cur_a, newconf->b = cur_b;
+        struct myconf *temp;
 
-        oldconf = current_conf;
-        current_conf = newconf;
-        kfree(oldconf); /* Readers might still have a reference over the freed struct! */
+        rcu_read_lock();
+        temp = rcu_dereference(shared_conf);
+        *cur_a = temp->a;
+        /* If *shared_conf is updated, temp->a and temp->b will remain consistent! */
+        *cur_b = temp->b;
+        rcu_read_unlock();
 };
-    \end{minted}
-  \end{block}
-  \begin{block}{Safe write}<2>
-    \begin{minted}[fontsize=\tiny]{c}
-struct myconf { int a, b; } *current_conf; /* initialized */
 
-safe_set(int cur_a, int cur_b)
+safe_set(int new_a, int new_b)
 {
-        struct myconf *newconf = kmalloc(...), *oldconf;
-        newconf->a = cur_a, newconf->b = cur_b;
+        struct myconf *newconf = kmalloc(...);
+        struct myconf *oldconf;
 
         oldconf = rcu_dereference(current_conf);
+        newconf->a = new_a;
+        newconf->b = new_b;
         rcu_assign_pointer(current_conf, newconf);
         /* Readers might still have a reference over the old struct here... */
         synchronize_rcu();
