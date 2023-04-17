@@ -107,8 +107,8 @@
 \subsection{Kernel APIs for DMA}
 
 \begin{frame}
-  \frametitle{\code{dma} vs. \code{dmaengine} vs. \code{dma-buf}}
-  The \code{dma} API:
+  \frametitle{\code{dma-mapping} vs. \code{dmaengine} vs. \code{dma-buf}}
+  The \code{dma-mapping} API:
   \begin{itemize}
   \item Allocates and manages DMA buffers
   \item Offers generic interfaces to handle coherency
@@ -132,7 +132,7 @@
 \end{frame}
 
 \begin{frame}
-  \frametitle{\code{dma}: Coherent or streaming DMA mappings}
+  \frametitle{\code{dma-mapping}: Coherent or streaming DMA mappings}
   \begin{itemize}
   \item Coherent mappings
     \begin{itemize}
@@ -157,7 +157,7 @@
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{\code{dma}: memory addressing constraints}
+  \frametitle{\code{dma-mapping}: memory addressing constraints}
   \begin{itemize}
   \item The default addressing capability of the DMA controllers is
     assumed to be 32-bit.
@@ -170,7 +170,7 @@
     \end{itemize}
   \item Linux stores this capability in a per-device mask, DMA mappings
     can fail because a buffer is out of reach
-  \item In all cases, the \code{dma} mask shall be consistent before
+  \item In all cases, the DMA mask shall be consistent before
     allocating buffers
   \end{itemize}
 \begin{minted}[fontsize=\small]{c}
@@ -187,7 +187,7 @@ size_t dma_opt_mapping_size(struct device *dev);
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{\code{dma}: Allocating coherent memory mappings}
+  \frametitle{\code{dma-mapping}: Allocating coherent memory mappings}
   The kernel takes care of both buffer allocation and mapping:
 \begin{minted}[fontsize=\small]{c}
 #include <linux/dma-mapping.h>
@@ -208,7 +208,7 @@ Note: called {\em consistent mappings} on PCI\\
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{\code{dma}: Setting up streaming memory mappings (single)}
+  \frametitle{\code{dma-mapping}: Setting up streaming memory mappings (single)}
   Works on already allocated buffers:
 \begin{minted}[fontsize=\small]{c}
 #include <linux/dma-mapping.h>
@@ -228,7 +228,7 @@ void dma_unmap_single(struct device *dev, dma_addr_t handdle,
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{\code{dma}: Setting up streaming memory mappings (multiples)}
+  \frametitle{\code{dma-mapping}: Setting up streaming memory mappings (multiples)}
   A \code{scatterlist} using the \code{scatter-gather} library can be
   used to map several buffers and link them together:
 \begin{minted}[fontsize=\scriptsize]{c}
@@ -256,7 +256,7 @@ dma_unmap_sg(dev sglist, count, DMA_TO_DEVICE);
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{\code{dma}: Setting up streaming I/O mappings}
+  \frametitle{\code{dma-mapping}: Setting up streaming I/O mappings}
   Physical addresses with MMIO registers shall also be remapped in case
   they are accessed through an IO-MMU
 \begin{minted}[fontsize=\small]{c}
@@ -278,7 +278,7 @@ void dma_unmap_resource(struct device *dev, dma_addr_t handdle,
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{\code{dma}: Verifying DMA memory mappings}
+  \frametitle{\code{dma-mapping}: Verifying DMA memory mappings}
   \begin{itemize}
   \item All mapping helpers can fail and return errors
   \item The right way to check the validity of the returned
@@ -294,7 +294,7 @@ int dma_mapping_error(struct device *dev, dma_addr_t dma_addr)
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{\code{dma}: Syncing streaming DMA mappings}
+  \frametitle{\code{dma-mapping}: Syncing streaming DMA mappings}
   \begin{itemize}
   \item In general streaming mappings are:
     \begin{itemize}
@@ -456,7 +456,7 @@ dmaengine_terminate_sync(chan);
 {DMA}
 {
   \begin{itemize}
-  \item Setup streaming mappings with the \code{dma} API
+  \item Setup streaming mappings with the \code{dma-mapping} API
   \item Configure a DMA controller with the \code{dmaengine} API
   \item Configure the hardware to trigger DMA transfers
   \item Wait for DMA completion
