@@ -189,7 +189,8 @@ size_t dma_opt_mapping_size(struct device *dev);
 \begin{frame}[fragile]
   \frametitle{\code{dma-mapping}: Allocating coherent memory mappings}
   The kernel takes care of both buffer allocation and mapping:
-\begin{minted}[fontsize=\small]{c}
+  \vfill
+\begin{minted}[fontsize=\scriptsize]{c}
 #include <linux/dma-mapping.h>
 
 void *                       /* Output: buffer address */
@@ -202,7 +203,8 @@ void *                       /* Output: buffer address */
 
 void dma_free_coherent(struct device *dev,
     size_t size, void *cpu_addr, dma_addr_t handle);
-\end{minted}
+  \end{minted}
+  \vfill
 Note: called {\em consistent mappings} on PCI\\
 (\kfunc{pci_alloc_consistent} and \kfunc{pci_free_consistent})
 \end{frame}
@@ -210,7 +212,8 @@ Note: called {\em consistent mappings} on PCI\\
 \begin{frame}[fragile]
   \frametitle{\code{dma-mapping}: Setting up streaming memory mappings (single)}
   Works on already allocated buffers:
-\begin{minted}[fontsize=\small]{c}
+  \vfill
+\begin{minted}[fontsize=\scriptsize]{c}
 #include <linux/dma-mapping.h>
 
 dma_addr_t dma_map_single(
@@ -230,7 +233,8 @@ void dma_unmap_single(struct device *dev, dma_addr_t handdle,
 \begin{frame}[fragile]
   \frametitle{\code{dma-mapping}: Setting up streaming memory mappings (multiples)}
   A \code{scatterlist} using the \code{scatter-gather} library can be
-  used to map several buffers and link them together:
+  used to map several buffers and link them together
+  \vfill
 \begin{minted}[fontsize=\scriptsize]{c}
 #include <linux/dma-mapping.h>
 #include <linux/scatterlist.h>
@@ -243,14 +247,11 @@ sg_set_buf(&sglist[0], buf0, len0);
 sg_set_buf(&sglist[1], buf1, len1);
 
 count = dma_map_sg(dev, sglist, NENTS, DMA_TO_DEVICE);
-
 for_each_sg(sglist, sg, count, i) {
         dma_address[i] = sg_dma_address(sg);
         dma_len[i] = sg_dma_len(sg);
 }
-
 ...
-
 dma_unmap_sg(dev sglist, count, DMA_TO_DEVICE);
 \end{minted}
 \end{frame}
@@ -259,7 +260,7 @@ dma_unmap_sg(dev sglist, count, DMA_TO_DEVICE);
   \frametitle{\code{dma-mapping}: Setting up streaming I/O mappings}
   Physical addresses with MMIO registers shall also be remapped in case
   they are accessed through an IO-MMU
-\begin{minted}[fontsize=\small]{c}
+\begin{minted}[fontsize=\scriptsize]{c}
 #include <linux/dma-mapping.h>
 
 dma_addr_t dma_map_resource(
