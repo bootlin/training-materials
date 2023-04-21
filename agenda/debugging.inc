@@ -97,12 +97,6 @@
   }
 }
 
-% Trainers
-\def \trainers {
-  Clément Léger
-  \newline \url{https://bootlin.com/company/staff/clement-leger/}
-}
-
 % Ubuntu version
 \def \ubuntuversion{22.04}
 
