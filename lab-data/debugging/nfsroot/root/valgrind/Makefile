@@ -1,4 +1,4 @@
 CC=${CROSS_COMPILE}gcc
 
-valgrind: valgrind.c
+faulty_mem_app: faulty_mem_app.c
 	${CC} $< -g3 -o $@
