@@ -15,5 +15,6 @@ AUDIO_SLIDES = \
 	audio-alsa-lib \
 	audio-alsa-utils \
 	audio-debugging \
+	audio-pipewire \
 	audio-gstreamer \
 	last-slides
