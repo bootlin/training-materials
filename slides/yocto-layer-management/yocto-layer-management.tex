@@ -1,0 +1,164 @@
+\section{Automating layer management}
+
+\begin{frame}[fragile]
+  \frametitle{Release management}
+  There are multiple tasks that OE/bitbake based projects let you do
+  on your own to ensure build reproducibility:
+  \begin{itemize}
+  \item Code distribution and project setup.
+  \item Release tagging
+  \end{itemize}
+  A separate tool is needed for that, usual solutions are:
+  \begin{itemize}
+  \item git submodules + setup script. Great example in YOE:
+    \url{https://github.com/YoeDistro/yoe-distro}
+  \item repo and \code{templateconf} or setup script
+  \item kas
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Distribute the distribution}
+  \begin{itemize}
+    \item A good way to distribute a distribution (Poky, custom
+      layers, BSP, \code{.templateconf}\dots) is to use Google's
+      \code{repo}.
+    \item \code{Repo} is used in Android to distribute its source
+      code, which is split into many \code{git} repositories. It's a
+      wrapper to handle several \code{git} repositories at once.
+    \item The only requirement is to use \code{git}.
+    \item The \code{repo} configuration is stored in \code{manifest}
+      file, usually available in its own \code{git} repository.
+  \item It could also be in a specific branch of your custom layer.
+  \item It only handles fetching code, handling \code{local.conf} and
+    \code{bblayers.conf} is done separately
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Manifest example}
+  \begin{block}{}
+  \fontsize{9}{9}\selectfont
+  \begin{minted}{xml}
+<?xml version="1.0" encoding="UTF-8"?>
+<manifest>
+  <remote name="yocto-project" fetch="git.yoctoproject.org" />
+  <remote name="private" fetch="git.example.net" />
+
+  <default revision="kirkstone" remote="private" />
+
+  <project name="poky" remote="yocto-project" />
+  <project name="meta-ti" remote="yocto-project" />
+  <project name="meta-custom" />
+  <project name="meta-custom-bsp" />
+  <project path="meta-custom-distro" name="distro">
+    <copyfile src="templateconf" dest="poky/.templateconf" />
+  </project>
+</manifest>
+  \end{minted}
+  \end{block}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Retrieve the project using \code{repo}}
+  \begin{minted}{sh}
+$ mkdir my-project; cd my-project
+$ repo init -u https://git.example.net/manifest.git
+$ repo sync -j4
+  \end{minted}
+  \begin{itemize}
+    \item \code{repo init} uses the \code{default.xml} manifest in the
+    repository, unless specified otherwise.
+    \item You can see the full \code{repo} documentation at
+      \url{https://source.android.com/source/using-repo.html}.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{repo: release}
+  To tag a release, a few steps have to be taken:
+  \begin{itemize}
+  \item Optionally tag the custom layers
+  \item For each project entry in the manifest, set the revision
+    parameter to either a tag or a commit hash.
+  \item Commit and tag this version of the manifest.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{kas}
+  \begin{itemize}
+  \item Specific tool developed by Siemens for OpenEmbedded:
+    \url{https://github.com/siemens/kas}
+  \item Will fetch layers and build the image in a single command
+  \item Uses a single JSON or YAML configuration file part of the
+    custom layer
+  \item Can generate and run inside a Docker container
+  \item Can setup \code{local.conf} and \code{bblayers.conf}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{kas configuration}
+  \begin{block}{}
+  \fontsize{9}{9}\selectfont
+  \begin{minted}{yaml}
+header:
+  version: 8
+machine: mymachine
+distro: mydistro
+target:
+  - myimage
+
+repos:
+  meta-custom:
+
+  bitbake:
+    url: "https://git.openembedded.org/bitbake"
+    refspec: "2.0"
+    layers:
+      .: excluded
+
+  openembedded-core:
+    url: "https://git.openembedded.org/openembedded-core"
+    refspec: kirkstone
+    layers:
+      meta:
+  \end{minted}
+  \end{block}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{kas configuration}
+  \fontsize{9}{9}\selectfont
+  \begin{block}{}
+  \begin{minted}{yaml}
+  meta-freescale:
+    url: "https://github.com/Freescale/meta-freescale"
+    refspec: kirkstone
+
+  meta-openembedded:
+   url: https://git.openembedded.org/meta-openembedded
+   refspec: kirkstone
+   layers:
+     meta-oe:
+     meta-python:
+     meta-networking:
+  \end{minted}
+  \end{block}
+
+
+  \begin{itemize}
+  \item Then a single command will build all the listed target for the
+machine:
+
+  \begin{minted}{sh}
+$ kas build meta-custom/mymachine.yaml
+  \end{minted}
+
+  \item Or, alternatively, invoke bitbake commands:
+
+  \begin{minted}{sh}
+$ kas shell /path/to/kas-project.yml -c 'bitbake dosfsutils-native'
+  \end{minted}
+  \end{itemize}
+\end{frame}

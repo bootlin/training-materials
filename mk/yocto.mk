@@ -27,6 +27,7 @@ YOCTO_SLIDES    = \
 		yocto-licensing \
 		yocto-sdk \
 		yocto-sdk-lab \
+		yocto-layer-management \
 		yocto-runtime-package-management \
 		yocto-resources \
 		last-slides
