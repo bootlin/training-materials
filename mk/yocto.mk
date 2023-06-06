@@ -27,10 +27,12 @@ YOCTO_SLIDES    = \
 		yocto-licensing \
 		yocto-sdk \
 		yocto-sdk-lab \
+		yocto-devtool \
 		yocto-layer-management \
 		yocto-runtime-package-management \
 		yocto-resources \
-		last-slides
+		last-slides \
+		yocto-extra-slides
 
 YOCTO_LABS    = setup \
 		yocto-first-build \
