@@ -14,69 +14,131 @@
 #include "am335x-boneblack.dts"
 
 / {
-			backlight {
-				compatible      = "pwm-backlight";
-				pinctrl-names   = "default";
-				pinctrl-0       = <&bb_lcd_pwm_backlight_pins>;
-
-				pwms = <&ecap2 0 500000 0>;
-				pwm-names = "LCD4";
-				brightness-levels = <0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100>;
-				default-brightness-level = <50>; /* index to the array above */
-				status = "okay";
-			};
+	backlight {
+		compatible      = "pwm-backlight";
+		pinctrl-names   = "default";
+		pinctrl-0       = <&bb_lcd_pwm_backlight_pins>;
+		pwms = <&ehrpwm1 0 500000 0>;
+		pwm-names = "LCD4";
+		brightness-levels = <0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100>;
+		default-brightness-level = <100>; /* index to the array above */
+		status = "okay";
+	};
 
 			/* Settings for NHD-4.3-ATXI#-T-1 / LCD4 cape: */
-			panel {
-				compatible = "ti,tilcdc,panel";
-				pinctrl-names = "default";
-				pinctrl-0 = <&bb_lcd_lcd_pins>;
-				status = "okay";
-				panel-info {
-					ac-bias           = <255>;
-					ac-bias-intrpt    = <0>;
-					dma-burst-sz      = <16>;
-					bpp               = <16>;
-					fdd               = <0x80>;
-					tft-alt-mode      = <0>;
-					stn-565-mode      = <0>;
-					mono-8bit-mode    = <0>;
-					sync-edge         = <0>;
-					sync-ctrl         = <1>;
-					raster-order      = <0>;
-					fifo-th           = <0>;
-				};
-				display-timings {
-					native-mode = <&timing0>;
-					timing0: 480x272 {
-						clock-frequency = <9000000>;
-						hactive = <480>;
-						vactive = <272>;
-						hfront-porch = <5>;
-						hback-porch = <40>;
-						hsync-len = <1>;
-						vback-porch = <8>;
-						vfront-porch = <8>;
-						vsync-len = <1>;
-						hsync-active = <0>;
-						vsync-active = <0>;
-					};
-				};
+	panel {
+		compatible = "ti,tilcdc,panel";
+		pinctrl-names = "default";
+		pinctrl-0 = <&bb_lcd_lcd_pins>;
+		status = "okay";
+		panel-info {
+			ac-bias           = <255>;
+			ac-bias-intrpt    = <0>;
+			dma-burst-sz      = <16>;
+			bpp               = <16>;
+			fdd               = <128>;
+			sync-edge         = <0>;
+			sync-ctrl         = <1>;
+			raster-order      = <0>;
+			fifo-th           = <0>;
+		};
+		display-timings {
+			native-mode = <&timing0>;
+			timing0: 480x272 {
+				clock-frequency = <9200000>;
+				pixelclk-active = <0>;
+				de-active = <1>;
+				hactive = <480>;
+				vactive = <272>;
+				hfront-porch = <8>;
+				hback-porch = <47>;
+				hsync-len = <41>;
+				vback-porch = <2>;
+				vfront-porch = <3>;
+				vsync-len = <10>;
+				hsync-active = <0>;
+				vsync-active = <0>;
 			};
+		};
+	};
+
+	gpio-keys {
+		compatible = "gpio-keys";
+		pinctrl-names = "default";
+		pinctrl-0 = <&bb_lcd_keymap_pins>;
+
+		button-1 {
+			debounce_interval = <50>;
+			linux,code = <105>;
+			label = "left";
+			gpios = <&gpio1 16 0x1>;
+			gpio-key,wakeup;
+			autorepeat;
+		};
+		button-2 {
+			debounce_interval = <50>;
+			linux,code = <106>;
+			label = "right";
+			gpios = <&gpio1 17 0x1>;
+			gpio-key,wakeup;
+			autorepeat;
+		};
+		button-3 {
+			debounce_interval = <50>;
+			linux,code = <103>;
+			label = "up";
+			gpios = <&gpio1 19 0x1>;
+			gpio-key,wakeup;
+			autorepeat;
+		};
+		button-4 {
+			debounce_interval = <50>;
+			linux,code = <108>;
+			label = "down";
+			gpios = <&gpio3 16 0x1>;
+			gpio-key,wakeup;
+			autorepeat;
+		};
+		button-5 {
+			debounce_interval = <50>;
+			linux,code = <28>;
+			label = "enter";
+			gpios = <&gpio0 15 0x1>;
+			gpio-key,wakeup;
+		};
+	};
+
+};
+
+
+&tscadc {
+	status = "okay";
+	tsc {
+		ti,wires = <4>;
+		ti,x-plate-resistance = <200>;
+		ti,coordinate-readouts = <5>;
+		ti,wire-config = <0x00 0x11 0x22 0x33>;
+		ti,charge-delay = <0x400>;
+	};
+
+	adc {
+		ti,adc-channels = <4 5 6 7>;
+	};
 };
 
 &am33xx_pinmux {
-			bb_lcd_pwm_backlight_pins: pinmux_bb_lcd_pwm_backlight_pins {
-				pinctrl-single,pins = <
-				AM33XX_PADCONF(AM335X_PIN_MCASP0_AHCLKR, 0x0, MUX_MODE4) /* mcasp0_ahclkr.eCAP2_in_PWM2_out */
-				>;
-			};
+	bb_lcd_pwm_backlight_pins: pinmux_bb_lcd_pwm_backlight_pins {
+		pinctrl-single,pins = <
+			AM33XX_PADCONF(AM335X_PIN_GPMC_A2, PIN_OUTPUT_PULLDOWN, MUX_MODE6)	/* P9_14: gpmc_a2.ehrpwm1a */
+		>;
+	};
 
-			bb_lcd_lcd_pins: pinmux_bb_lcd_lcd_pins {
-				pinctrl-single,pins = <
-                        /* Bootlin boot time labs: use idle pin as custom GPIO on P9_13 */
+	bb_lcd_lcd_pins: pinmux_bb_lcd_lcd_pins {
+		pinctrl-single,pins = <
+			/* Bootlin boot time labs: use idle pin as custom GPIO on P9_13 */
 			AM33XX_PADCONF(AM335X_PIN_GPMC_WPN, PIN_OUTPUT, MUX_MODE7)
 
+			AM33XX_PADCONF(AM335X_PIN_MCASP0_FSR, PIN_OUTPUT_PULLUP, MUX_MODE7)		/* P9_27: mcasp0_fsr.gpio3_19 */
                         AM33XX_PADCONF(AM335X_PIN_LCD_DATA0, PIN_OUTPUT, MUX_MODE0)                     /* lcd_data0 */
                         AM33XX_PADCONF(AM335X_PIN_LCD_DATA1, PIN_OUTPUT, MUX_MODE0)                     /* lcd_data1 */
                         AM33XX_PADCONF(AM335X_PIN_LCD_DATA2, PIN_OUTPUT, MUX_MODE0)                     /* lcd_data2 */
@@ -97,27 +159,36 @@
                         AM33XX_PADCONF(AM335X_PIN_LCD_HSYNC, PIN_OUTPUT, MUX_MODE0)                     /* lcd_hsync */
                         AM33XX_PADCONF(AM335X_PIN_LCD_PCLK, PIN_OUTPUT, MUX_MODE0)                      /* lcd_pclk */
                         AM33XX_PADCONF(AM335X_PIN_LCD_AC_BIAS_EN, PIN_OUTPUT, MUX_MODE0)                /* lcd_ac_bias_en */
-				>;
-			};
+		>;
+	};
+
+	bb_lcd_keymap_pins: pinmux_bb_lcd_keymap_pins {
+		pinctrl-single,pins = <
+			AM33XX_PADCONF(AM335X_PIN_GPMC_A0, PIN_INPUT, MUX_MODE7)	/* P9_15: gpmc_a0.gpio1_16 */
+			AM33XX_PADCONF(AM335X_PIN_GPMC_A1, PIN_INPUT, MUX_MODE7)	/* P9_23: gpmc_a1.gpio1_17 */
+			AM33XX_PADCONF(AM335X_PIN_GPMC_A3, PIN_INPUT, MUX_MODE7)	/* P9_16: gpmc_a3.gpio1_19 */
+			AM33XX_PADCONF(AM335X_PIN_MCASP0_AXR0, PIN_INPUT, MUX_MODE7)	/* P9_30: mcasp0_axr0.gpio3_16 */
+			AM33XX_PADCONF(AM335X_PIN_UART1_TXD, PIN_INPUT, MUX_MODE7)	/* P9_24: uart1_txd.gpio0_15 */
+		>;
+	};
 };
 
 &lcdc {
-			/delete-node/ port;
+	/delete-node/ port;
 };
 
 &tda19988 {
-			/delete-node/ ports;
+	/delete-node/ ports;
 };
 
-&epwmss2 {
-			/* Parent to ecap */
-			status = "okay";
+&epwmss1 {
+	status = "okay";
 };
 
-&ecap2 {
-			status = "okay";
+&ehrpwm1 {
+	status = "okay";
 };
 
 &lcdc {
-			status = "okay";
+	status = "okay";
 };
