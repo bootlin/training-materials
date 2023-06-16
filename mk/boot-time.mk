@@ -28,6 +28,7 @@ BOOT_TIME_SLIDES = \
 		boot-time-hardware-init \
 		boot-time-conclusions \
 		boot-time-references \
+		last-slides \
 
 BOOT_TIME_LABS = boot-time-goals \
 		setup \
