@@ -10,7 +10,7 @@
 
 % Duration
 \ifthenelse{\equal{\trainingtype}{online}}{
-  \def \trainingduration{3}
+  \def \trainingduration{4}
 }{
   \def \trainingduration{2}
 }
