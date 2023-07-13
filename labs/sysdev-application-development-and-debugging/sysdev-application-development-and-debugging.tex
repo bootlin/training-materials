@@ -51,9 +51,9 @@ $ export PATH=$HOME/__SESSION_NAME__-labs/integration/buildroot/output/host/bin:
 \normalsize
 
 Let's try to compile the application:
-
-\bashcmd{$ arm-linux-gcc -o nunchuk-mpd-client nunchuk-mpd-client.c}
-
+\begin{bashinput}
+$ %\ifdefstring{\labboard}{beagleplay}{aarch64-linux-gcc}{arm-linux-gcc}% -o nunchuk-mpd-client nunchuk-mpd-client.c
+\end{bashinput}
 The compiler complains about undefined references to some symbols in
 {\em libmpdclient}. This is normal, since we didn't tell the compiler
 to link with this library. So let's use \code{pkg-config} to query the
@@ -64,7 +64,7 @@ automatically knows where to look, so it already knows the right paths
 to find \code{.pc} files and their sysroot.}:
 
 \begin{bashinput}
-$ arm-linux-gcc -o nunchuk-mpd-client nunchuk-mpd-client.c \
+$ %\ifdefstring{\labboard}{beagleplay}{aarch64-linux-gcc}{arm-linux-gcc}% -o nunchuk-mpd-client nunchuk-mpd-client.c \
 $(pkg-config --libs libmpdclient)
 \end{bashinput}
 
@@ -164,8 +164,10 @@ Then, on the target side, run the program under \code{gdbserver}.
 
 \ubootcmd{=> gdbserver localhost:2345 /root/nunchuk-mpd-client}
 
-On the host side, run \code{arm-linux-gdb} (also found in your toolchain):
-\bashcmd{$ arm-linux-gdb nunchuk-mpd-client}
+On the host side, run \ifdefstring{\labboard}{beagleplay}{\code{aarch64-linux-gdb}}{\code{arm-linux-gdb}} (also found in your toolchain):
+\begin{bashinput}
+$ %\ifdefstring{\labboard}{beagleplay}{aarch64-linux-gdb}{arm-linux-gdb}% nunchuk-mpd-client
+\end{bashinput}
 
 \code{gdb} starts and loads the debugging information from the
 \code{nunchuk-mpd-client} binary (in the \code{appdev} directory)
@@ -217,7 +219,7 @@ Following the details in the slides, configure your shell on the
 target to get a \code{core.xxx} file dumped when you run
 \code{nunchuk-mpd-client} again.
 
-Once you have such a file, inspect it with \code{arm-linux-gdb} on
+Once you have such a file, inspect it with \ifdefstring{\labboard}{beagleplay}{\code{aarch64-linux-gdb}}{\code{arm-linux-gdb}} on
 the host, set the \code{sysroot} setting, and then generate
 a backtrace to see where the program crashed.
 

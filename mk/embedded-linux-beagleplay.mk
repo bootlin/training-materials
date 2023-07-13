@@ -60,3 +60,4 @@ EMBEDDED_LINUX_BEAGLEPLAY_LABS = setup \
 		sysdev-thirdparty-beagleplay \
 		sysdev-buildroot \
 		sysdev-system-integration \
+		sysdev-application-development-and-debugging
