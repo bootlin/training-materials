@@ -107,7 +107,11 @@ button whenever you need more details about a given option:
 \begin{itemize}
 \item \code{Target options}
   \begin{itemize}
+  \ifdefstring{\labboard}{beagleplay}{
+  \item \code{Target Architecture}: \code{AArch64 (little endian)}
+  }{
   \item \code{Target Architecture}: \code{ARM (little endian)}
+  }
    \ifdefstring{\labboard}{stm32mp1}{
    \item \code{Target Architecture Variant}: \code{cortex-A7}
   }{
@@ -115,18 +119,28 @@ button whenever you need more details about a given option:
    \item \code{Target Architecture Variant}: \code{cortex-A9}
    \item \code{Enable NEON SIMD extension support}: Enabled
    \item \code{Enable VFP extension support}: Enabled
-   }{%beaglebone
-   \item \code{Target Architecture Variant}: \code{cortex-A8}
+   }{%beaglebone or beagleplay
+    \ifdefstring{\labboard}{beagleplay}{
+    \item \code{Target Architecture Variant}: \code{cortex-A53}
+    }{
+    \item \code{Target Architecture Variant}: \code{cortex-A8}
+    }
    }
   }
+  \ifdefstring{\labboard}{beagleplay}{}{
   \item \code{Target ABI}: \code{EABIhf}
+  }
   \ifdefstring{\labboard}{stm32mp1}{
   \item \code{Floating point strategy}: \code{VFPv4}
   }{
    \ifdefstring{\labboard}{qemu}{
    \item \code{Floating point strategy}: \code{VFPv3-D16}
-   }{%beaglebone
-   \item \code{Floating point strategy}: \code{VFPv3-D16}
+   }{%beaglebone or beagleplay
+    \ifdefstring{\labboard}{beagleplay}{
+    \item \code{Floating point strategy}: \code{FP-ARMv8}
+    }{
+    \item \code{Floating point strategy}: \code{VFPv3-D16}
+    }
    }
   }
   \end{itemize}
@@ -135,10 +149,14 @@ button whenever you need more details about a given option:
   \item \code{Toolchain type}: \code{External toolchain}
   \item \code{Toolchain}: \code{Custom toolchain}
   \item \code{Toolchain path}: use the toolchain you built:
-    \code{/home/<user>/x-tools/arm-training-linux-musleabihf}
+  \ifdefstring{\labboard}{beagleplay}{
+    \code{/home/<user>/x-tools/aarch64-training-linux-musl}
+    }{
+      \code{/home/<user>/x-tools/arm-training-linux-musleabihf}
+    }
     (replace \code{<user>} by your actual user name)
   \item \code{External toolchain gcc version}: \code{12.x}
-  \item \code{External toolchain kernel headers series}: \texttt{\workingkernel.x or later}
+  \item \code{External toolchain kernel headers series}: \ifdefstring{\labboard}{beagleplay}{\texttt{6.1 or later}}{\texttt{\workingkernel.x or later}}
   \item \code{External toolchain C library}: \code{musl (experimental)}
   \item We must tell Buildroot about our toolchain configuration, so
     select \code{Toolchain has SSP support?} and
@@ -148,7 +166,12 @@ button whenever you need more details about a given option:
 \item \code{Kernel}
   \begin{itemize}
   \item Enable \code{Linux Kernel}
+  \if\defstring{\labboard}{beagleplay}
+  \item Set \code{Kernel version} to \code{Custom version}
+  \item Set \code{Kernel version} to \code{6.4}
+  \else
   \item Set \code{Kernel version} to \code{Latest version (6.1)}
+  \fi
   \item Set \code{Custom kernel patches} to \code{board/bootlin/training/0001-Custom-DTS-for-Bootlin-lab.patch}
   \item Set \code{Kernel configuration} to \code{Using a custom (def)config file})
   \item Set \code{Configuration file path} to \code{board/bootlin/training/linux.config}
@@ -156,6 +179,8 @@ button whenever you need more details about a given option:
   \item Set \code{In-tree Device Tree Source file names} to
         \ifdefstring{\labboard}{stm32mp1}{\code{stm32mp157a-dk1-custom}}{}
         \ifdefstring{\labboard}{beaglebone}{\code{am335x-boneblack-custom}}{}
+        \ifdefstring{\labboard}{beagleplay}{\code{ti/k3-am625-beagleplay-custom}}{}
+  \ifdefstring{\labboard}{beagleplay}{\item Set \code{Kernel Binary format} to \code{Image.gz}}{}
 \end{itemize}
 \item \code{Target packages}
   \begin{itemize}
@@ -450,7 +475,7 @@ the package:
 
 \begin{verbatim}
 NUNCHUK_DRIVER_VERSION = 1.0
-NUNCHUK_DRIVER_SITE = $(HOME)/embedded-linux-labs/hardware/data/nunchuk
+NUNCHUK_DRIVER_SITE = $(HOME)/__SESSION_NAME__-labs/hardware/data/nunchuk
 NUNCHUK_DRIVER_SITE_METHOD = local
 NUNCHUK_DRIVER_LICENSE = GPL-2.0
 
@@ -471,6 +496,21 @@ Now that we have the \code{nunchuk} driver loaded and that Buildroot compiled
 \code{evtest} for the target, thanks to Buildroot, we can now test the input
 events coming from the Nunchuk.
 
+
+\if\defstring{\labboard}{beagleplay}
+\begin{bashinput}
+# evtest
+No device specified, trying to scan all of /dev/input/event*
+Available devices:
+/dev/input/event0:	gpio-keys
+/dev/input/event1:	GN Netcom A/S Jabra EVOLVE 20 MS
+/dev/input/event2:	GN Netcom A/S Jabra EVOLVE 20 MS
+/dev/input/event3:	GN Netcom A/S Jabra EVOLVE 20 MS
+/dev/input/event4:	GN Netcom A/S Jabra EVOLVE 20 MS Consumer Control
+/dev/input/event5:	Wii Nunchuk
+Select the device event number [0-5]:
+\end{bashinput}
+\else
 \begin{bashinput}
 # evtest
 No device specified, trying to scan all of /dev/input/event*
@@ -481,6 +521,7 @@ Available devices:
 /dev/input/event3:	Wii Nunchuk
 Select the device event number [0-3]:
 \end{bashinput}
+\fi
 
 Enter the number corresponding to the Nunchuk device.
 

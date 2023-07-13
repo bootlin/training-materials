@@ -58,3 +58,5 @@ EMBEDDED_LINUX_BEAGLEPLAY_LABS = setup \
 		sysdev-accessing-hardware-beagleplay \
 		sysdev-block-filesystems-beagleplay \
 		sysdev-thirdparty-beagleplay \
+		sysdev-buildroot \
+		sysdev-system-integration \

@@ -52,7 +52,8 @@ Configure Buildroot as follows:
         This time, we will use a Bootlin ready-made toolchain for {\em
         glibc}, as this is necessary for using {\em systemd}.
   \item \code{Toolchain origin}: \code{Toolchain to be downloaded and installed}
-  \item \code{Bootlin toolchain variant}: \code{armv7-eabihf glibc bleeding-edge 2022.08-1}
+  \item \code{Bootlin toolchain variant}: \ifdefstring{\labboard}{beagleplay}
+        {\code{aarch64 glibc bleeding-edge 2022.08-1}}{\code{armv7-eabihf glibc bleeding-edge 2022.08-1}}
   \item Select \code{Copy gdb server to the Target}
   \end{itemize}
 \item \code{System configuration}
@@ -63,7 +64,12 @@ Configure Buildroot as follows:
 \item \code{Kernel}
   \begin{itemize}
   \item Enable \code{Linux Kernel}
+  \if\defstring{\labboard}{beagleplay}
+  \item Set \code{Kernel version} to \code{Custom version}
+  \item Set \code{Kernel version} to \code{6.4}
+  \else
   \item Set \code{Kernel version} to \code{Latest version (6.1)}
+  \fi
   \item Set \code{Custom kernel patches} to \code{board/bootlin/training/0001-Custom-DTS-for-Bootlin-lab.patch}
   \item Set \code{Kernel configuration} to \code{Using a custom (def)config file})
   \item Set \code{Configuration file path} to \code{board/bootlin/training/linux.config}
@@ -71,6 +77,8 @@ Configure Buildroot as follows:
   \item Set \code{In-tree Device Tree Source file names} to
         \ifdefstring{\labboard}{stm32mp1}{\code{stm32mp157a-dk1-custom}}{}
         \ifdefstring{\labboard}{beaglebone}{\code{am335x-boneblack-custom}}{}
+        \ifdefstring{\labboard}{beagleplay}{\code{ti/k3-am625-beagleplay-custom}}{}
+  \ifdefstring{\labboard}{beagleplay}{\item Set \code{Kernel Binary format} to \code{Image.gz}}{}
   \end{itemize}
 \item \code{Target packages}
   \begin{itemize}
@@ -231,7 +239,7 @@ Here you will recognize our Nunchuk device through its \code{0x52}
 address.
 
 \begin{bashinput}
-# cd 1-0052
+# cd %\ifdefstring{\labboard}{beagleplay}{3}{1}%-0052
 # ls -la
 # cat modalias
 of:NjoystickT(null)Cnintendo,nunchuk
