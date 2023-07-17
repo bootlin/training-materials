@@ -100,3 +100,6 @@
 % Time ratio
 \def \onsitelecturetimeratio{50}
 \def \onsitelabtimeratio{50}
+
+% Ubuntu version
+\def \ubuntuversion{22.04 / 20.04}
