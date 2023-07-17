@@ -9,10 +9,65 @@ Tested on the following board revisions:
 - Original release of the board
 
 Caution: this procedure can erase data installed on the board eMMC.
-This won't make your board unusable though.
-
-If you want to install a distribution again on the eMMC, just go to
+This won't make your board unusable though. If you want to install a
+distribution again on the eMMC, just go to
 http://beagleboard.org/latest-images and follow instructions.
+
+1. Download the images
+2a. Flash the image using Ethernet over USB with 'snagboot' (recommended)
+2b. Flash the image using a micro-SD card (legacy)
+3a. How snagtool images were built
+3b. How the iamges for SD card recovery were built
+
+======================
+1. Download the images
+======================
+
+We suggest you to clone this repository, where all binary images are
+ready to be used. You can also build them on your own if you wish, all
+instructions are provided in chapter 3.
+
+===========================================
+2b. Flash the image using Ethernet over USB
+===========================================
+
+Follow the installation instructions at
+https://github.com/bootlin/snagboot to install snagboot.
+
+Follow the instructions for the AM335x SoC. Once the environment is
+ready, put the BBB into recovery mode by resetting the BBB while
+applying power. In order to do this, you need to press the S2 boot
+switch *while* applying power. Please mind that a warm reset
+performed with the reset button won't work as it does not affect the
+boot source!
+
+Observe the presence of the following USB device:
+
+    $ lsusb | grep AM335x
+    Bus 001 Device 024: ID 0451:6141 Texas Instruments, Inc. AM335x USB
+
+In snagboot's environment, recover the board:
+
+    # snagrecover -s am335 \
+                  -F "{'spl': {'path': 'u-boot-spl.bin'}}" \
+		  -F "{'u-boot': {'path': 'u-boot.img'}}"
+
+Once you get a U-Boot prompt on the serial console, enable fastboot:
+
+    # fastboot usb 0
+
+Then from the host, flash the image:
+
+    $ snagflash -P fastboot -p 0451:d022 -f download:sdcard.img -f flash:1:0
+
+Reboot by unplugging the power supply cable, and enjoy the training!
+
+=========================================
+2b. Flash the image using a micro-SD card
+=========================================
+
+These instructions are given as reference only, they will install an old
+U-Boot. Prefer using method 2a using Snagboot.
 
 Make a bootable micro-SD card
 -----------------------------
@@ -96,9 +151,34 @@ available either.
 Should you need more standard tools, you may boot the board with
 an MMC card with Debian on it (see http://beagleboard.org/latest-images).
 
-==============================
-How the binaries were compiled
-==============================
+========================================================
+3a. How the binaries were compiled for Snagboot recovery
+========================================================
+
+Compiling U-Boot
+----------------
+
+git checkout v2023.04
+make am335x_evm_defconfig
+cp src/u-boot-final/uEnv.txt ~/u-boot/
+# Edit the configuration:
+# select CONFIG_USE_DEFAULT_ENV_FILE
+# set CONFIG_DEFAULT_ENV_FILE=uEnv.txt
+# set CONFIG_ENV_FAT_DEVICE_AND_PART="1:1"
+# set CONFIG_SYS_MMC_ENV_DEV=1
+# or you can directly use this file:
+cp src/u-boot/u-boot-2023.04.config ~/u-boot/.config
+make
+
+Assembling all files into sdcard.img
+------------------------------------
+
+This is done using the ./gen.sh script, which itself uses the genimage
+tool.
+
+=======================================================
+3b. How the binaries were compiled for SD-card recovery
+=======================================================
 
 Caution: instructions for people already familiar with embedded Linux.
 See our Embedded Linux course (https://bootlin.com/training/embedded-linux/)
