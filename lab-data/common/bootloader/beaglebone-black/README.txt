@@ -18,7 +18,8 @@ Make a bootable micro-SD card
 -----------------------------
 
 We are going to prepare a bootable micro-SD card that will automatically
-reflash the eMMC with the U-Boot binaries provided in this directory.
+reflash the eMMC with the U-Boot binaries provided in the sdcard/
+directory.
 
 Take a micro-SD card and connect it to your PC:
 - Either using a direct SD slot if available.
@@ -121,17 +122,17 @@ git checkout v2018.05
 export CROSS_COMPILE=arm-linux-gnueabi-
 make am335x_boneblack_defconfig
 
-To compile u-boot.img and MLO:
+To compile sdcard/u-boot.img and sdcard/MLO:
 Copy the src/u-boot/u-boot-2018.05.config file to .config
 make
 
-To compile u-boot.img.final and MLO.final:
+To compile sdcard/u-boot.img.final and sdcard/MLO.final:
 Copy the src/u-boot-final/u-boot-2018.05.config file to .config
 and the src/u-boot-final/uEnv.txt file to the U-boot toplevel source directory
 (this contains default environment settings)
 make
 
-This produces the MLO and u-boot.img files.
+This produces the sdcard/MLO and sdcard/u-boot.img files.
 
 Root filesystem
 ---------------
@@ -176,13 +177,13 @@ This produces:
 arch/arm/boot/zImage
 arch/arm/boot/dts/am335x-boneblack-wireless.dtb
 
-Copy the arch/arm/boot/dts/am335x-boneblack-wireless.dtb to "dtb"
+Copy the arch/arm/boot/dts/am335x-boneblack-wireless.dtb to sdcard/dtb
 (this dtb will work fine for both BeagleBone Black
 and BeagleBoneBlack Wireless, at least for the purpose of
-reflashing U-Boot).
+reflashing U-Boot) and the zImage file as well.
 
 Assembling all files into sdcard.img
 ------------------------------------
 
-This is done using the ./gen.sh script, which itself uses the genimage
-tool.
+This is done using the sdcard/gen.sh script, which itself uses the
+genimage tool.
