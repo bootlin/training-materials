@@ -1,11 +1,11 @@
-EMBEDDED_LINUX_BBB_SLIDES = \
+EMBEDDED_LINUX_BEAGLEPLAY_SLIDES = \
 		first-slides \
 		about-us \
 		course-information-title \
-		beagleboneblack-board \
+		beagleplay-board \
 		sysdev-shopping-list-bbb \
                 discovery-board-also-supported \
-				beagleplay-board-also-supported \
+				beagleboneblack-board-also-supported \
 		course-information \
 		sysdev-intro \
 		sysdev-dev-environment \
@@ -49,15 +49,4 @@ EMBEDDED_LINUX_BBB_SLIDES = \
 		last-slides \
 		sysdev-extra-slides
 
-EMBEDDED_LINUX_BBB_LABS = setup \
-		sysdev-toolchain \
-		sysdev-u-boot-bbb \
-		sysdev-kernel-fetch-sources \
-		sysdev-kernel-cross-compiling \
-		sysdev-tinysystem \
-		sysdev-accessing-hardware-bbb \
-		sysdev-block-filesystems-bbb \
-		sysdev-thirdparty-bbb \
-		sysdev-buildroot \
-		sysdev-system-integration \
-		sysdev-application-development-and-debugging
+EMBEDDED_LINUX_BEAGLEPLAY_LABS = setup

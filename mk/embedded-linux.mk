@@ -5,6 +5,7 @@ EMBEDDED_LINUX_SLIDES = \
 		discovery-board-dk1 \
 		sysdev-shopping-list-stm32 \
 		beagleboneblack-board-also-supported \
+		beagleplay-board-also-supported \
 		course-information \
 		sysdev-intro \
 		sysdev-dev-environment \
