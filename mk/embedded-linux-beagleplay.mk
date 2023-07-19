@@ -56,3 +56,4 @@ EMBEDDED_LINUX_BEAGLEPLAY_LABS = setup \
 		sysdev-kernel-cross-compiling \
 		sysdev-tinysystem \
 		sysdev-accessing-hardware-beagleplay \
+		sysdev-block-filesystems-beagleplay \
