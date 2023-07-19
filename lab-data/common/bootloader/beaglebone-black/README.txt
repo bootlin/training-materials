@@ -159,16 +159,17 @@ Compiling U-Boot
 ----------------
 
 git checkout v2023.04
+cp src/snagboot/u-boot/uEnv.txt ~/u-boot/
+cp src/snagboot/u-boot/u-boot-2023.04.config ~/u-boot/.config
+make
+
+You can as well re-create this configuration with:
 make am335x_evm_defconfig
-cp src/u-boot-final/uEnv.txt ~/u-boot/
-# Edit the configuration:
+make menuconfig
 # select CONFIG_USE_DEFAULT_ENV_FILE
 # set CONFIG_DEFAULT_ENV_FILE=uEnv.txt
 # set CONFIG_ENV_FAT_DEVICE_AND_PART="1:1"
 # set CONFIG_SYS_MMC_ENV_DEV=1
-# or you can directly use this file:
-cp src/u-boot/u-boot-2023.04.config ~/u-boot/.config
-make
 
 Assembling all files into sdcard.img
 ------------------------------------
@@ -203,13 +204,13 @@ export CROSS_COMPILE=arm-linux-gnueabi-
 make am335x_boneblack_defconfig
 
 To compile sdcard/u-boot.img and sdcard/MLO:
-Copy the src/u-boot/u-boot-2018.05.config file to .config
+Copy src/sdcard/u-boot/u-boot-2018.05.config file to .config
 make
 
 To compile sdcard/u-boot.img.final and sdcard/MLO.final:
-Copy the src/u-boot-final/u-boot-2018.05.config file to .config
-and the src/u-boot-final/uEnv.txt file to the U-boot toplevel source directory
-(this contains default environment settings)
+Copy src/sdcard/u-boot-final/u-boot-2018.05.config to .config
+Copy src/sdcard/u-boot-final/uEnv.txt to the U-boot toplevel source
+directory (this contains default environment settings)
 make
 
 This produces the sdcard/MLO and sdcard/u-boot.img files.
@@ -217,7 +218,7 @@ This produces the sdcard/MLO and sdcard/u-boot.img files.
 Root filesystem
 ---------------
 
-The root filesystem is available in src/rootfs.tar.xz
+The root filesystem is available in src/sdcard/rootfs.tar.xz
 
 To rebuild your kernel, extract the contents of this archive,
 as the kernel binary will contain the root filesystem (initramfs)
@@ -228,7 +229,7 @@ few custom scripts. It is very easy to update (you don't need
 tools like Buildroot).
 
 If you to need to update it, get the latest BusyBox 1.21.x sources,
-and configure them with src/busybox-1.21.x.config
+and configure them with src/sdcard/busybox-1.21.x.config
 
 If you don't, just go to the next section.
 
@@ -250,7 +251,7 @@ Now configure and compile the sources as follows
 (we are using the same toolchain as for compiling U-Boot)
 export ARCH=arm
 export CROSS_COMPILE=arm-linux-gnueabi-
-Copy the src/linux-4.17.config file to .config
+Copy src/sdcard/linux-4.17.config file to .config
 make -j 8
 
 This produces:
