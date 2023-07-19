@@ -56,6 +56,10 @@ Once you get a U-Boot prompt on the serial console, enable fastboot:
 
     # fastboot usb 0
 
+Don't be upset by the following message, it's expected...
+
+    musb-hdrc: peripheral reset irq lost!
+
 Then from the host, flash the image:
 
     $ snagflash -P fastboot -p 0451:d022 -f download:sdcard.img -f flash:1:0
