@@ -1,5 +1,5 @@
 \subchapter{Building a cross-compiling toolchain}{Objective: Learn how
-  to compile your own cross-compiling toolchain for the uClibc C
+  to compile your own cross-compiling toolchain for the musl C
   library}
 
 After this lab, you will be able to:
@@ -90,6 +90,7 @@ In \code{Path and misc options}:
 \code{LOG_DEBUG} in the interface, using the \code{/} key) so that
   we can have more details on what happened during the build in case
   something went wrong.
+\item If not, enable \code{Try features marked as EXPERIMENTAL}
 \end{itemize}
 
 \ifdefstring{\labboard}{stm32mp1}{
@@ -113,7 +114,7 @@ In \code{Toolchain options}:
 \item Set \code{Tuple's vendor string} (\code{TARGET_VENDOR}) to \code{training}.
 \item Set \code{Tuple's alias} (\code{TARGET_ALIAS}) to \code{arm-linux}.
       This way, we will be able to use the compiler as \code{arm-linux-gcc}
-      instead of \code{arm-training-linux-uclibcgnueabihf-gcc}, which is
+      instead of \code{arm-training-linux-musleabihf-gcc}, which is
       much longer to type.
 \end{itemize}
 
@@ -127,16 +128,9 @@ In \code{Operating System}:
 
 In \code{C-library}:
 \begin{itemize}
-  \item If not set yet, set \code{C library} to \code{uClibc-ng}
-        (\code{LIBC_UCLIBC_NG})
+  \item If not set yet, set \code{C library} to \code{musl}
+        (\code{LIBC_MUSL})
   \item Keep the default version that is proposed
-  \item If needed, enable \code{Add support for IPv6}
-        (\code{LIBC_UCLIBC_IPV6})\footnote{
-        That's needed to use the toolchain in Buildroot, which only
-        accepts toolchains with IPv6 support},
-        \code{Add support for WCHAR} (\code{LIBC_UCLIBC_WCHAR}) and
-	\code{Support stack smashing protection (SSP)}
-        (\code{LIBC_UCLIBC_HAS_SSP})
 \end{itemize}
 
 In \code{C compiler}:
@@ -175,7 +169,7 @@ And wait!
 \section{Testing the toolchain}
 
 You can now test your toolchain by adding
-\code{$HOME/x-tools/arm-training-linux-uclibcgnueabihf/bin/} to your
+\code{$HOME/x-tools/arm-training-linux-musleabihf/bin/} to your
 \code{PATH} environment variable and compiling the simple
 \code{hello.c} program in your main lab directory with
 \code{arm-linux-gcc}:
@@ -199,7 +193,7 @@ Now, try to run QEMU ARM user emulator:
 
 \begin{bashinput}
 $ qemu-arm hello
-/lib/ld-uClibc.so.0: No such file or directory
+qemu-arm: Could not open '/lib/ld-musl-arm.so.1': No such file or directory
 \end{bashinput}
 
 What's happening is that \code{qemu-arm} is missing the shared C library
@@ -207,17 +201,17 @@ What's happening is that \code{qemu-arm} is missing the shared C library
 compiled toolchain:
 
 \begin{bashinput}
-$ find ~/x-tools -name ld-uClibc.so.0
+$ find ~/x-tools -name ld-musl-armhf.so.1
 \end{bashinput}
 \begin{terminaloutput}
-/home/tux/x-tools/arm-training-linux-uclibcgnueabihf/arm-training-linux-uclibcgnueabihf/sysroot/lib/ld-uClibc.so.0
+/home/tux/x-tools/arm-training-linux-musleabihf/arm-training-linux-musleabihf/sysroot/lib/ld-musl-armhf.so.1
 \end{terminaloutput}
 
 We can now use the \code{-L} option of \code{qemu-arm} to let it know
 where shared libraries are:
 
 \begin{bashinput}
-$ qemu-arm -L ~/x-tools/arm-training-linux-uclibcgnueabihf/arm-training-linux-uclibcgnueabihf/sysroot hello
+$ qemu-arm -L ~/x-tools/arm-training-linux-musleabihf/arm-training-linux-musleabihf/sysroot hello
 \end{bashinput}
 
 \begin{terminaloutput}
