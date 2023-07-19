@@ -57,3 +57,4 @@ EMBEDDED_LINUX_BEAGLEPLAY_LABS = setup \
 		sysdev-tinysystem \
 		sysdev-accessing-hardware-beagleplay \
 		sysdev-block-filesystems-beagleplay \
+		sysdev-thirdparty-beagleplay \
