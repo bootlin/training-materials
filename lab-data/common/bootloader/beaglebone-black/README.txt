@@ -48,7 +48,7 @@ Observe the presence of the following USB device:
 
 In snagboot's environment, recover the board:
 
-    # snagrecover -s am335 \
+    # snagrecover -s am3358 \
                   -F "{'spl': {'path': 'u-boot-spl.bin'}}" \
 		  -F "{'u-boot': {'path': 'u-boot.img'}}"
 
