@@ -91,7 +91,7 @@ Make your board boot from this new directory through NFS.
 
 {\em alsa-lib} is a library supposed to handle the interaction with
 the ALSA subsystem. It is available at \url{https://alsa-project.org}.
-Download version 1.2.7.1, and extract it
+Download version 1.2.9, and extract it
 in \code{$HOME/__SESSION_NAME__-labs/thirdparty/}.
 
 {\bf Tip}: if the website for any of the source packages that we
@@ -129,7 +129,7 @@ Quickly, you should get an error saying:
 
 %\footnotesize
 \begin{terminaloutput}
-checking whether we are cross compiling... configure: error: in `/home/mike/__SESSION_NAME__-labs/thirdparty/alsa-lib-1.2.7.1':
+checking whether we are cross compiling... configure: error: in `/home/mike/__SESSION_NAME__-labs/thirdparty/alsa-lib-1.2.9':
 configure: error: cannot run C compiled programs.
 If you meant to cross compile, use `--host'.
 See `config.log' for more details
@@ -179,16 +179,19 @@ by \code{--host}.
 The \code{configure} script should end properly now, and create a
 Makefile.
 
-However, there is one subtle last issue to handle: because the C
-library used in our toolchain (uClibc-ng) does not support {\em symbol
-versioning}, we need to tell {\em alsa-lib} about this by passing
+However, there are 2 last subtle issues to handle.
+First, the C library used in our toolchain (uClibc-ng) does not support
+{\em symbol versioning}, we need to tell {\em alsa-lib} about this by passing
 \code{--without-versioned}. Without this option, {\em alsa-lib} will
 build fine, but it will not work properly at runtime\footnote{See
 \url{https://mailman.alsa-project.org/pipermail/alsa-devel/2009-February/014999.html}
-for all the details}. So you should configure {\em alsa-lib} as
-follows:
+for all the details}.
+Next, we need to tell {\em alsa-lib} to disable a feature called alsa topology.
+Like before {\em alsa-lib} will build fine but we will encounter some
+problems afterwards, during {\em alsa-utils} building.
+So you should configure {\em alsa-lib} as follows:
 
-\bashcmd{$ ./configure --host=arm-linux --without-versioned}
+\bashcmd{$ ./configure --host=arm-linux --without-versioned --disable-topology}
 
 Run the \code{make} command, which should run just fine.
 
@@ -263,7 +266,7 @@ the libraries to be installed in the \code{/usr} prefix, so let's tell
 the \code{configure} script about this:
 
 \begin{bashinput}
-$ ./configure --host=arm-linux  --without-versioned --prefix=/usr
+$ ./configure --host=arm-linux  --without-versioned --disable-topology --prefix=/usr
 $ make
 \end{bashinput}
 
@@ -348,7 +351,7 @@ And we're done with {\em alsa-lib}!
 \section{Alsa-utils}
 
 Download {\em alsa-utils} from the ALSA offical webpage. We tested the lab
-with version 1.2.6.
+with version 1.2.9.
 
 Once uncompressed, we quickly discover that the {\em alsa-utils} build
 system is based on the {\em autotools}, so we will work once again
@@ -625,7 +628,7 @@ In the main lab directory, then let's check out the sources through
 \begin{bashinput}
 $ git clone https://gitlab.com/ipcalc/ipcalc.git
 $ cd ipcalc/
-$ git checkout 1.0.1
+$ git checkout 1.0.3
 \end{bashinput}
 
 To cross-compile with {\em Meson}, we need to create a {\em cross file}.

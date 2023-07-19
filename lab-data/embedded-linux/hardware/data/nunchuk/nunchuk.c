@@ -6,6 +6,7 @@
 #include <linux/init.h>
 #include <linux/input.h>
 #include <linux/module.h>
+#include <linux/version.h>
 
 /* Per device structure */
 struct nunchuk_dev {
@@ -164,7 +165,11 @@ static int nunchuk_probe(struct i2c_client *client)
 	return 0;
 }
 
+#if KERNEL_VERSION(5, 16, 0) <= LINUX_VERSION_CODE
+static void nunchuk_remove(struct i2c_client *client)
+#else
 static int nunchuk_remove(struct i2c_client *client)
+#endif
 {
 	/*
 	 * Nothing to do here, as the polled_input device is automatically
@@ -173,7 +178,9 @@ static int nunchuk_remove(struct i2c_client *client)
 	 */
 
 	pr_info("Nunchuk device removed successfully\n");
-	return 0;
+	#if KERNEL_VERSION(5, 16, 0) > LINUX_VERSION_CODE
+    return 0;
+    #endif
 }
 
 /* Specification of supported Device Tree devices */
