@@ -64,7 +64,8 @@ Then from the host, flash the image:
 
     $ snagflash -P fastboot -p 0451:d022 -f oem_format -f download:sdcard.img -f flash:1:0
 
-Reboot by unplugging the power supply cable, and enjoy the training!
+Reboot by unplugging the power supply cable (just resetting won't change
+the boot source), and enjoy the training!
 
 =========================================
 2b. Flash the image using a micro-SD card
