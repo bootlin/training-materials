@@ -181,7 +181,7 @@ The \code{configure} script should end properly now, and create a
 Makefile.
 
 However, there is one subtle issue to handle.
-We need to tell {\em alsa-lib} to disable a feature called alsa topology.
+We need to tell {\em alsa-lib} to disable a feature called {\em alsa topology}.
 {\em alsa-lib} will build fine but we will encounter some
 problems afterwards, during {\em alsa-utils} building.
 So you should configure {\em alsa-lib} as follows:
@@ -396,7 +396,6 @@ $ CPPFLAGS=-I$HOME/__SESSION_NAME__-labs/thirdparty/staging/usr/include \%\lineb
 
 Now, it should stop a bit later, this time with the error:
 \begin{verbatim}
-checking for libasound headers version >= 1.0.27... found.
 checking for snd_ctl_open in -lasound... no
 configure: error: No linkable libasound was found.
 \end{verbatim}
@@ -442,7 +441,25 @@ $ LDFLAGS=-L$HOME/__SESSION_NAME__-labs/thirdparty/staging/usr/lib \
      --disable-alsamixer
 \end{bashinput}
 
-Then, run the compilation with \code{make}. Hopefully, it works!
+Then, run the compilation with \code{make}. You should hit a final
+error:
+
+\begin{verbatim}
+Making all in po
+make[2]: Entering directory '/home/tux/embedded-linux-labs/thirdparty/alsa-utils-1.2.9/alsaconf/po'
+mv: cannot stat 't-ja.gmo': No such file or directory
+\end{verbatim}
+
+This can be fixed by disabling support for \code{alsaconf} too:
+
+\begin{bashinput}
+$ LDFLAGS=-L$HOME/__SESSION_NAME__-labs/thirdparty/staging/usr/lib \
+     CPPFLAGS=-I$HOME/__SESSION_NAME__-labs/thirdparty/staging/usr/include \
+     ./configure --host=arm-linux --prefix=/usr \
+     --disable-alsamixer --disable-alsaconf
+\end{bashinput}
+
+You can now run \code{make} again.  It should work this time.
 
 Let's now begin the installation process.  Before really installing in
 the staging directory, let's install in a dummy directory, to see
@@ -612,7 +629,7 @@ Here, we will be using the 2.0.x version of {\em libgpiod}.
 \begin{bashinput}
 git clone https://git.kernel.org/pub/scm/libs/libgpiod/libgpiod.git
 cd libgpiod
-git checkout 2.0.x
+git checkout v2.0.x
 \end{bashinput}
 
 As we are not starting from a release, we will need to install
