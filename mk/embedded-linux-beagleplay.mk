@@ -49,4 +49,5 @@ EMBEDDED_LINUX_BEAGLEPLAY_SLIDES = \
 		last-slides \
 		sysdev-extra-slides
 
-EMBEDDED_LINUX_BEAGLEPLAY_LABS = setup
+EMBEDDED_LINUX_BEAGLEPLAY_LABS = setup \
+		sysdev-toolchain \
