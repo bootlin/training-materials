@@ -90,11 +90,19 @@ So add settings to the \code{bootargs} environment variable,
    nfsvers=3,tcp rw
 \end{ubootinput}
 \else
+\if\defstring{\labboard}{beagleplay}
+  \begin{ubootinput}
+=> setenv bootargs ${bootargs} root=/dev/nfs ip=192.168.0.100:::::eth0
+   nfsroot=192.168.0.1:/home/<user>/__SESSION_NAME__-labs/tinysystem/
+   nfsroot,nfsvers=3,tcp rw
+  \end{ubootinput}
+\else
 \begin{ubootinput}
 => setenv bootargs ${bootargs} root=/dev/nfs ip=192.168.0.100
    nfsroot=192.168.0.1:/home/<user>/__SESSION_NAME__-labs/tinysystem/nfsroot,
    nfsvers=3,tcp rw
 \end{ubootinput}
+\fi
 \fi
 
 Once again, replace \code{<user>} by your actual user name.
@@ -105,9 +113,15 @@ setup. Save the environment variables (with \code{saveenv}).
 Now, boot your system. The kernel should be able to mount the root
 filesystem over NFS:
 
+\if\defstring{\labboard}{beagleplay}
+\begin{verbatim}
+VFS: Mounted root (nfs filesystem) on device 0:20.
+\end{verbatim}
+\else
 \begin{verbatim}
 VFS: Mounted root (nfs filesystem) on device 0:16.
 \end{verbatim}
+\fi
 
 If the kernel fails to mount the NFS filesystem, look carefully at the
 error messages in the console. If this doesn't give any clue, you can
@@ -238,9 +252,9 @@ Reboot the system and the message will be gone!
 \section{Switching to shared libraries}
 
 Take the \code{hello.c} program supplied in the lab \code{data}
-directory. Cross-compile it for ARM, dynamically-linked with the
-libraries\footnote{Invoke your cross-compiler in the same way you
-did during the toolchain lab}, and run it on the target.
+directory. Cross-compile it for \ifdefstring{\labboard}{beagleplay}{AARCH64}{ARM},
+dynamically-linked with the libraries\footnote{Invoke your cross-compiler
+in the same way you did during the toolchain lab}, and run it on the target.
 
 You will first encounter a very misleading \code{not found} error,
 which is not because the \code{hello} executable is not found, but
@@ -249,12 +263,19 @@ this executable.
 
 You can find it by running \code{file hello} on the host:
 
+\if\defstring{\labboard}{beagleplay}
 \begin{verbatim}
-hello: ELF 32-bit LSB executable, ARM, EABI5 version 1 (SYSV), dynamically linked,
-interpreter /lib/ld-musl-armhf.so.1, not stripped
+  hello: ELF 64-bit LSB executable, ARM aarch64, version 1 (SYSV),
+  dynamically linked, interpreter /lib/ld-musl-aarch64.so.1, not stripped
 \end{verbatim}
+\else
+\begin{verbatim}
+  hello: ELF 32-bit LSB executable, ARM, EABI5 version 1 (SYSV),
+  dynamically linked, interpreter /lib/ld-musl-armhf.so.1, not stripped
+\end{verbatim}
+\fi
 
-So, what's missing is the \code{/lib/ld-musl-armhf.so.1}
+So, what's missing is the \ifdefstring{\labboard}{beagleplay}{\code{/lib/ld-musl-aarch64.so.1}}{\code{/lib/ld-musl-armhf.so.1}}
 executable, which is the dynamic linker required to execute any
 program compiled with shared libraries. Using the \code{find}
 command, look for this file in the toolchain install directory,

@@ -54,3 +54,4 @@ EMBEDDED_LINUX_BEAGLEPLAY_LABS = setup \
 		sysdev-u-boot-beagleplay \
 		sysdev-kernel-fetch-sources \
 		sysdev-kernel-cross-compiling \
+		sysdev-tinysystem \
