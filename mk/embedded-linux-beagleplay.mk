@@ -51,3 +51,4 @@ EMBEDDED_LINUX_BEAGLEPLAY_SLIDES = \
 
 EMBEDDED_LINUX_BEAGLEPLAY_LABS = setup \
 		sysdev-toolchain \
+		sysdev-u-boot-beagleplay \
