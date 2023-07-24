@@ -17,7 +17,9 @@ Stay in the \code{$HOME/__SESSION_NAME__-labs/kernel} directory.
 \section{Choose a particular stable version of Linux}
 
 We will use \texttt{linux-\workingkernel.x},
-\ifdefstring{\labboard}{qemu}{}{which corresponds to an LTS release, and}
+\ifdefstring{\labboard}{qemu}{}{
+  \ifdefstring{\labboard}{beagleplay}{}{which corresponds to an LTS release, and}
+}
 which this lab was tested with.
 
 First, let's get the list of branches we have available:
@@ -55,7 +57,9 @@ To cross-compile Linux, you need to have a cross-compiling
 toolchain. We will use the cross-compiling toolchain that we
 previously produced, so we just need to make it available in the PATH:
 
-\bashcmd{$ export PATH=$HOME/x-tools/arm-training-linux-musleabihf/bin:$PATH}
+\begin{bashinput}
+$ export PATH=$HOME/x-tools/%\ifdefstring{\labboard}{beagleplay}{aarch64-training-linux-musl}{arm-training-linux-musleabihf}%/bin:$PATH
+\end{bashinput}
 
 Also, don't forget to either:
 
@@ -65,7 +69,12 @@ Also, don't forget to either:
 \item {\bf Or} specify them on the command line at every invocation of
   \code{make}, i.e.: \code{make ARCH=... CROSS_COMPILE=... <target>}
 \end{itemize}
-
+\ifdefstring{\labboard}{beagleplay}{
+\textbf{Important:} The majority of tools use \code{aarch64} to define 64 bits
+ARM processors. However in specific cases, the tools may use \code{arm64} to 
+define such architecture. In the case of the kernel Makefile we will use the
+\code{arm64} one.
+}{}
 \section{Linux kernel configuration}
 
 By running \code{make help}, look for the proper Makefile target to
@@ -80,6 +89,11 @@ kernel.}{}
 \ifdefstring{\labboard}{beaglebone}
 {In our case look for a configuration for boards in the OMAP2 and
 later family which the AM335x found in the BeagleBone belongs to.}{}
+\ifdefstring{\labboard}{beagleplay}
+{If you search for a configuration file that corresponds to the \code{arm64}
+architecture that the kernel will use, you might see that only one
+\code{defconfig} file is available. We will therefore load this basic
+configuration file and modify it later.}{}
 \ifdefstring{\labboard}{qemu}
 {In course case, use the configuration for the ARM Vexpress boards
 (\code{vexpress_defconfig}).}{}
@@ -119,6 +133,12 @@ So, apply this configuration, and then run \code{make menuconfig}.
 \end{itemize}
 \item Also compile your kernel with \kconfigval{CONFIG_INPUT_EVDEV}{y},
   to have the same default setting as in our labs with the STM32MP1 boards.
+}{}
+\ifdefstring{\labboard}{beagleplay}{
+\item In the \code{Platform Selection} menu, remove support for all the SoCs except
+the for Texas Instruments Inc. K3 multicore SoC architecture.
+\item Disable \kconfig{CONFIG_DRM}, which will skip support for many display
+controller and GPU drivers.
 }{}
 \end{itemize}
 
@@ -162,13 +182,13 @@ We will use TFTP to load the kernel image on the board:
 
 \begin{itemize}
 
-\item On your workstation, copy the \code{zImage} and DTB
+\item On your workstation, copy the {\tt \ifdefstring{\labboard}{beagleplay}{Image.gz}{zImage}} and DTB
 (\texttt{\dtname}\texttt{.dtb}) to the directory exposed by the TFTP server.
 
-\item On the target (in the U-Boot prompt), load \code{zImage} from
+\item On the target (in the U-Boot prompt), load {\tt \ifdefstring{\labboard}{beagleplay}{Image.gz}{zImage}} from
 TFTP into RAM:
 \begin{ubootinput}
-=> tftp %\zimageboardaddr% zImage
+=> tftp %\zimageboardaddr% %\ifdefstring{\labboard}{beagleplay}{Image.gz}{zImage}%
 \end{ubootinput}
 
 \item Now, also load the DTB file into RAM:
@@ -178,10 +198,31 @@ TFTP into RAM:
 
 \item Boot the kernel with its device tree:
 \begin{ubootinput}
-=> bootz %\zimageboardaddr% - %\dtbboardaddr%
+=> %\ifdefstring{\labboard}{beagleplay}{booti}{bootz} \zimageboardaddr% - %\dtbboardaddr%
 \end{ubootinput}
 
 \end{itemize}
+
+\if\defstring{\labboard}{beagleplay}
+This last command should show you an error message of this type:
+\bashcmd{kernel_comp_addr_r or kernel_comp_size is not provided!}
+
+This is because the boot image that we use, \code{Image.gz}, is compressed, and
+therfore, needs to be uncompressed by U-Boot before continue booting. To do so
+U-Boot needs to know the maximum size of the uncompressed image and where to
+store it.
+
+This gives us,
+
+\begin{ubootinput}
+=> setenv kernel_comp_addr_r 0x85000000
+=> setenv kernel_comp_size 0x16ee200
+=> saveenv
+\end{ubootinput}
+
+Now you can retry the \code{booti} command and see the kernel be uncompressed
+and then loaded.
+\fi
 
 You should see Linux boot and finally panicking. This is expected: we
 haven't provided a working root filesystem for our device yet.
@@ -190,7 +231,7 @@ You can now automate all this every time the board is booted or
 reset. Reset the board, and customize \code{bootcmd}:
 
 \begin{ubootinput}
-=> setenv bootcmd 'tftp %\zimageboardaddr\ zImage; tftp \dtbboardaddr\ {\dtname}.dtb; bootz \zimageboardaddr\ - \dtbboardaddr'%
+=> setenv bootcmd 'tftp %\zimageboardaddr\ \ifdefstring{\labboard}{beagleplay}{Image.gz}{zImage}; tftp \dtbboardaddr\ {\dtname}.dtb; \ifdefstring{\labboard}{beagleplay}{booti}{bootz} \zimageboardaddr\ - \dtbboardaddr'%
 => saveenv
 \end{ubootinput}
 
