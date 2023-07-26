@@ -11,7 +11,7 @@ During this lab, you will:
 
 First, we will need to install some benchmark and analysis tools on our system.
 
-In the Buildroot \code{make menuconfig} interface, enable the following packages :
+In the Buildroot \code{make menuconfig} interface, enable the following packages:
 
 \begin{itemize}
 	\item rt-tests
@@ -27,16 +27,16 @@ In the Buildroot \code{make menuconfig} interface, enable the following packages
 \end{itemize}
 
 You'll also need to enable a few features in the kernel. Run \code{make linux-menuconfig} and select
-the following options, located in "Kernel Hacking" :
+the following options, located in "Kernel Hacking":
 
 \begin{itemize}
 	\item Compile-time checks and compiler options -> Compile the kernel with debug info
 	\item Tracers -> Function tracer, Interrupts-off tracer, Preemption off tracer, scheduling latency tracer...
 \end{itemize}
 
-Re-build the image, and boot it on the board : \code {make linux-rebuild all}
+Re-build the image, and boot it on the board: \code {make linux-rebuild all}
 
-Let's first start by establishing the baseline latency by simply running \code{cyclictest} :
+Let's first start by establishing the baseline latency by simply running \code{cyclictest}:
 
 \begin{bashinput}
 cyclictest -p 
@@ -47,21 +47,21 @@ the system is under various types of loads. This will allow us to get the
 best running conditions for our applications.
 
 Some tweaks will really be useful on SMP systems, so don't hesitate to test on
-your own machine !
+your own machine!
 
-Here's a few leads :
+Here's a few leads:
 
 \begin{itemize}
-	\item Is the system SMP ?
-	\item Do we need to isolate our task ?
+	\item Is the system SMP?
+	\item Do we need to isolate our task?
 	\item Try changing the scheduling policy
 	\item Try changing the scheduling priority
 	\item Investigate the various interrupts
 	\item Take a look at the cpuidle and cpufreq configuration
-	\item Are there any NMIs ?
+	\item Are there any NMIs?
 \end{itemize}
 
-Stress the system using several tools :
+Stress the system using several tools:
 
 \begin{itemize}
 	\item hackbench
@@ -70,7 +70,7 @@ Stress the system using several tools :
 	\item fping
 \end{itemize}
 
-Some kernel options can also be useful :
+Some kernel options can also be useful:
 
 \begin{itemize}
 	\item \code{CONFIG_TRACE_HWLAT}
@@ -99,7 +99,7 @@ Try running \code{cyclictest -p 40} and see if you get better latencies.
 An easy way to introduce some load is to generate some network traffic. This will
 generate some interrupts, but also stress the kernel and create some context switches.
 
-First, setup the board's network interface :
+First, setup the board's network interface:
 
 \code{ip link set eth0 up}
 
@@ -108,7 +108,7 @@ First, setup the board's network interface :
 Make sure that your computer has its network interface on the same subnet as your
 target.
 
-On the board,run the \code{iperf3} server in the background :
+On the board,run the \code{iperf3} server in the background:
 
 \code{iperf3 -s -D}
 
@@ -117,8 +117,8 @@ you host computer, run \code{iperf3 -c 192.168.0.2}. You should start
 seeing the latency rising up.
 
 Try comparing the latencies you get between \code{cyclictest} and \code{cyclictest -p 40}. Do you
-still see high latencies while some network traffic is being received ? If so, why and how
-could we fix this ?
+still see high latencies while some network traffic is being received? If so, why and how
+could we fix this?
 
 \subsection{Scheduling load}
 
@@ -126,7 +126,7 @@ Another way to stress the system without any external source is with the \code{h
 tool, which generates a lot of context switches by exchanging data back and forth between
 multiple processes and multiple threads. This benchmark is pretty intense and can bring
 an entire system down to a non-responsive state, so launch it with only 10 file-descriptors,
-running an infinite amout of loops :
+running an infinite amout of loops:
 
 \code{hackbench -f 10 -l -1 &}
 
@@ -139,14 +139,14 @@ difference should be pretty impressive.
 
 Take a look at how many CPUs are on your system. You can run "htop", or
 look in \code{/sys/devices/system/cpu/}. This place is useful since you'll find
-lots of ways to manage the CPUs :
+lots of ways to manage the CPUs:
 
 \begin{itemize}
 	\item in \code{cpuX/cpufreq}, you'll find ways to inspect and control the CPU's frequency
 	\item in \code{cpuX/cpuidle}, you'll find ways to inspect and control the CPU's idle states
 \end{itemize}
 
-If you have multiple CPU cores, it's a good idea to start by isolating :
+If you have multiple CPU cores, it's a good idea to start by isolating:
 \begin{itemize}
 	\item Your process
 	\item Important interrupts
@@ -168,14 +168,14 @@ compare the induced latencies.
 
 It might be a good idea to make sure that no unexpected interrupts occur on the CPU
 you use for your realtime application. To know how many interrupts fire on each CPU
-core, take a look at the \code{/proc/interrupts} file :
+core, take a look at the \code{/proc/interrupts} file:
 
 \code{cat /proc/interrupts}.
 
 After you identify the interrupts that fire (take a look at the \code{ethernet} interrupt
 when you generate traffic), you cat change it's CPU affinity by going into \code{/proc/irq/<num>/}.
 
-You can then limit it by echo-ing an integer corresponding to the bitfield of enabled CPUS :
+You can then limit it by echo-ing an integer corresponding to the bitfield of enabled CPUS:
 
 \code{echo 1 > smp_affinity} will limit the interrupt to the CPU 0
 
@@ -191,19 +191,19 @@ To go even further, you can completely isolate one CPU from the scheduler's pool
 abd have it only accessible through \code{taskset}. To do so, you need to change
 the kernel's commandline, passed by the bootloader. On the STM32MP157 platform,
 this is done using the \code{extlinux} infrastructure. You can change the
-commandline by editing the \code{/boot/extlinux/extlinux.conf} file :
+commandline by editing the \code{/boot/extlinux/extlinux.conf} file:
 
 \code{vi /boot/extlinux/extlinux.conf}
 
 Add the \code{isolcpus=1} to the \code{append} line to isolate CPU 1.
 
-Reboot your target, and run cyclictest on CPU1. What can you notice ?
+Reboot your target, and run cyclictest on CPU1. What can you notice?
 
 \subsection{Using the Tracing subsystem}
 
 In order to use Ftrace, we need to make sure it is enabled in the kernel
 configuration. Using \code{make linux-menuconfig}, go in the "Kernel hacking" section
-and enable the following options :
+and enable the following options:
 
 \begin{itemize}
 	\item Generic Kernel Debugging Instruments -> Debug Filesystem
@@ -215,7 +215,7 @@ and enable the following options :
 	\item Tracers -> Tracer to detect hardware latencies
 \end{itemize}
 
-You can now recompile your kernel and re-generate your full image :
+You can now recompile your kernel and re-generate your full image:
 
 \begin{bashinput}
 make linux-rebuild
@@ -223,27 +223,27 @@ make
 \end{bashinput}
 
 Once you've rebooted your board with ftrace enabled, you'll need to mount the
-Tracing Filesystem, that gets automatically mounted in debugfs :
+Tracing Filesystem, that gets automatically mounted in debugfs:
 
 \code{mount -t debugfs debugfs /sys/kernel/debug}
 
 \code{mount -t tracefs nodev /sys/kernel/tracing}
 
-You can now move into the tracing subsystem's main directory :
+You can now move into the tracing subsystem's main directory:
 
 \code{cd /sys/kernel/debug/tracing}
 
-You can now take a little tour of the files here :
+You can now take a little tour of the files here:
 
 \begin{itemize}
-	\item \code{available_tracers} : Lists all tracers you can use. Each tracer
+	\item \code{available_tracers}: Lists all tracers you can use. Each tracer
 		corresponds to what and how do you want the tracing to occur.
-	\item \code{current_tracer} : Write the tracer you want to use in this file
-	\item \code{tracing_on} : Write 1 to start tracing, 0 to stop tracing
-	\item \code{trace} : The content of the trace buffer after tracing is finished
+	\item \code{current_tracer}: Write the tracer you want to use in this file
+	\item \code{tracing_on}: Write 1 to start tracing, 0 to stop tracing
+	\item \code{trace}: The content of the trace buffer after tracing is finished
 \end{itemize}
 
-First, try the \code{preemptirqsoff} tracer and start tracing :
+First, try the \code{preemptirqsoff} tracer and start tracing:
 
 \begin{bashinput}
 echo preemptirqsoff > current_tracer
@@ -253,8 +253,8 @@ echo 0 > tracing_on
 cat trace
 \end{bashinput}
 
-Give a try to other traces : \code{wakeup_rt}, \code{function}, \code{function_graph},
-using various of the stressing methods proposed above. Can you get meaningful information ?
+Give a try to other traces: \code{wakeup_rt}, \code{function}, \code{function_graph},
+using various of the stressing methods proposed above. Can you get meaningful information?
 
 \section{Using trace-cmd and kernelshark}
 
@@ -264,7 +264,7 @@ of the system during a command.
 
 \subsection{Recording}
 
-To record traces during a command, run trace-cmd with the \code{record} keyword :
+To record traces during a command, run trace-cmd with the \code{record} keyword:
 
 \begin{bashinput}
 # record a full function_graph trace for the duration of the cyclictest run
@@ -301,7 +301,7 @@ execution. This is useful in combination with the \code{wakeup_rt}, \code{wakeup
 
 This approach also allows you to use \code{cyclictest} in conjunction with \code{ftrace},
 since you can start at tracing session with \code{trace-cmd start} and have it
-stopped automatically when cyclictest detects a high latency :
+stopped automatically when cyclictest detects a high latency:
 
 \begin{bashinput}
 	# Start a tracing session
@@ -317,9 +317,9 @@ stopped automatically when cyclictest detects a high latency :
 \section{Using the osnoise tracer}
 
 The following command is used to generate an histogram of os noises with the 
-\code{osnoise} tracer :
+\code{osnoise} tracer:
 
 \code{osnoise hist -c 1 -P f:49 -d 1m}
 
-The output shoud show a maximum latency around 50 000 microseconds. Why is that ?
+The output shoud show a maximum latency around 50 000 microseconds. Why is that?
 
