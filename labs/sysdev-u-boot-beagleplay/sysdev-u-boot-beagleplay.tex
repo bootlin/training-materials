@@ -1,6 +1,6 @@
 \subchapter{Bootloader - TF-A and U-Boot}{Objectives: Set up serial
   communication, understand the AM62x Bootprocess, compile and install the
-  U-Boot bootloader, use basic U-Boot commands, set up TFTP communication 
+  U-Boot bootloader, use basic U-Boot commands, set up TFTP communication
   with the development workstation.}
 
 As the bootloader is the first piece of software executed by a
@@ -21,27 +21,27 @@ very specific to the hardware platform. There are usually two cases:
 \end{itemize}
 
 The AM625 SoC on the BeaglePlay falls into the second category. The monitor
-integrated in the ROM reads the SD card or any other interface to search for 
+integrated in the ROM reads the SD card or any other interface to search for
 a valid bootloader. If this first interface cannot provide a valid bootloader,
 the ROM can search somewhere else or will operate in a fallback mode, that will allow
 to use an external tool to reflash some executable through USB.
 
 On BeaglePlay board these two options can be chosen with the \code{USR/BOOT}
-key, available on the side of the board\footnote{If you want to know more about 
-the boot procedure of the AM62x SoC, please refer to AM62x datasheet 
+key, available on the side of the board\footnote{If you want to know more about
+the boot procedure of the AM62x SoC, please refer to AM62x datasheet
 (\url{https://www.ti.com/lit/pdf/spruiv7})}.
 
 \begin{center}
     \includegraphics[width=8cm]{labs/sysdev-u-boot-beagleplay/Beagleplay_USRkey_UART.png}
 \end{center}
 
-If the \code{USR/BOOT} key is released, then the SoC will try to find a 
+If the \code{USR/BOOT} key is released, then the SoC will try to find a
 bootloader into eMMC memory.
 If the \code{USR/BOOT} key is pressed, then it will try to find a bootloader
 on the microSD.
 
 {\bf Warning}: In this tutorial we will boot exclusively on the SD card. Therefore
-we will \textbf{ALWAYS} press the \code{USR/BOOT} key during startup ! 
+we will \textbf{ALWAYS} press the \code{USR/BOOT} key during startup!
 
 Go to the \code{$HOME/__SESSION_NAME__-labs/bootloader} directory.
 
@@ -93,7 +93,7 @@ It is now time to power up your board by plugging in the type C USB
 cable supplied by your instructor to your PC.
 
 See what messages you get on the serial line. You should see U-Boot
-start on the serial line, if there was a valid U-Boot and SPL on the 
+start on the serial line, if there was a valid U-Boot and SPL on the
 board's eMMC.
 
 \section{Understanding AM62x boot process}
@@ -115,9 +115,9 @@ safety use cases. This domain is controlled by a Cortex-M4F processor.
 Finally, we have the WKUP domain which, as its name suggests, is used during
 deepsleep mode and is controlled by a Cortex-R5F processor.
 
-\textbf{Note :} The Cortex-R5F and the Cortex-M4F are 32 bits processors
-(in opposition to 64bits Cortex-A53 processors) and will therefore need
-a 32bits toolchain.
+\textbf{Note :} The Cortex-R5F and the Cortex-M4F are 32 bit processors
+(in opposition to 64 bit Cortex-A53 processors) and will therefore need
+a 32 bit toolchain.
 
 The purpose of the AM62x SoC boot process is to initialize all the required
 peripherals and processors in different steps we are about to describe :
@@ -139,11 +139,11 @@ will then load the complete U-Boot image.
 The Following Process Flow can be viewed at the following address :
 \url{https://u-boot.readthedocs.io/en/latest/board/ti/am62x_sk.html}
 
-\section{Get and install the 32 bits toolchain}
+\section{Get and install the 32 bit toolchain}
 
-As the AM62x is using 32bits processors we will need a specific toolchain 
-to perform cross-compilation of 32 bits firmware.
-Although we could use Crosstool-ng to compile this 32 bits toolchain, we will use
+As the AM62x is using 32 bit processors we will need a specific toolchain
+to perform cross-compilation of 32 bit firmware.
+Although we could use Crosstool-ng to compile this 32 bit toolchain, we will use
 a precompiled one in order to save compilation time.
 To do so, we will get this toolchain from the official ARM website\footnote{You can download precompiled ARM toolchains for other
 target architecture on the following link \url{https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads/}}.
@@ -156,9 +156,9 @@ Let's download and untar it:
 \end{bashinput}
 
 Doesn't forget to add \code{$HOME/x-tools/arm-gnu-toolchain-12.2.rel1-x86_64-arm-none-eabi/bin/}
-to your \code{PATH} environment variable. 
+to your \code{PATH} environment variable.
 
-Now our 32 bits toolchain is installed into \code{$HOME/x-tools} directory !
+Now our 32 bit toolchain is installed into \code{$HOME/x-tools} directory !
 
 \section{Configure U-Boot for R5 Processor}
 
@@ -173,7 +173,7 @@ $ git checkout f036fb
 
 To share more easily U-Boot images across builds, let's create a build directory.
 
-\begin{bashinput}	
+\begin{bashinput}
 $ mkdir -p ../build_uboot/r5
 \end{bashinput}
 
@@ -187,15 +187,15 @@ Basically, you need to:
 
 \item Specify the cross-compiler prefix
 (the part before \code{gcc} in the cross-compiler executable name):
-\bashcmd{$ export CROSS_COMPILE=arm-none-eabi-} 
-and the architecture type (we are building for the R5, 32 bits Proc):
+\bashcmd{$ export CROSS_COMPILE=arm-none-eabi-}
+and the architecture type (we are building for the R5, 32 bit Proc):
 \bashcmd{$ export ARCH=arm}
 
 \item Run \inlinebash{$ ls configs/ | grep am62x} to see all predefined
       configurations. The one that supports our board for the R5 processor is
-      \code{am62x_evm_r5_defconfig} 
-\item I our case we need to specify the output directory we've 
-      created a few lines above by adding the following 
+      \code{am62x_evm_r5_defconfig}
+\item I our case we need to specify the output directory we've
+      created a few lines above by adding the following
       flag \code{O=../build_uboot/r5/}
 
       Now, run \inlinebash{$ make am62x_evm_r5_defconfig O=../build_uboot/r5/}.
@@ -246,7 +246,7 @@ and the architecture type (we are building for the R5, 32 bits Proc):
 
 If you go into \inlinebash{../build_uboot/r5/} you can see all the files
 generated during the build process. Keep in mind that we will only use the
-SPL image of U-Boot for the R5 booting sequence, which is located in the 
+SPL image of U-Boot for the R5 booting sequence, which is located in the
 \code{spl} directory.
 
 \section{Get the TI firmware and create {\tt tiboot3.bin} image}
@@ -261,7 +261,7 @@ $ cd ti-linux-firmware
 $ git checkout c126d3864b9faf725ff40e620049ab5d56dedc5b
 \end{bashinput}
 
-Next, the AM62x requires both SPL and the TIFS firmware to be grouped into a 
+Next, the AM62x requires both SPL and the TIFS firmware to be grouped into a
 single image within a X.509 Certificate encaplusation.
 
 To do so, TI provide us a tool called \code{k3-image-gen}, so let's use it !
@@ -277,7 +277,7 @@ $ git checkout 150f1956b4bdcba36e7dffc78a4342df602f8d6e
 Few parameters have to be passed to the Makefile,
 \begin{itemize}
 \item The SoC name: \code{SOC=am62x}
-\item The path to the \code{u-boot-spl} image: 
+\item The path to the \code{u-boot-spl} image:
     \code{SBL=../build_uboot/r5/spl/u-boot-spl.bin}
 \item The path to the to TIFS firmware binary image:
     \code{SYSFW_PATH=../ti-linux-firmware/ti-sysfw/ti-fs-firmware-am62x-gp.bin}
@@ -308,7 +308,7 @@ Several configuration parameters have to be passed to the Makefile:
 \item The architecture has to be selected (aarch64)
       Again either using the environment variable: \code{$ export ARCH=aarch64}
       or just by adding it to the \code{make} commande line.
-\item The AM62x SoC platform which is the k3 family is selected 
+\item The AM62x SoC platform which is the k3 family is selected
       too with \code{PLAT=k3}
 \item And we specify the target board we use with \code{TARGET_BOARD=lite}
 \end{itemize}
@@ -334,11 +334,11 @@ So the resulting make command is:
 
 % Several configuration parameters have to be passed to the Makefile:
 % \begin{itemize}
-% \item Specify the 32 bits cross-compiler prefix \code{CROSS_COMPILE=arm-none-eabi-}
-% \item Specify the 64 bits cross-compiler prefix \code{CROSS_COMPILE64=aarch64-linux-}
-% \item In order to indicates that our SoC supports both 64 and 32 bits builds,
+% \item Specify the 32 bit cross-compiler prefix \code{CROSS_COMPILE=arm-none-eabi-}
+% \item Specify the 64 bit cross-compiler prefix \code{CROSS_COMPILE64=aarch64-linux-}
+% \item In order to indicates that our SoC supports both 64 and 32 bit builds,
 %       we need to set \code{CFG_ARM64_core=y}
-% \item The AM62x SoC platform which is the k3 family is selected 
+% \item The AM62x SoC platform which is the k3 family is selected
 %       too with \code{PLATFORM=k3}
 % \end{itemize}
 
@@ -365,7 +365,7 @@ For setting-up the A53 U-Boot, we will reuse the previous
 U-Boot directory. Few configuration changes are however needed:
 
 \begin{enumerate}
-\item Change your shell environment variables to match the new 
+\item Change your shell environment variables to match the new
   target architecture,
   \begin{bashinput}
   $ export ARCH=aarch64
@@ -440,7 +440,7 @@ first 16 MiB of the SD card:
 \bashcmd{$ sudo dd if=/dev/zero of=/dev/mmcblk0 bs=1M count=16}
 
 Now, let's use the \code{fdisk} command to create the 2 partitions
-that we need to boot the board and store U-Boot env. Note that we could have stored the 
+that we need to boot the board and store U-Boot env. Note that we could have stored the
 U-Boot environment variables in the same partition as the bootloader images.
 But to demonstrate what U-Boot is capable of, we stored the U-Boot env
 into a separate partition.
@@ -453,7 +453,7 @@ be using \code{fdisk}
 
 If the drive doesn't have any partiton table \code{fdisk} will automatically
 create a \code{dos} one. This corresponds to 
-traditional partitions tables that DOS/Windows would understand. 
+traditional partitions tables that DOS/Windows would understand.
 \code{gpt} partition tables are needed for disks bigger than 2 TB.
 
 First we need to create a First partition, which will contain the
@@ -507,7 +507,7 @@ sudo mkfs.vfat -F 32 -n boot /dev/mmcblk0p1
 And an EXT4 filesystem on the second partition.
 
 Note that we used the \code{-O ^metadata_csum} option which allows us to create
-the filesystem without enabling metadata check-sums, which U-Boot doesn't 
+the filesystem without enabling metadata check-sums, which U-Boot doesn't
 seem to support yet.
 \begin{bashinput}
 sudo mkfs.ext4 -L env -O ^metadata_csum /dev/mmcblk0p2
@@ -518,12 +518,12 @@ partition by removing the SD card and plugging it back. It should
 now be mounted on \code{/media/$USER/boot}.
 
 Now, copy the \code{tiboot3.bin} image into the SD card,
-\code{tiboot3.bin} is located in the 
+\code{tiboot3.bin} is located in the
 \code{$HOME/__SESSION_NAME__-labs/bootloader/k3-image-gen}
-folder and contains the 32 bits binaries.
+folder and contains the 32 bit binaries.
 
 Next, copy both the \code{tispl.bin} and \code{u-boot.img} files.
-This time, the images contains 64 bits binaires, and therefore are contained
+This time, the images contains 64 bit binaires, and therefore are contained
 in the \code{$HOME/__SESSION_NAME__-labs/bootloader/build_uboot/a53}
 folder.
 
@@ -540,7 +540,7 @@ $ cp $HOME/__SESSION_NAME__-labs/bootloader/build_uboot/a53/u-boot.img /media/$U
 Insert the SD card in the board slot. To boot the board on the external micro-SD
 card, you need to hold the \code{USR/BOOT} button close to the USB host
 port, and then power-up or reset the board. You can then release the
-\code{USR} button. 
+\code{USR} button.
 
 This seems like a very inconvenient way of booting the board, but
 the selection of attempting to boot from the external micro-SD card
@@ -597,7 +597,7 @@ Press SPACE to abort autoboot in 2 seconds
 The code above shows us the main steps of the boot process.
 First we can see that the SPL bootloader as been loaded by the R5.
 Next the TF-A (ATF) is loaded and we jump into the normal boot world.
-Finally, the 64 bits U-Boot SPL is loaded which load U-Boot itself.
+Finally, the 64 bit U-Boot SPL is loaded which load U-Boot itself.
 
 \textbf{Note:} We can see that the R5 U-Boot SPL skips the 'tee'
 image. This is because we chose to not use OPTEE in order
