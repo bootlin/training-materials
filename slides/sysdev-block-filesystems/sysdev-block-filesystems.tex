@@ -106,20 +106,21 @@ major minor #blocks name
 
 \subsection{Available block filesystems}
 
-\begin{frame}{Standard Linux filesystem format: ext2, ext3, ext4}
+\begin{frame}{Ext2}
+  One of the earliest Linux filesystem, introduced in 1993
   \begin{itemize}
-  \item The standard filesystem used on Linux systems is the series of
-    \code{ext{2,3,4}} filesystems
-    \begin{itemize}
-    \item \code{ext2} (\kconfig{CONFIG_EXT2_FS})
-    \item \code{ext3}, brought {\em journaling} (explained next slide)
-          compared to \code{ext2}, now obsoleted by \code{ext4}.
-    \item \code{ext4} (\kconfig{CONFIG_EXT4_FS}), mainly brought performance improvements and
-          support for very big partitions.
-    \end{itemize}
-  \item It supports all features Linux needs in a root filesystem:
-    permissions, ownership, device files, symbolic links, etc.
+    \item \kdochtml{filesystems/ext2}
+    \item Still actively supported. Low metadata overhead, module size and RAM usage
+    \item But risk of metadata corruption after an unclean shutdown.
+      You then need to run \code{e2fsck}, which takes time and may need operator intervention.
+      Can't reboot autonomously.
+    \item First successor: \code{ext3} (2001), addressing this limitation with {\em Journaling}
+      (see next slides) but wasn't scaling well. Now deprecated.
+    \item It supports all features Linux needs in a root filesystem:
+      permissions, ownership, device files, symbolic links, etc.
+    \item Date range: December 14, 1901 -- January 18, 2038, because of 32 bit dates!
   \end{itemize}
+  Not recommended for embedded systems today!
 \end{frame}
 
 \begin{frame}
@@ -158,59 +159,102 @@ major minor #blocks name
   \end{columns}
 \end{frame}
 
-\begin{frame}
-  \frametitle{Other journaled Linux/UNIX filesystems}
-  \begin{itemize}
-  \item \code{XFS} (\kconfig{CONFIG_XFS_FS}), high-performance filesystem inherited from SGI
-    IRIX, actively developed. Default filesystem on Red Hat Entreprise Linux.
-  \item \code{JFS} (\kconfig{CONFIG_JFS_FS}), inherited from IBM AIX. No longer actively
-    developed, provided mainly for compatibility.
-  \item \code{reiserFS} (\kconfig{CONFIG_REISERFS_FS}), used to be a
-    popular filesystem, but is not actively maintained any more.
-  \end{itemize}
+\begin{frame}{Ext4}
+    The modern successor of Ext2
+    \begin{itemize}
+        \item First introduced in 2006, filesystem with Journaling, without \code{ext3} limitations.
+        \item Still actively developed (new features added). However, considered in 2008
+              by Ted Ts'o as a "stop-gap" based on old technologies.
+        \item The default filesystem choice for many GNU/Linux distributions (Debian, Ubuntu)
+        \item The \code{ext4} driver also supports \code{ext2} and \code{ext3} (one driver is sufficient).
+        \item Noteworthy feature: transparent encryption (but compression not available).
+        \item Minimum partition size to have a journal: 8MiB.
+        \item Minimum partition size without a journal: 256KiB (only 32 inodes!).
+    \end{itemize}
+    \url{https://en.wikipedia.org/wiki/Ext4}
 \end{frame}
 
-\begin{frame}
-  \frametitle{Other read-write filesystems}
-  \begin{itemize}
-  \item Btrfs (\kconfig{CONFIG_BTRFS_FS})
+\begin{frame}{XFS}
+    A Journaling filesystem
     \begin{itemize}
-    \item A \href{https://en.wikipedia.org/wiki/Copy-on-write\#In\_computer\_storage}{copy-on-write}
-          (not journaled) filesystem.
-    \item Actively developed and high performance.
-    \item It integrates numerous features: data checksuming, integrated volume management, snapshots, etc.
-    \item \url{https://en.wikipedia.org/wiki/Btrfs}
+        \item Since 1994 (started by Silicon Graphics for the IRIX OS)
+        \item Actively maintained and developed by Red Hat now
+        \item Features: variable block size, direct I/O, online growth...
+        \item Minimum partition size: 16MiB (9.7MiB of free space)
     \end{itemize}
-  \item F2FS: Flash-Friendly Filesystem (\kconfig{CONFIG_F2FS_FS})
-    \begin{itemize}
-    \item A \href{https://en.wikipedia.org/wiki/Log-structured\_file\_system}{log-structured filesystem}
-          that takes into account the characteristics of flash-based storage: eMMC, SD cards, SSD, etc.
-    \item Supporting transparent compression (LZO, LZ4, zstd) and encryption.
-    \item Benchmarks: best performer on flash devices most of the time: \\
-          See \url{https://lwn.net/Articles/520003/} (2012)
-    \item Not as widely used as \code{ext4} and \code{btrfs}, even on flash-based
-          storage.
-    \item \url{https://en.wikipedia.org/wiki/F2FS}
-    \end{itemize}
-  \end{itemize}
+    \url{https://en.wikipedia.org/wiki/XFS}
 \end{frame}
 
-\begin{frame}
-  \frametitle{Read-only filesystems}
-  SquashFS: \kconfig{CONFIG_SQUASHFS}
-  \begin{itemize}
-  \item Read-only, compressed filesystem for block devices. Fine for
-    parts of a filesystem which can be read-only (kernel, binaries...)
-  \item Used in most live CDs and live USB distributions
-  \item Supports several compression algorithms (LZO, XZ, etc.)
-  \item Gives priority to compression ratio vs read performance
-  \end{itemize}
-  EROFS: \kconfig{CONFIG_EROFS_FS}
-  \begin{itemize}
-     \item \url{https://en.wikipedia.org/wiki/EROFS}
-     \item Gives priority to read performance vs compression
-  \end{itemize}
-  See a comparison at \url{https://blog.sigma-star.at/post/2022/07/squashfs-erofs/}
+\begin{frame}{Btrfs}
+    A copy-on-write filesystem
+    \begin{itemize}
+        \item Pronounced as "better F S", "butter F S" or "b-tree F S", since 2009.
+        \item A modern filesystem with many advanced features: volumes, snapshots, transparent compression...
+        \item Minimum partition size: 109MiB (only 32MiB of free space).
+    \end{itemize}
+    \url{https://en.wikipedia.org/wiki/Btrfs}
+\end{frame}
+
+\begin{frame}{F2FS --- Flash-Friendly File System}
+    A log-structured filesystem
+    \begin{itemize}
+        \item Since 2012 (started by Samsung, actively maintained)
+        \item Designed from the start to take into account the
+              characteristics of solid-state based storage (eMMC, SD, SSD)
+        \item In particular, trying to make most writes sequential (best on SSD)
+        \item Support for transparent encryption and compression (LZO,
+              LZ4, Zstd), possible on a file by file (or file type)
+              basis, through extended file attributes.
+        \item Maximum partition size: 16TB, maximum file size: 3.94TB
+        \item Minimum partition size: 52MiB (8MiB free space)
+    \end{itemize}
+    \url{https://en.wikipedia.org/wiki/F2FS}
+\end{frame}
+
+\begin{frame}{NILFS --- New Implementation of a Log-structured File System}
+    A log-structured filesystem too, also known as NILFS2
+    \begin{itemize}
+        \item Since 2005 (started by NTT, maintained but not very actively)
+        \item Treating the storage medium as a circular buffer, new blocks are always written to the end.
+        \item Provides continuous snapshotting, easy to restore files modified or deleted at any recent time.
+              This create a weird behavior though: all past files (even erased ones) are kept and
+              this fills up all available space. Needs to run and configure \code{nilfs_cleanerd} to avoid this
+              (you also need to stop it before you can unmount your partition!).
+        \item Supposed to be great at latency (minimizes seek time) and be the best at handling
+              many small files.
+        \item Minimum partition size: 129MiB (48MiB free space)
+    \end{itemize}
+    \url{https://en.wikipedia.org/wiki/NILFS}
+\end{frame}
+
+\begin{frame}{SquashFS --- A Read-Only and Compressed File System}
+    The most popular choice for this usage
+    \begin{itemize}
+        \item Started by Phillip Lougher, since 2009 in the mainline kernel, actively maintained.
+        \item Fine for parts of a filesystem which can be read-only (kernel, binaries...)
+        \item Used in most live CDs and live USB distributions
+        \item Supports several compression algorithms (Gzip, LZO, XZ, LZ4, Zstd)
+        \item Supposed to give priority to compression ratio vs read performance
+        \item Suitable for very small partitions
+    \end{itemize}
+    \url{https://en.wikipedia.org/wiki/SquashFS}
+\end{frame}
+
+\begin{frame}{EROFS --- Enhanced Read-Only File System}
+    A more recent read-only, compressed solution
+    \begin{itemize}
+        \item Started by Gao Xiang (Huawei), since 2019 in the mainline kernel.
+        \item Used in particular in Android phones (Huawei, Xiaomi, Oppo...)
+        \item Supposed to give priority to read performance vs compression ratio
+        \item EROFS implements compression into fixed 4KB blocks (better for read
+              performance), while SquashFS uses fixed-sized blocks of uncompressed
+              data.
+        \item Unlike Squashfs, EROFS also allows for random access to files in
+              directories.
+        \item Development seems more active than on SquashFS.
+        \item Suitable for very small partitions
+    \end{itemize}
+    \url{https://en.wikipedia.org/wiki/EROFS}
 \end{frame}
 
 \begin{frame}
@@ -218,10 +262,6 @@ major minor #blocks name
   \begin{itemize}
      \item Some filesystems will work better than others
            depending on how you use them.
-     \item For example, \code{reiserFS} had the reputation
-           to be best at handling many small files.
-     \item \code{ext2} is great in small partitions
-	   and on systems with little RAM.
      \item Fortunately, filesystems are easy to benchmark, being
            transparent to applications:
            \begin{itemize}
@@ -231,10 +271,18 @@ major minor #blocks name
                    performance.
 	     \item Keep the one working best in your case.
            \end{itemize}
-     \item For read/write partitions, a good default choice
-           would be \code{ext4}, and then try \code{btrfs} and \code{f2fs}
-           if you need extra performance.
+     \item If you haven't done benchmarks yet, a good default choice
+           is \code{ext4} for read/write partitions.
   \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Filesystem benchmarks}
+  \includegraphics[height=0.7\textheight]{slides/sysdev-block-filesystems/rating.pdf}\\
+  \small
+  See our presentation for more details and benchmarks (Linux 6.3, ARM32 BeagleBone Black):
+  \scriptsize
+  \url{https://bootlin.com/pub/conferences/2023/eoss/opdenacker-finding-best-block-filesystem/}
 \end{frame}
 
 \begin{frame}
@@ -280,14 +328,13 @@ major minor #blocks name
 \subsection{Using block filesystems}
 
 \begin{frame}
-  \frametitle{Creating ext2/ext4 filesystems}
+  \frametitle{Creating ext4 filesystems}
   \begin{itemize}
-  \item To create an empty ext2/ext4 filesystem on a block device or
+  \item To create an empty ext4 filesystem on a block device or
     inside an already-existing image file
     \begin{itemize}
-    \item \code{mkfs.ext2 /dev/sdb1}
     \item \code{mkfs.ext4 /dev/sda3}
-    \item \code{mkfs.ext2 disk.img}
+    \item \code{mkfs.ext4 disk.img}
     \end{itemize}
   \item To create a filesystem image from a directory containing all
     your files and directories
@@ -296,7 +343,8 @@ major minor #blocks name
           filesystem image from an existing directory:
           \begin{itemize}
           \item {\em ext2}: \code{genext2fs -d rootfs/ rootfs.img}
-	  \item {\em squashfs}: \code{mksquashfs rootfs/ rootfs.sqfs} (details later)
+	      \item {\em squashfs}: \code{mksquashfs rootfs/ rootfs.sqfs} (details later)
+          \item {\em erofs}: \code{mkfs.erofs rootfs.erofs rootfs/}
           \end{itemize}
     \item For other (read-write) filesystems: create a disk image,
           format it, mount it (see next slides), copy contents and umount.
@@ -313,7 +361,7 @@ major minor #blocks name
     {\bf loop} mechanism:
   \item Example:\\
     \code{mkdir /tmp/tst}\\
-    \code{mount -t ext2 -o loop rootfs.img /tmp/tst}
+    \code{mount -t ext4 -o loop rootfs.img /tmp/tst}
   \item In the \code{/tmp/tst} directory, one can access and modify
     the contents of the \code{rootfs.img} file.
   \item This is possible thanks to \code{loop}, which is a kernel
