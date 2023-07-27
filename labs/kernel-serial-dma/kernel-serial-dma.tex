@@ -39,7 +39,8 @@ while we will implement a new callback named
 \code{serial_write_dma}. Remember to also update the \code{.write}
 member of \code{serial_fops} to run the DMA variant. If you want to
 avoid warnings because \code{serial_write_pio} would now be unused, you
-can define it with the \code{__maybe_unused} keyword.
+can temporarily define it with the \code{__maybe_unused} keyword, until
+we re-use it again (see below).
 
 Let's now create two helpers supposed to initialize and cleanup our DMA
 setup. We will call \code{serial_init_dma()} right before registering
@@ -60,13 +61,13 @@ compatible and the addressing masks properly set to 32-bit.
 
 We should at the very least request the DMA channel to use. Open the SoC
 device tree and find the uart2 and uart4 nodes. Look for \code{dma}
-channel properties and their names. Yes, while uart2 seem to be
-connected to the DMA controller through two different channels (one for
-each direction), uart4 is not. Hence, when requesting the channels with
-\kfunc{dma_request_chan()}, we must take care of not error-out upon the
+channel properties and their names. While uart2 seem to be connected to
+the DMA controller through two different channels (one for each
+direction), uart4 is not. Hence, when requesting the channels with
+\kfunc{dma_request_chan()}, we must take care of not erroring-out upon the
 absence of channel. Mind the return value which is a \kstruct{dma_chan}
-pointer, it must be checked with the \code{IS_ERR()} macro. You may display the
-corresponding error string with {\tt \%pe}!
+pointer, it must be checked with the \code{IS_ERR()} macro. You may
+display the corresponding error string with {\tt \%pe}!
 
 This channel will be used by all the \code{dmaengine} helpers, so better
 save it in our \code{serial_dev} structure.
@@ -154,8 +155,13 @@ struct serial_dev {
 };
 \end{verbatim}
 
-As we do not want to deal with concurrent operations anymore to simplify DMA
-handling, we can start and end the write hook with something like:
+In the write hook, we shall first check if the DMA channel has been
+properly retrieved. If not, we should definitely fallback to the PIO
+implementation.
+
+Then, in order to simplify the code, we will no longer deal with
+concurrent operations. In order to safely serialize writes, we can start
+and end the write hook with something like:
 
 \begin{verbatim}
 /* Prevent concurrent Tx */
@@ -173,9 +179,6 @@ spin_lock_irqsave(&serial->lock, flags);
 serial->txongoing = false;
 spin_unlock_irqrestore(&serial->lock, flags);
 \end{verbatim}
-
-Also do not forget to check the absence of DMA channel, return
-\code{-EOPNOTSUPP} in this case.
 
 The first step in this \code{->write()} hook is to use \code{serial->tx_buf} as
 bounce buffer by copying the user data using \kfunc{copy_from_user}. Let's
