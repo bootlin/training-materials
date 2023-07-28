@@ -8,7 +8,7 @@ LINUX_KERNEL_SLIDES = \
 		setup-lab \
 		kernel-introduction-title \
 		sysdev-linux-intro-features \
-		sysdev-linux-intro-sources \
+		kernel-intro-sources \
 		kernel-source-code-download-lab \
 		kernel-source-code-title \
 		kernel-source-code-drivers \
