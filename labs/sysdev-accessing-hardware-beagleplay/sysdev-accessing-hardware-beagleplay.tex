@@ -102,9 +102,9 @@ The first thing to do is to enable this legacy interface by enabling
 \kconfig{CONFIG_GPIO_SYSFS} in the kernel configuration.
 To do so, in recent linux kernel versions the \kconfig{CONFIG_EXPERT}
 needs to be enable to have access to some legacy options and in our
-case to \kconfig{CONFIG_GPIO_SYSFS}
+case to \kconfig{CONFIG_GPIO_SYSFS}.
 
-Also make sure{\em Debugfs} is enabled (\kconfig{CONFIG_DEBUG_FS} and
+Also make sure {\em Debugfs} is enabled (\kconfig{CONFIG_DEBUG_FS} and
 \kconfig{CONFIG_DEBUG_FS_ALLOW_ALL}).
 
 After rebooting the new kernel, the first thing to do is to mount
@@ -125,8 +125,8 @@ We are going to use one of the MIKROBUS connector of the board,
 
 Take one of the M-M breadboard wires provided by your instructor and:
 \begin{itemize}
-  \item Connect one end to \code{INT} pin of the \code{MIKROBUS} connector
-  \item Connect the other end to \code{GND} pin of the \code{MIKROBUS} connector
+  \item Connect one end to the \code{INT} pin of the \code{MIKROBUS} connector
+  \item Connect the other end to the \code{GND} pin of the \code{MIKROBUS} connector
 \end{itemize}
 
 \includegraphics[width=\textwidth]{labs/sysdev-accessing-hardware-beagleplay/System-Block-Diagram.png}
@@ -134,25 +134,25 @@ Take one of the M-M breadboard wires provided by your instructor and:
 
 We have chosen the \code{INT} pin because it is already configured as a GPIO
 with the default device-tree file. In addition to that the BeaglePlay board
-doesn't have proper GPIO headers like on the BeagleBone Black, and 
+doesn't have proper GPIO headers like on the BeagleBone Black, and
 this is for this reason we take the \code{INT} pin to do our lab.
 Referring to the upper image, we could also have chosen \code{PWM}, \code{AN}
 or \code{RST} pin to do this lab, because there are all GPIOs.
 
-Now that we've selected our pin on the board, we need to know where it 
-is connected on the SoC. To do so BeagleBoard provide us the schematics 
-of the mikrobus header we are using:
+Now that we've selected our pin on the board, we need to know where it
+is connected on the SoC. To do so BeagleBoard.org provides us with the schematics
+of the Mikrobus header we are using:
 
 \includegraphics[width=\textwidth]{labs/sysdev-accessing-hardware-beagleplay/mikroBUS1.png}
 {\small Source: \url{https://docs.beagleboard.org/latest/boards/beagleplay/03-design.html}}
 
 If you look at the schematics carefully you can see that the \code{INT} pin
-is connected to the \code{GPIO1_9} pin of the SoC, which is already 
+is connected to the \code{GPIO1_9} pin of the SoC, which is already
 configured as a GPIO by default (no need to change pin muxing to use
 this pin as a GPIO).
 
 The last step is to know the name that the kernel will give
-to that specific pin. If you get back to the content of 
+to that specific pin. If you get back to the content of
 \code{/sys/kernel/debug/gpio}, you'll see that the \code{MIKROBUS_GPIO1_9}
 is also called {\tt gpio-\gpionum}, which we will be using in the next steps.
 
@@ -182,7 +182,7 @@ And check its value:
 
 The value should be \code{0} as the pin is connected to a ground level.
 
-Now, let's connect our GPIO pin to \code{+3.3V} pin.
+Now, let's connect our GPIO pin to the \code{+3.3V} pin.
 
 Let's check the value again:
 
@@ -273,7 +273,7 @@ busses available through different connectors:
 
 The AM62x SoC has 3 others I2C controllers but are not used on
 the BeaglePlay board. However because the default device-tree
-we are using enables all the I2C controllers except one, we except
+we are using enables all the I2C controllers except one, we expect
 to see 5 busses to be detected by the kernel, let's check this,
 
 \begin{bashinput}
@@ -317,7 +317,7 @@ datasheet}, in the \code{Memory Map} section:
 \item I2C2 is indeed at address \code{0x20020000}
 \item I2C3 is indeed at address \code{0x20030000}
 \item I2C4 doesn't exist in datasheet but corresponds to
-      WKUP\_I2C0 at address \code{0x2B200000}
+      WKUP\_I2C0 at address \code{0x2b200000}
 \item I2C5 doesn't exist in datasheet but corresponds to
       MCU\_I2C0 at address \code{0x04900000}
 \end{itemize}
@@ -325,17 +325,17 @@ datasheet}, in the \code{Memory Map} section:
 So, we are lucky that the first 4 Linux I2C names corresponds to the first 4
 datasheet names.
 
-In this Labs we will be using the I2C3 to connect the nunchuk
+In this lab we will be using the I2C3 bus to connect the nunchuk
 because it is located on the MIKROBUS connector and is easily
 accessible.
 
-However because this I2C controller is already enable, we will
-first play with the I2C4 (WKUP\_I2C0 in datasheet) and demonstrate
+However because this I2C controller is already enabled, we will
+first play with I2C4 (WKUP\_I2C0 in datasheet) and demonstrate
 how to enable it, even we don't use I2C4 in the rest of the labs.
 
 \subsection{Customizing the Device Tree}
 
-Fortunately, I2C4 (WKUP\_I2C0 in datasheet) is already defined 
+Fortunately, I2C4 (WKUP\_I2C0 in datasheet) is already defined
 in one of the DTS includes used by the Device Tree for our board.
 In our case, that's in \kfile{arch/arm64/boot/dts/ti/k3-am62-wakeup.dtsi}.
 Look by yourself in this file, and you will find its definition, but with
@@ -382,7 +382,7 @@ i2c-1	i2c       	OMAP I2C adapter                	I2C adapter
 i2c-4	i2c       	OMAP I2C adapter                	I2C adapter
 i2c-2	i2c       	OMAP I2C adapter                	I2C adapter
 i2c-0	i2c       	OMAP I2C adapter                	I2C adapter
-i2c-5	i2c       	OMAP I2C adapter                	I2C adapter      
+i2c-5	i2c       	OMAP I2C adapter                	I2C adapter
 \end{bashinput}
 
 Run the below command to confirm that the new bus has the same address
@@ -398,14 +398,14 @@ Let's start by the bus associated to \code{i2c-0}:
 i2cdetect: WARNING! This program can confuse your I2C bus
 Continue? [y/N] y
      0  1  2  3  4  5  6  7  8  9  a  b  c  d  e  f
-00:          -- -- -- -- -- -- -- -- -- -- -- -- -- 
-10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
-20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
-30: UU -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
-40: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
-50: 50 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
-60: -- -- -- -- -- -- -- -- 68 -- -- -- -- -- -- -- 
-70: -- -- -- -- -- -- -- -- 
+00:          -- -- -- -- -- -- -- -- -- -- -- -- --
+10: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+20: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+30: UU -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+40: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+50: 50 -- -- -- -- -- -- -- -- -- -- -- -- -- -- --
+60: -- -- -- -- -- -- -- -- 68 -- -- -- -- -- -- --
+70: -- -- -- -- -- -- -- --
 \end{bashinput}
 
 We can see three devices on this internal bus:
@@ -546,10 +546,11 @@ Go back to the kernel source directory.
 The Linux kernel has a generic driver supporting all USB audio devices
 supporting the standard USB audio class. This driver can be enabled
 using the \kconfig{CONFIG_SND_USB_AUDIO} configuration option. Look
-for this parameter in the kernel configuration, and enable it.
+for this parameter in the kernel configuration, and configure it
+as a module.
 
-So, instead of compiling the corresponding driver as a built-in, that's
-a good opportunity to practice with kernel modules.
+So, instead of compiling the corresponding driver as a built-in as
+we did before, that's a good opportunity to practice with kernel modules.
 
 So, compile your modules:
 \begin{bashinput}
