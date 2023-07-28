@@ -404,7 +404,7 @@ If you go to \inlinebash{$HOME/__SESSION_NAME__-labs/bootloader/build_uboot/a53/
 you can see that 2 of the 3 files we will use in the next part have been created
 (\code{tispl.bin} and \code{u-boot.img})
 
-\section{Preparing a bootable micro-SD card}
+\section{Preparing a bootable micro-SD card}\label{sec:Prepboot}
 
 The TI romcode will look for the needed images in a FAT partition
 on the SD card. To be recognized by the romcode, this partition have
@@ -708,6 +708,40 @@ contents of the memory:
 
 We will see in the next labs how to use U-Boot to download, flash and
 boot a kernel.
+
+\section{Optional: Flash the bootloader onto eMMC memory}
+If this is too inconvenient for you, you could use U-Boot on the external
+micro-SD card to flash the bootloader files onto the onboard eMMC memory.
+
+When the Beagleplay is booting up on eMMC, it will first look at the
+\code{boot0} hardware partition\footnote{To know more about hardware partitions
+on eMMC, please refer to the following link:
+\url{https://www.pengutronix.de/en/blog/2020-10-15-anpassen-einer-emmc.html}}
+for a valid \code{tiboot3.bin} image.
+Next it loads \code{tispl.bin} and \code{u-boot.img} from a FAT partition on the
+user hardware partition.
+
+First, we need to boot on our SD Card to have access to U-Boot commands and
+select the \code{boot0} partition we want to work on.
+
+\begin{ubootinput}
+  => mmc dev 0 1
+\end{ubootinput}
+
+Next copy the tiboot3.bin image from your SD card FAT partition to the RAM,
+and paste it from the RAM to the first sector of the selected eMMC hardware
+partition.
+
+\begin{ubootinput}
+  => fatload mmc 1 0x80000000 tiboot3.bin
+  => mmc write 0x8000000 0 400
+\end{ubootinput}
+
+Now, we will make the user hw partition accessible as USB Mass Storage
+on the host machine, in order to flash it. To do so type the
+\code{ums} U-Boot command and follow the 
+\hyperref[sec:Prepboot]{Preparing a bootable micro-SD card} section
+on the freshly appeared USB Mass Strorage.
 
 \section{Rescue binaries}
 
