@@ -36,7 +36,7 @@ LINUX_KERNEL_SLIDES = \
 		kernel-porting \
 		kernel-power-management \
 		kernel-development-process-title \
-		sysdev-linux-intro-versioning \
+		linux-kernel-intro-versioning \
 		kernel-contribution \
 		kernel-resources-references \
 		last-slides \
