@@ -439,60 +439,42 @@ first 16 MiB of the SD card:
 
 \bashcmd{$ sudo dd if=/dev/zero of=/dev/mmcblk0 bs=1M count=16}
 
-Now, let's use the \code{fdisk} command to create the 2 partitions
+Now, let's create the 2 partitions
 that we need to boot the board and store U-Boot env. Note that we could have stored the
 U-Boot environment variables in the same partition as the bootloader images.
 But to demonstrate what U-Boot is capable of, we stored the U-Boot env
 into a separate partition.
 
 There exist several utilities to partition a disk, here we will
-be using \code{fdisk}
+be using \code{cfdisk}, which is a graphical version \code{fdisk} tool.
 
-\bashcmd{$ sudo fdisk /dev/mmcblk0}
+\bashcmd{$ sudo cfdisk /dev/mmcblk0}
 
 
-If the drive doesn't have any partiton table \code{fdisk} will automatically
-create a \code{dos} one. This corresponds to 
-traditional partitions tables that DOS/Windows would understand.
-\code{gpt} partition tables are needed for disks bigger than 2 TB.
+If \code{cfdisk} asks you to \code{Select a label type} choose \code{dos}.
+This corresponds to traditional partitions tables that DOS/Windows would 
+understand. \code{gpt} partition tables are needed for disks bigger than 2 TB.
 
-Now, we need to create a first partition, which will contain the
-bootimages.
+In the \code{cfdisk} interface, delete existing partitions, and then create 2
+partitions with the following properties:
 
-\begin{bashinput}
-Command (m for help): n
-Select (default p): p
-Partition number (1-4, default 1): 1
-First sector (2048-31116287, default 2048):
-Last sector, +/-sectors or +/-size{K,M,G,T,P} (2048-31116287, default 31116287): +128M
-\end{bashinput}
+\begin{itemize}
+\item First Partition
+\begin{itemize}
+  \item Size: \code{128MB} big
+  \item Type: \code{W95 FAT32 (LBA)}  (\code{c} choice)
+  \item Bootable flag enabled
+\end{itemize}
 
-Once this done, let's create the second one,
-\begin{bashinput}
-Command (m for help): n
-Select (default p): p
-Partition number (2-4, default 2): 2
-First sector (264192-31116287, default 264192):
-Last sector, +/-sectors or +/-size{K,M,G,T,P} (264192-31116287, default 31116287): +300M
-\end{bashinput}
+\item Second Partition
+\begin{itemize}
+  \item Size: \code{300MB} big
+  \item Type: \code{Linux}  (\code{83} choice)
+\end{itemize}
+\end{itemize}
 
-Now, like we said earlier, we have to set the type of the first partition to
-\code{W95 FAT32 (LBA)} and set the \code{Bootable} Flag:
 
-\begin{bashinput}
-Command (m for help): t
-Partition number (1,2, default 2): 1
-Hex code or alias (type L to list all): c
-Command (m for help): a
-Partition number (1,2, default 2): 1
-\end{bashinput}
-
-When you are done, you can write your newly created partition table
-on the SD card and exit \code{fdisk}:
-
-\begin{bashinput}
-Command (m for help): w
-\end{bashinput}
+Press \code{Write} when you are done.
 
 We will create further partitions in a later lab, when we need them.
 
