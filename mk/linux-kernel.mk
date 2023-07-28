@@ -35,7 +35,6 @@ LINUX_KERNEL_SLIDES = \
 		kernel-driver-development-debugging \
 		kernel-porting \
 		kernel-power-management \
-		kernel-contribution \
 		kernel-resources-references \
 		last-slides \
 		kernel-backup-slides-title \
