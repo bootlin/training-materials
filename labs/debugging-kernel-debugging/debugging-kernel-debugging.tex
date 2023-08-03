@@ -15,7 +15,7 @@
 
 \kconfig{CONFIG_PROVE_LOCKING} and \kconfig{CONFIG_DEBUG_ATOMIC_SLEEP} have been
 enabled in the provided kernel image.
-First, compile the module using the following command line:
+First, compile the module on your development host using the following command line:
 
 \begin{bashinput}
 $ cd /home/$USER/debugging-labs/nfsroot/root/locking
@@ -25,7 +25,7 @@ $ export KDIR=/home/$USER/debugging-labs/buildroot/output/build/linux-5.13/
 $ make
 \end{bashinput}
 
-Load the \code{locking.ko} module and look at the output in dmesg:
+On the target, load the \code{locking.ko} module and look at the output in dmesg:
 
 \begin{bashinput}
 # cd /root/locking
@@ -39,9 +39,9 @@ have been reported by the \code{lockdep} system.
 \section{Kmemleak}
 
 The provided kernel image contains kmemleak but it is disabled by default to
-avoid having a large overhead. In order to enable it, reboot and enable it by
-adding \code{kmemleak=on} on the command line. Interrupt U-Boot at reboot and
-modify the \code{bootargs} variable:
+avoid having a large overhead. In order to enable it, reboot the target and enable
+kmemleak by adding \code{kmemleak=on} on the command line. Interrupt U-Boot at
+reboot and modify the \code{bootargs} variable:
 
 \begin{bashinput}
 STM32MP> env edit bootargs
@@ -49,7 +49,7 @@ STM32MP> <existing bootargs> kmemleak=on
 STM32MP> boot
 \end{bashinput}
 
-Then compile the kmemleak test module:
+Then compile the dummy test module on your development host:
 
 \begin{bashinput}
 $ cd /home/$USER/debugging-labs/nfsroot/root/kmemleak
@@ -96,7 +96,7 @@ that did exist in the 5.13 kernel version!
 
 \section{OOPS analysis}
 We noticed that the watchdog command generated a crash on the kernel. In order
-to reproduce the crash, run the following command:
+to reproduce the crash, run the following command on the target:
 
 \begin{bashinput}
 $ watchdog -T 10 -t 5 /dev/watchdog0
@@ -132,7 +132,7 @@ compiled with \code{-g} compiler flag, which adds a lot of debugging
 information (matching between source code lines and assembly for instance).
 
 Using \code{addr2line}, find the exact source code line were the crash happened.
-For that, you can use the following command:
+For that, you can use the following command on your development host:
 
 \begin{bashinput}
 $ addr2line -e /home/$USER/debugging-labs/buildroot/output/build/linux-5.13/vmlinux
@@ -162,7 +162,7 @@ $ ./scripts/decode_stacktrace.sh vmlinux < ~/debugging-labs/oops.txt
 In order to debug this OOPS, we'll use KGDB which is an in-kernel debugger.
 The provided image already contains the necessary KGDB support and the watchdog
 has been disabled to avoid rebooting while debugging. In order to use KGDB and
-the console simultaneously, compile and run kdmx:
+the console simultaneously, compile and run kdmx on your development host:
 
 \begin{bashinput}
 $ git clone https://git.kernel.org/pub/scm/utils/kernel/kgdb/agent-proxy.git
@@ -215,7 +215,8 @@ STM32MP> boot
 \end{bashinput}
 
 Then the kernel will halt during boot waiting for a GDB process to be attached.
-Attached using the same command that was previously used:
+Attach gdb client from your development host using the same command that was previously
+used:
 
 \begin{bashinput}
 $ gdb-multiarch /home/$USER/debugging-labs/buildroot/output/build/linux-5.13/vmlinux
@@ -263,7 +264,7 @@ KGDB.}
 KGDB also allows to debug modules and thanks to the GDB python scripts
 (\code{lx-symbols}) mainly, it is as easy as debugging kernel core code. In
 order to test that feature, we are going to compile a test module and break on
-it.
+it. On your development host, build the module:
 
 \begin{bashinput}
 $ cd /home/$USER/debugging-labs/nfsroot/root/kgdb
@@ -339,7 +340,7 @@ debugged using gdb or crash.
 
 We will now build the dump-capture kernel which will be booted on crash using
 kexec. For that, we will use a simple buildroot image with a builtin initramfs
-using the following commands:
+using the following commands on the development host:
 
 \begin{bashinput}
 $ cd /home/$USER/debugging-labs/buildroot
@@ -374,7 +375,7 @@ STM32MP> boot
 \end{bashinput}
 
 To load the crash kernel into the previously reserved memory zone, run the
-following command:
+following command on the target:
 
 \begin{bashinput}
 # kexec --type zImage -p /root/kexec/zImage --dtb=/root/kexec/stm32mp157a-dk1.dtb

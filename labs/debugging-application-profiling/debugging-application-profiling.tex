@@ -13,14 +13,14 @@
 
 Massif is really helpful to understand what is going on the memory allocation
 side of an application. Compile the \code{heap_profile} example that we did provide
-using the following command:
+using the following command on your development host
 
 \begin{bashinput}
 $ cd /home/$USER/debugging-labs/nfsroot/root/heap_profile
 $ make
 \end{bashinput}
 
-Once compile, on the target run it under massif using the following command:
+Once compiled, run it on the target under massif using the following command:
 
 \begin{bashinput}
 $ cd /root/heap_profile
@@ -63,7 +63,7 @@ tools.
 Let's start by profiling the application using the \code{cachegrind} tool. Our
 program takes two file names as parameters: an input PNG image and an output
 one. We provided a sample image in \code{tux_small.png} which can be used as an
-input file. First let's compile it using the following commands:
+input file. First let's compile it using the following commands on our development host:
 
 \begin{bashinput}
 $ cd /home/$USER/debugging-labs/nfsroot/root/app_profiling
@@ -91,7 +91,8 @@ function that generates most of the D cache miss time.
 Based on that result, modify the program to be more cache efficient. Run again
 the cachegrind analysis to check that the modifications were actually effective.
 
-We also profile the execution time using callgrind with 
+We also profile the execution time using callgrind by running valgrind again on
+the target but with a different tool:
 
 \begin{bashinput}
 $ valgrind --tool=callgrind ./png_convert tux_small.png out.png
@@ -118,14 +119,14 @@ In order to have a better view of the performance of our program in a real
 system, we will use \code{perf}. In order to gather performance counter from
 the hardware, we will run our program using \code{perf stat}. We would like to
 observe the number of L1 data cache store misses. In order to select the correct
-event, use \code{perf list} to find it amongst the cache events:
+event, use \code{perf list} on the target to find it amongst the cache events:
 
 \begin{bashinput}
 $ perf list cache
 \end{bashinput}
 
-Once found, execute the program using perf stat and specified that event using
--e:
+Once found, execute the program on the target using perf stat and specified that event
+using -e:
 
 \begin{bashinput}
 $ perf stat -e L1-dcache-store-misses ./png_convert tux.png out.png
@@ -143,7 +144,7 @@ $ perf record ./png_convert tux_small.png out.png
 
 Once recorded, a \code{perf.data} file will be generated. This file will
 contain the traces that have been recorded. These traces can be analyzed using
-\code{perf report} on the development platform:
+\code{perf report} on the development host:
 
 \begin{bashinput}
 $ sudo chown $USER:$USER perf.data

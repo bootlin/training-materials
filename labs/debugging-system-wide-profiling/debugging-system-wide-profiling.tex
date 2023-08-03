@@ -11,7 +11,7 @@
 
 \section{ftrace \& uprobes}
 
-First of all, we will start a small program using the following command:
+First of all, we will start a small program on the target using the following command:
 
 \begin{bashinput}
 $ mystery_program 1000 200 2 &
@@ -21,7 +21,8 @@ In order to trace a full system, we can use ftrace. However, if we want to trace
 the userspace, we'll need to add new tracepoints using uprobes. This can be done
 manually with the uprobe sysfs interface or using \code{perf probe}.
 
-Before starting to profile, we will compile our program to be instrumented:
+Before starting to profile, we will compile our program to be instrumented.
+On your development host, run:
 
 \begin{bashinput}
 $ cd /home/$USER/debugging-labs/nfsroot/root/system_profiling
@@ -105,7 +106,7 @@ this. We'll add 2 tracepoints:
 In order to create these tracepoints easily, we will create a
 \code{crc_random-tp.tp} file and generate the tracepoints using
 \code{lttng-gen-tp}. In order to install this tool, the \code{liblttng-ust-dev}
-should be installed:
+should be installed in your development host:
 
 \begin{bashinput}
 sudo apt install liblttng-ust-dev
@@ -159,14 +160,15 @@ on the remote computer.
 In our case, the hostname is buildroot so traces will be
 located in \code{$PWD/traces/buildroot/<session>}
 
-Using \code{babeltrace2}, you can display the raw traces that were acquired:
+Using \code{babeltrace2}, you can display the raw traces that were acquired directly
+on your development host:
 \begin{bashinput}
 $ sudo apt install babeltrace2
 $ babeltrace2 $PWD/traces/buildroot/<session>/
 \end{bashinput}
 
 In order to analyze our traces more visually, we are going to use tracecompass.
-Download \code{tracecompass} latest version and extract it using:
+Download \code{tracecompass} latest version and extract it on your host using:
 
 \begin{bashinput}
 $ wget https://ftp.fau.de/eclipse/tracecompass/releases/8.1.0/rcp/trace-compass-8.1.0-20220919-0815-linux.gtk.x86_64.tar.gz
@@ -199,7 +201,7 @@ In order to profile the whole system, we are going to use perf and try to find
 the function that takes most of the time executing.
 
 First of all, we will run a global recording of functions and their backtrace on
-(all CPUs) during 10 seconds using the following command:
+(all CPUs) during 10 seconds using the following command on the target:
 
 \begin{bashinput}
 $ perf record -F 99 -g -- sleep 10

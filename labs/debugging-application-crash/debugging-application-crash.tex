@@ -21,8 +21,8 @@ result.
 
 Take our \code{linked_list.c} program. It uses the \code{<sys/queue.h>} header
 which provides multiple linked-list implementations. This program creates and
-fill a linked list with the names read from a file. Compile it using the
-following command:
+fill a linked list with the names read from a file. Compile it from your
+development host using the following command:
 
 \begin{bashinput}
 $ cd /home/$USER/debugging-labs/nfsroot/root/gdb/
@@ -30,8 +30,8 @@ $ make
 \end{bashinput}
 
 By default, it will look for a \code{word_list} file located in the current
-directory. This program should display the list of words that were read from
-the file.
+directory. This program, when run on the target, should display the list of
+words that were read from the file.
 
 \begin{bashinput}
 $ ./linked_list
@@ -40,7 +40,7 @@ $ ./linked_list
 From what you can see, it actually crashes! So we will use GDB to debug that
 program. We will do that remotely since our target does not embed a full gdb,
 only a gdbserver, a lightweight gdb server that allows connecting with a remote
-full feature GDB. Start our program using gdbserver in multi mode:
+full feature GDB. Start our program on the target using gdbserver in multi mode:
 
 \begin{bashinput}
 $ gdbserver --multi :2000 ./linked_list
@@ -83,7 +83,8 @@ crash is not reproducible but crashes only once in a while.  If so, we can use
 the kernel coredump support to generate a core dump of the faulty application
 and do a post-mortem analysis.
 
-First of all, we need to enable kernel coredumping support of programs:
+First of all, we need to enable kernel coredumping support of programs. On the
+target, run:
 
 \begin{bashinput}
 $ ulimit -c unlimited
@@ -128,7 +129,8 @@ iteration on the list. We would like to display each \code{struct name} as
 \code{index: name}. In order to access a struct field in gdb python, you can use
 \code{self.val['field_name']}.
 
-Once done, you can use the following commands to test your script:
+Once done, you can use the following commands in your development host gdb
+client session to test your script:
 
 \begin{bashinput}
 (gdb) source linked_list.py

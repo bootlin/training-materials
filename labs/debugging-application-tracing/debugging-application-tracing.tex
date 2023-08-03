@@ -17,7 +17,7 @@ $ cd /home/$USER/debugging-labs/nfsroot/root/ltrace/
 $ make
 \end{bashinput}
 
-From there, run the \code{authent} application on the target.
+Next, run the \code{authent} application on the target.
 
 \begin{bashinput}
 $ cd /root/ltrace
@@ -31,8 +31,8 @@ the default paths expected by ld (see \manpage{ld.so}{8}), we need to provide
 that path using \code{LD_LIBRARY_PATH}.
 
 As you can see, it seems our application is failing to correctly authenticate
-the system. Using {\em ltrace}, trace the application in order to understand
-what is going on.
+the system. Using {\em ltrace}, trace the application on the target in order to
+understand what is going on.
 
 \begin{bashinput}
 $ ltrace ./authent
@@ -44,14 +44,14 @@ In order to overload this check, we can use a \code{LD_PRELOAD} a library.
 We'll override the \code{al_authent_user()} based on the
 \code{authent_library.h} definitions. Create a file \code{overload.c} which
 override the \code{al_authent_user()}, prints the user, password and returns 0. 
-Compile it using the following command line:
+Compile it on your development host using the following command line:
 
 \begin{bashinput}
 $ ${CROSS_COMPILE}gcc -fPIC -shared overload.c -o overload.so
 \end{bashinput}
 
 Finally, run your application and preload the new library using the following
-command:
+command on the target:
 \begin{bashinput}
 $ LD_PRELOAD=./overload.so ./authent
 \end{bashinput}
