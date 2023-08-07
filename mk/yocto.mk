@@ -42,5 +42,4 @@ YOCTO_LABS    = setup \
 		yocto-extend-recipe \
 		yocto-custom-machine \
 		yocto-custom-image \
-		yocto-sdk \
-		yocto-sdk-eclipse
+		yocto-sdk
