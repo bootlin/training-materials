@@ -51,7 +51,8 @@ RUN dnf -y update && \
 	texlive-xetex \
 	texlive-textpos \
 	texlive-makecell \
-	texlive-stmaryrd
+	texlive-stmaryrd \
+	texlive-appendixnumberbeamer
 
 ENV HOME /tmp
 
