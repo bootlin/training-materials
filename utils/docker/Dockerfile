@@ -52,6 +52,9 @@ RUN dnf -y update && \
 	texlive-textpos \
 	texlive-makecell \
 	texlive-stmaryrd \
+	texlive-fmtcount \
+	texlive-babel-english \
+	texlive-babel-french \
 	texlive-appendixnumberbeamer
 
 ENV HOME /tmp
