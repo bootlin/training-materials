@@ -32,9 +32,8 @@
     \item Être capable d'intégrer le support pour votre carte embarqué
       dans un {\em layer BSP}.
     \item Être capable de créer des images personnalisées.
-    \item Être capable d'utiliser les outils et les {\em workflows}
-      appropriés pour développer des applications avec le SDK du Yocto
-      Project.
+    \item Être capable d'utiliser le SDK du Yocto Project pour développer
+      des applications.
     \end{itemize}
   }
 }{
@@ -52,8 +51,7 @@
     \item Be able to integrate support for your own embedded board into
       a BSP layer.
     \item Be able to create custom images.
-    \item Be able to use the tools and workflows suitable to develop
-      applications with the Yocto Project SDK.
+    \item Be able to use the Yocto Project SDK to develop applications.
     \end{itemize}
   }
 }
