@@ -34,6 +34,7 @@
     \item Être capable de créer des images personnalisées.
     \item Être capable d'utiliser le SDK du Yocto Project pour développer
       des applications.
+    \item Être capable d'utiliser devtool pour développer une recette.
     \end{itemize}
   }
 }{
@@ -52,6 +53,7 @@
       a BSP layer.
     \item Be able to create custom images.
     \item Be able to use the Yocto Project SDK to develop applications.
+    \item Be able to use devtool to generate and modify recipes.
     \end{itemize}
   }
 }
