@@ -139,11 +139,11 @@ $ addr2line -e /home/$USER/debugging-labs/buildroot/output/build/linux-5.13/vmli
   -a <crash_address>
 \end{bashinput}
 
-We can even go a step further and use \code{gdb-multiarch} to open vmlinux and
+We can even go a step further and use the cross GDB to open vmlinux and
 locate the function and corresponding offset in assembly
 
 \begin{bashinput}
-$ gdb-multiarch /home/$USER/debugging-labs/buildroot/output/build/linux-5.13/vmlinux
+$ ${CROSS_COMPILE}gdb /home/$USER/debugging-labs/buildroot/output/build/linux-5.13/vmlinux
 (gdb) disassemble <function>
 \end{bashinput}
 
@@ -190,11 +190,11 @@ $ echo ttySTM0 > /sys/module/kgdboc/parameters/kgdboc
 \end{bashinput}
 
 Once done, trigger the crash by running the watchdog command, the system will
-automatically wait for a debugger to be attached. Run \code{gdb-multiarch} and
+automatically wait for a debugger to be attached. Run the cross GDB and
 attach a gdb process to KGDB with the following command:
 
 \begin{bashinput}
-$ gdb-multiarch /home/$USER/debugging-labs/buildroot/output/build/linux-5.13/vmlinux
+$ ${CROSS_COMPILE}gdb ${HOME}/debugging-labs/buildroot/output/build/linux-5.13/vmlinux
 (gdb) target remote /dev/pts/8
 \end{bashinput}
 
@@ -219,13 +219,14 @@ Attach gdb client from your development host using the same command that was pre
 used:
 
 \begin{bashinput}
-$ gdb-multiarch /home/$USER/debugging-labs/buildroot/output/build/linux-5.13/vmlinux
+$ ${CROSS_COMPILE}gdb /home/$USER/debugging-labs/buildroot/output/build/linux-5.13/vmlinux
 (gdb) target remote /dev/pts/8
 \end{bashinput}
 
-Note: if you do not specify a file to be used, gdb-multiarch won't be able to
-detect the architecture automatically and the target command will fail. In that
-case, you can set the architecture using:
+Note: if you prefer using gdb-multiarch instead of the cross-gdb we have
+built and do not specify a file to be used, gdb-multiarch won't be able to
+detect the architecture automatically and the target command will fail. In
+that case, you can set the architecture using:
 
 \begin{bashinput}
 (gdb) set arch arm
@@ -293,7 +294,7 @@ The kernel will then enter KGDB mode and will wait for a gdb connection. On the
 development platform, start it and attach to the target:
 
 \begin{bashinput}$
-$ gdb-multiarch /home/$USER/debugging-labs/buildroot/output/build/linux-5.13/vmlinux
+$ ${CROSS_COMPILE}gdb /home/$USER/debugging-labs/buildroot/output/build/linux-5.13/vmlinux
 (gdb) target remote /dev/pts/8
 \end{bashinput}
 
@@ -413,9 +414,9 @@ $ scp root@192.168.0.101:/proc/vmcore .
 \end{bashinput}
 
 Finally, we will be able to debug that kernel coredump using crash.
-Using gdb, you can load the \code{vmcore} file using \code{gdb-multiarch}:
+You can load the \code{vmcore} file using cross GDB:
 
 \begin{bashinput}
-$ gdb-multiarch /home/$USER/debugging-labs/buildroot/output/build/linux-5.13/vmlinux \
+$ ${CROSS_COMPILE}gdb /home/$USER/debugging-labs/buildroot/output/build/linux-5.13/vmlinux \
   vmcore
 \end{bashinput}
