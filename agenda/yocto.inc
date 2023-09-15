@@ -3,7 +3,8 @@
 
 % Title
 \ifthenelse{\equal{\agendalanguage}{french}}{
-  \def \trainingtitle{Formation développement Linux embarqué avec Yocto Project et OpenEmbedded}
+  \def \trainingtitle{Formation développement Linux embarqué
+  \newline avec Yocto Project et OpenEmbedded}
 }{
   \def \trainingtitle{Yocto Project and OpenEmbedded development training}
 }
