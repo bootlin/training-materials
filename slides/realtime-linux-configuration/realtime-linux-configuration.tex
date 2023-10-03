@@ -71,6 +71,7 @@
 				\item \code{while read i; do /bin/echo $i; done < /dev/cpuset/tasks > /dev/cpuset/nontrt-set/tasks}
 				\item \code{/bin/echo $$ > /dev/cpuset/rt-set/tasks}
 			\end{itemize}
+		\item You can run tasks in a given set with \code{cgexec -g cpuset:rt-set ...}
 	\end{itemize}
 \end{frame}
 
@@ -85,8 +86,26 @@
 		\item IRQs can be pinned to CPUs by tweaking \code{/proc/irq/XX/smp_affinity}
 		\item The \code{irqbalance} tool monitors and distributes the irq affinty to spread the load across CPUs
 		\item Use the \code{IRQBALANCE_BANNED_CPUS} environment variable to make \code{irqbalance} ignore some CPUs
+		\item The \code{irqaffinity} cmdline parameter can also be used
 	\end{itemize}
 \end{frame}
+
+\begin{frame}
+	\frametitle{RCU Callbacks and Workqueues}
+	\begin{center}\textbf{RCU}\end{center}
+	\begin{itemize}
+		\item \textbf{R}ead \textbf{C}opy \textbf{U}pdate
+		\item Synchronisation mechanism that can deferred object reclamation
+		\item Deffered reclamation can be executed on any CPU \code{RCU callbacks}
+		\item We can preven CPU cores from running RCU callbacks with \code{rcu_nocbs=<cpus> rcu_nocb_poll}
+	\end{itemize}
+	\begin{center}\textbf{Workqueues}\end{center}
+	\begin{itemize}
+		\item Deferred execution mechanism
+		\item Can be pinned to CPUs in \code{/sys/devices/virtual/workqueue/cpumask}
+	\end{itemize}
+\end{frame}
+%TODO RCU/workqueues
 
 % scheduling classes
 \input{../common/scheduling-classes.tex}
