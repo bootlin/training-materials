@@ -98,4 +98,4 @@
 \def \onsitelabtimeratio{60}
 
 % Ubuntu version
-\def \ubuntuversion{22.04 / 20.04}
+\def \ubuntuversion{22.04}
