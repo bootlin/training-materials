@@ -274,7 +274,7 @@ struct myconf { int a, b; } *shared_conf; /* initialized */
 unsafe_get(int *cur_a, int *cur_b)
 {
         *cur_a = shared_conf->a;
-        /* What if *current_conf gets updated now? The assignement is inconsistent! */
+        /* What if *shared_conf gets updated now? The assignement is inconsistent! */
         *cur_b = shared_conf->b;
 };
 
@@ -310,10 +310,10 @@ safe_set(int new_a, int new_b)
         struct myconf *newconf = kmalloc(...);
         struct myconf *oldconf;
 
-        oldconf = rcu_dereference(current_conf);
+        oldconf = rcu_dereference(shared_conf);
         newconf->a = new_a;
         newconf->b = new_b;
-        rcu_assign_pointer(current_conf, newconf);
+        rcu_assign_pointer(shared_conf, newconf);
         /* Readers might still have a reference over the old struct here... */
         synchronize_rcu();
         /* ...but not here! No more readers of the old struct, kfree() is safe! */
