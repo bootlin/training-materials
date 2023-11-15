@@ -43,6 +43,8 @@
       \item {\usebeamercolor[fg]{code} \path{example_0.%.bbappend}} applies
         to \code{example_0.1.bb} and \code{example_0.2.bb} but not
         \code{example_1.0.bb}
+        \item The \code{\%} works only just before the \code{.bbappend}
+          suffix
     \end{itemize}
     \item Append files should be {\bf version specific}. If the recipe
       is updated to a newer version, the append files must also be
@@ -116,6 +118,7 @@ do_install:append() {
     \begin{itemize}
       \item \code{inherit <class>}
     \end{itemize}
+    \item A recipe can inherit from multiple classes.
   \end{itemize}
 \end{frame}
 
@@ -136,6 +139,9 @@ do_install:append() {
       \item \code{useradd.bbclass}
       \item \dots
     \end{itemize}
+  \item Starting with Yocto Langdale, most classes are split into
+    scope-specific subdirectories: \code{meta/classes-recipe/},
+    \code{meta/classes-global/}
   \end{itemize}
 \end{frame}
 
@@ -228,9 +234,9 @@ inherit autotools
     \item This class helps to add users to the resulting image.
     \item Adding custom users is required by many services to avoid
           running them as root.
-    \item \code{USERADD_PACKAGES} must be defined when the
-          \code{useradd} class is inherited. Defines the list of
-          packages which needs the user.
+    \item \code{USERADD_PACKAGES} must be defined when the \code{useradd} class
+          is inherited. It defines the individual packages produced by the
+          recipe that need users or groups to be added.
     \item Users and groups will be created before the packages using
           it perform their \code{do_install}.
     \item At least one of the two following variables must be set:
@@ -261,6 +267,7 @@ USERADD_PACKAGES = "${PN}"
 USERADD_PARAM = "-u 1000 -d /home/user0 -s /bin/bash user0"
 
 do_install() {
+    install -d ${D}/home/user0/
     install -m 644 file0 ${D}/home/user0/
     chown user0:user0 ${D}/home/user0/file0
 }
@@ -280,7 +287,7 @@ do_install() {
       \begin{itemize}
         \item Disables \code{do_configure} and \code{do_compile}
         \item Provides a default \code{do_install} that copies whatever is
-          in \code{S} (useful e.g. when extracting a pre-built RPM/DPKG)
+          in \code{S} (useful e.g. when extracting a pre-built RPM/DEB)
       \end{itemize}
     \item Additionally you probably need:
       \begin{itemize}
@@ -319,6 +326,12 @@ do_install() {
       \code{classes} directories found in \code{BBPATH}.
     \item It is possible to include a class conditionally using a
       variable: \code{inherit ${FOO}}
+    \item Inheriting in configuration files is based on the \code{INHERIT}
+      variable instead:
+      \begin{itemize}
+        \item \code{INHERIT += "rm_work"}
+        \item This inherits the class globally (i.e. for all recipes)
+      \end{itemize}
   \end{itemize}
 \end{frame}
 
@@ -458,11 +471,22 @@ PREMIRRORS:prepend = "\
   \end{block}
 \end{frame}
 
-\begin{frame}[fragile]
-  \frametitle{Forbidding network access}
+\begin{frame}{Creating a local mirror}
   \begin{itemize}
-    \item You can use \code{BB_GENERATE_MIRROR_TARBALLS = "1"} to
-      generate tarballs of the git repositories in \code{DL_DIR}
+    \item The download directory can be exposed on the network to create a
+      local mirror
+      \begin{itemize}
+        \item Except for sources fetched via an SCM a tarball of the
+          repository is needed, not the bare git repository that is created
+          by default
+        \item You can use \code{BB_GENERATE_MIRROR_TARBALLS = "1"} to
+          generate tarballs of the git repositories in \code{DL_DIR}
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Forbidding network access}
+  \begin{itemize}
     \item You can also completely disable network access using
       \code{BB_NO_NETWORK = "1"}
       \begin{itemize}

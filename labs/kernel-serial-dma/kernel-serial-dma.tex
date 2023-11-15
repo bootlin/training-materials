@@ -34,18 +34,19 @@ our \code{struct serial_dev *} object.
 
 Before going further, re-compile and test your driver.
 
-The \code{serial_write} callback can now be renamed \code{serial_write_pio},
-while we will implement a new callback named
-\code{serial_write_dma}. Remember to also update the \code{.write}
-member of \code{serial_fops} to run the DMA variant. If you want to
-avoid warnings because \code{serial_write_pio} would now be unused, you
-can temporarily define it with the \code{__maybe_unused} keyword, until
-we re-use it again (see below).
+The \code{serial_write} callback and \code{serial_fops} can now be renamed \code{serial_write_pio} and \code{serial_fops_pio},
+while we will implement a new callback named \code{serial_write_dma} and a new
+set of file operations called \code{serial_fops_dma} which uses this callback
+for \code{.write} and keeps the same values for other fields. This new set of
+file operations should be used by default.
 
 Let's now create two helpers supposed to initialize and cleanup our DMA
 setup. We will call \code{serial_init_dma()} right before registering
 the \code{misc} device. In the \code{->probe()} error path and in the
-remove callback, we will call \code{serial_cleanup_dma()}.
+remove callback, we will call \code{serial_cleanup_dma()}. Make sure that errors
+are handled correctly and returned to the caller. A special case should be
+handled when no DMA channel is available (with the \code{-ENODEV} code returned)
+in order to fallback to the the \code{serial_fops_pio} file operations.
 
 \section{Prepare the DMA controller}
 
@@ -64,10 +65,12 @@ device tree and find the uart2 and uart4 nodes. Look for \code{dma}
 channel properties and their names. While uart2 seem to be connected to
 the DMA controller through two different channels (one for each
 direction), uart4 is not. Hence, when requesting the channels with
-\kfunc{dma_request_chan()}, we must take care of not erroring-out upon the
-absence of channel. Mind the return value which is a \kstruct{dma_chan}
-pointer, it must be checked with the \code{IS_ERR()} macro. You may
-display the corresponding error string with {\tt \%pe}!
+\kfunc{dma_request_chan()}, we must take care to check and return the error code
+wrapped in the returned \kstruct{dma_chan} pointer. This can be done with the
+\code{IS_ERR()} and \code{PTR_ERR()} macros. You may display the corresponding
+error string with {\tt \%pe}! Also make sure that this case is correctly handled
+both in the calling code to fallback to the \code{serial_fops_pio} file
+operations and in the DMA cleanup function.
 
 This channel will be used by all the \code{dmaengine} helpers, so better
 save it in our \code{serial_dev} structure.
