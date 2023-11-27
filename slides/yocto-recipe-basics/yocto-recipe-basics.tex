@@ -43,13 +43,13 @@
   \begin{itemize}
     \item To make it easier to write a recipe, some variables are
       automatically available:
-      \begin{description}
-        \item[BPN] recipe name, extracted from the recipe file name
-        \item[PN] \code{BPN} potentially with prefixes or suffixes added
+      \begin{itemize}
+        \item \yoctovar{BPN}: recipe name, extracted from the recipe file name
+        \item \yoctovar{PN}: \yoctovar{BPN} potentially with prefixes or suffixes added
           such as \code{nativesdk-}, or \code{-native}
-        \item[PV] package version, extracted from the the recipe file name
-        \item[BP] defined as \code{${BPN}-${PV}}
-      \end{description}
+        \item \yoctovar{PV}: package version, extracted from the the recipe file name
+        \item \yoctovar{BP}: defined as \code{${BPN}-${PV}}
+      \end{itemize}
     \item The recipe name and version usually match the upstream ones.
     \item When using the recipe \code{bash_5.1.bb}:
       \begin{itemize}
@@ -96,16 +96,14 @@
 
 \begin{frame}
   \frametitle{The header}
+  Configuration variables to describe the application:
   \begin{itemize}
-    \item Configuration variables to describe the application:
-      \begin{description}
-        \item[DESCRIPTION] describes what the software is about
-        \item[HOMEPAGE] URL to the project's homepage
-        \item[PRIORITY] defaults to \code{optional}
-        \item[SECTION] package category (e.g. \code{console/utils})
-        \item[LICENSE] the application's license, using SPDX identifiers
-          (\url{https://spdx.org/licenses/})
-      \end{description}
+    \item \yoctovar{DESCRIPTION}: describes what the software is about
+    \item \yoctovar{HOMEPAGE}: URL to the project's homepage
+    \item \yoctovar{PRIORITY}: defaults to \code{optional}
+    \item \yoctovar{SECTION}: package category (e.g. \code{console/utils})
+    \item \yoctovar{LICENSE}: the application's license, using SPDX identifiers
+      (\url{https://spdx.org/licenses/})
   \end{itemize}
 \end{frame}
 
@@ -115,7 +113,7 @@
     \item We need to retrieve both the raw sources from an official
       location and the resources needed to configure, patch or install
       the application.
-    \item \code{SRC_URI} defines where and how to retrieve the
+    \item \yoctovar{SRC_URI} defines where and how to retrieve the
       needed elements. It is a set of URI schemes pointing to the
       resource locations (local or remote).
     \item URI scheme syntax: \code{scheme://url;param1;param2}
@@ -123,7 +121,7 @@
       or remote locations with \code{https://}, \code{git://},
       \code{svn://}, \code{hg://}, \code{ftp://}\dots
     \item By default, sources are fetched in
-      \code{$BUILDDIR/downloads}. Change it with the \code{DL_DIR}
+      \code{$BUILDDIR/downloads}. Change it with the \yoctovar{DL_DIR}
       variable in \code{conf/local.conf}
   \end{itemize}
 \end{frame}
@@ -135,7 +133,7 @@
       \begin{itemize}
         \item \code{git://<url>;protocol=<protocol>;branch=<branch>}
         \item When using git, it is necessary to also define
-          \code{SRCREV}. It has to be a commit hash and not a tag to
+          \yoctovar{SRCREV}. It has to be a commit hash and not a tag to
           be able to do offline builds. The \code{branch} parameter is
           mandatory unless \code{nobranch=1} is used.
       \end{itemize}
@@ -183,13 +181,13 @@ SRC_URI[patch.md5sum]   = "b184acf9eb39df794ffd..."
 \begin{frame}
   \frametitle{The source locations: local files}
   \begin{itemize}
-    \item \code{SRC_URI} items using the \code{file://} scheme are {\em
+    \item \yoctovar{SRC_URI} items using the \code{file://} scheme are {\em
       local files}
     \item They are not downloaded, but rather copied from the layer to the
       work directory
-    \item The searched paths are defined in the \code{FILESPATH}
+    \item The searched paths are defined in the \yoctovar{FILESPATH}
       variable
-    \item \code{FILESPATH} is a colon-separated list of paths to look for
+    \item \yoctovar{FILESPATH} is a colon-separated list of paths to look for
       files
     \item The order matters: when a file is found in a path, the search
       ends
@@ -199,16 +197,16 @@ SRC_URI[patch.md5sum]   = "b184acf9eb39df794ffd..."
 \begin{frame}
   \frametitle{\code{FILESPATH} 1/3}
   \begin{itemize}
-    \item \code{FILESPATH} is generated with all combinations of:
+    \item \yoctovar{FILESPATH} is generated with all combinations of:
     \item Base paths
       \begin{itemize}
         \item \code{${FILE_DIRNAME}/${BP}}  (e.g. \code{BP} = \code{dropbear-2020.81})
         \item \code{${FILE_DIRNAME}/${BPN}} (e.g. \code{BPN} = \code{dropbear})
         \item \code{${FILE_DIRNAME}/files}
-        \item Items in \code{FILESEXTRAPATHS} (none by default)
+        \item Items in \yoctovar{FILESEXTRAPATHS} (none by default)
         \item \code{${FILE_DIRNAME}} is the directory containing the \code{.bb} file
       \end{itemize}
-    \item The overrides in \code{FILESOVERRIDES}
+    \item The overrides in \yoctovar{FILESOVERRIDES}
       \begin{itemize}
         \item Set as \code{${TRANSLATED_TARGET_ARCH}:${MACHINEOVERRIDES}:${DISTROOVERRIDES}}
         \item E.g. \code{arm:armv7a:ti-soc:ti33x:beaglebone:poky}
@@ -250,13 +248,13 @@ SRC_URI[patch.md5sum]   = "b184acf9eb39df794ffd..."
   \begin{itemize}
     \item This complex logic allows to use different files without
       conditional code
-    \item Example: with a single item in \code{SRC_URI}:
+    \item Example: with a single item in \yoctovar{SRC_URI}:
       \begin{block}{}
         \begin{minted}{sh}
 SRC_URI += "file://defconfig"
         \end{minted}
       \end{block}
-    a different \code{defconfig} can be used for different MACHINE
+    a different \code{defconfig} can be used for different \yoctovar{MACHINE}
       values:
   \end{itemize}
   \begin{center}
@@ -283,9 +281,9 @@ recipes-kernel/
     \item When extracting a tarball, \code{bitbake} expects to find the
       extracted files in a directory named
       \code{<application>-<version>}. This is controlled by the
-      \code{S} variable. If the directory has another name, you must
-      explicitly define \code{S}.
-    \item If the scheme is \code{git}, \code{S} must be set to
+      \yoctovar{S} variable. If the directory has another name, you must
+      explicitly define \yoctovar{S}.
+    \item If the scheme is \code{git}, \yoctovar{S} must be set to
       \code{${WORKDIR}/git}
   \end{itemize}
 \end{frame}
@@ -294,7 +292,7 @@ recipes-kernel/
   \frametitle{The source locations: license files}
   \begin{itemize}
     \item License files must have their own checksum.
-    \item \code{LIC_FILES_CHKSUM} defines the URI pointing to the
+    \item \yoctovar{LIC_FILES_CHKSUM} defines the URI pointing to the
       license file in the source code as well as its checksum.
   \end{itemize}
   \begin{block}{}
@@ -319,12 +317,12 @@ LIC_FILES_CHKSUM =  \
     \item A recipe can have dependencies during the build or at
           runtime. To reflect these requirements in the recipe, two
           variables are used:
-    \begin{description}
-      \item[DEPENDS] List of the recipe build-time dependencies.
-      \item[RDEPENDS] List of the package runtime
+    \begin{itemize}
+      \item \yoctovar{DEPENDS}: List of the recipe build-time dependencies.
+      \item \yoctovar{RDEPENDS}: List of the package runtime
         dependencies. Must be package specific (e.g. with
         \code{:${PN}}).
-    \end{description}
+    \end{itemize}
     \item \code{DEPENDS = "recipe-b"}: the local \code{do_prepare_recipe_sysroot}
       task depends on the \code{do_populate_sysroot} task of recipe-b.
     \item \code{RDEPENDS:${PN} = "package-b"}: the local
@@ -375,14 +373,14 @@ LIC_FILES_CHKSUM =  \
   \begin{itemize}
     \item Functions use the sh shell syntax, with available
       OpenEmbedded variables and internal functions available.
-      \begin{description}
-        \item[WORKDIR] the recipe's working directory
-        \item[S] The directory where the source code is extracted
-        \item[B] The directory where \code{bitbake} places the objects
+      \begin{itemize}
+        \item \yoctovar{WORKDIR}: the recipe's working directory
+        \item \yoctovar{S}: The directory where the source code is extracted
+        \item \yoctovar{B}: The directory where \code{bitbake} places the objects
           generated during the build
-        \item[D] The destination directory (root directory of where
+        \item \yoctovar{D}: The destination directory (root directory of where
           the files are installed, before creating the image).
-      \end{description}
+      \end{itemize}
     \item Syntax of a task:
   \end{itemize}
   \begin{block}{}
@@ -480,11 +478,11 @@ SRC_URI += "file://joystick-support.patch \
   \end{block}
   \begin{itemize}
     \item Patches are applied in the order they are listed in
-      \code{SRC_URI}.
+      \yoctovar{SRC_URI}.
     \item It is possible to select which tool will be used to apply
-      the patches listed in \code{SRC_URI} variable with
-      \code{PATCHTOOL}.
-    \item By default, \code{PATCHTOOL = 'quilt'} in Poky.
+      the patches listed in \yoctovar{SRC_URI} variable with
+      \yoctovar{PATCHTOOL}.
+    \item By default, \yoctovar{PATCHTOOL = 'quilt'} in Poky.
     \item Possible values: \code{git}, \code{patch} and \code{quilt}.
   \end{itemize}
 \end{frame}
@@ -492,7 +490,7 @@ SRC_URI += "file://joystick-support.patch \
 \begin{frame}
   \frametitle{Resolving conflicts}
   \begin{itemize}
-    \item The \code{PATCHRESOLVE} variable defines how to handle
+    \item The \yoctovar{PATCHRESOLVE} variable defines how to handle
     conflicts when applying patches.
     \item It has two valid values:
       \begin{itemize}
