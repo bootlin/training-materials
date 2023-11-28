@@ -45,30 +45,27 @@
 
 \begin{frame}
   \frametitle{Organization of an image recipe}
-  \begin{itemize}
-    \item Some special configuration variables are used to describe an
-      image:
-      \begin{description}
-        \item[IMAGE\_BASENAME] The name of the output image files.
+  Some special configuration variables are used to describe an image:
+      \begin{itemize}
+        \item \yoctovar{IMAGE_BASENAME}: The name of the output image files.
           Defaults to \code{${PN}}.
-        \item[IMAGE\_INSTALL] List of packages and package groups to
+        \item \yoctovar{IMAGE_INSTALL}: List of packages and package groups to
           install in the generated image.
-        \item[IMAGE\_ROOTFS\_SIZE] The final root filesystem size.
-        \item[IMAGE\_FEATURES] List of features to enable in the
+        \item \yoctovar{IMAGE_ROOTFS_SIZE}: The final root filesystem size.
+        \item \yoctovar{IMAGE_FEATURES}: List of features to enable in the
           image.
-        \item[IMAGE\_FSTYPES] List of formats the OpenEmbedded build
+        \item \yoctovar{IMAGE_FSTYPES}: List of formats the OpenEmbedded build
           system will use to create images.
-        \item[IMAGE\_LINGUAS] List of the locales to be supported in
+        \item \yoctovar{IMAGE_LINGUAS}: List of the locales to be supported in
           the image.
-        \item[IMAGE\_PKGTYPE] Package type used by the build system.
+        \item \yoctovar{IMAGE_PKGTYPE}: Package type used by the build system.
           One of \code{deb}, \code{rpm}, \code{ipk} and \code{tar}.
-        \item[IMAGE\_POSTPROCESS\_COMMAND] Shell commands to run at
+        \item \yoctovar{IMAGE_POSTPROCESS_COMMAND}: Shell commands to run at
           post process.
-        \item[EXTRA\_IMAGEDEPENDS] Recipes to be built with the image, but
+        \item \yoctovar{EXTRA_IMAGEDEPENDS}: Recipes to be built with the image, but
           which do not install anything in the root filesystem
           (e.g. the bootloader).
-      \end{description}
-  \end{itemize}
+      \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]
@@ -93,11 +90,11 @@ IMAGE_INSTALL += "ninvaders"
         \item Packages from \yoctovar{IMAGE_INSTALL} are installed into it
           using the package manager.
         \item One or more images files are created, depending on the
-          \code{IMAGE_FSTYPES} value.
+          \yoctovar{IMAGE_FSTYPES} value.
       \end{enumerate}
-    \item The rootfs creation is specific to the \code{IMAGE_PKGTYPE}
+    \item The rootfs creation is specific to the \yoctovar{IMAGE_PKGTYPE}
       value. It should be defined in the image recipe, otherwise the
-      first valid package type defined in \code{PACKAGE_CLASSES} is
+      first valid package type defined in \yoctovar{PACKAGE_CLASSES} is
       used.
     \item All the magic is done in
       \code{meta/classes/rootfs_${IMAGE_PKGTYPE}.bbclass}
@@ -129,7 +126,7 @@ IMAGE_INSTALL += "ninvaders"
     \item This is done through a class that inherits from
       \code{image_types}.
     \item It has to define a function named \code{IMAGE_CMD:<type>}.
-    \item Append it to \code{IMAGE_TYPES}
+    \item Append it to \yoctovar{IMAGE_TYPES}
   \end{itemize}
 \end{frame}
 
@@ -139,9 +136,9 @@ IMAGE_INSTALL += "ninvaders"
     \item Common conversion types are: gz, bz2, sha256sum, bmap\dots
     \item This is done through a class that inherits from
       \code{image_types}.
-    \item It has to define a function named \code{CONVERSION_CMD:<type>}.
+    \item It has to define a function named \yoctovar{CONVERSION_CMD}\code{:<type>}.
     \item Append it to \code{CONVERSIONTYPES}
-    \item Append valid combinations to \code{IMAGE_TYPES}
+    \item Append valid combinations to \yoctovar{IMAGE_TYPES}
   \end{itemize}
 \end{frame}
 
@@ -181,10 +178,10 @@ bootloader --ptable msdos
         \end{minted}
       \end{block}
   \begin{itemize}
-  \item Copies \code{imx-boot} from \code{$DEPLOY_DIR} in the image,
+  \item Copies \code{imx-boot} from \code{$}\yoctovar{DEPLOY_DIR} in the image,
     aligned on (and so at that offset) \code{${IMX_BOOT_SEEK}}.
   \item Creates a first partition, formatted in FAT32, with the files
-    listed in the \code{IMAGE_BOOT_FILES} variable.
+    listed in the \yoctovar{IMAGE_BOOT_FILES} variable.
   \item Creates an \code{ext4} partition with the contents on the root
     filesystem, excluding the content of \code{/home} and \code{/opt}
   \item Creates two \code{ext4} partitions, one with the content of
@@ -208,7 +205,7 @@ bootloader --ptable msdos
         \item The genereated binary packages do not install any file, but
           they require other packages.
       \end{itemize}
-    \item Be careful about the \code{PACKAGE_ARCH} value:
+    \item Be careful about the \yoctovar{PACKAGE_ARCH} value:
       \begin{itemize}
       \item Set to the value \code{all} by default,
       \item Must be explicitly set to \code{${MACHINE_ARCH}} when there is a machine
@@ -223,7 +220,7 @@ bootloader --ptable msdos
     \item \code{packagegroup-base}
       \begin{itemize}
         \item Adds many core packages to the image based on
-          \code{MACHINE_FEATURES} and \code{DISTRO_FEATURES}
+          \yoctovar{MACHINE_FEATURES} and \yoctovar{DISTRO_FEATURES}
       \end{itemize}
     \item \code{packagegroup-core-boot}
     \item \code{packagegroup-core-buildessential}

@@ -24,9 +24,9 @@
     \item Before the actual build, each recipe prepares its own sysroot
       \begin{itemize}
         \item Contains libraries and headers {\em only} for the recipes it
-          \code{DEPENDS} on
+          \yoctovar{DEPENDS} on
         \item Ensures the configuration stage will not detect libraries not
-          explicitly listed in \code{DEPENDS} but already built for other
+          explicitly listed in \yoctovar{DEPENDS} but already built for other
           reasons
         \item \code{${WORKDIR}/recipe-sysroot} for target recipes
         \item \code{${WORKDIR}/recipe-sysroot-native} for native recipes
@@ -187,7 +187,7 @@ do_patch[depends] = "quilt-native:do_populate_sysroot"
       component when only a few are required.
     \item A good example is \code{ConnMan}: Bluetooth support
       is built only if there is Bluetooth on the target.
-    \item The \code{PACKAGECONFIG} variable is used to configure the
+    \item The \yoctovar{PACKAGECONFIG} variable is used to configure the
       build on a per feature granularity, for packages.
   \end{itemize}
 \end{frame}
@@ -195,18 +195,18 @@ do_patch[depends] = "quilt-native:do_populate_sysroot"
 \begin{frame}
   \frametitle{\code{PACKAGECONFIG}}
   \begin{itemize}
-    \item \code{PACKAGECONFIG} takes the list of features to enable.
+    \item \yoctovar{PACKAGECONFIG} takes the list of features to enable.
     \item \code{PACKAGECONFIG[feature]} takes up to six arguments,
       separated by commas:
       \begin{enumerate}
         \item Argument used by the configuration task if the feature
-          is enabled (\code{EXTRA_OECONF}).
-        \item Argument added to \code{EXTRA_OECONF} if the feature is
+          is enabled (\yoctovar{EXTRA_OECONF}).
+        \item Argument added to \yoctovar{EXTRA_OECONF} if the feature is
           disabled.
-        \item Additional build dependency (\code{DEPENDS}), if enabled.
-        \item Additional runtime dependency (\code{RDEPENDS}), if enabled.
-        \item Additional runtime recommendations (\code{RRECOMMENDS}), if enabled.
-	\item Any conflicting \code{PACKAGECONFIG} settings for this feature.
+        \item Additional build dependency (\yoctovar{DEPENDS}), if enabled.
+        \item Additional runtime dependency (\yoctovar{RDEPENDS}), if enabled.
+        \item Additional runtime recommendations (\yoctovar{RRECOMMENDS}), if enabled.
+	\item Any conflicting \yoctovar{PACKAGECONFIG} settings for this feature.
       \end{enumerate}
     \item Unused arguments can be omitted or left blank.
   \end{itemize}
@@ -237,7 +237,7 @@ PACKAGECONFIG[openvpn] = "--enable-openvpn,           \
 \begin{frame}[fragile]
   \frametitle{Enabling PACKAGECONFIG features}
   \begin{itemize}
-    \item In a \code{.bbappend} of the recipe, just append to \code{PACKAGECONFIG}
+    \item In a \code{.bbappend} of the recipe, just append to \yoctovar{PACKAGECONFIG}
       \begin{block}{}
         \begin{minted}{sh}
 PACKAGECONFIG:append = " <feature>"
@@ -259,7 +259,7 @@ PACKAGECONFIG:append:pn-gdb = " tui"
   \frametitle{Inspecting available \code{PACKAGECONFIG} flags}
   \begin{itemize}
   \item \code{${POKY_DIR}/scripts/contrib/list-packageconfig-flags.py}
-    shows the \code{PACKAGECONFIG} varflags available for each recipe:
+    shows the \yoctovar{PACKAGECONFIG} varflags available for each recipe:
 
       \begin{block}{}
         \begin{minted}[fontsize=\scriptsize]{sh}
@@ -331,7 +331,7 @@ PACKAGECONFIG ??= "wispr iptables client\
     \item \code{do_package} splits files in several packages in {\tt
       \$\{WORKDIR\}/packages-split}
       \begin{itemize}
-        \item based on the \code{PACKAGES} and \code{FILES} variables.
+        \item based on the \yoctovar{PACKAGES} and \yoctovar{FILES} variables.
       \end{itemize}
     \item \code{do_package_write_rpm} generates RPM packages
   \end{itemize}
@@ -340,7 +340,7 @@ PACKAGECONFIG ??= "wispr iptables client\
 \begin{frame}[fragile]
   \frametitle{\code{PACKAGES}}
   \begin{itemize}
-    \item \code{PACKAGES} lists the packages to be built:
+    \item \yoctovar{PACKAGES} lists the packages to be built:
     \begin{block}{}
     \begin{minted}[fontsize=\small]{sh}
 PACKAGES = "${PN}-src ${PN}-dbg ${PN}-staticdev ${PN}-dev \
@@ -351,21 +351,21 @@ PACKAGES = "${PN}-src ${PN}-dbg ${PN}-staticdev ${PN}-dev \
       \begin{itemize}
         \item Useful when a single remote repository provides multiple
           binaries or libraries.
-        \item The order matters. \code{PACKAGE_BEFORE_PN} allows to pick
+        \item The order matters. \yoctovar{PACKAGE_BEFORE_PN} allows to pick
           files normally included in the default package in another.
       \end{itemize}
-    \item \code{PACKAGES_DYNAMIC} allows to check dependencies with
+    \item \yoctovar{PACKAGES_DYNAMIC} allows to check dependencies with
       optional packages are satisfied.
-    \item \code{ALLOW_EMPTY} allows to produce a package even if it is empty.
+    \item \yoctovar{ALLOW_EMPTY} allows to produce a package even if it is empty.
     \item To prevent configuration files from being overwritten during the
-      Package Management System update process, use \code{CONFFILES}.
+      Package Management System update process, use \yoctovar{CONFFILES}.
   \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]
   \frametitle{\code{FILES}}
   \begin{itemize}
-    \item For each package a \code{FILES} variable lists the files to
+    \item For each package a \yoctovar{FILES} variable lists the files to
       include.
     \item It must be package specific (e.g. with \code{:${PN}}, \code{:${PN}-dev}, dots).
     \item Defaults from \code{meta/conf/bitbake.conf}:
@@ -468,7 +468,7 @@ ncurses
 
 \begin{frame}{\code{DEPENDS}}
   \begin{itemize}
-    \item \code{DEPENDS} describes a build-time dependency
+    \item \yoctovar{DEPENDS} describes a build-time dependency
     \item Typical case: a program needs the library and headers files from
       a library to be configured and/or built
     \item In other words: it needs the library in its {\em sysroot}
@@ -484,7 +484,7 @@ ncurses
 
 \begin{frame}{\code{RDEPENDS}}
   \begin{itemize}
-    \item \code{RDEPENDS} describes a runtime dependency
+    \item \yoctovar{RDEPENDS} describes a runtime dependency
     \item Typical case: a program uses another program at runtime via
       sockets, DBUS, etc, or simply executes it
     \item It does not need it at build time
@@ -502,13 +502,13 @@ ncurses
 
 \begin{frame}{\code{RRECOMMENDS}}
   \begin{itemize}
-    \item \code{RRECOMMENDS} is similar to \code{RDEPENDS}
+    \item \yoctovar{RRECOMMENDS} is similar to \yoctovar{RDEPENDS}
     \item But if the dependency package is not built it will just be
       skipped instead of failing the build
     \item Typical cases:
       \begin{itemize}
         \item A package extends the features of a program, but its build
-          has been disabled explicitly (e.g. via \code{BAD_RECOMMENDATIONS})
+          has been disabled explicitly (e.g. via \yoctovar{BAD_RECOMMENDATIONS})
         \item Depending on a kernel module that might also be built-in in
           the kernel Image
       \end{itemize}
