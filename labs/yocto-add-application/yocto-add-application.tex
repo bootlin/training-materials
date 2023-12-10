@@ -17,13 +17,6 @@ application. Before starting the recipe itself, find the
 \code{recipes-extended} directory originating from OpenEmbedded-Core and
 add a subdirectory for your application.
 
-A recipe for an application is usually divided into a version specific \code{bb}
-file and a common one. Try to follow this logic and separate the configuration
-variables accordingly.
-
-Tip: it is possible to include a file into a recipe with the keyword
-\code{require}.
-
 \section{First hands on nInvaders}
 
 The nInvaders application is a terminal based game following the space invaders
@@ -33,28 +26,25 @@ ncurses library.
 First try to find the project homepage, download the sources and have a first
 look: license, Makefile, requirements\dots
 
-\section{Write the common recipe}
-
-Create an appropriate common file, ending in \code{.inc}
-
-In this file add the common configuration variables: source URI,
-description\dots
-
-\section{Write the version specific recipe}
+\section{Write a minimal recipe}
 
 Create a file that respects the Yocto nomenclature: \code{${PN}_${PV}.bb}
 %stopzone
 
-Add the required common configuration variables: archive checksum and license
-file checksum.
+Specify the source URL of the latest nInvaders archive and give a try at
+building your recipe:
 
-\section{Testing and troubleshooting}
-
-You can check the whole packaging process is working fine by explicitly running
-the build task on the \code{nInvaders} recipe:
 \begin{verbatim}
 bitbake ninvaders
 \end{verbatim}
+
+\section{Archive checksum and license}
+
+BitBake will refuse to go any further if it cannot validate the downloaded
+bundle using a checksum. You'll also need to provide some information about the
+license of the package.
+
+\section{Testing and troubleshooting}
 
 Try to make the recipe on your own. Also eliminate the warnings related to your
 recipe: some configuration variables are not mandatory but it is a very good
@@ -62,7 +52,6 @@ practice to define them all.
 
 If you hang on a problem, check the following points:
 \begin{itemize}
-  \item The common recipe is included in the version specific one
   \item The checksum and the URI are valid
   \item The dependencies are explicitly defined
   \item The internal state has changed, clean the working directory: \\
@@ -120,3 +109,13 @@ directories:
     \item Try to see if the licences of \code{nInvaders} were
       extracted.
 \end{itemize}
+
+\section{Split the recipe in a common and version specific parts}
+
+A recipe for an application is usually divided into a version specific \code{bb}
+file and a common one. Try to follow this logic and separate the configuration
+variables accordingly. The \code{require} keyword can be used to include the
+\code{.inc} from the \code{.bb}.
+
+Which part do you think is version agnostic (\code{.inc}) and specific
+(\code{.bb})?
