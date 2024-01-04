@@ -16,8 +16,8 @@ http://beagleboard.org/latest-images and follow instructions.
 1. Download the images
 2a. Flash the image using Ethernet over USB with 'snagboot' (recommended)
 2b. Flash the image using a micro-SD card (legacy)
-3a. How snagtool images were built
-3b. How the iamges for SD card recovery were built
+3a. How snagboot images were built
+3b. How the images for SD card recovery were built
 
 ======================
 1. Download the images
