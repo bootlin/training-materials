@@ -34,19 +34,34 @@ instructions are provided in chapter 3.
 Follow the installation instructions at
 https://github.com/bootlin/snagboot to install snagboot.
 
-Follow the instructions for the AM335x SoC. Once the environment is
-ready, put the BBB into recovery mode by resetting the BBB while
-applying power. In order to do this, you need to press the S2 boot
-switch *while* applying power. Please mind that a warm reset
-performed with the reset button won't work as it does not affect the
-boot source!
+Setup the snagboot recovery environment
+by running the am335x setup script:
+```
+snagrecover --am335x-setup > am335x_usb_setup.sh
+chmod a+x am335x_usb_setup.sh
+sudo ./am335x_usb_setup.sh
+```
 
-Observe the presence of the following USB device:
+If you have trouble with this step, you can find more detailed instructions
+in the snagboot documentation:
+https://github.com/bootlin/snagboot/blob/main/docs/board_setup.md#ti-am335x-usb-recovery
+
+Put the BBB into recovery mode by unplugging and replugging the power cable
+while pressing the S2 switch. Please beware that a warm reset performed
+with the reset button won't work, as it does not affect the boot source!
+
+Connect a micro-usb cable to the BBB's USB device port (the one next to the
+reset button).
+
+Press the reset button on the BBB to make sure that the recovery hasn't
+timed out.
+
+Check that the following USB device is present:
 
     $ lsusb | grep AM335x
     Bus 001 Device 024: ID 0451:6141 Texas Instruments, Inc. AM335x USB
 
-In snagboot's environment, recover the board:
+Run snagrecover from the snagboot recovery shell:
 
     # snagrecover -s am3358 \
                   -F "{'spl': {'path': 'u-boot-spl.bin'}}" \
@@ -64,8 +79,8 @@ Then from the host, flash the image:
 
     $ snagflash -P fastboot -p 0451:d022 -f oem_format -f download:sdcard.img -f flash:1:0
 
-Reboot by unplugging the power supply cable (just resetting won't change
-the boot source), and enjoy the training!
+Reboot by unplugging the power supply cable and the micro-usb cable (just
+resetting won't change the boot source), and enjoy the training!
 
 =========================================
 2b. Flash the image using a micro-SD card
