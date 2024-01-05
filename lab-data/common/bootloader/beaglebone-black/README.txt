@@ -178,9 +178,9 @@ an MMC card with Debian on it (see http://beagleboard.org/latest-images).
 Compiling U-Boot
 ----------------
 
-git checkout v2023.04
+git checkout v2023.07
 cp src/snagboot/u-boot/uEnv.txt ~/u-boot/
-cp src/snagboot/u-boot/u-boot-2023.04.config ~/u-boot/.config
+cp src/snagboot/u-boot/u-boot-2023.07.config ~/u-boot/.config
 make
 
 You can as well re-create this configuration with:
