@@ -175,7 +175,7 @@
 \end{frame}
 
 \begin{frame}
-  \frametitle{Remote debugging: usage}
+  \frametitle{Remote debugging: target setup}
   \begin{itemize}
   \item On the target, run a program through \code{gdbserver}.\\
     Program execution will not start immediately.\\
@@ -183,6 +183,15 @@
     \code{gdbserver /dev/ttyS0 <executable> <args>}
   \item Otherwise, attach \code{gdbserver} to an already running program:\\
     \code{gdbserver --attach :<port> <pid>}
+  \item You can also start gdbserver without passing any program to start or
+  attach (and set the target program later, on client side):\\
+    \code{gdbserver --multi :<port>}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Remote debugging: host setup}
+  \begin{itemize}
   \item Then, on the host, start \code{ARCH-linux-gdb <executable>},\\
     and use the following \code{gdb} commands:
     \begin{itemize}
@@ -190,7 +199,14 @@
       \code{gdb> set sysroot <library-path>} (typically path to build space without \code{lib/})
     \item To connect to the target:\\
       \code{gdb> target remote <ip-addr>:<port>} (networking)\\
-      \code{gdb> target remote /dev/ttyUSB0} (serial link)
+      \code{gdb> target remote /dev/ttyUSB0} (serial link)\\
+      \begin{itemize}
+        \item Make sure to replace \code{target remote} with \code{target
+      extended-remote} if you have started gdbserver with the \code{--multi}
+      option
+      \end{itemize}
+    \item If you did not set the program to debug on gdbserver commandline:\\
+      \code{gdb> set remote exec-file <path_to_program_on_target>}
     \end{itemize}
   \end{itemize}
 \end{frame}
