@@ -7,6 +7,7 @@
     \item Managing {\em gdb} from the command line.
     \item Debugging a crashed application using a coredump with {\em gdb}.
     \item Using {\em gdb} Python scripting capabilities.
+    \item (Bonus) configuring an IDE for debugging
   \end{itemize}
 }
 
@@ -137,3 +138,72 @@ client session to test your script:
 (gdb) source linked_list.py
 (gdb) printslist name_list next
 \end{bashinput}
+
+\section{(Bonus) Configuring an IDE for debugging}
+
+While using bare gdb commands in console is enough to debug your application issues, you
+may want to use some frontend to do so, for example by using GDB features directly
+in your IDE. Multiple frontends are able to interact with GDB thanks to its
+\href{https://sourceware.org/gdb/current/onlinedocs/gdb.html/GDB_002fMI.html}{MI
+interface}
+For this example, we will configure
+\href{https://code.visualstudio.com/}{Visual Studio Code}. Start by installing
+the IDE.
+
+The firmware used for this training labs is in fact already running a gdbserver
+right at boot, listening on port 9876 : thanks to the \code{--multi} option,
+this server can be configured by the client to debug any target of interest.
+
+We must then provide instructions to VSCode about how to start a debug session.
+You may have noticed that the labs data also provide a \code{.vscode} directory
+along the program sources. If you open vscode in the sources directory, it will
+recognize this \code{.vscode} directory and load corresponding configuration
+
+The \code{.vscode} directory contains a minimalistic configuration to allow
+remote debugging, thanks to two files:
+\begin{itemize}
+  \item \code{launch.json} contains a debug configuration which indicates what
+  is the program to debug, how to connect to gdbserver and to configure it, where to
+  find the missing symbols (our staging directory), etc.
+  \item \code{tasks.json} contains a default build task: we have defined in our
+  debug configuration that we want to run a build before each debug session (so
+  we are sure that the program under debug is in sync with our sources), so
+  we have to define this build task. Note that since we are using a NFS root,
+  this build task also takes in charge the "deploy" step !
+\end{itemize}
+
+You can then open VSCode in the sources directory:
+\begin{bashinput}
+  cd ~/debugging-labs/root/gdb
+  code .
+\end{bashinput}
+Before being able to debug your program onto the target, you will need to install
+\href{https://marketplace.visualstudio.com/items?itemName=ms-vscode.cpptools}{the
+official C/C++} extension (you can do it directly from the "Extensions" tab in
+the left column).
+
+You can now start the debugging session (hit the "Run and Debug"
+tab on the left column, then "Debug linked list" in the list on top left, or
+directly hit "F" tio).
+VSCode will start our cross-gdb and connect it to the remote gdbserver, and you
+will be able to do everything we have done in the console so far:
+\begin{itemize}
+  \item Add breakpoints by clicking on the line number you want to break in
+  \item Set conditions on breakpoint by issuing right-click on the breakpoint
+  (red circle on the line number), "Edit breakpoint"
+  \item In the debugging tab (left column), you can
+  \begin{itemize}
+    \item Check variables which are in scope
+    \item take a look at your call stack
+    \item add expression to watch for specific values
+  \end{itemize}
+  \item Control the program execution with the "Continue", "Step Over", "Step
+  Into", "Step Out", "Restart", "Stop" buttons (in the upper right section)
+  \item Use directly bare gdb commands in the debugging console: open the
+  "Debug console" tab on the lower part of the screen, then type any command
+  learnt so far, but remember to prefix it with \code {-exec}
+\end{itemize}
+
+You can also refer to
+\href{https://code.visualstudio.com/docs/editor/debugging}{VSCode debug
+configuration documentation} to learn more about available configuration options
