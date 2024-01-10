@@ -59,8 +59,26 @@ $ gdb-multiarch ./linked_list
 \end{bashinput}
 
 Then continue the execution and try to find the error using GDB. There are
-multiple ways to debug such program. We will track down up to the error in order
-to understand
+multiple ways to debug such program. Here are a few hints to help you find the bug root
+cause:
+\begin{itemize}
+  \item Instead of waiting for the segfault to happen, you can use breakpoints
+  to stop at a specific place BEFORE the segfault happens
+  \item The bug is pretty reproductible here, so do not hesitate to restart the
+  program multiple times during your analysis to properly understand the path
+  leading to the bug, and to run it step by step
+  \item If your breakpoint is in a loop, it may be tedious to type "continue"
+  multiple times to reach to execution site you are interested in: remember
+  that you can use conditional breakpoints and watchpoints to make a breakpoint
+  hit on a specific loop occurrence !
+  \item It is necessary to understand the data structures your code is using to
+  understand why you eventually get a segfault: take some time to get familiar
+  with the \code{SLIST_HEAD} and \code{SLIST_ENTRY} macros, and to print them
+  during debugging to see how data is organized
+  \item You mave even use and call existing code during your debug session: you
+  can for example try to print the list by executing
+  \code{display_linked_list()} with the \code{p} gdb command !
+\end{itemize}
 
 {\em TIP: you can execute command automatically at GDB startup by putting them
 in a \code{~/.gdbinit} file. For instance, history can be enabled with
@@ -69,10 +87,6 @@ in a \code{~/.gdbinit} file. For instance, history can be enabled with
 
 {\em TIP: GDB features a TUI which can be spawned using Ctrl + X + A. You can
 switch from the command line to the TUI view using Ctrl X + O.}
-
-{\em TIP: in gdb, not only values can be displayed using \code{p} command but
-functions can also be called directly from gdb! Try to call
-\code{display_linked_list()}.}
 
 {\em NOTE: you can exit gdbserver from the connected gdb process using the
 \code{monitor exit} command.}
@@ -112,13 +126,29 @@ $ gdb-multiarch ./linked_list ./core
 \end{bashinput}
 
 You can then inspect the program state (memory, registers, etc) at the time it
-crashed. While less dynamic, it allows to pinpoint the place that triggered the 
-crash.
+crashed. While less dynamic, it allows to pinpoint the place that triggered the
+crash. Here are a few hints to help you manipulate the coredump:
+\begin{itemize}
+  \item Since the coredump is only a memory snapshot (the program is not
+  running anymore), you can not run any process-controlling command in gdb
+  (\code{run}, \code{continue}, \code{step}...)
+  \item However, you can print any variable which is in scope. You can even
+  define your own commands to ease printing our custom list:
+  \begin{itemize}
+    \item Use the \code{define} command to start defining a command, use
+    \code{end} to mark its end
+    \item In between, knowing how the data is organized, you can print some
+    data fields with \code{p}
+    \item You can use gdb custom variables to navigate into the list : refresh
+    your custom variable to make it point to the next element of the list each
+    time you call your custom command
+  \end{itemize}
+\end{itemize}
 
 \section{GDB Python support}
 
 When developing and debugging applications, sometimes we often uses the same
-set of commands over and over under GDB. Rather than doing so, we can create 
+set of commands over and over under GDB. Rather than doing so, we can create
 python scripts that are integrated with GDB.
 
 In order to display our program list from GDB, we provide a python GDB script
