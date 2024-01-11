@@ -3,6 +3,7 @@ DEBUGGING_SLIDES = \
 	about-us \
 	course-information-title \
 	discovery-board-dk1 \
+	debugging-shopping-list-stm32 \
 	course-information \
 	setup-lab \
 	debugging-principles \
