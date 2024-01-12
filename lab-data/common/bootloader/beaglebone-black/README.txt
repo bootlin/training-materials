@@ -50,12 +50,6 @@ Put the BBB into recovery mode by unplugging and replugging the power cable
 while pressing the S2 switch. Please beware that a warm reset performed
 with the reset button won't work, as it does not affect the boot source!
 
-Connect a micro-usb cable to the BBB's USB device port (the one next to the
-reset button).
-
-Press the reset button on the BBB to make sure that the recovery hasn't
-timed out.
-
 Check that the following USB device is present:
 
     $ lsusb | grep AM335x
