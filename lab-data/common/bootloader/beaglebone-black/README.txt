@@ -69,6 +69,7 @@ Run snagrecover from the snagboot recovery shell:
 
 Once you get a U-Boot prompt on the serial console, enable fastboot:
 
+    # unbind ethernet 1
     # fastboot usb 0
 
 Don't be upset by the following message, it's expected...
@@ -78,6 +79,9 @@ Don't be upset by the following message, it's expected...
 Then from the host, flash the image:
 
     $ snagflash -P fastboot -p 0451:d022 -f oem_format -f download:sdcard.img -f flash:1:0
+
+Finally, return to U-Boot, exit fastboot mode using Ctrl+c and save the current environment:
+    # saveenv
 
 Reboot by unplugging the power supply cable and the micro-usb cable (just
 resetting won't change the boot source), and enjoy the training!
@@ -178,9 +182,9 @@ an MMC card with Debian on it (see http://beagleboard.org/latest-images).
 Compiling U-Boot
 ----------------
 
-git checkout v2023.07
+git checkout v2024.01
 cp src/snagboot/u-boot/uEnv.txt ~/u-boot/
-cp src/snagboot/u-boot/u-boot-2023.07.config ~/u-boot/.config
+cp src/snagboot/u-boot/u-boot-2024.01.config ~/u-boot/.config
 make
 
 You can as well re-create this configuration with:
