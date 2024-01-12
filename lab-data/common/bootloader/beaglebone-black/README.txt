@@ -1,6 +1,6 @@
-=====================================================================================================
-Install U-boot 2018.05 on the BeagleBone Black (including BBB Wireless) internal flash storage (eMMC)
-=====================================================================================================
+=============================================================================================
+Install U-boot on the BeagleBone Black (including BBB Wireless) internal flash storage (eMMC)
+=============================================================================================
 
 This is needed for some aspects of Bootlin's kernel, Yocto Project and Buildroot labs,
 such as saving U-Boot environment settings to eMMC storage.
