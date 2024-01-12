@@ -63,9 +63,9 @@ Run snagrecover from the snagboot recovery shell:
 
 Once you get a U-Boot prompt on the serial console, enable fastboot:
 
-    # env default -a
-    # unbind ethernet 1
-    # fastboot usb 0
+    => env default -a
+    => unbind ethernet 1
+    => fastboot usb 0
 
 Don't be upset by the following message, it's expected...
 
@@ -75,8 +75,10 @@ Then from the host, flash the image:
 
     $ snagflash -P fastboot -p 0451:d022 -f oem_format -f download:sdcard.img -f flash:1:0
 
-Finally, return to U-Boot, exit fastboot mode using Ctrl+c and save the current environment:
-    # saveenv
+Finally, return to U-Boot, exit fastboot mode using Ctrl+c and save the
+environment:
+
+    => saveenv
 
 Reboot by unplugging the power supply cable and the micro-usb cable (just
 resetting won't change the boot source), and enjoy the training!
