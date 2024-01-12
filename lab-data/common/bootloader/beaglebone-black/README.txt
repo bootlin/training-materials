@@ -69,6 +69,7 @@ Run snagrecover from the snagboot recovery shell:
 
 Once you get a U-Boot prompt on the serial console, enable fastboot:
 
+    # env default -a
     # unbind ethernet 1
     # fastboot usb 0
 
