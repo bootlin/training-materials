@@ -28,52 +28,34 @@ git clone https://git.busybox.net/buildroot
 \end{bashinput}
 
 In case this is blocked on your network, you can download the Buildroot
-tarball \code{buildroot-2022.11.tar.bz2} from
+tarball \code{buildroot-2023.11.1.tar.bz2} from
 \code{https://buildroot.org/downloads/} and extract it. However in this
 case, you won't be able to use {\em Git} to visualize your changes and
 keep track of them.
 
 Go into the newly created \code{buildroot} directory.
 
-We're going to start a branch from the {\em 2022.11} Buildroot
+We're going to start a branch from the {\em 2023.11.1} Buildroot
 release, with which this training has been tested.
 
 \begin{bashinput}
-git checkout -b felabs 2022.11
+git checkout -b bootlinlabs 2023.11.1
 \end{bashinput}
 
 \section{Configuring Buildroot}
 
-First of all, apply the patches provided in the \code{buildroot-patches} folder:
+The buildroot configuration is provided in the lab materials. Copy the configuration
+in the "configs" folder of your buildroot installation :
 
 \begin{bashinput}
-	git am ~/preempt-rt/preempt-rt-lab-data/buildroot-patches/*
+	cp ~/preempt-rt/preempt-rt-lab-data/stm32mp157a_dk1_rt_defconfig configs
 \end{bashinput}
-
-If you look under \code{configs/}, you will see that there is a file
-named \code{stm32mp157a_dk1_defconfig}, which is a ready-to-use Buildroot
-configuration file to build a system for the STM32MP157A platform.
 
 We'll use that configuration as a basis for our setup:
 
 \begin{bashinput}
-make stm32mp157a_dk1_defconfig
+make stm32mp157a_dk1_rt_defconfig
 \end{bashinput}
-
-\section{Selecting a -RT kernel}
-
-We'll configure Buildroot to download the Linux Kernel with the RT Patch applied.
-
-From the \code{make menuconfig} interface, change the Kernel sources's custom
-git tarball location to the following:
-
-\url{https://git.kernel.org/pub/scm/linux/kernel/git/rt/linux-rt-devel.git/snapshot/linux-rt-devel-6.2-rc3-rt1.tar.gz}
-
-Make sure you enable a toolchain with wchar and C++ support, it will be required
-for later, and select the kernel headers corresponding to a kernel 6.1 or newer.
-
-Realtime applications should really be using the GLibC, so select this C library in the
-toolchain configuration.
 
 \section{Kernel configuration}
 The standard way to configure the kernel is through the \code{make menuconfig} interface. Here, we're building everything using
