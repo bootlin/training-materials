@@ -70,9 +70,6 @@
   }
 }
 
-% Ubuntu version
-\def \ubuntuversion{22.04}
-
 % Time ratio
 \def \onsitelecturetimeratio{40}
 \def \onsitelabtimeratio{60}
