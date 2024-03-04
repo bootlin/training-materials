@@ -3,6 +3,7 @@ LINUX_KERNEL_SLIDES = \
 		about-us \
 		course-information-title \
 		beagleboneblack-board \
+		beagleplay-board-also-supported \
 		kernel-shopping-list \
 		course-information \
 		setup-lab \
