@@ -1,0 +1,1 @@
+LINUX_KERNEL_BEAGLEPLAY_LABS   = setup \
