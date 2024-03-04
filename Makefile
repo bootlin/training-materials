@@ -137,9 +137,9 @@ $(foreach file,$(SLIDES_TEX),$(if $(wildcard $(file)),,$(error Missing file $(fi
 	echo "\input{last-update}" >> $(OUTDIR)/$(basename $@).tex
 	echo "\input{$(VARS)}" >> $(OUTDIR)/$(basename $@).tex
 	for f in $(filter %.tex,$^) ; do \
-		echo -n "\input{../"          >> $(OUTDIR)/$(basename $@).tex ; \
-		echo -n $$f | sed 's%\.tex%%' >> $(OUTDIR)/$(basename $@).tex ; \
-		echo "}"                      >> $(OUTDIR)/$(basename $@).tex ; \
+		cp $$f $(OUTDIR)/`basename $$f` ; \
+		sed -i 's%__SESSION_NAME__%$(SLIDES_TRAINING)%' $(OUTDIR)/`basename $$f` ; \
+		printf "\input{%s}\n" `basename $$f .tex` >> $(OUTDIR)/$(basename $@).tex ; \
 	done
 	(cd $(OUTDIR); $(PDFLATEX_ENV) $(PDFLATEX) $(PDFLATEX_OPT) $(basename $@).tex)
 # The second call to pdflatex is to be sure that we have a correct table of
