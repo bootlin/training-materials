@@ -1,0 +1,249 @@
+\subchapter{DMA}{Objective: learn how to use the \code{dma-mapping} API
+  to handle DMA buffers and coherency, as well as the \code{dmaengine}
+  API to deal with DMA controllers through a generic abstraction}
+
+During this lab, you will:
+
+\begin{itemize}
+\item Setup streaming mappings with the \code{dma} API
+\item Configure a DMA controller with the \code{dmaengine} API
+\item Configure the hardware to trigger DMA transfers
+\item Wait for DMA completion
+\end{itemize}
+
+\section{Setup}
+
+This lab is a continuation of all the previous {\em serial} labs. Use
+the same kernel, environment and paths!
+
+\section{Preparing the driver}
+
+We will use DMA in the write path. As we will receive data from
+userspace, we will need a bounce buffer, so we can create a second
+buffer named \code{tx_buf} of the same size as \code{rx_buf} in our
+\code{serial_dev} structure.
+
+As we will also need the \code{resource} structure with the MMIO physical
+addresses from outside of the \code{->probe()}, it might be relevant to save
+the \code{resource} pointer used to derive the \code{miscdev} name into the
+\code{serial_dev} structure.
+
+Finally, the device-model \code{struct device *} contained in the
+platform device will soon be very useful as well, so we can save it in
+our \code{struct serial_dev *} object.
+
+Before going further, re-compile and test your driver.
+
+The \code{serial_write} callback and \code{serial_fops} can now be renamed \code{serial_write_pio} and \code{serial_fops_pio},
+while we will implement a new callback named \code{serial_write_dma} and a new
+set of file operations called \code{serial_fops_dma} which uses this callback
+for \code{.write} and keeps the same values for other fields. This new set of
+file operations should be used by default.
+
+Let's now create two helpers supposed to initialize and cleanup our DMA
+setup. We will call \code{serial_init_dma()} right before registering
+the \code{misc} device. In the \code{->probe()} error path and in the
+remove callback, we will call \code{serial_cleanup_dma()}. Make sure that errors
+are handled correctly and returned to the caller. A special case should be
+handled when no DMA channel is available (with the \code{-ENODEV} code returned)
+in order to fallback to the the \code{serial_fops_pio} file operations.
+
+\section{Prepare the DMA controller}
+
+The AM62x UART controller is internally wired to a DMA controller named PKTDMA.
+So we will have to deal with the \code{dmaengine} API in order to prepare DMA
+transfers on the controller side. The idea of this API is to fully abstract the
+characteristics of the DMA controller.
+
+In a complete driver we should probably use the helpers checking
+capabilities. Let's just skip this part and assume the two IPs are
+compatible and the addressing masks properly set to 32-bit.
+
+The BeaglePlay device tree does not describe DMA channels for UART5 and UART6,
+so we will have to add the channels to our custom device tree. References to DMA channels in the device tree have the following form:
+
+\begin{verbatim}
+dmas = <[controller reference] [dma-cells parameters]>
+\end{verbatim}
+
+Go to your kernel source tree and open the \code{Documentation/devicetree/bindings/dma/ti/k3-pktdma.yaml} file, which contains the bindings for the AM62x PKTDMA controller. Find the description of the \code{#dma-cells} property. You will see that two cells are required: the first one is the thread ID for the UART controller and the second one is the ASEL value for the channel.
+
+In our case, the ASEL value is 0, so we only need the thread ID. This can be found in the TRM and on other TI documents online, but as it is quite difficult to find, we will give the values to you:
+
+\begin{itemize}
+\item \code{UART_5} has a TX thread ID of 0xc450
+\item \code{UART_6} has a TX thread ID of 0xc406
+\end{itemize}
+
+With this information in hand, we can add the description of the DMA channels in
+the device tree:
+
+\sourcecode{labs/kernel-beagleplay-serial-dma/uarts-dma.dts}
+
+This channel will be used by all the \code{dmaengine} helpers, so better
+save it in our \code{serial_dev} structure.
+\begin{verbatim}
+struct serial_dev {
+        ...
+        struct dma_chan *txchan;
+};
+\end{verbatim}
+
+Don't forget to update your device tree and reboot your board!
+
+We can now configure the DMA controller with details about the upcoming
+transfers:
+\begin{itemize}
+\item memory to device transfers
+\item the source will be memory, we will map buffers when they come,
+  there is no particular constraint on this side
+\item the destination is the UART Tx FIFO, we will ask the DMA to
+  transfer the bytes one after the other (hardware signaling already
+  handles the internal ``flow'')
+\item we shall not use the UART Tx FIFO directly, to be generic we shall use
+  \kfunc{dma_map_resource} first (and save it in \code{serial_dev} to be able
+  to unmap it later)
+\end{itemize}
+
+\begin{verbatim}
+struct dma_slave_config txconf = {};
+
+serial->fifo_dma_addr = dma_map_resource(dev, serial->res->start + UART_TX * 4,
+                                         4, DMA_TO_DEVICE, 0);
+if (dma_mapping_error(dev, serial->fifo_dma_addr)) ...
+
+txconf.direction = DMA_MEM_TO_DEV;
+txconf.dst_addr_width = DMA_SLAVE_BUSWIDTH_1_BYTE;
+txconf.dst_addr = serial->fifo_dma_addr;
+ret = dmaengine_slave_config(serial->txchan, &txconf);
+if (ret) ...
+\end{verbatim}
+
+The cleanup helper should on its side call
+\kfunc{dmaengine_terminate_sync} just to be sure no transfer is
+ongoing, right before un-mapping the FIFO with \kfunc{dma_unmap_resource} and
+releasing the DMA channel with \kfunc{dma_release_channel}.
+
+It is time to recompile your driver and see if any header is missing...
+
+\section{Prepare the UART controller}
+
+On its side, the UART controller must assert some signals to drive the DMA
+flow. We must enable the controlling logic on the Tx DMA channel, by enabling
+\code{DMACTL} in mode 3. We also configure the UART to transmit all the bytes
+as soon as they get in.
+
+\begin{verbatim}
+#define OMAP_UART_SCR_DMAMODE_CTL3 0x7
+#define OMAP_UART_SCR_TX_TRIG_GRANU1 BIT(6)
+
+/* Enable DMA */
+reg_write(serial, OMAP_UART_SCR_DMAMODE_CTL3 | OMAP_UART_SCR_TX_TRIG_GRANU1,
+          UART_OMAP_SCR);
+\end{verbatim}
+
+\section{Process user write requests}
+
+It is now time to deal with user buffers again.
+
+Before doing anything in the \code{write} hook, we shall fill-in the
+\code{serial_dev} structure with:
+\begin{itemize}
+\item a \code{bool txongoing} flag to prevent concurrent uses of the same
+  Tx DMA channel (would be possible by queuing new requests, but let's keep this
+  implementation simple) while not holding any lock for the full duration of
+  the operation.
+\item a \code{struct completion txcomplete} object to asynchronously inform the
+  write thread that the DMA transaction is over (very much like we did with the
+  \code{waitqueue} in the interrupt lab). This object shall be initialized with
+  \code{init_completion(&serial->txcomplete)}.
+\end{itemize}
+
+\begin{verbatim}
+struct serial_dev {
+        ...
+        struct dma_chan *txchan;
+        bool txongoing;
+        struct completion txcomplete;
+};
+\end{verbatim}
+
+In the write hook, we shall first check if the DMA channel has been
+properly retrieved. If not, we should definitely fallback to the PIO
+implementation.
+
+Then, in order to simplify the code, we will no longer deal with
+concurrent operations. In order to safely serialize writes, we can start
+and end the write hook with something like:
+
+\begin{verbatim}
+/* Prevent concurrent Tx */
+spin_lock_irqsave(&serial->lock, flags);
+if (serial->txongoing) {
+        spin_unlock_irqrestore(&serial->lock, flags);
+        return -EBUSY;
+}
+serial->txongoing = true;
+spin_unlock_irqrestore(&serial->lock, flags);
+
+...
+
+spin_lock_irqsave(&serial->lock, flags);
+serial->txongoing = false;
+spin_unlock_irqrestore(&serial->lock, flags);
+\end{verbatim}
+
+The first step in this \code{->write()} hook is to use \code{serial->tx_buf} as
+bounce buffer by copying the user data using \kfunc{copy_from_user}. Let's
+handle up to \code{SERIAL_BUFSIZE} bytes at a time. One can use \kfunc{min_t}
+to derive the right amount of bytes to deal with.
+
+Now we can remap the buffer. We have a single buffer so we can use
+\kfunc{dma_map_single}. The output value is a \ksym{dma_addr_t}. Save this
+value as we will reuse it. Also do not forget to check its validity with
+\kfunc{dma_mapping_error}.
+
+We now have all the missing information compared to the \code{serial_init_dma}
+step, like the \ksym{dma_addr_t} of the buffer and its length. Let's create a
+descriptor filled with all the default information known by the DMA controller
+plus the additional details we can now provide:
+
+\begin{verbatim}
+struct dma_async_tx_descriptor *desc;
+
+desc = dmaengine_prep_slave_single(serial->txchan, serial->dma_addr,
+                                   len, DMA_MEM_TO_DEV,
+                                   DMA_PREP_INTERRUPT | DMA_CTRL_ACK);
+if (!desc) ...
+\end{verbatim}
+
+We can now use the returned descriptor to register a callback. This callback
+will just call \kfunc{complete} over the completion object. Which also means
+this completion object could be re-initialized while we register the callback,
+just in case.
+
+The DMA transfer contained in the descriptor can now be queued into the DMA
+controller queue:
+
+\begin{verbatim}
+dma_cookie_t cookie;
+
+cookie = dmaengine_submit(desc);
+ret = dma_submit_error(cookie);
+if (ret) ...
+\end{verbatim}
+
+The transfer can be triggered. This is usually an operation that is only
+required on the DMA controller side, but remember here we also need to trigger
+it on the UART controller side:
+
+\begin{verbatim}
+dma_async_issue_pending(serial->txchan);
+reg_write(serial, first, UART_TX);
+\end{verbatim}
+
+The transfer being asynchronous, it is finally required to wait for completion
+with one of the \kfunc{wait_for_completion} variants, and to call
+\kfunc{dma_unmap_single} right after it.
+
+You can now test your driver. Try sending strings of various length and observing how the serial port's behavior changes.
