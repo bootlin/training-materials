@@ -1,0 +1,155 @@
+\subchapter{Kernel debugging mechanisms and kernel crash
+  analysis}{Objective: Use kernel debugging mechanisms and analyze a
+  kernel crash}
+
+In this lab, we will continue to work on the code of our serial driver.
+
+\section{dev\_dbg() and dynamic debugging}
+
+Add a \kfunc{dev_dbg} call in the \code{write()} operation that shows
+each character being written (or its hexadecimal representation) and
+add a similar \kfunc{dev_dbg} call in your interrupt handler to show
+each character being received.
+
+Check what happens with your module. Do you see the debugging messages
+that you added? Your kernel probably does not have
+\kconfig{CONFIG_DYNAMIC_DEBUG} set and your driver is not compiled with
+\code{DEBUG} defined, so you shouldn't see any message.
+
+Now, recompile your kernel with the following options:
+
+\begin{itemize}
+\item \kconfig{CONFIG_DYNAMIC_DEBUG}: this will allow you to see
+  debugging messages.
+\item \kconfig{CONFIG_DEBUG_INFO}: this option will make it
+  possible to see source code in disassembled kernel code.
+  We will need it in a later part of this lab, but enabling
+  it now will allow to avoid recompiling the whole kernel again.
+\end{itemize}
+
+Also recompile the kernel module to have it built against the updated kernel
+config in order to take in account the new enabled options.
+
+Once this is done, in U-Boot, add \code{loglevel=8} to the kernel
+command line to get the debugging messages directly in the console
+(otherwise you will only see them in \code{dmesg}).
+
+Now boot your updated kernel.
+
+The dynamic debug feature can be configured using \code{debugfs}, so you'll have
+to mount the \code{debugfs} filesystem first. Then, after reading the dynamic
+debug documentation in the kernel sources, do the following things:
+
+\begin{itemize}
+
+\item List all available debug messages in the kernel.
+
+\item Enable all debugging messages of your serial module, and check
+  that you indeed see these messages.
+
+\item Enable just one single debug message in your serial module, and
+  check that you see just this message and not the other debug
+  messages of your module.
+
+\end{itemize}
+
+Now, you have a good mechanism to keep many debug messages in your
+drivers and be able to selectively enable only some of them.
+
+\section{debugfs}
+
+After using \code{debugfs} for controlling the dynamic debug feature,
+let's add a new entry in this filesystem. Modify your driver to
+add:
+
+\begin{itemize}
+
+\item A directory called after a unique name per device in the
+  \code{debugfs} filesystem.
+
+\item And file called \code{counter} inside this directory of the
+  \code{debugfs} filesystem. This file should allow to see the
+  contents of the \code{counter} variable of your module.
+
+\end{itemize}
+
+Recompile and reload your driver, and check that in
+\code{/sys/kernel/debug/<unique name>/counter} you can see the amount
+of characters that have been transmitted by your driver.
+
+\section{Kernel crash analysis}
+
+\subsection{Setup}
+
+Go to the \code{~/linux-kernel-beagleplay-labs/modules/nfsroot/root/debugging/} directory.
+
+Compile the \code{drvbroken} in this directory, and load it on your
+board. See it crashing in a nice way.
+
+\subsection{Analyzing the crash message}
+
+Analyze the crash message carefully. Knowing that on ARM, the \code{PC}
+register contains the location of the instruction being executed, find
+in which function does the crash happen, and what the function call
+stack is.
+
+Using Elixir or the kernel source code, have a look at the definition of this
+function. This, with a careful review of the driver source code should
+probably be enough to help you understand and fix the issue.
+
+\subsection{Locating the exact line where the error happens}
+
+Even if you already found out which instruction caused the crash, it's
+useful to use information in the crash report.
+
+If you look again, the report tells you at what offset in the function
+this happens. Let's disassemble the code for this function to
+understand exactly where the issue happened.
+
+That's where we need a kernel compiled with \kconfig{CONFIG_DEBUG_INFO}
+as we did at the beginning of this lab. This way, the kernel is
+compiled with \code{$(CROSSCOMPILE)gcc -g}, which keeps the source
+code inside the binaries.
+
+You could disassemble the whole \code{vmlinux} file and work with
+the \code{PC} absolute address, but it is going to take a long time.
+
+Instead, using Elixir, you'll find that the crash happens in an function
+defined in assembly, called by a function implemented in C. Find
+the \code{.c} source file where the C function is implemented.
+
+In the kernel sources, you can then find
+and dissassemble the corresponding \code{.o} file:
+
+\begin{verbatim}
+aarch64-linux-gnu-objdump -DS file.o > file.S
+\end{verbatim}
+
+Another way to do this is to use {gdb-multiarch}\footnote{gdb-multiarch is a new package
+supporting multiple architectures at once. If you have a cross
+toolchain including gdb, you can also run arm-linux-gdb directly.}:
+
+\begin{verbatim}
+sudo apt install gdb-multiarch
+gdb-multiarch vmlinux
+(gdb) set arch aarch64
+(gdb) set gnutarget elf64-littlearm
+(gdb) disassemble function_name
+\end{verbatim}
+
+Then, in the disassembled code, find the start address of the
+function, and using an hexadecimal calculator, add the offset that
+was provided in the crash output. That's how you can find the
+exact assembly instruction where the crash occured, together
+with the C code it was compiled from. Looking at the addresses
+handled by this code, you can now guess what is wrong in the
+data passed to the stack of kernel functions called by the
+broken module.
+
+A little understanding of assembly instructions on the architecture
+you are working on helps, but seeing the original C code should answer
+most questions.
+
+Note that the same technique works if the error comes directly from
+the code of a module. Just dissassemble the \code{.o} file
+the \code{.ko} file was generated from.

@@ -13,3 +13,4 @@ LINUX_KERNEL_BEAGLEPLAY_LABS   = setup \
 				kernel-serial-interrupt \
 				kernel-locking \
 				kernel-beagleplay-serial-dma \
+				kernel-beagleplay-debugging \
