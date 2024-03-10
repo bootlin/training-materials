@@ -106,31 +106,31 @@ The AM62x SoC is organized around 3 hardware domains.
 
 First, we have the MAIN domain, which contains the majority of peripherals and
 where the 4 Cortex-A53 processors are located. These processors will be used to
-run our linux kernel or our future userspace applications.
+run our Linux kernel and our future userspace applications.
 
-Next, we have the MCU domain. The principal advantage of this domain is the
-fact that it is isolated from the rest of the SoC and, therefore, provides
-safety use cases. This domain is controlled by a Cortex-M4F processor.
+Next, we have the MCU domain. The main advantage of this domain is the
+fact that it is isolated from the rest of the SoC. This domain is
+controlled by a Cortex-M4F processor.
 
 Finally, we have the WKUP domain which, as its name suggests, is used during
-deepsleep mode and is controlled by a Cortex-R5F processor.
+deep sleep mode and is controlled by a Cortex-R5F processor.
 
 \textbf{Note :} The Cortex-R5F and the Cortex-M4F are 32 bit processors
-(in opposition to 64 bit Cortex-A53 processors) and will therefore need
-a 32 bit toolchain.
+(as opposed to the 64-bit Cortex-A53 processors) and will therefore need
+a 32-bit cross-compilation toolchain.
 
 The purpose of the AM62x SoC boot process is to initialize all the required
-peripherals and processors in different steps we are about to describe :
+peripherals and processors in different steps we describe below.
 
 The datasheet describes a software component called TIFS, which stands for
 TI Foundational Security and is responsible for the Secure
 Boot and Power/Ressource Management requests made by the CPUs inside the SoC.
 
-As Master of the boot process, the TIFS, which is running on the M4F processor,
-will first initiate the R5 Processor and requests the R5 to load a
-complementary firmware to TIFS core.
-Once this done the R5 will run a U-Boot SPL in order to configure DDR and
-the R5 firmware. Finally it will request the TIFS to start the first A53 CPU.
+As the master of the boot process, the TIFS, which is running on the
+M4F processor, will first initiate the R5 Processor and requests the
+R5 to load an additional firmware to the TIFS core. Once this is done the
+R5 will run a U-Boot SPL in order to configure DDR and the R5
+firmware. Finally it will request the TIFS to start the first A53 CPU.
 
 Once the A53 is started, it will load TF-A within the secure world.
 After this, the A53 will switch to normal world and load U-Boot SPL which
@@ -141,21 +141,23 @@ The Following Process Flow can be viewed at the following address :
 
 \section{Get and install the 32 bit toolchain}
 
-As the AM62x is using 32 bit processors we will need a specific toolchain
-to perform cross-compilation of 32 bit firmware.
-Although we could use Crosstool-ng to compile this 32 bit toolchain, we will use
-a precompiled one in order to save compilation time.
-To do so, we will get this toolchain from the official ARM website\footnote{You can download precompiled ARM toolchains for other
-target architecture on the following link \url{https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads/}}.
+As the AM62x is using 32 bit processors we will need a specific
+toolchain to perform cross-compilation of 32 bit firmware.  Although
+we could use Crosstool-ng to compile this 32 bit toolchain, we will
+use a precompiled one in order to save compilation time.  To do so, we
+will get this toolchain from the official ARM website\footnote{You can
+download precompiled ARM toolchains for other target architecture on
+the following
+link \url{https://developer.arm.com/downloads/-/arm-gnu-toolchain-downloads/}}.
 
 Let's download and untar it:
 
 \begin{bashinput}
-      $ wget -O /tmp/arm-gnu-toolchain-12.2.rel1-x86_64-arm-none-eabi.tar.xz https://developer.arm.com/-/media/Files/downloads/gnu/12.2.rel1/binrel/arm-gnu-toolchain-12.2.rel1-x86_64-arm-none-eabi.tar.xz
-      $ tar vxJf /tmp/arm-gnu-toolchain-12.2.rel1-x86_64-arm-none-eabi.tar.xz -C $HOME/x-tools
+      $ wget https://developer.arm.com/-/media/Files/downloads/gnu/12.2.rel1/binrel/arm-gnu-toolchain-12.2.rel1-x86_64-arm-none-eabi.tar.xz
+      $ tar vxf arm-gnu-toolchain-12.2.rel1-x86_64-arm-none-eabi.tar.xz -C $HOME/x-tools
 \end{bashinput}
 
-Doesn't forget to add \code{$HOME/x-tools/arm-gnu-toolchain-12.2.rel1-x86_64-arm-none-eabi/bin/}
+Don't forget to add \code{$HOME/x-tools/arm-gnu-toolchain-12.2.rel1-x86_64-arm-none-eabi/bin/}
 to your \code{PATH} environment variable.
 
 Now our 32 bit toolchain is installed into \code{$HOME/x-tools} directory !
@@ -171,7 +173,11 @@ $ cd u-boot/
 $ git checkout f036fb
 \end{bashinput}
 
-To share more easily U-Boot images across builds, let's create a build directory.
+As we're going to build multiple configurations of U-Boot, we will use
+{\em out-of-tree} build, so that the build is done in a separate
+directory from the source tree. This is achieved using the \code{O=}
+variable. So let's create a build directory for this first U-Boot
+build:
 
 \begin{bashinput}
 $ mkdir -p ../build_uboot/r5
@@ -185,69 +191,36 @@ Basically, you need to:
 
 \begin{enumerate}
 
-\item Specify the cross-compiler prefix
-(the part before \code{gcc} in the cross-compiler executable name):
-\bashcmd{$ export CROSS_COMPILE=arm-none-eabi-}
-and the architecture type (we are building for the R5, 32 bit Proc):
-\bashcmd{$ export ARCH=arm}
+\item Specify the cross-compiler prefix (the part before \code{gcc} in
+  the cross-compiler executable name): \bashcmd{$ export
+  CROSS_COMPILE=arm-none-eabi-}
 
-\item Run \inlinebash{$ ls configs/ | grep am62x} to see all predefined
-      configurations. The one that supports our board for the R5 processor is
-      \code{am62x_evm_r5_defconfig}
-\item I our case we need to specify the output directory we've
-      created a few lines above by adding the following
-      flag \code{O=../build_uboot/r5/}
+\item Run \inlinebash{$ ls configs/ | grep am62x} to see all
+  predefined configurations. The one that supports our board for the
+  R5 processor is \code{am62x_evm_r5_defconfig}, so, run:
+  \bashcmd{$ make am62x_evm_r5_defconfig O=../build_uboot/r5/} to load
+  the initial configuration.
 
-      Now, run \inlinebash{$ make am62x_evm_r5_defconfig O=../build_uboot/r5/}.
-
-\item Now that you have a valid initial configuration, you can now run \\
-  \inlinebash{$ make menuconfig O=../build_uboot/r5/} to further edit your bootloader features.
-  \begin{itemize}
-    \item In the \code{Environment} submenu, we will configure U-Boot so
-    that it stores its environment inside a file called \code{uboot.env}
-    in an ext4 filesystem:
-    \begin{itemize}
-      \item Enable \code{Environment is in a EXT4 filesystem}. Disable all other
-          options for environment storage (e.g. MMC, SPI, UBI)
-      \item \code{Name of the block device for the environment}: \code{mmc}
-      \item \code{Device and partition for where to store the environment in
-          EXT4}: \code{1:2}
-      \item \code{Name of the EXT4 file to use for the environment}: \code{/uboot.env}
-    \end{itemize}
-
-  \item In \code{SPL/TPL} $\rightarrow$ Enable \code{Support EXT filesystems}
-  \item In \code{Boot Options} $\rightarrow$ \code{Enable a default value for bootcmd}
-        and change the \code{bootcmd value} to : \code{echo 'No bootcmd yet'}.
-        That way, U-Boot will not try to load automatically a kernel image and just show
-        'No bootcmd yet'.
-  \end{itemize}
-
-\item Install the following packages which should be needed to compile U-Boot for
-  your board:
+\item Install the following packages which should be needed to compile
+  U-Boot for your board:
 
   \begin{bashinput}
   $ sudo apt install libssl-dev device-tree-compiler swig \
           python3-distutils python3-dev python3-setuptools
   \end{bashinput}
 
-\item Finally, run \bashcmd{make DEVICE_TREE=k3-am625-r5-beagleplay O=../build_uboot/r5/}
-  which will build U-Boot
-  \footnote{You can speed up the
-  compiling by using the \code{-jX} option with \code{make}, where X
-  is the number of parallel jobs used for compiling. Twice the
-  number of CPU cores is a good value.}.
-  The \code{DEVICE_TREE} variable specifies the specific
-  Device Tree that describes our hardware board.
-  Because we are using an out-of-tree version of U-Boot, the \code{_defconfig}
-  file already configures the device tree correctly, and pass the
-  \code{DEVICE_TREE} variable is therefore not mandatory.
-  That been said, you just could have run \code{make}.
+\item Finally, run \bashcmd{make O=../build_uboot/r5/} which will
+  build U-Boot\footnote{You can speed up the compiling by using the
+  \code{-jX} option with \code{make}, where X is the number of
+  parallel jobs used for compiling. Twice the number of CPU cores is a
+  good value.}.
+
 \end{enumerate}
 
 If you go into \inlinebash{../build_uboot/r5/} you can see all the files
 generated during the build process. Keep in mind that we will only use the
 SPL image of U-Boot for the R5 booting sequence, which is located in the
-\code{spl} directory.
+\code{spl/} directory.
 
 \section{Get the TI firmware and create {\tt tiboot3.bin} image}
 
@@ -289,6 +262,10 @@ In a single command we then have:
 $ make SOC=am62x SBL=../build_uboot/r5/spl/u-boot-spl.bin SYSFW_PATH=../ti-linux-firmware/ti-sysfw/ti-fs-firmware-am62x-gp.bin
 \end{bashinput}
 
+The important file produced is \code{tiboot3-am62x-gp-evm.bin}, which
+will have to be named \code{tiboot3.bin}, which is why there is a
+symbolic link with this name.
+
 \section{Get and compile TF-A}
 Get the mainline TF-A sources:
 
@@ -302,59 +279,28 @@ $ git checkout v2.9
 Several configuration parameters have to be passed to the Makefile:
 \begin{itemize}
 \item Change the cross-compiler prefix for the aarch64 cross-compiler,
-      either using the environment variable:
-      \inlinebash{$ export CROSS_COMPILE=aarch64-linux-}, or just by
-      adding it to the \code{make} commande line.
-\item The architecture has to be selected (aarch64),
-      again either using the environment variable: \code{$ export ARCH=aarch64}
-      or just by adding it to the \code{make} commande line.
-\item The AM62x SoC platform which is the k3 family is selected
-      too with \code{PLAT=k3}
+  either using the environment variable: \inlinebash{$ export
+    CROSS_COMPILE=aarch64-linux-}, or just by adding it to the
+  \code{make} command line.
+\item The architecture has to be selected (aarch64), again just by
+  adding it to the \code{make} command line: \code{ARCH=aarch64}
+\item The AM62x SoC platform which is the \code{k3} family is selected
+  too with \code{PLAT=k3}
 \item And we specify the target board we use with \code{TARGET_BOARD=lite}
 \end{itemize}
 
 So the resulting make command is:
 \begin{bashinput}
-    $ make PLAT=k3 TARGET_BOARD=lite
+    $ make ARCH=aarch64 PLAT=k3 TARGET_BOARD=lite
 \end{bashinput}
 
-
-% We are not forced to use OPTEE and in order to simplify the lab
-% we will not using it
-
-% \section{Get and compile OPTEE-OS}
-% Get the mainline OPTEE-OS sources:
-
-% \begin{bashinput}
-% $ cd ..
-% $ git clone https://github.com/OP-TEE/optee_os.git
-% $ cd optee_os/
-% $ git checkout 3.21.0
-% \end{bashinput}
-
-% Several configuration parameters have to be passed to the Makefile:
-% \begin{itemize}
-% \item Specify the 32 bit cross-compiler prefix \code{CROSS_COMPILE=arm-none-eabi-}
-% \item Specify the 64 bit cross-compiler prefix \code{CROSS_COMPILE64=aarch64-linux-}
-% \item In order to indicates that our SoC supports both 64 and 32 bit builds,
-%       we need to set \code{CFG_ARM64_core=y}
-% \item The AM62x SoC platform which is the k3 family is selected
-%       too with \code{PLATFORM=k3}
-% \end{itemize}
-
-% So the resulting make command is:
-% \begin{bashinput}
-%     $ make PLATFORM=k3 CFG_ARM64_core=y CROSS_COMPILE=arm-none-eabi- CROSS_COMPILE64=aarch64-linux-
-% \end{bashinput}
-
-% You may encounter a building issue if you choose to set ARCH env variable
-% beacause Optee will try to load some specific makefiles to your architecture.
-% In that case you need to remove this variable with:
-% \inlinebash{$ export -n ARCH}
+The important result of this build is the file
+\code{build/k3/lite/release/bl31.bin} which contains the {\em BL31}
+stage of the boot process.
 
 \section{Configure U-boot for the A53 Processor}
 
-First of all, like for the R5, we have to create an output directory:
+First of all, like for the R5, we have to create a build directory:
 \begin{bashinput}
 $ cd $HOME/__SESSION_NAME__-labs/bootloader
 $ mkdir build_uboot/a53/
@@ -368,45 +314,61 @@ U-Boot directory. Few configuration changes are however needed:
 \item Change your shell environment variables to match the new
   target architecture,
   \begin{bashinput}
-  $ export ARCH=aarch64
   $ export CROSS_COMPILE=aarch64-linux-
   \end{bashinput}
-\item Load the \code{__defconfig} corresponding to the \code{am62x}
+\item Load the \code{defconfig} corresponding to the \code{am62x}
   for \code{A53} Processor and point to the A53 output directory we just
   created:
   \begin{bashinput}
-  $ make am62x_evm_a53_defconfig O=../build_uboot/a53/
+  $ make O=../build_uboot/a53/ am62x_evm_a53_defconfig
   \end{bashinput}
-\item Now we have to tune the same parameters as for the R5 in the menuconfig
-  with the following command:
+\item Now we have to adjust the U-Boot configuration, so enter
+  \code{menuconfig}:
   \begin{bashinput}
-  $ make menuconfig O=../build_uboot/a53/
+  $ make O=../build_uboot/a53/ menuconfig
   \end{bashinput}
+
+  Once in \code{menuconfig}, adjust in the \code{Environment} submenu,
+  we will configure U-Boot so that it stores its environment inside a
+  file called \code{uboot.env} in an ext4 filesystem:
+  \begin{itemize}
+  \item Enable \code{Environment is in a EXT4 filesystem}. Disable all other
+    options for environment storage (e.g. MMC, SPI, UBI)
+  \item \code{Name of the block device for the environment}: \code{mmc}
+  \item \code{Device and partition for where to store the environment in
+    EXT4}: \code{1:2}
+  \item \code{Name of the EXT4 file to use for the environment}: \code{/uboot.env}
+  \item Disable \code{SPL Environment is in a EXT4 filesystem}
+  \end{itemize}
+
 \item Finally, we just have to call the make command and pass some parameters
   to the makefile:
 
   \begin{itemize}
   \item The path to the Trusted Firmware (TF-A):
-    \code{ATF=$HOME/__SESSION_NAME__-labs/bootloader/arm-trusted-firmware/build/k3/lite/release/bl31.bin}
+    \code{ATF=..//arm-trusted-firmware/build/k3/lite/release/bl31.bin}
   \item The path to the Device Management Firmware (DM) which is included
     by the \code{ti-linux-firmware} package we downloaded before:
-    \code{DM=$HOME/__SESSION_NAME__-labs/bootloader/ti-linux-firmware/ti-dm/am62xx/ipc_echo_testb_mcu1_0_release_strip.xer5f}
+    \code{DM=../ti-linux-firmware/ti-dm/am62xx/ipc_echo_testb_mcu1_0_release_strip.xer5f}
   \item As usual, do not forget to specify the output directory:
     \code{O=../build_uboot/a53}
   \end{itemize}
 
   \begin{bashinput}
-  $ make ATF=$HOME/__SESSION_NAME__-labs/bootloader/arm-trusted-firmware/build/k3/lite/release/bl31.bin DM=$HOME/embedded-linux-beagleplay-labs/bootloader/ti-linux-firmware/ti-dm/am62xx/ipc_echo_testb_mcu1_0_release_strip.xer5f O=../build_uboot/a53
+$ make ATF=../arm-trusted-firmware/build/k3/lite/release/bl31.bin \
+    DM=../ti-linux-firmware/ti-dm/am62xx/ipc_echo_testb_mcu1_0_release_strip.xer5f \
+    O=../build_uboot/a53
   \end{bashinput}
 \end{enumerate}
 
-If you go to \inlinebash{$HOME/__SESSION_NAME__-labs/bootloader/build_uboot/a53/}
-you can see that 2 of the 3 files we will use in the next part have been created
-(\code{tispl.bin} and \code{u-boot.img})
+If you go to
+\inlinebash{$HOME/__SESSION_NAME__-labs/bootloader/build_uboot/a53/},
+the important files that have been generated and will be useful in the
+next steps are \code{tispl.bin} and \code{u-boot.img}.
 
 \section{Preparing a bootable micro-SD card}\label{sec:Prepboot}
 
-The TI romcode will look for the needed images in a FAT partition
+The TI ROM code will look for the needed images in a FAT partition
 on the SD card. To be recognized by the romcode, this partition have
 to have a special type and a special {\em Bootable} Flag.
 
@@ -475,7 +437,6 @@ partitions with the following properties:
 \end{itemize}
 \end{itemize}
 
-
 Press \code{Write} when you are done.
 
 We will create further partitions in a later lab, when we need them.
@@ -530,25 +491,24 @@ its USB-C connection, or reset it. You can then release the
 Here's what you should get on the serial line:
 
 \begin{verbatim}
-U-Boot SPL 2021.01-gf036fbdc25 (Jun 15 2023 - 11:06:38 +0200)
-SYSFW ABI: 3.1 (firmware rev 0x0009 '9.0.4--v09.00.04 (Kool Koala)')
-SPL initial stack usage: 13408 bytes
+U-Boot SPL 2021.01-gf036fbdc25 (Mar 10 2024 - 21:15:12 +0100)
+SYSFW ABI: 3.1 (firmware rev 0x0009 '9.1.8--v09.01.08 (Kool Koala)')
+SPL initial stack usage: 13384 bytes
 Trying to boot from MMC2
-
-Loading Environment from EXT4... ** File not found /uboot.env **
 spl_load_fit_image: Skip load 'tee': image size is 0!
-** Unable to read "/uboot.env" from mmc1:2 **
+Loading Environment from MMC... *** Warning - No MMC card found, using default environment
+
 Starting ATF on ARM64 core...
 
 NOTICE:  BL31: v2.9(release):v2.9.0
-NOTICE:  BL31: Built : 13:55:17, Jun 15 2023
+NOTICE:  BL31: Built : 21:31:19, Mar 10 2024
 
-U-Boot SPL 2021.01-gf036fbdc25 (Jun 19 2023 - 17:33:12 +0200)
-SYSFW ABI: 3.1 (firmware rev 0x0009 '9.0.4--v09.00.04 (Kool Koala)')
+U-Boot SPL 2021.01-gf036fbdc25 (Mar 10 2024 - 22:11:25 +0100)
+SYSFW ABI: 3.1 (firmware rev 0x0009 '9.1.8--v09.01.08 (Kool Koala)')
 Trying to boot from MMC2
 
 
-U-Boot 2021.01-gf036fbdc25 (Jun 19 2023 - 17:33:12 +0200)
+U-Boot 2021.01-gf036fbdc25 (Mar 10 2024 - 22:11:25 +0100)
 
 SoC:   AM62X SR1.0 GP
 Model: BeagleBoard.org BeaglePlay
@@ -567,13 +527,12 @@ am65_cpsw_nuss_port ethernet@8000000port@1: phy_connect() failed
 No ethernet found.
 
 Press SPACE to abort autoboot in 2 seconds
-=>
 \end{verbatim}
 
-The code above shows us the main steps of the boot process.
-First we can see that the SPL bootloader as been loaded by the R5.
-Next the TF-A (ATF) is loaded and we jump into the normal boot world.
-Finally, the 64 bit U-Boot SPL is loaded which load U-Boot itself.
+The code above shows us the main steps of the boot process. First we
+can see that the SPL bootloader as been loaded by the R5. Next the
+TF-A (ATF) is loaded and we jump into the normal boot world. Finally,
+the 64 bit U-Boot SPL is loaded, which in turns loads U-Boot itself.
 
 \textbf{Note:} We can see that the R5 U-Boot SPL skips the 'tee'
 image. This is because we chose to not use OPTEE in order
