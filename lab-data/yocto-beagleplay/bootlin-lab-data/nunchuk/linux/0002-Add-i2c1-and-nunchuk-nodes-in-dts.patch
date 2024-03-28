@@ -1,0 +1,56 @@
+From ef99fb27bd349d247334c636d96c0deccd0a04f4 Mon Sep 17 00:00:00 2001
+From: Alexandre Belloni <alexandre.belloni@bootlin.com>
+Date: Thu, 26 Jul 2018 11:39:17 +0200
+Subject: [PATCH 2/2] Add i2c1 and nunchuk nodes in dts
+
+Signed-off-by: Alexandre Belloni <alexandre.belloni@bootlin.com>
+---
+ arch/arm/boot/dts/am335x-bone-common.dtsi      |  7 +++++++
+ arch/arm/boot/dts/am335x-boneblack-common.dtsi | 13 +++++++++++++
+ 2 files changed, 20 insertions(+)
+
+diff --git a/arch/arm/boot/dts/am335x-bone-common.dtsi b/arch/arm/boot/dts/am335x-bone-common.dtsi
+index ee04b7dd07ac..462ede7831e7 100644
+--- a/arch/arm/boot/dts/am335x-bone-common.dtsi
++++ b/arch/arm/boot/dts/am335x-bone-common.dtsi
+@@ -82,6 +82,13 @@
+ 		>;
+ 	};
+ 
++	i2c1_pins: pinmux_i2c1_pins {
++		pinctrl-single,pins = <
++			AM33XX_PADCONF(AM335X_PIN_SPI0_D1, PIN_INPUT_PULLUP, MUX_MODE2)		/* spi0_d1.i2c1_sda */
++			AM33XX_PADCONF(AM335X_PIN_SPI0_CS0, PIN_INPUT_PULLUP, MUX_MODE2)	/* spi0_cs0.i2c1_scl */
++		>;
++	};
++
+ 	i2c2_pins: pinmux_i2c2_pins {
+ 		pinctrl-single,pins = <
+ 			AM33XX_PADCONF(AM335X_PIN_UART1_CTSN, PIN_INPUT_PULLUP, MUX_MODE3)	/* uart1_ctsn.i2c2_sda */
+diff --git a/arch/arm/boot/dts/am335x-boneblack-common.dtsi b/arch/arm/boot/dts/am335x-boneblack-common.dtsi
+index 91f93bc89716..3d6b019cbc36 100644
+--- a/arch/arm/boot/dts/am335x-boneblack-common.dtsi
++++ b/arch/arm/boot/dts/am335x-boneblack-common.dtsi
+@@ -112,6 +112,19 @@
+ 	};
+ };
+ 
++&i2c1 {
++	status = "okay";
++	clock-frequency = <100000>;
++
++	pinctrl-0 = <&i2c1_pins>;
++	pinctrl-names = "default";
++
++	nunchuk: nunchuk@52 {
++		compatible = "nintendo,wiimote-extension";
++		reg = <0x52>;
++	};
++};
++
+ &rtc {
+ 	system-power-controller;
+ };
+-- 
+2.25.1
+
