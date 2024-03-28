@@ -86,7 +86,8 @@ you wish to exit \code{picocom}, press \code{[Ctrl][a]} followed by
 There should be nothing on the serial line so far, as the board is not
 powered up yet.
 
-Insert the SD card supplied by your instruction into the board.
+Remove any SD card from the Beagle Play, we will be booting from the board's
+eMMC.
 
 It is now time to power up your board by plugging in the USB-C
 cable supplied by your instructor to your PC.
@@ -109,22 +110,81 @@ commands.
 
 Type the \code{help saveenv} command to make sure that the
 \code{saveenv} command exists. We use it in these labs to
-save your U-Boot environment settings to the SD card.
-
-If you don't have this U-Boot prompt, it's probably because you are doing these labs on your own
-(i.e. without participating to a Bootlin course), you'll have to prepare a bootable SD card. Please fetch our precompiled bootloader images from:
-
-\url{https://github.com/bootlin/training-materials/tree/master/embedded-linux-beagleplay/bootloader/data/}
-
-Then follow the instructions from the embedded-linux training labs to prepare the SD card:
-
-\url{https://bootlin.com/doc/training/embedded-linux-beagleplay/embedded-linux-beagleplay-labs.pdf#18}
-
+save your U-Boot environment settings to the eMMC.
 
 \begin{verbatim}
 env default -f -a
 saveenv
 \end{verbatim}
+
+If you don't have this U-Boot prompt, it's probably because you are doing these labs on your own
+(i.e. without participating to a Bootlin course), you'll have to flash the eMMC
+from recovery mode.
+
+\subsection{Flashing the bootloader from recovery mode}
+
+This section can be skipped if you already have a U-Boot prompt.
+
+Follow the installation instructions at
+\url{https://github.com/bootlin/snagboot} to install snagboot.
+
+Make sure to install the snagboot udev rules as specified in the instructions:
+\begin{verbatim}
+$ snagrecover --udev > 50-snagboot.rules
+$ sudo cp 50-snagboot.rules /etc/udev/rules.d/
+$ sudo udevadm control --reload-rules
+$ sudo udevadm trigger
+\end{verbatim}
+
+Go to the bootloader folder where boot images have been precompiled for you:
+
+\begin{verbatim}
+$ cd ~/__SESSION_NAME__-labs/bootloader
+\end{verbatim}
+
+Put the Beagle Play into recovery mode by unplugging and replugging the USB-C power
+cable while pressing the USR button. Please beware that a warm reset performed
+with the reset button won't work!
+
+Wait about 10 seconds for the board's recovery mode to start, then check that
+the following USB device is present:
+
+\begin{verbatim}
+$ lsusb | grep AM62x
+Bus 003 Device 021: ID 0451:6165 Texas Instruments, Inc. AM62x DFU
+\end{verbatim}
+
+Run snagrecover:
+
+\begin{verbatim}
+# snagrecover -s am625 \
+          -F "{'tiboot3': {'path': 'tiboot3.bin'}}" \
+	  -F "{'tispl': {'path': 'tispl.bin'}}" \
+	  -F "{'u-boot': {'path': 'u-boot.img'}}"
+\end{verbatim}
+
+After snagrecover is done, you should get a U-Boot console on the serial port.
+Using this console, start DFU:
+
+\begin{verbatim}
+=> setenv dfu_alt_info '0=system raw 0 524288000'
+=> dfu 0 mmc 0
+\end{verbatim}
+
+Don't be upset by the following message, it's expected...
+
+\begin{verbatim}
+generic_phy_get_bulk : no phys property
+\end{verbatim}
+
+Then from the host, flash the image:
+
+\begin{verbatim}
+$ snagflash -P dfu -p 0451:6165 -D 0:boot.img
+\end{verbatim}
+
+Once snagflash is done writing the boot image to eMMC, reset the board. You
+should get a U-Boot prompt!
 
 \section{Setting up networking}
 
