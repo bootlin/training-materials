@@ -869,30 +869,66 @@ uart0@4000c000 {
   \end{block}
 \end{frame}
 
-\begin{frame}{Device Tree specifications}
+\begin{frame}{How to validate Device Tree content? 1/2}
+  \begin{itemize}
+  \item \code{compatible} properties enforce a specific programming model
+  \item OS expect a specific set of properties in each node
+    \begin{itemize}
+    \item The syntax is fixed
+    \item The content is defined (number of items, their size, their meaning)
+    \item Some properties are mandatory
+    \end{itemize}
+  \item How do I check the validity of a DT snippet?
+    \begin{itemize}
+    \item How do I avoid loosing half a day on a typo?
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{How to validate Device Tree content? 2/2}
   \begin{columns}
     \column{0.7\textwidth}
     \begin{itemize}
-    \item How to write the correct nodes/properties to describe a
-      given hardware platform~?
     \item {\bf Device Tree Specifications} $\rightarrow$ base Device
       Tree syntax + number of standard properties.
       \begin{itemize}
       \item \url{https://www.devicetree.org/specifications/}
       \item Not sufficient to describe the wide variety of hardware.
       \end{itemize}
-    \item {\bf Device Tree Bindings} $\rightarrow$ documents that each
-      specify how a piece of HW should be described
+    \item {\bf Device Tree Bindings} $\rightarrow$ describes how a piece
+      of HW should be described
       \begin{itemize}
-      \item \kdir{Documentation/devicetree/bindings} in Linux kernel sources
-      \item Reviewed by DT bindings maintainer team
-      \item Legacy: human readable documents
-      \item New norm: YAML-written specifications
+      \item Common bindings are defined in an external repository
+        \url{https://github.com/devicetree-org/dt-schema/tree/main/dtschema/schemas}
+        \begin{itemize}
+        \item Generic properties: \code{reg} or
+          {\usebeamercolor[fg]{code}\path{#address-cells}}
+        \item Consumer bindings: \code{interrupts}, \code{clocks},
+          \code{dmas}, etc
+        \end{itemize}
+      \item Device-specific descriptions are in the Linux kernel sources
+        \kdir{Documentation/devicetree/bindings}
       \end{itemize}
     \end{itemize}
     \column{0.3\textwidth}
     \includegraphics[width=\textwidth]{slides/kernel-hw-devices/dt-spec.png}
   \end{columns}
+\end{frame}
+
+\begin{frame}{Device Tree bindings}
+  \begin{itemize}
+      \item Bindings are improved as part of the Linux kernel
+        contribution process
+      \item They are carefully reviewed by DT binding maintainers and
+        can only be merged once approved by them
+      \item Need for automated verifications:
+        \begin{itemize}
+        \item Legacy: human readable .txt documents, hardly parsable
+          by tools
+        \item Current norm: YAML-written specifications, easy to parse
+          by human and tools at the same time!
+        \end{itemize}
+    \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]{Device Tree binding: legacy style}
@@ -1068,20 +1104,463 @@ examples:
   \end{columns}
 \end{frame}
 
-\begin{frame}{Validating Device Tree in Linux}
+\begin{frame}{Validating Device Trees}
   \begin{itemize}
   \item \code{dtc} only does syntactic validation
   \item YAML bindings allow to do semantic validation
   \item Linux kernel \code{make} rules:
     \begin{itemize}
     \item \code{make dt_binding_check}\\
-      verify that YAML bindings are valid
+      verify that YAML bindings are valid, particularly useful if you
+      write examples!
     \item \code{make dtbs_check}\\
       validate DTs currently enabled against YAML bindings
-    \item \code{make DT_SCHEMA_FILES=Documentation/devicetree/bindings/trivial-devices.yaml dtbs_check}\\
-      validate DTs against a specific YAML binding
+    \end{itemize}
+  \item The combination of DTS and bindings growing, it may sometimes be
+    relevant to only check against a subset of matching schema by adding
+    the \code{DT_SCHEMA_FILES} specifier on the \code{make} command line:
+    \begin{itemize}
+    \item eg. \code{make
+        DT_SCHEMA_FILES=Documentation/devicetree/bindings/trivial-devices.yaml
+      dtbs_check}\\
+    \item Can be used with both \code{dt_binding_check} and \code{dtbs_check}
     \end{itemize}
   \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Bindings syntax: base structure}
+  \begin{columns}
+    \column{0.4\textwidth}
+    \begin{block}{}
+      {\fontsize{5}{6}\selectfont
+\begin{minted}{yaml}
+# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
+%YAML 1.2
+---
+$id: http://devicetree.org/schemas/<path>/<file-name.yaml>#
+$schema: http://devicetree.org/meta-schemas/core.yaml#
+
+title: <Type and name of the device>
+
+maintainers:
+  - John Doe <john@doe.com>
+
+description: |
+  Some multiline text.
+
+  At an additional indentation level.
+
+# This line is a comment
+properties:
+  prop-a:
+    ...
+
+  prop-b:
+    ...
+\end{minted}
+      }
+    \end{block}
+    \column{0.6\textwidth}
+    Each YAML file defines one DT hierarchical level (up to two when there
+    are children nodes expected)
+    \begin{itemize}
+    \item {\usebeamercolor[fg]{code}\path{%YAML}} defines the expected
+      language version
+    \item \code{$id} maybe not a real URL, but a unique identifier
+    \item \code{$schema} refers to the base meta-schema this file should
+      be validated against (in the Github repository mentioned
+      previously)
+    \item \code{properties:} where the definitions start
+    \item All possible properties should be listed
+      \begin{itemize}
+      \item dash-separated lowercase names
+      \item names followed by a colon '\code{:}' and a new line
+      \end{itemize}
+    \item Every indentation level is 2 spaces
+    \item An empty line between property definitions
+    \end{itemize}
+  \end{columns}
+\end{frame}
+
+\begin{frame}[fragile]{Bindings syntax: types}
+  \begin{columns}
+    \column{0.4\textwidth}
+    \begin{block}{}
+      {\fontsize{5}{6}\selectfont
+\begin{minted}{yaml}
+properties:
+  # A boolean property, basically a yes or no
+  pin-x-not-wired:      # pin-x-not-wired;
+    type: boolean
+
+  # Expects a single 32-bit numerical value
+  start-offset:         # start-offset: <0x1000>;
+    $ref: /schemas/types.yaml#/definitions/uint32
+
+  # The suffix already enforces a numerical value!
+  # In this case if there is no additional constraint
+  # we set the property to 'true'
+  my-freq-hz: true      # my-freq-hz = <100000>;
+
+  # Expects an array of 32-bit numerical values
+  supported-rates:      # supported-rates = <25>, <50>;
+    $ref: /schemas/types.yaml#/definitions/uint32-array
+
+  # A string value is expected
+  instruction-set:      # instruction-set = "extended";
+    $ref: /schemas/types.yaml#/definitions/string
+
+  # Phandles will be expected
+  sampling-lines:       # sampling-lines = <&pioA 1>, <&pioA 5>;
+    $ref: /schemas/types.yaml#/definitions/phandle-array
+
+  # Here as well, but no need to repeat the constraint
+  # because '-gpios' is a generic suffix
+  reset-gpios: true     # reset-gpios = <&gpio SOC_SPEC_IDX>;
+\end{minted}
+      }
+    \end{block}
+    \column{0.6\textwidth}
+    \begin{itemize}
+    \item Properties must be typed, either with the \code{type:} or the
+      \code{ref:} keyword.
+      \begin{itemize}
+      \item Boolean properties require no value
+      \item Numerical values can be signed or unsigned but should always
+        be 32-bit wide
+      \item Strings should always be fully defined (see next slides)
+      \item Arrays and matrices are possible as well
+      \end{itemize}
+    \item Generic bindings already set the type for many properties:
+      \begin{itemize}
+      \item Their values/items numbers can be constrained further
+      \item The types don't need to be repeated however
+      \end{itemize}
+    \item \code{dt-schema} will enforce a type based on the property
+      name suffix, eg: \code{-hz}, \code{-ohms}, \code{-us}
+    \end{itemize}
+  \end{columns}
+\end{frame}
+
+\begin{frame}[fragile]{Bindings syntax: child nodes}
+  \begin{columns}
+    \column{0.4\textwidth}
+    \begin{block}{}
+      {\fontsize{5}{6}\selectfont
+\begin{minted}{yaml}
+properties:
+  # The sub-node can only be named: child-node
+  child-node:
+    type: object
+
+patternProperties:
+  # The sub-node name is flexible eg: child@1000, child@2a, etc
+  "^child@[a-f0-9]+$":
+    type: object
+\end{minted}
+      }
+    \end{block}
+    \column{0.6\textwidth}
+    \begin{itemize}
+    \item From a json-shema perspective, children nodes are just another
+      property
+    \item A specific type shall however be enforced:
+      \begin{itemize}
+      \item \code{type: object}
+      \end{itemize}
+    \item Under the main \code{properties} keyword, property/sub-node
+      names are fixed
+      \begin{itemize}
+      \item If the sub-node name is dynamic, we shall define it under
+        another top-level keyword, \code{patternProperty} and use
+        pattern-matching regexes for the naming
+      \end{itemize}
+    \end{itemize}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{Bindings syntax: expressing constraints}
+  Besides defining precisely the different properties and their type,
+  the content of the property values must also be constrained.
+  \begin{itemize}
+  \item All properties can get an additional \code{description}
+    parameter, which is only readable by human
+  \item We try to maximize the constraints to minimize human errors
+  \item One new line per constraint
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Bindings syntax: numerical constraints}
+  \begin{columns}
+    \column{0.4\textwidth}
+    \begin{block}{}
+      {\fontsize{5}{6}\selectfont
+\begin{minted}{yaml}
+properties:
+  # The numerical value is bounded
+  # This is valid:
+  # frequency-hz = <100000>;
+  # frequency-hz = <0x40000>; /* 262144 Hz */
+  # This is not:
+  # frequency-hz = <0>;
+  # frequency-hz = <&gpio 10>>;
+  frequency-hz:
+    minimum: 10000
+    maximum: 400000
+    default: 100000
+
+  # This is an array with either 1 or 2 members
+  # This is valid:
+  # cs-gpios = <&gpioA 1>;
+  # cs-gpios = <&gpioA 1>, <gpioA 5>;
+  # This is not:
+  # cs-gpios = <&gpioA 1>, <gpioA 5>, <gpioA 6>;
+  # cs-gpios = <50>;
+  cs-gpios:
+    minItems: 1
+    maxItems: 2
+\end{minted}
+      }
+    \end{block}
+    \column{0.6\textwidth}
+    \begin{itemize}
+    \item Example of constraints:
+      \begin{itemize}
+      \item \code{minimum:}/\code{maximum:} min/max values for a
+        single value
+      \item \code{default:} for a default value
+      \item \code{minItems:}/\code{maxItems:} min/max number of
+        items in an array
+      \end{itemize}
+    \end{itemize}
+  \end{columns}
+\end{frame}
+
+\begin{frame}[fragile]{Bindings syntax: lists and dictionaries}
+  \begin{columns}
+    \column{0.4\textwidth}
+    \begin{block}{}
+      {\fontsize{5}{6}\selectfont
+\begin{minted}{yaml}
+properties:
+  # This is a very common compatible definition
+  # The only allowed combinations are (order matters):
+  # compatible = "vendor1,compat", "generic,compat";
+  # compatible = "vendor2,compat", "generic,compat";
+  # compatible = "legacy-compat";
+  compatible:
+    oneOf:
+      - items:
+          - enum:
+              - vendor1,compat
+              - vendor2,compat
+          - const: generic,compat
+      - items:
+          - const: legacy-compat
+
+  # Property name is known by dt-schema, type will be inferred
+  # No need for minItems/maxItems, 2 will be implied from
+  # the main items list!
+  clocks:
+    items:
+      - description: Interconnect
+      - description: External bus
+
+  # This is valid:   strength = <0>, <5>;
+  # This is invalid: strength = <0>;
+  #                  strength = <0>, <8>;
+  strength:
+    $ref: /schemas/types.yaml#/definitions/uint32-array
+    minItems: 2
+    maxItems: 2
+    items:
+      maximum: 5
+\end{minted}
+      }
+    \end{block}
+    \column{0.6\textwidth}
+    \begin{itemize}
+    \item Expressing several possible property values\\
+      (works with numbers and strings):
+      \begin{itemize}
+      \item Force a single expected value: \code{const}
+      \item Allow taking one value from a list: \code{enum}
+        \begin{itemize}
+        \item watch out the indentation: 2 spaces from the previous
+          keyword and a dash
+        \end{itemize}
+      \end{itemize}
+    \item \code{const}/\code{enum} can be grouped within an \code{items}
+      list, where each \code{items} sub-entry must be observed
+    \item We can build abstract conditional lists (eg. on top of
+      \code{items} rather than proper values like with
+      \code{const}/\code{enum}:
+      \begin{itemize}
+      \item XOR using \code{oneOf}
+      \item OR using \code{anyOf}
+      \item AND using \code{allOf}
+      \end{itemize}
+    \end{itemize}
+  \end{columns}
+\end{frame}
+
+\begin{frame}[fragile]{Bindings syntax: referencing other bindgins}
+  \begin{columns}
+    \column{0.4\textwidth}
+    \begin{block}{}
+      {\fontsize{5}{6}\selectfont
+\begin{minted}{yaml}
+# All properties/constraints defined in generic-controller.yaml
+# will apply (but they can be tuned/overwritten below)
+allOf: $ref: generic-controller.yaml
+
+properties:
+  # Tune a property defined in generic-controller.yaml
+  prop-a:
+    maximum: 1
+
+  # Allow a new, more specific property
+  vendor,specific-prop: true
+
+  # common-child-constraints.yaml will enforce a base set of
+  # properties and rules
+  child-node:
+    type: object
+    $ref: common-child-constraints.yaml
+\end{minted}
+      }
+    \end{block}
+    \column{0.6\textwidth}
+    \begin{itemize}
+    \item It is possible to write "common" constraints in a YAML file
+      and refer to it
+      \begin{itemize}
+      \item Very usual when describing a certain type of controller
+        \begin{itemize}
+        \item Refer to the generic constraints with a top-level
+          \code{allOf}
+        \item Add constraints which are specific to the hardware
+          implementation
+        \end{itemize}
+      \item Possible to constrain children nodes by referencing another
+        YAML file
+      \end{itemize}
+    \end{itemize}
+  \end{columns}
+\end{frame}
+
+\begin{frame}[fragile]{Bindings syntax: altering on presence of properties}
+  \begin{columns}
+    \column{0.4\textwidth}
+    \begin{block}{}
+      {\fontsize{5}{6}\selectfont
+\begin{minted}{yaml}
+properties:
+  compatible:
+    enum:
+      - compat1
+      - compat2
+
+  prop-a: true
+
+  prop-b: true
+
+  prop-c: true
+
+dependencies:
+  prop-a: [ 'prop-b' ]
+  prop-b: [ 'prop-a' ]
+
+allOf:
+  - if:
+      properties:
+        compatible:
+          contains:
+            const: compat1
+    then:
+      properties:
+        prop-c: false
+\end{minted}
+      }
+    \end{block}
+    \column{0.6\textwidth}
+    \begin{itemize}
+    \item Sometimes more dynamic descriptions are needed
+      \begin{itemize}
+      \item Dependencies between properties
+        \begin{itemize}
+        \item A property may be needed if there is another property
+        \item If both or none shall be present, the dependency should be
+          expressed twice (in both directions)
+        \end{itemize}
+      \item Changing constraints based on a property
+        \begin{itemize}
+        \item Can be expressed using \code{if}/\code{else} statements
+          under the top-level \code{allOf}
+        \item Typical case: a \code{compatible} implies tweaking a
+          constraint
+        \end{itemize}
+      \end{itemize}
+    \end{itemize}
+  \end{columns}
+\end{frame}
+
+\begin{frame}[fragile]{Bindings syntax: enforcing correct properties only}
+  \begin{columns}
+    \column{0.4\textwidth}
+    \begin{block}{}
+      {\fontsize{5}{6}\selectfont
+\begin{minted}{yaml}
+allOf: generic-file.yaml
+
+properties:
+  prop-a: true
+
+  prop-b: true
+
+  child-node:
+    type: object
+    properties:
+      prop-c: true
+      prop-d: true
+
+    required:
+      - prop-c
+
+    # No additional property than the ones above
+    # will be allowed inside child-node
+    additionalProperties: false
+
+required:
+  - prop-a
+
+# Only properties defined below or coming from
+# generic-file.yaml will be allowed
+unevaluatedProperties: false
+\end{minted}
+      }
+    \end{block}
+    \column{0.6\textwidth}
+    \begin{itemize}
+    \item YAML files list properties and add constraints to them
+      \begin{itemize}
+      \item It is still possible to add undefined properties
+      \item It is still possible to forget defining a mandatory
+        property
+      \end{itemize}
+    \item We need further constraints to spot typos and unexpected
+      properties
+      \begin{itemize}
+      \item \code{required} forces the presence
+      \item \code{additionalProperties} prevents any property not
+        defined in {\bf this} file to be used
+      \item \code{unevaluatedProperties} prevents any property not
+        defined in this file nor referenced (through
+        \code{allOf} or {\usebeamercolor[fg]{code}\path{$ref}}) to be
+        used
+      \end{itemize}
+    \end{itemize}
+  \end{columns}
 \end{frame}
 
 \begin{frame}
@@ -1102,6 +1581,8 @@ examples:
        \item The kernel source code
          \begin{itemize}
          \item Full of examples of other drivers!
+         \item Reference DT binding implementation:
+           \kfile{Documentation/devicetree/bindings/example-schema.yaml}
          \end{itemize}
        \end{itemize}
     \column{0.4\textwidth}
@@ -1117,5 +1598,7 @@ examples:
   \item Use GPIO LEDs.
   \item Modify the Device Tree to enable an I2C controller and describe
     an I2C device.
+  \item Write a yaml binding to validate a device description.
+
   \end{itemize}
 }
