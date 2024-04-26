@@ -194,15 +194,63 @@ as in the datasheet (\code{0x4802a000}):
 
 \bashcmd{ls -l /sys/bus/i2c/devices/i2c-1}
 
+\subsection{Prepare the I2C device DT description}
+
+Before describing your nunchuk device, let's think about what will be
+needed:
+\begin{itemize}
+\item The device node should follow a standard pattern.
+
+  The node name should be \code{joystick@addr}, the convention for node
+  names is \code{<device-type>@<addr>}.
+
+\item We want to be able to fully identify the programming model.
+
+  This is usually done using a unique compatible string. The compatible
+  contains a vendor prefix and then a more specific string. We will use
+  \code{nintendo,nunchuk}.
+
+\item We need to identify how to reach the device.
+
+  This is the \code{reg} property and we should set it to the I2C
+  address of the nunchuk. You will find the I2C slave address of the
+  Nunchuk on the nunckuk document that we have downloaded
+  earlier\footnote{This I2C slave address is enforced by the device
+    itself. You can't change it.}.
+
+\item (Optional) There are two types of nunchuks.
+
+  There are white and black nunchuks, which don't expect the same
+  initialization flow. We could imagine a boolean property named
+  \code{nintendo,alternate-init} which will change the initialization
+  logic. See the nunchuk pdf for details about the alternate flow.
+
+\end{itemize}
+
+Stopping here is sufficient as writing device-tree bindings is not
+strictly required ton continue the labs, but if you feel comfortable
+you may want to write your own binding file, eg:
+\begin{bashinput}
+Documentation/devicetree/bindings/misc/nintendo,nunchuk.yaml
+\end{bashinput}
+Once you are confident with your bindings, you can even copy the
+examples from the \code{wrong-nunchuk-examples.yaml} (in the
+\code{nunchuk} labs folder) inside your bindings and verify they all
+pass/fail as expected!
+\begin{bashinput}
+make DT_SCHEMA_FILES=misc/nintendo,nunchuk.yaml dt_binding_check
+\end{bashinput}
+
 \subsection{Declare the Nunchuk device}
 
 As a child node to the \code{i2c1} bus, now declare an I2C device
-for the Nunchuk, choosing \code{nintendo,nunchuk} for its \code{compatible}
-property. You will find the I2C slave address of the Nunchuk on the
-nunckuk document that we have downloaded earlier\footnote{This I2C slave
-address is enforced by the device itself. You can't change it.}.
-The node name should be \code{joystick@addr}, the convention for node
-names is \code{<device-type>@<addr>}.
+for the Nunchuk, following the above rules.
+
+If you wrote an optional YAML binding, you can also double check your
+node:
+\begin{bashinput}
+make DT_SCHEMA_FILES=misc/nintendo,nunchuk.yaml dtbs_check
+\end{bashinput}
 
 After updating the running Device Tree, explore
 \code{/sys/firmware/devicetree}, where every subdirectory corresponds to
