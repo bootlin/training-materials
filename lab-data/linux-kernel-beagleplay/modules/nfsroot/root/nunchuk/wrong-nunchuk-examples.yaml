@@ -1,0 +1,92 @@
+# SPDX-License-Identifier: GPL-2.0 OR BSD-2-Clause
+%YAML 1.2
+---
+$id: http://devicetree.org/schemas/misc/nintendo,nunchuk.yaml#
+$schema: http://devicetree.org/meta-schemas/core.yaml#
+
+title: Nintendo I2C nunchuk
+
+description: |
+  I2C device reporting gyroscope and accelerometer values, plus
+  a Z and a C button.
+
+maintainers:
+  - Bootlin training attendee <attendee@bootlin.com>
+
+properties:
+  compatible:
+    const: nintendo,nunchuk
+
+  reg:
+    const: 0x52
+
+  nintendo,alternate-init:
+    type: boolean
+    description: There are two possible initializations among nunchuks,
+      this property flags devices expecting the alternate logic.
+
+required:
+  - compatible
+  - reg
+
+unevaluatedProperties: false
+
+examples:
+  - |
+    /* This is a valid example */
+    i2c {
+        #address-cells = <1>;
+        #size-cells = <0>;
+
+        joystick@52 {
+            compatible = "nintendo,nunchuk";
+            reg = <0x52>;
+        };
+    };
+  - |
+    /* This is a valid example */
+    i2c {
+        #address-cells = <1>;
+        #size-cells = <0>;
+
+        joystick@52 {
+            compatible = "nintendo,nunchuk";
+            reg = <0x52>;
+            nintendo,alternate-init;
+        };
+    };
+  - |
+    /* This example is invalid and should fail (wrong reg) */
+    i2c {
+        #address-cells = <1>;
+        #size-cells = <0>;
+
+        joystick@52 {
+            compatible = "nintendo,nunchuk";
+            reg = <52>;
+        };
+    };
+  - |
+    /* This example is invalid and should fail (wrong prop type) */
+    i2c {
+        #address-cells = <1>;
+        #size-cells = <0>;
+
+        joystick@52 {
+            compatible = "nintendo,nunchuk";
+            reg = <0x52>;
+            nintendo,alternate-init = "yes";
+        };
+    };
+  - |
+    /* This example is invalid and should fail (unknown property) */
+    i2c {
+        #address-cells = <1>;
+        #size-cells = <0>;
+
+        joystick@52 {
+            compatible = "nintendo,nunchuk";
+            reg = <0x52>;
+            nintendo,other-init;
+        };
+    };
