@@ -22,7 +22,7 @@
 
 \begin{frame}
   \frametitle{Types of devices} Under Linux, there are essentially
-  three types of devices:
+  four types of devices:
   \begin{itemize}
   \item {\bf Network devices}. They are represented as network
     interfaces, visible in user space using \code{ip a}
@@ -34,6 +34,10 @@
     applications access to all other types of devices (input, sound,
     graphics, serial, etc.). They are also visible to the applications
     as {\em device files} in \code{/dev}.
+  \item {\bf Sysfs devices}. The don't have any of the above user space
+    interfaces, only a representation in sysfs. "Internal" device drivers
+    fall under this (e.g. pinctrl), but also some user-space accessible
+    devices. E.g. gpio (deprecated), IIO (Industrial I/O).
   \end{itemize}
   $\rightarrow$ Most devices are {\em character devices}, so we will
   study these in more details.
@@ -48,9 +52,15 @@
     device.
   \item The {\em minor number} allows drivers to distinguish
     the various devices they manage.
-  \item Most major and minor numbers are statically allocated, and
+  \item Some major numbers are statically allocated, and
     identical across all Linux systems.
-  \item They are defined in \kdochtml{admin-guide/devices}.
+  \item Since +- 2016, new frameworks use dynamically allocated major
+    numbers when possible.
+  \item Minor numbers are almost always (partially) dynamically allocated,
+    by the framework itself. Allcation happens in order of enumeration of
+    the devices.
+  \item Pre-defined values, ranges and rules can be found in
+    \kdochtml{admin-guide/devices}.
   \end{itemize}
 \end{frame}
 
