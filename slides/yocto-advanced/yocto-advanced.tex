@@ -48,21 +48,109 @@
   \end{itemize}
 \end{frame}
 
-\begin{frame}
-  \frametitle{Operators}
+\begin{frame}[fragile]
+  \frametitle{Operators: basic assignment}
   \begin{itemize}
-    \item Various operators can be used to assign values to
-    configuration variables:
+  \item \code{VAR = "value"} simply assigns a value
+  \item Re-assigning overwrites variable value
+    \begin{block}{}
+      \begin{minted}{shell}
+VAR = "this"
+VAR = "that"
+      \end{minted}
+    \end{block}
+    Result: \code{VAR = "that"}
+  \item Newlines need to be escaped
+    \begin{block}{}
+      \begin{minted}{shell}
+LIST = "this \
+        and that"
+      \end{minted}
+    \end{block}
+  \item Variable assignments can contain expansion of other variables
+    \begin{block}{}
+      \begin{minted}{shell}
+COLOUR = "blue"
+SKY = "the sky is ${COLOUR}"
+      \end{minted}
+    \end{block}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Operators: immediate expansion}
+  \begin{itemize}
+  \item With \code{=}, expansion happens when the variable is used
+  \item Use \code{:=} for immediate expansion
+  \begin{columns}
+    \column{0.5\textwidth}
+    \begin{block}{}
+      \begin{minted}{shell}
+COLOUR = "blue"
+SKY = "the sky is ${COLOUR}"
+COLOUR = "grey"
+PARASE = "Look, ${SKY}"
+      \end{minted}
+    \end{block}
+    Result: \code{PHRASE = "Look, the sky is grey"}
+    \break
+    \column{0.5\textwidth}
+    \begin{block}{}
+      \begin{minted}{shell}
+COLOUR  = "blue"
+SKY := "the sky is ${COLOUR}"
+COLOUR  = "grey"
+PARASE = "Look, ${SKY}"
+      \end{minted}
+    \end{block}
+    Result: \code{PHRASE = "Look, the sky is blue"}
+    \break
+  \end{columns}
+  \item Normal expansion is correct in most cases. Only use \code{:=} when
+    really needed.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Operators: appending and prepending}
+  \begin{itemize}
+    \item Variable values can be modified by composition:
       \begin{description}
-        \item[=] expand the value when using the variable
-        \item[:=] immediately expand the value
         \item[+=] append (with space)
         \item[=+] prepend (with space)
         \item[.=] append (without space)
         \item[=.] prepend (without space)
-        \item[?=] assign if no other value was previously assigned
-        \item[??=] same as previous, with a lower precedence
       \end{description}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Operators: default and weak default values}
+  \begin{itemize}
+  \item The \code{?=} operator assigns a value only if the variable has not
+    been assigned when the statement is parsed
+  \begin{columns}
+    \column{0.5\textwidth}
+    \begin{block}{}
+      \begin{minted}{shell}
+COLOUR ?= "unknown"
+COLOUR = "blue"
+      \end{minted}
+    \end{block}
+    Result: \code{COLOUR = "blue"}
+    \break
+    \column{0.5\textwidth}
+    \begin{block}{}
+      \begin{minted}{shell}
+COLOUR ?= "unknown"
+      \end{minted}
+    \end{block}
+     Result: \code{COLOUR = "unknown"}
+    \break
+  \end{columns}
+  \item The \code{??=} operator assigns a value only if the variable has
+    not been assigned when the statement is parsed, not even using a
+    \code{?=} operator
   \end{itemize}
 \end{frame}
 
