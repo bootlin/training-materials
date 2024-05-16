@@ -1215,7 +1215,8 @@ PIPEWIRE_RUNTIME_DIR=/tmp helvum
   \item Nodes can also request to be routed to:
 
     \begin{enumerate}
-    \item a target node using \code{target.object};
+    \item a target node using \code{target.object} (for example
+      \code{pw-cat --target});
     \item nothing automatically using \code{node.autoconnect}.
       WirePlumber will not create any automatic link, letting any
       PipeWire client create the desired links.
@@ -1233,109 +1234,102 @@ PIPEWIRE_RUNTIME_DIR=/tmp helvum
 
   \item The config lookup logic is the same as PipeWire's.
 
-  \item Lua files are being run when starting. They return
-    which \textbf{WirePlumber modules} and \textbf{scripts} must be run
-    at runtime, with the argument to be passed to them (as Lua tables).
+  \item Configuration files define components to load when starting. Components
+    include PipeWire modules, WirePlumber modules and \textbf{Lua scripts}.
 
-  \item By default, there are three config: \code{bluetooth.lua},
-    \code{main.lua} \& \code{policy.lua}.
+  \item Lua scripts will \textbf{monitor} the PipeWire graph, and
+    \textbf{react to events}. Configuration files also defines options passed
+    to scripts, including arrays matching object descriptions to behavior for
+    such objects.
+
+  \item The default configuration is called \code{wireplumber.conf}, see
+    \code{/usr/share/wireplumber/wireplumber.conf}. Default scripts are located
+    alongside, in \code{scripts/}.
 
   \end{itemize}
 \end{frame}
 
 
 
-\begin{frame}{WirePlumber — configuration (2)}
+\begin{frame}[fragile]{WirePlumber — configuration (2)}
   \begin{itemize}
-
-  \item Let's take the \code{main.lua} section, and focus on the
-    ALSA-focused files:
-
-    \begin{itemize}
-    \item \code{00-functions.lua}: declares helper functions
-      \code{load_module}, \code{load_script}, etc.
-    \item \code{30-alsa-monitor.lua}: declares two config tables
-      \code{alsa_monitor.properties} \& \code{alsa_monitor.rules} and a
-      function \code{alsa_monitor.enable()}.
-    \item \code{50-alsa-config.lua}: edits \code{.properties}
-      \& \code{.rules} to the desired config.
-    \item \code{90-enable-all.lua}: calls \code{.enable()}.
-    \end{itemize}
-
-  \item The \code{.enable()} function is what loads the right modules
-    and scripts for ALSA support. It is done at the end because it
-    requires \code{.properties} and \code{.rules} to be modified
-    beforehands.
-
-  \item \code{.properties} has ALSA support config: it can toggle D-Bus
-    device reservation, toggle MIDI support, etc.
-
-  \item \code{.rules} defines properties that should be applied to ALSA
-    devices or nodes and conditions for applying those.
-
+  \item Let's look at the configuration of the ALSA monitor
+    in \code{scripts/monitors/alsa.lua}:
   \end{itemize}
+
+    \begin{block}{}
+      \fontsize{10}{10}\selectfont
+        \begin{minted}{lua}
+-- /usr/share/wireplumber/scripts/monitors/alsa.lua
+config = {}
+config.reserve_device = Core.test_feature ("monitor.alsa.reserve-device")
+config.properties = Conf.get_section_as_properties ("monitor.alsa.properties")
+config.rules = Conf.get_section_as_json ("monitor.alsa.rules", Json.Array {})
+          \end{minted}
+        \end{block}
 \end{frame}
 
 
 
 \begin{frame}[fragile]{WirePlumber — configuration (3)}
   \begin{itemize}
-  \item Example disabling dependency on the D-Bus session instance:
+  \item To configure ALSA monitor, using a custom configuration fragments:
   \end{itemize}
 
     \begin{block}{}
-      \fontsize{11}{11}\selectfont
-        \begin{minted}{lua}
--- /etc/wireplumber/main.lua.d/55-disable-dbus-features.lua
-alsa_monitor.properties["alsa.reserve"] = false
-default_access.properties["enable-flatpak-portal"] = false
+      \fontsize{10}{10}\selectfont
+        \begin{minted}{text}
+-- /etc/wireplumber/wireplumber.conf.d/20-alsa-config.conf
+monitor.alsa.properties = {
+  -- See documentation: man pipewire-devices(7)
+  alsa.udev.expose-busy = true
+}
+
+monitor.alsa.rules = [
+  {
+    matches = [ { device.name = "~alsa_card.*" } ]
+    actions = {
+      update-props = {
+        api.alsa.use-acp  = true
+        api.acp.auto-port = false
+        device.disabled   = false
+      }
+    }
+  }
+}
           \end{minted}
         \end{block}
-
-  \begin{itemize}
-  \item Example disabling persistent storage (for read-only filesystems):
-  \end{itemize}
-
-    \begin{block}{}
-      \fontsize{11}{11}\selectfont
-        \begin{minted}{lua}
--- /etc/wireplumber/main.lua.d/60-disable-persistent-state.lua
-device_defaults.properties["use-persistent-storage"] = false
-          \end{minted}
-        \end{block}
-
 \end{frame}
 
 
 
 \begin{frame}[fragile]{WirePlumber — configuration (4)}
-
   \begin{itemize}
-  \item Example adding a nickname:
+  \item Example of disabling D-Bus support:
   \end{itemize}
 
     \begin{block}{}
-      \fontsize{10.5}{10.5}\selectfont
-        \begin{minted}{lua}
--- /etc/wireplumber/main.lua.d/55-add-nick.lua
-table.insert(alsa_monitor.rules, {
-  matches = {
-    { -- Exact card name, see `pw-cli ls Device` then `pw-cli info <id>`.
-      -- This rule will apply to nodes associated with the device as
-      -- well as nodes have this prop.
-      { "api.alsa.card.name", "=", "foo" },
-    }
-  },
-  apply_properties = { ["device.nick"] = "bar" },
-})
-        \end{minted}
-      \end{block}
+      \fontsize{10}{10}\selectfont
+        \begin{minted}{text}
+-- /etc/wireplumber/wireplumber.conf.d/10-disable-dbus.conf
+wireplumber.profiles = {
+   main = {
+      support.dbus = disabled
 
+      # Avoid warnings
+      support.reserve-device = disabled
+      support.portal-permissionstore = disabled
+      script.client.access-portal = disabled
+      monitor.alsa.reserve-device = disabled
+   }
+}
+          \end{minted}
+        \end{block}
 \end{frame}
 
 
 
-\begin{frame}{WirePlumber — permission handling (1)}
+\begin{frame}{WirePlumber — permission handling}
   \begin{itemize}
 
   \item Another task of the session \& policy manager is \textbf{permission
@@ -1359,25 +1353,50 @@ table.insert(alsa_monitor.rules, {
 
 
 
-\begin{frame}{WirePlumber — permission handling (2)}
+\begin{frame}{WirePlumber — DSP filtering on sinks and sources (1)}
   \begin{itemize}
-  \item Example restricting
 
-  \item Another task of the session \& policy manager is \textbf{permission
-    management}.
+  \item WirePlumber now features a way to attach a filter-chain to a sink or
+    source. This allows pre-processing before outputs for example.
 
-  \item That is handled, in PipeWire >= 0.3.83, using two PipeWire daemon sockets:
+  \item This is called "Automatic Software DSP", see
+    \href{https://pipewire.pages.freedesktop.org/wireplumber/policies/software_dsp.html}{
+    documentation} about the topic.
 
-    \begin{itemize}
-    \item Clients joining \code{pipewire-0-manager} have full permissions.
-    \item Client joining \code{pipewire-0} must be given permissions by the
-      session manager, i.e. WirePlumber.
-    \end{itemize}
-
-  \item Permissions can be granted on a per-object-basis for each client. Else
-    each client has a default permission assigned to it.
+  \item Script implementing this behavior is \code{scripts/node/software-dsp.lua}.
 
   \end{itemize}
+\end{frame}
+
+
+
+\begin{frame}[fragile]{WirePlumber — DSP filtering on sinks and sources (2)}
+  \begin{itemize}
+  \item Example configuration:
+  \end{itemize}
+
+    \begin{block}{}
+      \fontsize{10}{10}\selectfont
+        \begin{minted}{text}
+node.software-dsp.rules = [
+  {
+    matches = [
+      { "node.name" = "alsa_output.platform-sound.HiFi__Speaker__sink" }
+      { "alsa.id" = "~WeirdHardware*" }
+    ]
+
+    actions = {
+      create-filter = {
+        # Arguments passed to libpipewire-module-filter-chain
+        # For inspiration, look into /usr/share/pipewire/filter-chain/*.conf
+        filter-path = "/etc/wireplumber/filter-config.json"
+        hide-parent = true
+      }
+    }
+  }
+]
+          \end{minted}
+        \end{block}
 \end{frame}
 
 
@@ -1405,7 +1424,7 @@ table.insert(alsa_monitor.rules, {
     \begin{enumerate}
     \item Start PipeWire and WirePlumber;
     \item Target a specific node;
-    \item Modify the default playback node, setting it to our filter-chain;
+    \item Modify the default playback node;
     \item Have a look at device profiles.
     \end{enumerate}
 
@@ -1434,12 +1453,13 @@ table.insert(alsa_monitor.rules, {
       its config or by its client (WirePlumber for example).
     \end{itemize}
 
-  \item Modify the default playback node, setting it to our filter-chain.
+  \item Modify the default playback node.
 
     \begin{itemize}
     \item \code{wpctl set-default <id>} controls this.
     \item Nodes must have \code{media.class} equal to \code{Audio/Sink}
-      (or similar) to appear in this list.
+      (or similar) to appear in this list. That does not include filter-chains,
+      which are handled specifically.
     \end{itemize}
 
   \item Have a look at device profiles.
