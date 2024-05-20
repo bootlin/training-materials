@@ -196,7 +196,7 @@ static struct i2c_driver nunchuk_driver = {
 		.name = "nunchuk",
 		.of_match_table = nunchuk_dt_match,
 	},
-	.probe_new = nunchuk_probe,
+	.probe = nunchuk_probe,
 	.remove = nunchuk_remove,
 };
 module_i2c_driver(nunchuk_driver);
