@@ -92,7 +92,7 @@ Make your board boot from this new directory through NFS.
 
 {\em alsa-lib} is a library supposed to handle the interaction with
 the ALSA subsystem. It is available at \url{https://alsa-project.org}.
-Download version 1.2.9, and extract it
+Download version 1.2.11, and extract it
 in \code{$HOME/__SESSION_NAME__-labs/thirdparty/}.
 
 {\bf Tip}: if the website for any of the source packages that we
@@ -130,7 +130,7 @@ Quickly, you should get an error saying:
 
 %\footnotesize
 \begin{terminaloutput}
-checking whether we are cross compiling... configure: error: in `/home/tux/__SESSION_NAME__-labs/thirdparty/alsa-lib-1.2.9':
+checking whether we are cross compiling... configure: error: in `/home/tux/__SESSION_NAME__-labs/thirdparty/alsa-lib-1.2.11':
 configure: error: cannot run C compiled programs.
 If you meant to cross compile, use `--host'.
 See `config.log' for more details
@@ -346,7 +346,7 @@ And we're done with {\em alsa-lib}!
 \section{Alsa-utils}
 
 Download {\em alsa-utils} from the ALSA offical webpage. We tested the lab
-with version 1.2.9.
+with version 1.2.11.
 
 Once uncompressed, we quickly discover that the {\em alsa-utils} build
 system is based on the {\em autotools}, so we will work once again
@@ -441,26 +441,8 @@ $ LDFLAGS=-L$HOME/__SESSION_NAME__-labs/thirdparty/staging/usr/lib \
      --disable-alsamixer
 \end{bashinput}
 
-Then, run the compilation with \code{make}. You may hit a final
-error:
-
-\begin{verbatim}
-Making all in po
-make[2]: Entering directory '/home/tux/__SESSION_NAME__-labs/
-thirdparty/alsa-utils-1.2.9/alsaconf/po'
-mv: cannot stat 't-ja.gmo': No such file or directory
-\end{verbatim}
-
-This can be fixed by disabling support for \code{alsaconf} too:
-
-\begin{bashinput}
-$ LDFLAGS=-L$HOME/__SESSION_NAME__-labs/thirdparty/staging/usr/lib \
-     CPPFLAGS=-I$HOME/__SESSION_NAME__-labs/thirdparty/staging/usr/include \
-     ./configure --host=arm-linux --prefix=/usr \
-     --disable-alsamixer --disable-alsaconf
-\end{bashinput}
-
-You can now run \code{make} again.  It should work this time.
+Then, run the compilation with \code{make}. It should complete
+successfully.
 
 Let's now begin the installation process.  Before really installing in
 the staging directory, let's install in a dummy directory, to see
@@ -500,9 +482,11 @@ Now, let's see what has been installed in \code{/tmp/alsa-utils/} (run
 |   |   |-- aseqnet
 |   |   |-- axfer
 |   |   |-- iecset
+|   |   |-- nhlt-dmic-info
 |   |   `-- speaker-test
 |   |-- sbin
 |   |   |-- alsabat-test.sh
+|   |   |-- alsaconf
 |   |   |-- alsactl
 |   |   `-- alsa-info.sh
 |   `-- share
@@ -527,14 +511,25 @@ Now, let's see what has been installed in \code{/tmp/alsa-utils/} (run
 |       |   |       `-- alsa-utils.mo
 |       |   |-- ja
 |       |   |   `-- LC_MESSAGES
+|       |   |       |-- alsaconf.mo
 |       |   |       `-- alsa-utils.mo
 |       |   |-- ka
 |       |   |   `-- LC_MESSAGES
+|       |   |       |-- alsaconf.mo
 |       |   |       `-- alsa-utils.mo
+|       |   |-- ko
+|       |   |   `-- LC_MESSAGES
+|       |   |       `-- alsa-utils.mo
+|       |   |-- ru
+|       |   |   `-- LC_MESSAGES
+|       |   |       `-- alsaconf.mo
 |       |   `-- sk
 |       |       `-- LC_MESSAGES
 |       |           `-- alsa-utils.mo
 |       |-- man
+|       |   |-- fr
+|       |   |   `-- man8
+|       |   |       `-- alsaconf.8
 |       |   |-- man1
 |       |   |   |-- aconnect.1
 |       |   |   |-- alsabat.1
@@ -553,8 +548,11 @@ Now, let's see what has been installed in \code{/tmp/alsa-utils/} (run
 |       |   |   |-- axfer-list.1
 |       |   |   |-- axfer-transfer.1
 |       |   |   |-- iecset.1
+|       |   |   |-- nhlt-dmic-info.1
 |       |   |   `-- speaker-test.1
-|       |   `-- man7
+|       |   |-- man7
+|       |   `-- man8
+|       |       `-- alsaconf.8
 |       `-- sounds
 |           `-- alsa
 |               |-- Front_Center.wav
@@ -570,7 +568,7 @@ Now, let's see what has been installed in \code{/tmp/alsa-utils/} (run
     `-- lib
         `-- alsa
 
-30 directories, 59 files
+37 directories, 68 files
 \end{verbatim}
 
 So, we have:
@@ -627,12 +625,12 @@ deprecated interface in \code{/sys/class/gpio}, whose executables
 (\code{gpiodetect}, \code{gpioset}, \code{gpioget}...) will
 allow us to drive and manage GPIOs from shell scripts.
 
-Here, we will be using the 2.0.x version of {\em libgpiod}.
+Here, we will be using the 2.1.x version of {\em libgpiod}.
 
 \begin{bashinput}
 git clone https://git.kernel.org/pub/scm/libs/libgpiod/libgpiod.git
 cd libgpiod
-git checkout v2.0.x
+git checkout v2.1.x
 \end{bashinput}
 
 As we are not starting from a release, we will need to install
@@ -731,13 +729,16 @@ pin of the LED to GND, and the long one to the GPIO. Then then following
 command should light up the diode:
 
 \begin{bashinput}
-# gpioset -c gpiochip4 1=1
+# gpioset -c gpiochip4 -t0 1=1
 \end{bashinput}
 
-Here's how to turn it off:
+The \code{-t0} option makes \code{gpioset} terminate by itself
+immediately instead of waiting for the user to interrupt it.
+
+Here's how to turn the LED off:
 
 \begin{bashinput}
-# gpioset -c gpiochip4 1=0
+# gpioset -c gpiochip4 -t0 1=0
 \end{bashinput}
 
 \code{gpioset} offers many more options. Run \code{gpioset -h} to
