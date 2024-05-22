@@ -58,12 +58,16 @@ The compiler complains about undefined references to some symbols in
 {\em libmpdclient}. This is normal, since we didn't tell the compiler
 to link with this library. So let's use \code{pkg-config} to query the
 {\em pkg-config} database about the list of libraries needed to build
-an application against {\em libmpdclient}\footnote{Again,
+an application against {\em libmpdclient}\footnote{Normally,
 \code{output/host/bin} has a special \code{pkg-config} that
 automatically knows where to look, so it already knows the right paths
-to find \code{.pc} files and their sysroot.}:
+to find \code{.pc} files and their sysroot, but here there is an open
+issue with Buildroot 2024.02 which forced us to set
+\code{PKG_CONFIG_PATH} to make it point to where the \code{.pc}
+files are found.}:
 
 \begin{bashinput}
+$ export PKG_CONFIG_PATH=$HOME/__SESSION_NAME__-labs/integration/buildroot/output/host/%\ifdefstring{\labboard}{beagleplay}{aarch64-}{arm-}%buildroot-linux-gnueabihf/sysroot/usr/lib/pkgconfig
 $ %\ifdefstring{\labboard}{beagleplay}{aarch64-linux-gcc}{arm-linux-gcc}% -o nunchuk-mpd-client nunchuk-mpd-client.c \
 $(pkg-config --libs libmpdclient)
 \end{bashinput}
@@ -230,7 +234,7 @@ warning: Can't open file /root/nunchuk-mpd-client during file-backed mapping not
 
 warning: Can't open file /usr/lib/libc.so.6 during file-backed mapping note processing
 
-warning: Can't open file /usr/lib/libmpdclient.so.2.20 during file-backed mapping note processing
+warning: Can't open file /usr/lib/libmpdclient.so.2.22 during file-backed mapping note processing
 
 warning: Can't open file /usr/lib/ld-linux-armhf.so.3 during file-backed mapping note processing
 
@@ -284,9 +288,8 @@ simple:
 	generate a password-less one with the \code{ssh-keygen} command.
 	By default, this creates two files in \code{~/.ssh/}:
 	\code{id_rsa} (private key) and \code{id_rsa.pub} (public key).
-  \item Then create the \code{/root/.ssh} directory {\bf on the target}
-        and in it, create an \code{authorized_keys} file with the line in
-        \code{id_rsa.pub}.
+  \item Then create a \code{/root/.ssh/authorized_keys} file {\bf on the target}
+        with the line in \code{id_rsa.pub}.
   \item Then, fix permissions on the target, as Dropbear is quite strict
         about them:
         \begin{bashinput}
