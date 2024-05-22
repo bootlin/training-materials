@@ -221,9 +221,7 @@ routine is used to drive its value):
 # cat trigger
 \end{bashinput}
 
-As you can see, there are many triggers to choose from, the current
-being \code{heartbeat}, corresponding to the CPU activity.
-
+As you can see, there are many triggers to choose from.
 You can disable all triggers by:
 
 \begin{bashinput}
@@ -311,19 +309,19 @@ We're just missing \code{i2c-1}.
 
 Fortunately, \busname\ is already defined in the one of the DTS includes
 used by the Device Tree for our board. In our case, that's in
-\kfile{arch/arm/boot/dts/am33xx-l4.dtsi}. Look by yourself in this
+\kfile{arch/arm/boot/dts/ti/omap/am33xx-l4.dtsi}. Look by yourself in this
 file, and you will find its definition, but with \code{status =
 "disabled";}. This means that this I2C controller is not enabled yet,
 and it's up to boards using it to do so.
 
-We could modify the \kfile{arch/arm/boot/dts/am335x-boneblack.dts} file
+We could modify the \kfile{arch/arm/boot/dts/ti/omap/am335x-boneblack.dts} file
 for our board, but that's not a very good idea as this file is
 maintained by the kernel developers. The changes that you make could
 collide with future changes made by the maintainers for this file.
 
 A more futureproof idea is to create a new Device Tree file which
 includes the standard one, and adds custom definitions. So, create a
-new \code{arch/arm/boot/dts/am335x-boneblack-custom.dts} file containing:
+new \code{arch/arm/boot/dts/ti/omap/am335x-boneblack-custom.dts} file containing:
 
 \begin{verbatim}
 /dts-v1/;
@@ -337,7 +335,7 @@ new \code{arch/arm/boot/dts/am335x-boneblack-custom.dts} file containing:
 As you can see, it's also possible to include \code{dts} files, and not
 only \code{dtsi} ones.
 
-Modify the \kfile{arch/arm/boot/dts/Makefile} file to add your custom
+Modify the \kfile{arch/arm/boot/dts/ti/omap/Makefile} file to add your custom
 Device Tree, and then have it compiled (\code{make dtbs}).
 
 Reboot your board with the update.
@@ -565,9 +563,9 @@ root filesystem (\code{$HOME/__SESSION_NAME__-labs/tinysystem/nfsroot}).
 
 Also make sure to update the kernel image (\code{make zImage}), and reboot the
 board.  Indeed, due to the changes we have made to the kernel source code,
-the kernel version is now \code{6.1.<x>-dirty}, the {\em dirty}
+the kernel version is now {\tt \workingkernel.<x>-dirty}, the {\em dirty}
 keyword indicating that the Git working tree has uncommitted changes.
-The modules are therefore installed in \code{/lib/modules/6.1.<x>-dirty/},
+The modules are therefore installed in {\tt /lib/modules/\workingkernel.<x>-dirty/},
 and the version of the running Linux kernel must match this.
 
 After rebooting, try to load the module that we need:
@@ -781,7 +779,7 @@ Let's create the branch and the patch now:
 
 \begin{bashinput}
 git checkout -b bootlin-labs
-git add arch/arm/boot/dts/am335x-boneblack-custom.dts
+git add arch/arm/boot/dts/ti/omap/am335x-boneblack-custom.dts
 git commit -as -m "Custom DTS for Bootlin lab"
 \end{bashinput}
 
