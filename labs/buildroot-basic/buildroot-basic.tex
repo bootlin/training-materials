@@ -31,16 +31,16 @@ Since we're going to do Buildroot development, let's clone the
 Buildroot source code from its Git repository:
 
 \begin{bashinput}
-git clone https://git.buildroot.net/buildroot
+git clone https://gitlab.com/buildroot.org/buildroot.git
 \end{bashinput}
 
 Go into the newly created \code{buildroot} directory.
 
-We're going to start a branch from the {\em 2022.02} Buildroot
+We're going to start a branch from the {\em 2024.02} Buildroot
 release, with which this training has been tested.
 
 \begin{bashinput}
-git checkout -b bootlin 2022.02
+git checkout -b bootlin 2024.02
 \end{bashinput}
 
 \section{Configuring Buildroot}
@@ -109,9 +109,11 @@ Now, let's do the configuration:
     hesitate however to look at the available options when you select
     \code{Buildroot toolchain} as the \code{Toolchain type}.
 
-  \item Select \code{Arm ARM 2021.07} as the
-    \code{Toolchain}. Buildroot can either use pre-defined toolchains
-    such as the ones provided by ARM, or custom toolchains (either
+  \item Select \code{Bootlin toolchains} as the \code{Toolchain}. It
+    will automatically select the \code{armv7-eabihf glibc
+    bleeding-edge 2023.11-1} variant, which is fine for our
+    needs. Buildroot can either use pre-defined toolchains such as the
+    ones provided by ARM or Bootlin, or custom toolchains (either
     downloaded from a given location, or pre-installed on your
     machine).
 
@@ -138,8 +140,8 @@ Now, let's do the configuration:
 
   \item By default, the most recent Linux kernel version available at
     the time of the Buildroot release is used. In our case, we want to
-    use a specific version: \code{5.15.35}. So select \code{Custom
-      version} as the \code{Kernel version}, and enter \code{5.15.35}
+    use a specific version: \code{6.6.32}. So select \code{Custom
+      version} as the \code{Kernel version}, and enter \code{6.6.32}
     in the \code{Kernel version} text field that appears.
 
   \item Now, we need to define which kernel configuration to
@@ -147,7 +149,7 @@ Now, let's do the configuration:
     the kernel sources themselves, called a {\em defconfig}. To
     identify which {\em defconfig} to use, you can look in the kernel
     sources directly, at
-    \url{https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/arch/arm/configs/?id=v5.15}. In
+    \url{https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/arch/arm/configs/?id=v6.6}. In
     practice, for this platform, it is not trivial to find which one
     to use: the AM335x processor is supported in the Linux kernel as
     part of the support for many other Texas Instruments processors:
@@ -165,18 +167,19 @@ Now, let's do the configuration:
 
   \item On ARM, all modern platforms now use the {\em Device Tree} to
     describe the hardware. The BeagleBone Black Wireless is in this
-    situation, so you'll have to enable the
-    \code{Build a Device Tree Blob} option. At
-    \url{https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/arch/arm/boot/dts/?id=v5.15},
-    you can see the list of all Device Tree files available in the
-    5.10 Linux kernel (note: the Device Tree files for boards use the
-    \code{.dts} extension). The one for the BeagleBone Black Wireless
-    is \code{am335x-boneblack-wireless.dts}. Even if talking about
-    Device Tree is beyond the scope of this training, feel free to
-    have a look at this file to see what it contains. Back in
-    Buildroot, enable \code{Build a Device Tree Blob (DTB)} and type
-    \code{am335x-boneblack-wireless} as the \code{In-tree Device Tree
-      Source file names}.
+    situation, so you'll have to enable the \code{Build a Device Tree
+    Blob}
+    option. At \url{https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/arch/arm/boot/dts/?id=v6.6},
+    you can see the list of all Device Tree files available in the 6.6
+    Linux kernel (note: the Device Tree files for boards use
+    the \code{.dts} extension). The one for the BeagleBone Black
+    Wireless is \code{am335x-boneblack-wireless.dts} located
+    in \code{ti/omap/}. Even if talking about Device Tree is beyond
+    the scope of this training, feel free to have a look at this file
+    to see what it contains. Back in Buildroot, enable \code{Build a
+    Device Tree Blob (DTB)} and
+    type \code{ti/omap/am335x-boneblack-wireless} as the \code{In-tree
+    Device Tree Source file names}.
 
   \item The kernel configuration for this platform requires having
     OpenSSL available on the host machine. To avoid depending on the
@@ -212,16 +215,17 @@ Now, let's do the configuration:
     recent enough U-Boot version, we are going to use the latter,
     called {\em Kconfig}.
 
-  \item Use the custom version of U-Boot \code{2022.04}.
+  \item Use the custom version of U-Boot \code{2024.04}.
 
-  \item Look at
-    \url{https://gitlab.denx.de/u-boot/u-boot/-/tree/master/configs} to
-    identify the available U-Boot configurations. For many AM335x
-    platforms, U-Boot has a single configuration called
-    \code{am335x_evm_defconfig}, which can then be given the exact
-    hardware platform to support using a Device Tree. So we need to
-    use \code{am335x_evm} as \code{Board defconfig} and
-    \code{DEVICE_TREE=am335x-boneblack} as \code{Custom make options}
+  \item Look
+    at \url{https://gitlab.denx.de/u-boot/u-boot/-/tree/v2024.04/configs}
+    to identify the available U-Boot configurations. For many AM335x
+    platforms, U-Boot has a single configuration
+    called \code{am335x_evm_defconfig}, which can then be given the
+    exact hardware platform to support using a Device Tree. So we need
+    to use \code{am335x_evm} as \code{Board defconfig}
+    and \code{DEVICE_TREE=am335x-boneblack-wireless} as \code{Custom
+    make options}
 
   \item U-Boot on AM335x is split in two parts: the first stage
     bootloader called \code{MLO} and the second stage bootloader

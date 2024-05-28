@@ -95,7 +95,7 @@ iface lo inet loopback
 
 auto usb0
 iface usb0 inet static
-      address 192.168.0.2
+      address 192.168.42.2
       netmask 255.255.255.0
 \end{fileinput}
 
@@ -127,7 +127,7 @@ To configure an IP address for this interface on your host machine,
 we'll use NetworkManager and its command line interface:
 
 \begin{bashinput}
-nmcli con add type ethernet ifname enxf8dc7a000001 ip4 192.168.0.1/24
+nmcli con add type ethernet ifname enxf8dc7a000001 ip4 192.168.42.1/24
 \end{bashinput}
 
 {\em Note: using \code{ip} in the command line is not
@@ -176,70 +176,8 @@ Starting dropbear sshd: OK
 Now, from your PC, if you try to SSH to the board by doing:
 
 \begin{bashinput}
-ssh root@192.168.0.2
+ssh root@192.168.42.2
 \end{bashinput}
-
-You'll notice that it is very slow to open the connection: this is due
-to the lack of hardware random number generator support. In the next
-section, we will adjust the Linux kernel configuration to enable
-support for such hardware random number generators.
-
-\section{Customize the Linux kernel configuration}
-
-Until now, our Linux kernel was configured using the
-\code{omap2plus_defconfig} configuration provided in the Linux kernel
-source code. Let's customize our kernel configuration by running:
-
-\begin{bashinput}
-make linux-menuconfig
-\end{bashinput}
-
-In the kernel configuration, enable the following kernel options (use
-the \code{/} search engine to easily find those options):
-
-\begin{itemize}
-\item \kconfig{CONFIG_HW_RANDOM}
-\item \kconfig{CONFIG_HW_RANDOM_OMAP}
-\item \kconfig{CONFIG_HW_RANDOM_OMAP3_ROM}
-\end{itemize}
-
-You'll notice that they were already enabled, but as modules. We need
-them to be statically enabled in the kernel, to have the hardware
-random number generator ready directly at boot time.
-
-Your kernel configuration has now been customized, but those changes
-are only saved in \code{output/build/linux-<version>/.config}, which
-will be deleted at the next \code{make clean}. So we need to save such
-changes persistently. To do so:
-
-\begin{enumerate}
-
-\item Run Buildroot \code{menuconfig}
-
-\item In the \code{Kernel} menu, instead of \code{Using a defconfig},
-  chose \code{Using a custom config file}. This will allow us to use
-  our own custom kernel configuration file, instead of a pre-defined
-  {\em defconfig} that comes with the kernel sources.
-
-\item In the \code{Configuration file path}, enter
-  \code{board/bootlin/beagleboneblack/linux.config}.
-
-\item Exit \code{menuconfig}
-
-\item Run \inlinebash{make linux-update-defconfig}. This will generate the
-  configuration file in
-  \code{board/bootlin/beagleboneblack/linux.config}. It will be a {\em
-    minimal} configuration file (i.e. a {\em defconfig}). In this file,
-  verify that the option \kconfig{CONFIG_HW_RANDOM}is properly set to
-  \code{y}. The other two options are not visible in the
-  \code{linux.config} file: they default to \code{y} when
-  \kconfig{CONFIG_HW_RANDOM} is \code{y}.
-
-\end{enumerate}
-
-Re-run the build of the system by running \code{make}. Update the
-\code{zImage} on the SD card, and test again the SSH connection: it
-should now connect immediately.
 
 \section{Use a post-build script}
 
@@ -310,9 +248,7 @@ This will:
 \begin{itemize}
 \item Extract the Linux kernel sources
 \item Apply our two patches
-\item Load the current kernel configuration, from
-  \code{board/bootlin/beagleboneblack/linux.config} as we have modified
-  earlier in this lab.
+\item Load the defined kernel configuration, from \code{omap2plus_defconfig}
 \item Start the kernel \code{menuconfig} tool
 \end{itemize}
 
@@ -322,14 +258,33 @@ statically. Also, make sure the \kconfig{CONFIG_INPUT_EVDEV} option is
 enabled statically (by default it is enabled as a module). Once those
 options are set, leave the kernel \code{menuconfig}.
 
-Let's save persistently our kernel configuration change:
+Your kernel configuration has now been customized, but those changes
+are only saved in \code{output/build/linux-<version>/.config}, which
+will be deleted at the next \code{make clean}. So we need to save such
+changes persistently. To do so:
 
-\begin{bashinput}
-make linux-update-defconfig
-\end{bashinput}
+\begin{enumerate}
 
-You can check \code{board/bootlin/beagleboneblack/linux.config} and
-verify that \kconfig{CONFIG_JOYSTICK_WIICHUCK} is set to \code{y}.
+\item Run Buildroot \code{menuconfig}
+
+\item In the \code{Kernel} menu, instead of \code{Using a defconfig},
+  chose \code{Using a custom config file}. This will allow us to use
+  our own custom kernel configuration file, instead of a pre-defined
+  {\em defconfig} that comes with the kernel sources.
+
+\item In the \code{Configuration file path}, enter
+  \code{board/bootlin/beagleboneblack/linux.config}.
+
+\item Exit \code{menuconfig}
+
+\item Run \inlinebash{make linux-update-defconfig}. This will generate
+  the configuration file in
+  \code{board/bootlin/beagleboneblack/linux.config}. It will be a {\em
+    minimal} configuration file (i.e. a {\em defconfig}). In this
+  file, verify that the option \kconfig{CONFIG_JOYSTICK_WIICHUCK} is
+  properly set to \code{y}.
+
+\end{enumerate}
 
 You can now restart the build of the kernel:
 

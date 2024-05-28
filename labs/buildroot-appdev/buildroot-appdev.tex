@@ -35,13 +35,15 @@ export PATH=$HOME/__SESSION_NAME__-labs/buildroot/output/host/bin:$PATH
 Now you can build your application easily:
 
 \begin{bashinput}
-arm-none-linux-gnueabihf-gcc -o myapp myapp.c
+arm-linux-gcc -o myapp myapp.c
 \end{bashinput}
 
-Copy the myapp binary to your target using scp:
+Copy the myapp binary to your target using scp (we use the legacy {\em
+SCP} protocol, as we haven't installed a {\em SFTP} server, hence
+the \code{-O} option):
 
 \begin{bashinput}
-scp myapp root@192.168.0.2:
+scp -O myapp root@192.168.42.2:
 \end{bashinput}
 
 And run the \code{myapp} application on your target.
@@ -54,14 +56,14 @@ this lab data directory, \code{myapp.c}.
 If you try to build this application with just:
 
 \begin{bashinput}
-arm-none-linux-gnueabihf-gcc -o myapp myapp.c
+arm-linux-gcc -o myapp myapp.c
 \end{bashinput}
 
 It fails to build because it does not link with \code{libconfig}. So
 you can manually do:
 
 \begin{bashinput}
-arm-none-linux-gnueabihf-gcc -o myapp myapp.c -lconfig
+arm-linux-gcc -o myapp myapp.c -lconfig
 \end{bashinput}
 
 Since \code{libconfig.so} is in \code{output/staging/usr/lib} and the
@@ -87,7 +89,7 @@ pkg-config --cflags --libs libconfig
 And use that to build your application:
 
 \begin{bashinput}
-arm-none-linux-gnueabihf-gcc -o myapp myapp.c $(pkg-config --cflags --libs libconfig)
+arm-linux-gcc -o myapp myapp.c $(pkg-config --cflags --libs libconfig)
 \end{bashinput}
 
 In the case of \code{libconfig}, it doesn't simplify a lot because the
@@ -109,7 +111,7 @@ The {\em ARM} toolchain is provided with a pre-compiled {\em
 re-installation of the toolchain using:
 
 \begin{bashinput}
-make toolchain-external-arm-arm-reinstall
+make toolchain-external-bootlin-reinstall
 \end{bashinput}
 
 Reflash your system, or alternatively, just copy
@@ -146,7 +148,7 @@ Back on the host, run the cross-gdb with the \code{myapp} application
 as argument:
 
 \begin{bashinput}
-arm-none-linux-gnueabihf-gdb myapp
+arm-linux-gdb myapp
 \end{bashinput}
 
 We need to tell \code{gdb} where the libraries can be found:
@@ -158,7 +160,7 @@ We need to tell \code{gdb} where the libraries can be found:
 And then connect to the target:
 
 \begin{bashinput}
-(gdb) target extended-remote 192.168.0.2:2345
+(gdb) target extended-remote 192.168.42.2:2345
 \end{bashinput}
 
 Define which program we want to run on the target:
@@ -223,7 +225,7 @@ visible change to the source code in \code{myapp.c}.
 Restart the build of \code{myapp} using \code{make myapp-rebuild}, you
 will see that Buildroot automatically {\em rsyncs} again the source
 code. Then scp the file \code{output/target/usr/bin/myapp} to
-\code{192.168.0.2:/usr/bin} and run \code{myapp} again on the target.
+\code{192.168.42.2:/usr/bin} and run \code{myapp} again on the target.
 
 As you can see you can now develop your applications and libraries,
 using your normal version control system and relying on Buildroot to
