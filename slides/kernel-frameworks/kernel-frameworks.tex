@@ -596,6 +596,21 @@ void foo_remove(struct platform_device *pdev)
 
 \end{frame}
 
+\begin{frame}
+  \frametitle{Device managed allocations caveats}
+  \begin{itemize}
+  \item Cleanup is done when the \code{struct device} is cleaned up.
+    There is no reference counting or anything like that.
+  \item Don't use if the allocated memory is used outside of the device
+    node. E.g. if the userspace device file is still open after remove.
+  \item Be very careful when there are circular references.
+  \item \href{https://lpc.events/event/16/contributions/1227/}{"Why is
+    \code{devm_kzalloc()} harmful and what can we do about it",
+    Laurent Pinchart, LPC 2022}
+  \end{itemize}
+\end{frame}
+
+
 \subsection{Driver data structures and links}
 
 \begin{frame}
@@ -634,6 +649,12 @@ struct imx_port {
     [...]
 };
   \end{minted}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Driver-specific Data Structure Examples 2/2}
+  \begin{itemize}
   \item ds1305 RTC driver: \kstruct{ds1305} has a reference to
     \kstruct{rtc_device}
   \begin{minted}[fontsize=\scriptsize]{c}
@@ -642,13 +663,13 @@ struct ds1305 {
     struct rtc_device       *rtc;
     [...]
 };
-  \end{minted}
-  \end{itemize}
-\end{frame}
 
-\begin{frame}[fragile]
-  \frametitle{Driver-specific Data Structure Examples 2/2}
-  \begin{itemize}
+static int ds1305_alarm_irq_enable(struct device *dev, unsigned int enabled)
+{
+    struct ds1305 *ds1305 = dev_get_drvdata(dev);
+    [ ..]
+}
+  \end{minted}
   \item rtl8150 network driver: \kstruct{rtl8150} has a reference to
     \kstruct{net_device} and is allocated within that framework structure.
   \begin{minted}[fontsize=\scriptsize]{c}
