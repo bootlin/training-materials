@@ -548,3 +548,48 @@ tcp   ESTAB  0      0                   [2a02:...:dbdc]:38466     [2001:...:9]:i
       for details
   \end{itemize}
 \end{frame}
+
+\begin{frame}{tcpdump}
+  \begin{itemize}
+  \item {\em tcpdump} allows to capture network traffic and decode many
+    protocols
+  \item \code{tcpdump -i eth0}
+  \item based on the {\em libpcap} library for packet capture
+  \item It can also store captured packets to a file and read them back
+    \begin{itemize}
+    \item In the {\em pcap} format or the newer {\em pcapng} format
+    \item \code{tcpdump -i eth0 -w capture.pcap}
+    \item \code{tcpdump -r capture.pcap}
+    \end{itemize}
+  \item A capture filter can be used to avoid capturing irrelevant packets
+    \begin{itemize}
+    \item \code{tcpdump -i eth0 tcp and not port 22}
+    \end{itemize}
+  \item \url{https://www.tcpdump.org/}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{tcpdump example output}
+    \begin{block}{}
+      \begin{minted}[fontsize=\scriptsize]{console}
+# tcpdump -i eth0
+18:41:22.913058 IP localhost.localnet.40764 > srv.localnet: 14324+ AAAA? bootlin.com. (29)
+18:41:22.913797 IP srv.localnet > localhost.localnet.40764: 14324 0/1/0 (89)
+18:41:22.914268 IP localhost.localnet > bootlin.com: ICMP echo request, id 3, seq 1, length 64
+18:41:23.933063 IP localhost.localnet > bootlin.com: ICMP echo request, id 3, seq 2, length 64
+18:41:24.957027 IP localhost.localnet > bootlin.com: ICMP echo request, id 3, seq 3, length 64
+18:41:24.996415 IP bootlin.com > localhost.localnet: ICMP echo reply, id 3, seq 3, length 64
+^C
+# tcpdump -i eth0 tcp and not port 22
+... IP B.https > A.38910: Flags [.], ack 469, win 501, options [...], length 0
+... IP B.https > A.38910: Flags [P.], seq 2602:2857, ack 469, win 501, options [...], length 255
+... IP A.38910 > B.https: Flags [.], ack 2857, win 501, options [...], length 0
+... IP A.38910 > B.https: Flags [P.], seq 469:621, ack 2857, win 501, options [...], length 152
+... IP B.https > A.38910: Flags [.], ack 621, win 501, options [...], length 0
+... IP B.https > A.38910: Flags [P.], seq 2857:3825, ack 621, win 501, options [...], length 968
+... IP A.38910 > B.https: Flags [P.], seq 621:779, ack 3825, win 501, options [...], length 158
+^C
+#
+      \end{minted}
+    \end{block}
+\end{frame}
