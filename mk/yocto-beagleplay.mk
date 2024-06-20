@@ -5,6 +5,7 @@ YOCTO_BEAGLEPLAY_SLIDES    = \
 		yocto-shopping-list \
 		beagleboneblack-board \
 		discovery-board-dk1 \
+		beagleplay-board \
 		course-information \
 		setup-lab \
 		buildroot-yocto-introduction \
@@ -36,8 +37,8 @@ YOCTO_BEAGLEPLAY_SLIDES    = \
 		yocto-extra-slides
 
 YOCTO_BEAGLEPLAY_LABS    = setup \
-		yocto-first-build \
-		yocto-advanced-configuration \
+		yocto-first-build-beagleplay \
+		yocto-advanced-configuration-beagleplay \
 		yocto-add-application \
 		yocto-layer \
 		yocto-extend-recipe \

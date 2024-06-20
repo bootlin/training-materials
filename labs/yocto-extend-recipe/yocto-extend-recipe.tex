@@ -18,7 +18,7 @@ to the original recipe, to see how it is integrated into the build. We will then
 extend some configuration variables of the original recipe.
 
 We here aim to extend the \ifdefstring{\labboard}{stm32mp1}{\code{linux-stm32mp}}
-{\code{linux-ti-staging}} kernel recipe.
+{{\ifdefstring{\labboard}{beagleplay}{\code{linux-bb.org}}{\code{linux-ti-staging}}}} kernel recipe.
 
 Try to create an appended recipe using the guidelines given in the slides.
 
@@ -36,17 +36,25 @@ linux-stm32mp_5.15.bb:
  $HOME/__SESSION_NAME__-labs/meta-bootlinlabs/recipes-kernel/linux/linux-stm32mp_5.15.bbappend
 \end{verbatim}
 \else
+  \if\defstring{\labboard}{beagleplay}
+\begin{verbatim}
+linux-bb.org_git.bb:
+  $HOME/__SESSION_NAME__-labs/meta-bootlinlabs/recipes-kernel/linux/linux-bb.org_git.bbappend
+\end{verbatim}
+  \else
 \begin{verbatim}
 linux-ti-staging_5.10.bb:
   $HOME/__SESSION_NAME__-labs/meta-bootlinlabs/recipes-kernel/linux/linux-ti-staging_5.10.bbappend
 \end{verbatim}
+  \fi
 \fi
 
 \section{Add patches to apply in the recipe}
 
 We want our extended
 \ifdefstring{\labboard}{stm32mp1}{\code{linux-stm32mp}}
-{\code{linux-ti-staging}} kernel to support the Nunchuk as
+{{\ifdefstring{\labboard}{beagleplay}{\code{linux-bb.org}}{\code{linux-ti-staging}}}}
+kernel to support the Nunchuk as
 a joystick input. We can add this by applying patches during the
 \code{do_patch} task. The needed patches are provided with this lab. You can
 find them under \code{~/__SESSION_NAME__-labs/bootlin-lab-data/nunchuk/linux}. For more
@@ -68,7 +76,8 @@ Add \code{KERNEL_DEFCONFIG = ""} and \code{KERNEL_EXTERNAL_DEFCONFIG =
 "defconfig"} so it is used by the \code{linux-stm32mp} recipe.
 \footnote{These settings are specific to the \code{linux-stm32mp} recipe!}
 \else
-It is handled automatically in the \code{linux-ti-staging} original recipe.
+It is handled automatically in the
+ \ifdefstring{\labboard}{beagleplay}{\code{linux-bb.org}}{\code{linux-ti-staging}} original recipe.
 \fi
 
 You can now rebuild the kernel to take the new patches into account:
@@ -80,8 +89,8 @@ bitbake virtual/kernel
 
 Take the Nunchuk device provided by your instructor.
 
-We will connect it to the second I2C port of the CPU (\code{i2c1}),
-with pins available on the \code{P9} connector.
+We will connect it to the \ifdefstring{\labboard}{beagleplay}{\code{i2c3}}{\code{i2c1}} port
+of the CPU, with pins available on the \code{P9} connector.
 
 Identify the 4 pins of the Nunchuk connector:
 
@@ -102,6 +111,19 @@ Connect the Nunchuk pins:
 \includegraphics[width=12cm]{common/dk1-nunchuk-connect.jpg}
 \end{center}
 }{
+\ifdefstring{\labboard}{beagleplay}{
+Connect the Nunchuk pins:
+\begin{itemize}
+\item Connect the Nunchuk PWR pin to \code{+3.3V} pin of mikroBUS connector
+\item Connect the Nunchuk GND pin to \code{GND} pin of mikroBUS connector
+\item Connect the Nunchuk SCL pin to \code{SCL} pin of mikroBUS connector
+\item Connect the Nunchuk SDA pin to \code{SDA} pin of mikroBUS connector
+\end{itemize}
+
+\begin{center}
+\includegraphics[width=12cm]{common/beagleplay-connect-nunchuk.jpg}
+\end{center}
+}{
 Connect the Nunchuk pins:
 \begin{itemize}
 \item The \code{GND} pin to P9 pins 1 or 2 (\code{GND})
@@ -113,7 +135,7 @@ Connect the Nunchuk pins:
 \begin{center}
 \includegraphics[width=12cm]{common/bbb-connect-nunchuk.pdf}
 \end{center}
-}
+}}
 
 \section{Test the Nunchuk}
 
@@ -151,7 +173,7 @@ directory.
 \section{Play nInvaders!}
 
 After booting the board you should be able to play nInvaders with the
-keyboard\dots and the Nunchuk! The \code{C} button is used to confirm and to
+keyboard\dots{} and the Nunchuk! The \code{C} button is used to confirm and to
 fire, and \code{Z} to pause the game.
 
 Access the board command line through SSH, and launch the game:

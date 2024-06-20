@@ -1,0 +1,53 @@
+From f8a4903a9a72275848d64c8e03d22f4880644db8 Mon Sep 17 00:00:00 2001
+From: Jeremie Dautheribes <jdautheribes@build3.bootlin.com>
+Date: Thu, 20 Jun 2024 07:00:23 +0200
+Subject: [PATCH] Use extlinux.conf booting flow
+
+Switch from the default EFI-based boot process to a well-known
+extlinux.conf boot flow.
+
+This change is coherent with our other supported boards and
+simplifies the labs significantly (which are therefore very similar
+to those for the other boards). Moreover, I had trouble establishing
+a stable Ethernet connection through the EFI-based flow.
+
+Signed-off-by: Jeremie Dautheribes <jdautheribes@build3.bootlin.com>
+---
+ meta-ti-bsp/conf/machine/beagleplay.conf         | 3 ++-
+ meta-ti-bsp/conf/machine/include/extlinux-bb.inc | 9 +++++++++
+ 2 files changed, 11 insertions(+), 1 deletion(-)
+ create mode 100644 meta-ti-bsp/conf/machine/include/extlinux-bb.inc
+
+diff --git a/meta-ti-bsp/conf/machine/beagleplay.conf b/meta-ti-bsp/conf/machine/beagleplay.conf
+index 9ea7ff75..fb9e7f9e 100644
+--- a/meta-ti-bsp/conf/machine/beagleplay.conf
++++ b/meta-ti-bsp/conf/machine/beagleplay.conf
+@@ -3,8 +3,9 @@
+ #@DESCRIPTION: Machine configuration for the BeaglePlay board (A53 core)
+ 
+ require conf/machine/include/k3.inc
+-SOC_FAMILY:append = ":am62xx"
++require conf/machine/include/extlinux-bb.inc
+ 
++SOC_FAMILY:append = ":am62xx"
+ MACHINE_FEATURES += "screen gpu"
+ 
+ SERIAL_CONSOLES = "115200;ttyS2"
+diff --git a/meta-ti-bsp/conf/machine/include/extlinux-bb.inc b/meta-ti-bsp/conf/machine/include/extlinux-bb.inc
+new file mode 100644
+index 00000000..02863fc2
+--- /dev/null
++++ b/meta-ti-bsp/conf/machine/include/extlinux-bb.inc
+@@ -0,0 +1,9 @@
++UBOOT_EXTLINUX = "1"
++UBOOT_EXTLINUX_ROOT = "root=/dev/mmcblk1p2"
++UBOOT_EXTLINUX_KERNEL_IMAGE = "../Image"
++UBOOT_EXTLINUX_KERNEL_ARGS = "rootwait"
++UBOOT_EXTLINUX_FDT = "../k3-am625-beagleplay.dtb"
++
++IMAGE_BOOT_FILES:append = " extlinux.conf;extlinux/extlinux.conf k3-am625-beagleplay.dtb"
++MACHINE_ESSENTIAL_EXTRA_RDEPENDS:append = " kernel-modules"
++
+-- 
+2.25.1
+

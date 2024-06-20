@@ -1,0 +1,207 @@
+\subchapter{Lab2: Advanced Yocto configuration}{Configure the build, customize the
+	output images and use NFS}
+
+During this lab, you will:
+\begin{itemize}
+  \item Customize the package selection
+  \item Configure the build system
+  \item Use the rootfs over NFS
+\end{itemize}
+
+\section{Set up the Ethernet communication and NFS on the board}
+
+It isn't practical at all to reflash the root filesystem on the target
+every time a change is made. Fortunately, it is possible to set up
+networking between the development workstation and the target. Then,
+workstation files can be accessed by the target through the network,
+using NFS.
+
+First we need to set the kernel boot arguments U-Boot will pass to the
+Linux kernel at boot time. For that, edit the extlinux configuration file, in
+the bootfs partition of the SD card and change the \code{APPEND} line to:
+
+{\small
+\begin{verbatim}
+APPEND root=/dev/nfs rw console=${console} nfsroot=192.168.0.1:/nfs,vers=3,tcp ip=192.168.0.100
+\end{verbatim}
+}
+
+\section{Set up the Ethernet communication on the workstation}
+
+With a network cable, connect the Ethernet port of your board to the
+one of your computer. If your computer already has a wired connection
+to the network or does't have any Ethernet port, your instructor will
+provide you an USB Ethernet adapter. A new network interface should
+ appear on your Linux system.
+
+Find the name of this interface by typing:
+\begin{verbatim}
+ip a
+\end{verbatim}
+
+The network interface name is likely to be
+\code{enxxx}\footnote{Following the {\em Predictable Network Interface
+Names} convention:
+\url{https://www.freedesktop.org/wiki/Software/systemd/PredictableNetworkInterfaceNames/}}.
+If you have a pluggable Ethernet device, it's easy to identify as it's
+the one that shows up after pluging in the device.
+
+Then, instead of configuring the host IP address from Network
+Manager's graphical interface, let's do it through its command line
+interface, which is so much easier to use:
+
+\begin{verbatim}
+nmcli con add type ethernet ifname en... ip4 192.168.0.1/24
+\end{verbatim}
+
+\section{Set up the NFS server on the workstation}
+
+First install the NFS server on the training computer and create the root NFS
+directory:
+\begin{verbatim}
+sudo apt install nfs-kernel-server
+sudo mkdir -m 777 /nfs
+\end{verbatim}
+
+Then make sure this directory is used and exported by the NFS server by adding
+the below line to the \code{/etc/exports} file:
+
+\begin{verbatim}
+/nfs *(rw,sync,no_root_squash,subtree_check)
+\end{verbatim}
+
+Finally, make the NFS server use the new configuration:
+\begin{verbatim}
+sudo exportfs -r
+\end{verbatim}
+
+\section{Add a package to the rootfs image}
+
+You can add packages to be built by editing the local configuration file
+\code{$BUILDDIR/conf/local.conf}. The \yoctovar{IMAGE_INSTALL} variable controls the
+packages included into the output image.
+
+To illustrate this, add the Dropbear SSH server to the list of enabled
+packages.
+
+Tip: do not overwrite the default enabled package list, but append the Dropbear
+package instead.
+
+\section{Boot with the updated rootfs}
+
+First we need to put the rootfs under the NFS root directory so that it is
+accessible by NFS clients. Simply uncompress the archived output image in the
+previously created \code{/nfs} directory:
+\begin{verbatim}
+sudo tar xpf $BUILDDIR/deploy-ti/images/beagleplay/\
+  core-image-minimal-beagleplay.tar.xz -C /nfs
+\end{verbatim}
+
+Then boot the board.
+
+The Dropbear SSH server was enabled a few steps before, and should now be
+running as a service on the BeaglePlay. You can test it by accessing the
+board through SSH:
+\begin{verbatim}
+ssh root@192.168.0.100
+\end{verbatim}
+
+You should see the BeaglePlay command line!
+
+\section{Choose a package variant}
+
+Dependencies of a given package are explicitly defined in its recipe.
+Some packages may need a specific library or piece of software but
+others only depend on a functionality. As an example, the kernel
+dependency is described by \code{virtual/kernel}.
+
+To see which kernel is used, dry-run BitBake:
+\begin{verbatim}
+bitbake -vn virtual/kernel
+\end{verbatim}
+
+In our case, we can see the \code{linux-bb.org} provides the
+\code{virtual/kernel} functionality:
+\small
+\begin{verbatim}
+NOTE: selecting linux-bb.org to satisfy virtual/kernel due to PREFERRED_PROVIDERS
+\end{verbatim}
+\normalsize
+
+We can force Yocto to select another \code{kernel} by explicitly
+defining which one to use in our local configuration. Try switching
+from \code{linux-bb.org} to \code{linux-dummy} only using the
+local configuration.
+
+Then check the previous step worked by dry-running again BitBake.
+\begin{verbatim}
+bitbake -vn virtual/kernel
+\end{verbatim}
+
+Tip: you may need to define the more specific information here to be sure
+it is the one used. The \yoctovar{MACHINE} variable can help here.
+
+As this was only to show how to select a preferred provider for a
+given package, you can now use \code{linux-bb.org} again.
+
+\section{BitBake tips}
+
+BitBake is a powerful tool which can be used to execute specific commands. Here
+is a list of some useful ones, used with the \code{virtual/kernel} package.
+
+\begin{itemize}
+  \item The Yocto recipes are divided into numerous tasks, you can print them
+        by using: \code{bitbake -c listtasks virtual/kernel}.
+  \item BitBake allows to call a specific task only (and its dependencies)
+        with: \code{bitbake -c <task> virtual/kernel}. (\code{<task>} can be
+        \code{menuconfig} here).
+  \item You can force to rebuild a package by calling: \code{bitbake -f
+        virtual/kernel}
+  \item \code{world} is a special keyword for all packages. \code{bitbake
+        --runall=fetch world} will download all packages sources (and their
+        dependencies).
+  \item You can get a list of locally available packages and their current
+        version with: \\
+        \code{bitbake -s}
+  \item You can also find detailed information on available packages, their
+        current version, dependencies or the contact information of the
+        maintainer by visiting: \\
+        \url{http://recipes.yoctoproject.org/}
+\end{itemize}
+
+For detailed information, please run \code{bitbake -h}
+
+\section{Going further}
+
+If you have some time left, let's improve our setup to use TFTP, in
+order to avoid having to reflash the SD card for every test.
+
+First, install a TFTP server (package \code{tftpd-hpa}) on your system.
+
+Then copy the Linux kernel image and Device Tree to the TFTP server home
+directory (specified in \code{/etc/default/tftpd-hpa}) so that they are
+made available by the TFTP server.
+
+Then, in the U-Boot shell, change the \code{bootcmd} variable to load the
+kernel image and the Device Tree over TFTP (replace \code{dtb} by
+the actual Device Tree file for your board):
+
+\small{
+\begin{verbatim}
+setenv ipaddr 192.168.0.100
+setenv serverip 192.168.0.1
+setenv bootcmd 'tftp ${loadaddr} Image; tftp ${fdtaddr} dtb; booti ${loadaddr} - ${fdtaddr}'
+\end{verbatim}
+}
+
+Still in the U-Boot shell, set the \code{bootargs} specifying the kernel command line that
+we previously set in \code{extlinux.conf}:
+
+{\small
+\begin{verbatim}
+setenv bootargs root=/dev/nfs rw console=${console} nfsroot=192.168.0.1:/nfs,vers=3,tcp ip=192.168.0.100
+\end{verbatim}
+}
+
+See the training materials of our {\em Embedded Linux system
+  development} course for details!
