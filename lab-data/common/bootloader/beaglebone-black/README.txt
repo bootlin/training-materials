@@ -28,7 +28,7 @@ ready to be used. You can also build them on your own if you wish, all
 instructions are provided in chapter 3.
 
 ===========================================
-2b. Flash the image using Ethernet over USB
+2a. Flash the image using Ethernet over USB
 ===========================================
 
 Follow the installation instructions at
