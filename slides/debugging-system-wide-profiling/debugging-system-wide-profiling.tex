@@ -797,11 +797,54 @@ void any_func(void)
 
 \subsection{eBPF}
 
+\begin{frame}{The ancestor: Berkeley Packet filter}
+  \begin{itemize}
+    \item BPF stands for Berkeley Packet Filter and was initially used
+    for network packet filtering
+    \item BPF is implemented and used in Linux to perform Linux Socket
+    Filtering (see \kdochtml{networking/filter})
+    \item tcpdump and Wireshark heavily rely on BPF (through libpcap) for
+    packet capture
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{BPF in libpcap: setup}
+  \begin{columns}
+    \column{0.75\textwidth}
+    \begin{itemize}
+    \item tcpdump passes the capture filter string from the user to libpcap
+    \item libpcap translates the capture filter into a binary program
+      \begin{itemize}
+      \item This program uses the instruction set of an abstract machine
+        (the ``BPF instruction set'')
+      \end{itemize}
+    \item libpcap sends the binary program to the kernel via the
+      \code{setsockopt()} syscall
+    \end{itemize}
+    \column{0.25\textwidth}
+      \includegraphics[height=0.85\textheight]{slides/debugging-system-wide-profiling/bpf-setup.pdf}
+  \end{columns}
+\end{frame}
+
+\begin{frame}{BPF in libpcap: capture}
+  \begin{columns}
+    \column{0.55\textwidth}
+    \begin{itemize}
+    \item The kernel implements the BPF ``virtual machine''
+    \item The BPF virtual machine executes the program for every packet
+    \item The program inspects the packet data and returns a non-zero value
+      if the packet must be captured
+    \item If the return value is non-zero, the packet is captured in
+      addition to regular packet processing
+    \end{itemize}
+    \column{0.45\textwidth}
+      \includegraphics[height=0.80\textheight]{slides/debugging-system-wide-profiling/bpf-capture.pdf}
+  \end{columns}
+\end{frame}
+
 \begin{frame}
   \frametitle{eBPF (1/2)}
   \begin{itemize}
-    \item BPF stands for Berkeley Packet Filter and was initially used
-          for network packet filtering
     \item \href{https://ebpf.io/}{eBPF} framework in the kernel allows running
           user-written BPF programs within the kernel in a safe and efficient
           way (Added in kernel 3.15)
