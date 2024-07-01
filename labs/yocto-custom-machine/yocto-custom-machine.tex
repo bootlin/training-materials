@@ -78,20 +78,24 @@ STM32MP_DT_FILES_DK = "stm32mp157a-dk1 stm32mp157d-dk1"
   \item To define a few variables to set to get the tooling from TI
    to work properly:
 \begin{verbatim}
-TFA_BOARD = "lite"
-TFA_K3_SYSTEM_SUSPEND = "1"
-OPTEEMACHINE = "k3-am62x"
-UBOOT_MACHINE = "am62x_evm_a53_defconfig"
-UBOOT_CONFIG_FRAGMENTS = "am625_beagleplay_a53.config"
+  SERIAL_CONSOLES = "115200;ttyS2"
+  SERIAL_CONSOLES_CHECK = "${SERIAL_CONSOLES}"
 
-PREFERRED_PROVIDER_virtual/kernel = "linux-bb.org"
-PREFERRED_PROVIDER_virtual/bootloader = "u-boot-bb.org"
-PREFERRED_PROVIDER_u-boot = "u-boot-bb.org"
+  TFA_BOARD = "lite"
+  TFA_K3_SYSTEM_SUSPEND = "1"
 
-KERNEL_DEVICETREE = "ti/k3-am625-beagleplay.dtb"
+  OPTEEMACHINE = "k3-am62x"
 
-# To not get linux-bb.org skipped because of COMPATIBLE_MACHINE
-MACHINEOVERRIDES =. "beagle:"
+  UBOOT_MACHINE = "am62x_evm_a53_defconfig"
+
+  PREFERRED_PROVIDER_virtual/kernel = "linux-bb.org"
+  PREFERRED_PROVIDER_virtual/bootloader = "u-boot-bb.org"
+  PREFERRED_PROVIDER_u-boot = "u-boot-bb.org"
+
+  KERNEL_DEVICETREE = "ti/k3-am625-beagleplay.dtb"
+
+  # To not get linux-bb.org skipped because of COMPATIBLE_MACHINE
+  MACHINEOVERRIDES =. "beagle:"
 \end{verbatim}
   \item To add an include which is specific to our labs
   and allows to use the extlinux U-Boot bootflow:
@@ -131,8 +135,8 @@ require conf/machine/include/extlinux-bb.inc
 
 The BeaglePlay has a complex booting flow. In particular, it boots on a dedicated Cortex-R5 CPU,
  which has a different architecture from the main Cortex-A53 CPUs that will, in turn, run Linux.
- To support this in Yocto, we have to create a new machine configuration file with the \code{-k3r5} suffix.
-\footnote{Behind the scenes, the meta-ti layer uses an advanced Yocto mechanism called \code{multiconfig}.}
+ To support this in Yocto, we have to create a new machine configuration file with the \code{-k3r5}
+suffix.\footnote{Behind the scenes, the meta-ti layer uses an advanced Yocto mechanism called \code{multiconfig}.}
 
 This \code{bootlinlabs-k3r5.conf} machine needs the following lines:
 \begin{verbatim}
@@ -144,12 +148,13 @@ This \code{bootlinlabs-k3r5.conf} machine needs the following lines:
   SYSFW_SOC = "am62x"
   SYSFW_CONFIG = "evm"
   SYSFW_SUFFIX = "gp"
+  SYSFW_PREFIX:bootlinlabs-k3r5 = "fs"
 
   UBOOT_MACHINE = "am62x_evm_r5_defconfig"
-  UBOOT_CONFIG_FRAGMENTS = "am625_beagleplay_r5.config"
 
   # To not get u-boot-bb.org skipped because of COMPATIBLE_MACHINE
-  MACHINEOVERRIDES =. "beagle:"
+  # and use the same U-Boot ${BRANCH} as the BeaglePlay
+  MACHINEOVERRIDES =. "beagleplay-k3r5:"
 \end{verbatim}
 \fi
 
