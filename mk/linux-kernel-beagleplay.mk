@@ -45,16 +45,16 @@ LINUX_KERNEL_BEAGLEPLAY_SLIDES = \
 LINUX_KERNEL_BEAGLEPLAY_LABS   = setup \
 				kernel-sources-download \
 				kernel-sources-exploring \
-				kernel-beagleplay-board-setup \
-				kernel-beagleplay-compiling-and-nfs-booting \
+				kernel-board-setup-beagleplay \
+				kernel-compiling-and-nfs-booting-beagleplay \
 				kernel-module-simple \
-				kernel-beagleplay-i2c-describing-hardware \
-				kernel-beagleplay-i2c-multiplexing \
+				kernel-i2c-describing-hardware-beagleplay \
+				kernel-i2c-multiplexing-beagleplay \
 				kernel-i2c-communication \
 				kernel-i2c-input-interface \
-				kernel-beagleplay-serial-iomem \
+				kernel-serial-iomem-beagleplay \
 				kernel-serial-output \
 				kernel-serial-interrupt \
 				kernel-locking \
-				kernel-beagleplay-serial-dma \
-				kernel-beagleplay-debugging \
+				kernel-serial-dma-beagleplay \
+				kernel-debugging-beagleplay \
