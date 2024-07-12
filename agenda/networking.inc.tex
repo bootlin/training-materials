@@ -1,0 +1,438 @@
+\usepackage{ifthen}
+\input{agenda/common.inc.tex}
+
+\def \inprogress{true}
+
+\def \training{networking}
+
+% Title
+\ifthenelse{\equal{\agendalanguage}{french}}{
+  \def \trainingtitle{Formation stack réseau sous Linux embarqué}
+}{
+  \def \trainingtitle{Embedded Linux Networking training}
+}
+
+% Duration
+\ifthenelse{\equal{\trainingtype}{online}}{
+  \def \trainingduration{4}
+}{
+  \def \trainingduration{3}
+}
+
+\def \trainingicon{common/flaticon-networking-training.png}
+
+% Training objectives
+\ifthenelse{\equal{\agendalanguage}{french}}{
+  \def \traininggoals{
+    \begin{itemize}
+    \item Être capable de comprendre la pile réseau du noyau Linux
+      dans son ensemble et de configurer des interfaces réseau
+      complexes
+    \item Être capable de comprendre le cheminement des paquets réseau
+      dans un système Linux, d'utiliser différents types de sockets,
+      de générer et de filtrer le trafic
+    \item Être capable d'utiliser les technologies eBPF et XDP pour
+      améliorer le traitement du trafic réseau
+    \item Être capable de comprendre l'architecture des pilotes réseau
+      du noyau Linux
+    \item Être capable de comprendre comment les PHYs Ethernet et les
+      switchs sont pris en charge dans le noyau Linux
+    \item Être capable de diagnostiquer et de résoudre des problèmes
+      liés au réseau bas niveau
+    \end{itemize}
+  }
+}{
+  \def \traininggoals{
+    \begin{itemize}
+    \item Be able to understand the overall Linux kernel networking
+      stack and configure complex network devices
+    \item Be able to understand the flow of network packets in a Linux
+      system, use different socket types, generate and filter traffic
+    \item Be able to use the eBPF and XDP technologies for improved
+      network traffic processing
+    \item Be able to understand the architecture of Linux kernel
+      network drivers
+    \item Be able to understand how Ethernet PHYs and switches are
+      supported in the Linux kernel
+    \item Be able to debug and troubleshoot low-level network related
+      issues
+    \end{itemize}
+  }
+}
+
+% Training prerequisites
+\def \trainingprerequisites{
+  \begin{itemize}
+    \prerequisiteembeddedlinux
+    \prerequisitekernel
+    \prerequisiteenglish
+  \end{itemize}
+}
+
+% Training audience
+\ifthenelse{\equal{\agendalanguage}{french}}{
+  \def \trainingaudience{
+    Ingénieurs travaillant sur le support réseau de systèmes Linux
+    embarqués.
+  }
+}{
+  \def \trainingaudience{
+    Engineers working on networking support in Linux-based embedded
+    devices
+  }
+}
+
+\def \trainers {
+  \ifthenelse{\equal{\agendalanguage}{french}}{
+    Un des ingénieurs suivants
+  }{
+    One of the following engineers
+  }\\
+  \vspace{-12pt}
+  \begin{itemize}
+  \item \href{https://bootlin.com/company/staff/maxime-chevallier/}{Maxime Chevallier}
+  \end{itemize}
+}
+
+% Time ratio
+\def \onsitelecturetimeratio{50}
+\def \onsitelabtimeratio{50}
+
+\defagendaitem
+{netdevices}
+{lecture}
+{Networking stack and network devices in Linux}
+{
+  \begin{itemize}
+  \item Network stack overview in the linux kernel
+  \item What is a network interface, overview of a \code{net_device}
+  \item Overview of Ethernet, Wifi, CAN, Bluetooth, 802.15.4
+  \item Stacked network devices and virtual network devices for VLAN,
+    bridging, bonding
+  \item Switchdev and DSA devices
+  \item Control plane through {\em Netlink} and {\em ioctl}
+  \end{itemize}
+}
+{Pile réseau et interfaces réseau dans Linux}
+{
+  \begin{itemize}
+  \item Vue d'ensemble de la pile réseau dans le noyau Linux
+  \item Qu'est-ce qu'une interface réseau, vue d'ensemble d'un \code{net_device}
+  \item Vue d'ensemble d'Ethernet, Wifi, CAN, Bluetooth, 802.15.4
+  \item Interfaces réseau {\em stackées} et interfaces réseau
+    virtuelles pour le VLAN, le pontage, l'agrégation (bonding)
+  \item Interfaces Switchdev et DSA
+  \item Interface de contrôle via {\em Netlink} et {\em ioctl}
+  \end{itemize}
+}
+
+\defagendaitem
+{netdevices}
+{lab}
+{Setting up and configuring network interfaces}
+{
+  \begin{itemize}
+  \item Basic setup with \code{iproute2}
+  \item Create bridges, VLAN interfaces with \code{iproute2}
+  \item Use network namespaces for interface isolation and testing
+  \item Basic use of \code{tcpdump} and \code{wireshark}
+  \item Using \code{ethtool} and \code{iproute2} to query the network
+    interface features
+  \end{itemize}
+}
+{Configuration et mise en place des interfaces réseau}
+{
+  \begin{itemize}
+  \item Configuration de base avec \code{iproute2}
+  \item Création de {\em bridges} et d'interfaces VLAN avec \code{iproute2}
+  \item Utilisation des espaces de noms réseau ({\em network namespaces}) pour l'isolation et les tests des interfaces
+  \item Utilisation de base de \code{tcpdump} et \code{wireshark}
+  \item Utilisation de \code{ethtool} et \code{iproute2} pour interroger les fonctionnalités des interfaces réseau
+  \end{itemize}
+}
+
+\defagendaitem
+{packetpath}
+{lecture}
+{Path of a packet through the Linux networking stack}
+{
+  \begin{itemize}
+  \item Discover the {\em Socket API}, the various families and types
+    of sockets
+  \item Sending and receiving data in userspace through sockets
+  \item Using traffic generators and analysers in userspace with {\em
+    Scappy} and {\em Wireshark}
+  \item Path of a packet through the kernel, from a socket to a
+    network driver
+  \item Traffic filtering through {\em Netfilter} and \code{iptables}
+  \item Traffic manipulation with the Traffic Control (\code{tc}) tool
+  \item Queueing control with \code{tc} for performance optimisation
+    and Time-Sensitive Networking (TSN)
+  \end{itemize}
+}
+{Parcours d’un paquet à travers la pile réseau Linux}
+{
+  \begin{itemize}
+  \item Découverte de l’{\em API Socket}, des différentes familles et
+    types de sockets
+  \item Envoi et réception de données en espace utilisateur via les
+    sockets
+  \item Utilisation de générateurs et analyseurs de trafic en espace
+    utilisateur avec {\em Scapy} et {\em Wireshark}
+  \item Parcours d’un paquet dans le noyau, d’un socket jusqu’à un
+    pilote réseau
+  \item Filtrage du trafic avec {\em Netfilter} et \code{iptables}
+  \item Manipulation du trafic avec l’outil Traffic Control
+    (\code{tc})
+  \item Contrôle de l’ordonnancement (queueing) avec \code{tc} pour
+    l’optimisation des performances et le {\em Time-Sensitive
+      Networking} (TSN)
+  \end{itemize}
+}
+
+\defagendaitem
+{packetpath}
+{lab}
+{Sending and receiving traffic through sockets}
+{
+  \begin{itemize}
+  \item Write a small tool using the various socket types
+  \item Analyze the traffic through \code{wireshark} and \code{tcpdump}
+  \item Filtering the traffic with {\em Netfilter} and \code{tc}
+  \item Using traffic generators and performance measuring tools
+  \end{itemize}
+}
+{Envoi et réception de trafic via les sockets}
+{
+  \begin{itemize}
+  \item Écrire un petit outil utilisant les différents types de
+    sockets
+  \item Analyser le trafic avec \code{wireshark} et \code{tcpdump}
+  \item Filtrer le trafic avec {\em Netfilter} et \code{tc}
+  \item Utiliser des générateurs de trafic et des outils de mesure de
+    performance
+  \end{itemize}
+}
+
+\defagendaitem
+{ebpf}
+{lecture}
+{eBPF for networking}
+{
+  \begin{itemize}
+  \item Introduction to eBPF
+  \item Compiling and loading eBPF programs
+  \item BPF hooks in the networking stack
+  \item Introduction to XDP
+  \end{itemize}
+}
+{eBPF pour le réseau}
+{
+  \begin{itemize}
+  \item Introduction à eBPF
+  \item Compilation et chargement de programmes eBPF
+  \item Points d'accroche BPF dans la pile réseau
+  \item Introduction à XDP
+  \end{itemize}
+}
+
+\defagendaitem
+{ebpf}
+{lab}
+{Writing and using an XDP program}
+{
+  \begin{itemize}
+  \item Write and load a simple XDP program to filter incoming traffic
+  \item Use maps to configure the filter from userspace
+  \end{itemize}
+}
+{Écriture et utilisation d’un programme XDP}
+{
+  \begin{itemize}
+  \item Écrire et charger un programme XDP simple pour filtrer le
+    trafic entrant
+  \item Utiliser des maps pour configurer le filtre depuis l’espace
+    utilisateur
+  \end{itemize}
+}
+
+\defagendaitem
+{netdrivers}
+{lecture}
+{Network device drivers}
+{
+  \begin{itemize}
+  \item Overview of the hardware components and interfaces used in
+    networking: MAC, PHY, MII, MDI, etc.
+  \item Infrastructure of a typical Ethernet controller driver
+  \item Sending and receiving packets with Napi
+  \item Managing buffers and queues
+  \item Packet timestamping for PTP
+  \item Overview of {\em ethtool} driver operations for configuration
+    and reporting
+  \item Offloading network processing to the hardware
+  \end{itemize}
+}
+{Pilotes de périphériques réseau}
+{
+  \begin{itemize}
+  \item Vue d'ensemble des composants matériels et interfaces utilisés
+    dans le réseau: MAC, PHY, MII, MDI, etc.
+  \item Infrastructure d’un pilote typique de contrôleur Ethernet
+  \item Envoi et réception de paquets avec Napi
+  \item Gestion des tampons et des files d’attente
+  \item Horodatage des paquets pour le PTP
+  \item Vue d'ensemble des opérations de pilote {\em ethtool} pour la
+    configuration et le diagnostic
+  \item {\em Offloading} du traitement réseau vers le matériel
+  \end{itemize}
+}
+
+\defagendaitem
+{advancedethconfig}
+{lab}
+{Advanced Ethernet configuration}
+{
+  \begin{itemize}
+  \item Investigating ethernet parameters controllable with {\em
+    ethtool}
+  \item Using the various offloading features
+  \end{itemize}
+}
+{Configuration Ethernet avancée}
+{
+  \begin{itemize}
+  \item Analyse des paramètres Ethernet configurables avec {\em
+    ethtool}
+  \item Utilisation des différentes fonctionnalités de déchargement
+  \end{itemize}
+}
+
+\defagendaitem
+{physwitch}
+{lecture}
+{Ethernet PHYs and switch support}
+{
+  \begin{itemize}
+  \item Ethernet PHYs support in the kernel with {\em phylib}
+  \item Interacting with PHYs through MDIO
+  \item Dealing with the PHY to MAC connection with {\em phylink}
+  \item Switch support through the {\em DSA} framework
+  \item Dealing with switch operations with {\em switchdev}
+  \end{itemize}
+}
+{Prise en charge des PHYs Ethernet et des switches}
+{
+  \begin{itemize}
+  \item Prise en charge des PHYs Ethernet dans le noyau avec {\em phylib}
+  \item Interaction avec les PHYs via MDIO
+  \item Gestion de la connexion PHY vers MAC avec {\em phylink}
+  \item Prise en charge des switches via le framework {\em DSA}
+  \item Gestion de la configuration des switches avec {\em switchdev}
+  \end{itemize}
+}
+
+\defagendaitem
+{debugging}
+{lecture}
+{Network debugging and troubleshooting}
+{
+  \begin{itemize}
+  \item Analyzing performances and packet drops with monitoring tools
+  \item Debugging techniques for driver troubleshooting
+  \item Using tracing tools and \code{perf} for performance analysis
+  \item Diagnose hardware-related issues
+  \end{itemize}
+}
+{Débogage et dépannage réseau}
+{
+  \begin{itemize}
+  \item Analyse des performances et des pertes de paquets avec des
+    outils de surveillance
+  \item Techniques de débogage pour le dépannage des pilotes
+  \item Utilisation des outils de traçage et de \code{perf} pour
+    l’analyse des performances
+  \item Diagnostic des problèmes liés au matériel
+  \end{itemize}
+}
+
+\defagendaitem
+{optimizing}
+{lab}
+{Optimizing the speed in various scenarios}
+{
+  \begin{itemize}
+  \item Diagnosing and optimizing traffic speed
+  \item Analyzing and troubleshooting latencies
+  \end{itemize}
+}
+{Optimisation de la vitesse dans divers scénarios}
+{
+  \begin{itemize}
+  \item Diagnostiquer et optimiser la vitesse du trafic
+  \item Analyser et résoudre les problèmes de latence
+  \end{itemize}
+}
+
+\def \feshowboards{
+    \ifthenelse{\equal{\agendalanguage}{french}}{
+      \section{Plateforme matérielle pour les travaux pratiques}
+    }{
+      \section{Hardware platform for practical labs}
+    }
+
+  \showboarditem{espressobin}
+  \newpage
+}
+
+\def \onlineagenda {
+  \ifthenelse{\equal{\agendalanguage}{french}}{
+    \section{Programme de la formation}
+  }{
+    \section{Training Schedule}
+  }
+  \begin{tabularx}{\textwidth}{p{2cm}p{5cm}p{11cm}}
+  \showagendaday{1}
+  \showagendaitem{netdevices}{lecture}
+  \showagendaitem{netdevices}{lab}
+  \showagendaitem{packetpath}{lecture}
+  \showagendaday{2}
+  \showagendaitem{packetpath}{lab}
+  \showagendaitem{ebpf}{lecture}
+  \showagendaitem{ebpf}{lab}
+  \showagendaday{3}
+  \showagendaitem{netdrivers}{lecture}
+  \showagendaitem{advancedethconfig}{lab}
+  \showagendaday{4}
+  \showagendaitem{physwitch}{lecture}
+  \showagendaitem{debugging}{lecture}
+  \showagendaitem{optimizing}{lab}
+  \end{tabularx}
+}
+
+\def \onsiteagenda {
+  \ifthenelse{\equal{\agendalanguage}{french}}{
+    \section{Programme de la formation}
+  }{
+    \section{Training Schedule}
+  }
+  \begin{tabularx}{\textwidth}{p{2cm}p{5cm}p{11cm}}
+  \showagendaday{1}
+  \showagendaitem{netdevices}{lecture}
+  \showagendaitem{netdevices}{lab}
+  \showagendaday{2}
+  \showagendaitem{packetpath}{lecture}
+  \showagendaitem{packetpath}{lab}
+  \showagendaday{3}
+  \showagendaitem{ebpf}{lecture}
+  \showagendaitem{ebpf}{lab}
+  \showagendaday{4}
+  \showagendaitem{netdrivers}{lecture}
+  \showagendaitem{advancedethconfig}{lab}
+  \showagendaday{5}
+  \showagendaitem{physwitch}{lecture}
+  \showagendaday{6}
+  \showagendaitem{debugging}{lecture}
+  \showagendaitem{optimizing}{lab}
+  \end{tabularx}
+}
