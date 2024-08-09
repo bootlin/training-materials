@@ -27,4 +27,5 @@ DEBUGGING_LABS = \
 	debugging-memory-issues \
 	debugging-application-profiling \
 	debugging-system-wide-profiling \
+	debugging-ebpf \
 	debugging-kernel-debugging

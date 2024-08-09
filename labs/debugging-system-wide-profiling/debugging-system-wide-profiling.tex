@@ -3,8 +3,7 @@
 {Objectives:
   \begin{itemize}
     \item System profiling with {\em trace-cmd} and {\em kernelshark}.
-    \item Tracing and visualizing system activity using {\em LTTng} and
-          {\em trace-compass}.
+    \item Developping custom tools with eBPF
     \item (Bonus) System profiling with {\em perf} and FlameGraphs.
   \end{itemize}
 }
@@ -85,123 +84,6 @@ $ trace-cmd record -N 192.168.0.1:4567 -e sched_switch -e probe_crc_random:main_
 \end{bashinput}
 
 Reanalyze the traces with kernelshark and try to understand what is going on.
-
-\section{LTTng}
-
-In order to observe our program performance, we want to instrument it with
-tracepoints. We would like to know how much time it takes to compute the
-crc32 of a specific buffer.
-
-In order to do so, add tracepoints to your program which will allow to measure
-this. We'll add 2 tracepoints:
-
-\begin{itemize}
-  \item One for the start of crc32 computation (\code{compute_crc_start})
-    without any arguments.
-  \item Another for the end of crc32 computation (\code{compute_crc_end}) with
-      a crc \code{int} argument that will be displayed as an hexadecimal integer
-      using \code{lttng_ust_field_integer_hex()} output formatter.
-\end{itemize}
-
-In order to create these tracepoints easily, we will create a
-\code{crc_random-tp.tp} file and generate the tracepoints using
-\code{lttng-gen-tp}. In order to install this tool, the \code{liblttng-ust-dev}
-should be installed in your development host:
-
-\begin{bashinput}
-sudo apt install liblttng-ust-dev
-\end{bashinput}
-
-These tracepoints should belong to the \code{crc_random}
-provider namespace. Once written, you can modify the \code{Makefile} by adding a
-new rule and modifying the existing one to generate the tracepoints files using
-\code{lttng-gen-tp}:
-
-\begin{bashinput}
-  CC=${CROSS_COMPILE}gcc
-
-  crc_random: crc_random.c crc_random-tp.o
-      ${CC} $^ -g3 -llttng-ust -o $@
-
-  crc_random-tp.o: crc_random-tp.tp
-      CC=${CC} lttng-gen-tp $<
-\end{bashinput}
-
-You can then use the new tracepoints in your program to trace specific points
-of execution as requested.
-
-Finally, on the target, enable the program tracepoints, run it and collect
-tracepoints. We are going to do that remotely using the \code{lttng-relayd} tool
-on the remote computer:
-
-\begin{bashinput}
-$ sudo apt install lttng-tools
-$ lttng-relayd --output=~/debugging-labs/traces
-\end{bashinput}
-
-{\em Make sure not give a path inside the nfsroot to \code{lttng-relayd} on your computer,
-otherwise it may encounter permission issues and will fail to create the traces directory}.
-
-Then on the target, start the trace acquisition using:
-
-\begin{bashinput}
-$ lttng-sessiond --daemonize
-$ lttng create crc_session --set-url=net://192.168.0.1
-$ lttng enable-event --userspace crc_random:compute_crc_start
-$ lttng enable-event --userspace crc_random:compute_crc_end
-$ lttng enable-event --kernel sched_switch
-$ lttng start
-$ ./crc_random
-$ # Interrupt the program after a while
-$ lttng destroy
-\end{bashinput}
-
-{\em From there, you can safely stop \code{lttng-relayd} on your computer}.
-
-Once finished, the traces will be visible in \code{~/debugging-labs/traces/<hostname>/<session>}
-on the remote computer.
-In our case, the hostname is buildroot so traces will be
-located in \code{$PWD/traces/buildroot/<session>}
-
-Using \code{babeltrace2}, you can display the raw traces that were acquired directly
-on your development host:
-\begin{bashinput}
-$ sudo apt install babeltrace2
-$ babeltrace2 ~/debugging-labs/traces/buildroot/<session>/
-\end{bashinput}
-
-In order to analyze our traces more visually, we are going to use tracecompass.
-Download \code{tracecompass} latest version and extract it on your host using:
-
-\begin{bashinput}
-$ wget https://ftp.fau.de/eclipse/tracecompass/releases/8.1.0/rcp/trace-compass-8.1.0-20220919-0815-linux.gtk.x86_64.tar.gz
-$ tar -xvf trace-compass-*.tar.gz
-\end{bashinput}
-
-Run it
-\begin{bashinput}
-$ cd trace-compass*
-$ ./tracecompass
-\end{bashinput}
-
-To load the collected data in tracecompass, use the \code{File ->
-  Import...} menu command, and in the \code{Trace Import} form:
-\begin{itemize}
-  \item enable the \code{Select root directory} option (if not yet enabled)
-    and use the \code{Browse} button to and open the
-    \code{traces/buildroot/crc_session-*} directory
-  \item enable the \code{Create experiment} checkbox and name the
-    experiment \code{debugging_lab}
-  \item press \code{Finish} to load the data and get back to the main
-    window
-\end{itemize}
-
-This loads both the kernel and the user space traces and create a new
-``experiment'' that merges them both. In the left pane, open the
-\code{Tracing -> Experiments [1]} hierarchy and double click on the
-\code{debugging_lab [2]} item to display the merged trace. Explore the
-interface, and try to follow the task execution on both the Resources view
-and in the Control flow one.
 
 \section{(Bonus) System profiling with {\em perf} and FlameGraphs}
 

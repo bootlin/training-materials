@@ -1,0 +1,174 @@
+\subchapter
+{eBPF tracing}
+{Objectives:
+  \begin{itemize}
+    \item Use BCC to easily create a custom tracing tool
+    \item Port the tool onto the target thanks to libbpf
+    \item Implement new features in our program
+  \end{itemize}
+}
+
+Let's assume we have doubts about what is running on our system at any point of
+time, and that we do not have the appropriate tools to perform the
+corresponding analysis. We will then develop our own tooling with eBPF to trace any new
+program executed on the system.
+
+\section{BCC}
+
+We will first build a quick prototype with BCC and run it directly onto \textbf{our development machine} (ie not the target). Install the \code{bcc} package onto your host, and create a \code{trace_programs.py} script. Write the necessary code to trace any new program executed on the whole system. You have to take care of the following points:
+\begin{itemize}
+  \item we want a small program whose sole purpose is to print the following message in the ftrace buffer each time a new program is executed: \code{New process <PID> running program <COMM>}.
+  \item To manage to capture the relevant data, we want to attach our program
+  on the entrypoint of the \code{execve} syscall. One way to do so is to create
+  a kprobe on the corresponding syscall handler in the kernel, and to attach
+  our eBPF program onto it. Check the
+  \href{https://github.com/iovisor/bcc/blob/master/docs/reference_guide.md}{BCC
+  reference guide} to learn how to hook BCC programs to kprobes (there are at
+  least two different ways).
+  \item You will need to get the exact prototype of the \code{execve}
+  entrypoint function you want to hook to get its arguments. Also, depending on
+  which architecture we are running, the name of the function to target may not
+  be the same. There are multiple ways to find the exact function prototype:
+  \begin{itemize}
+    \item you can check \manpage{execve}{2} to get \code{execve} arguments, but
+    you will still lack the exact entrypoint name
+    \item you can search for any function related to \code{execve} in
+    \path{/sys/kernel/tracing/available_filter_functions} to find the
+    entrypoint name
+    \item Do not hesitate to search the function name you have identified in
+    \href{https://elixir.bootlin.com/}{Elixir} to confirm it is indeed the one
+    you want to target.
+  \end{itemize}
+  \item To build our log line, we need to capture both the process ID and the
+  executable name in our eBPF program:
+  \begin{itemize}
+    \item To fetch the PID of the calling process you can use kernel-provided bpf helpers (see \manpage{bpf-helpers}{7})
+    \item Executable filename is one of the \code{sys_execve} function arguments, so your eBPF program should receive it as an argument as well, since it is a kprobe-type program
+  \end{itemize}
+  \item Also make sure that your program does not finish after loading and attaching your program, or it will be released immediately: you can for example write a busy loop calling the BCC method \code{trace_print} to directly print ftrace buffer from your script
+\end{itemize}
+Once done, start you script, open a new console and run a few commands, you should be able to trace all those commands with your script
+
+{\em Notes:
+\begin{itemize}
+    \item Since eBPF subsystem needs root priviledges to be manipulated, you need sudo to run the script
+    \item If you have made some mistakes in your eBPF program, the verifier
+    will refuse to load it, or worse, it will not even build. BCC makes sure to
+    print the relevant logs to ease debugging, so make sure to read
+    and understand those.
+\end{itemize}}
+
+\section{libbpf}
+
+Unfortunately, embedding BCC scripts onto our target is not very convenient: we need to bring python, llvm, clang... So it may be more relevant to switch our tool to libbpf. Before starting converting our tool, make sure that the following packages are installed on your development system:
+\begin{itemize}
+  \item \code{clang} to be able to build bpf programs
+  \item \code{linux-tools-common} to get \code{bpftool} (needed to generate skeletons)
+  \item \code{libbpf-dev} to get access to \code{libbpf} APIs in our eBPF program
+\end{itemize}
+
+The first step is to prepare our bpf program:
+\begin{itemize}
+  \item Go to the labs directory, in \path{ebpf/libbpf} directory. In there, you will find \code{trace_programs.bpf.c}. It is the exact same eBPF program as the one used in the BCC script, but any BCC-specific API or macro has been replaced with libbpf functions or macros. Take some time to spot and understand the differences with the previous version:
+    \begin{itemize}
+      \item The code uses the \code{SEC} macro to place the eBPF program in a specific section: libbpf will use this section to learn about the program type and attach point
+      \item The program does not receive anymore already interpreted arguments from the probed function but only a \code{struct pt_regs}. It is now up to the program to perform the arguments parsing with new helpers like the \code{PT_REGS_PARMX} macros.
+      \item This program may access some kernel structures at some point, so it
+      has been prepared to benefit from CO-RE (to remain compatible between
+      different kernel versions), that's why it depends on a \path{vmlinux.h}
+      header that we will have to generate.
+      \item Be careful that the \code{bpf_trace_printk} is not the same helper as the one used with BCC, and so the way to call it is slightly different
+    \end{itemize}
+  \item You will first need to generate the vmlinux header used in the eBPF program. You can use bpftool to do so:
+  \begin{bashinput}
+$ bpftool btf dump file /home/<user>/debugging-labs/buildroot/output/linux-6.6.21/vmlinux format c > vmlinux.h
+  \end{bashinput}
+  \item Next you need to build your eBPF program into a loadable object:
+  \begin{bashinput}
+$ clang -target bpf -D__TARGET_ARCH_arm -g -O2 -c trace_programs.bpf.c -o trace_programs.bpf.o
+  \end{bashinput}
+{\em Note: since our program deals with pt\_regs, it is not portable between architectures, that's why we have to provide the target architecture with \code{__TARGET_ARCH_arm}}
+  \item Finally, generate a C skeleton header from this object with bpftool and libbpf
+  \begin{bashinput}
+$ bpftool gen skeleton trace_programs.bpf.o name trace_programs > trace_programs.skel.h
+  \end{bashinput}
+  Check the generated header: you will see that the raw bpf program has been
+  embedded in the header, but also that you have a small set of APIs available
+  to easily design your tracing tool.
+\end{itemize}
+
+You now have to write the userspace part in charge of managing your eBPF program:
+\begin{itemize}
+  \item Create a \path{trace_programs.c} file. In there, include your freshly created skeleton header, create a main function, and use the available APIs to open, load and attach your program. You can refer to the kernel documentation to learn how to use those skeleton APIs: \kdochtml{bpf/libbpf/libbpf_overview}
+  \item Once again, remember to make sure that your userspace program does not end after attaching your eBPF program, otherwise it will be detached and unloaded immediately. You can add a busy loop in your code to prevent it.
+  \item libbpf expects you to "destroy" ebpf objects when you are done using it, check your skeleton file to find the relevant API.
+\end{itemize}
+
+Finally, build your program:
+\begin{bashinput}
+$ ${CROSS_COMPILE}gcc trace_programs.c -lbpf -o trace_programs
+\end{bashinput}
+Run your tracing tool on the target. Open another console onto the target (through SSH), display the content of ftrace buffer and wait for at least a minute. Did your tracer allow you to spot anything suspect?
+
+{\em Note: since your eBPF does not really need a userspace program to retrieve
+the emitted data, and because the section name used in the program is enough to
+guess where it should be attached, you did not really need to write a userspace tool to manage
+your program! You can get the same result by using \code{bpftool}:}
+\begin{verbatim}
+  mount -t bpf none /sys/fs/bpf
+  mkdir /sys/fs/bpf/myprog
+  bpftool prog loadall trace_programs.bpf.o /sys/fs/bpf/myprog autoattach
+\end{verbatim}
+\section{Improving our program}
+
+Now that we have a working base for our custom tracing tool, we will improve it
+to make it more useful.
+
+In the labs directory, go to \path{ebpf/libbpf_advanced}. Copy the \path{trace_programs.c} and \path{trace_programs.bpf.c} from the previous part in this directory, as you will iterate on it. The directory provides a makefile which automates all build steps performed manually earlier. To use this makefile, make sure to have your \code{CROSS_COMPILE} variable properly set, as well as a \code{KDIR} variable pointing to \path{/home/<user>/debugging-labs/buildroot/output/build/linux-6.6.21} (needed to generate the \path{vmlinux.h} header)
+
+Having to open ftrace to display the logs is cumbersome, we would like to get the trace directly in the console in which we have started the tool. We will use the opportunity to switch our program output from a log line in ftrace to events pushed in a \href{https://docs.kernel.org/6.6/bpf/ringbuf.html}{perf ring buffer}. A perf ring buffer is a kind of map which can be used in eBPF programs to stream data to userspace in a very efficient way. To use a perf ring buffer, perform the following steps:
+\begin{itemize}
+  \item Edit your eBPF program to push data into a perf ring buffer instead of ftrace:
+  \begin{itemize}
+    \item Create a structure type containing the data we will push in the ring buffer. This struct will contain two pieces of information for now: a PID, and a program name. Since you will need to use this structure from both the eBPF program and the userspace program, define it in a shared header.
+    \item Create the map in your eBPF program file. There are \href{https://ebpf-docs.dylanreimerink.nl/linux/concepts/maps/}{different ways of defining maps} in eBPF programs, we will create a BTF-defined map:
+    \begin{verbatim}
+        struct {
+            __uint(type, BPF_MAP_TYPE_RINGBUF);
+            __uint(max_entries, 32);
+        } rb SEC(".maps");
+    \end{verbatim}
+    \item Edit your program code to push data in the ring buffer each time it is triggered: create an instance of your custom data structure in the BPF program, fill it with the event information and push it into the buffer.
+    \begin{itemize}
+      \item You can not use strcpy or memcpy in your program to copy the
+      executable name in your event structure, you have to use the bpf helper \code{bpf_probe_read_str}.
+      \item To push the custom data structure into the perf ring buffer, you can use another bpf helper called \code{bpf_ringbuf_output}.
+    \end{itemize}
+  \end{itemize}
+  \item Finally, edit your userspace program to retrieve data from the perf ring buffer, thanks to libbpf APIs
+  \begin{itemize}
+    \item Now that we have added a map into our program, the skeleton object has a handle to this map in its \code{maps} field
+    \item To manipulate the ring buffer in the userspace program, you have
+    access to specific libbpf APIs, especially \code{ring_buffer__new} to
+    create an instance of the ring buffer, and \code{ring_buffer__poll} to poll
+    the buffer in your main loop. Unfortunately, the official documentation is
+    quite succinct on those functions, but you can take a look at the
+    \path{tools/testing/selftests/bpf} directory in the kernel source tree to learn how to
+    use those.
+    \item You may need to convert maps objects into the corresponding file descriptors. libbpf \href{https://libbpf.readthedocs.io/en/latest/api.html}{also provide APIs} to do so.
+    \item In the event callback passed to \code{ring_buffer__new}, retrieve the data from the ring buffer and print it.
+  \end{itemize}
+\end{itemize}
+
+Once done, run your updated program onto the target: you should see some traces directly in the console in which you have started the tracing tool.
+
+As a final improvement, we will trace the parent PID as well to know who is starting any program.
+\begin{itemize}
+  \item Edit your eBPF program to read the parent PID. This info can be captured by retrieving the current \code{struct task_struct}, and identifying the relevant fields. Check both Elixir for the layout of \code{struct task_struct}, and \manpage{bpf-helpers}{7} to learn how to get the current task.
+  \item We are using CO-RE definition for kernel data (through vmlinux.h), so we can not dereference directly a \code{struct task_struct} in our eBPF program, we must use helpers to retrieve struct fields. You can check \href{https://nakryiko.com/posts/bpf-core-reference-guide/#the-missing-manual}{this blog post from Andrii Nakryiko} to learn about such helpers.
+  \item Update your userspace program to read and print the newly captured value
+\end{itemize}
+
+Once done, run your script again, you can now see the parent process of any new
+program executed on the target, and so investigate further any suspicious
+activity on the system!
