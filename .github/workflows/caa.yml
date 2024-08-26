@@ -1,0 +1,42 @@
+name: "CLA Assistant"
+on:
+  issue_comment:
+    types: [created]
+  pull_request_target:
+    types: [opened,closed,synchronize]
+
+permissions:
+  actions: write
+  contents: write
+  pull-requests: write
+  statuses: write
+
+jobs:
+  CLAAssistant:
+    runs-on: ubuntu-latest
+    steps:
+      - name: "CLA Assistant"
+        if: (github.event.comment.body == 'recheck' || github.event.comment.body == 'I have read the CLA Document and I hereby sign the CLA') || github.event_name == 'pull_request_target'
+        uses: contributor-assistant/github-action@v2.5.1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PERSONAL_ACCESS_TOKEN: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
+        with:
+          path-to-signatures: 'caa/signatures/signatures.json'
+          path-to-document: 'https://github.com/bootlin/training-materials/blob/master/caa/individual-caa.md' # e.g. a CLA or a DCO document
+          branch: 'master'
+          custom-notsigned-prcomment: >
+            Thank you for your contribution to Bootlin training materials !
+            Before being able to integrate those changes, we would like you to
+            sign our [Individual Contributor Assignment
+            Agreement](https://github.com/bootlin/training-materials/blob/master/caa/individual-caa.md)
+            if you are an individual, or our [Entity Contributor Assignment
+            Agreement](https://github.com/bootlin/training-materials/blob/master/caa/entity-caa.md)
+            if you are submitting this work on behalf of an entity.
+
+            You will still be credited for your contribution, but we would like
+            to keep the ability to switch to a different license for these
+            materials, or to give a license exception to a customer funding
+            some improvements or customization. You can sign the CLA by just
+            posting a Pull Request Comment with the sentence below. Thanks !
+
