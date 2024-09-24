@@ -178,26 +178,103 @@ pthread_attr_setschedparam(&attr, &parm);
 %%%%%%%%%
 
 \begin{frame}
-	\frametitle{Memory management}
-	\begin{itemize}
-		\item When asking the Kernel to allocate some memory, a virtual address range is given to the application
-		\item This virtual range is mapped to a physical memory range \textbf{upon accessing it}
-		\item This will introduce a \textbf{page fault} latency for the application
-		\item All memory should be \textbf{locked} and \textbf{accessed} at application initialization
-		\item Accessing memory at init is called \textbf{prefaulting} the memory
-		\item This concerns the heap memory, but also the stack
-	\end{itemize}
+	\frametitle{Memory layout and allocation}
+	\begin{columns}
+		\column{0.3\textwidth}
+    \includegraphics[width=\textwidth]{slides/realtime-linux-application-development/process_memory.pdf}
+		\column{0.7\textwidth}
+			\begin{itemize}
+				\item The \textbf{stack} grows down from high addresses
+				\item The \textbf{heap} is used for dynamic allocations, grows up to the \textbf{program break}
+				\item \code{mmap()} can also be used to allocate memory in-between
+				\item \code{malloc} uses both \code{brk} and \code{mmap}
+				\item Allocated memory needs to be \textbf{mapped} to physical memory
+				\item Mapping is done per \textbf{page}, usually 4 Kilobytes
+				\item It is created when the page is \textbf{first accessed} through a \textbf{page fault}
+				\item Each page fault will raise an exception, preempt the process and introduce latency
+			\end{itemize}
+	\end{columns}
+\end{frame}
+
+\begin{frame}[fragile]
+	\frametitle{Pre-faulting the stack}
+	\begin{columns}
+		\begin{column}{0.35\textwidth}
+    \includegraphics[width=\textwidth]{slides/realtime-linux-application-development/prefault_stack.pdf}
+		\end{column}
+		\begin{column}{0.65\textwidth}
+			\begin{enumerate}
+				\item Allocate huge buffers on the stack in a sub-function
+				\item Access (read or write) the whole buffer
+				\item return from the sub-function
+			\end{enumerate}
+			\begin{block}{stack prefault}
+			\fontsize{8}{7}\selectfont
+				\begin{minted}{c}
+#define BUFSZ (1024 * 1024 * 8)
+static void stack_prefault() {
+        char buff[BUFSZ];
+        long page_sz;
+        int i;
+
+        page_sz = sysconf(_SC_PAGESIZE);
+
+        for (i = 0; i < BUFSZ; i += page_sz)
+                buf[i] = 0;
+}
+				\end{minted}
+			\end{block}
+		Each thread's stack must be pre-faulted
+		\end{column}
+	\end{columns}
+
+\end{frame}
+
+\begin{frame}
+	\frametitle{Pre-faulting the heap}
+	\begin{columns}
+		\column{0.25\textwidth}
+    \includegraphics[width=\textwidth]{slides/realtime-linux-application-development/prefault_heap.pdf}
+		\column{0.75\textwidth}
+			\begin{itemize}
+				\item The \textbf{program break} defines the size of the \code{.data} segment
+				\item \code{malloc} uses the \code{.data} segment as a pool for small buffers
+				\item Prevent the program break from shrinking
+					\begin{itemize}
+						\item \code{mallopt(M_TRIM_THRESHOLD, -1);}
+					\end{itemize}
+				\item Prevent \code{malloc} from using \code{mmap}
+					\begin{itemize}
+						\item By default, \code{malloc} uses \code{mmap} for large buffers
+						\item Once free'd, mmap'd pages won't be re-used
+						\item \code{mallopt(M_MMAP_MAX, 0);}
+					\end{itemize}
+				\item allocate a huge buffer to move the program break
+				\item Access the whole buffer
+				\item \code{free()} the buffer
+				\item Subsequent calls to \code{malloc} will re-use pre-faulted memory
+				\item For multi-threaded applications, pre-fault each \textbf{arena}
+					\begin{itemize}
+						\item see \code{M_ARENA_TEST} and \code{M_ARENA_MAX} \code{mallopt} options
+					\end{itemize}
+			\end{itemize}
+	\end{columns}
+
 \end{frame}
 
 \begin{frame}
 	\frametitle{Memory management}
 	\begin{itemize}
 		\item Call \code{mlockall(MCL_CURRENT | MCL_FUTURE)} at init to lock all memory regions
-		\item Allocate all memory and access it at initialization
-		\item Don't call \code{fork()}, since the child will copy-on-write pages
-		\item Avoid using mmap'd memory, since ranges aren't reused after free
-		\item malloc's behaviour can be tuned not to use mmap: \code{mallopt(M_MMAP_MAX, 0)}
-		\item We also must configure malloc not to trim the allocated space: \code{mallopt(M_TRIM_THRESHOLD, -1)}
+		\item This prevents mapping from being removed
+		\item Beware of \code{fork()}, since the child will copy-on-write pages
+		\item \code{malloc}'s implementation is libC specific
+		\item \textbf{glibc} implements all the necessary options
+		\item \textbf{musl} doesn't implement \code{mallopt} and may use \code{mmap}
+		\item \textbf{ftrace} can be used to trace pagefaults :
+			\begin{itemize}
+				\item \code{trace-cmd record -e page_fault* <cmd>}
+			\end{itemize}
 	\end{itemize}
 \end{frame}
 
