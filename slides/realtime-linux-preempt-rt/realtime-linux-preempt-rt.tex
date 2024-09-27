@@ -1,43 +1,34 @@
 \section{Preempt RT}
 
 \begin{frame}
-  \frametitle{The PREEMPT\_RT Patch}
+  \frametitle{The PREEMPT\_RT preemption level}
 	\begin{itemize}
 		\item One way to implement a multi-task Real-Time Operating System is to have a preemptible system
 		\item Any task can be interrupted at any point so that higher priority tasks can run
 		\item Userspace preemption already exists in Linux
 		\item The Linux Kernel also supports real-time scheduling policies
 		\item However, code that runs in kernel mode isn't fully preemptible
-		\item The Preempt-RT patch aims at making all code running in kernel mode preemptible
+		\item Preempt-RT aims at making all code running in kernel mode preemptible
+		\item \code{PREEMPT_RT} is a \textbf{compile-time} configuration option
+			\begin{itemize}
+				\item It may only accessible after applying a patch, the \textbf{Preempt RT Patch}
+				\item The patch is being included as part of the Linux kernel
+			\end{itemize}
 	\end{itemize}
 \end{frame}
 
 \begin{frame}
-  \frametitle{PREEMPT\_RT mainlining status (1)}
+  \frametitle{PREEMPT\_RT mainlining status}
   \begin{itemize}
-  \item The project is making good progress since it got funding from
-        the Linux Foundation in 2015 (Linux version 4.1 at that time).
-  \item We can now observe a slow but steady reduction of the size of
-        the PREEMPT\_RT patchset:\\
-    \vfill
-    \includegraphics[width=0.8\textwidth]{slides/realtime-linux-preempt-rt/rt-patch-sizes.png}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{PREEMPT\_RT mainlining status (2)}
-  \begin{itemize}
-  \item However, the mainline Linux kernel is a moving target too,
-        introducing new issues for real-time (such as disabling preemption in
-        BPF... see \url{https://lwn.net/Articles/802884/}).
-  \item In 5.12, new \kconfig{CONFIG_PREEMPT_DYNAMIC} switch to change the preemption
-        model at boot time: \code{preempt=none}, \code{preempt=voluntary} or
-        \code{preempt=full}
-  \item In 5.15, the realtime preemption locking core is merged in mainline.
-	This was the biggest part to mainline. A few pending changes are
-	still left. See \url{https://lwn.net/Articles/867919/}.
-  \item \code{printk()} is one of the remaining pieces to be upstreamed
-  \item See the latest news on \url{https://wiki.linuxfoundation.org/realtime/}
+    \item The project has made steady progress since it got funding from
+          the Linux Foundation in 2015 (Linux version 4.1 at that time).
+    \item The \code{PREEMPT_RT} option no longer requires applying the "Preempt RT patch"
+	  on some architectures, starting from v6.12
+    \begin{itemize}
+      \item \code{x86_64}, \code{arm64} and \code{RISCV} are supported so far
+      \item Other architectures still require the patch on v6.12.
+    \end{itemize}
+    \item Stable versions of the patch are still maintained for older kernels
   \end{itemize}
 \end{frame}
 
@@ -54,17 +45,21 @@
 \begin{frame}
 	\frametitle{Why not to use PREEMPT\_RT?}
 	\begin{itemize}
-		\item Linux will never be a formally proven RTOS
 		\item The hardware Linux typically runs on isn't designed with RT in mind
 		\item The RT patch makes the Kernel deterministic and preemptible...
 		\item ... but the goal is not to have the lowest latencies possible
+		\item Using the \code{PREEMPT_RT} mode has performance impacts
+			\begin{itemize}
+				\item Use it when you know your requirements
+			\end{itemize}
 	\end{itemize}
 \end{frame}
 
 \begin{frame}
   \frametitle{Getting the patch}
 	\begin{itemize}
-		\item The RT Patchset is released \textbf{every other} kernel release
+		\item Starting from \textbf{v6.12}, applying a patch isn't needed on \textbf{x86}, \textbf{arm64} and \textbf{RiscV}
+		\item For other architectures, or older kernels, the patch is still needed.
 		\item It can be downloaded as a set of patches or a single patch: \\
 			\url{https://cdn.kernel.org/pub/linux/kernel/projects/rt/}
 		\item Kernel trees with the patch applied are also available:
@@ -219,10 +214,9 @@
 	\begin{itemize}
 		\item \code{printk()} is one of the main logging mechanism in the kernel
 		\item It works in all execution context
-		\item It's currently one of the last items preventing the RT-patch from being fully upstream
-		\item Currently, the last kernel task who printed must print the full buffer
-		\item A low priority task can block a high priority task by printing lots of data
-		\item A low log-level can help remove these issues for now
+		\item It was the last item preventing the RT-patch from being fully upstream
+		\item The last kernel task who printed was in charge of printing the full buffer
+		\item A low priority task could block a high priority task by printing lots of data
 	\end{itemize}
 \end{frame}
 
