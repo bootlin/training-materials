@@ -111,6 +111,51 @@
 \end{frame}
 
 \begin{frame}
+  \frametitle{Locking inside the Linux Kernel}
+	\begin{itemize}
+		\item Locks are synchronisation primitives that arbitrate concurrent accesses to a resource
+		\item Several locking primitives exist in the Kernel and in Userspace
+		\item Kernel lock families are:
+			\begin{itemize}
+				\item Sleeping locks
+				\item CPU Local locks
+				\item Spinning locks
+			\end{itemize}
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Sleeping locks}
+	\begin{itemize}
+		\item Sleeping locks will sleep and schedule while waiting
+		\item There are several types of sleeping locks:
+	\begin{itemize}
+		\item \ksym{mutex}
+		\item \ksym{rt_mutex}
+		\item \ksym{semaphore}
+		\item \ksym{rw_semaphore}
+	\end{itemize}
+	\item Can't be used in \textbf{NMI}, \textbf{hardirq} and \textbf{softirq} contexts
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Spinlocks}
+	\begin{itemize}
+		\item Spinlocks will busy-wait until the lock is freed
+		\item There exist several types of spinlocks:
+		\begin{itemize}
+			\item \ksym{spinlock_t}
+			\item \ksym{rwlock_t}
+			\item \ksym{raw_spinlock_t}
+		\end{itemize}
+		\item Spinlocks will \textbf{disable preemption} when taken
+		\item They can be used in \textbf{any} context, but with precaution
+		\item With PREEMPT\_RT, \ksym{spinlock_t} and \ksym{rwlock_t} will become sleeping locks
+	\end{itemize}
+\end{frame}
+
+\begin{frame}
 	\frametitle{Critical sections}
 	\begin{itemize}
 		\item Spinning locks can be taken with interrupts constraints
@@ -139,49 +184,6 @@
 				\item Disable / Enable migration, also to protect per-CPU data
 			\end{itemize}
 
-	\end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Locking}
-	\begin{itemize}
-		\item Locks are synchronisation primitives that arbitrate concurrent accesses to a resource
-		\item Several locking primitives exist in the Kernel and in Userspace
-		\item Kernel lock families are:
-			\begin{itemize}
-				\item Sleeping locks
-				\item CPU Local locks
-				\item Spinning locks
-			\end{itemize}
-	\end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Sleeping locks}
-	\begin{itemize}
-		\item Sleeping locks will sleep and schedule while waiting
-		\item There are several types of sleeping locks:
-	\begin{itemize}
-		\item \ksym{mutex}
-		\item \ksym{rt_mutex}
-		\item \ksym{semaphore}
-		\item \ksym{rw_semaphore}
-	\end{itemize}
-	\end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Spinlocks}
-	\begin{itemize}
-		\item Spinlocks will busy-wait until the lock is freed
-		\item There exist several types of spinlocks:
-		\begin{itemize}
-			\item \ksym{spinlock_t}
-			\item \ksym{rwlock_t}
-			\item \ksym{raw_spinlock_t}
-		\end{itemize}
-		\item Spinlocks will disable preemption when taken
-		\item With PREEMPT\_RT, \ksym{spinlock_t} and \ksym{rwlock_t} will become sleeping locks
 	\end{itemize}
 \end{frame}
 
