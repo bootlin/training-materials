@@ -18,8 +18,10 @@ Go to the \code{$HOME/__SESSION_NAME__-labs/} directory.
 
 Install the required packages:
 \begin{verbatim}
-sudo apt install bc build-essential chrpath cpio diffstat gawk git python3 texinfo wget \
-     gdisk libssl-dev lz4 python3-distutils
+sudo apt install gawk wget git diffstat unzip texinfo gcc build-essential \
+  chrpath socat cpio python3 python3-pip python3-pexpect xz-utils debianutils \
+  iputils-ping python3-git python3-jinja2 python3-subunit zstd liblz4-tool \
+  file locales libacl1 python3-distutils
 \end{verbatim}
 
 \section{Download Yocto}
@@ -28,16 +30,16 @@ Download the \code{kirkstone} version of Poky:
 \begin{bashinput}
 git clone https://git.yoctoproject.org/git/poky
 cd $HOME/__SESSION_NAME__-labs/poky
-git checkout -b kirkstone-4.0.12 kirkstone-4.0.12
+git checkout -b scarthgap-5.0.1 scarthgap-5.0.1
 \end{bashinput}
 
 Return to your project root directory (\code{cd $HOME/__SESSION_NAME__-labs/})
 and download the OpenEmbedded and STM32MP layers:
 \begin{bashinput}
-git clone -b kirkstone https://git.openembedded.org/meta-openembedded
+git clone -b scarthgap https://git.openembedded.org/meta-openembedded
 git clone https://github.com/STMicroelectronics/meta-st-stm32mp
 cd meta-st-stm32mp
-git checkout openstlinux-5.15-yocto-kirkstone-mp1-v22.11.23
+git checkout b820cf3a1a855d2bd95969251e6465e281502759
 \end{bashinput}
 
 \section{Set up the build environment}
@@ -83,13 +85,13 @@ root filesystem files. To generate the final image, you will find a script in
 Execute it (replace \code{157d} with \code{157a} depending on your board variant):
 \begin{bashinput}
 ./create_sdcard_from_flashlayout.sh \
-../flashlayout_core-image-minimal/trusted/FlashLayout_sdcard_stm32mp157d-dk1-trusted.tsv
+  ../flashlayout_core-image-minimal/extensible/FlashLayout_sdcard_stm32mp157d-dk1-extensible.tsv
 \end{bashinput}
 
 Flash the SD card with that image:
 \begin{bashinput}
 umount /dev/mmcblk0p*
-sudo dd if=../FlashLayout_sdcard_stm32mp157d-dk1-trusted.raw of=/dev/mmcblk0 bs=8M conv=fdatasync
+sudo dd if=../FlashLayout_sdcard_stm32mp157d-dk1-extensible.raw of=/dev/sdc bs=8M conv=fdatasync status=progress
 \end{bashinput}
 
 \section{Setting up serial communication with the board}
