@@ -17,10 +17,12 @@ system due to limitations in file name lengths.
 Go to the \code{$HOME/__SESSION_NAME__-labs/} directory.
 
 Install the required packages:
-\begin{verbatim}
-sudo apt install bc build-essential chrpath cpio diffstat gawk git python3 texinfo wget lz4 \
-     python3-distutils
-\end{verbatim}
+\begin{bashinput}
+sudo apt install gawk wget git diffstat unzip texinfo gcc build-essential \
+  chrpath socat cpio python3 python3-pip python3-pexpect xz-utils debianutils \
+  iputils-ping python3-git python3-jinja2 python3-subunit zstd liblz4-tool file \
+  locales libacl1 python3-distutils
+\end{bashinput}
 
 \section{Download Yocto}
 
@@ -28,7 +30,7 @@ Download the \code{kirkstone} version of Poky:
 \begin{bashinput}
 git clone https://git.yoctoproject.org/git/poky
 cd $HOME/__SESSION_NAME__-labs/poky
-git checkout -b kirkstone-4.0.5 kirkstone-4.0.5
+git checkout -b scarthgap-5.0.4 scarthgap-5.0.4
 \end{bashinput}
 
 Return to your project root directory (\code{cd $HOME/__SESSION_NAME__-labs/})
@@ -37,14 +39,15 @@ and download the \code{meta-arm} and \code{meta-ti} layers:
 cd $HOME/__SESSION_NAME__-labs
 git clone https://git.yoctoproject.org/git/meta-arm
 cd meta-arm
-git checkout -b yocto-4.0.1 yocto-4.0.1
+git checkout -b yocto-5.0.1 yocto-5.0.1
 \end{bashinput}
 \begin{bashinput}
 cd $HOME/__SESSION_NAME__-labs
 git clone https://git.yoctoproject.org/git/meta-ti
 cd meta-ti
-git checkout -b kirkstone-labs 2a5a0339d5bd28d6f6aedaf02a6aaa9b73a248e4
-git am $HOME/__SESSION_NAME__-labs/bootlin-lab-data/0001-Simplify-linux-ti-staging-recipe-for-the-Bootlin-lab.patch
+git checkout -b scarthgap-labs 10.01.03
+git am $HOME/__SESSION_NAME__-labs/bootlin-lab-data/0001-Don-t-use-a-custom-deployment-directory.patch \
+  $HOME/__SESSION_NAME__-labs/bootlin-lab-data/0002-Modify-linux-bb.org-defconfig.patch
 \end{bashinput}
 
 \section{Set up the build environment}
@@ -86,11 +89,11 @@ Once the build finished, you will find the output images under
 
 In this first lab we will use an SD card to store the bootloader, kernel and
 root filesystem files. The SD card image has been generated and is
-named \code{core-image-minimal-beaglebone.wic.xz}.
+named \code{core-image-minimal-beaglebone.rootfs.wic.xz}.
 
 Now uncompress and flash the image with the following command:
 \begin{bashinput}
-xz -dc $BUILDDIR/tmp/deploy/images/beaglebone/core-image-minimal-beaglebone.wic.xz | sudo dd of=/dev/sdX conv=fdatasync bs=4M
+xz -dc $BUILDDIR/tmp/deploy/images/beaglebone/core-image-minimal-beaglebone.rootfs.wic.xz | sudo dd of=/dev/sdX conv=fdatasync bs=4M status=progress
 \end{bashinput}
 
 \section{Setting up serial communication with the board}

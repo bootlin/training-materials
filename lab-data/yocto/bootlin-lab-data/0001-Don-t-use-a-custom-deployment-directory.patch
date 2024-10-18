@@ -1,0 +1,52 @@
+From 0cd88d3308a8adf9907b7dc2705b886cede63adf Mon Sep 17 00:00:00 2001
+From: Antonin Godard <antonin.godard@bootlin.com>
+Date: Fri, 25 Oct 2024 17:19:00 +0200
+Subject: [PATCH 1/2] Don't use a custom deployment directory
+
+Using custom deployment directory is not following the standards.
+Revert this change by meta-ti to give the good example to trainees.
+
+Keep the definition of TI_COMMON_DEPLOY as it may be used by other
+recipes.
+
+Also, remove the change to TMPDIR done in the machine configuration,
+to keep the temporary directory unified and avoid an error caused by
+the change above.
+
+Signed-off-by: Antonin Godard <antonin.godard@bootlin.com>
+---
+ meta-ti-bsp/conf/layer.conf            | 8 ++++----
+ meta-ti-bsp/conf/multiconfig/k3r5.conf | 2 +-
+ 2 files changed, 5 insertions(+), 5 deletions(-)
+
+diff --git a/meta-ti-bsp/conf/layer.conf b/meta-ti-bsp/conf/layer.conf
+index 462bf763..f632e8a1 100644
+--- a/meta-ti-bsp/conf/layer.conf
++++ b/meta-ti-bsp/conf/layer.conf
+@@ -28,7 +28,7 @@ SIGGEN_EXCLUDERECIPES_ABISAFE += " \
+ 
+ HOSTTOOLS_NONFATAL += "truncate xxd comm"
+ 
+-TI_COMMON_DEPLOY ?= "${TOPDIR}/deploy-ti"
+-DEPLOY_DIR_IMAGE:ti-soc = "${TI_COMMON_DEPLOY}/images/${MACHINE}"
+-SDK_DEPLOY:ti-soc = "${TI_COMMON_DEPLOY}/sdk"
+-PSEUDO_IGNORE_PATHS:append:ti-soc = ",${TI_COMMON_DEPLOY}"
++TI_COMMON_DEPLOY ?= "${DEPLOY_DIR}"
++# DEPLOY_DIR_IMAGE:ti-soc = "${TI_COMMON_DEPLOY}/images/${MACHINE}"
++# SDK_DEPLOY:ti-soc = "${TI_COMMON_DEPLOY}/sdk"
++# PSEUDO_IGNORE_PATHS:append:ti-soc = ",${TI_COMMON_DEPLOY}"
+diff --git a/meta-ti-bsp/conf/multiconfig/k3r5.conf b/meta-ti-bsp/conf/multiconfig/k3r5.conf
+index 936bce2f..0e1e4056 100644
+--- a/meta-ti-bsp/conf/multiconfig/k3r5.conf
++++ b/meta-ti-bsp/conf/multiconfig/k3r5.conf
+@@ -5,6 +5,6 @@ DEPLOY_DIR_IMAGE:k3r5 = "${TI_COMMON_DEPLOY}/images/${MAINMACHINE}"
+ MACHINE:append = "-k3r5"
+ TCLIBC = "baremetal"
+ TI_TMPDIR_APPEND ?= "-k3r5"
+-TMPDIR:append = "${TI_TMPDIR_APPEND}"
++# TMPDIR:append = "${TI_TMPDIR_APPEND}"
+ 
+ SDKPKGSUFFIX = "k3r5-nativesdk"
+-- 
+2.46.1
+
