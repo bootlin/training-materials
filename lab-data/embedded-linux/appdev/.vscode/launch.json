@@ -1,26 +1,52 @@
 {
     "version": "0.2.0",
+    "inputs": [
+        {
+            "id": "target_ip",
+            "type": "command",
+            "command": "shellCommand.execute",
+            "args": {
+                "command": "source ${workspaceFolder}/.env && echo $TARGET_IP",
+                "useFirstResult": true
+            }
+        }
+    ],
     "configurations": [
         {
-            "name": "(gdb) Launch",
+            "name": "nunchuk-mpd-client",
             "type": "cppdbg",
             "request": "launch",
             "program": "${workspaceFolder}/nunchuk-mpd-client",
-            "args": [],
-            "stopAtEntry": false,
+            "preLaunchTask": "Deploy",
+            "useExtendedRemote": true,
             "cwd": "${workspaceFolder}",
-            "environment": [],
-            "externalConsole": false,
             "MIMode": "gdb",
             "setupCommands": [
                 {
                     "description": "Enable pretty-printing for gdb",
                     "text": "-enable-pretty-printing",
                     "ignoreFailures": true
+                },
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-history-save",
+                    "ignoreFailures": true
                 }
             ],
+            "stopAtEntry": true,
+            "postRemoteConnectCommands": [
+                {
+                    "description": "Load remote binary",
+                    "text": "set remote exec-file /root/nunchuk-mpd-client"
+                },
+                {
+                    "description": "Break to main function",
+                    "text": "b main"
+                },
+            ],
+            "stopAtConnect": true,
             "miDebuggerPath": "${env:HOME}/embedded-linux-labs/integration/buildroot/output/host/bin/arm-linux-gdb",
-            "miDebuggerServerAddress": "192.168.0.100:2345"
+            "miDebuggerServerAddress": "${input:target_ip}:3333"
         }
     ]
 }

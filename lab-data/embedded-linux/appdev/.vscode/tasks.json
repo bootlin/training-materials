@@ -1,10 +1,21 @@
 {
 	"version": "2.0.0",
+	"inputs": [
+		{
+			"id": "target_ip",
+			"type": "command",
+			"command": "shellCommand.execute",
+			"args": {
+				"command": "source ${workspaceFolder}/.env && echo $TARGET_IP",
+				"useFirstResult": true
+			}
+		},
+	],
 	"tasks": [
 		{
+			"label": "Build",
 			"type": "shell",
-			"label": "prep-debug",
-			"command": "${workspaceFolder}/prep-debug.sh",
+			"command": "${workspaceFolder}/../integration/buildroot/output/host/bin/arm-linux-gcc -g -o nunchuk-mpd-client nunchuk-mpd-client.c $(${workspaceFolder}/../integration/buildroot/output/host/bin/pkg-config --libs libmpdclient)",
 			"problemMatcher": [
 				"$gcc"
 			],
@@ -12,6 +23,34 @@
 				"kind": "build",
 				"isDefault": true
 			}
-		}
+		},
+		{
+			"label": "Clean",
+			"type": "shell",
+			"command": "rm",
+			"args": [
+				"-rf",
+				"nunchuk-mpd-client"
+			],
+			"problemMatcher": [],
+			"group": {
+				"kind": "build",
+			}
+		},
+		{
+			"label": "Deploy",
+			"type": "shell",
+			"dependsOn": "Build",
+			"command": "scp",
+			"args": [
+				"-O",
+				"${workspaceFolder}/nunchuk-mpd-client",
+				"root@${input:target_ip}:/root/nunchuk-mpd-client"
+			],
+			"problemMatcher": [],
+			"group": {
+				"kind": "build",
+			}
+		},
 	]
 }
