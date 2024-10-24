@@ -271,7 +271,7 @@ as a {\em snap package}:
 $ sudo snap install --classic code
 \end{bashinput}
 
-\subsection{Accessing your board through SSH}
+\subsection{Preparing the target for debugging with VSCode}
 
 We will use Visual Studio Code to modify and recompile our client
 program, and also to update and run the binary on the target.
@@ -313,25 +313,47 @@ If you face trouble, you can check the Dropbear logs on the target:
 journalctl -fu dropbear
 \end{bashinput}
 
+Additionally, before being able to debug the our application on the target, we
+need to make sure that a gdbserver instance is running and can be accessed
+by VSCode. We can add a small systemd service to handle this. The minimal
+code to enable such service looks like this:
+\begin{verbatim}
+[Unit]
+Description=GDB server for application debugging
+After=network.target
+Wants=network.target
+
+[Service]
+Type=exec
+ExecStart=/usr/bin/gdbserver --multi :3333
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+\end{verbatim}
+Copy this snippet and paste it in a new \code{gdbserver.service} file onto
+the target filesystem, in \code{/usr/lib/systemd/system/}. Then enable the
+service and make it start automatically during each boot:
+
+\code{systemctl daemon-reload && systemctl enable --now gdbserver}
+
 \subsection{Compiling and debugging the program from VS Code}
 
-The \code{appdev} directory already contains a \code{prep-debug.sh}
-script and a \code{.vscode} directory with ready made settings for
-code editing and for compiling and debugging our application.
-Here are these files:
+The \code{appdev} directory already contains a \code{.vscode} directory
+with ready made settings for code editing and for compiling and debugging
+our application. Here are these files:
 
 \begin{itemize}
-   \item \code{prep-debug.sh}: script to recompile the program,
-         copy it to the target through SSH, and start it through the debugger.
-         Open this file and update the target IP and path settings if
-         necessary.
-   \item \code{.vscode/c_cpp_properties.json}: settings for the code editor.
-         Modify the paths in this file according to your setup.
-   \item \code{.vscode/tasks.json}: definition of a "build" task,
-         calling the \code{prep-debug.sh} script.
-   \item \code{.vscode/launch.json}: these are the settings for remote
-         debugging. Again, open this file, update the paths, and the
-	 target IP address if necessary.
+	\item \code{.vscode/c_cpp_properties.json}: settings for the code editor.
+	\item \code{.vscode/tasks.json}: definition of some standard project
+		management tasks, like "build", "clean" and "deploy" tasks
+	\item \code{.vscode/launch.json}: these are the settings for remote
+		debugging.
+	\item \code{.vscode/extensions.json}: some needed extensions pinned as
+		"recommended" so that you can find those easily in the plugins
+		menu
+	\item \code{.env}: some user-defined to let all the files above know how
+		to access the target.
 \end{itemize}
 
 First, start VS Code:
@@ -343,24 +365,33 @@ $ code
 Use \code{File} $\rightarrow$ \code{Open Folder} to open the
 \code{appdev} directory.
 
-The first thing to do is to make sure the \code{C/C++} extension from Microsoft
-(\code{ms-vscode.cpptools}) is installed. Do this using the
-\code{Extensions} vertical tab:
+The first thing to do is to make sure that some needed extensions are
+installed. To do so, switch to the plugins section in the vertical tab,
+then search and install the following extensions:
+\begin{itemize}
+	\item \code{C/C++} extension from Microsoft
+		(\code{ms-vscode.cpptools})
+	\item \code{Tasks Shell Input} extension
+		(\code{augustocdias.tasks-shell-input})
+\end{itemize}
+Those extensions should appear on top of the "Recommended" section.
 
 \includegraphics[width=4cm]{labs/sysdev-application-development-and-debugging/vscode-extensions-tab.png}
 
-Then click on the \code{nunchuk-mpd-client.c} file in the left
-column to open it in VS Code.
+Then open the \code{.env} file and if needed, update the \code{TARGET_IP} variable
+to make it match the IP address of the target.
 
-Now, start by compiling your program from VS Code, copying it to the
-target, and running it through the debugger by using the
-\code{Terminal} $\rightarrow$ \code{Run Build Task...} menu entry.
+You are now ready to build and debug your application. Start by clicking on
+the \code{nunchuk-mpd-client.c} file in the left column to open it in VS
+Code. Build it thanks to the tasks configured in VSCode: bring the Command
+Palette by typing \code{Ctrl+Shift+P}, then type "Run Build Task", then
+Enter.
 
-If anything goes wrong, please report issues to the trainer.
+\textit{Note: you can also use the \code{Ctrl+Shift+B} shortcut to execute the
+default build action}
 
-Last but not least, you can start debugging the program by clicking on
-the \code{Run and Debug} tab, and then on the \code{gdb (Launch)} at the
-top:
+You can start debugging the program by clicking on the \code{Run and Debug}
+tab, and then on the green "Play" button on top:
 
 \includegraphics[width=4cm]{labs/sysdev-application-development-and-debugging/vscode-run-debug-tab.png}
 
@@ -368,6 +399,9 @@ In the debug console, you should see that debugging has started. The
 bottom line of the interface should turn orange too:
 
 \includegraphics[width=12cm]{labs/sysdev-application-development-and-debugging/vscode-debugging-started.png}
+
+\textit{Note: VSCode will automatically rebuild and redeploy the
+application each time you start a debugging session.}
 
 Then, start using the Nunchuk to control playback, and when you try to
 quit with the \code{C} button, VS Code should now see the segmentation
