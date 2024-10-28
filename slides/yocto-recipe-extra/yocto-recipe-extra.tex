@@ -17,10 +17,43 @@
   \end{itemize}
 \end{frame}
 
+\begin{frame}[fragile]{Optional dependencies}
+  \begin{itemize}
+    \item Most software have a configure script that checks for libraries:
+      \begin{itemize}
+      \item Fails if mandatory dependencies are not found
+      \item Fails if explicitly requested optional dependencies are not found
+      \item Enables more features is automatic dependencies are found
+      \end{itemize}
+    \item Problem with automatic dependencies: result can depend on build order. Example:
+      \begin{itemize}
+      \item \code{libpcap} built {\em before} \code{bluez5}
+        \begin{block}{}
+          \begin{minted}[fontsize=\scriptsize]{text}
+libpcap$ ./configure
+...
+checking for bluetooth/bluetooth.h... no
+configure: Bluetooth sniffing is not supported; install bluez-lib devel to enable it
+      \end{minted}
+    \end{block}
+      \item \code{libpcap} built {\em after} \code{bluez5}
+    \begin{block}{}
+      \begin{minted}[fontsize=\scriptsize]{text}
+libpcap$ ./configure
+...
+checking for bluetooth/bluetooth.h... yes
+configure: Bluetooth sniffing is supported
+    \end{minted}
+    \end{block}
+  \end{itemize}
+  \end{itemize}
+\end{frame}
+
 \begin{frame}{Per-recipe sysroot}
   \begin{itemize}
     \item Instead of a global sysroot, \code{bitbake} implements a {\em
       per-recipe sysroot}
+    \item Main goal: reproducible build even with automatic dependencies
   \end{itemize}
   \begin{center}
     \includegraphics[width=1.00\textwidth]{slides/yocto-recipe-extra/per-recipe-sysroot.pdf}
