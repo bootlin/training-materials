@@ -1,4 +1,6 @@
 \usepackage{ifthen}
+\input{agenda/common.inc}
+
 \def \training{yocto}
 
 % Title
@@ -96,3 +98,700 @@
 % Time ratio
 \def \onsitelecturetimeratio{40}
 \def \onsitelabtimeratio{60}
+
+% Agenda items
+
+\defagendaitem
+{intro}
+{lecture}
+{Introduction to embedded Linux build systems}
+{
+  \begin{itemize}
+  \item Overview of an embedded Linux system architecture
+  \item Methods to build a root filesystem image
+  \item Usefulness of build systems
+  \end{itemize}
+}
+{Introduction aux outils de compilation de systèmes Linux embarqué}
+{
+  \begin{itemize}
+  \item Vue d'ensemble de l'architecture d'un système Linux embarqué
+  \item Méthodes pour compiler un système de fichiers
+  \item Utilité des outils de compilation
+  \end{itemize}
+}
+
+\defagendaitem
+{overview}
+{lecture}
+{Overview of the Yocto Project and the Poky reference system}
+{
+  \begin{itemize}
+  \item Introduction to the Yocto / OpenEmbedded build system and its lexicon
+  \item Overview of the Poky reference system
+  \end{itemize}
+}
+{Vue d'ensemble de Yocto Project et du système de référence Poky}
+{
+  \begin{itemize}
+  \item Organisation des sources du projet
+  \item Création d'un système de fichiers avec Yocto Project
+  \end{itemize}
+}
+
+\defagendaitem
+{overview}
+{lecture}
+{Yocto Project and Poky reference system overview}
+{
+  \begin{itemize}
+  \item Introduction to the Yocto / OpenEmbedded build system and its lexicon
+  \item Overview of the Poky reference system
+  \end{itemize}
+}
+{Vue d'ensemble de Yocto Project et du système de référence Poky}
+{
+  \begin{itemize}
+  \item Présentation de l'outil de compilation Yocto / OpenEmbedded et de sa terminologie.
+  \item Vue d'ensemble du système de référence Poky
+  \end{itemize}
+}
+
+\defagendaitem
+{usingbasics}
+{lecture}
+{Using Yocto Project - basics}
+{
+  \begin{itemize}
+  \item Setting up the build directory and environment
+  \item Configuring the build system
+  \item Building a root filesystem image
+  \item Organization of the build output
+  \end{itemize}
+}
+{Bases de l'utilisation de Yocto Project}
+{
+  \begin{itemize}
+  \item Mise en place du répertoire de travail et de l'environnement
+  \item Configuration de l'outil de compilation
+  \item Compilation de l'image d'un système de fichiers racine
+  \item Structure des fichiers générés
+  \end{itemize}
+}
+
+\defagendaitem
+{firstbuild}
+{lab}
+{First Yocto Project build}
+{
+  \begin{itemize}
+  \item Downloading the Poky reference build system
+  \item Configuring the build system
+  \item Building a system image
+ \end{itemize}
+}
+{1\textsuperscript{ère} compilation avec Yocto Project}
+{
+  \begin{itemize}
+  \item Téléchargement du système de référence Poky
+  \item Configuration de l'outil de compilation
+  \item Compilation d'une image système
+ \end{itemize}
+}
+
+\defagendaitem
+{flashingbooting}
+{lab}
+{Flashing and booting}
+{
+  \begin{itemize}
+  \item Flashing and booting the image on the board
+  \end{itemize}
+}
+{Flasher et booter}
+{
+  \begin{itemize}
+  \item Flasher et booter l'image du système sur la carte
+  \end{itemize}
+}
+
+\defagendaitem
+{usingadvanced}
+{lecture}
+{Using Yocto Project - advanced usage}
+{
+  \begin{itemize}
+  \item Variable assignment, operators and overrides
+  \item Package variants and package selection
+  \item bitbake command line options
+  \end{itemize}
+}
+{Utilisation de Yocto Project - Utilisation avancée}
+{
+  \begin{itemize}
+  \item Assignation des variables, opérateurs et surcharge
+  \item Paquetages: variantes de paquetages
+  \item Options de la commande bitbake
+  \end{itemize}
+}
+
+\defagendaitem
+{nfsconfiguring}
+{lab}
+{Using NFS and configuring the build}
+{
+  \begin{itemize}
+  \item Configuring the board to boot over NFS
+  \item Add a package to the root filesystem
+  \item Learn how to use the \code{PREFERRED_PROVIDER} mechanism
+  \item Get familiar with the bitbake command line options
+  \end{itemize}
+}
+{Utilisation de NFS et configuration de la compilation}
+{
+  \begin{itemize}
+  \item Configurer la carte pour démarrer via NFS
+  \item Rajouter un paquetage au système de fichiers racine
+  \item Apprendre à utiliser le mécanisme \code{PREFERRED_PROVIDER}
+  \item Se familiariser avec les options de la commande bitbake
+  \end{itemize}
+}
+
+\defagendaitem
+{writingrecipesbasics}
+{lecture}
+{Writing recipes - basics}
+{
+  \begin{itemize}
+  \item Recipes: overview
+  \item Recipe file organization
+  \item Applying patches
+  \item Recipe examples
+  \end{itemize}
+}
+{Écriture de recettes - Fonctionnalités de base}
+{
+  \begin{itemize}
+  \item Recettes: vue d'ensemble
+  \item Organisation d'un fichier de recette
+  \item Application de patches
+  \item Exemples de recettes
+  \end{itemize}
+}
+
+\defagendaitem
+{appcompilation}
+{lab}
+{Adding an application to the build}
+{
+  \begin{itemize}
+  \item Writing a recipe for {\em ninvaders}
+  \item Troubleshooting the recipe
+  \item Troubleshooting cross-compilation issues
+  \item Adding {\em ninvaders} to the final image
+  \end{itemize}
+}
+{Ajouter la compilation d'une application}
+{
+  \begin{itemize}
+  \item Création d'une recette pour {\em ninvaders}
+  \item Résolution de problèmes liés à la recette
+  \item Résolution de problèmes liés à la compilation croisée
+  \item Ajout d'{\em ninvaders} à l'image finale
+  \end{itemize}
+}
+
+\defagendaitem
+{writingrecipesadvanced}
+{lecture}
+{Writing recipes - advanced features}
+{
+  \begin{itemize}
+  \item Extending and overriding recipes
+  \item Virtual packages
+  \item Learn about classes
+  \item BitBake file inclusions
+  \item Debugging recipes
+  \item Configuring BitBake network usage
+  \end{itemize}
+}
+{Écriture de recettes - Fonctionnalités avancées}
+{
+  \begin{itemize}
+  \item Extension et redéfinition de recettes
+  \item Paquetages virtuels
+  \item Familiarisation avec les classes
+  \item Inclusion d'exemples avec BitBake
+  \item Mise au point des recettes
+  \item Configuration de l'utilisation du réseau par BitBake
+  \end{itemize}
+}
+
+\defagendaitem
+{layers}
+{lecture}
+{Layers}
+{
+  \begin{itemize}
+  \item What layers are
+  \item Where to find layers
+  \item Creating a layer
+  \end{itemize}
+}
+{Layers}
+{
+  \begin{itemize}
+  \item Ce que sont les {\em layers}
+  \item Où trouver les {\em layers}
+  \item Création d'un {\em layer}
+  \end{itemize}
+}
+
+\defagendaitem
+{writinglayer}
+{lab}
+{Writing a layer}
+{
+  \begin{itemize}
+  \item Learn how to write a layer
+  \item Add the layer to the build
+  \item Move {\em ninvaders} to the new layer
+  \end{itemize}
+}
+{Écriture d'un layer}
+{
+  \begin{itemize}
+  \item Apprendre à écrire un {\em layer}
+  \item Ajouter le {\em layer} à la compilation
+  \item Inclure {\em ninvaders} dans le nouveau {\em layer}
+  \end{itemize}
+}
+
+\defagendaitem
+{extendrecipe}
+{lab}
+{Extend a recipe}
+{
+  \begin{itemize}
+  \item Extend the kernel recipe to add patches
+  \item Configure the kernel to compile the nunchuk driver
+  \item Edit the ninvaders recipe to add patches
+  \item Play {\em ninvaders}
+  \end{itemize}
+}
+{Étendre une recette}
+{
+  \begin{itemize}
+  \item Étendre la recette pour le noyau pour rajouter des patches
+  \item Configurer le noyau pour compiler le pilote du nunchuk
+  \item Modifier la recette ninvaders pour rajouter des patches
+  \item Jouer avec {\em ninvaders}
+  \end{itemize}
+}
+
+\defagendaitem
+{writingbsp}
+{lecture}
+{Writing a BSP}
+{
+  \begin{itemize}
+  \item Introduction to BSP layers
+  \item Adding a new machine
+  \item Bootloader configuration
+  \item Linux: the kernel bbclass and the linux-yocto recipe
+  \end{itemize}
+}
+{Écriture d'un BSP}
+{
+  \begin{itemize}
+  \item Introduction aux layers BSP
+  \item Ajout d'une nouvelle machine
+  \item Configuration du chargeur de démarrage
+  \item Linux : la classe kernel.bbclass et la recette linux-yocto
+  \end{itemize}
+}
+
+\defagendaitem
+{kernelchanges}
+{lab}
+{Create a custom machine configuration}
+{
+  \begin{itemize}
+  \item Create a new machine configuration
+  \item Build an image for the new machine
+  \end{itemize}
+}
+{Création d'une configuration spécifique pour une machine}
+{
+  \begin{itemize}
+  \item Types d'images
+  \item Écriture et utilisation de groupes de paquetages
+  \end{itemize}
+}
+
+\defagendaitem
+{distrolayer}
+{lecture}
+{Distro layers}
+{
+  \begin{itemize}
+  \item Distro configuration
+  \item Distro layers
+  \end{itemize}
+}
+{Création d'une image sur mesure}
+{
+  \begin{itemize}
+  \item Rajouter une recette de base pour une image
+  \item Sélectionner les fonctionnalités et les paquetages de l'image
+  \item Ajouter un groupe de paquetages sur mesure
+  \item Ajouter une variante d'image pour le débogage
+  \end{itemize}
+}
+
+\defagendaitem
+{image}
+{lecture}
+{Images}
+{
+  \begin{itemize}
+  \item Writing an image recipe
+  \item Image types
+  \item Writing and using package groups recipes
+  \end{itemize}
+}
+{Images}
+{
+  \begin{itemize}
+  \item Écriture d’une recette d’image
+  \item Types d’images
+  \item Écriture et utilisation de groupes de paquetages
+  \end{itemize}
+}
+
+\defagendaitem
+{image}
+{lab}
+{Create a custom image}
+{
+  \begin{itemize}
+  \item Add a basic image recipe
+  \item Select the image capabilities and packages
+  \item Add a custom package group
+  \item Add an image variant for debugging
+  \end{itemize}
+}
+{Création d'une image sur mesure}
+{
+  \begin{itemize}
+  \item Écrire une recette d'image personnalisée
+  \item Ajouter {\em ninvaders} à l'image sur mesure
+  \end{itemize}
+}
+
+\defagendaitem
+{writingrecipesgoingfurther}
+{lecture}
+{Writing recipes - going further}
+{
+  \begin{itemize}
+  \item The per-recipe sysroot
+  \item Using Python code in metadata
+  \item Variable flags
+  \item Packages features and PACKAGECONFIG
+  \item Conditional features
+  \item Package splitting
+  \item Dependencies in detail
+  \end{itemize}
+}
+{Écriture de recettes - Pour aller plus loin}
+{
+  \begin{itemize}
+  \item Le sysroot de chaque recette
+  \item Utilisation de code Python code dans les méta-données
+  \item Drapeaux de variables
+  \item Fonctionnalités de paquetages et PACKAGECONFIG
+  \item Fonctionnalités conditionnelles
+  \item Découpage de paquetages
+  \end{itemize}
+}
+
+\defagendaitem
+{licensing}
+{lecture}
+{Licensing}
+{
+  \begin{itemize}
+  \item Managing open source licenses
+  \end{itemize}
+}
+{Licences}
+{
+  \begin{itemize}
+  \item Gestion de licences open source
+  \end{itemize}
+}
+
+\defagendaitem
+{sdk}
+{lecture}
+{The Yocto Project SDK}
+{
+  \begin{itemize}
+  \item Goals of the SDK
+  \item Building and customizing an SDK
+  \item Using the Yocto Project SDK
+  \end{itemize}
+}
+{SDK pour le projet Yocto}
+{
+  \begin{itemize}
+  \item Objectifs du SDK
+  \item Compilation et personnalisation d'un SDK
+  \item Utilisation d'un SDK pour le projet Yocto
+  \end{itemize}
+}
+
+\defagendaitem
+{sdk}
+{lab}
+{Develop your application in the Poky SDK}
+{
+  \begin{itemize}
+  \item Building an SDK
+  \item Using the Yocto Project SDK
+  \end{itemize}
+}
+{Développement d'une application au moyen du SDK de Poky}
+{
+  \begin{itemize}
+  \item Construction d'un SDK
+  \item Utilisation du SDK de Yocto Project
+  \end{itemize}
+}
+
+\defagendaitem
+{devtool}
+{lecture}
+{Devtool}
+{
+  \begin{itemize}
+  \item About devtool
+  \item Devtool use cases
+  \end{itemize}
+}
+{Devtool}
+{
+  \begin{itemize}
+  \item Présentation devtool
+  \item Cas d'utilisation de devtool
+  \end{itemize}
+}
+
+\defagendaitem
+{devtool}
+{lab}
+{Using devtool}
+{
+  \begin{itemize}
+  \item Generate a new recipe
+  \item Modify a recipe to add a new patch
+  \item Upgrade a recipe to a newer version
+  \end{itemize}
+}
+{Utilisation de devtool}
+{
+  \begin{itemize}
+  \item Création d'une nouvelle recette
+  \item Modification d'une recette pour ajouter un nouveau patch
+  \item Mettre à jour une recette pour prendre en charge une nouvelle version
+  \end{itemize}
+}
+
+\defagendaitem
+{automatinglayermanagement}
+{lecture}
+{Automating layer management}
+{
+  \begin{itemize}
+  \item Automating layer management
+  \end{itemize}
+}
+{Gestion automatique de layers}
+{
+  \begin{itemize}
+  \item Gestion automatique de layers
+  \end{itemize}
+}
+
+\defagendaitem
+{runtimepackagemanagement}
+{lecture}
+{Runtime Package Management}
+{
+  \begin{itemize}
+  \item Introduction to runtime package management
+  \item Build configuration
+  \item Package server configuration
+  \item Target configuration
+  \end{itemize}
+}
+{Gestion de paquetages à l'exécution}
+{
+  \begin{itemize}
+  \item Introduction à la gestion de paquetages à l'exécution
+  \item Configuration de la compilation
+  \item Configuration d'une serveur de paquetages
+  \item Configuration de la machine cible
+  \end{itemize}
+}
+
+\defagendaitem
+{qna}
+{misc}
+{Questions and Answers}
+{
+  \begin{itemize}
+  \item Questions and answers with the audience about the course topics
+  \item Extra presentations if time is left, according what most
+        participants are interested in.
+  \end{itemize}
+}
+{Questions / réponses}
+{
+  \begin{itemize}
+  \item Questions et réponses avec les participants à propos des sujets abordés.
+  \item Présentations supplémentaires s'il reste du temps, en fonction des demandes
+        de la majorité des participants.
+  \end{itemize}
+}
+
+\def \onlineagenda {
+  \showagendaday{1}
+
+  \showagendaitem{intro}{lecture}
+
+  \showagendaitem{overview}{lecture}
+
+  \showagendaitem{usingbasics}{lecture}
+
+  \showagendaitem{firstbuild}{lab}
+
+  \showagendaitem{flashingbooting}{lab}
+
+  \showagendaday{2}
+
+  \showagendaitem{usingadvanced}{lecture}
+
+  \showagendaitem{nfsconfiguring}{lab}
+
+  \showagendaitem{writingrecipesbasics}{lecture}
+
+  \showagendaitem{appcompilation}{lab}
+
+  \showagendaitem{writingrecipesadvanced}{lecture}
+
+  \showagendaday{3}
+
+  \showagendaitem{layers}{lecture}
+
+  \showagendaitem{writinglayer}{lab}
+
+  \showagendaitem{extendrecipe}{lab}
+
+  \showagendaitem{writingbsp}{lecture}
+
+  \showagendaitem{kernelchanges}{lab}
+
+  \showagendaitem{distrolayer}{lecture}
+
+  \showagendaday{4}
+
+  \showagendaitem{image}{lecture}
+
+  \showagendaitem{image}{lab}
+
+  \showagendaitem{writingrecipesgoingfurther}{lecture}
+
+  \showagendaitem{licensing}{lecture}
+
+  \showagendaitem{sdk}{lecture}
+
+  \showagendaitem{sdk}{lab}
+
+  \showagendaitem{devtool}{lecture}
+
+  \showagendaitem{devtool}{lab}
+
+  \showagendaitem{automatinglayermanagement}{lecture}
+
+  \showagendaitem{runtimepackagemanagement}{lecture}
+
+  \showagendaitem{qna}{misc}
+}
+
+\def \onsiteagenda {
+  \showonsiteagendaday{1}{morning}
+
+  \showagendaitem{intro}{lecture}
+
+  \showagendaitem{overview}{lecture}
+
+  \showagendaitem{usingbasics}{lecture}
+
+  \showagendaitem{firstbuild}{lab}
+
+  \showonsiteagendaday{1}{afternoon}
+
+  \showagendaitem{flashingbooting}{lab}
+
+  \showagendaitem{usingadvanced}{lecture}
+
+  \showagendaitem{nfsconfiguring}{lab}
+
+  \showonsiteagendaday{2}{morning}
+
+  \showagendaitem{writingrecipesbasics}{lecture}
+
+  \showagendaitem{appcompilation}{lab}
+
+  \showagendaitem{writingrecipesadvanced}{lecture}
+
+  \showonsiteagendaday{2}{afternoon}
+
+  \showagendaitem{layers}{lecture}
+
+  \showagendaitem{writinglayer}{lab}
+
+  \showonsiteagendaday{3}{morning}
+
+  \showagendaitem{extendrecipe}{lab}
+
+  \showagendaitem{writingbsp}{lecture}
+
+  \showagendaitem{kernelchanges}{lab}
+
+  \showagendaitem{distrolayer}{lecture}
+
+  \showonsiteagendaday{3}{afternoon}
+
+  \showagendaitem{image}{lecture}
+
+  \showagendaitem{image}{lab}
+
+  \showagendaitem{writingrecipesgoingfurther}{lecture}
+
+  \showagendaitem{licensing}{lecture}
+
+  \showagendaitem{sdk}{lecture}
+
+  \showagendaitem{sdk}{lab}
+
+  \showagendaitem{devtool}{lecture}
+
+  \showagendaitem{devtool}{lab}
+
+  \showagendaitem{automatinglayermanagement}{lecture}
+
+  \showagendaitem{runtimepackagemanagement}{lecture}
+}
