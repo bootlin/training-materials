@@ -97,3 +97,123 @@
     }
   }
 }
+
+\defboard
+{stm32mp1}
+{Hardware platform for practical labs}
+{
+  One of these Discovery Kits from STMicroelectronics: {\bf
+  STM32MP157A-DK1}, {\bf STM32MP157D-DK1}, {\bf STM32MP157C-DK2} or
+  {\bf STM32MP157F-DK2}
+  \begin{itemize}
+  \item STM32MP157, dual Cortex-A7 processor from STMicroelectronics
+  \item USB powered
+  \item 512 MB DDR3L RAM
+  \item Gigabit Ethernet port
+  \item 4 USB 2.0 host ports
+  \item 1 USB-C OTG port
+  \item 1 Micro SD slot
+  \item On-board ST-LINK/V2-1 debugger
+  \item Arduino compatible headers
+  \item Audio codec, buttons, LEDs
+  \item LCD touchscreen (DK2 kits only)
+  \end{itemize}
+}
+{Plateforme matérielle pour les travaux pratiques}
+{
+  Une de ces cartes de STMicroelectronics : {\bf
+  STM32MP157A-DK1}, {\bf STM32MP157D-DK1}, {\bf STM32MP157C-DK2} ou
+  {\bf STM32MP157F-DK2}
+  \begin{itemize}
+  \item Processeur STM32MP157, double Cortex-A7, de STMicroelectronics
+  \item Alimentée par USB
+  \item 512 Mo DDR3L RAM
+  \item Port Gigabit Ethernet port
+  \item 4 ports hôte USB 2.0
+  \item 1 port USB-C OTG
+  \item 1 connecteur Micro SD
+  \item Debugger ST-LINK/V2-1 sur la carte
+  \item Connecteurs compatibles Arduino Uno v3
+  \item Codec audio
+  \item Divers : boutons, LEDs
+  \item Écran LCD tactile (uniquement sur cartes DK2)
+  \end{itemize}
+}
+{
+  \begin{center}
+    \includegraphics[width=5cm]{../slides/discovery-board-dk1/discovery-board-dk1.png}
+  \end{center}
+}
+
+\defboard
+{beagleboneblack}
+{Hardware platform for practical labs}
+{
+  {\bf BeagleBone Black} or {\bf BeagleBone Black Wireless} board
+  \begin{itemize}
+  \item An ARM AM335x (single Cortex-A8) processor from Texas
+    Instruments
+  \item USB powered
+  \item 512 MB of RAM
+  \item 2 or 4 GB of on-board eMMC storage
+  \item USB host and device
+  \item HDMI output
+  \item 2 x 46 pins headers, to access UARTs, SPI buses, I2C buses
+    and more.
+  \item Ethernet or WiFi
+  \end{itemize}
+}
+{Plateforme matérielle pour les travaux pratiques}
+{
+  Carte {\bf BeagleBone Black} ou {\bf BeagleBone Black Wireless}
+  \begin{itemize}
+  \item Un processeur ARM AM335x de Texas Instruments (à base de
+    Cortex-A8), avec accélération 3D, etc.
+  \item 512 Mo de RAM
+  \item 2 ou 4 Go de stockage eMMC
+  \item USB hôte et device
+  \item Sortie HDMI
+  \item Connecteurs à 2 x 46 broches, pour accéder aux UARTs, aux bus
+    SPI, aux bus I2C, et à d'autres entrées/sorties du processeur.
+  \item Ethernet ou WiFi
+  \end{itemize}
+}
+{
+  \begin{center}
+    \includegraphics[width=5cm]{../slides/beagleboneblack-board/beagleboneblack.png}
+  \end{center}
+}
+
+\defboard
+{beagleplay}
+{Hardware platform for practical labs}
+{
+  {\bf BeaglePlay} board
+  \begin{itemize}
+    \item Texas Instruments AM625x (4xARM Cortex-A53 CPU)
+    \item SoC with 3D acceleration, integrated MCU and many other peripherals.
+    \item 2 GB of RAM
+    \item 16 GB of on-board eMMC storage
+    \item USB host and USB device, microSD, HDMI
+    \item 2.4 and 5 GHz WiFi, Bluetooth and also Ethernet
+    \item 1 MicroBus Header (SPI, I2C, UART, ...), OLDI and CSI connector.
+  \end{itemize}
+}
+{Plateforme matérielle pour les travaux pratiques}
+{
+  Carte {\bf BeaglePlay}
+  \begin{itemize}
+    \item SoC Texas Instruments AM625x (CPU 4xARM Cortex-A53)
+    \item SoC avec accélération 3D, MCU intégré et de nombreux autres périphériques.
+    \item 2 GB de RAM
+    \item 16 Go de stockage eMMC
+    \item USB hôte et device, microSD, HDMI
+    \item WiFi 2.4 and 5 GHz, Bluetooth et aussi Ethernet
+    \item 1 Header MicroBus (SPI, I2C, UART, ...), connecteurs OLDI et CSI.
+  \end{itemize}
+}
+{
+  \begin{center}
+    \includegraphics[width=5cm]{../slides/beagleplay-board/beagleplay.png}
+  \end{center}
+}
