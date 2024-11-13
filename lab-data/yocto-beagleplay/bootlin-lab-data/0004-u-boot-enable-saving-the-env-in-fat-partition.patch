@@ -1,0 +1,48 @@
+From ec95a0130c23f498ef08f7226512ce596ecec604 Mon Sep 17 00:00:00 2001
+From: Antonin Godard <antonin.godard@bootlin.com>
+Date: Wed, 13 Nov 2024 13:48:41 +0100
+Subject: [PATCH] u-boot: enable saving the env in fat partition
+
+This is not enabled by default on the Beagleplay. Actually, CMD_SAVEENV
+is defined but we only have ENV_IS_NOWHERE set so U-boot disables
+saveenv. So this patch does the following:
+
+- Set CONFIG_ENV_IS_IN_FAT and related variables.
+- Unset CONFIG_ENV_IS_NOWHERE so that when U-boot fails to read the
+  file uboot.env on initial boot (the file is not present yet), it
+  doesn't fail to "save to nowhere" and save the env to uboot.env
+  instead.
+
+Signed-off-by: Antonin Godard <antonin.godard@bootlin.com>
+---
+ .../recipes-bsp/u-boot/u-boot-ti-staging/env-in-fat.cfg    | 7 +++++++
+ .../recipes-bsp/u-boot/u-boot-ti-staging_2024.04.bb        | 2 ++
+ 2 files changed, 9 insertions(+)
+ create mode 100644 meta-ti-bsp/recipes-bsp/u-boot/u-boot-ti-staging/env-in-fat.cfg
+
+diff --git a/meta-ti-bsp/recipes-bsp/u-boot/u-boot-ti-staging/env-in-fat.cfg b/meta-ti-bsp/recipes-bsp/u-boot/u-boot-ti-staging/env-in-fat.cfg
+new file mode 100644
+index 00000000..a22b7db6
+--- /dev/null
++++ b/meta-ti-bsp/recipes-bsp/u-boot/u-boot-ti-staging/env-in-fat.cfg
+@@ -0,0 +1,7 @@
++CONFIG_ENV_IS_IN_FAT=y
++CONFIG_ENV_FAT_INTERFACE="mmc"
++CONFIG_ENV_FAT_DEVICE_AND_PART="1:1"
++CONFIG_ENV_FAT_FILE="uboot.env"
++CONFIG_SYS_MMC_ENV_DEV=0
++CONFIG_SYS_MMC_ENV_PART=0
++# CONFIG_ENV_IS_NOWHERE is not set
+diff --git a/meta-ti-bsp/recipes-bsp/u-boot/u-boot-ti-staging_2024.04.bb b/meta-ti-bsp/recipes-bsp/u-boot/u-boot-ti-staging_2024.04.bb
+index e3e86b30..1740aa8b 100644
+--- a/meta-ti-bsp/recipes-bsp/u-boot/u-boot-ti-staging_2024.04.bb
++++ b/meta-ti-bsp/recipes-bsp/u-boot/u-boot-ti-staging_2024.04.bb
+@@ -7,3 +7,5 @@ PR = "r0"
+ BRANCH = "ti-u-boot-2024.04"
+ 
+ SRCREV = "cdac8b4cd3cc1d1e9ac6354c1cfe03ddbbdf01fa"
++
++SRC_URI += "file://env-in-fat.cfg"
+-- 
+2.46.1
+
