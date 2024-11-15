@@ -145,6 +145,27 @@
   \end{center}
 }
 
+\defagendaitem
+{qna}
+{misc}
+{Questions and Answers}
+{
+  \begin{itemize}
+  \item Questions and answers with the audience about the course topics
+  \item Extra presentations if time is left, according what most
+        participants are interested in.
+  \end{itemize}
+}
+{Questions / réponses}
+{
+  \begin{itemize}
+  \item Questions et réponses avec les participants à propos des sujets abordés.
+  \item Présentations supplémentaires s'il reste du temps, en fonction des demandes
+        de la majorité des participants.
+  \end{itemize}
+}
+
+
 \defboard
 {beagleboneblack}
 {Hardware platform for practical labs}
