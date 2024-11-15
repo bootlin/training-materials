@@ -1,4 +1,6 @@
 \usepackage{ifthen}
+\input{agenda/common.inc}
+
 \def \training{embedded-linux}
 
 % Title
@@ -120,3 +122,845 @@
 % Time ratio
 \def \onsitelecturetimeratio{50}
 \def \onsitelabtimeratio{50}
+
+% Agenda items
+
+
+\defagendaitem
+{intro}
+{lecture}
+{Introduction to embedded Linux}
+{
+  \begin{itemize}
+  \item Advantages of Linux versus traditional embedded operating
+    systems.
+  \item Typical hardware platforms used to run embedded Linux systems.
+  \item Overall architecture of embedded Linux systems: overview of
+    the major software components.
+  \item Development environment for Embedded Linux development.
+  \end{itemize}
+}
+{Introduction à Linux embarqué}
+{
+  \begin{itemize}
+  \item Introduction au Logiciel Libre
+  \item Atouts du Logiciel Libre pour les systèmes embarqués
+  \item Exemples de systèmes embarqués fonctionnant sous Linux
+  \item Besoins en CPU, RAM et stockage
+  \item Choix d'une plateforme matérielle
+  \item Architecture du système : composants principaux
+  \item Différentes tâches pour développer un système embarqué
+  \end{itemize}
+}
+\defagendaitem
+{crosscompile}
+{lecture}
+{Cross-compiling toolchain and C library}
+{
+  \begin{itemize}
+  \item What's inside a cross-compiling toolchain
+  \item Choosing the target C library
+  \item What's inside the C library
+  \item Ready to use cross-compiling toolchains
+  \item Building a cross-compiling toolchain with automated tools.
+  \end{itemize}
+}
+{Chaîne de compilation croisée et bibliothèque standard C}
+{
+  \begin{itemize}
+  \item Les composants d'une chaîne de compilation croisée.
+  \item Choisir une bibliothèque standard C.
+  \item Le contenu de la bibliothèque standard C.
+  \item Les chaînes de compilation croisée prêtes à l'emploi.
+  \item La construction automatisée d'une chaîne de compilation croisée.
+  \end{itemize}
+}
+\defagendaitem
+{crosscompile}
+{lab}
+{Cross compiling toolchain}
+{
+  \begin{itemize}
+  \item Getting and configuring Crosstool-NG
+  \item Executing it to build a custom cross-compilation toolchain
+  \item Exploring the contents of the toolchain
+  \end{itemize}
+}
+{Chaîne de compilation croisée}
+{
+  \begin{itemize}
+  \item Configuration de Crosstool-NG
+  \item Exécution pour construire une chaîne de compilation croisée
+    personnalisée reposant sur la uClibc.
+  \item Exploration du contenu d'une chaîne de compilation croisée
+  \end{itemize}
+}
+\defagendaitem
+{bootprocess}
+{lecture}
+{Boot process, firmware, bootloaders}
+{
+  \begin{itemize}
+  \item Booting process of embedded platforms, focus on the {\em x86}
+    and {\em ARM} architectures
+  \item Boot process and bootloaders on {\em x86} platforms (legacy
+    and UEFI)
+  \item Boot process on ARM platforms: ROM code, bootloaders, {\em ARM
+      Trusted Firmware}
+  \item Focus on U-Boot: configuration, installation, and usage.
+  \item U-Boot commands, U-Boot environment, U-Boot scripts, U-Boot
+    generic distro boot mechanism
+  \end{itemize}
+}
+{Processus de démarrage, firmware, chargeurs de démarrage}
+{
+  \begin{itemize}
+  \item Processus de démarrage des systèmes embarqués, focus sur les
+    architectures {\em x86} et {\em ARM}
+  \item Processus de démarrage et chargeurs de démarrage sur
+    plateformes {\em x86} (legacy et UEFI)
+  \item Processus de démarrage sur plateformes {\em ARM} : code en ROM,
+    chargeurs de démarrage, {\em ARM Trusted Firmware}
+  \item Focus sur U-Boot : configuration, installation et utilisation
+  \item Commandes U-Boot, environnement U-Boot, scripts U-Boot,
+    mécanisme {\em distro boot command} de U-Boot
+  \end{itemize}
+}
+\defagendaitem
+{uboot}
+{lab}
+{Bootloader and U-boot}
+{
+  \begin{itemize}
+  \item Set up serial communication with the board.
+  \item Configure, compile and install U-Boot for the target hardware.
+  \item Only on STM32MP1: configure, compile and install Trusted Firmware-A
+  \item Become familiar with U-Boot environment and commands.
+  \item Set up TFTP communication with the board. Use TFTP U-Boot
+    commands.
+  \end{itemize}
+
+  \vspace{0.5cm}
+  {\em Using the embedded hardware platform.}
+}
+{U-Boot}
+{
+  \begin{itemize}
+  \item Mise en place de la communication série avec la carte.
+  \item Configuration, compilation et installation d'U-Boot sur la
+    plateforme embarquée.
+  \item Seulement sur STM32MP1 : Configuration, compilation et
+    installation de Trusted Firmware-A sur la plateforme embarquée.
+  \item Familiarisation avec l'environnement et les commandes
+    d'U-Boot.
+  \item Mise en place de la communication TFTP avec la carte.
+    Utilisation des commandes TFTP d'U-Boot.
+  \end{itemize}
+
+  \vspace{0.5cm}
+  {\em Mise en oeuvre sur la plateforme embarquée.}
+}
+\defagendaitem
+{kernel}
+{lecture}
+{Linux kernel}
+{
+  \begin{itemize}
+  \item Role and general architecture of the Linux kernel
+  \item Separation between kernel and user-space, and interfaces
+    between user-space and the Linux kernel
+  \item Understanding Linux kernel versions: choosing between
+    vendor-provided kernel and upstream kernel, {\em Long Term
+      Support} versions
+  \item Getting the Linux kernel source code
+  \end{itemize}
+}
+{Noyau Linux}
+{
+  \begin{itemize}
+  \item Rôle et architecture générale du noyau Linux.
+  \item Séparation entre noyau et espace utilisateur, interfaces entre
+    l'espace utilisateur et le noyau
+  \item Comprendre les différentes versions du noyau Linux : choix
+    entre versions proposées par les fabricants et la version {\em
+      upstream}, versions {\em Long Term Support}
+  \item Récupérer les sources du noyau Linux
+  \end{itemize}
+}
+\defagendaitem
+{fetchkernel}
+{lab}
+{Fetching Linux kernel sources}
+{
+  \begin{itemize}
+  \item Clone the mainline Linux tree
+  \item Accessing stable releases
+  \end{itemize}
+}
+{Récupération des sources du noyau Linux}
+{
+  \begin{itemize}
+  \item Clonage du dépôt git officiel de Linux
+  \item Accès aux versions stables
+  \end{itemize}
+}
+\defagendaitem
+{configurekernel}
+{lecture}
+{Configuring, compiling and booting the Linux kernel}
+{
+  \begin{itemize}
+  \item Configuring the Linux kernel: ready-made configuration files,
+    configuration interfaces
+  \item Concept of {\em Device Tree}
+  \item Cross-compiling the Linux kernel
+  \item Study of the generated files and their role
+  \item Installing and booting the Linux kernel
+  \item The Linux kernel command line
+  \end{itemize}
+}
+{Configuration, compilation et démarrage du Noyau Linux}
+{
+  \begin{itemize}
+  \item Configuration du noyau Linux : configuration pré-définies,
+    interfaces de configuration
+  \item Concept de {\em Device Tree}
+  \item Cross-compilation du noyau Linux
+  \item Rôle des fichiers résultants de la compilation du noyau Linux
+  \item Installation et démarrage du noyau Linux
+  \item La ligne de commande du noyau Linux
+  \end{itemize}
+}
+\defagendaitem
+{compilekernel}
+{lab}
+{Kernel cross-compiling and booting}
+{
+  \begin{itemize}
+  \item Configuring the Linux kernel and cross-compiling it for the
+    embedded hardware platform.
+  \item Downloading your kernel on the board through U-boot's TFTP
+    client.
+  \item Booting your kernel.
+  \item Automating the kernel boot process with U-Boot scripts.
+  \end{itemize}
+
+  \vspace{0.5cm}
+  {\em Using the embedded hardware platform}
+}
+{Compilation croisée du noyau et démarrage sur la carte}
+{
+  \begin{itemize}
+  \item Configuration du noyau Linux et compilation croisée pour la
+    plateforme embarquée.
+  \item Téléchargement du noyau en utilisant le client TFTP d'U-Boot.
+  \item Démarrage du noyau depuis la RAM.
+  \item Automatisation du démarrage du noyau avec des scripts U-Boot.
+  \end{itemize}
+
+  \vspace{0.5cm}
+  {\em Mise en oeuvre sur la plateforme embarquée.}
+}
+\defagendaitem
+{rootfs}
+{lecture}
+{Root filesystem in Linux}
+{
+  \begin{itemize}
+  \item Filesystems in Linux.
+  \item Role and organization of the root filesystem.
+  \item Location of the root filesystem: on storage, in memory,
+        from the network.
+  \item Device files, virtual filesystems.
+  \item Contents of a typical root filesystem.
+  \end{itemize}
+}
+{Système de fichier racine}
+{
+  \begin{itemize}
+  \item Les systèmes de fichiers dans Linux.
+  \item Rôle et organisation du système de fichiers racine.
+  \item Localisation de ce système de fichiers : sur espace
+	de stockage, en mémoire, sur le réseau.
+  \item Les fichiers device, les systèmes de fichiers virtuels.
+  \item Contenu type d'un système de fichiers racine.
+  \end{itemize}
+}
+\defagendaitem
+{busybox}
+{lecture}
+{BusyBox}
+{
+  \begin{itemize}
+  \item Detailed overview. Detailed features.
+  \item Configuration, compiling and deploying.
+  \end{itemize}
+}
+{BusyBox}
+{
+  \begin{itemize}
+  \item Présentation de BusyBox. Intérêt pour les systèmes embarqués.
+  \item Configuration, compilation et installation.
+  \end{itemize}
+}
+\defagendaitem
+{busybox}
+{lab}
+{Tiny root filesystem built from scratch with BusyBox}
+{
+  \begin{itemize}
+  \item Setting up a kernel to boot your system on a workstation
+    directory exported by NFS
+  \item Passing kernel command line parameters to boot on NFS
+  \item Creating the full root filesystem from scratch.
+    Populating it with BusyBox based utilities.
+  \item System startup using BusyBox \code{init}
+  \item Using the BusyBox HTTP server.
+  \item Controlling the target from a web browser on the PC host.
+  \item Setting up shared libraries on the target and compiling
+    a sample executable.
+  \end{itemize}
+
+  \vspace{0.5cm}
+  {\em Using the embedded hardware platform}
+}
+{Construction d'un minuscule système Linux embarqué avec BusyBox}
+{
+  \begin{itemize}
+  \item Construction à partir de zéro d'un système de fichiers racine
+    contenant un système Linux embarqué
+  \item Mise en place d'un noyau permettant de démarrer le système
+    depuis un répertoire mis à disposition par la station de
+    développement au travers de NFS.
+  \item Passage de paramètres au noyau pour le démarrage avec NFS.
+  \item Création complète du système de fichiers à partir de zéro :
+    installation de BusyBox, création des fichiers spéciaux pour les
+    périphériques.
+  \item Initialisation du système en utilisant le programme init de BusyBox.
+  \item Utilisation du serveur HTTP de BusyBox.
+  \item Contrôle de la cible à partir d'un navigateur Web sur la
+    station de développement.
+  \item Mise en place des bibliothèques partagées sur la cible et
+    développement d'une application d'exemple.
+  \end{itemize}
+
+  \vspace{0.5cm}
+  {\em Mise en oeuvre sur la plateforme embarquée.}
+}
+\defagendaitem
+{accessinghardware}
+{lecture}
+{Accessing hardware devices}
+{
+  \begin{itemize}
+  \item How to access hardware on popular busses: USB, SPI, I2C, PCI
+  \item Usage of kernel drivers and direct user-space access
+  \item The {\em Device Tree} syntax, and how to use it to describe
+    additional devices and pin-muxing
+  \item Finding Linux kernel drivers for specific hardware devices
+  \item Using kernel modules
+  \item Hardware access using \code{/dev} and \code{/sys}
+  \item User-space interfaces for the most common hardware devices:
+    storage, network, GPIO, LEDs, audio, graphics, video
+  \end{itemize}
+}
+{Accès aux périphériques matériels}
+{
+  \begin{itemize}
+  \item Comment accéder au matériel sur les principaux bus : USB, SPI,
+    I2C, PCI
+  \item Utilisation de pilotes de périphériques dans le noyau ou accès
+    depuis l'espace utilisateur
+  \item La syntaxe du {\em Device Tree}, et comment l'utilisation pour
+    décrire des périphériques additionnels et le multiplexage des
+    signaux.
+  \item Trouver des pilotes de périphériques dans le noyau Linux pour
+    des périphériques matériels.
+  \item Utilisation de modules noyau
+  \item Accès au matériel par \code{/dev} ou \code{/sys}
+  \item Interfaces en espace utilisateur pour les périphériques les
+    plus courants : stockage, réseau, GPIO, LEDs, audio, affichage,
+    video
+  \end{itemize}
+}
+\defagendaitem
+{accessinghardware}
+{lab}
+{Accessing hardware devices}
+{
+  \begin{itemize}
+  \item Exploring the contents of \code{/dev} and \code{/sys} and the
+    devices available on the embedded hardware platform.
+  \item Using GPIOs and LEDs.
+  \item Modifying the Device Tree to control pin multiplexing and
+        to declare an I2C-connected joystick.
+  \item Adding support for a USB audio card using Linux kernel modules
+  \item Adding support for the I2C-connected joystick through
+        an out-of-tree module.
+  \end{itemize}
+
+  \vspace{0.5cm}
+  {\em Using the embedded hardware platform}
+}
+{Accès aux périphériques matériels}
+{
+  \begin{itemize}
+  \item Exploration du contenu de \code{/dev} et \code{/sys}, et des
+    périphériques disponibles sur la plateforme embarquée.
+  \item Utilisation de GPIOs et de LEDs.
+  \item Modification du Device Tree pour controler le multiplexage
+    de broches et déclarer un joystick connecté sur I2C.
+  \item Ajout du support pour une carte son USB en utilisant des
+    modules noyau.
+  \item Prise en charge du joystick I2C par la compilation et
+    l'installation d'un module noyau externe.
+  \end{itemize}
+
+  \vspace{0.5cm}
+  {\em Mise en oeuvre sur la plateforme embarquée.}
+}
+\defagendaitem
+{blockfs}
+{lecture}
+{Block filesystems}
+{
+  \begin{itemize}
+  \item Accessing and partitioning block devices.
+  \item Filesystems for block devices.
+  \item Usefulness of journaled filesystems.
+  \item Read-only block filesystems.
+  \item RAM filesystems.
+  \item How to create each of these filesystems.
+  \item Suggestions for embedded systems.
+  \end{itemize}
+}
+{Système de fichiers bloc}
+{
+  \begin{itemize}
+  \item Accéder et partitionner des périphériques bloc.
+  \item Systèmes de fichiers pour périphériques bloc.
+  \item Utilité des systèmes de fichiers journalisés.
+  \item Systèmes de fichiers en lecture seule.
+  \item Systèmes de fichiers en RAM.
+  \item Création de chacun de ces systèmes de fichiers.
+  \item Suggestions pour les systèmes embarqués.
+  \end{itemize}
+}
+\defagendaitem
+{blockfs}
+{lab}
+{Block filesystems}
+{
+  \begin{itemize}
+  \item Creating partitions on your SD card
+  \item Booting a system with a mix of filesystems: {\em SquashFS} for
+    the root filesystem, {\em ext4} for system data, and {\em
+      tmpfs} for temporary system files.
+  \end{itemize}
+
+  \vspace{0.5cm}
+  {\em Using the embedded hardware platform}
+}
+{Système de fichiers bloc}
+{
+  \begin{itemize}
+  \item Créer des partitions sur le stockage bloc.
+  \item Démarrage d'un système avec un assemblage de plusieurs systèmes
+    de fichiers : SquashFS pour le système de fichier racine, ext4 pour
+    les données du système et tmpfs pour les fichiers temporaires.
+  \end{itemize}
+  \vspace{0.5cm}
+  {\em Mise en oeuvre sur la plateforme embarquée.}
+}
+\defagendaitem
+{flashfs}
+{lecture}
+{Flash filesystems}
+{
+  \begin{itemize}
+  \item The Memory Technology Devices (MTD) filesystem.
+  \item Filesystems for MTD storage: JFFS2, Yaffs2, UBIFS.
+  \item Kernel configuration options
+  \item MTD storage partitions.
+  \item Focus on today's best solution, UBI and UBIFS:
+	preparing, flashing and using UBI images.
+  \end{itemize}
+
+  \vspace{0.5cm}
+
+  {\em Note: as the embedded hardware platform used for the labs does
+    not have any flash-based storage, this lecture will not be
+    illustrated with a corresponding practical lab.}
+}
+{Système de fichiers pour flash}
+{
+  \begin{itemize}
+  \item Le sous-système Memory Technology Devices du noyau Linux.
+  \item Les systèmes de fichiers pour le stockage MTD : JFFS2, YAFFS2,
+    UBIFS.
+  \item Options de configuration du noyau.
+  \item Partitions MTD.
+  \item Étude en détail de UBI et UBIFS : préparation, flashage et mise
+    en oeuvre d'images UBI.
+  \end{itemize}
+
+  \vspace{0.5cm}
+
+  {\em Note : la plateforme embarquée utilisée pour les labs ne
+    comportant pas de mémoire flash NAND en accès direct, cette partie
+    du cours ne sera pas illustrée avec un TP correspondant.}
+}
+\defagendaitem
+{crosscompileapp}
+{lecture}
+{Cross-compiling user-space libraries and applications}
+{
+  \begin{itemize}
+  \item Configuring, cross-compiling and installing applications and
+    libraries.
+  \item Concept of build system, and overview of a few common build
+    systems used by open-source projects: Makefile, {\em autotools},
+    {\em CMake}, {\em meson}
+  \item Overview of the common issues encountered when
+    cross-compiling.
+  \end{itemize}
+}
+{Cross-compilation de bibliothèques et d'applications espace utilisateur}
+{
+  \begin{itemize}
+  \item Configuration, compilation croisée et installation
+    d'applications et de bibliothèques
+  \item Concept de {\em build system}, et aperçu de quelques {\em
+      build systems} courants utilisés dans les projets open-source :
+    {\em Makefile}, {\em autotools}, {\em CMake}, {\em meson}
+  \item Aperçu des problématiques courantes rencontrées lors de la
+    compilation croisée
+  \end{itemize}
+}
+\defagendaitem
+{crosscompileapp}
+{lab}
+{Cross-compiling applications and libraries}
+{
+  \begin{itemize}
+  \item Manual cross-compilation of several open-source libraries and
+    applications for an embedded platform.
+  \item Learning about common pitfalls and issues, and their
+    solutions.
+  \item This includes compiling {\em alsa-utils} package,
+    and using its \code{speaker-test} program to test that
+    audio works on the target.
+  \end{itemize}
+
+  \vspace{0.5cm}
+  {\em Using the embedded hardware platform}
+}
+{Compilation croisée de bibliothèques et d'applications}
+{
+  \begin{itemize}
+  \item Compilation croisée manuelle de plusieurs bibliothèques et
+    applications open-source pour une plateforme embarquée.
+  \item Apprentissage des principales techniques et des problèmes
+    principaux.
+  \item Cela inclut la compilation du composant {\em alsa-utils},
+     et l'utilisation de son programme \code{speaker-test} pour
+     vérifier que l'audio fonctionne sur la cible.
+  \end{itemize}
+
+  \vspace{0.5cm}
+  {\em Mise en oeuvre sur la plateforme embarquée.}
+}
+\defagendaitem
+{buildsystem}
+{lecture}
+{Embedded system building tools}
+{
+  \begin{itemize}
+  \item Approaches for building embedded Linux systems: build systems
+    and binary distributions
+  \item Principle of {\em build systems}, overview of Yocto
+    Project/OpenEmbedded and Buildroot.
+  \item Principle of {\em binary distributions} and useful tools,
+    focus on Debian/Ubuntu
+  \item Specialized software frameworks/distributions: Tizen, AGL,
+    Android
+  \end{itemize}
+}
+{Outils de construction de systèmes}
+{
+  \begin{itemize}
+  \item Les différentes approches pour construire un système Linux
+    embarqué : {\em build systems} et distributions binaires
+  \item Principe d'un {\em build system}, aperçu de Yocto
+    Project/OpenEmbedded et de Buildroot
+  \item Principe d'une {\em distribution binaire} et outils associés,
+    focus sur Debian et Ubuntu
+  \item Piles logicielles standards : Tizen, AGL, Android
+  \end{itemize}
+}
+\defagendaitem
+{buildroot}
+{lab}
+{System build with Buildroot}
+{
+  \begin{itemize}
+  \item Using Buildroot to rebuild the same basic system
+        plus a sound playing server ({\em MPD}) and a
+        client to control it ({\em mpc}).
+  \item Driving music playback, directly from the target,
+        and then remotely through an MPD client on the
+	host machine.
+  \item Analyzing dependencies between packages.
+  \end{itemize}
+
+  \vspace{0.5cm}
+  {\em Using the embedded hardware platform}
+}
+{Construction d'un système avec Buildroot}
+{
+  \begin{itemize}
+  \item Utilisation de Buildroot pour construire de façon automatisée
+    le même système de base que dans le TP précédent, en y rajoutant
+    un serveur pour jouer des bandes sonores ({\em MPD}) ainsi
+    qu'un client pour piloter ce serveur ({\em mpc}).
+  \item Contrôle de la lecture audio, directement depuis la
+    cible, puis depuis un client MPD sur le PC de développement.
+  \item Analyse des dépendences entre les différents composants
+    du système.
+  \end{itemize}
+
+  \vspace{0.5cm}
+  {\em Mise en oeuvre sur la plateforme embarquée.}
+}
+\defagendaitem
+{license}
+{lecture}
+{Open source licenses and compliance}
+{
+  \begin{itemize}
+  \item Presentation of the most important open-source licenses: GPL,
+    LGPL, MIT, BSD, Apache, etc.
+  \item Concept of {\em copyleft} licenses
+  \item Differences between (L)GPL version 2 and 3
+  \item Compliance with open-source licenses: best practices
+  \end{itemize}
+}
+{Licences open-source et mise en conformité}
+{
+  \begin{itemize}
+  \item Présentation des principales licenses open-source : GPL, LGPL,
+    MIT, BSD, Apache, etc.
+  \item Concept de {\em copyleft} dans les licences open-source
+  \item Différence entre (L)GPL version 2 et 3
+  \item Mise en conformité avec les licences open-source : bonnes
+    pratiques
+  \end{itemize}
+}
+\defagendaitem
+{opensourcelinuxsoftwarestacks}
+{lecture}
+{Overview of major embedded Linux software stacks}
+{
+  \begin{itemize}
+  \item \code{systemd} as an {\em init} system
+  \item Hardware management with {\em udev}
+  \item Inter-process communication with {\em D-Bus}
+  \item The graphics software stack: DRM/KMS, X.org, Wayland, Qt, Gtk,
+    OpenGL
+  \item The multimedia software stack: Video4Linux, GStreamer,
+    Pulseaudio, Pipewire
+  \end{itemize}
+}
+{Aperçu des stack logicielles open-source majeures pour Linux embarqué}
+{
+  \begin{itemize}
+  \item \code{systemd} comme système {\em init}
+  \item Gestion du matériel avec {\em udev}
+  \item Communication inter-processus avec {\em D-Bus}
+  \item La stack logicielle pour le graphique : DRM/KMS, X.org,
+    Wayland, Qt, Gtk, OpenGL
+  \item La stack logicielle pour le multimédia : Video4Linux,
+    GStreamer, Pulseaudio, Pipewire
+  \end{itemize}
+}
+\defagendaitem
+{integration}
+{lab}
+{Integration of additional software stacks}
+{
+  \begin{itemize}
+  \item Integration of {\em systemd} as an init system
+  \item Use {\em udev} built in {\em systemd} for automatic module
+    loading
+  \end{itemize}
+
+  \vspace{0.5cm}
+  {\em Using the embedded hardware platform}
+}
+{Intégration de stack logicielles additionnelles}
+{
+  \begin{itemize}
+  \item Intégration de {\em systemd} comme système d'init
+  \item Utilisation de {\em udev} pour le chargement automatique de
+    modules
+  \end{itemize}
+
+  \vspace{0.5cm}
+  {\em Mise en oeuvre sur la plateforme embarquée.}
+}
+\defagendaitem
+{debugging}
+{lecture}
+{Application development and debugging}
+{
+  \begin{itemize}
+  \item Programming languages and libraries available.
+  \item Build system for your application, an overview of {\em CMake}
+    and {\em meson}
+  \item The {\em gdb} debugger: remote debugging with {\em gdbserver},
+    post-mortem debugging with \code{core} files
+  \item Performance analysis, tracing and profiling tools, memory
+    checkers: \code{strace}, \code{ltrace}, \code{perf},
+    \code{valgrind}
+  \end{itemize}
+}
+{Développement et déboguage d'application}
+{
+  \begin{itemize}
+  \item Langages de programmations et bibliothèques disponibles.
+  \item {\em Build system} pour votre application, un aperçu de {\em
+      CMake} et {\em Meson}
+  \item Le débogueur {\em gdb} : déboguage d'applications à distance
+    avec gdb et gdbserver, analyse post-mortem d'une application.
+  \item Analyse de performance, outils de {\em tracing} et {\em
+      profiling}, analyseurs mémoire : \code{strace}, \code{ltrace},
+    \code{perf}, \code{valgrind}
+  \end{itemize}
+}
+\defagendaitem
+{debugging}
+{lab}
+{Application development and debugging}
+{
+  \begin{itemize}
+  \item Creating an application that uses an I2C-connected joystick to
+    control an audio player.
+  \item Setting up an IDE to develop and remotely debug an
+    application.
+  \item Using {\em strace}, {\em ltrace}, {\em gdbserver} and {\em
+      perf} to debug/investigate buggy applications on the embedded
+    board.
+  \end{itemize}
+
+  \vspace{0.5cm}
+  {\em Using the embedded hardware platform}
+}
+{Développement et déboguage d'application}
+{
+  \begin{itemize}
+  \item Création d'une application qui utilise un joystick connecté
+    sur I2C pour contrôler un player audio.
+  \item Mise en place d'un IDE pour le développement et le déboguage
+    d'une application.
+  \item Utilisation de {\em strace}, {\em ltrace}, {\em gdbserver} et
+    {\em perf} pour déboguer/investiguer des applications
+    problématiques sur la plateforme embarquée.
+  \end{itemize}
+  {\em Mise en oeuvre sur la plateforme embarquée.}
+}
+\defagendaitem
+{resources}
+{lecture}
+{Useful resources}
+{
+  \begin{itemize}
+  \item Books about embedded Linux and system programming
+  \item Useful online resources
+  \item International conferences
+  \end{itemize}
+}
+{Ressources utiles}
+{
+  \begin{itemize}
+  \item Livres sur Linux embarqué et la programmation système
+  \item Ressources sur Internet
+  \item Conférences internationales
+  \end{itemize}
+}
+
+\def \onlineagenda {
+  \showagendaday{1}
+  \showagendaitem{intro}{lecture}
+  \showagendaitem{crosscompile}{lecture}
+  \showagendaitem{crosscompile}{lab}
+  \showagendaitem{bootprocess}{lecture}
+  \showagendaday{2}
+  \showagendaitem{uboot}{lab}
+  \showagendaitem{kernel}{lecture}
+  \showagendaitem{fetchkernel}{lab}
+  \showagendaitem{configurekernel}{lecture}
+  \showagendaitem{compilekernel}{lab}
+  \showagendaday{3}
+  \showagendaitem{rootfs}{lecture}
+  \showagendaitem{busybox}{lecture}
+  \showagendaitem{busybox}{lab}
+  \showagendaday{4}
+  \showagendaitem{accessinghardware}{lecture}
+  \showagendaitem{accessinghardware}{lab}
+  \showagendaitem{blockfs}{lecture}
+  \showagendaitem{blockfs}{lab}
+  \showagendaday{5}
+  \showagendaitem{flashfs}{lecture}
+  \showagendaitem{crosscompileapp}{lecture}
+  \showagendaitem{crosscompileapp}{lab}
+  \showagendaday{6}
+  \showagendaitem{buildsystem}{lecture}
+  \showagendaitem{buildroot}{lab}
+  \showagendaitem{license}{lecture}
+  \showagendaitem{opensourcelinuxsoftwarestacks}{lecture}
+  \showagendaday{7}
+  \showagendaitem{integration}{lab}
+  \showagendaitem{debugging}{lecture}
+  \showagendaitem{debugging}{lab}
+  \showagendaitem{resources}{lecture}
+}
+
+\def \onsiteagenda {
+  \showagendaday{1}
+  \showagendaitem{intro}{lecture}
+  \showagendaitem{crosscompile}{lecture}
+  \showagendaitem{crosscompile}{lab}
+  \showagendaday{2}
+  \showagendaitem{bootprocess}{lecture}
+  \showagendaitem{uboot}{lab}
+  \showagendaday{3}
+  \showagendaitem{kernel}{lecture}
+  \showagendaitem{fetchkernel}{lab}
+  \showagendaitem{configurekernel}{lecture}
+  \showagendaitem{compilekernel}{lab}
+  \showagendaday{4}
+  \showagendaitem{rootfs}{lecture}
+  \showagendaitem{busybox}{lecture}
+  \showagendaitem{busybox}{lab}
+  \showagendaday{5}
+  \showagendaitem{accessinghardware}{lecture}
+  \showagendaitem{accessinghardware}{lab}
+  \showagendaday{6}
+  \showagendaitem{blockfs}{lecture}
+  \showagendaitem{blockfs}{lab}
+  \showagendaitem{flashfs}{lecture}
+  \showagendaday{7}
+  \showagendaitem{crosscompileapp}{lecture}
+  \showagendaitem{crosscompileapp}{lab}
+  \showagendaday{8}
+  \showagendaitem{buildsystem}{lecture}
+  \showagendaitem{buildroot}{lab}
+  \showagendaitem{license}{lecture}
+  \showagendaday{9}
+  \showagendaitem{opensourcelinuxsoftwarestacks}{lecture}
+  \showagendaitem{integration}{lab}
+  \showagendaday{10}
+  \showagendaitem{debugging}{lecture}
+  \showagendaitem{debugging}{lab}
+  \showagendaitem{resources}{lecture}
+}
