@@ -1,4 +1,5 @@
 \usepackage{ifthen}
+\input{agenda/common.inc}
 \def \training{kernel}
 
 % Title
@@ -100,3 +101,857 @@
 % Time ratio
 \def \onsitelecturetimeratio{50}
 \def \onsitelabtimeratio{50}
+
+% Agenda items
+
+\defagendaitem
+{intro}
+{lecture}
+{Introduction to the Linux kernel}
+{
+  \begin{itemize}
+  \item Roles of the Linux kernel
+  \item Kernel user interface (/proc and /sys)
+  \item Overall architecture
+  \item Versions of the Linux kernel
+  \item Kernel source tree organization
+  \end{itemize}
+}
+{Introduction au noyau Linux}
+{
+  \begin{itemize}
+  \item Fonctionnalités et rôle du noyau.
+  \item L'interface noyau / espace utilisateur (/proc et /sys).
+  \item Architecture générale
+  \item Versions du noyau Linux
+  \item Organisation du code source
+  \end{itemize}
+}
+\defagendaitem
+{fetchkernel}
+{lab}
+{Downloading the Linux kernel source code}
+{
+  \begin{itemize}
+  \item Download the Linux kernel code from Git
+  \end{itemize}
+}
+{Téléchargement du noyau Linux}
+{
+  \begin{itemize}
+  \item Téléchargement du noyau Linux en utilisant Git
+  \end{itemize}
+}
+\defagendaitem
+{kernelsource}
+{lecture}
+{Linux kernel source code}
+{
+  \begin{itemize}
+  \item Specifics of Linux kernel development
+  \item Coding standards
+  \item Stability of interfaces
+  \item Licensing aspects
+  \item User-space drivers
+  \end{itemize}
+}
+{Le code source du noyau}
+{
+  \begin{itemize}
+  \item Spécificités du développement noyau
+  \item Conventions de codage
+  \item Stabilité des interfaces
+  \item Aspects juridiques : license
+  \item Pilotes de périphérique en espace utilisateur
+  \end{itemize}
+}
+\defagendaitem
+{kernelsource}
+{lab}
+{Kernel sources}
+{
+  \begin{itemize}
+  \item Making searches in the Linux kernel sources: looking for C
+    definitions, for definitions of kernel configuration parameters,
+    and for other kinds of information.
+  \item Using the UNIX command line and then kernel source code
+    browsers.
+ \end{itemize}
+}
+{Code source du noyau}
+{
+  \begin{itemize}
+  \item Effectuer des recherches dans les sources du noyau Linux :
+    recherche de définitions C, de paramètres de configuration et d'autres
+    informations.
+  \item En utilisant la ligne de commande UNIX et des outils de
+    navigation dans le code.
+ \end{itemize}
+}
+\defagendaitem
+{configurekernel}
+{lecture}
+{Configuring, compiling and booting the Linux kernel}
+{
+  \begin{itemize}
+  \item Kernel configuration.
+  \item Native and cross compilation. Generated files.
+  \item Booting the kernel. Kernel booting parameters.
+  \item Mounting a root filesystem on NFS.
+  \end{itemize}
+}
+{Configuration, compilation et démarrage du noyau Linux}
+{
+  \begin{itemize}
+  \item Configuration du noyau.
+  \item Compilation native et croisée. Fichiers générés.
+  \item Démarrage du noyau. Paramètres de démarrage.
+  \item Montage du système de fichiers racine par NFS.
+  \end{itemize}
+}
+\defagendaitem
+{configurekernel}
+{lab}
+{Kernel configuration, cross-compiling and booting on NFS}
+{
+  {\em Using the BeagleBone Black board}
+  \begin{itemize}
+  \item Configuring, cross-compiling and booting a Linux kernel with
+    NFS boot support.
+  \end{itemize}
+}
+{Configuration, compilation croisée et démarrage sur NFS}
+{
+  {\em En utilisant la carte BeagleBone Black}
+  \begin{itemize}
+  \item Configuration, compilation croisée et démarrage du noyau Linux
+    avec support de NFS.
+  \end{itemize}
+}
+\defagendaitem
+{kernelmodule}
+{lecture}
+{Linux kernel modules}
+{
+  \begin{itemize}
+  \item Linux device drivers
+  \item A simple module
+  \item Programming constraints
+  \item Loading, unloading modules
+  \item Module dependencies
+  \item Adding sources to the kernel tree
+  \end{itemize}
+}
+{Modules noyau Linux}
+{
+  \begin{itemize}
+  \item Pilotes de périphériques Linux
+  \item Un module simple
+  \item Contraintes de programmation
+  \item Chargement et déchargement de modules
+  \item Dépendances entre modules
+  \item Ajouter du code source à l'arbre du noyau
+  \end{itemize}
+}
+\defagendaitem
+{kernelmodule}
+{lab}
+{Writing modules}
+{
+  {\em Using the BeagleBone Black board}
+  \begin{itemize}
+  \item Write a kernel module with several capabilities.
+  \item Access kernel internals from your module.
+  \item Set up the environment to compile it
+  \end{itemize}
+}
+{Développement de module}
+{
+  {\em En utilisant la carte BeagleBone Black}
+  \begin{itemize}
+  \item Écriture d'un module noyau offrant quelques fonctionnalités
+  \item Accès aux informations internes du noyau depuis le module
+  \item Mise en place de l'environnement de compilation
+  \end{itemize}
+}
+\defagendaitem
+{describehardware}
+{lecture}
+{Describing hardware devices}
+{
+  \begin{itemize}
+  \item Discoverable hardware: USB, PCI
+  \item Non-discoverable hardware
+  \item Extensive details on Device Tree: overall syntax, properties,
+    design principles, examples
+  \end{itemize}
+}
+{Description des périphériques matériels}
+{
+  \begin{itemize}
+  \item Matériel découvrable dynamiquement : USB, PCI
+  \item Matériel non-découvrable dynamiquement
+  \item Présentation détaillée du Device Tree : syntaxe, propriétés,
+    principes de conception, exemples
+  \end{itemize}
+}
+\defagendaitem
+{describehardware}
+{lab}
+{Describing hardware devices}
+{
+  {\em Using the BeagleBone Black board}
+  \begin{itemize}
+  \item Create your own Device Tree file
+  \item Configure LEDs connected to GPIOs
+  \item Describe an I2C-connected device in the Device Tree
+  \end{itemize}
+}
+{Description des périphériques matériels}
+{
+  {\em En utilisant la carte BeagleBone Black}
+  \begin{itemize}
+  \item Créer son propre fichier Device Tree
+  \item Configurer des LEDs connectées à des GPIOs
+  \item Décrire un périphérique connecté sur I2C dans le Device Tree
+  \end{itemize}
+}
+\defagendaitem
+{pinmux}
+{lecture}
+{Pin muxing}
+{
+  \begin{itemize}
+  \item Understand the {\em pinctrl} framework of the kernel
+  \item Understand how to configure the muxing of pins
+  \end{itemize}
+}
+{"Pin muxing" (multiplexage d'entrées-sorties)}
+{
+  \begin{itemize}
+  \item Comprendre l'infrastructure {\em pinctrl} du noyau.
+  \item Comprendre comment configurer le multiplexage des
+    entrées/sorties.
+  \end{itemize}
+}
+\defagendaitem
+{pinmux}
+{lab}
+{Pin muxing}
+{
+  {\em Using the BeagleBone Black board}
+  \begin{itemize}
+  \item Configure the pinmuxing for the I2C bus used to communicate
+    with the Nunchuk
+  \item Validate that the I2C communication works using user space
+    tools
+  \end{itemize}
+}
+{Pin-muxing}
+{
+  {\em En utilisant la carte BeagleBone Black}
+  \begin{itemize}
+  \item Configurer le pin-mux pour le bus I2C utilisé pour communiquer
+    avec le Nunchuk
+  \item Valider que la communication I2C est fonctionnelle en
+    utilisant des outils en espace utilisateur
+  \end{itemize}
+}
+\defagendaitem
+{devicemodel}
+{lecture}
+{Linux device model}
+{
+  \begin{itemize}
+  \item Understand how the kernel is designed to support device
+    drivers
+  \item The device model
+  \item Binding devices and drivers
+  \item Platform devices, Device Tree
+  \item Interface in user space: \code{/sys}
+  \end{itemize}
+}
+{Le "device model" de Linux}
+{
+  \begin{itemize}
+  \item Comprendre comment le noyau est conçu pour supporter les pilotes
+    de périphériques
+  \item Le "device model"
+  \item Connexion entre périphériques et pilotes.
+  \item Périphériques "platform", le "Device Tree"
+  \item Interface en espace utilisateur avec \code{/sys}
+  \end{itemize}
+}
+\defagendaitem
+{i2c}
+{lecture}
+{Introduction to the I2C API}
+{
+  \begin{itemize}
+  \item The I2C subsystem of the kernel
+  \item Details about the API provided to kernel drivers to interact
+    with I2C devices
+  \end{itemize}
+}
+{Introduction à l'API I2C}
+{
+  \begin{itemize}
+  \item Le sous-système I2C du noyau
+  \item Détails sur l'API fournie aux pilotes du noyau pour interagir
+    avec les périphériques I2C.
+  \end{itemize}
+}
+\defagendaitem
+{i2c}
+{lab}
+{Communicate with the Nunchuk over I2C}
+{
+  {\em Using the BeagleBone Black board}
+  \begin{itemize}
+  \item Explore the content of \code{/dev} and \code{/sys} and the
+    devices available on the embedded hardware platform.
+  \item Implement a driver that registers as an I2C driver.
+  \item Communicate with the Nunchuk and extract data from it.
+  \end{itemize}
+}
+{Communiquer avec le Nunchuk via I2C}
+{
+  {\em En utilisant la carte BeagleBone Black}
+  \begin{itemize}
+  \item Explorer le contenu de \code{/dev} et \code{/sys} et les
+    périphériques disponibles sur le système embarqué
+  \item Implémenter un driver qui s'enregistre comme driver I2C
+  \item Communiquer avec le Nunchuk et lire des données depuis le
+    Nunchuk
+  \end{itemize}
+}
+\defagendaitem
+{framework}
+{lecture}
+{Kernel frameworks}
+{
+  \begin{itemize}
+  \item Block vs. character devices
+  \item Interaction of user space applications with the kernel
+  \item Details on character devices, \code{file_operations}, \code{ioctl()}, etc.
+  \item Exchanging data to/from user space
+  \item The principle of kernel frameworks
+  \end{itemize}
+}
+{Infrastructures du noyau}
+{
+  \begin{itemize}
+  \item Périphériques de type bloc et caractère
+  \item Interaction entre applications en espace utilisateur et le noyau
+  \item Détails sur les pilotes caractère,  \code{file_operations},
+    \code{ioctl()}, etc.
+  \item Échange de données vers ou depuis l'espace utilisateur
+  \item Le principe des infrastructures du noyau
+  \end{itemize}
+}
+\defagendaitem
+{input}
+{lecture}
+{The input subsystem}
+{
+  \begin{itemize}
+  \item Principle of the kernel {\em input} subsystem
+  \item API offered to kernel drivers to expose input devices
+    capabilities to user space applications
+  \item User space API offered by the {\em input} subsystem
+  \end{itemize}
+}
+{Le sous-système input}
+{
+  \begin{itemize}
+  \item Principe du sous-système {\em input} du noyau
+  \item API offerte aux pilotes du noyau pour exposer
+    des fonctionnalités de périphériques d'entrée aux
+    applications en espace utilisateur.
+  \item API en espace utilisateur offerte par le
+    sous-système {\em input}
+  \end{itemize}
+}
+\defagendaitem
+{nunchukuserspace}
+{lab}
+{Expose the Nunchuk functionality to user space}
+{
+  {\em Using the BeagleBone Black board}
+  \begin{itemize}
+  \item Extend the Nunchuk driver to expose the Nunchuk features to
+    user space applications, as a {\em input} device.
+  \item Test the operation of the Nunchuk using \code{evtest}
+  \end{itemize}
+}
+{Exposer la fonctionnalité du Nunchuk en espace utilisateur}
+{
+  {\em En utilisant la carte BeagleBone Black}
+  \begin{itemize}
+  \item Extension du pilote du Nunchuk pour exposer les fonctionnalités
+    du Nunchuk aux applications en espace utilisateur, comme
+    un périphérique d'entrée.
+  \item S'assurer du bon fonctionnement du Nunchuk via \code{evtest}
+  \end{itemize}
+}
+\defagendaitem
+{memorymanagement}
+{lecture}
+{Memory management}
+{
+  \begin{itemize}
+  \item Linux: memory management - Physical and virtual (kernel and user) address spaces.
+  \item Linux memory management implementation.
+  \item Allocating with \code{kmalloc()}.
+  \item Allocating by pages.
+  \item Allocating with \code{vmalloc()}.
+  \end{itemize}
+}
+{Gestion de la mémoire}
+{
+  \begin{itemize}
+  \item Linux : gestion de la mémoire. Espaces d'adressages physique et
+     virtuel, séparation noyau et espace utilisateur.
+  \item Implémentation de la gestion de la mémoire dans Linux.
+  \item Allocation avec \code{kmalloc()}.
+  \item Allocation par pages.
+  \item Allocation avec \code{vmalloc()}.
+  \end{itemize}
+}
+\defagendaitem
+{iomemory}
+{lecture}
+{I/O memory}
+{
+  \begin{itemize}
+  \item I/O memory range registration.
+  \item I/O memory access.
+  \item Memory ordering and barriers
+  \end{itemize}
+}
+{Entrées-sorties avec le matériel}
+{
+  \begin{itemize}
+  \item Enregistrement des plages de mémoire d'E/S.
+  \item Accès aux plages de mémoire d'E/S.
+  \item Barrières mémoire.
+  \end{itemize}
+}
+\defagendaitem
+{iomemory}
+{lab}
+{Minimal platform driver and access to I/O memory}
+{
+  {\em Using the BeagleBone Black board}
+  \begin{itemize}
+  \item Implement a minimal platform driver
+  \item Modify the Device Tree to instantiate the new serial port
+    device.
+  \item Reserve the I/O memory addresses used by the serial port.
+  \item Read device registers and write data to them, to send
+    characters on the serial port.
+  \end{itemize}
+}
+{Pilote "platform" minimal et accès à la mémoire d'E/S}
+{
+  {\em En utilisant la carte BeagleBone Black}
+  \begin{itemize}
+  \item Réalisation d'un pilote "platform" minimal
+  \item Modification du Device Tree pour ajouter un nouveau
+    port série.
+  \item Réservation des adresses d'E/S utilisées par le port série.
+  \item Lecture et écriture des registres du périphérique, pour
+    envoyer des caractères sur le port série.
+  \end{itemize}
+}
+\defagendaitem
+{miscsubsystem}
+{lecture}
+{The misc kernel subsystem}
+{
+  \begin{itemize}
+  \item What the {\em misc} kernel subsystem is useful for
+  \item API of the {\em misc} kernel subsystem, both the kernel side
+    and user space side
+  \end{itemize}
+}
+{Le sous-système misc}
+{
+  \begin{itemize}
+  \item Utilité du sous-système {\em misc} du noyau
+  \item API du sous-système {\em misc}, à la fois du côté du noyau, et
+    du côté de l'espace utilisateur.
+  \end{itemize}
+}
+\defagendaitem
+{output}
+{lab}
+{Output-only serial port driver}
+{
+  {\em Using the BeagleBone Black board}
+  \begin{itemize}
+  \item Extend the driver started in the previous lab by registering
+    it into the {\em misc} subsystem
+  \item Implement serial port output functionality through the {\em
+      misc} subsystem
+  \item Test serial output from user space
+  \end{itemize}
+}
+{Pilote de port série en écriture seule}
+{
+  {\em En utilisant la carte BeagleBone Black}
+  \begin{itemize}
+  \item Extension du pilote commencé dans le TP précédent, en
+    enregistrant celui-ci dans le sous-système {\em misc}
+  \item Implémentation de l'écriture vers le port série en
+    utilisant le sous-système {\em misc}
+  \item Tests d'écriture depuis l'espace utilisateur
+  \end{itemize}
+}
+\defagendaitem
+{processes}
+{lecture}
+{Processes, scheduling, sleeping and interrupts}
+{
+  \begin{itemize}
+  \item Process management in the Linux kernel.
+  \item The Linux kernel scheduler and how processes sleep.
+  \item Interrupt handling in device drivers: interrupt handler
+    registration and programming, scheduling deferred work.
+  \end{itemize}
+}
+{Processus, ordonnancement, sommeil et interruptions}
+{
+  \begin{itemize}
+  \item Gestion des processus dans le noyau Linux.
+  \item L'ordonnanceur du noyau Linux et la mise en sommeil des processus.
+  \item Gestion des interruptions dans les pilotes de périphérique :
+    enregistrement et développement des gestionnaires d'interruption,
+    exécution différée de tâches.
+  \end{itemize}
+}
+\defagendaitem
+{sleeping}
+{lab}
+{Sleeping and handling interrupts in a device driver}
+{
+  {\em Using the BeagleBone Black board}
+  \begin{itemize}
+  \item Adding read capability to the character driver developed
+    earlier.
+  \item Register an interrupt handler.
+  \item Waiting for data to be available in the \code{read()} file operation.
+  \item Waking up the code when data is available from the device.
+  \end{itemize}
+}
+{Mise en sommeil et gestion d'interruptions dans un pilote de périphérique}
+{
+  {\em En utilisant la carte BeagleBone Black}
+  \begin{itemize}
+  \item Ajout de la fonctionnalité de lecture au pilote caractère développé
+    précédemment.
+  \item Enregistrement d'un gestionnaire d'interruption.
+  \item Attente de la disponibilité de données dans l'opération \code{read()}
+  \item Réveil lorsque les données deviennent disponibles.
+  \end{itemize}
+}
+\defagendaitem
+{locking}
+{lecture}
+{Locking}
+{
+  \begin{itemize}
+  \item Issues with concurrent access to shared resources
+  \item Locking primitives: mutexes, semaphores, spinlocks.
+  \item Atomic operations.
+  \item Typical locking issues.
+  \item Using the lock validator to identify the sources of locking
+    problems.
+  \end{itemize}
+}
+{Verrouillage}
+{
+  \begin{itemize}
+  \item Problématique de l'accès concurrent à des ressources partagées
+  \item Primitives de verrouillage : mutexes, sémaphores, spinlocks.
+  \item Opérations atomiques.
+  \item Problèmes typiques de verrouillage.
+  \item Utilisation du validateur de verrouillage pour identifier les
+    sources de problèmes.
+  \end{itemize}
+}
+\defagendaitem
+{locking}
+{lab}
+{Locking}
+{
+  {\em Using the BeagleBone Black board}
+  \begin{itemize}
+  \item Add locking to the current driver
+  \end{itemize}
+}
+{Verrouillage}
+{
+  {\em En utilisant la carte BeagleBone Black}
+  \begin{itemize}
+  \item Ajout de mécanismes de verrouillage au pilote en cours
+  \end{itemize}
+}
+\defagendaitem
+{dma}
+{lecture}
+{DMA: Direct Memory Access}
+{
+  \begin{itemize}
+  \item Peripheral DMA vs. DMA controllers
+  \item DMA constraints: caching, addressing
+  \item Kernel APIs for DMA: \code{dma-mapping}, \code{dmaengine}, \code{dma-buf}
+  \end{itemize}
+}
+{DMA : Direct Memory Access}
+{
+  \begin{itemize}
+  \item {\em Peripheral DMA} par rapport à l'utilisation de contrôleur DMA
+  \item Contraintes du DMA : cache, adressage
+  \item APIs du noyau Linux pour le DMA : \code{dma-mapping}, \code{dmaengine}, \code{dma-buf}
+  \end{itemize}
+}
+\defagendaitem
+{dma}
+{lab}
+{DMA: Direct Memory Access}
+{
+  \begin{itemize}
+  \item Setup streaming mappings with the \code{dma} API
+  \item Configure a DMA controller with the \code{dmaengine} API
+  \item Configure the hardware to trigger DMA transfers
+  \item Wait for DMA completion
+  \end{itemize}
+}
+{DMA : Direct Memory Access}
+{
+  \begin{itemize}
+  \item Mise en place de {\em streaming mappings} avec l'API \code{dma-mapping}
+  \item COnfiguration du contrôleur DMA avec l'API \code{dmaengine}
+  \item Configurer le matériel pour lancer les transfers DMA
+  \item Attendre la fin d'un transfert DMA
+  \end{itemize}
+}
+\defagendaitem
+{debugging}
+{lecture}
+{Driver debugging techniques}
+{
+  \begin{itemize}
+  \item Debugging with printing functions
+  \item Using Debugfs
+  \item Analyzing a kernel oops
+  \item Using kgdb, a kernel debugger
+  \item Using the Magic SysRq commands
+  \end{itemize}
+}
+{Techniques de débogage noyau}
+{
+  \begin{itemize}
+  \item Débogage avec les fonctions d'affichage
+  \item Utilisation de debugfs
+  \item Analyse d'un oops noyau
+  \item Utilisation de kgdb, un débogueur noyau
+  \item Utilisation des commandes SysRq
+  \end{itemize}
+}
+\defagendaitem
+{debugging}
+{lab}
+{Investigating kernel faults}
+{
+  {\em Using the BeagleBone Black board}
+  \begin{itemize}
+  \item Studying a broken driver.
+  \item Analyzing a kernel fault message and locating the problem in the
+    source code.
+  \end{itemize}
+}
+{Investigation de bugs noyau}
+{
+  {\em En utilisant la carte BeagleBone Black}
+  \begin{itemize}
+  \item Étude d'un pilote incorrect.
+  \item Analyse du message d'erreur et recherche du problème dans le code
+    source.
+  \end{itemize}
+}
+\defagendaitem
+{arm}
+{lecture}
+{ARM board support and SoC support}
+{
+  \begin{itemize}
+  \item Understand the organization of the ARM support code
+  \item Understand how the kernel can be ported to a new hardware
+    board
+  \end{itemize}
+}
+{Support de cartes et de SoC ARM}
+{
+  \begin{itemize}
+  \item Comprendre l'organisation du code supportant la plateforme ARM
+  \item Comprendre comment le noyau peut être porté vers un nouveau
+    matériel
+  \end{itemize}
+}
+\defagendaitem
+{powermanagement}
+{lecture}
+{Power management}
+{
+  \begin{itemize}
+  \item Overview of the power management features of the kernel
+  \item Topics covered: clocks, suspend and resume, dynamic frequency
+    scaling, saving power during idle, runtime power management,
+    regulators, etc.
+  \end{itemize}
+}
+{Gestion de l'énergie}
+{
+  \begin{itemize}
+  \item Vue d'ensemble des fonctionnalités de gestion d'énergie du noyau
+    Linux.
+  \item Sujets abordés : horloges, mise en veille et réveil, ajustement
+    automatique de la fréquence, économie d'énergie dans la boucle idle,
+    "runtime power management", régulateurs, etc.
+  \end{itemize}
+}
+\defagendaitem
+{kerneldevelopment}
+{lecture}
+{The Linux kernel development process}
+{
+  \begin{itemize}
+  \item Organization of the kernel community
+  \item The release schedule and process: release candidates, stable
+    releases, long-term support, etc.
+  \item Legal aspects, licensing.
+  \item How to submit patches to contribute code to the community.
+  \item Kernel resources: books, websites, conferences
+  \end{itemize}
+}
+{Le processus de développement du noyau Linux}
+{
+  \begin{itemize}
+  \item Organisation de la communauté du noyau Linux
+  \item Le processus de développement : versions bêta, versions stables,
+    versions long-terme, etc.
+  \item Licences et aspects légaux.
+  \item Comment soumettre des contributions de code à la communauté.
+  \item Ressources pour le développement noyau : livres, sites Internet, conférences
+  \end{itemize}
+}
+\defagendaitem
+{iftimeleft}
+{lecture}
+{If time left}
+{
+  \begin{itemize}
+  \item mmap
+  \end{itemize}
+}
+{S'il reste du temps}
+{
+  \begin{itemize}
+  \item mmap
+  \end{itemize}
+}
+
+\def \onsiteagenda {
+  \showagendaday{1}
+  \showagendaitem{intro}{lecture}
+  \showagendaitem{fetchkernel}{lab}
+  \showagendaitem{kernelsource}{lecture}
+  \showagendaitem{kernelsource}{lab}
+  \showagendaday{2}
+  \showagendaitem{configurekernel}{lecture}
+  \showagendaitem{configurekernel}{lab}
+  \showagendaitem{kernelmodule}{lecture}
+  \showagendaitem{kernelmodule}{lab}
+  \showagendaday{3}
+  \showagendaitem{describehardware}{lecture}
+  \showagendaitem{describehardware}{lab}
+  \showagendaitem{pinmux}{lecture}
+  \showagendaitem{pinmux}{lab}
+  \showagendaday{4}
+  \showagendaitem{devicemodel}{lecture}
+  \showagendaitem{i2c}{lecture}
+  \showagendaitem{i2c}{lab}
+  \showagendaday{5}
+  \showagendaitem{framework}{lecture}
+  \showagendaitem{input}{lecture}
+  \showagendaitem{nunchukuserspace}{lab}
+  \showagendaday{6}
+  \showagendaitem{memorymanagement}{lecture}
+  \showagendaitem{iomemory}{lecture}
+  \showagendaitem{iomemory}{lab}
+  \showagendaday{7}
+  \showagendaitem{miscsubsystem}{lecture}
+  \showagendaitem{output}{lab}
+  \showagendaitem{processes}{lecture}
+  \showagendaitem{sleeping}{lab}
+  \showagendaday{8}
+  \showagendaitem{locking}{lecture}
+  \showagendaitem{locking}{lab}
+  \showagendaitem{dma}{lecture}
+  \showagendaitem{dma}{lab}
+  \showagendaday{9}
+  \showagendaitem{debugging}{lecture}
+  \showagendaitem{debugging}{lab}
+  \showagendaday{10}
+  \showagendaitem{arm}{lecture}
+  \showagendaitem{powermanagement}{lecture}
+  \showagendaitem{kerneldevelopment}{lecture}
+  \showagendaitem{iftimeleft}{lecture}
+}
+
+\def \onlineagenda {
+  \showagendaday{1}
+  \showagendaitem{intro}{lecture}
+  \showagendaitem{fetchkernel}{lab}
+  \showagendaitem{kernelsource}{lecture}
+  \showagendaitem{kernelsource}{lab}
+  \showagendaitem{configurekernel}{lecture}
+  \showagendaitem{configurekernel}{lab}
+  \showagendaday{2}
+  \showagendaitem{kernelmodule}{lecture}
+  \showagendaitem{kernelmodule}{lab}
+  \showagendaitem{describehardware}{lecture}
+  \showagendaitem{describehardware}{lab}
+  \showagendaday{3}
+  \showagendaitem{pinmux}{lecture}
+  \showagendaitem{pinmux}{lab}
+  \showagendaitem{devicemodel}{lecture}
+  \showagendaitem{i2c}{lecture}
+  \showagendaitem{i2c}{lab}
+  \showagendaday{4}
+  \showagendaitem{framework}{lecture}
+  \showagendaitem{input}{lecture}
+  \showagendaitem{nunchukuserspace}{lab}
+  \showagendaday{5}
+  \showagendaitem{memorymanagement}{lecture}
+  \showagendaitem{iomemory}{lecture}
+  \showagendaitem{iomemory}{lab}
+  \showagendaitem{miscsubsystem}{lecture}
+  \showagendaitem{output}{lab}
+  \showagendaday{6}
+  \showagendaitem{processes}{lecture}
+  \showagendaitem{sleeping}{lab}
+  \showagendaitem{locking}{lecture}
+  \showagendaitem{locking}{lab}
+  \showagendaday{7}
+  \showagendaitem{dma}{lecture}
+  \showagendaitem{dma}{lab}
+  \showagendaitem{debugging}{lecture}
+  \showagendaitem{debugging}{lab}
+  \showagendaitem{arm}{lecture}
+  \showagendaitem{powermanagement}{lecture}
+  \showagendaitem{kerneldevelopment}{lecture}
+  \showagendaitem{iftimeleft}{lecture}
+}
