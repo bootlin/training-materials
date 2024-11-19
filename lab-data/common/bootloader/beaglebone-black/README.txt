@@ -75,6 +75,9 @@ Then from the host, flash the image:
 
     $ snagflash -P fastboot -p 0451:d022 -f oem_format -f download:sdcard.img -f flash:1:0
 
+In case of snagflash failure, make sure you followed snagboot installation
+procedure and check you have the proper udev rules (50-snagboot.rules).
+
 Finally, return to U-Boot, exit fastboot mode using Ctrl+c and save the
 environment:
 
