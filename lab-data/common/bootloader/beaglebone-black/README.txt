@@ -34,8 +34,10 @@ instructions are provided in chapter 3.
 Follow the installation instructions at
 https://github.com/bootlin/snagboot to install snagboot.
 
-Setup the snagboot recovery environment
-by running the am335x setup script:
+/!\ Do not forget to follow the udev rules installation instructions!
+
+Setup the snagboot recovery environment by running the am335x setup script:
+
 ```
 snagrecover --am335x-setup > am335x_usb_setup.sh
 chmod a+x am335x_usb_setup.sh
@@ -74,9 +76,6 @@ Don't be upset by the following message, it's expected...
 Then from the host, flash the image:
 
     $ snagflash -P fastboot -p 0451:d022 -f oem_format -f download:sdcard.img -f flash:1:0
-
-In case of snagflash failure, make sure you followed snagboot installation
-procedure and check you have the proper udev rules (50-snagboot.rules).
 
 Finally, return to U-Boot, exit fastboot mode using Ctrl+c and save the
 environment:
