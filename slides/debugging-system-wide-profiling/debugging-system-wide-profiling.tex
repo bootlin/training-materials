@@ -1137,11 +1137,11 @@ $ lttng create my-session --set-url=net://remote-system
     \end{itemize}
     \item If a program violates one of the verifier rules, it will be rejected.
     \item Despite the presence of the verifier, you still need to be careful when
-    writing programs ! eBPF programs run with preemption enabled (but CPU
+    writing programs! eBPF programs run with preemption enabled (but CPU
     migration disabled), so they can still suffer from concurrency issues
     \begin{itemize}
-      \item Hopefully there are some mechanisms and helpers to avoid those isses,
-      like per-cpu maps types.
+      \item There are mechanisms and helpers to avoid those isses, like
+        per-CPU maps types.
     \end{itemize}
   \end{itemize}
 \end{frame}
@@ -1149,8 +1149,8 @@ $ lttng create my-session --set-url=net://remote-system
 \begin{frame}[fragile]
   \frametitle{Program types and attach points}
   \begin{itemize}
-    \item There are different "types" of places to which a program can be
-    hooked
+    \item There are different categories of hooks to which a program can be
+    attached:
     \begin{itemize}
       \item an arbitrary kprobe
       \item a kernel-defined static tracepoint
@@ -1182,9 +1182,9 @@ $ lttng create my-session --set-url=net://remote-system
     maps of different nature:
     \begin{itemize}
       \item \code{BPF_MAP_TYPE_ARRAY}: generic array storage. Can be
-      differentiated per cpu
+      differentiated per CPU
       \item \code{BPF_MAP_TYPE_HASH}: a storage composed of key-value pairs.
-      Keys can be of different types: \code{__u32}, a device type, an ip address...
+      Keys can be of different types: \code{__u32}, a device type, an IP address...
       \item \code{BPF_MAP_TYPE_QUEUE}: a FIFO-type queue
       \item \code{BPF_MAP_TYPE_CGROUP_STORAGE}: a specific hash map keyed by a
       cgroup id. There are other types of maps specific to other object types
@@ -1410,6 +1410,13 @@ b.attach_kprobe(event=b.get_syscall_fnname("clone"), fn_name="hello")
       };
     \end{minted}
   \end{block}
+
+  \begin{itemize}
+  \item The fields to define in the \code{*_args} structure are obtained
+    from the event description in \code{/sys/kernel/tracing/events} (see
+    \href{https://elixir.bootlin.com/linux/v6.12/source/tools/testing/selftests/bpf/progs/test_stacktrace_map.c#L41}
+         {this example})
+  \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]
@@ -1480,7 +1487,7 @@ b.attach_kprobe(event=b.get_syscall_fnname("clone"), fn_name="hello")
       \item Attach programs to hooks (so they can run)
       \item etc
     \end{itemize}
-    \item You may need to mount the bpf filesystem to be able to pin program
+    \item You may need to mount the bpf filesystem to be able to pin a program
     (needed to keep a program loaded after bpftool has finished running):
     \begin{block}{}
       \begin{minted}{console}
@@ -1695,11 +1702,11 @@ $ bpftool gen skeleton trace_execve.bpf.o name trace_execve > trace_execve.skel.
     kernel versions, because of major features introduction or change, since
     the eBPF subsystem keeps receiving frequent updates:
     \begin{itemize}
-      \item eBPF tail calls (which allow a program to call a function ) have
+      \item eBPF tail calls (which allow a program to call a function) have
       been added in version 4.2, and allow to call another program only since
       version 5.10
       \item eBPF spin locks have been added in version 5.1 to prevent
-      concurrent accesses to maps shared between cpus.
+      concurrent accesses to maps shared between CPUs.
       \item Different attach types keep being added, but possibly on different
       kernel versions when it depends on the architecture: fentry/fexit attach
       points have been added in kernel 5.5 for x86 but in 6.0 for arm32.
