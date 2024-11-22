@@ -21,7 +21,7 @@ First, compile the module on your development host using the following command l
 $ cd /home/$USER/debugging-labs/nfsroot/root/locking
 $ export CROSS_COMPILE=/home/$USER/debugging-labs/buildroot/output/host/bin/arm-linux-
 $ export ARCH=arm
-$ export KDIR=/home/$USER/debugging-labs/buildroot/output/build/linux-6.6/
+$ export KDIR=/home/$USER/debugging-labs/buildroot/output/build/linux-%\workingkernel%/
 $ make
 \end{bashinput}
 
@@ -55,7 +55,7 @@ Then compile the dummy test module on your development host:
 $ cd /home/$USER/debugging-labs/nfsroot/root/kmemleak
 $ export CROSS_COMPILE=/home/$USER/debugging-labs/buildroot/output/host/bin/arm-linux-
 $ export ARCH=arm
-$ export KDIR=/home/$USER/debugging-labs/buildroot/output/build/linux-6.6/
+$ export KDIR=/home/$USER/debugging-labs/buildroot/output/build/linux-%\workingkernel%/
 $ make
 \end{bashinput}
 
@@ -136,15 +136,15 @@ Using \code{addr2line}, find the exact source code line were the crash happened.
 For that, you can use the following command on your development host:
 
 \begin{bashinput}
-$ addr2line -e /home/$USER/debugging-labs/buildroot/output/build/linux-6.6/vmlinux
-  -a <crash_address>
+$ addr2line -e /home/$USER/debugging-labs/buildroot/output/build/linux-%\workingkernel%/vmlinux \
+	-a <crash_address>
 \end{bashinput}
 
 We can even go a step further and use the cross GDB to open vmlinux and
 locate the function and corresponding offset in assembly
 
 \begin{bashinput}
-$ ${CROSS_COMPILE}gdb /home/$USER/debugging-labs/buildroot/output/build/linux-6.6/vmlinux
+$ ${CROSS_COMPILE}gdb /home/$USER/debugging-labs/buildroot/output/build/linux-%\workingkernel%/vmlinux
 (gdb) disassemble <function>
 \end{bashinput}
 
@@ -153,7 +153,7 @@ copy/paste the OOPS message into the \code{~/debugging-labs/oops.txt} file.
 Then, using the script provided by the kernel, execute the following command:
 
 \begin{bashinput}
-$ cd /home/$USER/debugging-labs/buildroot/output/build/linux-6.6/
+$ cd /home/$USER/debugging-labs/buildroot/output/build/linux-%\workingkernel%/
 $ export ARCH=arm
 $ export CROSS_COMPILE=/home/$USER/debugging-labs/buildroot/output/host/bin/arm-linux-
 $ ./scripts/decode_stacktrace.sh vmlinux < ~/debugging-labs/oops.txt
@@ -196,7 +196,7 @@ automatically wait for a debugger to be attached. Run the cross GDB and
 attach a gdb process to KGDB with the following command:
 
 \begin{bashinput}
-$ ${CROSS_COMPILE}gdb ${HOME}/debugging-labs/buildroot/output/build/linux-6.6/vmlinux
+$ ${CROSS_COMPILE}gdb ${HOME}/debugging-labs/buildroot/output/build/linux-%\workingkernel%/vmlinux
 (gdb) target remote /dev/pts/8
 \end{bashinput}
 
@@ -221,7 +221,7 @@ Attach gdb client from your development host using the same command that was pre
 used:
 
 \begin{bashinput}
-$ ${CROSS_COMPILE}gdb /home/$USER/debugging-labs/buildroot/output/build/linux-6.6/vmlinux
+$ ${CROSS_COMPILE}gdb /home/$USER/debugging-labs/buildroot/output/build/linux-%\workingkernel%/vmlinux
 (gdb) target remote /dev/pts/8
 \end{bashinput}
 
@@ -273,7 +273,7 @@ it. On your development host, build the module:
 $ cd /home/$USER/debugging-labs/nfsroot/root/kgdb
 $ export CROSS_COMPILE=/home/$USER/debugging-labs/buildroot/output/host/bin/arm-linux-
 $ export ARCH=arm
-$ export KDIR=/home/$USER/debugging-labs/buildroot/output/build/linux-6.6/
+$ export KDIR=/home/$USER/debugging-labs/buildroot/output/build/linux-%\workingkernel%/
 $ make
 \end{bashinput}
 
@@ -296,7 +296,7 @@ The kernel will then enter KGDB mode and will wait for a gdb connection. On the
 development platform, start it and attach to the target:
 
 \begin{bashinput}$
-$ ${CROSS_COMPILE}gdb /home/$USER/debugging-labs/buildroot/output/build/linux-6.6/vmlinux
+$ ${CROSS_COMPILE}gdb /home/$USER/debugging-labs/buildroot/output/build/linux-%\workingkernel%/vmlinux
 (gdb) target remote /dev/pts/8
 \end{bashinput}
 
@@ -418,6 +418,5 @@ $ scp root@192.168.0.101:/proc/vmcore .
 You can load the \code{vmcore} file using cross GDB:
 
 \begin{bashinput}
-$ ${CROSS_COMPILE}gdb /home/$USER/debugging-labs/buildroot/output/build/linux-6.6/vmlinux \
-  vmcore
+$ ${CROSS_COMPILE}gdb /home/$USER/debugging-labs/buildroot/output/build/linux-%\workingkernel%/vmlinux vmcore
 \end{bashinput}
