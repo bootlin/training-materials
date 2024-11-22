@@ -71,12 +71,10 @@ The first step is to prepare our bpf program:
 \begin{itemize}
   \item Go to the labs directory, in \path{ebpf/libbpf} directory. In there, you will find \code{trace_programs.bpf.c}. It is the exact same eBPF program as the one used in the BCC script, but any BCC-specific API or macro has been replaced with libbpf functions or macros. Take some time to spot and understand the differences with the previous version:
     \begin{itemize}
+      \item This program may access some kernel structures at some point, so it has been prepared to benefit from CO-RE (to remain compatible between different kernel versions), that's why it depends on a \path{vmlinux.h} header that we will have to generate.
+      \item In order to manipulate kprobes, the program needs some libbpf header, and because the data manipulated by kprobes changes with the platform (it directly uses registers), we need to define the target architecture with \code{__TARGET_ARCH_arm}
       \item The code uses the \code{SEC} macro to place the eBPF program in a specific section: libbpf will use this section to learn about the program type and attach point
-      \item The program does not receive anymore already interpreted arguments from the probed function but only a \code{struct pt_regs}. It is now up to the program to perform the arguments parsing with new helpers like the \code{PT_REGS_PARMX} macros.
-      \item This program may access some kernel structures at some point, so it
-      has been prepared to benefit from CO-RE (to remain compatible between
-      different kernel versions), that's why it depends on a \path{vmlinux.h}
-      header that we will have to generate.
+      \item It also uses the \code{BPF_KPROBE} macro to allow to get access to already-interpreted arguments from the kprobes: without this macro, we would have to identify the relevant registers to parse the targeted function arguments
       \item Be careful that the \code{bpf_trace_printk} is not the same helper as the one used with BCC, and so the way to call it is slightly different
     \end{itemize}
   \item You will first need to generate the vmlinux header used in the eBPF program. You can use bpftool to do so:
