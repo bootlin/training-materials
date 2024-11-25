@@ -1,4 +1,6 @@
 \usepackage{ifthen}
+\input{agenda/common.inc}
+
 \def \training{preempt-rt}
 
 % Title
@@ -83,3 +85,240 @@
 % Time ratio
 \def \onsitelecturetimeratio{50}
 \def \onsitelabtimeratio{50}
+
+% Agenda items
+
+\defagendaitem
+{intro}
+{lecture}
+{Introduction to Real-Time behaviour and determinism}
+{
+  \begin{itemize}
+  \item Definition of a Real-Time Operating System
+  \item Specificities of multi-task systems
+  \item Common locking and prioritizing patterns
+  \item Overview of existing Real-Time Operating Systems
+  \item Approaches to bring Real-Time capabilities to Linux
+  \end{itemize}
+}
+{Introduction au comportement temps-réel et au déterminisme}
+{
+  \begin{itemize}
+  \item Définition d'un système d'exploitation temps-réel
+  \item Spécificigés des systèmes multi-tâches
+  \item Principaux patterns de verrouillage et de gestion des priorités
+  \item Aperçu des systèmes temps-réel existants
+  \item Approches pour apporter un comportement temps-réel à Linux
+  \end{itemize}
+}
+\defagendaitem
+{preemptrtpatch}
+{lecture}
+{The {\em PREEMPT\_RT} patch}
+{
+  \begin{itemize}
+  \item History and future of the {\em PREEMPT\_RT} patch
+  \item Real-Time improvements from {\em PREEMPT\_RT} in mainline Linux
+  \item The internals of {\em PREEMPT\_RT}
+  \item Interrupt handling: threaded interrupts, softirqs
+  \item Locking primitives: mutexes and spinlocks, sleeping spinlocks
+  \item Preemption models
+  \end{itemize}
+}
+{Le patch {\em PREEMPT\_RT}}
+{
+  \begin{itemize}
+  \item Histoire et avenir du patch {\em PREEMPT\_RT}
+  \item Améliorations temps-réel provenant de {\em PREEMPT\_RT} dans le noyau Linux officiel
+  \item Fonctionnement interne de {\em PREEMPT\_RT}
+  \item Gestion des interruptions : interruptions threadées, softirqs
+  \item Primitives de verouillage : mutexes et spinlocks, spinlocks avec sommeil
+  \item Modèles de préemption
+  \end{itemize}
+}
+\defagendaitem
+{buildkernel}
+{lab}
+{Building a mainline Linux Kernel with the {\em PREEMPT\_RT} patch}
+{
+  \begin{itemize}
+  \item Downloading the Linux Kernel, and applying the patch
+  \item Configuring the Kernel
+  \item Booting the Kernel on the target hardware
+ \end{itemize}
+}
+{Compiler un noyau Linux avec {\em PREEMPT\_RT}}
+{
+  \begin{itemize}
+  \item Télécharger le noyau Linux et appliquer le patch {\em PREEMPT\_RT}
+  \item Configurer le noyau Linux
+  \item Démarrer le kernel sur une plateforme matérielle
+ \end{itemize}
+}
+\defagendaitem
+{configuration}
+{lecture}
+{Hardware configuration and limitations for Real-Time}
+{
+  \begin{itemize}
+  \item Interrupts and deep firmware
+  \item Interaction with power management features: CPU frequency
+    scaling and sleep states
+  \item DMA
+  \end{itemize}
+}
+{Configuration et limites du matériel pour le temps-réel}
+{
+  \begin{itemize}
+  \item Interruptions et firmware
+  \item Interaction avec les fonctionnalités de gestion d'énergie :
+    gestion dynamique de la fréquence du CPU et états de sommeil
+  \item DMA
+  \end{itemize}
+}
+\defagendaitem
+{tools}
+{lecture}
+{Tools: Benchmarking, Stressing and Analyzing}
+{
+  \begin{itemize}
+  \item Benchmarking with {\em cyclictest}
+  \item System stressing with {\em stress-ng} and {\em hackbench}
+  \item The Linux Kernel tracing infrastructure
+  \item Latency and scheduling analysis with {\em ftrace}, {\em
+      kernelshark} or {\em LTTng}
+  \end{itemize}
+}
+{Outils : Benchmarking, Stress et Analyse}
+{
+  \begin{itemize}
+  \item Benchmarking avec {\em cyclictest}
+  \item Stress du système avec {\em stress-ng} et {\em hackbench}
+  \item L'infrastructure de {\em tracing} du noyau Linux
+  \item Analyse de la latence et de l'ordonnancement avec {\em
+      ftrace}, {\em kernelshark} ou {\em LTTng}
+  \end{itemize}
+}
+\defagendaitem
+{tools}
+{lab}
+{Tools: Benchmarking, Stressing and Analyzing}
+{
+  \begin{itemize}
+  \item Usage of benchmarking and stress tools
+  \item Common benchmarking techniques
+  \item Benchmarking and configuring the hardware platform
+  \end{itemize}
+}
+{Outils : Benchmarking, Stress et Analyse}
+{
+  \begin{itemize}
+  \item Utilisation des outils de benchmark et de stress
+  \item Techniques classiques de benchmarking
+  \item Benchmarking et configuration de la plateforme matérielle
+  \end{itemize}
+}
+\defagendaitem
+{kernelinfrastructure}
+{lecture}
+{Kernel infrastructures and configuration}
+{
+  \begin{itemize}
+  \item Good practices when writing Linux kernel drivers
+  \item Scheduling policies and priorities: {\em SCHED\_FIFO}, {\em
+      SCHED\_RR}, {\em SCHED\_DEADLINE}
+  \item CPU and IRQ Affinity
+  \item Memory management
+  \item CPU isolation with {\em isolcpus}
+  \end{itemize}
+}
+{Infrastructures du noyau Linux et configuration}
+{
+  \begin{itemize}
+  \item Bonnes pratiques pour le développement de drivers noyau Linux
+    pour des systèmes temps-réel
+  \item Politiques d'ordonnancement et priorités : {\em SCHED\_FIFO},
+    {\em SCHED\_RR}, {\em SCHED\_DEADLINE}
+  \item Affinité CPU et IRQ
+  \item Gestion mémoire
+  \item Isolution des CPUs avec {\em isolcpus}
+  \end{itemize}
+}
+\defagendaitem
+{realtime}
+{lecture}
+{Real-Time Applications programming patterns}
+{
+  \begin{itemize}
+  \item POSIX real-time API
+  \item Thread management and configuration
+  \item Memory management: memory allocation and memory locking, stack
+  \item Locking patterns: mutexes, priority inheritance
+  \item Inter-Process Communication
+  \item Signaling
+  \end{itemize}
+}
+{Patterns de développement d'applications temps-réel}
+{
+  \begin{itemize}
+  \item API POSIX pour les applications temps-réel
+  \item Gestion et configuration des threads
+  \item Gestion mémoire : allocation mémoire et verouillage mémoire, gestion de la pile
+  \item Patterns de verrouillage : mutexes, héritage de priorité
+  \item Communication inter-processus (IPC)
+  \item Signalisation
+  \end{itemize}
+}
+\defagendaitem
+{debug}
+{lab}
+{Debugging a demo application}
+{
+  \begin{itemize}
+  \item Make a demo userspace application deterministic
+  \item Use the tracing infrastructure to identify the cause of a latency
+  \item Learn how to use the POSIX API to manage threads, locking and memory
+  \item Learn how to use the CPU affinities and configure the scheduling policy
+  \end{itemize}
+}
+{Débugger une application de démonstration}
+{
+  \begin{itemize}
+  \item Créer une application de démonstration déterministe
+  \item Utiliser l'infrastructure de {\em tracing} pour identifier la source de latence
+  \item Apprendre à utiliser l'API POSIX pour gérer les threads, le verouillage, la mémoire
+  \item Apprendre à utiliser l'affinité CPU et configurer la politique d'ordonnancement
+  \end{itemize}
+}
+
+\def \onlineagenda {
+  \showagendaday{1}
+  \showagendaitem{intro}{lecture}
+  \showagendaitem{preemptrtpatch}{lecture}
+  \showagendaitem{buildkernel}{lab}
+  \showagendaitem{configuration}{lecture}
+  \showagendaday{2}
+  \showagendaitem{tools}{lecture}
+  \showagendaitem{tools}{lab}
+  \showagendaitem{kernelinfrastructure}{lecture}
+  \showagendaday{3}
+  \showagendaitem{realtime}{lecture}
+  \showagendaitem{debug}{lab}
+  \showagendaitem{qna}{misc}
+}
+\def \onsiteagenda {
+  \showagendaday{1}
+  \showagendaitem{intro}{lecture}
+  \showagendaitem{preemptrtpatch}{lecture}
+  \showagendaitem{buildkernel}{lab}
+  \showagendaday{2}
+  \showagendaitem{configuration}{lecture}
+  \showagendaitem{tools}{lecture}
+  \showagendaitem{tools}{lab}
+  \showagendaday{3}
+  \showagendaitem{kernelinfrastructure}{lecture}
+  \showagendaitem{realtime}{lecture}
+  \showagendaday{4}
+  \showagendaitem{debug}{lab}
+  \showagendaitem{qna}{misc}
+}
