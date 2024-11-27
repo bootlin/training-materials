@@ -1,4 +1,6 @@
 \usepackage{ifthen}
+\input{agenda/common.inc}
+
 \def \training{audio}
 
 % Title
@@ -117,3 +119,461 @@
 % Time ratio
 \def \onsitelecturetimeratio{75}
 \def \onsitedemotimeratio{25}
+
+% Agenda items
+
+\defagendaitem
+{representation}
+{lecture}
+{Digital Audio Representation}
+{
+  \begin{itemize}
+  \item What is sound?
+  \item Sampling theory
+  \item Sample size, sample rate
+  \item Audio formats: I2S, LJ, RJ, DSPA, DSPB
+  \item AC97
+  \item IEC 61937 (S/PDIF and HDMI)
+  \item PDM
+  \end{itemize}
+  \vspace{0.5em}
+  {\em Introducing the basic notions used for representing audio waveforms.}
+}
+{Représentation audio numérique}
+{
+  \begin{itemize}
+  \item Qu'est-ce que le son?
+  \item Théorie de l'échantillonage
+  \item Taille des échantillons, fréquence d'échantillonage
+  \item Formats audio : I2S, LJ, RJ, DSPA, DSPB
+  \item AC97
+  \item IEC 61937 (S/PDIF and HDMI)
+  \item PDM
+  \end{itemize}
+  \vspace{0.5em}
+  {\em Introduction des notions de base utilisées pour représenter des ondes audio.}
+}
+\defagendaitem
+{hardware}
+{lecture}
+{Hardware}
+{
+  \begin{itemize}
+  \item Signals
+  \item CPU Digital Audio Interfaces
+  \item CODEC Digital Audio Interfaces
+  \item Amplifiers
+  \item Clocks and clock providers
+  \end{itemize}
+  \vspace{0.5em}
+  {\em Presenting the hardware involved in the audio playback or capture.}
+}
+{Matériel}
+{
+  \begin{itemize}
+  \item Signaux
+  \item Interfaces audio numériques sur les System-on-chip
+  \item Interfaces audio numériques sur les codecs audio
+  \item Amplificateurs
+  \item Horloges et fournisseurs d'horloges
+  \end{itemize}
+  \vspace{0.5em}
+  {\em Présentation du matériel impliqué dans la lecture ou l'enregistrement audio.}
+}
+\defagendaitem
+{asoc}
+{lecture}
+{Linux kernel ASoC subsystem}
+{
+  \begin{itemize}
+  \item ASoC: the ALSA System-on-Chip subsystem in the Linux kernel
+  \item Describing audio cards with Device Tree: {\em
+      audio-graph-card}, {\em simple-audio-card}
+  \item Linux kernel drivers for audio cards
+  \item Linux kernel drivers for audio codecs
+  \item Controls
+  \item Linux kernel drivers for CPU audio interfaces
+  \end{itemize}
+  \vspace{0.5em}
+  {\em Introducing the Linux kernel subsystem for audio on embedded systems.}
+}
+{Le sous-système ASoC du noyau Linux}
+{
+  \begin{itemize}
+  \item ASoC : le sous-système ALSA pour les System-on-chip dans le noyau Linux
+  \item Description des cartes audio dans le Device Tree : {\em
+      audio-graph-card}, {\em simple-audio-card}
+  \item Drivers dans le noyau Linux pour les cartes audio
+  \item Drivers dans le noyau Linux pour les codecs audio
+  \item Controles audio dans le kernel
+  \item Drivers dans le noyau Linux pour les interfaces audio des
+    System-on-chip
+  \end{itemize}
+  \vspace{0.5em}
+  {\em Introduction au sous-système du noyau Linux pour la gestion audio dans les systèmes embarqués.}
+}
+\defagendaitem
+{kernelhelpers}
+{lecture}
+{Linux kernel helpers}
+{
+  \begin{itemize}
+  \item {\em regmap}, {\em regcache}
+  \item DMA handling
+  \end{itemize}
+  \vspace{0.5em}
+  {\em Presenting the common helper APIs.}
+}
+{Mécanismes supplémentaires du noyau Linux relatifs à l'audio}
+{
+  \begin{itemize}
+  \item {\em regmap}, {\em regcache}
+  \item Support DMA
+  \end{itemize}
+  \vspace{0.5em}
+  {\em Présentation des mécanismes du noyau Linux couramment utilisés en lien avec le support audio.}
+}
+\defagendaitem
+{audiocomponents}
+{lecture}
+{More audio components}
+{
+  \begin{itemize}
+  \item Auxiliary devices, amplifiers, muxing
+  \item Jack detection
+  \item Asynchronous Sample Rate Converter
+  \end{itemize}
+  \vspace{0.5em}
+  {\em Presenting more components of the sound cards.}
+}
+{Autres composants audio}
+{
+  \begin{itemize}
+  \item Périphériques auxilliaires, amplificateurs, muxing
+  \item Detection Jack
+  \item Convertisseur de fréquence d'échantillonage asynchrone
+  \end{itemize}
+  \vspace{0.5em}
+  {\em Présentation de composants supplémentaires utilisés pour certaines cartes audio.}
+}
+\defagendaitem
+{routing}
+{lecture}
+{Routing}
+{
+  \begin{itemize}
+  \item Routing audio
+  \item DAPM: Dynamic Audio Power Management
+  \end{itemize}
+  \vspace{0.5em}
+  {\em Presenting the audio routes and power management.}
+}
+{Routage}
+{
+  \begin{itemize}
+  \item Routage de flux audio
+  \item DAPM : {\em Dynamic Audio Power Management}
+  \end{itemize}
+  \vspace{0.5em}
+  {\em Présentation du routage audio et de la gestion d'énergie pour l'audio.}
+}
+\defagendaitem
+{userspacehardwareconfiguration}
+{lecture}
+{Userspace, hardware configuration}
+{
+  \begin{itemize}
+  \item ALSA plugins
+  \item \code{asound.conf}
+  \item Sound card configuration
+  \end{itemize}
+  \vspace{0.5em}
+  {\em Configuring the userspace audio paths and effects.}
+}
+{Espace utilisateur et configuation matérielle}
+{
+  \begin{itemize}
+  \item Plug-ins ALSA
+  \item \code{asound.conf}
+  \item Configuration de cartes son en espace utilisateur
+  \end{itemize}
+  \vspace{0.5em}
+  {\em Configuration des chemins et effets audio depuis l'espace utilisateur.}
+}
+\defagendaitem
+{userspacehardwareconfiguration}
+{lab}
+{Card configuration examples}
+{
+  \begin{itemize}
+  \item Reordering channels
+  \item Splitting channels
+  \item Resampling
+  \item Mixing
+  \item LADSPA
+  \end{itemize}
+  \vspace{0.5em}
+  {\em Exercising the ALSA plugins.}
+}
+{Exemples de configuration de cartes audio}
+{
+  \begin{itemize}
+  \item Changement d'ordre des canaux audio
+  \item Séparation de canaux audio
+  \item Ré-échantillonage
+  \item Mixing
+  \item LADSPA
+  \end{itemize}
+  \vspace{0.5em}
+  {\em Mise en oeuvre des plug-ins ALSA}
+}
+\defagendaitem
+{userspacecontrolconfiguration}
+{lecture}
+{Userspace, controls configuration}
+{
+  \begin{itemize}
+  \item {\em amixer}
+  \item {\em alsamixer}
+  \item Userspace API
+  \item Saving state: {\em alsactl}, \code{asound.state}
+  \end{itemize}
+  \vspace{0.5em}
+  {\em Configuring the userspace audio paths and effects.}
+}
+{Espace utilisateur et configuration des contrôles audio}
+{
+  \begin{itemize}
+  \item {\em amixer}
+  \item {\em alsamixer}
+  \item API en espace utilisateur
+  \item Sauvegarde de l'état des contrôles : {\em alsactl}, \code{asound.state}
+  \end{itemize}
+  \vspace{0.5em}
+  {\em Configuration des chemins et effets audio depuis l'espace utilisateur.}
+}
+\defagendaitem
+{userspacecontrolconfiguration}
+{lab}
+{Configuring controls}
+{
+  \begin{itemize}
+  \item {\em alsamixer} demonstration
+  \item \code{asound.state} examples
+  \item Custom application
+  \end{itemize}
+  \vspace{0.5em}
+  {\em Configuring the sound card controls.}
+}
+{Configuration des contrôles}
+{
+  \begin{itemize}
+  \item TPnstration de {\em alsamixer}
+  \item Exemples de fichiers \code{asound.state}
+  \item Application custom
+  \end{itemize}
+  \vspace{0.5em}
+  {\em Configuration des contrôles de cartes audio.}
+}
+\defagendaitem
+{userspaceplayaudio}
+{lecture}
+{Userspace, playing and capturing audio}
+{
+  \begin{itemize}
+  \item Userspace ALSA API
+  \end{itemize}
+  \vspace{0.5em}
+  {\em Playing and capturing audio samples.}
+}
+{Espace utilisateur : lecture et enregistrement audio}
+{
+  \begin{itemize}
+  \item API de ALSA en espace utilisateur
+  \end{itemize}
+  \vspace{0.5em}
+  {\em Lecture et enregistrement de samples audio}
+}
+\defagendaitem
+{troubleshooting}
+{lecture}
+{Troubleshooting}
+{
+  \begin{itemize}
+  \item Debugging
+  \item {\em vizdapm}
+  \end{itemize}
+  \vspace{0.5em}
+  {\em Presenting how to debug common issues.}
+}
+{Résolution de problèmes}
+{
+  \begin{itemize}
+  \item Résolution de problèmes courants
+  \item {\em vizdapm}
+  \end{itemize}
+  \vspace{0.5em}
+  {\em Présentation de la résolution de problèmes courants.}
+}
+\defagendaitem
+{debugging}
+{lab}
+{Debugging}
+{
+  \begin{itemize}
+  \item Examples of common issues and their resolutions
+  \end{itemize}
+}
+{Résolution de problèmes}
+{
+  \begin{itemize}
+  \item Exemples de problèmes courants et leur résolution.
+  \end{itemize}
+}
+\defagendaitem
+{pipewire}
+{lecture}
+{Pipewire}
+{
+  \begin{itemize}
+  \item Pipewire introduction
+  \item Pipewire configuration
+  \item Pipewire tools (pwdump, pw-cli, ...)
+  \item Pipewire session and policy management
+  \item Pipewire modules and filtering
+  \item {\em WirePlumber}
+  \end{itemize}
+  \vspace{0.5em}
+  {\em Using Pipewire as the sound server.}
+}
+{Pipewire}
+{
+  \begin{itemize}
+  \item Introduction à Pipewire
+  \item Configuration de Pipewire
+  \item Outils autour de Pipewire (pwdump, pw-cli, ...)
+  \item Gestion de session et de {\em policy} avec Pipewire
+  \item Modules de Pipewire et filtrage
+  \item {\em WirePlumber}
+  \end{itemize}
+  \vspace{0.5em}
+  {\em Utiliser Pipewire comme serveur audio.}
+}
+\defagendaitem
+{pipewire}
+{lab}
+{Pipewire}
+{
+  \begin{itemize}
+  \item Running pipewire on the target
+  \item Inspecting the configuration and setting properties
+  \item Dynamic routing and patchbay
+  \item Using modules and Filter-Chain
+  \end{itemize}
+  \vspace{0.5em}
+  {\em Running Pipewire and exercising advanced configuration.}
+}
+{Pipewire}
+{
+  \begin{itemize}
+  \item Lancer pipewire sur une cible embarquée
+  \item Inspecter la configuration et les propriétés
+  \item Routage dynamique et {\em patchbay}
+  \item Utilisation des modules et de {\em Filter-Chain}
+  \end{itemize}
+  \vspace{0.5em}
+  {\em Utiliser Pipewire et des configurations avancées.}
+}
+\defagendaitem
+{gstreamer}
+{lecture}
+{The GStreamer multimedia framework}
+{
+  \begin{itemize}
+  \item {\em GStreamer}
+  \item GStreamer pipelines
+  \item GStreamer plugins
+  \end{itemize}
+  \vspace{0.5em}
+  {\em Using Gstreamer for audio capture and playback.}
+}
+{Le framework multimedia GStreamer}
+{
+  \begin{itemize}
+  \item {\em GStreamer}
+  \item Pipelines GStreamer
+  \item Plugins GStreamer
+  \end{itemize}
+  \vspace{0.5em}
+  {\em Utiliser GStreamer pour la lecture et l'enregistrement audio.}
+}
+\defagendaitem
+{gstreamer}
+{lab}
+{GStreamer}
+{
+  \begin{itemize}
+  \item Running gstreamer on the target
+  \item Creating multiple pipelines
+  \end{itemize}
+  \vspace{0.5em}
+  {\em Running Gstreamer using different audio pipelines.}
+}
+{GStreamer}
+{
+  \begin{itemize}
+  \item Lancer gstreamer sur une cible embarquée
+  \item Créer différents pipelines
+  \end{itemize}
+  \vspace{0.5em}
+  {\em Exécuter Gstreamer et utiliser différents pipelines audio.}
+}
+
+\def \onlineagenda {
+  \showagendaday{1}
+  \showagendaitem{representation}{lecture}
+  \showagendaitem{hardware}{lecture}
+  \showagendaitem{asoc}{lecture}
+  \showagendaday{2}
+  \showagendaitem{kernelhelpers}{lecture}
+  \showagendaitem{audiocomponents}{lecture}
+  \showagendaitem{routing}{lecture}
+  \showagendaday{3}
+  \showagendaitem{userspacehardwareconfiguration}{lecture}
+  \showagendaitem{userspacehardwareconfiguration}{lab}
+  \showagendaitem{userspacecontrolconfiguration}{lecture}
+  \showagendaitem{userspacecontrolconfiguration}{lab}
+  \showagendaitem{userspaceplayaudio}{lecture}
+  \showagendaday{4}
+  \showagendaitem{troubleshooting}{lecture}
+  \showagendaitem{debugging}{lab}
+  \showagendaitem{pipewire}{lecture}
+  \showagendaitem{pipewire}{lab}
+  \showagendaitem{gstreamer}{lecture}
+  \showagendaitem{gstreamer}{lab}
+}
+
+\def \onsiteagenda {
+  \showagendaday{1}
+  \showagendaitem{representation}{lecture}
+  \showagendaitem{hardware}{lecture}
+  \showagendaitem{asoc}{lecture}
+  \showagendaday{2}
+  \showagendaitem{kernelhelpers}{lecture}
+  \showagendaitem{audiocomponents}{lecture}
+  \showagendaitem{routing}{lecture}
+  \showagendaday{3}
+  \showagendaitem{userspacehardwareconfiguration}{lecture}
+  \showagendaitem{userspacehardwareconfiguration}{lab}
+  \showagendaitem{userspacecontrolconfiguration}{lecture}
+  \showagendaitem{userspacecontrolconfiguration}{lab}
+  \showagendaitem{userspaceplayaudio}{lecture}
+  \showagendaday{4}
+  \showagendaitem{troubleshooting}{lecture}
+  \showagendaitem{debugging}{lab}
+  \showagendaitem{pipewire}{lecture}
+  \showagendaitem{pipewire}{lab}
+  \showagendaitem{gstreamer}{lecture}
+  \showagendaitem{gstreamer}{lab}
+}
+
