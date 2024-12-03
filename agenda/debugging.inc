@@ -1,4 +1,6 @@
 \usepackage{ifthen}
+\input{agenda/common.inc}
+
 \def \training{debugging}
 
 % Title
@@ -100,3 +102,435 @@
 % Time ratio
 \def \onsitelecturetimeratio{40}
 \def \onsitelabtimeratio{60}
+
+% Agenda items
+
+\defagendaitem
+{appstack}
+{lecture}
+{Linux application stack}
+{
+  \begin{itemize}
+  \item Global picture: understanding the general architecture of a
+        Linux system, overview of the major components.
+  \item What is the difference between a process and a thread, how
+    applications run concurrently.
+  \item ELF files and associated analysis tools.
+  \item Userspace application memory layout (heap, stack, shared
+    libraries mappings, etc).
+  \item MMU and memory management: physical/virtual address spaces.
+  \item Kernel context switching and scheduling
+  \item Kernel execution contexts: kernel threads, workqueues,
+    interrupt, threaded interrupts, softirq
+  \end{itemize}
+}
+{Pile logicielle Linux}
+{
+  \begin{itemize}
+  \item Vue d'ensemble : comprendre l'architecture général d'un système
+    Linux, aperçu des principaux composants
+  \item Différence entre un processus et un thread, comment les
+    applications fonctionnent de façon concurrente.
+  \item Fichiers ELF et outils d'analyse associés.
+  \item Organisation de l'espace d'adressage des applications : heap,
+    stack, bibliothèques partagées, etc.
+  \item MMU et gestion mémoire : espaces d'adressage physique et
+    virtuel
+  \item Contexte d'exécution dans le noyau : threads noyau, workqueues,
+    interruptions, interruptions threadées, softirq
+  \end{itemize}
+}
+\defagendaitem
+{commontools}
+{lecture}
+{Common analysis \& observability tools}
+{
+  \begin{itemize}
+  \item Analyzing an ELF file with GNU binary utilities
+    ({\em objdump}, {\em addr2line}).
+  \item Tools to monitor a Linux system: processes, memory
+    usage and mapping, resources.
+  \item Using {\em vmstat}, {\em iostat}, {\em ps}, {\em top}, {\em
+      iotop}, {\em free} and understanding the metrics they provide.
+  \item Pseudo filesystems: {\em procfs}, {\em sysfs} and {\em
+      debugfs}.
+  \end{itemize}
+}
+{Outils usuels d'analyse et d'observation}
+{
+  \begin{itemize}
+  \item Analyse d'un binaire ELF avec les outils GNU ({\em objdump},
+    {\em addr2line})
+  \item Outils pour monitorer un système Linux : processus,
+    consommation et mapping mémoire, ressources
+  \item Utilisation de {\em vmstat}, {\em iostat}, {\em ps}, {\em
+      top}, {\em iotop}, {\em free} et compréhension des métriques
+    qu'ils fournissent.
+  \item Systèmes de fichiers virtuels : {\em procfs}, {\em sysfs} et
+    {\em debugfs}
+  \end{itemize}
+}
+\defagendaitem
+{checksystem}
+{lab}
+{Check what is running on a system and its load}
+{
+  \begin{itemize}
+  \item Observe running processes using {\em ps} and {\em top}.
+  \item Check memory allocation and mapping with {\em procfs} and {\em
+      pmap}.
+  \item Monitor other resources usage using {\em iostat}, {\em vmstat}
+    and {\em netstat}.
+  \end{itemize}
+}
+{Comprendre ce qui fonctionne sur un système et sa charge}
+{
+  \begin{itemize}
+  \item Observation des processus en cours d'exécution avec {\em ps} et {\em top}
+  \item Observation des mappings mémoire avec {\em procfs} et {\em pmap}
+  \item Monitoring d'aurtres ressources avec {\em iostat}, {\em
+      vmstat} et {\em netstat}
+ \end{itemize}
+}
+\defagendaitem
+{debugapp}
+{lecture}
+{Debugging an application}
+{
+  \begin{itemize}
+  \item Using {\em gdb} on a live process.
+  \item Understanding compiler optimizations impact on debuggability.
+  \item Postmortem diagnostic using core files.
+  \item Remote debugging with {\em gdbserver}.
+  \item Extending {\em gdb} capabilities using python scripting
+  \end{itemize}
+}
+{Debug d'une application}
+{
+  \begin{itemize}
+  \item Utilisation de {\em gdb} sur un processus en cours d'exécution.
+  \item Comprendre l'impact des optimisations du compilateur sur la
+    capacité à débugger un programme.
+  \item Analyse post-mortem avec des fichiers {\em core}
+  \item Debug à distance avec {\em gdbserver}.
+  \item Étendre les capacités de {\em gdb} en utilisant des scripts
+    Python.
+  \end{itemize}
+}
+\defagendaitem
+{solvecrash}
+{lab}
+{Solving an application crash}
+{
+  \begin{itemize}
+  \item Analysis of compiled C code with compiler-explorer to understand
+    optimizations.
+  \item Managing {\em gdb} from the command line, then from an IDE.
+  \item Using {\em gdb} Python scripting capabilities.
+  \item Debugging a crashed application using a coredump with {\em gdb}.
+  \end{itemize}
+}
+{Résoudre un crash applicatif}
+{
+  \begin{itemize}
+  \item Analyse d'un code C compilé avec \code{compiler-explorer} pour
+    comprendre les optimisations.
+  \item Utilisation de {\em gdb} en ligne de commande, puis depuis un
+    IDE.
+  \item Utilisation des possibilités de scripting Python dans {\em gdb}.
+  \item Debugger une application {\em post mortem} avec un {\em core
+      dump} et {\em gdb}
+  \end{itemize}
+}
+\defagendaitem
+{tracing}
+{lecture}
+{Tracing an application}
+{
+  \begin{itemize}
+  \item Tracing system calls with {\em strace}.
+  \item Tracing library calls with {\em ltrace}.
+  \item Overloading library functions using {\em LD\_PRELOAD}.
+  \end{itemize}
+}
+{Tracing d'une application}
+{
+  \begin{itemize}
+  \item Tracing des appels systèmes avec {\em strace}.
+  \item Tracing des appels à des bibliothèques partagées avec {\em ltrace}.
+  \end{itemize}
+}
+\defagendaitem
+{debugappissue}
+{lab}
+{Debugging application issues}
+{
+  \begin{itemize}
+  \item Analyze dynamic library calls from an application using
+    {\em ltrace}.
+  \item Overloading library functions using {\em LD\_PRELOAD}.
+  \item Analyzing an application system calls using {\em strace}.
+  \end{itemize}
+}
+{Débugger des problèmes applicatifs}
+{
+  \begin{itemize}
+  \item Analyser les appels à des bibliothèques partagées d'une
+    application en utilisant {\em ltrace}.
+  \item Débugger une application qui fonctionne de manière incorrecte
+    en utilisant {\em strace}.
+  \end{itemize}
+}
+\defagendaitem
+{memory}
+{lecture}
+{Memory issues}
+{
+  \begin{itemize}
+  \item Usual memory issues: buffer overflow, segmentation fault,
+    memory leaks, heap-stack collision.
+  \item Memory corruption tooling, {\em valgrind}, {\em libefence},
+    etc.
+  \item Heap profiling using {\em Massif} and {\em heaptrack}
+  \end{itemize}
+}
+{Problèmes liés à la mémoire}
+{
+  \begin{itemize}
+  \item Problèmes classiques liés à la mémoire : {\em buffer overflow},
+    {\em segmentation fault}, fuite mémoire, collision pile/tas.
+  \item Outils de détection/investigation de problèmes mémoires : {\em
+      valgrind}, {\em libefence}, etc.
+  \item Profiling de l'utilisation du tas en utilisant {\em Massif}
+  \end{itemize}
+}
+\defagendaitem
+{memory}
+{lab}
+{Debugging memory issues}
+{
+  \begin{itemize}
+  \item Memory leak and misbehavior detection with {\em valgrind} and
+    {\em vgdb}.
+  \item Visualizing application heap using {\em Massif}.
+  \end{itemize}
+}
+{Débugger des problèmes liés à la mémoire}
+{
+  \begin{itemize}
+  \item Fuites mémoire et détection de comportement incorrects avec
+    {\em valgrind} et {\em vgdb}.
+  \item Problèmes de performance liés à une sur-allocation.
+  \item Visualisation de l'utilisation du tas par une application en
+    utilisant {\em Massif}.
+  \end{itemize}
+}
+\defagendaitem
+{appprofile}
+{lecture}
+{Application profiling}
+{
+  \begin{itemize}
+  \item Performances issues.
+  \item Gathering profiling data with {\em perf}.
+  \item Analyzing an application callgraph using {\em Callgrind}
+    and {\em KCachegrind}.
+  \item Interpreting the data recorded by {\em perf}.
+  \end{itemize}
+}
+{Profiling d'application}
+{
+  \begin{itemize}
+  \item Problèmes de performance.
+  \item Récupération d'informations de profiling avec {\em perf}.
+  \item Analyse du graphe d'appel d'une application avec {\em
+      Callgrind} et {\em KCachegrind}.
+  \item Filtrage du jeu de données récupéré.
+  \item Interprétation, des données enregistrées avec {\em perf}.
+  \end{itemize}
+}
+\defagendaitem
+{appprofile}
+{lab}
+{Application profiling}
+{
+  \begin{itemize}
+  \item Profiling an application with {\em Callgrind}/{\em
+      KCachegrind}.
+  \item Analyzing application performance with {\em perf}.
+  \item Generating a flamegraph using {\em FlameGraph}.
+  \end{itemize}
+}
+{Profiling d'application}
+{
+  \begin{itemize}
+  \item Profiling d'une application avec {\em Callgrind}/{\em
+      KCachegrind}.
+  \item Analyse des performances d'une application avec {\em perf}.
+  \item Générer un {\em flamegraph} avec {\em FlameGraph}.
+  \end{itemize}
+}
+\defagendaitem
+{profiling}
+{lecture}
+{System wide profiling and tracing}
+{
+  \begin{itemize}
+  \item System wide profiling using {\em perf}.
+  \item Using {\em kprobes} to hook on kernel code without
+    recompiling.
+    \item Application and kernel tracing and visualization using {\em
+        ftrace}, {\em kernelshark} or {\em LTTng}
+  \item Tracing with {\em eBPF}: core principles, usage with BCC and with libbpf
+  \end{itemize}
+}
+{Profiling et tracing de l'ensemble du système}
+{
+  \begin{itemize}
+  \item Profiling du système complet avec {\em perf}.
+  \item Utilisation de {\em kprobes} pour ajouter des points de trace
+    supplémentaires sans recompilation
+    \item Tracing d'application et du noyau et visualisation des traces
+      avec {\em ftrace}, {\em kernelshark} ou {\em LTTng}
+  \item Tracing avec eBPF: principes généraux, développements d'outils avec BCC
+  puis libbpf
+  \end{itemize}
+}
+\defagendaitem
+{profiling}
+{lab}
+{System wide profiling and tracing}
+{
+  \begin{itemize}
+  \item System profiling with {\em perf}.
+  \item System wide latencies debugging using {\em ftrace} and {\em
+  kernelshark}.
+  \end{itemize}
+}
+{Profiling et tracing de l'ensemble du système}
+{
+  \begin{itemize}
+  \item Profiling du système complet avec {\em perf}.
+  \item Analyse de latences système avec {\em ftrace} et {\em kernelshark}.
+  \end{itemize}
+}
+\defagendaitem
+{ebpf}
+{lab}
+{Tracing tool with eBPF}
+{
+  \begin{itemize}
+  \item Python scripting with{\em bcc}.
+  \item Custom tool development with libbpf.
+  \end{itemize}
+}
+{Développement d'outils en eBPF}
+{
+  \begin{itemize}
+  \item Scripting python avec {\em BCC}.
+  \item Développement d'un outil personnalisé de tracing avec libbpf.
+  \end{itemize}
+}
+\defagendaitem
+{kernel}
+{lecture}
+{Kernel debugging}
+{
+  \begin{itemize}
+  \item Kernel compilation results (\code{vmlinux}, \code{System.map}).
+  \item Understanding and configuring kernel {\em oops} behavior.
+  \item Post mortem analysis using kernel crash dump with {\em crash}.
+  \item Memory issues ({\em KASAN}, {\em UBSAN}, {\em Kmemleak}).
+  \item Debugging the kernel using {\em KGDB} and {\em KDB}.
+  \item Kernel locking debug configuration options (lockdep).
+  \item Other kernel configuration options that are useful for debug.
+  \end{itemize}
+}
+{Debugging du noyau Linux}
+{
+  \begin{itemize}
+  \item Sorties de la compilation du noyau Linux utiles pour le
+    debugging (\code{vmlinux}, \code{System.map}).
+  \item Comprendre et configurer le comportement des {\em kernel oops}.
+  \item Analyse post-mortem d'un crash kernel avec {\em crash}.
+  \item Problèmes mémoire au niveau kernel ({\em KASAN}, {\em UBSAN}, {\em Kmemleak}).
+  \item Debugging du noyau Linux avec {\em KGDB} et {\em KDB}.
+  \item Options du noyau Linux pour le debug des problèmes de verrous
+    (lockdep)
+  \item Autres options de configuration du noyau Linux utiles pour le
+    debug.
+  \end{itemize}
+}
+\defagendaitem
+{kernel}
+{lab}
+{Kernel debugging}
+{
+  \begin{itemize}
+  \item Analyzing an {\em oops} after using a faulty module with
+    {\em obdjump} and {\em addr2line}.
+  \item Debugging a deadlock problem using {\em PROVE\_LOCKING} options.
+  \item Detecting undefined behavior with {\em UBSAN} in kernel code.
+  \item Find a module memory leak using {\em kmemleak}.
+  \item Debugging a module with {\em KGDB}.
+  \end{itemize}
+}
+{Debugging du noyau Linux}
+{
+  \begin{itemize}
+  \item Analyse d'un {\em oops} après utilisation d'un module noyau
+    incorrect, avec {\em obdjump} et {\em addr2line}.
+  \item Debugging d'un {\em deadlock} avec les options {\em PROVE\_LOCKING}.
+  \item Détecter un {\em undefined behavior} avec {\em UBSAN} dans le noyau Linux.
+  \item Trouver une fuite mémoire avec {\em kmemleak}.
+  \item Débugger un module noyau avec {\em KGDB}.
+  \end{itemize}
+}
+
+\def \onsiteagenda {
+  \showagendaday{1}
+  \showagendaitem{appstack}{lecture}
+  \showagendaitem{commontools}{lecture}
+  \showagendaday{2}
+  \showagendaitem{checksystem}{lab}
+  \showagendaitem{debugapp}{lecture}
+  \showagendaitem{solvecrash}{lab}
+  \showagendaday{3}
+  \showagendaitem{tracing}{lecture}
+  \showagendaitem{debugappissue}{lab}
+  \showagendaitem{memory}{lecture}
+  \showagendaitem{memory}{lab}
+  \showagendaday{4}
+  \showagendaitem{appprofile}{lecture}
+  \showagendaitem{appprofile}{lab}
+  \showagendaday{5}
+  \showagendaitem{profiling}{lecture}
+  \showagendaitem{profiling}{lab}
+  \showagendaitem{ebpf}{lab}
+  \showagendaday{6}
+  \showagendaitem{kernel}{lecture}
+  \showagendaitem{kernel}{lab}
+}
+
+\def \onlineagenda {
+  \showagendaday{1}
+  \showagendaitem{appstack}{lecture}
+  \showagendaitem{commontools}{lecture}
+  \showagendaitem{checksystem}{lab}
+  \showagendaitem{debugapp}{lecture}
+  \showagendaday{2}
+  \showagendaitem{solvecrash}{lab}
+  \showagendaitem{tracing}{lecture}
+  \showagendaitem{debugappissue}{lab}
+  \showagendaitem{memory}{lecture}
+  \showagendaitem{memory}{lab}
+  \showagendaday{3}
+  \showagendaitem{appprofile}{lecture}
+  \showagendaitem{appprofile}{lab}
+  \showagendaitem{profiling}{lecture}
+  \showagendaitem{profiling}{lab}
+  \showagendaday{4}
+  \showagendaitem{ebpf}{lab}
+  \showagendaitem{kernel}{lecture}
+  \showagendaitem{kernel}{lab}
+}
