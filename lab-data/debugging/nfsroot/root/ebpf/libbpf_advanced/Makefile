@@ -9,7 +9,7 @@ vmlinux.h:
 	bpftool btf dump file $(KDIR)/vmlinux format c > vmlinux.h
 
 %.bpf.o: %.bpf.c vmlinux.h
-	clang -D__TARGET_ARCH_arm -Wall -Werror -Wextra -target bpf -g -O2 -c $< -o $@
+	clang -D__TARGET_ARCH_arm -Wall -Werror -Wextra -Wno-unused-parameter -target bpf -g -O2 -c $< -o $@
 
 %.skel.h: %.bpf.o
 	bpftool gen skeleton $< name $* > $@
