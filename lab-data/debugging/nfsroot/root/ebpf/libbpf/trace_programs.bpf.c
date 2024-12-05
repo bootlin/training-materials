@@ -8,11 +8,11 @@
 SEC("kprobe/sys_execve")
 int BPF_KPROBE(trace_execve, char *pathname, char *argv[], char *envp[])
 {
-    int pid = bpf_get_current_pid_tgid() & 0xFFFFFFFF;
-    char fmt[] = "New process %d running program %s";
+	int pid = bpf_get_current_pid_tgid() & 0xFFFFFFFF;
+	char fmt[] = "New process %d running program %s";
 
-    bpf_trace_printk(fmt, sizeof(fmt), pid, pathname);
-    return 0;
+	bpf_trace_printk(fmt, sizeof(fmt), pid, pathname);
+	return 0;
 }
 
 char LICENSE[] SEC("license") = "Dual BSD/GPL";
