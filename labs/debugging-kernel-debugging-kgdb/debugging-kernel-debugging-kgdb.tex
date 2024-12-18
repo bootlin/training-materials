@@ -2,97 +2,11 @@
 {Kernel debugging}
 {Objectives:
   \begin{itemize}
-    \item Debugging locks and sleeps mistakes using {\em PROVE\_LOCKING} and {\em
-    DEBUG\_ATOMIC\_SLEEP} options.
-    \item Find a module memory leak using {\em kmemleak}.
-    \item Analyzing an {\em oops}.
-    \item Debugging with {\em KGDB}.
-    \item Setting up {\em Kexec \& kdump}.
+	  \item Analyzing an {\em oops}.
+	  \item Debugging with {\em KGDB}.
+	  \item Setting up {\em Kexec \& kdump}.
   \end{itemize}
 }
-
-\section{Locking and sleeps problems}
-
-\kconfig{CONFIG_PROVE_LOCKING} and \kconfig{CONFIG_DEBUG_ATOMIC_SLEEP} have been
-enabled in the provided kernel image.
-First, compile the module on your development host using the following command line:
-
-\begin{bashinput}
-$ cd /home/$USER/debugging-labs/nfsroot/root/locking
-$ export CROSS_COMPILE=/home/$USER/debugging-labs/buildroot/output/host/bin/arm-linux-
-$ export ARCH=arm
-$ export KDIR=/home/$USER/debugging-labs/buildroot/output/build/linux-%\workingkernel%/
-$ make
-\end{bashinput}
-
-On the target, load the \code{locking.ko} module and look at the output in dmesg:
-
-\begin{bashinput}
-# cd /root/locking
-# insmod locking_test.ko
-# dmesg
-\end{bashinput}
-
-Once analyzed, unload the module. Try to understand and fix all the problems that
-have been reported by the \code{lockdep} system.
-
-\section{Kmemleak}
-
-The provided kernel image contains kmemleak but it is disabled by default to
-avoid having a large overhead. In order to enable it, reboot the target and enable
-kmemleak by adding \code{kmemleak=on} on the command line. Interrupt U-Boot at
-reboot and modify the \code{bootargs} variable:
-
-\begin{bashinput}
-STM32MP> env edit bootargs
-STM32MP> <existing bootargs> kmemleak=on
-STM32MP> boot
-\end{bashinput}
-
-Then compile the dummy test module on your development host:
-
-\begin{bashinput}
-$ cd /home/$USER/debugging-labs/nfsroot/root/kmemleak
-$ export CROSS_COMPILE=/home/$USER/debugging-labs/buildroot/output/host/bin/arm-linux-
-$ export ARCH=arm
-$ export KDIR=/home/$USER/debugging-labs/buildroot/output/build/linux-%\workingkernel%/
-$ make
-\end{bashinput}
-
-On the target, load the \code{kmemleak_test.ko} and trigger an immediate
-kmemleak scan using:
-
-\begin{bashinput}
-# cd /root/kmemleak
-# insmod kmemleak_test.ko
-# rmmod kmemleak_test
-# echo scan > /sys/kernel/debug/kmemleak
-\end{bashinput}
-
-Note that you might need to run the \code{scan} command several times
-before it detects a leakage due to memory still containing references to
-the leaked pointer. Soon after that, the kernel will report that some leaks
-have been identified. Display them and analyze them using:
-
-\begin{bashinput}
-# cat /sys/kernel/debug/kmemleak
-\end{bashinput}
-
-You will see that the symbols addresses do not make sense. This is due to the
-\code{kptr_restrict} configuration which must be change to allow displaying
-pointer addresses. To do so, use the following command on the target:
-
-\begin{bashinput}
-# sysctl kernel.kptr_restrict=1
-\end{bashinput}
-
-You can use \code{addr2line} to identify the location in source code of the
-lines that did cause the reports. You may need to substract module loading address:
-you can guess the address by taking a look at \code{/proc/modules} while the module
-is loaded.
-
-You will also notice other memory leaks that are actually some real memory leaks
-that did exist in the kernel version used for this training !
 
 \section{OOPS analysis}
 We noticed that the watchdog command generated a crash on the kernel. In order

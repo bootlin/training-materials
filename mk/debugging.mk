@@ -29,4 +29,5 @@ DEBUGGING_LABS = \
 	debugging-system-wide-profiling \
 	debugging-ebpf-bcc \
 	debugging-ebpf-libbpf \
-	debugging-kernel-debugging
+	debugging-kernel-debugging-frameworks \
+	debugging-kernel-debugging-kgdb
