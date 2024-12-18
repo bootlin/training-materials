@@ -90,20 +90,54 @@ $ LD_PRELOAD=./my_lib.so ./exe
 
 \subsection{uprobes and perf}
 
+\begin{frame}{Probes in linux}
+	\begin{itemize}
+    \item The linux kernel is able to dynamically add some instrumentation
+      (or "\textbf{probes}") to almost any code running on a platform,
+      either in userspace, kernel space, or both.
+    \item This mechanism works by "patching" the code at runtime to insert
+      the probe. When the patched code is executed, the probe records the
+      execution. It can also collect additional data.
+    \item There are different kinds of probes exposed by the kernel:
+			\begin{itemize}
+        \item \textbf{uprobes}: hook on almost any userspace instruction
+          and capture local data
+        \item \textbf{uretprobes}: hook on userspace function exit and
+          capture return value
+        \item \textbf{entry fprobe}: hook on kernel function entry
+        \item \textbf{exit fprobe}: hook on kernel function exit
+        \item \textbf{kprobes}: hook on almost any kernel instruction and
+          capture local data
+        \item \textbf{kretprobe}: hook on kernel function exit and capture
+          return value
+			\end{itemize}
+	\end{itemize}
+\end{frame}
+
 \begin{frame}[fragile]
   \frametitle{uprobes}
   \begin{itemize}
-    \item {\em uprobe} is a mechanism offered by the kernel allowing to trace
-          userspace code.
-    \item Tracepoints can be added dynamically on any userspace symbol
+    \item {\em uprobe} is a probe mechanism offered by the kernel allowing
+	    to trace userspace code.
+    \item Can target any userspace instruction
     \begin{itemize}
-      \item Internally patches the \code{.text} section with breakpoints
+      \item Internally patches the loaded \code{.text} section with breakpoints
         that are handled by the kernel trace system
     \end{itemize}
     \item Exposed by file \code{/sys/kernel/tracing/uprobe_events}
-    \item Often wrapped up by other tools (\code{perf}, \code{bcc} for
-          instance).
-    \item \kdochtml{trace/uprobetracer}
+    \item User is expected to compute the offset of the targeted
+	    instruction inside the corresponding VMA (containing the
+	    \code{.text} section) of the targeted process
+  \end{itemize}
+  \begin{block}{}
+	  \begin{minted}{bash}
+echo 'p /bin/bash:0x4245c0' > /sys/kernel/tracing/uprobe_events
+	  \end{minted}
+  \end{block}
+  \begin{itemize}
+	  \item Uprobes are wrapped by some common tools (e.g:
+		  \code{perf}, \code{bcc}) for easier usage
+	  \item \kdochtml{trace/uprobetracer}
   \end{itemize}
 \end{frame}
 
