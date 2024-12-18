@@ -1,61 +1,11 @@
 \subchapter
-{eBPF tracing}
+{eBPF tooling with libbpf}
 {Objectives:
   \begin{itemize}
-    \item Use BCC to easily create a custom tracing tool
-    \item Port the tool onto the target thanks to libbpf
+    \item Port our BCC tool onto the target thanks to libbpf
     \item Implement new features in our program
   \end{itemize}
 }
-
-Let's assume we have doubts about what is running on our system at any point of
-time, and that we do not have the appropriate tools to perform the
-corresponding analysis. We will then develop our own tooling with eBPF to trace any new
-program executed on the system.
-
-\section{BCC}
-
-We will first build a quick prototype with BCC and run it directly onto \textbf{our development machine} (ie not the target). Install the \code{bcc} package onto your host, and create a \code{trace_programs.py} script. Write the necessary code to trace any new program executed on the whole system. You have to take care of the following points:
-\begin{itemize}
-  \item we want a small program whose sole purpose is to print the following message in the ftrace buffer each time a new program is executed: \code{New process <PID> running program <COMM>}.
-  \item To manage to capture the relevant data, we want to attach our program
-  on the entrypoint of the \code{execve} syscall. One way to do so is to create
-  a kprobe on the corresponding syscall handler in the kernel, and to attach
-  our eBPF program onto it. Check the
-  \href{https://github.com/iovisor/bcc/blob/master/docs/reference_guide.md}{BCC
-  reference guide} to learn how to hook BCC programs to kprobes (there are at
-  least two different ways).
-  \item You will need to get the exact prototype of the \code{execve}
-  entrypoint function you want to hook to get its arguments. Also, depending on
-  which architecture we are running, the name of the function to target may not
-  be the same. There are multiple ways to find the exact function prototype:
-  \begin{itemize}
-    \item you can check \manpage{execve}{2} to get \code{execve} arguments, but
-    you will still lack the exact entrypoint name
-    \item you can search for any function related to \code{execve} in
-    \path{/sys/kernel/tracing/available_filter_functions} to find the
-    entrypoint name.
-  \end{itemize}
-  \item To build our log line, we need to capture both the process ID and the
-  executable name in our eBPF program:
-  \begin{itemize}
-    \item To fetch the PID of the calling process you can use kernel-provided bpf helpers (see \manpage{bpf-helpers}{7})
-    \item Executable filename is one of the \code{sys_execve} function arguments, so your eBPF program should receive it as an argument as well, since it is a kprobe-type program
-  \end{itemize}
-  \item Also make sure that your program does not finish after loading and attaching your program, or it will be released immediately: you can for example write a busy loop calling the BCC method \code{trace_print} to directly print ftrace buffer from your script
-\end{itemize}
-Once done, start you script, open a new console and run a few commands, you should be able to trace all those commands with your script
-
-{\em Notes:
-\begin{itemize}
-    \item Since eBPF subsystem needs root priviledges to be manipulated, you need sudo to run the script
-    \item If you have made some mistakes in your eBPF program, the verifier
-    will refuse to load it, or worse, it will not even build. BCC makes sure to
-    print the relevant logs to ease debugging, so make sure to read
-    and understand those.
-\end{itemize}}
-
-\section{libbpf}
 
 Unfortunately, embedding BCC scripts onto our target is not very convenient: we need to bring python, llvm, clang... So it may be more relevant to switch our tool to libbpf. Before starting converting our tool, make sure that the following packages are installed on your development system:
 \begin{itemize}
