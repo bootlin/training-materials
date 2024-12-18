@@ -18,8 +18,8 @@
 \begin{frame}[fragile]
   \frametitle{Kprobes}
   \begin{itemize}
-    \item {Kprobes} allows to insert breaks at almost any kernel address
-          dynamically and allows to extract debugging and performance
+    \item Allows to insert breaks at almost any kernel address
+          dynamically and to extract debugging and performance
           information
     \item Uses code patching to modify text code to insert calls to specific
           handlers
@@ -30,67 +30,88 @@
             extract the return value of functions but also display the
             parameters that were used for the function call
     \end{itemize}
-    \item Support should be enabled using \kconfigval{CONFIG_KPROBES}{y}
-    \item Moreover, since probes are inserted using modules, \kconfigval{CONFIG_MODULES}{y}
-    and \kconfigval{CONFIG_MODULE_UNLOAD}{y} must be set to be able to
-    register probes.
-    \item Also requires \kconfigval{CONFIG_KALLSYMS_ALL}{y} when hooking probes
-          using \code{symbol_name} field
+    \item Needs some basic kernel configuration:
+	    \begin{itemize}
+		    \item \kconfigval{CONFIG_KPROBES}{y} to enable general
+			    kprobe support
+		    \item \kconfigval{CONFIG_KALLSYMS_ALL}{y} to allow
+			    hooking probes using \code{<symbol_name>}
+			    instead of raw function address
+		    \item \kconfigval{CONFIG_KPROBE_EVENTS}{y} to enable
+			    kprobes usage as tracing events in
+			    \code{tracefs}
+	    \end{itemize}
+    \item At the lowest level, k(ret)probes are manipulated with dedicated
+	    kernel APIs, allowing to write our own kprobe tools (eg as
+	    kernel modules)
+    \item Can also be used from userspace with
+	    \code{/sys/kernel/tracing/kprobe_events}
     \item See \kdochtml{trace/kprobes} for more information
   \end{itemize}
 \end{frame}
 
-\begin{frame}[fragile]
-  \frametitle{Registering a Kprobe}
-  \begin{itemize}
-    \item \code{kprobes} can be registered dynamically by loading a module that
-          registers a \kstruct{kprobe} with \kfunc{register_kprobe}
-    \item Probes should be unregistered at module exit using
-          \kfunc{unregister_kprobe}
-  \end{itemize}
-
-  \begin{block}{}
-    \begin{minted}[fontsize=\small]{C}
-struct kprobe probe = {
-  .symbol_name = "do_exit",
-  .pre_handler = probe_pre,
-  .post_handler = probe_post,
-};
-
-register_kprobe(&probe);
-    \end{minted}
-  \end{block}
+\begin{frame}[fragile]{Basic kprobe tracing (1/2)}
+	\begin{itemize}
+		\item Add a kprobe on \code{do_sys_openat2}:
+	\end{itemize}
+	\begin{block}{}
+		\begin{minted}[fontsize=\footnotesize]{console}
+$ echo "p:my_probe do_sys_openat2" > /sys/kernel/tracing/kprobe_events"
+		\end{minted}
+	\end{block}
+	\begin{itemize}
+		\item Add a kprobe in the same function but at a specific
+			offset, and capture some arguments
+	\end{itemize}
+	\begin{block}{}
+		\begin{minted}[fontsize=\footnotesize]{console}
+$ echo "p:my_probe_2 do_sys_openat2+0x7c file=%r2" > /sys/kernel/tracing/kprobe_events"
+		\end{minted}
+	\end{block}
+	\begin{itemize}
+		\item Insert a kretprobe
+	\end{itemize}
+	\begin{block}{}
+		\begin{minted}[fontsize=\footnotesize]{console}
+$ echo "r:my_retprobe do_sys_openat2 $ret=%r0" > /sys/kernel/tracing/kprobe_events
+		\end{minted}
+	\end{block}
 \end{frame}
 
-\begin{frame}[fragile]
-  \frametitle{Registering a kretprobe}
-  \begin{itemize}
-    \item \code{kretprobes} can be registered the same way than regular probes but using
-          a \kstruct{kretprobe} with \kfunc{register_kretprobe}
-    \begin{itemize}
-      \item Provided handlers will be called on function entry and exit
-      \item Probe should be unregistered at module exit using
-            \kfunc{unregister_kretprobe}
-    \end{itemize}
-  \end{itemize}
-
-  \begin{block}{}
-    \begin{minted}[fontsize=\small]{C}
-int (*kretprobe_handler_t) (struct kretprobe_instance *, struct pt_regs *);
-    \end{minted}
-  \end{block}
-
-  \begin{block}{}
-    \begin{minted}[fontsize=\small]{C}
-struct kretprobe probe = {
-  .kp.symbol_name = "do_fork",
-  .entry_handler = probe_entry,
-  .handler = probe_exit,
-};
-
-register_kretprobe(&probe);
-    \end{minted}
-  \end{block}
+\begin{frame}[fragile]{Basic kprobe tracing (2/2)}
+	\begin{itemize}
+		\item Show existing kprobes
+	\end{itemize}
+	\begin{block}{}
+		\begin{minted}[fontsize=\footnotesize]{console}
+$ cat /sys/kernel/tracing/kprobe_events
+		\end{minted}
+	\end{block}
+	\begin{itemize}
+		\item Enable a kprobe (ie: start capturing the
+			corresponding event)
+	\end{itemize}
+	\begin{block}{}
+		\begin{minted}[fontsize=\footnotesize]{console}
+$ echo 1 > /sys/kernel/tracing/events/kprobes/my_probe/enable
+		\end{minted}
+	\end{block}
+	\begin{itemize}
+		\item Get data emitted by kprobes
+	\end{itemize}
+	\begin{block}{}
+		\begin{minted}[fontsize=\footnotesize]{console}
+$ cat /sys/kernel/tracing/trace
+		\end{minted}
+	\end{block}
+	\begin{itemize}
+		\item Delete a kprobe
+	\end{itemize}
+	\begin{block}{}
+		\begin{minted}[fontsize=\footnotesize]{console}
+$ echo "-:my_probe" >> /sys/kernel/tracing/kprobe_events
+		\end{minted}
+	\end{block}
 \end{frame}
 
 \subsection{perf}
