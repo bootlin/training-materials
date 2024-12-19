@@ -97,14 +97,15 @@ char **backtrace_symbols(void *const *buffer, int size);
     \end{block}
 
   \begin{itemize}
-    \item Thanks to \code{signal()} (\href{https://man7.org/linux/man-pages/man7/signal.7.html}{man signal(3)})
+	  \item Thanks to \code{sigaction()} (\manpage{sigaction}{3})
           we can add hooks on specific signals to print our backtrace
     \begin{itemize}
       \item This is for example very useful to catch \code{SIGSEGV} signal to dump our current backtrace
     \end{itemize}
     \begin{block}{}
       \begin{minted}[fontsize=\small]{c}
-void (*signal(int sig, void (*func)(int)))(int);
+int sigaction(int sig, const struct sigaction *restrict act,
+              struct sigaction *restrict oact);
       \end{minted}
     \end{block}
   \end{itemize}
@@ -137,16 +138,27 @@ void segfault_handler(int sig) {
   backtrace_symbols_fd(array, size, STDERR_FILENO);
   exit(1);
 }
-
+      \end{minted}
+    \end{block}
+    \column{0.5\textwidth}
+    \begin{block}{}
+      \begin{minted}[fontsize=\tiny]{C}
 int main() {
-  signal(SIGSEGV, segfault_handler);
+  const struct sigaction act = {
+    .sa_handler = segfault_handler,
+    .sa_mask = 0,
+    .sa_flags = 0,
+  };
+  if (sigaction(SIGSEGV, &act, NULL))
+    exit(EXIT_FAILURE);
   printf("Calling a faulty function\n");
   caller();
   return 0;
 }
       \end{minted}
     \end{block}
-    \column{0.5\textwidth}
+
+
     \begin{block}{}
       \begin{minted}[fontsize=\tiny]{console}
 [root@arch-bootlin-alexis custom_backtrace]# ./main
