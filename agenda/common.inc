@@ -32,7 +32,7 @@
     \csname #1@#2@title\endcsname
   }{
     \csname #1@#2@contents\endcsname
-  }
+  }\\
 }
 
 \newcommand\defboard[6]{
