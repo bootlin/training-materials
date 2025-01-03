@@ -54,7 +54,7 @@
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{{\em LD\_PRELOAD} example}
+  \frametitle{{\em LD\_PRELOAD} example 1/2}
   \begin{itemize}
     \item Library snippet that we want to preload using {\em LD\_PRELOAD}:
   \end{itemize}
@@ -84,6 +84,44 @@ $ gcc -shared -fPIC -o my_lib.so my_lib.c
   \begin{block}{}
     \begin{minted}[fontsize=\small]{console}
 $ LD_PRELOAD=./my_lib.so ./exe
+    \end{minted}
+  \end{block}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{{\em LD\_PRELOAD} example 2/2}
+  \begin{itemize}
+    \item Chaining a call to the real symbol to avoid altering the
+	    application behavior:
+  \end{itemize}
+  \begin{block}{}
+    \begin{minted}[fontsize=\tiny]{c}
+#include <stdio.h>
+#include <unistd.h>
+#include <dlfcn.h>
+
+ssize_t read(int fd, void *data, size_t size)
+{
+        size_t (*read_func)(int, void *, size_t);
+        void *handle;
+        char *error;
+
+        handle = dlopen("/lib/libc.so.6", RTLD_LAZY);
+        if (!handle) {
+                fprintf(stderr, "Can not find overriden library\n");
+                return 0;
+        }
+        dlerror();
+        read_func = dlsym(handle, "read");
+        error = dlerror();
+        if (error) {
+                fprintf(stderr, "Can not find overriden symbol: %s\n", error);
+                return 0;
+        }
+        fprintf(stderr, "Trying to read %lu bytes to %p from file descriptor %d\n", size, data, fd);
+        return read_func(fd, data, size);
+}
+
     \end{minted}
   \end{block}
 \end{frame}
