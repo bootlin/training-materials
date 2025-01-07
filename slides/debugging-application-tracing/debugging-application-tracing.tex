@@ -102,26 +102,17 @@ $ LD_PRELOAD=./my_lib.so ./exe
 
 ssize_t read(int fd, void *data, size_t size)
 {
-        size_t (*read_func)(int, void *, size_t);
-        void *handle;
-        char *error;
+    size_t (*read_func)(int, void *, size_t);
+    char *error;
 
-        handle = dlopen("/lib/libc.so.6", RTLD_LAZY);
-        if (!handle) {
-                fprintf(stderr, "Can not find overriden library\n");
-                return 0;
-        }
-        dlerror();
-        read_func = dlsym(handle, "read");
-        error = dlerror();
-        if (error) {
-                fprintf(stderr, "Can not find overriden symbol: %s\n", error);
-                return 0;
-        }
-        fprintf(stderr, "Trying to read %lu bytes to %p from file descriptor %d\n", size, data, fd);
-        return read_func(fd, data, size);
+    read_func = dlsym(RTLD_NEXT, "read");
+    if (!read_func) {
+        fprintf(stderr, "Can not find read symbol: %s\n", dlerror());
+        return 0;
+    }
+    fprintf(stderr, "Trying to read %lu bytes to %p from file descriptor %d\n", size, data, fd);
+    return read_func(fd, data, size);
 }
-
     \end{minted}
   \end{block}
 \end{frame}
