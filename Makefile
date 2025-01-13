@@ -1,11 +1,13 @@
 # See the README file for usage instructions
 
-INKSCAPE = inkscape
+# SELF_CALL avoids checking other instances, which fails with --jobs > 1.
+# https://gitlab.com/inkscape/inkscape/-/issues/4716#note_1898150983
+INKSCAPE = SELF_CALL=true inkscape
 PDFLATEX = xelatex
 DIA      = dia
 EPSTOPDF = epstopdf
 
-INKSCAPE_IS_NEW = $(shell inkscape --version | grep -q "^Inkscape 1" && echo YES)
+INKSCAPE_IS_NEW = $(shell $(INKSCAPE) --version | grep -q "^Inkscape 1" && echo YES)
 
 ifeq ($(INKSCAPE_IS_NEW),YES)
 INKSCAPE_PDF_OPT = -o
