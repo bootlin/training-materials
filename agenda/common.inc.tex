@@ -24,30 +24,28 @@
 % 1: Identifier of the agenda item, as defined by \defagendaitem
 % 2: Type of the agenda item: lecture or lab
 \newcommand\showagendaitem[2]{
-  \feagendaonecolumn{
+  \ifthenelse{\boolean{hlineneeded}}{\\\hline}{\setboolean{hlineneeded}{true}}
     \ifthenelse{\equal{\agendalanguage}{french}}{
       \ifthenelse{\equal{#2}{lecture}}
-      {Cours -}
+      {Cours &}
       {
         \ifthenelse{\equal{#2}{lab}}{
-          \ifthenelse{\equal{\trainingtype}{online}}{Démo -}{TP -}%
-        }%
-        {}%
-      }%
+          \ifthenelse{\equal{\trainingtype}{online}}{Démo &}{TP &}
+        }
+        {}
+      }
     }{
       \ifthenelse{\equal{#2}{lecture}}
-      {Lecture -}
+      {Lecture &}
       {
         \ifthenelse{\equal{#2}{lab}}{
-          \ifthenelse{\equal{\trainingtype}{online}}{Demo -}{Lab -}%
-        }%
-        {}%
-      }%
+          \ifthenelse{\equal{\trainingtype}{online}}{Demo &}{Lab &}
+        }
+        {}
+      }
     }
-    \csname #1@#2@title\endcsname
-  }{
+    \csname #1@#2@title\endcsname &
     \csname #1@#2@contents\endcsname
-  }\\
 }
 
 % Define a board
@@ -75,15 +73,15 @@
 % Arguments:
 % 1: Identifier of the board, as defined by \defboard
 \newcommand\showboarditem[1]{
-  \feagendatwocolumn{
-    \csname #1@title\endcsname
-  }{
-    \csname #1@contents\endcsname
-  }
-  {}
-  {
-    \csname #1@image\endcsname
-  }
+  \begin{tabularx}{\textwidth}{p{7cm}p{11cm}}
+    \arrayrulecolor{blorange}
+    \hline
+    \multicolumn{1}{l}{\textbf{\textcolor{blorange}{\large \csname #1@title\endcsname}}} & \\
+    \hline
+    \arrayrulecolor{gray}
+    \csname #1@contents\endcsname &
+    \csname #1@image\endcsname \\
+  \end{tabularx}
 }
 
 % Start an agenda by finding
@@ -94,18 +92,27 @@
 % Arguments:
 % 1: Number of the half-day
 \newcommand\showagendaday[1]{
-  \ifthenelse{\equal{\trainingtype}{online}}{
-    \showonlineagendaday{#1}
-  }{
-    \pgfmathparse{int(mod(#1, 2))}
-    \ifnum\pgfmathresult=1
-      \pgfmathparse{int((#1 + 1) / 2)}
-      \showonsiteagendaday{\pgfmathresult}{morning}
-    \else
-      \pgfmathparse{int(#1 / 2)}
-      \showonsiteagendaday{\pgfmathresult}{afternoon}
-    \fi
-  }
+  \arrayrulecolor{blorange}
+  \\\hline
+  \multicolumn{3}{l}{%
+    \textbf{\textcolor{blorange}{\large
+      \ifthenelse{\equal{\trainingtype}{online}}{
+        \showonlineagendaday{#1}
+      }{
+        \pgfmathparse{int(mod(#1, 2))}
+        \ifnum\pgfmathresult=1
+          \pgfmathparse{int((#1 + 1) / 2)}
+          \showonsiteagendaday{\pgfmathresult}{morning}
+        \else
+          \pgfmathparse{int(#1 / 2)}
+          \showonsiteagendaday{\pgfmathresult}{afternoon}
+        \fi
+      }
+    }}
+  } \\
+  \hline
+  \setboolean{hlineneeded}{false}
+  \arrayrulecolor{gray}
 }
 
 % Start an online agenda half-day
@@ -114,9 +121,9 @@
 % 1: Number of the half-day
 \newcommand\showonlineagendaday[1]{
   \ifthenelse{\equal{\agendalanguage}{french}}{
-    \section{#1 demi-journée}
+    Demi-journée #1
   }{
-    \section{Half day #1}
+    Half day #1
   }
 }
 
@@ -128,26 +135,27 @@
 \newcommand\showonsiteagendaday[2]{
   \ifthenelse{\equal{\agendalanguage}{french}}{
     \ifthenelse{\equal{#2}{morning}}{
-      \section{Jour #1 - Matin}
+      Jour #1 - Matin
     }{
-      \section{Jour #1 - Après-midi}
+      Jour #1 - Après-midi
     }
   }{
     \ifthenelse{\equal{#2}{morning}}{
-      \section{Day #1 - Morning}
+      Day #1 - Morning
     }{
-      \section{Day #1 - Afternoon}
+      Day #1 - Afternoon
     }
   }
 }
 
 \defboard
 {stm32mp1}
-{Hardware platform for practical labs}
+{STM32MP1 board}
 {
   One of these Discovery Kits from STMicroelectronics: {\bf
   STM32MP157A-DK1}, {\bf STM32MP157D-DK1}, {\bf STM32MP157C-DK2} or
   {\bf STM32MP157F-DK2}
+  \vspace{0.5cm}
   \begin{itemize}
   \item STM32MP157, dual Cortex-A7 processor from STMicroelectronics
   \item USB powered
@@ -160,13 +168,15 @@
   \item Arduino compatible headers
   \item Audio codec, buttons, LEDs
   \item LCD touchscreen (DK2 kits only)
+  \vspace{-0.7cm}
   \end{itemize}
 }
-{Plateforme matérielle pour les travaux pratiques}
+{Plateforme STM32MP1}
 {
   Une de ces cartes de STMicroelectronics : {\bf
   STM32MP157A-DK1}, {\bf STM32MP157D-DK1}, {\bf STM32MP157C-DK2} ou
   {\bf STM32MP157F-DK2}
+  \vspace{0.5cm}
   \begin{itemize}
   \item Processeur STM32MP157, double Cortex-A7, de STMicroelectronics
   \item Alimentée par USB
@@ -180,6 +190,7 @@
   \item Codec audio
   \item Divers : boutons, LEDs
   \item Écran LCD tactile (uniquement sur cartes DK2)
+  \vspace{-0.7cm}
   \end{itemize}
 }
 {
@@ -211,9 +222,10 @@
 
 \defboard
 {beagleboneblack}
-{Hardware platform for practical labs}
+{BeagleBone Black}
 {
   {\bf BeagleBone Black} or {\bf BeagleBone Black Wireless} board
+  \vspace{0.5cm}
   \begin{itemize}
   \item An ARM AM335x (single Cortex-A8) processor from Texas
     Instruments
@@ -226,10 +238,12 @@
     and more.
   \item Ethernet or WiFi
   \end{itemize}
+  \vspace{-0.7cm}
 }
-{Plateforme matérielle pour les travaux pratiques}
+{BeagleBone Black}
 {
   Carte {\bf BeagleBone Black} ou {\bf BeagleBone Black Wireless}
+  \vspace{0.5cm}
   \begin{itemize}
   \item Un processeur ARM AM335x de Texas Instruments (à base de
     Cortex-A8), avec accélération 3D, etc.
@@ -240,6 +254,7 @@
   \item Connecteurs à 2 x 46 broches, pour accéder aux UARTs, aux bus
     SPI, aux bus I2C, et à d'autres entrées/sorties du processeur.
   \item Ethernet ou WiFi
+  \vspace{-0.7cm}
   \end{itemize}
 }
 {
@@ -250,9 +265,10 @@
 
 \defboard
 {beagleplay}
-{Hardware platform for practical labs}
+{BeaglePlay}
 {
   {\bf BeaglePlay} board
+  \vspace{0.5cm}
   \begin{itemize}
     \item Texas Instruments AM625x (4xARM Cortex-A53 CPU)
     \item SoC with 3D acceleration, integrated MCU and many other peripherals.
@@ -261,11 +277,13 @@
     \item USB host and USB device, microSD, HDMI
     \item 2.4 and 5 GHz WiFi, Bluetooth and also Ethernet
     \item 1 MicroBus Header (SPI, I2C, UART, ...), OLDI and CSI connector.
+  \vspace{-0.7cm}
   \end{itemize}
 }
-{Plateforme matérielle pour les travaux pratiques}
+{BeaglePlay}
 {
   Carte {\bf BeaglePlay}
+  \vspace{0.5cm}
   \begin{itemize}
     \item SoC Texas Instruments AM625x (CPU 4xARM Cortex-A53)
     \item SoC avec accélération 3D, MCU intégré et de nombreux autres périphériques.
@@ -274,6 +292,7 @@
     \item USB hôte et device, microSD, HDMI
     \item WiFi 2.4 and 5 GHz, Bluetooth et aussi Ethernet
     \item 1 Header MicroBus (SPI, I2C, UART, ...), connecteurs OLDI et CSI.
+  \vspace{-0.7cm}
   \end{itemize}
 }
 {
