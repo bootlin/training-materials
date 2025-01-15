@@ -11,13 +11,13 @@ This won't make your board unusable though. If you want to install a
 distribution again on the eMMC, just go to
 http://beagleboard.org/latest-images and follow instructions.
 
-1. Download the images
+1. [Download the images](#1-download-the-images)
 2. Flash using either option:
-	1. Flash the image using Ethernet over USB with 'snagboot' (recommended)
-	2. Flash the image using a micro-SD card (legacy)
+	1. [Flash the image using Ethernet over USB with 'snagboot'](#2i-flash-the-image-using-ethernet-over-usb) (**recommended**)
+	2. [Flash the image using a micro-SD card](#2ii-flash-the-image-using-a-micro-sd-card) (legacy)
 3. How images were built
-	1. How snagboot images were built
-	2. How the images for SD card recovery were built
+	1. [How snagboot images were built](#3i-how-the-binaries-were-compiled-for-snagboot-recovery)
+	2. [How the images for SD card recovery were built](#3ii-how-the-binaries-were-compiled-for-sd-card-recovery)
 
 ## 1. Download the images
 
@@ -25,14 +25,19 @@ We suggest you to clone this repository, where all binary images are
 ready to be used. You can also build them on your own if you wish, all
 instructions are provided in chapter 3.
 
+```
+git clone https://github.com/tleb/training-materials/
+cd training-materials/lab-data/common/bootloader/beaglebone-black/
+```
+
 ## 2. Flashing
 
 ### 2.i. Flash the image using Ethernet over USB
 
-Follow the installation instructions at
-https://github.com/bootlin/snagboot to install snagboot.
+Follow the [Snagboot's project installation instructions](https://github.com/bootlin/snagboot)
+for installation.
 
-/!\ Do not forget to follow the udev rules installation instructions!
+**/!\ Do not forget to follow the udev rules installation instructions!**
 
 Setup the snagboot recovery environment by running the am335x setup script:
 
@@ -43,8 +48,8 @@ sudo ./am335x_usb_setup.sh
 ```
 
 If you have trouble with this step, you can find more detailed instructions
-in the snagboot documentation:
-https://github.com/bootlin/snagboot/blob/main/docs/board_setup.md#ti-am335x-usb-recovery
+in [the snagboot documentation
+](https://github.com/bootlin/snagboot/blob/main/docs/board_setup.md#ti-am335x-usb-recovery).
 
 Put the BBB into recovery mode by unplugging and replugging the power cable
 while pressing the S2 switch. Please beware that a warm reset performed
@@ -96,20 +101,20 @@ directory.
 
 Take a micro-SD card and connect it to your PC:
 - Either using a direct SD slot if available.
-  In this case, the card should be seen as '/dev/mmcblk0' by
-  your computer (check the 'dmesg' command output).
+  In this case, the card should be seen as `/dev/mmcblk0` by
+  your computer (check the `dmesg` command output).
 - Either using a memory card reader.
-  In this case, the card should be seen as '/dev/sdb', or '/dev/sdc', etc.
+  In this case, the card should be seen as `/dev/sdb`, or `/dev/sdc`, etc.
 
 Now, run the mount command to check for mounted SD card
 partitions. Umount them with a command such as
-'sudo umount /dev/mmcblk0p1' or 'sudo umount /dev/sdb1',
+`sudo umount /dev/mmcblk0p1` or `sudo umount /dev/sdb1`,
 depending on how the system sees the media card device.
 
 Now type the below command to flash your micro-SD card (we assume that
-the card is seen as '/dev/mmcblk0'):
+the card is seen as `/dev/mmcblk0`):
 
-sudo dd if=sdcard.img of=/dev/mmcblk0 bs=1M
+	sudo dd if=sdcard.img of=/dev/mmcblk0 bs=1M
 
 #### Using your bootable micro-SD card
 
@@ -142,7 +147,7 @@ If after 1 minute, you got nothing special on the 4 LEDs, this probably
 means that you didn't manage to boot your board from the external micro-SD
 card. This happens as the button to press is tiny. Try again!
 
-See the 'boot.log' file in this directory for the exact messages
+See the `boot.log` file in this directory for the exact messages
 your should get in the serial console (if you connected it).
 
 If the LEDs all blink at the same time, this means that the reflashing
@@ -151,7 +156,7 @@ to connect your PC to the serial line of your board, and do this again.
 You should see the error message on the serial line, and will have a
 command line shell to fix it manually.
 
-What you will need to do is copy the 'MLO' and 'u-boot.img' files from
+What you will need to do is copy the `MLO` and `u-boot.img` files from
 the micro-SD card boot partition (should be seen as '/dev/mmcblk0p1') to the
 eMMC boot partition (should be seen as '/dev/mmcblk1p1').
 
@@ -192,7 +197,7 @@ make menuconfig
 
 #### Assembling all files into sdcard.img
 
-This is done using the ./gen.sh script, which itself uses the genimage
+This is done using the `./gen.sh` script, which itself uses the genimage
 tool.
 
 ## 3.ii. How the binaries were compiled for SD-card recovery
@@ -205,9 +210,9 @@ if you are not comfortable with these instructions.
 
 Tested on Ubuntu 18.04
 
-Install the cross compiling toolchain:
-sudo apt install gcc-arm-linux-gnueabi
-(the version at the time of our testing was 4:7.3.0-3ubuntu2)
+Install the cross compiling toolchain. The version at the time of our testing was 4:7.3.0-3ubuntu2.
+
+	sudo apt install gcc-arm-linux-gnueabi
 
 #### Compiling U-Boot
 
@@ -219,21 +224,21 @@ export CROSS_COMPILE=arm-linux-gnueabi-
 make am335x_boneblack_defconfig
 ```
 
-To compile sdcard/u-boot.img and sdcard/MLO:
-Copy src/sdcard/u-boot/u-boot-2018.05.config file to .config
-make
+To compile `sdcard/u-boot.img` and `sdcard/MLO`:
+ - Copy `src/sdcard/u-boot/u-boot-2018.05.config` file to `.config`
+ - `make`
 
-To compile sdcard/u-boot.img.final and sdcard/MLO.final:
-Copy src/sdcard/u-boot-final/u-boot-2018.05.config to .config
-Copy src/sdcard/u-boot-final/uEnv.txt to the U-boot toplevel source
-directory (this contains default environment settings)
-make
+To compile `sdcard/u-boot.img.final` and `sdcard/MLO.final`:
+ - Copy `src/sdcard/u-boot-final/u-boot-2018.05.config` to `.config`
+ - Copy `src/sdcard/u-boot-final/uEnv.txt` to the U-boot toplevel source
+   directory (this contains default environment settings)
+ - `make`
 
-This produces the sdcard/MLO and sdcard/u-boot.img files.
+This produces the `sdcard/MLO` and `sdcard/u-boot.img` files.
 
 #### Root filesystem
 
-The root filesystem is available in src/sdcard/rootfs.tar.xz
+The root filesystem is available in `src/sdcard/rootfs.tar.xz`
 
 To rebuild your kernel, extract the contents of this archive,
 as the kernel binary will contain the root filesystem (initramfs)
@@ -244,11 +249,11 @@ few custom scripts. It is very easy to update (you don't need
 tools like Buildroot).
 
 If you to need to update it, get the latest BusyBox 1.21.x sources,
-and configure them with src/sdcard/busybox-1.21.x.config
+and configure them with `src/sdcard/busybox-1.21.x.config`
 
 If you don't, just go to the next section.
 
-Assuming you extracted the rootfs archive in the 'rootfs' directory,
+Assuming you extracted the rootfs archive in the `rootfs` directory,
 (in the same directory as the BusyBox source directory)
 just run:
 
@@ -268,8 +273,8 @@ Now configure and compile the sources as follows
 ```
 export ARCH=arm
 export CROSS_COMPILE=arm-linux-gnueabi-
-Copy src/sdcard/linux-4.17.config file to .config
-make -j 8
+cp <TRAINING_MATERIALS>/src/sdcard/linux-4.17.config .config
+make -j$(nproc)
 ```
 
 This produces:
@@ -278,12 +283,12 @@ arch/arm/boot/zImage
 arch/arm/boot/dts/am335x-boneblack-wireless.dtb
 ```
 
-Copy the arch/arm/boot/dts/am335x-boneblack-wireless.dtb to sdcard/dtb
+Copy the `arch/arm/boot/dts/am335x-boneblack-wireless.dtb` to `sdcard/dtb`
 (this dtb will work fine for both BeagleBone Black
 and BeagleBoneBlack Wireless, at least for the purpose of
-reflashing U-Boot) and the zImage file as well.
+reflashing U-Boot) and the `zImage` file as well.
 
 #### Assembling all files into sdcard.img
 
-This is done using the sdcard/gen.sh script, which itself uses the
-genimage tool.
+This is done using the `sdcard/gen.sh` script, which itself uses the
+`genimage` tool.
