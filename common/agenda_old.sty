@@ -1,0 +1,603 @@
+
+\usepackage[T1]{fontenc}
+\usepackage[normalem]{ulem}
+\usepackage[includehead, includefoot, top=1cm, left=1cm, right=1cm, bottom=1cm, headheight=2.5cm]{geometry}
+\usepackage{hyperref}
+\usepackage[all]{hypcap}
+\usepackage{fancyhdr}      % Used for customization of header/footer
+\pagestyle{fancy}
+\usepackage{graphicx}
+\usepackage{titlesec}      % Used for \titleformat
+\usepackage[htt]{hyphenat} % I want hyphenation in {\tt ...} blocks
+\usepackage{xcolor}
+\usepackage{titling}
+\usepackage{eurosym}
+\usepackage{ifthen}
+\usepackage{enumitem}
+\usepackage{tabularx}
+\usepackage{overpic}
+\usepackage{colortbl}
+\usepackage{calc}
+\usepackage{ifthen}
+\usepackage{fp}
+\usepackage{fmtcount}
+\usepackage{pgf}
+
+% Setting the babel language is important for fmtcount to return
+% strings in the appropriate language.
+\ifthenelse{\equal{\agendalanguage}{french}}{
+  \usepackage[french]{babel}
+  \frenchbsetup{StandardItemLabels=true}
+}{
+  \usepackage[english]{babel}
+}
+
+\input{last-update}
+
+% A nicer font
+\usepackage{fontspec}
+\defaultfontfeatures{Ligatures=TeX}
+\setmainfont{Liberation Serif}
+\setsansfont{Liberation Sans}
+\setmonofont{Liberation Mono}
+
+\FCloadlang{french}
+
+%% Remove indentation on the first line of each paragraph, and add
+%% some space between each paragraph.
+\usepackage{parskip}
+
+\hypersetup{colorlinks=true,linkcolor=gray,urlcolor=gray,pdftitle=\trainingtitle{},pdfauthor=Bootlin}
+
+\fancyhead{}
+\fancyfoot{}
+
+\fancyhead[CO, CE]{
+  \begin{overpic}[permil,width=\textwidth]{common/background.jpg}
+    \put(10,25){\includegraphics[width=0.1\textwidth]{common/logo-penguins.pdf}}
+    \put(770,50){\includegraphics[width=0.2\textwidth]{common/bootlin-logo.pdf}}
+  \end{overpic}
+}
+
+\definecolor{fedarkblue}{RGB}{204,204,255}
+\definecolor{felightblue}{RGB}{230,230,255}
+
+\renewcommand{\headrulewidth}{0pt}
+\renewcommand{\footrulewidth}{0pt}
+
+\definecolor{textcolor}{HTML}{4B6FA9}
+
+% Header style
+\titleformat{\section}{\color{textcolor}\normalfont\Large\sffamily\bfseries}{}{1em}{}[\vspace{2pt}\titlerule]
+\titleformat{\subsection}[display]{\normalfont\large\sffamily}{}{0pt}{}[\vspace{2pt}\titlerule]
+\titleformat{\subsubsection}[display]{\normalfont\sffamily}{}{0pt}{}
+
+% No section numbering
+\setcounter{secnumdepth}{0}
+
+% More spacing in tables
+\renewcommand{\arraystretch}{2.0}
+
+% Table borders width
+\setlength{\arrayrulewidth}{0.8pt}
+
+% New array column types
+\newcolumntype{g}{>{\columncolor{fedarkblue}}m{4cm}}
+\newcolumntype{h}{>{\columncolor{felightblue}}X}
+
+% Customization of title and author style
+\pretitle{\begin{center}\Huge\sffamily}
+\preauthor{\begin{center}
+\large \sffamily \lineskip 0.2em%
+\begin{tabular}[t]{c}}
+\postauthor{\end{tabular}\par\end{center}}
+\predate{\begin{center}\large\sffamily}
+
+% Reduce vertical spacing between itemize items
+\setlist[itemize]{noitemsep}
+
+% Useful definitions
+
+\newcommand{\code}[1]
+{\path{#1}}
+
+
+\FPset{\totaltraininghours}{\trainingduration}
+\ifthenelse{\equal{\trainingtype}{onsite}}{
+  \FPset{\trainingsessionhours}{8}
+}{
+  \FPset{\trainingsessionhours}{4}
+}
+\FPmul{\totaltraininghours}{\totaltraininghours}{\trainingsessionhours}
+\FPround{\totaltraininghours}{\totaltraininghours}{0}
+
+\newcommand\feshowduration{
+  \ifthenelse{\equal{\agendalanguage}{english}}{
+    \ifthenelse{\equal{\trainingtype}{onsite}}{
+      {\bf \Numberstringnum{\trainingduration}} days - \FPprint{\totaltraininghours} hours (\trainingsessionhours{} hours per day)
+    }{
+      {\bf \Numberstringnum{\trainingduration}} half days - \FPprint{\totaltraininghours} hours (\trainingsessionhours{} hours per half day)
+    }
+  }{
+    \ifthenelse{\equal{\trainingtype}{onsite}}{
+      {\bf \Numberstringnum{\trainingduration}} jours - \FPprint{\totaltraininghours} h (\trainingsessionhours{} h par jour)
+    }{
+      {\bf \Numberstringnum{\trainingduration}} demi-journées - \FPprint{\totaltraininghours} h (\trainingsessionhours{} h par demi-journée)
+    }
+  }
+}
+
+\ifthenelse{\equal{\training}{kernel}}{
+  \def \trainingdoclink{https://bootlin.com/doc/training/linux-kernel}
+}{
+  \def \trainingdoclink{https://bootlin.com/doc/training/\training}
+}
+
+\ifthenelse{\isundefined{\traininglanguages}}{
+  \ifthenelse{\equal{\agendalanguage}{french}}{
+    \def \traininglanguages{
+      Présentations : Français
+      \newline Supports : Anglais
+    }
+  }{
+    \def \traininglanguages{
+      Oral lectures: English, French.
+      \newline Materials: English.
+    }
+  }
+}
+
+\newcommand\feagendasummaryitem[2]{
+  \begin{tabularx}{\textwidth}{gh}
+    {\bf #1} & #2 \\
+  \end{tabularx}
+}
+
+%% Define a one column array. Two arguments are needed:
+%%  first argument: the title of the section
+%%  second argument: the contents of the section
+\newcommand\feagendaonecolumn[2]{
+\begin{tabularx}{\textwidth}{X}
+  \rowcolor{fedarkblue}
+  {\bf #1} \\
+  \rowcolor{felightblue}
+  #2 \\
+\end{tabularx}
+\vspace{0.5cm}
+}
+
+%% Define a two column array. Four arguments are needed:
+%%  first argument: The title of the section in the left column
+%%  second argument: The contents of the section in the left column
+%%  third argument: The title of the section in the right column
+%%  fourth argument: The contents of the section in the right column
+\setlength{\tabcolsep}{0.03\textwidth}
+\newcommand\feagendatwocolumn[4]{
+\begin{tabularx}{\textwidth}{X X}
+  \rowcolor{fedarkblue}
+  {\bf #1} & {\bf #3} \\
+  \rowcolor{felightblue}
+  #2 & #4 \\
+\end{tabularx}
+\vspace{0.5cm}
+}
+
+\newcommand\feshowtitle{
+  \begin{center}
+    \LARGE
+    \trainingtitle{}\\
+    \large
+    \ifthenelse{\equal{\agendalanguage}{english}}{
+      \ifthenelse{\equal{\trainingtype}{onsite}}{
+        On-site training, \trainingduration{}~days
+      }{
+        On-line seminar, \trainingduration{} sessions of 4 hours
+      }
+    }{
+      \ifthenelse{\equal{\trainingtype}{onsite}}{
+        Formation sur site, \trainingduration{}~jours
+      }{
+        Séminaire en ligne, \trainingduration{} sessions de 4 hours
+      }
+    }\\
+    \small
+    \ifthenelse{\equal{\agendalanguage}{french}}{
+      Dernière mise à jour: \lastupdatefr{}
+    }{
+      Latest update: \lastupdateen{}
+    }
+  \end{center}
+  \vspace{1cm}
+}
+
+\ifthenelse{\isundefined{\haslabs}}{
+  \def \haslabs{true}
+}
+
+\ifthenelse{\isundefined{\inprogress}}{
+  \def \inprogress{false}
+}
+
+\ifthenelse{\isundefined{\ubuntuversion}}{
+  \def \ubuntuversion{24.04}
+}
+
+\ifthenelse{\isundefined{\requiredequipment}}{
+  \ifthenelse{\equal{\trainingtype}{online}}{
+    \ifthenelse{\equal{\agendalanguage}{french}}{
+      % Online french
+      \def \requiredequipment {
+        \begin{itemize}
+        \item Ordinateur avec le système d'exploitation de votre choix, équipé du
+          navigateur Google Chrome ou Chromium pour la conférence vidéo.
+        \item Une webcam et un micro (de préférence un casque avec micro)
+        \item Une connexion à Internet à haut débit
+        \end{itemize}
+      }
+    }{
+      \def \requiredequipment {
+        % Online english
+        \begin{itemize}
+        \item Computer with the operating system of your choice, with the
+          Google Chrome or Chromium browser for videoconferencing.
+        \item Webcam and microphone (preferably from an audio headset)
+        \item High speed access to the Internet
+        \end{itemize}
+      }
+    }
+  }{
+    \ifthenelse{\equal{\agendalanguage}{french}}{
+      \def \requiredequipment {
+        % Onsite french
+        {\bf Pour les sessions en présentiel dans les locaux de nos clients,
+          notre client doit fournir}:
+        \begin{itemize}
+        \item Projecteur vidéo
+          \ifthenelse{\equal{\training}{yocto}}{
+          \item Un ordinateur sur chaque bureau (pour une ou deux
+            personnes), avec au moins un processeur Intel Core i5, 8
+            Go de RAM et Ubuntu Linux \ubuntuversion{} installé dans une {\bf
+              partition dédiée d'au moins 100 Go}.
+          }{
+          \item Un ordinateur sur chaque bureau (pour une ou deux
+            personnes), avec au moins 8 Go de RAM et Ubuntu Linux
+            \ubuntuversion{} installé dans une {\bf partition dédiée
+              d'au moins 30 Go}.  }
+        \item Les distributions autres que Ubuntu Linux \ubuntuversion{} ne sont
+          pas supportées, et l'utilisation de Linux dans une machine
+          virtuelle n'est également pas supportée.
+        \item {\bf Connexion à Internet rapide et sans filtrage}: au
+          moins 50 Mbit/s de bande passante en téléchargement, et pas de
+          filtrage des sites Web et protocoles.
+        \item {\bf Les ordinateurs contenant des données importantes doivent être
+            sauvegardés} avant d'être utilisés dans nos sessions.
+        \end{itemize}
+      }
+    }{
+      \def \requiredequipment {
+        % Onsite english
+        \begin{itemize}
+        \item Video projector
+          \ifthenelse{\equal{\training}{yocto}}{
+          \item One PC computer on each desk (for one or two persons)
+            with at least an Intel Core i5 processor, 8 GB of RAM, and
+            Ubuntu Linux \ubuntuversion{} installed in a {\bf free partition of
+              at least 100 GB}
+          }{
+          \item One PC computer on each desk (for one or two persons) with
+            at least 8 GB of RAM, and Ubuntu Linux \ubuntuversion{} installed in a
+            {\bf free partition of at least 30 GB}
+          }
+        \item Distributions other than Ubuntu Linux \ubuntuversion{} are not
+          supported, and using Linux in a virtual machine is not supported.
+        \item {\bf Unfiltered and fast connection to Internet}: at least 50
+          Mbit/s of download bandwidth, and no filtering of web sites or
+          protocols.
+        \item {\bf PC computers with valuable data must be backed up}
+          before being used in our sessions.
+        \end{itemize}
+      }
+    }
+  }
+}
+
+\ifthenelse{\isundefined{\trainers}}{
+  \ifthenelse{\equal{\agendalanguage}{french}}{
+    \def \trainers{
+      Un des ingénieurs mentionnés sur :
+      \newline \url{https://bootlin.com/training/trainers/}
+    }
+  }{
+    \def \trainers{
+      One of the engineers listed on:
+      \newline \url{https://bootlin.com/training/trainers/}
+    }
+  }
+}{}
+
+\def \disabilities{
+  \ifthenelse{\equal{\agendalanguage}{french}}{
+    \feagendasummaryitem{Handicap}{
+      Les participants en situation de handicap qui ont des besoins
+      spécifiques sont invités à nous contacter à l'adresse {\em
+        training@bootlin.com} afin de discuter des adaptations
+      nécessaires à la formation.
+    }
+  }{
+    \feagendasummaryitem{Disabilities}{
+      Participants with disabilities who have special needs are
+      invited to contact us at {\em training@bootlin.com} to discuss
+      adaptations to the training course.
+    }
+  }
+}
+
+\def \prerequisitecommandline{
+  \ifthenelse{\equal{\agendalanguage}{french}}{
+  \item {\bf Connaissance et pratique des commandes UNIX ou
+      GNU/Linux}: les participants doivent être à l'aise avec
+    l'utilisation de la ligne de commande Linux. Les participants
+    manquant d'expérience sur ce sujet doivent se former par
+    eux-mêmes, par exemple en utilisant nos supports de formation
+    disponible à l'adresse
+    \href{https://bootlin.com/blog/command-line/}{bootlin.com/blog/command-line/}.
+  }{
+  \item {\bf Knowledge and practice of UNIX or GNU/Linux commands}:
+    participants must be familiar with the Linux command
+    line. Participants lacking experience on this topic should get
+    trained by themselves, for example with our freely available
+    on-line slides at
+    \href{https://bootlin.com/blog/command-line/}{bootlin.com/blog/command-line/}.
+  }
+}
+
+\def \prerequisiteembeddedlinux{
+  \ifthenelse{\equal{\agendalanguage}{french}}{
+  \item {\bf Expérience minimale en développement Linux embarqué}: les
+    participants doivent avoir une compréhension minimale de
+    l'architecture d'un système Linux embarqué: rôle du noyau Linux
+    par rapport à l'espace utilisateur, développement d'applications
+    espace utilisateur en C. Suivre la formation {\em Linux embarqué}
+    de Bootlin, disponible sur
+    \href{https://bootlin.com/training/embedded-linux/}{bootlin.com/training/embedded-linux/},
+    permet de remplir ce pré-requis.
+  }{
+  \item {\bf Minimal experience in embedded Linux development}:
+    participants should have a minimal understanding of the
+    architecture of embedded Linux systems: role of the Linux kernel
+    vs. user-space, development of Linux user-space applications in
+    C. Following Bootlin's {\em Embedded Linux} course at
+    \href{https://bootlin.com/training/embedded-linux/}{bootlin.com/training/embedded-linux/}
+    allows to fulfill this pre-requisite.
+  }
+}
+
+\def \prerequisiteclanguage{
+  \ifthenelse{\equal{\agendalanguage}{french}}{
+  \item {\bf Expérience solide en programmation avec le langage C}:
+    les participants doivent maîtriser l'utilisation de types de
+    données et structures complexes, des pointeurs, pointeurs sur
+    fonction et du pré-processeur C.
+  }{
+  \item {\bf Solid experience with the C programming language}:
+    participants must be familiar with the usage of complex data types
+    and structures, pointers, function pointers, and the C
+    pre-processor.
+  }
+}
+
+\def \prerequisiteenglish{
+  \ifthenelse{\equal{\agendalanguage}{french}}{
+  \item {\bf Niveau minimal requis en anglais: B1}, d'après le {\em
+      Common European Framework of References for Languages}, pour nos
+    sessions animées en anglais. Voir
+    \href{https://bootlin.com/pub/training/cefr-grid.pdf}{bootlin.com/pub/training/cefr-grid.pdf}
+    pour une auto-évaluation.
+  }{
+  \item {\bf Minimal English language level: B1}, according to the
+    {\em Common European Framework of References for Languages}, for
+    our sessions in English. See
+    \href{https://bootlin.com/pub/training/cefr-grid.pdf}{bootlin.com/pub/training/cefr-grid.pdf}
+    for self-evaluation.
+  }
+}
+
+\def \prerequisitekernel{
+  \ifthenelse{\equal{\agendalanguage}{french}}{
+  \item {\bf Expérience en développement bas-niveau sous Linux et avec
+      les interfaces matérielles}: les participants doivent avoir une
+    compréhension minimale de la gestion mémoire, de l'interaction
+    avec des interfaces matérielles (registres, interruptions) et de
+    l'interaction entre les applications user-space Linux et le noyau
+    Linux (appels systèmes). Suivre la formation {\em Développement de
+      pilotes de périphériques noyau Linux} de Bootlin, disponible sur
+    \href{https://bootlin.com/fr/formation/noyau-linux/}{bootlin.com/fr/formation/noyau-linux/}
+    permet de remplir ce pré-requis.
+  }{
+  \item {\bf Experience with low-level development in Linux and
+      hardware interfaces}: participants should have a minimal
+    understanding of memory management, interaction with common
+    hardware interfaces (registers, interrupts), the interaction
+    between Linux user-space applications and the Linux kernel (system
+    calls). Following Bootlin's {\em Linux kernel driver development}
+    course at
+    \href{https://bootlin.com/training/kernel/}{bootlin.com/training/kernel/}
+    allows to fulfill this pre-requisite.
+  }
+}
+
+\def \onsitepedagogics {
+  \ifthenelse{\equal{\agendalanguage}{french}}{
+    \begin{itemize}
+      \vspace{-0.5cm}
+    \item Présentations animées par le formateur: \onsitelecturetimeratio{}\% de la durée de formation
+      \ifthenelse{\equal{\haslabs}{false}}{
+      \item Démonstrations pratiques réalisées par le formateur: \onsitedemotimeratio{}\% de
+        la durée de formation
+      }{
+      \item Travaux pratiques réalisés par les participants: \onsitelabtimeratio{}\% de la durée de formation
+      }
+    \item Version électroniques de supports de présentation, des
+      instructions et des données de travaux pratiques. Les supports
+      sont librement disponibles sur
+      \href{\trainingdoclink}{\trainingdoclink}.
+      \vspace{-0.5cm}
+    \end{itemize}
+  }{
+    \begin{itemize}
+      \vspace{-0.5cm}
+    \item Lectures delivered by the trainer: \onsitelecturetimeratio{}\% of the duration
+      \ifthenelse{\equal{\haslabs}{false}}{
+      \item Practical demonstrations done by the trainer: \onsitedemotimeratio{}\% of the
+        duration
+      }{
+      \item Practical labs done by participants: \onsitelabtimeratio{}\% of the duration
+      }
+    \item Electronic copies of presentations, lab instructions and data
+      files. \ifthenelse{\equal{\inprogress}{true}}{}{They are freely available at \href{\trainingdoclink}{\trainingdoclink}.}
+      \vspace{-0.5cm}
+    \end{itemize}
+  }
+}
+
+\def \onlinepedagogics {
+  \ifthenelse{\equal{\agendalanguage}{french}}{
+    \begin{itemize}
+      \vspace{-0.5cm}
+    \item Présentations animées par le formateur, par
+      visioconférence. Les participants peuvent poser des questions
+      à tout instant.
+      \ifthenelse{\equal{\haslabs}{true}}{
+      \item Démonstrations pratiques réalisées par le formateur,
+        basés sur les travaux pratiques de la formation, par
+        vidéo-conférence. Les participants peuvent poser des
+        questions à tout instant.  Optionnellement, les participants
+        qui ont accès aux accessoires matériels de la formation
+        peuvent reproduire par eux-même les travaux pratiques.
+      }{
+      \item Démonstrations pratiques réalisées par le formateur, par
+        vidéo-conférence. Les participants peuvent poser des
+        questions à tout instant.
+      }
+    \item Messagerie instantanée pour questions entre les sessions
+      (réponse sous 24h, hors week-end et jours fériés)
+    \item Version électronique des supports de présentation, des
+      instructions et des données de travaux pratiques. Les supports
+      sont librement disponibles sur
+      \href{\trainingdoclink}{\trainingdoclink}.
+      \vspace{-0.5cm}
+    \end{itemize}
+  }{
+    \begin{itemize}
+      \vspace{-0.5cm}
+    \item Lectures delivered by the trainer, over
+      video-conference. Participants can ask questions at any time.
+      \ifthenelse{\equal{\haslabs}{true}}{
+      \item Practical demonstrations done by the trainer, based on
+        practical labs, over video-conference. Participants can ask
+        questions at any time. Optionally, participants who have
+        access to the hardware accessories can reproduce the
+        practical labs by themselves.
+      }{
+      \item Practical demonstrations done by the trainer, over
+        video-conference. Participants can ask questions at any
+        time.
+      }
+    \item Instant messaging for questions between sessions (replies
+      under 24h, outside of week-ends and bank holidays).
+    \item Electronic copies of presentations, lab instructions and data
+      files. \ifthenelse{\equal{\inprogress}{true}}{}{They are freely available at \href{\trainingdoclink}{\trainingdoclink}.}
+      \vspace{-0.5cm}
+    \end{itemize}
+  }
+}
+
+\def \pedagogics {
+  \ifthenelse{\equal{\trainingtype}{onsite}}{
+    \onsitepedagogics{}
+  }{
+    \onlinepedagogics{}
+  }
+}
+
+\def \certificate{
+  \ifthenelse{\equal{\agendalanguage}{french}}{
+    \feagendasummaryitem{Modalités\newline d'évaluation}{
+      Seuls les participants qui auront assisté à l'intégralité des
+      journées de formation, et qui auront obtenu plus de 50\% de
+      réponses correctes à l'évaluation finale recevront une
+      attestation individuelle de formation de la part de Bootlin.
+    }
+  }{
+    \feagendasummaryitem{Certificate}{
+      Only the participants who have attended all training
+      sessions, and who have scored over 50\% of correct answers at
+      the final evaluation will receive a training certificate from
+      Bootlin.
+    }
+  }
+}
+
+\def \feshowinfo {
+  \ifthenelse{\equal{\agendalanguage}{french}}{
+    \feagendasummaryitem{Titre}{
+      {\bf \trainingtitle{}}
+    }
+    \feagendasummaryitem{Objectifs\newline opérationnels}{
+      \traininggoals{}
+    }
+    \feagendasummaryitem{Durée}{
+      \feshowduration{}
+    }
+    \feagendasummaryitem{Méthodes\newline pédagogiques}{
+      \pedagogics{}
+    }
+    \feagendasummaryitem{Formateur}{
+      \trainers{}
+    }
+    \feagendasummaryitem{Langue}{
+      \traininglanguages{}
+    }
+    \feagendasummaryitem{Public visé}{
+      \trainingaudience{}
+    }
+    \feagendasummaryitem{Pré-requis}{
+      \trainingprerequisites{}
+    }
+    \feagendasummaryitem{Équipement nécessaire}{
+      \requiredequipment{}
+    }
+    \certificate{}
+    \disabilities{}
+  }{
+    \feagendasummaryitem{Title}{
+      {\bf \trainingtitle{}}
+    }
+    \feagendasummaryitem{Training objectives}{
+      \traininggoals{}
+    }
+    \feagendasummaryitem{Duration}{
+      \feshowduration{}
+    }
+    \feagendasummaryitem{Pedagogics}{
+      \pedagogics{}
+    }
+    \feagendasummaryitem{Trainer}{
+      \trainers{}
+    }
+    \feagendasummaryitem{Language}{
+      \traininglanguages{}
+    }
+    \feagendasummaryitem{Audience}{
+      \trainingaudience{}
+    }
+    \feagendasummaryitem{Prerequisites}{
+      \trainingprerequisites{}
+    }
+    \feagendasummaryitem{Required equipment}{
+      \requiredequipment{}
+    }
+    \certificate{}
+    \disabilities{}
+  }
+}
