@@ -30,4 +30,5 @@ DEBUGGING_LABS = \
 	debugging-ebpf-bcc \
 	debugging-ebpf-libbpf \
 	debugging-kernel-debugging-frameworks \
-	debugging-kernel-debugging-kgdb
+	debugging-kernel-debugging-kgdb \
+	debugging-kernel-debugging-kexec-kdump

@@ -1,0 +1,95 @@
+\subchapter
+{Kernel debugging}
+{Objectives:
+  \begin{itemize}
+	  \item Setting up {\em Kexec \& kdump}.
+  \end{itemize}
+}
+
+\section{kdump \& kexec}
+
+As presented in the course, kdump/kexec allows to boot a new kernel and dump a
+perfect copy of the crashed kernel (memory, registers, etc) which can be then
+debugged using gdb or crash. 
+
+\subsection{Building the dump-capture kernel}
+
+We will now build the dump-capture kernel which will be booted on crash using
+kexec. For that, we will use a simple buildroot image with a builtin initramfs
+using the following commands on the development host:
+
+\begin{bashinput}
+$ cd /home/$USER/debugging-labs/buildroot
+$ make O=build_kexec stm32mp157a_dk1_debugging_kexec_defconfig
+$ make O=build_kexec
+\end{bashinput}
+
+Then, we'll copy the zImage and the device-tree to the nfs /root/kexec
+directory:
+
+\begin{bashinput}
+$ mkdir /home/$USER/debugging-labs/nfsroot/root/kexec
+$ cp build_kexec/images/zImage /home/$USER/debugging-labs/nfsroot/root/kexec
+$ cp build_kexec/images/stm32mp157a-dk1.dtb /home/$USER/debugging-labs/nfsroot/root/kexec
+\end{bashinput}
+
+These files are now ready to be used from the target using kexec.
+
+\subsection{Configuring kexec}
+
+First of all we need to setup a kexec suitable memory zone for our crash kernel
+image. This is achieved via the linux command line. Reboot, interrupt U-Boot and
+add the \code{crashkernel=60M} parameter. This will tell the kernel to reserve
+60M of memory to load a "rescue" kernel that will be booted on panic. We will
+also add an option which will panic the kernel on oops to allow executing the
+kexec kernel.
+
+\begin{bashinput}
+STM32MP> env edit bootargs
+STM32MP> <existing bootargs> crashkernel=60M oops=panic
+STM32MP> boot
+\end{bashinput}
+
+To load the crash kernel into the previously reserved memory zone, run the
+following command on the target:
+
+\begin{bashinput}
+# kexec --type zImage -p /root/kexec/zImage --dtb=/root/kexec/stm32mp157a-dk1.dtb
+  --command-line="console=ttySTM0,115200n8 maxcpus=1 reset_devices"
+\end{bashinput}
+
+Once done, you can trigger a crash using the previously mentioned watchdog
+command:
+
+\begin{bashinput}
+$ watchdog -T 10 -t 5 /dev/watchdog0
+\end{bashinput}
+
+At this moment, the kernel will reboot into a new kernel using the specified
+kernel after displaying the backtrace and a message:
+
+\begin{bashinput}
+[ 1181.987971] Loading crashdump kernel...
+[ 1181.990839] Bye!
+\end{bashinput}
+
+After reboot, log into the new kernel normally and bring up the eth0 interface:
+(We will use 192.168.0.101 to avoid cloberring ssh \code{know_hosts} file for
+the 192.168.0.100 entry).
+\begin{bashinput}
+$ ifconfig eth0 192.168.0.101
+\end{bashinput}
+
+\textbf{Note:} ethernet setup might timeout due to some init issues after kexec
+boot so this commands needs to be run another time.
+
+\begin{bashinput}
+$ cd /home/$USER/debugging-labs/
+$ scp root@192.168.0.101:/proc/vmcore .
+\end{bashinput}
+
+You can load the \code{vmcore} file using cross GDB:
+
+\begin{bashinput}
+$ ${CROSS_COMPILE}gdb /home/$USER/debugging-labs/buildroot/output/build/linux-%\workingkernel%/vmlinux vmcore
+\end{bashinput}
