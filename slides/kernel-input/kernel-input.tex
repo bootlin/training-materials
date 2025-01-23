@@ -94,34 +94,38 @@ struct input_dev {
     code:
     \begin{block}{}
     \begin{minted}[fontsize=\footnotesize]{c}
-      set_bit(EV_KEY, myinput_dev.evbit);
-      set_bit(BTN_0, myinput_dev.keybit);
+set_bit(EV_KEY, myinput_dev.evbit);
+set_bit(BTN_0, myinput_dev.keybit);
     \end{minted}
     \end{block}
-  \item \kfunc{set_bit} is an atomic operation allowing to set a particular bit
-        to \code{1} (explained later).
   \item Once the {\em input device} is allocated and filled, the
     function to register it
     is: \code{int input_register_device(struct input_dev *);}
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Input subsystem API 3/3}
-    The events are sent by the driver to the event handler using
-    \code{input_event(struct input_dev *dev, unsigned int type, unsigned int code, int value);}
+\begin{frame}[fragile]{Input subsystem API 3/3}
+  The events are sent by the driver to the event handler using
+  \begin{minted}[fontsize=\footnotesize]{c}
+void input_event(struct input_dev *dev, unsigned int type, unsigned int code, int value)
+  \end{minted}
+  \begin{itemize}
+  \item The event types are documented in \kdochtml{input/event-codes}
+  \item An event is composed by one or several input data changes
+    (packet of input data changes) such as the button state, the
+    relative or absolute position along an axis, etc..
+  \item The input subsystem provides other wrappers such as:
     \begin{itemize}
-    \item The event types are documented in \kdochtml{input/event-codes}
-    \item An event is composed by one or several input data changes
-      (packet of input data changes) such as the button state, the
-      relative or absolute position along an axis, etc..
-    \item After submitting potentially multiple events, the {\em
-        input} core must be notified by calling:
-      \code{ void input_sync(struct input_dev *dev)}:
-    \item The input subsystem provides other wrappers such as
-      \kfunc{input_report_key}, \kfunc{input_report_abs}, ...
+    \item \kfunc{input_report_key}
+    \item \kfunc{input_report_abs}
     \end{itemize}
+  \end{itemize}
+  After submitting potentially multiple events, the {\em input} core must be
+  notified by calling:
+  \begin{minted}[fontsize=\footnotesize]{c}
+void input_sync(struct input_dev *dev)
+  \end{minted}
 \end{frame}
-
 
 \begin{frame}[fragile]{Example from drivers/hid/usbhid/usbmouse.c}
   \begin{block}{}
@@ -157,7 +161,9 @@ static void usb_mouse_irq(struct urb *urb)
       periodically scanned or polled} to detect changes in their
     state.
   \item Setting up polling is done using \kfunc{input_setup_polling}:
-    \code{int input_setup_polling(struct input_dev *dev, void (*poll_fn)(struct input_dev *dev));}
+  \begin{minted}[fontsize=\footnotesize]{c}
+int input_setup_polling(struct input_dev *dev, void (*poll_fn)(struct input_dev *dev));
+  \end{minted}
   \item \code{poll_fn} is the function that will be called
     periodically.
   \item The polling interval can be set using
