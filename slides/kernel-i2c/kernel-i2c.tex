@@ -51,10 +51,8 @@
     \begin{itemize}
     \item As usual, this structure points to the \code{->probe()} and
       \code{->remove()} functions.
-    \item It also contains an \code{id_table}, used for non-DT based
+    \item It also contains a legacy \code{id_table}, used for non-DT based
       probing of I2C devices.
-    \item A \code{->probe_new()} function can replace \code{->probe()}
-      when no \code{id_table} is provided.
     \end{itemize}
   \item The \kfunc{i2c_add_driver} and \kfunc{i2c_del_driver} functions
     are used to register/unregister the driver.
@@ -214,37 +212,28 @@ i2c0: i2c@01c2ac00 {
   From \kfile{arch/arm/boot/dts/allwinner/sun7i-a20-olinuxino-micro.dts}
 \end{frame}
 
-\begin{frame}{\code{probe_new()} / \code{probe()} and \code{remove()}}
+\begin{frame}{\code{probe()} and \code{remove()}}
   \begin{itemize}
-  \item The \code{->probe_new()} function is responsible for initializing
+  \item The \code{->probe()} function is responsible for initializing
     the device and registering it in the appropriate kernel
     framework. It receives as argument:
     \begin{itemize}
-    \item A \kstruct{i2c_client} pointer, which represents the I2C
+    \item An \kstruct{i2c_client} pointer, which represents the I2C
       device itself. This structure inherits from \kstruct{device}.
-    \end{itemize}
-  \item Alternatively, the \code{->probe()} function receives as arguments:
-    \begin{itemize}
-    \item A similar \kstruct{i2c_client} pointer.
-    \item A \kstruct{i2c_device_id} pointer, which points to the
-      I2C device ID entry that matched the device that is being
-      probed.
+    \item On older kernels (< v6.4), \code{->probe()} was taking a second (unused)
+      argument, the removal of this other argument implied the use of another
+      probe function for some kernel releases, called \code{->probe_new()}.
     \end{itemize}
   \item The \code{->remove()} function is responsible for
     unregistering the device from the kernel framework and shut it
     down. It receives as argument:
-    \begin{itemize}
-    \item The same \kstruct{i2c_client} pointer that was passed as
-      argument to \code{->probe_new()} or \code{->probe()}
-    \end{itemize}
   \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]{Probe example}
   \begin{block}{}
     \begin{minted}[fontsize=\scriptsize]{c}
-static int da311_probe(struct i2c_client *client,
-                       const struct i2c_device_id *id)
+static int da311_probe(struct i2c_client *client)
 {
         struct iio_dev *indio_dev;         // framework structure
         da311_data *data;                  // per device structure
