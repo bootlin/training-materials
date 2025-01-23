@@ -254,25 +254,28 @@ int devm_request_threaded_irq(struct device *dev, unsigned int irq,
   \begin{itemize}
   \item Workqueues are a general mechanism for deferring work. It is
     not limited in usage to handling interrupts. It can typically
-    be used for background work which can be scheduled.
-  \item Workqueues may be created by subsystems or drivers with
-    \kfunc{alloc_workqueue}. The default queue can also be used.
-  \item Functions registered to run in workqueues, called workers, are
-    executed in thread context which means:
+    be used for background jobs.
+  \item Functions registered to run in workqueues are called workers:
     \begin{itemize}
-    \item All interrupts are enabled
-    \item Sleeping is allowed
+    \item Workers can be created with the macro \kfunc{INIT_WORK}
+    \item Workers are executed in thread context, which means:
+      \begin{itemize}
+      \item All interrupts are enabled
+      \item Sleeping is allowed
+      \end{itemize}
+    \item Workers can be queued on:
+      \begin{itemize}
+      \item The default workqueue, with \kfunc{schedule_work}
+      \item A workqueue allocated by the subsystem or the drivers, with
+        \kfunc{alloc_workqueue}
+      \end{itemize}
     \end{itemize}
-  \item A worker is usually allocated in a per-device structure,
-    initialized and registered with \kfunc{INIT_WORK} and typically
-    triggered with \kfunc{queue_work} when using a dedicated queue or
-    \kfunc{schedule_work} when using the default queue
   \item The complete API is in \kfile{include/linux/workqueue.h}
   \item Example (\kfile{drivers/crypto/atmel-i2c.c}):
-\begin{minted}[fontsize=\small]{c}
+    \begin{minted}[fontsize=\small]{c}
 INIT_WORK(&work_data->work, atmel_i2c_work_handler);
 schedule_work(&work_data->work);
-\end{minted}
+    \end{minted}
   \end{itemize}
 \end{frame}
 
