@@ -270,29 +270,37 @@ static int da311_remove(struct i2c_client *client)
   From \kfile{drivers/iio/accel/da311.c}
 \end{frame}
 
-\begin{frame}{Communicating with the I2C device: raw API}
+\begin{frame}[fragile]{Communicating with the I2C device: raw API}
   The most {\bf basic API} to communicate with the I2C device provides
   functions to either send or receive data:
   \begin{itemize}
-  \item
-    \code{int i2c_master_send(const struct i2c_client *client, const char *buf, int count);}
-    \\Sends the contents of \code{buf} to the client.
-  \item
-    \code{int i2c_master_recv(const struct i2c_client *client, char *buf, int count);}
-    \\Receives \code{count} bytes from the client, and store them into
-    \code{buf}.
+  \item Send a \code{buf} to the I2C device with:
+    \begin{block}{}
+      \begin{minted}[fontsize=\scriptsize]{c}
+int i2c_master_send(const struct i2c_client *client, const char *buf, int count);
+      \end{minted}
+    \end{block}
+  \item Receive a \code{count} bytes from the I2C device and save them in \code{buf} with:
+    \begin{block}{}
+      \begin{minted}[fontsize=\scriptsize]{c}
+int i2c_master_recv(const struct i2c_client *client, char *buf, int count);
+      \end{minted}
+    \end{block}
   \end{itemize}
   Both functions return a negative error number in case of failure, otherwise the
   number of transmitted bytes.
 \end{frame}
 
-\begin{frame}{Communicating with the I2C device: message transfer}
+\begin{frame}[fragile]{Communicating with the I2C device: message transfer}
   The message transfer API allows to describe {\bf transfers} that
   consists of several {\bf messages}, with each message being a
   transaction in one direction:
+  \begin{block}{}
+    \begin{minted}[fontsize=\scriptsize]{c}
+int i2c_transfer(struct i2c_adapter *adap, struct i2c_msg *msgs, int num);
+    \end{minted}
+  \end{block}
   \begin{itemize}
-  \item
-    \code{int i2c_transfer(struct i2c_adapter *adap, struct i2c_msg *msgs, int num);}
   \item The \kstruct{i2c_adapter} pointer can be found by using
     \code{client->adapter}
   \item The \kstruct{i2c_msg} structure defines the length, location, and
