@@ -250,57 +250,6 @@ int devm_request_threaded_irq(struct device *dev, unsigned int irq,
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{Tasklet example: drivers/crypto/atmel-sha.c 1/2}
-\begin{minted}[fontsize=\scriptsize]{c}
-/* The tasklet function */
-static void atmel_sha_done_task(unsigned long data)
-{
-        struct atmel_sha_dev *dd = (struct atmel_sha_dev *)data;
-        [...]
-}
-
-/* Probe function: registering the tasklet */
-static int atmel_sha_probe(struct platform_device *pdev)
-{
-        struct atmel_sha_dev *sha_dd; /* Per device structure */
-        [...]
-        platform_set_drvdata(pdev, sha_dd);
-        [...]
-        tasklet_init(&sha_dd->done_task, atmel_sha_done_task,
-                     (unsigned long)sha_dd);
-        [...]
-        err = devm_request_irq(&pdev->dev, sha_dd->irq, atmel_sha_irq,
-                               IRQF_SHARED, "atmel-sha", sha_dd);
-        [...]
-}
-\end{minted}
-\end{frame}
-
-\begin{frame}[fragile]
-  \frametitle{Tasklet example: drivers/crypto/atmel-sha.c 2/2}
-\begin{minted}[fontsize=\scriptsize]{c}
-/* Remove function: removing the tasklet */
-static int atmel_sha_remove(struct platform_device *pdev)
-{
-        static struct atmel_sha_dev *sha_dd;
-        sha_dd = platform_get_drvdata(pdev);
-        [...]
-        tasklet_kill(&sha_dd->done_task);
-        [...]
-}
-
-/* Interrupt handler: triggering execution of the tasklet */
-static irqreturn_t atmel_sha_irq(int irq, void *dev_id)
-{
-        struct atmel_sha_dev *sha_dd = dev_id;
-        [...]
-        tasklet_schedule(&sha_dd->done_task);
-        [...]
-}
-\end{minted}
-\end{frame}
-
-\begin{frame}[fragile]
   \frametitle{Workqueues}
   \begin{itemize}
   \item Workqueues are a general mechanism for deferring work. It is
