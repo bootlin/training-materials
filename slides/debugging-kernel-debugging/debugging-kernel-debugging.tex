@@ -714,6 +714,68 @@ KERNEL STACK SIZE: 8192
   \end{center}
 \end{frame}
 
+\begin{frame}[fragile]
+  \frametitle{pstore (1/2)}
+	\begin{itemize}
+    \item Linux provides a filesystem interface for Persistent Storage
+      (\code{pstore}) to save data across system resets: kernel logs, oopses,
+      ftrace records, user messages...
+    \item The platform needs to provide a persistent area to pstore (a
+      block device, reserved RAM which is not reset on reboot,
+      etc). Then you can enable a pstore frontend.
+    \item
+      \href{https://www.kernel.org/doc/html/latest/admin-guide/ramoops.html}{ramoops}
+      is a common frontend for pstore: it will log any panic/oops to a
+      pstore-managed ram buffer, which will be accessible on next boot
+    \item Saved logs can be retrieved on next boot thanks to the pstore
+      filesystem
+    \item Some earlier software components in the boot chain (eg:
+      \href{https://docs.u-boot.org/en/v2021.01/usage/pstore.html}{U-Boot}),
+      if properly configured, may be able to access pstore data as well
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{pstore (2/2)}
+	\begin{itemize}
+    \item Kernel configuration:
+      \begin{itemize}
+        \item \kconfigval{CONFIG_PSTORE}{y}
+        \item \kconfigval{CONFIG_PSTORE_RAM}{y}
+      \end{itemize}
+	\item Platform configuration: reserve some memory for pstore and
+    configure it
+    \begin{itemize}
+      \item Either through kernel command line:
+        \code{mem=<usable_memory_size>
+        ramoops.mem_address=0x8000000 ramoops.ecc=1}
+      \item Or through device tree:
+    \end{itemize}
+  \end{itemize}
+  \begin{block}{}
+    \begin{minted}[fontsize=\tiny]{dts}
+reserved-memory {
+        [...]
+        ramoops@8f000000 {
+                compatible = "ramoops";
+                reg = <0 0x8f000000 0 0x100000>;
+                record-size = <0x4000>;
+                console-size = <0x4000>;
+        };
+};
+    \end{minted}
+  \end{block}
+  \begin{itemize}
+    \item After a crash, the collected logs/traces will be available in the
+      pstore filesystem:
+  \end{itemize}
+  \begin{block}{}
+    \begin{minted}{console}
+mount -t pstore pstore /sys/fs/pstore
+    \end{minted}
+  \end{block}
+\end{frame}
+
 \setuplabframe
 {Kernel debugging}
 {
