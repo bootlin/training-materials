@@ -213,26 +213,29 @@
   \end{itemize}
 \end{frame}
 
-\begin{frame}
+\begin{frame}[fragile]
   \frametitle{Coredumps for post mortem analysis}
   \begin{itemize}
-  \item When an application crashes due to a {\em segmentation fault}
-    and the application was not under control of a debugger, we get no
-    information about the crash
-  \item Fortunately, Linux can generate a \code{core} file that
-    contains the image of the application memory at the moment of the
-    crash in the ELF format. gdb can use this \code{core} file to let
-    us analyze the state of the crashed application
+  \item It is sometime not possible to have a debugger attached when a
+	  crash occurs
+  \item Fortunately, Linux can generate a \code{core} file (a snapshot of
+    the whole process memory at the moment of the crash), in the ELF
+      format. gdb can use this \code{core} file to let us analyze the state
+      of the crashed application
   \item On the target
     \begin{itemize}
     \item Use \code{ulimit -c unlimited} in the shell starting the
       application, to enable the generation of a \code{core} file
       when a crash occurs
-    \item The output name for the coredump file can be modified using
-      \code{/proc/sys/kernel/core_pattern}. See \manpage{core}{5}
-    \item On a system with {\em systemd}, core dumps are disabled by
-          default as a security feature. To restore them temporarily, run:
-	  \code{echo core > /proc/sys/kernel/core_pattern}
+    \item The output name and path for the coredump file can be modified using
+	    \code{/proc/sys/kernel/core_pattern} (see \manpage{core}{5})
+		    \begin{itemize}
+			    \item Example: \code{echo /tmp/mycore >
+				    /proc/sys/kernel/core_pattern}
+		    \end{itemize}
+    \item Depending on the system configuration, the \code{core_pattern}
+      file may be rewritten automatically by some software to handle core
+        files or even disable core generation (eg: systemd)
     \end{itemize}
   \item On the host
     \begin{itemize}
