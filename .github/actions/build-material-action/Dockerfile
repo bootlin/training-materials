@@ -26,9 +26,11 @@ RUN dnf -y update && \
 	texlive-environ \
 	texlive-epstopdf \
 	texlive-eurosym \
+	texlive-collection-fontsextra \
 	texlive-hyphenat \
 	texlive-inconsolata \
 	texlive-lstaddons \
+	texlive-ltablex \
 	texlive-mdframed \
 	texlive-moreverb \
 	texlive-overpic \
