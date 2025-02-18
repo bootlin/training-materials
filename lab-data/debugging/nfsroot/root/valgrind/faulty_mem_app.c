@@ -1,4 +1,3 @@
-#include <stdio.h>
 #include <stdlib.h>
 #include <fcntl.h>
 #include <unistd.h>
@@ -8,7 +7,7 @@ static int *allocate_array(int size)
 	return malloc(size * sizeof(int));
 }
 
-static int clear_array(int *p, int size)
+static void clear_array(int *p, int size)
 {
 	int i;
 
