@@ -119,36 +119,45 @@ do_install:append() {
     \item Any metadata and task which can be put in a recipe can be
           used in a class.
     \item Classes extension is \code{.bbclass}
-    \item Classes are located in the \code{classes-recipe},
+    \item Classes must be located in the \code{classes-recipe},
       \code{classes-global}, or \code{classes} folders of a layer.
-    \item Recipes can use this common code by inheriting a class:
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Using classes}
+  \begin{itemize}
+    \item Recipes can use the classes located in the \code{classes-recipe}
+      folder:
     \begin{itemize}
-      \item \code{inherit <class>}
+      \item \code{inherit class1 class2 ...}
     \end{itemize}
     \item A recipe can inherit from multiple classes.
+    \item Classes in \code{classes-global} can be inherited from configuration
+      files with \yoctovar{INHERIT}:
+    \begin{itemize}
+      \item \code{INHERIT:append = " class1 class2"}
+    \end{itemize}
+    \item Classes in \code{INHERIT} will be used by every built recipe.
+    \item Classes in the \code{classes} folder can be used with \code{inherit} or
+      \yoctovar{INHERIT}, as their usage is not clearly defined.
   \end{itemize}
 \end{frame}
 
 \begin{frame}
   \frametitle{Common classes}
   \begin{itemize}
-    \item Most classes are split into scope-specific subdirectories:
-      \code{meta/classes-recipe/}, \code{meta/classes-global/}
-    \item Classes whose usage context is not clearly defined can be found in
-      \code{meta/classes/}
-    \begin{itemize}
-      \item \code{classes-global/base.bbclass}
-      \item \code{classes-recipe/kernel.bbclass}
-      \item \code{classes-recipe/autotools.bbclass}
-      \item \code{classes-recipe/autotools-brokensep.bbclass}
-      \item \code{classes-recipe/cmake.bbclass}
-      \item \code{classes-recipe/meson.bbclass}
-      \item \code{classes-recipe/native.bbclass}
-      \item \code{classes-recipe/systemd.bbclass}
-      \item \code{classes-recipe/update-rc.d.bbclass}
-      \item \code{classes/useradd.bbclass}
-      \item \dots
-    \end{itemize}
+    \item \href{https://docs.yoctoproject.org/ref-manual/classes.html\#base}{classes-global/base.bbclass}
+    \item \href{https://docs.yoctoproject.org/ref-manual/classes.html\#kernel}{classes-recipe/kernel.bbclass}
+    \item \href{https://docs.yoctoproject.org/ref-manual/classes.html\#autotools}{classes-recipe/autotools.bbclass}
+    \item \href{https://docs.yoctoproject.org/ref-manual/classes.html\#autotools}{classes-recipe/autotools-brokensep.bbclass}
+    \item \href{https://docs.yoctoproject.org/ref-manual/classes.html\#cmake}{classes-recipe/cmake.bbclass}
+    \item \href{https://docs.yoctoproject.org/ref-manual/classes.html\#meson}{classes-recipe/meson.bbclass}
+    \item \href{https://docs.yoctoproject.org/ref-manual/classes.html\#native}{classes-recipe/native.bbclass}
+    \item \href{https://docs.yoctoproject.org/ref-manual/classes.html\#systemd}{classes-recipe/systemd.bbclass}
+    \item \href{https://docs.yoctoproject.org/ref-manual/classes.html\#update-rc-d}{classes-recipe/update-rc.d.bbclass}
+    \item \href{https://docs.yoctoproject.org/ref-manual/classes.html\#useradd}{classes/useradd.bbclass}
+    \item \dots
   \end{itemize}
 \end{frame}
 
@@ -330,7 +339,8 @@ do_install() {
     \item To inherit the functionalities of the \code{kernel} class,
       use: \code{inherit kernel}
     \item \code{inherit} looks for files ending in \code{.bbclass}, in
-      \code{classes} directories found in \yoctovar{BBPATH}.
+      \code{classes}, \code{classes-recipe} or \code{classes-global} directories
+      found in \yoctovar{BBPATH}.
     \item It is possible to include a class conditionally using a
       variable: \code{inherit ${FOO}}
     \item Inheriting in configuration files is based on the \yoctovar{INHERIT}
