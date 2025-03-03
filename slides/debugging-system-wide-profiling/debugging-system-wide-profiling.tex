@@ -387,6 +387,108 @@ Overhead  Shared Object                         Symbol
   \end{block}
 \end{frame}
 
+
+\begin{frame}[fragile]
+  \frametitle{Using a GUI to display perf data}
+  \begin{itemize}
+    \item \code{perf report} is the default way to display perf data,
+      directly in the console
+    \item There are also graphical tools to display perf data:
+      \begin{itemize}
+        \item
+          \href{http://www.brendangregg.com/flamegraphs.html}{Flamegraphs}
+          \begin{itemize}
+            \item Visualization based on hierarchical stacks
+            \item Allows to quickly find bottlenecks and explore the call stack
+            \item Popularized by Brendan Gregg tools which allows to generate
+              flamegraphs from \code{perf} results.
+          \end{itemize}
+        \item \href{https://github.com/KDAB/hotspot}{Hotspot} software
+          \begin{itemize}
+            \item Developed and maintained by KDAB
+            \item A larger tool able to generate various types of
+              visualizations from a \code{perf.data} file
+            \item Can also perform the actual perf recording
+          \end{itemize}
+      \end{itemize}
+  \end{itemize}
+\end{frame} 
+
+\begin{frame}[fragile]
+  \frametitle{Visualizing data with flamegraphs (1/2)}
+  \begin{itemize}
+    \item Get the flamegraph scripts:
+  \begin{block}{}
+    \begin{minted}[fontsize=\small]{console}
+git clone https://github.com/brendangregg/FlameGraph fl
+    \end{minted}
+  \end{block}
+    \item Capture data:
+  \begin{block}{}
+    \begin{minted}[fontsize=\small]{console}
+perf record -g -- sleep 30
+    \end{minted}
+  \end{block}
+      \begin{itemize}
+        \item The \code{-g} option records call stacks for each sample
+      \end{itemize}
+    \item Format the data:
+      \begin{block}{}
+        \begin{minted}[fontsize=\small]{console}
+perf script|./fl/stackcollapse-perf.pl > out.perf-folded
+        \end{minted}
+      \end{block}
+      \begin{itemize}
+        \item \code{stackcollapse-perf.pl} is part of the
+          \href{https://github.com/brendangregg/FlameGraph}{Flamegraph
+          repository}
+        \item Other data sources are supported
+      \end{itemize}
+    \item Generate the Flamegraph:
+      \begin{block}{}
+        \begin{minted}[fontsize=\small]{console}
+./fl/flamegraph.pl out.perf-folded > flamegraph.svg
+        \end{minted}
+      \end{block}
+    \item The flamegraph can then be opened in  a web browser
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Visualizing data with flamegraphs (2/2)}
+  \center
+	\includegraphics[width=1.0\textwidth]{slides/debugging-system-wide-profiling/flamegraph.png}\\
+  \begin{itemize}
+    \item The plates width represents how often a function has been
+      sampled
+    \item The "spikes" height represents the call stacks depth
+    \item Flamegraphs are interactive: clicking a plate will put focus on the
+      corresponding callstack
+    \item Colors can be tuned at flamegraph generation, for example to have
+      a clear split between kernel and userspace functions
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Visualizing data with hotspot (1/2)}
+  \begin{itemize}
+	  \item Designed to provide a frontend to perf data files
+    \item Can generate flamegraphs on the fly, but not only:
+      \begin{itemize}
+        \item CPU/tasks timelines
+        \item Interactive callstacks navigation
+        \item Code disassembly
+      \end{itemize}
+    \item Configurable (eg: allows to set paths to find all needed debug
+      informations)
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Visualizing data with hotspot (2/2)}
+  \center \includegraphics[width=0.9\textwidth]{slides/debugging-system-wide-profiling/hotspot.png}\\
+\end{frame}
+
 \subsection{ftrace and trace-cmd}
 
 \begin{frame}
