@@ -24,30 +24,29 @@
 % 1: Identifier of the agenda item, as defined by \defagendaitem
 % 2: Type of the agenda item: lecture or lab
 \newcommand\showagendaitem[2]{
-  \feagendaonecolumn{
+  \ifthenelse{\boolean{hlineneeded}}{\\\hline}{\setboolean{hlineneeded}{true}}
     \ifthenelse{\equal{\agendalanguage}{french}}{
       \ifthenelse{\equal{#2}{lecture}}
-      {Cours -}
+      {Cours &}
       {
         \ifthenelse{\equal{#2}{lab}}{
-          \ifthenelse{\equal{\trainingtype}{online}}{Démo -}{TP -}%
-        }%
-        {}%
-      }%
+          \ifthenelse{\equal{\trainingtype}{online}}{Démo &}{TP &}
+        }
+        {}
+      }
     }{
       \ifthenelse{\equal{#2}{lecture}}
-      {Lecture -}
+      {Lecture &}
       {
         \ifthenelse{\equal{#2}{lab}}{
-          \ifthenelse{\equal{\trainingtype}{online}}{Demo -}{Lab -}%
-        }%
-        {}%
-      }%
+          \ifthenelse{\equal{\trainingtype}{online}}{Demo &}{Lab &}
+        }
+        {}
+      }
     }
-    \csname #1@#2@title\endcsname
-  }{
+    \csname #1@#2@title\endcsname &
+    \vspace{-8pt}
     \csname #1@#2@contents\endcsname
-  }\\
 }
 
 % Define a board
@@ -75,15 +74,15 @@
 % Arguments:
 % 1: Identifier of the board, as defined by \defboard
 \newcommand\showboarditem[1]{
-  \feagendatwocolumn{
-    \csname #1@title\endcsname
-  }{
-    \csname #1@contents\endcsname
-  }
-  {}
-  {
-    \csname #1@image\endcsname
-  }
+  \begin{tabularx}{\textwidth}{p{7cm}p{11cm}}
+    \arrayrulecolor{blorange}
+    \hline
+    \multicolumn{1}{l}{\textbf{\textcolor{blorange}{\large \csname #1@title\endcsname}}} & \\
+    \hline
+    \arrayrulecolor{gray}
+    \csname #1@contents\endcsname &
+    \csname #1@image\endcsname \\
+  \end{tabularx}
 }
 
 % Start an agenda by finding
@@ -94,18 +93,27 @@
 % Arguments:
 % 1: Number of the half-day
 \newcommand\showagendaday[1]{
-  \ifthenelse{\equal{\trainingtype}{online}}{
-    \showonlineagendaday{#1}
-  }{
-    \pgfmathparse{int(mod(#1, 2))}
-    \ifnum\pgfmathresult=1
-      \pgfmathparse{int((#1 + 1) / 2)}
-      \showonsiteagendaday{\pgfmathresult}{morning}
-    \else
-      \pgfmathparse{int(#1 / 2)}
-      \showonsiteagendaday{\pgfmathresult}{afternoon}
-    \fi
-  }
+  \arrayrulecolor{blorange}
+  \\\hline
+  \multicolumn{3}{l}{%
+    \textbf{\textcolor{blorange}{\large\hspace{-1.5em}
+      \ifthenelse{\equal{\trainingtype}{online}}{
+        \showonlineagendaday{#1}
+      }{
+        \pgfmathparse{int(mod(#1, 2))}
+        \ifnum\pgfmathresult=1
+          \pgfmathparse{int((#1 + 1) / 2)}
+          \showonsiteagendaday{\pgfmathresult}{morning}
+        \else
+          \pgfmathparse{int(#1 / 2)}
+          \showonsiteagendaday{\pgfmathresult}{afternoon}
+        \fi
+      }
+    }}
+  } \\
+  \hline
+  \setboolean{hlineneeded}{false}
+  \arrayrulecolor{gray}
 }
 
 % Start an online agenda half-day
@@ -114,9 +122,9 @@
 % 1: Number of the half-day
 \newcommand\showonlineagendaday[1]{
   \ifthenelse{\equal{\agendalanguage}{french}}{
-    \section{#1 demi-journée}
+    #1 demi-journée
   }{
-    \section{Half day #1}
+    Half day #1
   }
 }
 
@@ -128,22 +136,22 @@
 \newcommand\showonsiteagendaday[2]{
   \ifthenelse{\equal{\agendalanguage}{french}}{
     \ifthenelse{\equal{#2}{morning}}{
-      \section{Jour #1 - Matin}
+      Jour #1 - Matin
     }{
-      \section{Jour #1 - Après-midi}
+      Jour #1 - Après-midi
     }
   }{
     \ifthenelse{\equal{#2}{morning}}{
-      \section{Day #1 - Morning}
+      Day #1 - Morning
     }{
-      \section{Day #1 - Afternoon}
+      Day #1 - Afternoon
     }
   }
 }
 
 \defboard
 {stm32mp1}
-{Hardware platform for practical labs}
+{STM32MP1 Discovery Kit}
 {
   One of these Discovery Kits from STMicroelectronics: {\bf
   STM32MP157A-DK1}, {\bf STM32MP157D-DK1}, {\bf STM32MP157C-DK2} or
@@ -162,7 +170,7 @@
   \item LCD touchscreen (DK2 kits only)
   \end{itemize}
 }
-{Plateforme matérielle pour les travaux pratiques}
+{Plateforme STM32MP1}
 {
   Une de ces cartes de STMicroelectronics : {\bf
   STM32MP157A-DK1}, {\bf STM32MP157D-DK1}, {\bf STM32MP157C-DK2} ou
@@ -211,7 +219,7 @@
 
 \defboard
 {beagleboneblack}
-{Hardware platform for practical labs}
+{BeagleBone Black}
 {
   {\bf BeagleBone Black} or {\bf BeagleBone Black Wireless} board
   \begin{itemize}
@@ -227,7 +235,7 @@
   \item Ethernet or WiFi
   \end{itemize}
 }
-{Plateforme matérielle pour les travaux pratiques}
+{BeagleBone Black}
 {
   Carte {\bf BeagleBone Black} ou {\bf BeagleBone Black Wireless}
   \begin{itemize}
@@ -244,13 +252,13 @@
 }
 {
   \begin{center}
-    \includegraphics[width=5cm]{../slides/beagleboneblack-board/beagleboneblack.png}
+    \includegraphics[width=5cm]{../slides/beagleboneblack-board/beagleboneblack_sd.png}
   \end{center}
 }
 
 \defboard
 {beagleplay}
-{Hardware platform for practical labs}
+{BeaglePlay}
 {
   {\bf BeaglePlay} board
   \begin{itemize}
@@ -263,7 +271,7 @@
     \item 1 MicroBus Header (SPI, I2C, UART, ...), OLDI and CSI connector.
   \end{itemize}
 }
-{Plateforme matérielle pour les travaux pratiques}
+{BeaglePlay}
 {
   Carte {\bf BeaglePlay}
   \begin{itemize}
@@ -278,6 +286,6 @@
 }
 {
   \begin{center}
-    \includegraphics[width=5cm]{../slides/beagleplay-board/beagleplay.png}
+    \includegraphics[width=5cm]{../slides/beagleplay-board/beagleplay_sd.png}
   \end{center}
 }
