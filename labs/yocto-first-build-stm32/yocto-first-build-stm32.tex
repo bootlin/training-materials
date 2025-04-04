@@ -22,6 +22,33 @@ sudo apt install gawk wget git diffstat unzip texinfo gcc build-essential \
   file locales libacl1
 \end{verbatim}
 
+\section{Avoiding unprivileged user namespace restrictions}
+
+Ubuntu 24.04 added an apparmor policy preventing usage of unprivileged user
+namespace restrictions to improve security. Unfortunately this prevents
+bitbake from working, because it uses namespaces to forbid untracked
+downloads outside of the \code{do_fetch} task. Ironically, bitbake does
+this to improve security. This results in the following error message:
+
+\begin{verbatim}
+ERROR: PermissionError: [Errno 1] Operation not permitted
+...
+    with open("/proc/self/uid_map", "w") as f:
+\end{verbatim}
+
+To disable this apparmor restriction, run this command in a shell:
+
+\begin{bashinput}
+echo 0 | sudo tee /proc/sys/kernel/apparmor_restrict_unprivileged_userns
+\end{bashinput}
+
+You will need to run this command every time you reboot your machine.
+
+For more information, including how to disable this restriction
+persistently, see
+\href{https://discourse.ubuntu.com/t/ubuntu-24-04-lts-noble-numbat-release-notes/39890#p-99950-unprivileged-user-namespace-restrictions}
+     {the Ubuntu 24.04 Release Notes}.
+
 \section{Download Yocto}
 
 Go to the \code{$HOME/__SESSION_NAME__-labs/} directory.
