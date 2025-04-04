@@ -68,6 +68,7 @@
 
 \begin{frame}[fragile]
   \frametitle{Append file example}
+  \code{linux-yocto_6.12.bbappend}:
   \begin{block}{}
     \begin{minted}{sh}
 FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
@@ -75,6 +76,18 @@ FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 SRC_URI += "file://defconfig \
             file://fix-memory-leak.patch \
             "
+    \end{minted}
+  \end{block}
+  File organization:
+  \begin{block}{}
+    \begin{minted}[fontsize=\small]{console}
+meta-custom/
+`-- recipes-kernel/
+    `-- linux/
+        |-- files/
+        |   |-- defconfig
+        |   `-- fix-memory-leak.patch
+        `-- linux-yocto_6.12.bbappend
     \end{minted}
   \end{block}
 \end{frame}
@@ -87,6 +100,15 @@ SRC_URI += "file://defconfig \
 do_install:append() {
     install -d ${D}${sysconfdir}
     install -m 0644 hello.conf ${D}${sysconfdir}
+}
+    \end{minted}
+  \end{block}
+  Overrides can also be used for extending tasks:
+  \begin{block}{}
+    \begin{minted}{sh}
+do_install:append:beaglebone() {
+    install -d ${D}${nonarch_base_libdir}/firmware
+    install -m 0644 firmware.bin ${D}${nonarch_base_libdir}/firmware
 }
     \end{minted}
   \end{block}
@@ -104,7 +126,7 @@ do_install:append() {
           variable.
     \item Several recipes can provide the same virtual name. Only one
           will be built and installed into the generated image.
-    \item \code{PROVIDES = "virtual/kernel"}
+    \item \code{PROVIDES += "virtual/kernel"}
   \end{itemize}
 \end{frame}
 
