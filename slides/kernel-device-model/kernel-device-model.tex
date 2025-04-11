@@ -437,27 +437,21 @@ module_platform_driver(serial_imx_driver);
 \begin{frame}
   \frametitle{Using additional hardware resources}
   \begin{itemize}
-  \item Regular DT descriptions contain many information, including
-    phandles (pointers) towards additional hardware blocks or hardware
-    details which cannot be discovered.
+  \item Regular DT descriptions contain many information. It includes
+    phandles (pointers) towards additional hardware blocks which cannot
+    be discovered.
     \begin{itemize}
-    \item Some of them are available through a generic array of resources,
-      like addresses for the I/O registers and IRQ lines:
+    \item I/O register addresses and IRQ lines are available through a
+      \kstruct{resource} array associated to each \kstruct{platform_device}.
+    \item Information relevant to a given subsystem is parsed by that
+      specific subsystem. Examples are clocks, GPIOs or DMA.
+      A subsystem is responsible for:
       \begin{itemize}
-      \item Such information can be represented using \kstruct{resource},
-        and an array of \kstruct{resource} is associated to each
-        \kstruct{platform_device}.
+      \item instantiating its components,
+      \item offering an API to use those objects from device drivers.
       \end{itemize}
-    \item Common information/dependencies are parsed by the relevant
-      subsystems, like clocks, GPIOs, or DMA channels:
-      \begin{itemize}
-      \item Each subsystem is responsible of instantiating its
-        components, and offering an API to retrieve these objects and
-        use them from device drivers.
-      \end{itemize}
-    \item Specific information might be directly be retrieved by
-      device drivers, through (expensive) direct DT lookups (old drivers
-      use \kstruct{platform_data}).
+    \item Specific properties are directly retrieved by
+      device drivers, through (expensive) DT lookups.
     \end{itemize}
   \item All these methods allow the same driver to be used with
     multiple devices functioning similarly, but with different
