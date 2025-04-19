@@ -13,6 +13,7 @@
 \RequirePackage{fmtcount}
 \RequirePackage{fp}
 \RequirePackage{url}
+\RequirePackage{etoolbox}
 
 \usepackage{fontspec}
 \defaultfontfeatures{Ligatures=TeX}
@@ -446,6 +447,50 @@
   }
 }
 
+\newcommand\feshowtraininglanguages[1]{
+  \begin{tabular}{p{2.2cm} @{\hskip 0.2cm}p{5cm}}
+    \ifthenelse{\equal{\agendalanguage}{french}}{%
+      Transparents & Anglais \\%
+      \\%
+      Présentation & Français \\%
+      & Anglais \\%
+      \ifthenelse{\isundefined{#1}}{}{%
+        \def\tabledata{}%
+        \makeatletter%
+        \foreach \trainer in #1 {%
+          \ifthenelse{\equal{\trainer}{joaomarcos-costa}}{%
+            \xappto\tabledata{& Portugais \\}%
+          }{}%
+          \ifthenelse{\equal{\trainer}{luca-ceresoli}}{%
+            \xappto\tabledata{& Italien \\}%
+          }{}%
+        }%
+        \makeatother%
+        \tabledata%
+      }%
+  }{%
+      Materials & English \\%
+      \\%
+      Oral Lecture & English \\%
+      & French \\%
+      \ifthenelse{\isundefined{#1}}{}{%
+        \def\tabledata{}%
+        \makeatletter%
+        \foreach \trainer in #1 {%
+          \ifthenelse{\equal{\trainer}{joaomarcos-costa}}{%
+            \xappto\tabledata{& Portuguese \\}%
+          }{}%
+          \ifthenelse{\equal{\trainer}{luca-ceresoli}}{%
+            \xappto\tabledata{& Italian \\}%
+          }{}%
+        }%
+        \makeatother%
+        \tabledata%
+      }%
+    }%
+  \end{tabular}
+}
+
 \newcommand\feshowsidebar{
 \begin{tikzpicture}[remember picture,overlay]
   \node [rectangle, fill=sidecolor, anchor=north, minimum width=10cm, minimum height=\paperheight+1cm] (box) at (-6cm,1cm){};
@@ -473,13 +518,11 @@
 
     \ifthenelse{\equal{\agendalanguage}{french}}{
       \profilesection{\vspace{0.7cm} Langue}
-
-      \traininglanguages{}
     }{
       \profilesection{\vspace{0.7cm} Language}
-
-      \traininglanguages{}
     }
+
+    \feshowtraininglanguages{\trainers}
 
     \ifthenelse{\equal{\agendalanguage}{french}}{
       \profilesection{\vspace{0.7cm} Formateur}
