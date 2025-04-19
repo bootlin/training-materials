@@ -245,6 +245,7 @@ AGENDA_PICTURES = $(COMMON_PICTURES) $(call PICTURES,agenda)
 	rm -f $(OUTDIR)/$(basename $@).tex
 	cp $(filter %-agenda.tex,$^) $(OUTDIR)/$(basename $@).tex
 	(cd $(OUTDIR); $(PDFLATEX_ENV) $(PDFLATEX) $(basename $@).tex)
+	(cd $(OUTDIR); $(PDFLATEX_ENV) $(PDFLATEX) $(basename $@).tex > /dev/null 2>&1)
 	cat $(OUTDIR)/$@ > $@
 else
 FORCE:
