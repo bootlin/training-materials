@@ -399,11 +399,17 @@ Here are a few further commands for controlling playback:
 \item \code{mpc toggle}: toggle between pause and playback modes.
 \end{itemize}
 
-If you find that changing the volume is not available, you can
-add a custom configuration for MPD, as the standard one
-provided by Buildroot doesn't support allowing to change the audio
-playback volume with all sound cards we have tested. We will simply
-add this file to our overlay:
+You probably noticed following error logs when MPD started:
+\begin{terminaloutput}
+Starting mpd: Jan 01 00:00 : server_socket: bind to '0.0.0.0:6600' failed (continuing anyway, because binding to '[::]:6600' succeeded): Failed to bind socket: Address
+in use
+Jan 01 00:00 : exception: Failed to open '/var/lib/mpd/database': No such file or directory
+Jan 01 00:00 : output: No 'audio_output' defined in config file
+Jan 01 00:00 : output: Successfully detected a alsa audio device
+\end{terminaloutput}
+These are due to invalid configuration options. We will add a custom
+configuration for MPD, as the standard one provided by Buildroot doesn't
+perfectly fit our use case. We will simply add this file to our overlay:
 
 \begin{bashinput}
 cp ../data/mpd.conf board/bootlin/training/rootfs-overlay/etc/
