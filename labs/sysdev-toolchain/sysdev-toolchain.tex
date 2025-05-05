@@ -74,7 +74,7 @@ listed by using \code{./ct-ng list-samples}.
 We will load the
 \ifdefstring{\labboard}{qemu}{Cortex A9}{}%
 \ifdefstring{\labboard}{beaglebone}{Cortex A8}{}%
-\ifdefstring{\labboard}{beagleplay}{\code{aarch64-unknown-linux-uclibc}}{}%
+\ifdefstring{\arch}{ARM64}{\code{aarch64-unknown-linux-uclibc}}{}%
 \ifdefstring{\labboard}{stm32mp1}{Cortex A5}{}
 sample\ifdefstring{\labboard}{stm32mp1}{, as Crosstool-ng doesn't have
 any sample for Cortex A7 yet}{}. Load it with the \code{./ct-ng} command.
@@ -107,7 +107,7 @@ In \code{Target options}:
 \end{itemize}
 }{}
 
-\ifdefstring{\labboard}{beagleplay}{
+\ifdefstring{\arch}{ARM64}{
 In \code{Target options}:
 \begin{itemize}
 \item Set \code{Emit assembly for CPU} (\code{ARCH_CPU}) to \code{cortex-a53}.
@@ -116,7 +116,7 @@ In \code{Target options}:
 }{}
 
 In \code{Toolchain options}:
-\ifdefstring{\labboard}{beagleplay}{
+\ifdefstring{\arch}{ARM64}{
 \begin{itemize}
 \item Set \code{Tuple's vendor string} (\code{TARGET_VENDOR}) to \code{training}.
 \item Set \code{Tuple's alias} (\code{TARGET_ALIAS}) to \code{aarch64-linux}.
@@ -124,7 +124,8 @@ In \code{Toolchain options}:
       instead of \code{aarch64-training-linux-musl-gcc}, which is
       much longer to type.
 \end{itemize}
-}{
+}
+{
 \begin{itemize}
 \item Set \code{Tuple's vendor string} (\code{TARGET_VENDOR}) to \code{training}.
 \item Set \code{Tuple's alias} (\code{TARGET_ALIAS}) to
@@ -185,17 +186,17 @@ And wait!
 \section{Testing the toolchain}
 
 You can now test your toolchain by adding
-\ifdefstring{\labboard}{beagleplay}{\code{$HOME/x-tools/aarch64-training-linux-musl/bin/}}
+\ifdefstring{\arch}{ARM64}{\code{$HOME/x-tools/aarch64-training-linux-musl/bin/}}
 {\code{$HOME/x-tools/arm-training-linux-musleabihf/bin/}} to your
 \code{PATH} environment variable and compiling the simple
 \code{hello.c} program in your main lab directory with
-\ifdefstring{\labboard}{beagleplay}{\code{aarch64-linux-gcc}}{\code{arm-linux-gcc}}:
+\ifdefstring{\arch}{ARM64}{\code{aarch64-linux-gcc}}{\code{arm-linux-gcc}}:
 
 \begin{bashinput}
-$ %\ifdefstring{\labboard}{beagleplay}{aarch64-linux-gcc}{arm-linux-gcc}% -o hello hello.c
+$ %\ifdefstring{\arch}{ARM64}{aarch64-linux-gcc}{arm-linux-gcc}% -o hello hello.c
 \end{bashinput}
 You can use the \code{file} command on your binary to make sure it has
-correctly been compiled for the \ifdefstring{\labboard}{beagleplay}{AARCH64}{ARM}
+correctly been compiled for the \ifdefstring{\arch}{ARM64}{AARCH64}{ARM}
 architecture.
 
 Did you know that you can still execute this binary from your x86 host?
@@ -206,51 +207,50 @@ instruction sets, not an entire system with devices:
 $ sudo apt install qemu-user
 \end{bashinput}
 
-Now, try to run QEMU \ifdefstring{\labboard}{beagleplay}{AARCH64}{ARM}
-user emulator:
+Now, try to run QEMU \ifdefstring{\arch}{ARM64}{AARCH64}{ARM} user emulator:
 
-\if\defstring{\labboard}{beagleplay}
-\begin{bashinput}
-$ qemu-aarch64 hello
-qemu-aarch64: Could not open '/lib/ld-musl-aarch64.so.1': No such file or directory
-\end{bashinput}
+\if\defstring{\arch}{ARM64}
+  \begin{bashinput}
+  $ qemu-aarch64 hello
+  qemu-aarch64: Could not open '/lib/ld-musl-aarch64.so.1': No such file or directory
+  \end{bashinput}
 \else
-\begin{bashinput}
-$ qemu-arm hello
-qemu-arm: Could not open '/lib/ld-musl-armhf.so.1': No such file or directory
-\end{bashinput}
+  \begin{bashinput}
+  $ qemu-arm hello
+  qemu-arm: Could not open '/lib/ld-musl-armhf.so.1': No such file or directory
+  \end{bashinput}
 \fi
 
-What's happening is that \ifdefstring{\labboard}{beagleplay}{\code{qemu-aarch64}}
-{\code{qemu-arm}} is missing the shared library loader
-(compiled for \ifdefstring{\labboard}{beagleplay}{AARCH64}{ARM}) that this
+What's happening is that \ifdefstring{\arch}{ARM64}{\code{qemu-aarch64}}{\code{qemu-arm}} 
+is missing the shared library loader
+(compiled for \ifdefstring{\arch}{ARM64}{AARCH64}{ARM}) that this
 binary relies on. Let's find it in our newly compiled toolchain:
 
 \begin{bashinput}
-$ find ~/x-tools -name %\ifdefstring{\labboard}{beagleplay}{ld-musl-aarch64.so.1}{ld-musl-armhf.so.1}%
+$ find ~/x-tools -name %\ifdefstring{\arch}{ARM64}{ld-musl-aarch64.so.1}{ld-musl-armhf.so.1}%
 \end{bashinput}
 
-\if\defstring{\labboard}{beagleplay}
-\begin{terminaloutput}
-/home/tux/x-tools/aarch64-training-linux-musl/aarch64-training-linux-musl/sysroot/lib/ld-musl-aarch64.so.1
-\end{terminaloutput}
+\if\defstring{\arch}{ARM64}
+  \begin{terminaloutput}
+  /home/tux/x-tools/aarch64-training-linux-musl/aarch64-training-linux-musl/sysroot/lib/ld-musl-aarch64.so.1
+  \end{terminaloutput}
 \else
-\begin{terminaloutput}
-/home/tux/x-tools/arm-training-linux-musleabihf/arm-training-linux-musleabihf/sysroot/lib/ld-musl-armhf.so.1
-\end{terminaloutput}
+  \begin{terminaloutput}
+  /home/tux/x-tools/arm-training-linux-musleabihf/arm-training-linux-musleabihf/sysroot/lib/ld-musl-armhf.so.1
+  \end{terminaloutput}
 \fi
 
-We can now use the \code{-L} option of \ifdefstring{\labboard}{beagleplay}
+We can now use the \code{-L} option of \ifdefstring{\arch}{ARM64}
 {\code{qemu-aarch64}}{\code{qemu-arm}} to let it know where shared libraries are:
 
-\if\defstring{\labboard}{beagleplay}
-\begin{bashinput}
-$ qemu-aarch64 -L ~/x-tools/aarch64-training-linux-musl/aarch64-training-linux-musl/sysroot hello
-\end{bashinput}
+\if\defstring{\arch}{ARM64}
+  \begin{bashinput}
+  $ qemu-aarch64 -L ~/x-tools/aarch64-training-linux-musl/aarch64-training-linux-musl/sysroot hello
+  \end{bashinput}
 \else
-\begin{bashinput}
-$ qemu-arm -L ~/x-tools/arm-training-linux-musleabihf/arm-training-linux-musleabihf/sysroot hello
-\end{bashinput}
+  \begin{bashinput}
+  $ qemu-arm -L ~/x-tools/arm-training-linux-musleabihf/arm-training-linux-musleabihf/sysroot hello
+  \end{bashinput}
 \fi
 
 \begin{terminaloutput}

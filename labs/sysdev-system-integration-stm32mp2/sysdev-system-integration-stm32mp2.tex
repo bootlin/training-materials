@@ -1,0 +1,274 @@
+\subchapter{System Integration - Using systemd}
+  {Objectives: Get familiar with the {\em systemd} init system.}
+
+\section{Goals}
+
+Compared to the previous lab, we go on increasing the complexity
+of the system, this time by using the {\em systemd} init system,
+and by taking advantage of it to add a few extra features, in particular
+ones that will be useful for debugging in the next lab.
+
+\section{Setup}
+
+Since {\em systemd} requires the GNU C library, we are going
+to make a new Buildroot build in a new working directory, and
+using a different cross-compiling toolchain.
+
+So, enter the \code{$HOME/__SESSION_NAME__-labs/integration} directory.
+
+Make a new clone of Buildroot from the existing local Git repository,
+and checkout our \code{bootlin-labs} branch:
+
+\begin{bashinput}
+git clone $HOME/__SESSION_NAME__-labs/buildroot/buildroot
+cd buildroot
+git checkout bootlin-labs
+\end{bashinput}
+
+\section{Root filesystem overlay}
+
+Remove \code{etc/init.d/} from the root filesystem overlay.
+It was adapted to {\em BusyBox init}, not to {\em systemd}:
+
+\begin{bashinput}
+rm -r board/bootlin/training/rootfs-overlay/etc/init.d/
+\end{bashinput}
+
+\section{Buildroot configuration}
+
+Configure Buildroot as follows:
+
+\begin{itemize}
+\item \code{Target options}
+  \begin{itemize}
+  \item Select the same architecture and CPU settings as in
+        the previous lab.
+  \end{itemize}
+\item \code{Toolchain}
+  \begin{itemize}
+  \item \code{Toolchain type}: \code{External toolchain}
+  \item \code{Toolchain}: \code{Bootlin toolchains}\\
+        This time, we will use a Bootlin ready-made toolchain for {\em
+        glibc}, as this is necessary for using {\em systemd}.
+  \item \code{Toolchain origin}: \code{Toolchain to be downloaded and installed}
+  \item \code{Bootlin toolchain variant}: \code{aarch64 glibc bleeding-edge 2024.05-1}
+  \item Select \code{Copy gdb server to the Target}
+  \end{itemize}
+\item \code{System configuration}
+  \begin{itemize}
+  \item \code{Init system}: \code{systemd}
+  \item \code{Root filesystem overlay directories}: \code{board/bootlin/training/rootfs-overlay}
+  \end{itemize}
+\item \code{Kernel}
+  \begin{itemize}
+  \item Set \code{Kernel version} to \code{Custom tarball}
+  \item Set \code{URL of custom kernel tarball}to \code{$(call github,STMicroelectronics,linux)v6.6-stm32mp-r1.tar.gz}
+  \item Set \code{Custom kernel patches} to \code{board/bootlin/training/0001-Custom-DTS-for-Bootlin-lab.patch}
+  \item Set \code{Kernel configuration} to \code{Using a custom (def)config file})
+  \item Set \code{Configuration file path} to \code{board/bootlin/training/linux.config}
+  \item Select \code{Build a Device Tree Blob (DTB)}
+  \item Set \code{In-tree Device Tree Source file names} to \code{st/stm32mp257f-dk-custom}
+  \end{itemize}
+\item \code{Target packages}
+  \begin{itemize}
+  \item \code{Audio and video applications}
+    \begin{itemize}
+    \item We won't need \code{alsa-utils} this time.
+    \item Select \code{mpd}, and in the submenu:
+      \begin{itemize}
+           \item Keep only \code{alsa}, \code{vorbis} and \code{tcp sockets}
+      \end{itemize}
+    \item Select \code{mpd-mpc}.
+    \end{itemize}
+  \item \code{Hardware handling}
+    \begin{itemize}
+    \item Select \code{nunchuk driver}
+    \end{itemize}
+  \item \code{Networking applications}
+    \begin{itemize}
+    \item Select \code{dropbear}, a lightweight SSH server used instead
+          of OpenSSH in most embedded devices. You don't need to enable
+          client support (building an SSH client).
+    \end{itemize}
+  \end{itemize}
+\item \code{Filesystem images}
+  \begin{itemize}
+     \item Select \code{tar the root filesystem}
+  \end{itemize}
+\end{itemize}
+
+\section{Build and test the new system}
+
+Now build the full system.
+
+Once the build is over, generate the dependency graph again and find out
+the new dependencies introduced by using {\em systemd}.
+
+To test the new system, create a new \code{nfsroot} directory, extract
+the new root filesystem into it, and boot your board on it through NFS.
+
+You should see the system booting through {\em systemd}, with all the
+{\em systemd} targets and system services starting one by one, with a
+total boot time which looks slower than before. That's because the
+system configuration is more complex, but also more versatile, being
+ready to run more complex services and applications.
+
+You can ask {\em systemd} to show you the various services which were
+started:
+
+\bashcmd{# systemctl status}
+
+You can also check all the mounted filesystems and be impressed:
+
+\bashcmd{# mount}
+
+\section{Inspecting the system}
+
+On the target, look at the contents of \code{/lib/systemd}. You will
+see the implementation of most {\em systemd} targets and services.
+
+In particular, check out \code{/lib/systemd/user/} containing
+some unnecessary targets in our case such as \code{bluetooth.target}.
+
+However, check the \code{mpd.service} file for our MPD server.
+This should help you to realize all the options provided
+by {\em systemd} to start and control system services, while
+keeping the system secure and their resources under control.
+
+You won't be able to match this level of control and security in a
+"hand-made" system.
+
+\textit{Note: you may notice that a "systemd-network-generator" unit fails to
+start. It is due to systemd failing to parse correctly the \code{ip}
+parameter from the kernel commandline. You can circumvent this issue by
+setting the \code{autoconf} field (currently not set at all) of the
+\code{ip} parameter to \code{none}. You can refer to
+\href{https://www.kernel.org/doc/Documentation/filesystems/nfs/nfsroot.txt}{nfsroot}
+documentation to learn more about this option}.
+
+\section{Understanding automatic module loading with Udev}
+
+Check the currently loaded modules on your system. Surprise: both
+the Nunchuk and USB audio modules are already loaded.
+We didn't have anything to set up and {\em systemd} automatically loaded
+the modules associated to connected hardware.
+
+Let's find out why...
+
+On the target, go to \code{/lib/udev/rules.d}. You will find all the
+standard rules for {\em Udev}, the part of {\em systemd} which handles
+hardware events, takes care of the permissions and ownership of device
+files, notifies other userspace programs, and among others, load
+kernel modules.
+
+Open \code{80-drivers.rules}, which is the rule allowing {\em Udev}
+to load kernel modules for detected devices. Here is its most important
+line:
+
+\begin{verbatim}
+ENV{MODALIAS}=="?*", RUN{builtin}+="kmod load '$env{MODALIAS}'"
+\end{verbatim}
+
+This is when the \code{modules.alias} file comes into play.
+When a new device is found, the kernel passes a \code{MODALIAS}
+environment variable to {\em Udev}, containing which bus this
+happened on and the attributes of the device on this bus.
+Thanks to the module aliases, the right module gets loaded.
+We already explained that in the lectures when talking about
+the output of \code{make modules_install}.
+
+Find where the \code{modules.alias} file is located and
+you will find the two lines that allowed to load our
+\code{snd_usb_audio} and \code{nunchuk} modules:
+
+\begin{verbatim}
+...
+alias usb:v*p*d*dc*dsc*dp*ic01isc01ip*in* snd_usb_audio
+alias usb:v2B53p0031d*dc*dsc*dp*ic*isc*ip*in* snd_usb_audio
+...
+alias of:N*T*Cnintendo,nunchuk nunchuk
+
+\end{verbatim}
+
+For \code{snd_usb_audio}, there are many possible matching values,
+so it's not straightforward to be sure which matched your particular
+device.
+
+However, you can find in {\em sysfs} which \code{MODALIAS}
+was emitted for your device:
+
+\begin{bashinput}
+# cd /sys/class/sound/card0/device
+# ls -la
+# cat modalias
+usb:v1B3Fp2008d0100dc00dsc00dp00ic01isc01ip00in00
+\end{bashinput}
+
+With a bit of patience, you could find the matching line in the
+\code{modules.alias} file.
+
+If you want to see the information sent to {\em Udev} by the
+kernel when a new device is plugged in, here are a few debugging
+commands.
+
+First unplug your device and run:
+
+\bashcmd{# udevadm monitor}
+
+Then plug in your headset again. You will find all the events emitted
+by the kernel, and with the same string (with \code{UDEV} instead of
+\code{KERNEL}), the time when {\em Udev} finished processing each event.
+
+You can also see the \code{MODALIAS} values carried by these events:
+
+\bashcmd{# udevadm monitor --env}
+
+As far as the Nunchuk is concerned, we cannot easily remove it from the
+Device Tree and add it back, but it's easier to find its \code{MODALIAS}
+value:
+
+\begin{bashinput}
+# cd /sys/bus/i2c/devices
+# ls -la
+\end{bashinput}
+
+Here you will recognize our Nunchuk device through its \code{0x52}
+address.
+
+\begin{bashinput}
+# cd 0-0052
+# ls -la
+# cat modalias
+of:NjoystickT(null)Cnintendo,nunchuk
+\end{bashinput}
+
+Here the bus is \code{of}, meaning {\em Open Firmware}, which
+was the former name of the Device Tree. When an event was emitted by
+the kernel with this \code{MODALIAS} string, the \code{nunchuk} module
+got loaded by {\em Udev} thanks to the matching alias.
+
+This actually happened when {\em systemd} ran the {\em coldplugging}
+operation: at system startup, it asked the kernel to emit hotplug events
+for devices already present when the system booted:
+
+\begin{verbatim}
+[  OK  ] Finished Coldplug All udev Devices.
+\end{verbatim}
+
+On non-x86 platforms, that's typically for devices described in the
+Device Tree. This way, both {\em static} and {\em hotplugged} devices
+can be handled in the same way, using the same {\em Udev} rules.
+
+\section{Testing your system}
+
+Make sure that audio playback still works on your system:
+
+\begin{bashinput}
+# mpc update
+# mpc add /
+# mpc play
+\end{bashinput}
+
+If it doesn't, look at the {\em systemd} logs in your serial console
+history. {\em systemd} should let you know about the failing services
+and the commands to run to get more details.

@@ -1,12 +1,12 @@
-EMBEDDED_LINUX_BBB_SLIDES = \
+EMBEDDED_LINUX_STM32MP2_SLIDES = \
 		first-slides \
 		about-us \
 		course-information-title \
-		beagleboneblack-board \
-		sysdev-shopping-list-bbb \
+		discovery-board-stm32mp2 \
+		sysdev-shopping-list-stm32mp2 \
 		discovery-board-also-supported \
+		beagleboneblack-board-also-supported \
 		beagleplay-board-also-supported \
-		stm32mp2-board-also-supported \
 		course-information \
 		sysdev-intro \
 		sysdev-dev-environment \
@@ -50,15 +50,15 @@ EMBEDDED_LINUX_BBB_SLIDES = \
 		last-slides \
 		sysdev-extra-slides
 
-EMBEDDED_LINUX_BBB_LABS = setup \
+EMBEDDED_LINUX_STM32MP2_LABS   = setup \
 		sysdev-toolchain \
-		sysdev-u-boot-bbb \
-		sysdev-kernel-fetch-sources \
-		sysdev-kernel-cross-compiling \
+		sysdev-u-boot-stm32mp2 \
+		sysdev-kernel-fetch-sources-stm32mp2 \
+		sysdev-kernel-cross-compiling-stm32mp2 \
 		sysdev-tinysystem \
-		sysdev-accessing-hardware-bbb \
-		sysdev-block-filesystems-bbb \
-		sysdev-thirdparty-bbb \
-		sysdev-buildroot \
-		sysdev-system-integration \
+		sysdev-accessing-hardware-stm32 \
+		sysdev-block-filesystems-stm32 \
+		sysdev-thirdparty-stm32mp2 \
+		sysdev-buildroot-stm32mp2 \
+		sysdev-system-integration-stm32mp2 \
 		sysdev-application-development-and-debugging
