@@ -88,6 +88,9 @@ environment:
 Reboot by unplugging the power supply cable and the micro-usb cable (just
 resetting won't change the boot source), and enjoy the training!
 
+Don't forget to exit the shell created by the am335x setup script, as
+failing to do so may result in network issues later.
+
 ### 2.ii. Flash the image using a micro-SD card
 
 These instructions are given as reference only, they will install an old
