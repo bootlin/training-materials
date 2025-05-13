@@ -34,7 +34,53 @@ $ bpftool btf dump file /home/${USER}/debugging-labs/buildroot/output/build/linu
 $ clang -target bpf -g -O2 -c trace_programs.bpf.c -o trace_programs.bpf.o
   \end{bashinput}
 {\em Note: since our program deals with pt\_regs, it is not portable between architectures, that's why we have to provide the target architecture with \code{__TARGET_ARCH_arm}}
-  \item Finally, generate a C skeleton header from this object with bpftool and libbpf
+\end{itemize}
+
+Now the compiled program is ready for use: you can load it using bpftool,
+
+Since your eBPF does not really need a userspace program to retrieve the
+emitted data, and because the section name used in the program is enough to
+guess where it should be attached, you do not really need to write a
+userspace tool to make a minimal usage of your program! You can get the
+same result by using \code{bpftool}.
+
+However also need to use the bpf filesystem to keep a reference to it, or
+it will be unloaded as soon as bpftool exits:
+
+\begin{verbatim}
+  mount -t bpf none /sys/fs/bpf
+  mkdir /sys/fs/bpf/myprog
+  bpftool prog loadall trace_programs.bpf.o /sys/fs/bpf/myprog autoattach
+\end{verbatim}
+
+Display the content of ftrace buffer:
+
+\begin{verbatim}
+bpftool prog tracelog
+\end{verbatim}
+
+Open another console onto the target (through SSH) and execute some
+programs: they should appear in the tracing buffer.
+
+Wait for at least a minute. Did your tracer allow you to spot anything
+suspect?
+
+Feel free to experiment using bpftool to better understand how your eBPF
+program is managed by the kernel, for example using \code{bpftool prog}:
+
+\begin{verbatim}
+bpftool prog
+bpftool prog dump xlated id <id>
+\end{verbatim}
+
+Managing the eBPF program with bpftool is a simple way to experiment with
+it. However a user-friendly tool should not require all the manual steps
+with bpftool and the bpf filesystem. By building on top of the work done so
+far, add a userspace program to automate loading the eBPF program with a
+single command:
+
+\begin{itemize}
+  \item Generate a C skeleton header from this object with bpftool and libbpf
   \begin{bashinput}
 $ bpftool gen skeleton trace_programs.bpf.o name trace_programs > trace_programs.skel.h
   \end{bashinput}
@@ -54,17 +100,10 @@ Finally, build your program:
 \begin{bashinput}
 $ ${CROSS_COMPILE}gcc trace_programs.c -lbpf -o trace_programs
 \end{bashinput}
-Run your tracing tool on the target. Open another console onto the target (through SSH), display the content of ftrace buffer and wait for at least a minute. Did your tracer allow you to spot anything suspect?
 
-{\em Note: since your eBPF does not really need a userspace program to retrieve
-the emitted data, and because the section name used in the program is enough to
-guess where it should be attached, you did not really need to write a userspace tool to manage
-your program! You can get the same result by using \code{bpftool}:}
-\begin{verbatim}
-  mount -t bpf none /sys/fs/bpf
-  mkdir /sys/fs/bpf/myprog
-  bpftool prog loadall trace_programs.bpf.o /sys/fs/bpf/myprog autoattach
-\end{verbatim}
+Run your tracing tool on the target. Now you don't need to use bpftool and
+the bpf filesystem anymore. Your users will be glad!
+
 \section{Improving our program}
 
 Now that we have a working base for our custom tracing tool, we will improve it
