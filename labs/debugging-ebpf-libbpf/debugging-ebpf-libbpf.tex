@@ -36,16 +36,12 @@ $ clang -target bpf -g -O2 -c trace_programs.bpf.c -o trace_programs.bpf.o
 {\em Note: since our program deals with pt\_regs, it is not portable between architectures, that's why we have to provide the target architecture with \code{__TARGET_ARCH_arm}}
 \end{itemize}
 
-Now the compiled program is ready for use: you can load it using bpftool,
+Your eBPF program does not really need a userspace program to run, and the
+data it emits can be read from the trace buffer. So to use it in a minimal
+way you can use \code{bpftool} without writing a userspace tool.
 
-Since your eBPF does not really need a userspace program to retrieve the
-emitted data, and because the section name used in the program is enough to
-guess where it should be attached, you do not really need to write a
-userspace tool to make a minimal usage of your program! You can get the
-same result by using \code{bpftool}.
-
-However also need to use the bpf filesystem to keep a reference to it, or
-it will be unloaded as soon as bpftool exits:
+However you'll also need to use the bpf filesystem to keep a reference to
+the loaded program, or it will be unloaded as soon as bpftool exits:
 
 \begin{verbatim}
   mount -t bpf none /sys/fs/bpf
@@ -53,7 +49,7 @@ it will be unloaded as soon as bpftool exits:
   bpftool prog loadall trace_programs.bpf.o /sys/fs/bpf/myprog autoattach
 \end{verbatim}
 
-Display the content of ftrace buffer:
+Display the ftrace buffer content:
 
 \begin{verbatim}
 bpftool prog tracelog
