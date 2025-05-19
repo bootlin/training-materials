@@ -1,0 +1,142 @@
+\subchapter{Kernel - Cross-compiling}{Objective: Learn how to
+cross-compile a kernel for an ARM target platform.}
+
+After this lab, you will be able to:
+\begin{itemize}
+\item Checkout a stable version of the Linux kernel
+\item Set up a cross-compiling environment
+\item Cross compile the kernel for the \labboarddescription
+\item Use U-Boot to download the kernel
+\item Check that the kernel you compiled starts the system
+\end{itemize}
+
+\section{Setup}
+
+Stay in the \code{$HOME/__SESSION_NAME__-labs/kernel} directory.
+
+\section{Cross-compiling environment setup}
+
+To cross-compile Linux, you need to have a cross-compiling
+toolchain. We will use the cross-compiling toolchain that we
+previously produced, so we just need to make it available in the PATH:
+
+\begin{bashinput}
+$ export PATH=$HOME/x-tools/aarch64-training-linux-musl/bin:$PATH
+\end{bashinput}
+
+Also, don't forget to either:
+
+\begin{itemize}
+\item Define the value of the \code{ARCH} and \code{CROSS_COMPILE}
+  variables in your environment (using \code{export})
+\item {\bf Or} specify them on the command line at every invocation of
+  \code{make}, i.e.: \code{make ARCH=... CROSS_COMPILE=... <target>}
+\end{itemize}
+
+\section{Linux kernel configuration}
+
+By running \code{make help}, look for the proper Makefile target to
+configure the kernel for your processor.
+
+The standard configuration for this kernel is actually \code{defconfig},
+but this will generate a pretty big kernel with support for many other
+SoCs. However, we can reduce it to compile faster and get a small
+kernel.
+
+So, apply this configuration , and then run \code{make menuconfig}.
+
+
+\begin{itemize}
+
+\item Disable \kconfig{CONFIG_GCC_PLUGINS} if it is set. This will skip
+  building special {\em gcc} plugins, which would require extra dependencies
+  for the build.
+\item In the \code{System Type} menu, remove support for all the SoCs except
+  the STM32MP257 ones. Don't forget to disable the TI ones too which are
+  in a submenu.
+\item Disable \kconfig{CONFIG_DRM}, which will skip support for many display
+controller and GPU drivers.
+\item In Device Drivers, disable the support of Mellanox \kconfig{CONFIG_NET_VENDOR_MELLANOX}
+\item In Device Drivers -> Input device support -> Generic input layer, 
+      disable the support of touch screan \kconfig{CONFIG_INPUT_TOUCHSCREEN}
+\item In Device Driver enable \kconfig{CONFIG_DEVTMPFS} and \kconfig{CONFIG_DEBUG_FS}
+\item We also need to enable the \kconfig{CONFIG_STMMAC_ETH}, \kconfig{CONFIG_STMMAC_PLATFORM}
+      and \kconfig{CONFIG_DWMAC_STM32} options. This is required for the STM32MP2 SoC
+\end{itemize}
+
+
+Please note that this will definitely not build the smallest
+and most optimized kernel for STM32MP2: \code{defconfig}
+enables plenty of features and drivers that will not be useful on our
+particular board.
+
+\section{Cross compiling}
+
+You're now ready to cross-compile your kernel. Simply run:
+
+\bashcmd{$ make}
+
+and wait a while for the kernel to compile. Don't forget to use
+\code{make -j<n>} if you have multiple cores on your machine!
+
+Look at the kernel build output to see which file contains
+the kernel image.
+
+Also look in the Device Tree Source directory to see which \code{.dtb}
+files got compiled. Find which \code{.dtb} file corresponds to your board.
+
+
+\section{Load and boot the kernel using U-Boot}
+
+As we are going to boot the Linux kernel from U-Boot,
+we need to set the \code{bootargs} environment corresponding
+to the Linux kernel command line:
+
+\begin{ubootinput}
+=> setenv bootargs console=%\console%
+=> saveenv
+\end{ubootinput}
+We will use TFTP to load the kernel image on the board:
+
+\begin{itemize}
+
+\item On your workstation, copy the {\tt Image} and DTB
+(\texttt{\dtname}\texttt{.dtb}) to the directory exposed by the TFTP server.
+
+\item On the target (in the U-Boot prompt), load {\tt Image} from
+TFTP into RAM:
+\begin{ubootinput}
+=> tftp %\zimageboardaddr% Image%
+\end{ubootinput}
+
+\item Now, also load the DTB file into RAM:
+\begin{ubootinput}
+=> tftp %\dtbboardaddr% %\dtname%.dtb
+\end{ubootinput}
+
+\item Boot the kernel with its device tree:
+\begin{ubootinput}
+=> %booti \zimageboardaddr% - %\dtbboardaddr%
+\end{ubootinput}
+
+\end{itemize}
+
+You should see Linux boot and finally panicking. This is expected: we
+haven't provided a working root filesystem for our device yet.
+
+You can now automate all this every time the board is booted or
+reset. Reset the board, and customize \code{bootcmd}:
+
+\begin{ubootinput}
+=> setenv bootcmd 'tftp %\zimageboardaddr\ Image; tftp \dtbboardaddr\ {\dtname}.dtb; booti \zimageboardaddr\ - \dtbboardaddr'%
+=> saveenv
+\end{ubootinput}
+
+\ifdefstring{\labboard}{beaglebone}
+{{\bf Known issue}: with at least U-Boot 2023.04 and 2024.04 and with
+USB networking, there is an issue running two \code{tftp} commands in a
+row in \code{bootcmd}. To work around this issue before we get a chance
+to fix it upstream, insert \code{sleep 0.1} between the two \code{tftp}
+commands and everything will work as expected.}{}
+
+Restart the board to make sure that booting the kernel is now automated.

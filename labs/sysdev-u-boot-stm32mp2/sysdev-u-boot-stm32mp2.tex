@@ -1,0 +1,612 @@
+\subchapter{Bootloader - TF-A and U-Boot}{Objectives: Set up serial
+  communication, compile and install the U-Boot bootloader, use basic
+  U-Boot commands, set up TFTP communication with the development
+  workstation.}
+
+As the bootloader is the first piece of software executed by a
+hardware platform, the installation procedure of the bootloader is
+very specific to the hardware platform. There are usually two cases:
+
+\begin{itemize}
+
+\item The processor offers nothing to ease the installation of the
+  bootloader, in which case the JTAG has to be used to initialize
+  flash storage and write the bootloader code to flash. Detailed
+  knowledge of the hardware is of course required to perform these
+  operations.
+
+\item The processor offers a monitor, implemented in ROM, and through
+  which access to the memories is made easier.
+
+\end{itemize}
+
+The STM32MP2 SoC, falls into the second category. The monitor
+integrated in the ROM reads the SD card to search for a valid
+bootloader (the boot mode is actually configurable via a few input
+pins). In case no bootloader is found, it will operate in a fallback
+mode, that will allow to use an external tool to reflash some
+executable through USB. Therefore, either by using an MMC/SD card or
+that fallback mode, we can start up an STM32MP2-based board without
+having anything installed on it.
+\section{Setup}
+
+Go to the \code{$HOME/__SESSION_NAME__-labs/bootloader} directory.
+
+\section{Setting up serial communication with the board}
+
+Plug the USB-C to USB-C cable on the Discovery board. There is
+two USB-C port on the board, choose the one labeled USB PWR ST-LINK.
+This is a debug interface and exposes multiple debugging interfaces,
+including a serial interface. When plugged in your computer, a serial
+port should appear, {\tt \hosttty}.
+
+You can also see this device appear by looking at the output of
+\code{sudo dmesg}.
+
+To communicate with the board through the serial port, install a
+serial communication program, such as \code{picocom}:
+
+\bashcmd{$ sudo apt install picocom}
+
+If you run {\tt ls -l \hosttty}, you can also see that only
+\code{root} and users belonging to the \code{dialout} group have
+read and write access to the serial console. Therefore, you need
+to add your user to the \code{dialout} group:
+
+\bashcmd{$ sudo adduser $USER dialout}
+
+{\bf Important}: for the group change to be effective, you have to
+reboot your computer (at least on Ubuntu 24.04) and log in again.
+A workaround is to run \code{newgrp dialout}, but it is not global.
+You have to run it in each terminal.
+
+Run {\tt picocom -b 115200 \hosttty}, to start serial
+communication on {\tt \hosttty}, with a baudrate of 115200.
+If you wish to exit \code{picocom}, press \code{[Ctrl][a]} followed by
+\code{[Ctrl][x]}.
+
+Don't be surprised if you don't get anything on the serial console yet,
+even if you reset the board. That's because the SoC has nothing to boot
+on yet. We will prepare a micro SD card to boot on in the next paragraphs.
+
+\section{TF-A and U-Boot relationship}
+
+The boot process is done in two main stages. At power-on, the ROM code
+ (also called ROM monitor) executes the first-stage bootloader, known as
+  {\em fsbl}, from the internal SRAM. This stage is responsible 
+  for initializing essential system components, including the DRAM.
+
+Once the system is sufficiently initialized, the fsbl loads and transfers
+ control to the second-stage bootloader, known as {\em ssbl},
+ which is responsible for loading and launching the main operating system (Linux).
+
+In our setup, the {\em fsbl} is provided by TF-A BL2, and the {\em ssbl} is U-Boot.
+
+TF-A BL2 loads U-Boot from the Firmware Image Package ({\em FIP}),
+which also includes other components such as the secure monitor (BL31) 
+and the OP-TEE secure OS. The FIP is generated as part of the TF-A build process,
+which requires U-Boot and OP-TEE to be built beforehand, so that it can be included in the package.
+
+\section{U-Boot setup}
+
+Download U-Boot:
+
+\begin{bashinput}
+$ git clone https://github.com/STMicroelectronics/u-boot.git
+$ cd u-boot
+$ git checkout v2023.10-stm32mp-r1
+\end{bashinput}
+
+Get an understanding of U-Boot's configuration and compilation steps
+by reading the \code{README} file, and specifically the {\em Building
+the Software} section.
+
+Basically, you need to:
+
+\begin{enumerate}
+
+\item Specify the cross-compiler prefix
+(the part before \code{gcc} in the cross-compiler executable name) and the architecture:
+\bashcmd{$ export CROSS_COMPILE=aarch64-linux-}
+\bashcmd{$ export ARCH=arm}
+
+\item Run \inlinebash{$ make <NAME>_defconfig}, where the list of available
+  configurations can be found in the \code{configs/} directory. We will use the standard one
+  (\code{stm32mp25}).
+
+\item Now that you have a valid initial configuration, you can now
+  run \inlinebash{$ make menuconfig} to further edit your bootloader features.
+
+  \begin{itemize}
+
+  \item In the \code{Environment} submenu, we will configure U-Boot so
+    that it stores its environment inside a file called \code{uboot.env}
+    in an ext4 filesystem:
+    \begin{itemize}
+    \item Disable \code{Environment is not stored}. We want changes to variables to
+        be persistent across reboots
+    \item Enable \code{Environment is in a EXT4 filesystem} and \code{Environment is in a MMC device}. Disable all other
+        options for environment storage (e.g.SPI, UBI)
+    \item The value for \code{Name of the block device for the environment} should be \code{mmc}
+    \item The value for \code{Device and partition for where to store
+      the environment in EXT4} should be \code{0:3}, which indicates
+      we want to store the environment in the 3th partition of the
+      first MMC device.
+    \item The value for \code{Name of the EXT4 file to use for the
+      environment} should be \code{/uboot.env}, which indicates the
+      filename inside which the U-Boot environment will be stored
+    \item The value for \code{Environment offset} should be \code{0x90000}
+    \item The value for \code{mmc device number} should be \code{-1}, to use our sdcard
+    \end{itemize}
+  \end{itemize}
+
+Install the following packages which should be needed to compile U-Boot for
+your board:
+
+\begin{bashinput}
+$ sudo apt install libssl-dev device-tree-compiler swig \
+       python3-dev python3-setuptools uuid-dev libgnutls28-dev
+\end{bashinput}
+
+\item Finally, run \bashcmd{make DEVICE_TREE=stm32mp257f-dk}
+  which will build U-Boot
+  \footnote{You can speed up the
+  compiling by using the \code{-jX} option with \code{make}, where X
+  is the number of parallel jobs used for compiling. Twice the
+  number of CPU cores is a good value.}.
+  The \code{DEVICE_TREE} variable specifies the specific
+  Device Tree that describes our hardware board.
+
+{\bf Note}: u-boot build may fail on your machine if you have a recent
+version of python. Such issue is
+\href{https://source.denx.de/u-boot/u-boot/-/commit/a63456b9191fae2fe49f4b121e025792022e3950}{already
+fixed upstream}, but not in the version targeted for the training. To get the relevant fix,
+you can cherry-pick the fix onto your local branch:
+
+\code{git cherry-pick a63456b9191fae2fe49f4b121e025792022e3950}
+\end{enumerate}
+
+\section{OP-TEE setup}
+OP-TEE is required on STM32MP2 platforms to provide a secure execution environment during the boot process.
+  It enables isolated execution of sensitive operations such as key management and authentication.
+  Included in the FIP (Firmware Image Package), OP-TEE is essential for enabling secure boot features.
+
+Get the ST-provided OP-TEE sources:
+
+\begin{bashinput}
+$ cd ..
+$ git clone https://github.com/STMicroelectronics/optee_os.git
+$ cd optee_os
+$ git checkout 4.0.0-stm32mp-r1
+\end{bashinput}
+
+OP-TEE need some libraries to be built. You can install them with:
+\begin{bashinput} 
+sudo apt install -y python3-pyelftools cmake python3-cryptography
+\end{bashinput}
+
+Several configuration parameters have to be passed to the Makefile:
+\begin{itemize}
+\item Specify the cross-compiler prefix (the part before gcc in the
+    cross-compiler executable name), either using the environment
+    variable:\inlinebash{$ export CROSS_COMPILE=aarch64-linux-}, or just by
+    adding it to the \code{make} commande line.
+\item  Specifies the cross-compiler prefix specifically for building the TEE core
+    \inlinebash{$ export CROSS_COMPILE_core=aarch64-linux-}
+\item Specifies the cross-compiler used for Trusted Applications (TAs) compiled for 64-bit ARM:
+    \inlinebash{$ export CROSS_COMPILE_ta_arm64=aarch64-linux-}
+\item Specifies which architectures to build user-mode TAs for :
+    \inlinebash{$ export CFG_USER_TA_TARGETS=ta_arm64}
+\item  Disables support for the Trusted User Interface (TUI) framework:
+    \inlinebash{$ export CFG_WITH_TUI=n}
+\item Ensures that the OP-TEE core is built for 64-bit ARM architecture (AArch64).
+    It is required for platforms like STM32MP2,
+    which are based on ARMv8 and operate in 64-bit mode: \inlinebash{$ export CFG_ARM64_core=y}
+\item Specify the output file : \inlinebash{$ export O=out}
+\item Define the specific hardware target for the OP-TEE build \inlinebash{$ export PLATFORM=stm32mp2}
+\end{itemize}
+
+You can also use the command bellow:
+\begin{bashinput}
+  make O=out \
+  CROSS_COMPILE=aarch64-linux- \
+  CROSS_COMPILE_core=aarch64-linux- \
+  CROSS_COMPILE_ta_arm64=aarch64-linux- \
+  CFG_ARM64_core=y \
+  CFG_USER_TA_TARGETS=ta_arm64 \
+  PLATFORM=stm32mp2 \
+  CFG_WITH_TUI=n \
+  all
+\end{bashinput}
+
+\section{TF-A setup}
+
+Get the downstream TF-A sources:
+
+\begin{bashinput}
+$ cd ..
+$ git clone https://github.com/STMicroelectronics/arm-trusted-firmware.git
+$ cd arm-trusted-firmware/
+$ git checkout v2.10-stm32mp-r1
+\end{bashinput}
+
+We have to patch the TF-A sources to add support for the ddr
+\begin{bashinput}
+$ git clone https://github.com/STMicroelectronics/stm32-ddr-phy-binary.git drivers/st/ddr/phy/firmware/bin
+\end{bashinput}
+Several configuration parameters have to be passed to the Makefile:
+\begin{itemize}
+\item Specify the cross-compiler prefix (the part before gcc in the
+      cross-compiler executable name), either using the environment
+      variable:\inlinebash{$ export CROSS_COMPILE=aarch64-linux-}, or just by
+      adding it to the \code{make} commande line.
+\item The architecture has to be selected: \code{ARCH=aarch64}, as
+      well as the major version of Arm Architecture, here the Cortex V8 is
+      an Armv8, so we need to use \code{ARM_ARCH_MAJOR=8}
+\item The STM32MP2 platform is selected too with \code{PLAT=stm32mp2}
+\item Sets the Secure Payload Dispatcher to OP-TEE: \code{SPD=opteed}
+\item For this specific board, the device tree is generated and then
+      needs to be specifed: \code{DTB_FILE_NAME=stm32mp257f-dk.dtb}
+\item Specify the entry point to the OP-TEE BL32 image. Needed for trusted OS support.
+      \code{BL32=../optee_os/out/core/tee-header_v2.bin}
+\item Specify the additional OP-TEE image (paged memory region). Part of the Trusted Execution Environment.
+      \code{BL32_EXTRA1=../optee_os/out/core/tee-pager_v2.bin}
+\item Specify the final part of the OP-TEE image (pageable region). Works with the pager image.
+      \code{BL32_EXTRA2=../optee_os/out/core/tee-pageable_v2.bin}
+\item Specify the configuration of this firmware which is actually
+      the Device Tree passed to U-Boot:
+      \code{BL33_CFG=../u-boot/u-boot.dtb}
+\item Specify that the fsbl will be located on the SD
+      card with \code{STM32MP_SDMMC=1}.
+\item Specify the location of the BL33 (Boot loader stage 3-3):
+      \code{BL33=../u-boot/u-boot-nodtb.bin}
+\item Selects LPDDR4 memory configuration type: \code{STM32MP_LPDDR4_TYPE=1}
+
+\end{itemize}
+
+We can now generate the \code{bl32}, \code{dtb}, and \code{fip} targets
+with a single command line:
+\begin{bashinput}
+$ make CROSS_COMPILE=aarch64-linux- PLAT=stm32mp2 ARM_ARCH_MAJOR=8 \
+ARCH=aarch64 STM32MP_LPDDR4_TYPE=1 DTB_FILE_NAME=stm32mp257f-dk.dtb \
+STM32MP_SDMMC=1 SPD=opteed BL32=../optee_os/out/core/tee-header_v2.bin \
+BL32_EXTRA1=../optee_os/out/core/tee-pager_v2.bin BL32_EXTRA2=../optee_os/out/core/tee-pageable_v2.bin \
+BL33=../u-boot/u-boot-nodtb.bin BL33_CFG=../u-boot/u-boot.dtb all fip
+\end{bashinput}
+
+At the end of the build, the important output files generated are
+located in \code{build/stm32mp2/release/}. We will find there:
+
+\begin{itemize}
+
+\item \code{tf-a-stm32mp257f-dk.stm32}, which is TF-A BL2, serving as
+  our first stage bootloader
+
+\item \code{fip.bin}, which is the FIP image, which itself includes
+  U-Boot. This image will serve as the second stage bootloader.
+
+\end{itemize}
+
+\section{Flashing the bootloaders}
+
+The ROM monitor in the STM32MP2 boot chain is the first piece of code executed
+by the Cortex-A35 processor in secure mode. It selects the boot source based on
+BOOT pins, OTP configuration, and TAMP registers, and optionally performs authentication
+and decryption of the First Stage Bootloader (FSBL). Once a valid FSBL—typically Trusted
+Firmware-A (TF-A BL2)—is located, it is loaded into SYSRAM and executed. The FSBL then
+initializes key system components such as the clock tree and DDR controller, and proceeds
+to load the Secure Monitor (BL31), the Secure OS (OP-TEE), and the Second Stage Bootloader (SSBL),
+which is U-Boot. After all required components are securely loaded into DDR memory, control
+is transferred to U-Boot, which takes over as the SSBL to continue system initialization and
+load the Linux kernel.
+
+So, as far as bootloaders are concerned, the SD card partitioning will
+look like:
+
+\begin{verbatim}
+Number  Start    End        Size       File system  Name    Flags
+1      34s      512s       479s                    fsbl
+2      513s     8704s      8192s                   fip
+3      8705s    129537s    120833s                 bootfs 
+\end{verbatim}
+
+On your workstation, plug in the SD card your instructor gave you. Type
+the \code{sudo dmesg} command to see which device is used by your
+workstation. In case the device is \code{/dev/mmcblk0}, you will see
+something like
+
+\begin{verbatim}
+[46939.425299] mmc0: new high speed SDHC card at address 0007
+[46939.427947] mmcblk0: mmc0:0007 SD16G 14.5 GiB
+\end{verbatim}
+
+The device file name may be different (such as \code{/dev/sdb}
+if the card reader is connected to a USB bus (either internally
+or using a USB card reader).
+
+In the following instructions, we will assume that your SD card is
+seen as \code{/dev/mmcblk0} by your PC workstation.
+
+Type the \code{mount} command to check your currently mounted
+partitions. If SD partitions are mounted, unmount them:
+
+\bashcmd{$ sudo umount /dev/mmcblk0p*}
+
+We will erase the existing partition table and partition contents
+by simply zero-ing the first 128 MiB of the SD card:
+
+\bashcmd{$ sudo dd if=/dev/zero of=/dev/mmcblk0 bs=1M count=128}
+
+Now, let's use the \code{parted} command to create the partitions that
+we are going to use:
+
+\bashcmd{$ sudo parted /dev/mmcblk0}
+
+The ROM monitor handles {\em GPT} partition tables, let's create one:
+
+\begin{verbatim}
+(parted) mklabel gpt
+\end{verbatim}
+
+Then, the 4 partitions are created with:
+\begin{verbatim}
+(parted) mkpart fsbl 0% 512s
+(parted) mkpart fip 513s 8704s
+(parted) mkpart bootfs 8705s 129537s
+\end{verbatim}
+
+You can verify everything looks right with:
+
+\begin{verbatim}
+(parted) print
+Model: SD SA08G (sd/mmc)
+Disk /dev/mmcblk0: 15278080s
+Sector size (logical/physical): 512B/512B
+Partition Table: gpt
+Disk Flags: 
+
+Number  Start    End        Size       File system  Name    Flags
+ 1      34s      512s       479s                    fsbl
+ 2      513s     8704s      8192s                   fip
+ 3      8705s    129537s    120833s                 bootfs
+\end{verbatim}
+
+Once done, quit:
+\begin{verbatim}
+(parted) quit
+\end{verbatim}
+
+{\em Note: \code{parted} is definitely not very user friendly compared
+to other tools to manipulate partitions (such as \code{cfdisk}), but
+that's the only tool which supports assigning names to GPT partitions.
+In your projects, you could use \code{gparted}, which is a more
+friendly graphical front-end on top of \code{parted}.}
+
+Now, format the boot partition as an ext4 filesystem. This is where
+U-Boot saves its environment:
+\bashcmd{$ sudo mkfs.ext4 -L boot -O ^metadata_csum /dev/mmcblk0p3}
+
+The \code{-O ^metadata_csum} option allows to create the filesystem
+without enabling metadata checksums, which U-Boot doesn't seem to
+support yet.
+
+Now write the TF-A binary in both \code{fsbl} partitions:
+
+\begin{bashinput}
+$ sudo dd if=/build/stm32mp2/release/tf-a-stm32mp257f-dk.stm32 of=/dev/mmcblk0p1 bs=1M conv=fdatasync
+\end{bashinput}
+
+Then flash the {\em fip} partition with the Firmware Image Package
+containing U-Boot, the BL32 monitor and their configuration (device tree):
+
+\bashcmd{$ sudo dd if=build/stm32mp2/release/fip.bin of=/dev/mmcblk0p2 bs=1M conv=fdatasync}
+
+\section{Testing the bootloaders}
+
+Insert the SD card in the board slot. You can now power-up the board
+by connecting the USB-C cable to the board, in CN6, \code{PWR_IN} and
+to your PC at the other end. Check that it boots your new bootloaders.
+You can verify this by checking the build dates:
+
+\begin{verbatim}
+  NOTICE:  CPU: STM32MP257FAK Rev.Y
+  NOTICE:  Model: STMicroelectronics STM32MP257F-DK Discovery Board
+  NOTICE:  Board: MB1605 Var1.0 Rev.C-01
+  NOTICE:  BL2: v2.10-stm32mp2-r1.0(release):custom(75f8c318)
+  NOTICE:  BL2: Built : 10:31:22, Apr  4 2025
+  NOTICE:  BL2: Booting BL31
+  NOTICE:  BL31: v2.10-stm32mp2-r1.0(release):custom(75f8c318)
+  NOTICE:  BL31: Built : 10:31:22, Apr  4 2025
+  I/TC: Early console on UART#2
+  I/TC: 
+  I/TC: Embedded DTB found
+  I/TC: OP-TEE version: 4.0.0-stm32mp-r1-dev (gcc version 13.3.0 (crosstool-NG 1.27.0.20_329bb4d)) #7 Fri Apr  4 08:30:42 UTC 2025 aarch64
+  I/TC: WARNING: This OP-TEE configuration might be insecure!
+  I/TC: WARNING: Please check https://optee.readthedocs.io/en/latest/architecture/porting_guidelines.html
+  I/TC: Primary CPU initializing
+  I/TC: WARNING: All debug access are allowed
+  I/TC: Override the OTP 124: 0 to 0x18db6
+  I/TC: WARNING: Embeds insecure stm32mp_provisioning driver
+  I/TC: UART console (non-secure)
+  I/TC: PMIC STPMIC REFID:2.@ V1.1
+  I/TC: Platform stm32mp2: flavor 257F_DK - DT stm32mp257f-dk.dts
+  I/TC: OP-TEE ST profile: secure_and_system_services
+  [    0.000000] SCP-firmware 2.13.0-intree-optee-os-4.0.0-stm32mp-r1-dev
+  [    0.000000] 
+  [    0.000000] [FWK] Module initialization complete!
+  I/TC: Primary CPU switching to normal world boot
+  I/TC: Reserved shared memory is disabled
+  I/TC: Dynamic shared memory is enabled
+  I/TC: Normal World virtualization support is disabled
+  I/TC: Asynchronous notifications are enabled
+  
+  
+  U-Boot 2023.10-stm32mp-r1 (Apr 03 2025 - 15:40:02 +0200)
+  
+  CPU: STM32MP257FAK Rev.Y
+  Model: STMicroelectronics STM32MP257F-DK Discovery Board
+  Board: stm32mp2 (st,stm32mp257f-dk)
+  Board: MB1605 Var1.0 Rev.C-01
+  DRAM:  4 GiB
+  optee optee: OP-TEE: revision 4.0 (d9c4df97)
+  I/TC: Reserved shared memory is disabled
+  I/TC: Dynamic shared memory is enabled
+  I/TC: Normal World virtualization support is disabled
+  I/TC: Asynchronous notifications are enabled
+  Core:  432 devices, 41 uclasses, devicetree: board
+  WDT:   Started watchdog with servicing every 1000ms (32s timeout)
+  NAND:  0 MiB
+  MMC:   STM32 SD/MMC: 0, STM32 SD/MMC: 1
+  Loading Environment from MMC... OK
+  In:    serial
+  Out:   serial
+  Err:   serial
+  Net:   eth0: eth1@482c0000
+  FWU metadata read failed
+  No EFI system partition
+  No EFI system partition
+  Failed to persist EFI variables
+  Hit any key to stop autoboot:  0 
+  Boot over mmc0!
+  switch to partitions #0, OK
+  mmc0 is current device
+  STM32MP>  
+\end{verbatim}
+
+In U-Boot, type the \code{help} command, and explore the few commands
+available.
+
+\subsection{Adding a new command to the U-Boot shell}
+
+Check whether the \code{config} command is available. This command
+allows to dump the configuration settings U-Boot was compiled from.
+
+If it's not, go back to U-Boot's configuration and enable it.
+
+Re-run the build of U-Boot, and then re-run the build of TF-A so that
+a new version of the \code{fip.bin} with the updated U-Boot is
+generated.
+
+Update the \code{fip} partition on the SD card with the new
+\code{fip.bin} image and test that the command is now available and
+works as expected.
+
+\subsection{Playing with the U-Boot environment}
+
+Display the U-Boot environment using \code{printenv}.
+
+Set a new U-Boot variable \code{foo} to a value of your choice, using
+\code{setenv}, and verify it has been set. Reset the board, and check
+if \code{foo} is still defined: it should not.
+
+Now repeat this process, but before resetting the board, use
+\code{saveenv}. After the reset, check the \code{foo} variable is
+still defined.
+
+Now reset the environment to its default settings using \code{env
+  default -a}, and save these changes using \code{saveenv}.
+
+\section{Setting up networking}
+
+The next step is to configure U-boot and your workstation to let your
+board download files, such as the kernel image and Device Tree Binary
+(DTB), using the TFTP protocol through a network connection.
+
+With a network cable, connect the Ethernet port of
+your board to the one of your computer. If your computer already has a
+wired connection to the network, your instructor will provide you with
+a USB Ethernet adapter. A new network interface should appear on your
+Linux system.
+
+\subsection{Network configuration on the target}
+
+Let's configure networking in U-Boot:
+
+\begin{itemize}
+  \item \code{ipaddr}: IP address of the board
+  \item \code{serverip}: IP address of the PC host
+\end{itemize}
+
+\begin{ubootinput}
+=> setenv ipaddr 192.168.0.100
+=> setenv serverip 192.168.0.1
+\end{ubootinput}
+
+Of course, make sure that this address belongs to a separate network
+segment from the one of the main company network.
+
+To make these settings permanent, save the environment:
+
+\begin{ubootinput}
+=> saveenv
+\end{ubootinput}
+
+\subsection{Network configuration on the PC host}
+
+To configure your network interface on the workstation side, we need
+to know the name of the network interface connected to your board.
+
+Find the name of this interface by typing:
+\bashcmd{=> ip a}
+
+The network interface name is likely to be
+\code{enxxx}\footnote{Following the {\em Predictable Network Interface
+Names} convention:
+\url{https://www.freedesktop.org/wiki/Software/systemd/PredictableNetworkInterfaceNames/}}.
+If you have a pluggable Ethernet device, it's easy to identify as it's
+the one that shows up after pluging in the device.
+
+Then, instead of configuring the host IP address from NetworkManager's
+graphical interface, let's do it through its command line interface,
+which is so much easier to use:
+
+\bashcmd{$ nmcli con add type ethernet ifname en... ip4 192.168.0.1/24}
+
+\section{Setting up the TFTP server}
+
+Let's install a TFTP server on your development workstation:
+
+\begin{verbatim}
+sudo apt install tftpd-hpa
+\end{verbatim}
+
+You can then test the TFTP connection. First, put a small text file in
+the directory exported through TFTP on your development
+workstation. Then, from U-Boot, do:
+
+\begin{ubootinput}
+=> tftp %\zimageboardaddr% textfile.txt
+\end{ubootinput}
+
+The \code{tftp} command should have downloaded the
+\code{textfile.txt} file from your development workstation into
+the board's memory at location {\tt \zimageboardaddr}\footnote{
+This location is part of the board DRAM. If you want
+to check where this value comes from, you can check the SoC
+datasheet at
+\url{https://www.st.com/resource/en/reference_manual/dm00327659.pdf}.
+It's a big document (more than 4,000 pages). In this document, look
+for \code{Memory organization} and you will find the SoC memory map.
+You will see that the address range for the memory controller
+({\em DDRC})
+starts at the address we are looking for.
+You can also try with other values in the RAM address range.}.
+
+You can verify that the download was successful by dumping the
+contents of the memory:
+
+\begin{ubootinput}
+=> md %\zimageboardaddr%
+\end{ubootinput}
+
+We will see in the next labs how to use U-Boot to download, flash and
+boot a kernel.
+
+\input{../common/dk1-known-issues.tex}
+
+\section{Rescue binaries}
+
+If you have trouble generating binaries that work properly, or later
+make a mistake that causes you to lose your bootloader binaries, you
+will find working versions under \code{data/} in the current lab
+directory.

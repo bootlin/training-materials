@@ -45,15 +45,28 @@ of the remaining space, with the following properties:
 \begin{itemize}
 
 \item One partition, for the root filesystem, 8 MB big:
-\begin{verbatim}
-mkpart rootfs 131072s 147455s
-\end{verbatim}
+\if\defstring{\labboard}{stm32mp1}
+  \begin{verbatim}
+  mkpart rootfs 131072s 147455s
+  \end{verbatim}
+\fi
+\if\defstring{\labboard}{stm32mp2}
+  \begin{verbatim}
+  mkpart rootfs 129538s 145921s
+  \end{verbatim}
+\fi
 
-\item One partition, that fills the rest of the SD card, that will be
-  used for the data filesystem:
-\begin{verbatim}
-mkpart data 147456s 100%
-\end{verbatim}
+\item One partition, that fills the rest of the SD card, that will be used for the data filesystem:
+\if\defstring{\labboard}{stm32mp1}
+  \begin{verbatim}
+  mkpart data 147456s 100%
+  \end{verbatim}
+\fi
+\if\defstring{\labboard}{stm32mp2}
+  \begin{verbatim}
+  mkpart data 154922s 100%
+  \end{verbatim}
+\fi
 \end{itemize}
 
 Use \code{quit} when you are done.
@@ -62,8 +75,10 @@ Use \code{quit} when you are done.
 
 Using the \code{mkfs.ext4} create a journaled file system on the
 sixth partition of the SD card:
-
-\bashcmd{$ sudo mkfs.ext4 -L data -E nodiscard /dev/mmcblk0p6}
+\ifdefstring{\labboard}{stm32mp1}{
+\bashcmd{$ sudo mkfs.ext4 -L data -E nodiscard /dev/mmcblk0p6}}
+\ifdefstring{\labboard}{stm32mp2}{
+\bashcmd{$ sudo mkfs.ext4 -L data -E nodiscard /dev/mmcblk0p5}}
 
 \begin{itemize}
 \item \code{-L} assigns a volume name to the partition
@@ -145,12 +160,18 @@ kernel and device tree to the \code{boot} partition.
 
 Insert the SD card back in the board and reset it. You should now be
 able to load the DTB and kernel image from the SD card and boot with:
-
-\begin{ubootinput}
-=> load mmc 0:4 %\zimageboardaddr% zImage
-=> load mmc 0:4 %\dtbboardaddr% %\dtname%-custom.dtb
-=> bootz %\zimageboardaddr% - %\dtbboardaddr%
-\end{ubootinput}
+\if\defstring{\labboard}{stm32mp1}
+  \begin{ubootinput}
+  => load mmc 0:4 %\zimageboardaddr% zImage
+  => load mmc 0:4 %\dtbboardaddr% %\dtname%-custom.dtb
+  => bootz %\zimageboardaddr% - %\dtbboardaddr%
+  \end{ubootinput}
+\fi
+\if\defstring{\labboard}{stm32mp2}
+  => load mmc 0:4 %\zimageboardaddr% Image
+  => load mmc 0:4 %\dtbboardaddr% %\dtname%-custom.dtb
+  => booti %\zimageboardaddr% - %\dtbboardaddr%
+\fi
 
 You are now ready to modify \code{bootcmd} to boot the board
 from SD card. But first, save the settings for booting from
