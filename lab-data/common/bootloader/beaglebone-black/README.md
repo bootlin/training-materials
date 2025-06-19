@@ -227,17 +227,15 @@ export CROSS_COMPILE=arm-linux-gnueabi-
 make am335x_boneblack_defconfig
 ```
 
-To compile `sdcard/u-boot.img` and `sdcard/MLO`:
+To compile `sdcard/blobs/u-boot.img` and `sdcard/blobs/MLO`:
  - Copy `src/sdcard/u-boot/u-boot-2018.05.config` file to `.config`
  - `make`
 
-To compile `sdcard/u-boot.img.final` and `sdcard/MLO.final`:
- - Copy `src/sdcard/u-boot-final/u-boot-2018.05.config` to `.config`
- - Copy `src/sdcard/u-boot-final/uEnv.txt` to the U-boot toplevel source
-   directory (this contains default environment settings)
- - `make`
-
-This produces the `sdcard/MLO` and `sdcard/u-boot.img` files.
+To compile `sdcard/blobs/u-boot.img.final` and `sdcard/blobs/MLO.final`:
+ - They are the same as the one from Snagboot. Refer to section
+  [How snagboot images were built](#3i-how-the-binaries-were-compiled-for-snagboot-recovery).
+ - This produces the `MLO` and `u-boot.img` files,
+   rename them to `MLO.final` and `u-boot.img.final`.
 
 #### Root filesystem
 
