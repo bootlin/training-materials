@@ -200,7 +200,7 @@ make menuconfig
 
 #### Assembling all files into sdcard.img
 
-This is done using the `./gen.sh` script, which itself uses the genimage
+This is done using the `src/snagboot/blobs/gen.sh` script, which itself uses the genimage
 tool.
 
 ## 3.ii. How the binaries were compiled for SD-card recovery
