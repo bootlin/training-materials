@@ -99,7 +99,7 @@ U-Boot. Prefer using method 2a using Snagboot.
 #### Make a bootable micro-SD card
 
 We are going to prepare a bootable micro-SD card that will automatically
-reflash the eMMC with the U-Boot binaries provided in the sdcard/
+reflash the eMMC with the U-Boot binaries provided in the `src/sdcard/blobs`
 directory.
 
 Take a micro-SD card and connect it to your PC:
@@ -286,12 +286,12 @@ arch/arm/boot/zImage
 arch/arm/boot/dts/am335x-boneblack-wireless.dtb
 ```
 
-Copy the `arch/arm/boot/dts/am335x-boneblack-wireless.dtb` to `sdcard/dtb`
+Copy the `arch/arm/boot/dts/am335x-boneblack-wireless.dtb` to `sdcard/blobs/dtb`
 (this dtb will work fine for both BeagleBone Black
 and BeagleBoneBlack Wireless, at least for the purpose of
 reflashing U-Boot) and the `zImage` file as well.
 
 #### Assembling all files into sdcard.img
 
-This is done using the `sdcard/gen.sh` script, which itself uses the
+This is done using the `src/sdcard/blobs/gen.sh` script, which itself uses the
 `genimage` tool.
