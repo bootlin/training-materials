@@ -26,7 +26,7 @@ ready to be used. You can also build them on your own if you wish, all
 instructions are provided in chapter 3.
 
 ```
-git clone https://github.com/tleb/training-materials/
+git clone https://github.com/bootlin/training-materials.git
 cd training-materials/lab-data/common/bootloader/beaglebone-black/
 ```
 
@@ -78,7 +78,7 @@ Don't be upset by the following message, it's expected...
 
 Then from the host, flash the image:
 
-    $ snagflash -P fastboot -p 0451:d022 -f oem_format -f download:sdcard.img -f flash:1:0
+    $ snagflash -P fastboot -p 0451:d022 -f oem_format -f download:snagboot.img -f flash:1:0
 
 Finally, return to U-Boot, exit fastboot mode using Ctrl+c and save the
 environment:
@@ -99,7 +99,7 @@ U-Boot. Prefer using method 2a using Snagboot.
 #### Make a bootable micro-SD card
 
 We are going to prepare a bootable micro-SD card that will automatically
-reflash the eMMC with the U-Boot binaries provided in the sdcard/
+reflash the eMMC with the U-Boot binaries provided in the `src/sdcard/blobs`
 directory.
 
 Take a micro-SD card and connect it to your PC:
@@ -198,9 +198,9 @@ make menuconfig
 # set CONFIG_SYS_MMC_ENV_DEV=1
 ```
 
-#### Assembling all files into sdcard.img
+#### Assembling all files into snagboot.img
 
-This is done using the `./gen.sh` script, which itself uses the genimage
+This is done using the `src/snagboot/blobs/gen.sh` script, which itself uses the genimage
 tool.
 
 ## 3.ii. How the binaries were compiled for SD-card recovery
@@ -227,21 +227,19 @@ export CROSS_COMPILE=arm-linux-gnueabi-
 make am335x_boneblack_defconfig
 ```
 
-To compile `sdcard/u-boot.img` and `sdcard/MLO`:
+To compile `sdcard/blobs/u-boot.img` and `sdcard/blobs/MLO`:
  - Copy `src/sdcard/u-boot/u-boot-2018.05.config` file to `.config`
  - `make`
 
-To compile `sdcard/u-boot.img.final` and `sdcard/MLO.final`:
- - Copy `src/sdcard/u-boot-final/u-boot-2018.05.config` to `.config`
- - Copy `src/sdcard/u-boot-final/uEnv.txt` to the U-boot toplevel source
-   directory (this contains default environment settings)
- - `make`
-
-This produces the `sdcard/MLO` and `sdcard/u-boot.img` files.
+To compile `sdcard/blobs/u-boot.img.final` and `sdcard/blobs/MLO.final`:
+ - They are the same as the one from Snagboot. Refer to section
+  [How snagboot images were built](#3i-how-the-binaries-were-compiled-for-snagboot-recovery).
+ - This produces the `MLO` and `u-boot.img` files,
+   rename them to `MLO.final` and `u-boot.img.final`.
 
 #### Root filesystem
 
-The root filesystem is available in `src/sdcard/rootfs.tar.xz`
+The root filesystem is available in `src/sdcard/blobs/rootfs.tar.xz`
 
 To rebuild your kernel, extract the contents of this archive,
 as the kernel binary will contain the root filesystem (initramfs)
@@ -286,12 +284,12 @@ arch/arm/boot/zImage
 arch/arm/boot/dts/am335x-boneblack-wireless.dtb
 ```
 
-Copy the `arch/arm/boot/dts/am335x-boneblack-wireless.dtb` to `sdcard/dtb`
+Copy the `arch/arm/boot/dts/am335x-boneblack-wireless.dtb` to `sdcard/blobs/dtb`
 (this dtb will work fine for both BeagleBone Black
 and BeagleBoneBlack Wireless, at least for the purpose of
 reflashing U-Boot) and the `zImage` file as well.
 
 #### Assembling all files into sdcard.img
 
-This is done using the `sdcard/gen.sh` script, which itself uses the
+This is done using the `src/sdcard/blobs/gen.sh` script, which itself uses the
 `genimage` tool.
