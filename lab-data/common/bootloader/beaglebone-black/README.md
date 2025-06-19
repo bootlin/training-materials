@@ -241,7 +241,7 @@ This produces the `sdcard/MLO` and `sdcard/u-boot.img` files.
 
 #### Root filesystem
 
-The root filesystem is available in `src/sdcard/rootfs.tar.xz`
+The root filesystem is available in `src/sdcard/blobs/rootfs.tar.xz`
 
 To rebuild your kernel, extract the contents of this archive,
 as the kernel binary will contain the root filesystem (initramfs)
