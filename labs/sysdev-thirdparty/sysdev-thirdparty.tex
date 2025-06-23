@@ -797,6 +797,29 @@ output. That's how you'll find that \code{GPIO1_9} is line \code{9} on
 \code{gpiochip3}.
 \fi
 
+\if\defstring{\board}{imx93-frdm}
+
+First, connect \code{GPIO_IO21} (pin 40 of the \code{EXPI} connector)
+to ground (\code{GND} pin of the \code{EXPI} connector), as in the
+{\em Accessing Hardware Devices} lab.
+
+Now, let's run the \code{gpiodetect} command on the target, and check that
+you can list the various GPIO banks on your system.
+
+\begin{bashinput}
+# gpiodetect
+gpiochip0 [43810000.gpio] (32 lines)
+gpiochip1 [43820000.gpio] (32 lines)
+gpiochip2 [43830000.gpio] (32 lines)
+gpiochip3 [47400000.gpio] (32 lines)
+gpiochip4 [1-0022] (24 lines)
+\end{bashinput}
+
+We can then get details on gpiochip0 by running
+\code{gpioinfo -c gpiochip0} or on all GPIOs by simply running
+\code{gpioinfo}.
+\fi
+
 You can now read the state of your GPIO:
 
 \if\defstring{\board}{stm32mp1}
@@ -827,6 +850,12 @@ You can now read the state of your GPIO:
 \end{bashinput}
 \fi
 
+\if\defstring{\board}{imx93-frdm}
+\begin{bashinput}
+# gpioget -c gpiochip0 21
+"1"=inactive
+\end{bashinput}
+\fi
 
 \if\defstring{\board}{stm32mp1}
 Now, connect your wire to 3V3 (pin 2 of connector CN16). You should now
@@ -864,6 +893,15 @@ connector). You should now read:
 \begin{bashinput}
 # gpioget -c gpiochip3 9
 "9"=active
+\end{bashinput}
+\fi
+
+\if\defstring{\board}{imx93-frdm}
+Now, connect your wire to 3V3. You should now read:
+
+\begin{bashinput}
+# gpioget -c gpiochip0 21
+"1"=active
 \end{bashinput}
 \fi
 
@@ -1002,6 +1040,19 @@ c = 'aarch64-linux-gcc'
 system = 'linux'
 cpu_family = 'aarch64'
 cpu = 'cortex-a53'
+endian = 'little'
+\end{verbatim}
+\fi
+
+\if\defstring{\board}{imx93-frdm}
+\begin{verbatim}
+[binaries]
+c = 'aarch64-linux-gcc'
+
+[host_machine]
+system = 'linux'
+cpu_family = 'arm64'
+cpu = 'cortex-a8'
 endian = 'little'
 \end{verbatim}
 \fi
