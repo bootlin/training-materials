@@ -1,13 +1,13 @@
-EMBEDDED_LINUX_BBB_SLIDES = \
+EMBEDDED_LINUX_IMX93_FRDM_SLIDES = \
 		first-slides \
 		about-us \
 		course-information-title \
-		beagleboneblack-board \
-		sysdev-shopping-list-bbb \
+		discovery-board-imx93-frdm \
+		sysdev-shopping-list-imx93-frdm \
 		discovery-board-also-supported \
+		beagleboneblack-board-also-supported \
 		beagleplay-board-also-supported \
 		stm32mp2-board-also-supported \
-		imx93-frdm-board-also-supported \
 		course-information \
 		sysdev-intro \
 		sysdev-dev-environment \
@@ -51,15 +51,15 @@ EMBEDDED_LINUX_BBB_SLIDES = \
 		last-slides \
 		sysdev-extra-slides
 
-EMBEDDED_LINUX_BBB_LABS = setup \
+EMBEDDED_LINUX_IMX93_FRDM_LABS   = setup \
 		sysdev-toolchain \
-		sysdev-u-boot-bbb \
+		sysdev-u-boot-imx93-frdm \
 		sysdev-kernel-fetch-sources \
 		sysdev-kernel-cross-compiling \
 		sysdev-tinysystem \
-		sysdev-accessing-hardware-bbb \
-		sysdev-block-filesystems-bbb \
-		sysdev-thirdparty-bbb \
+		sysdev-accessing-hardware-imx93-frdm \
+		sysdev-block-filesystems-imx93-frdm \
+		sysdev-thirdparty-imx93-frdm \
 		sysdev-buildroot \
 		sysdev-system-integration \
 		sysdev-application-development-and-debugging
