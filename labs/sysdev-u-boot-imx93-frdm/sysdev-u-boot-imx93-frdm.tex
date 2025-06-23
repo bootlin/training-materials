@@ -1,0 +1,512 @@
+\subchapter{Bootloader - TF-A and U-Boot}{Objectives: Set up serial
+  communication, compile and install the U-Boot bootloader, use basic
+  U-Boot commands, set up TFTP communication with the development
+  workstation.}
+
+As the bootloader is the first piece of software executed by a
+hardware platform, the installation procedure of the bootloader is
+very specific to the hardware platform. There are usually two cases:
+
+\begin{itemize}
+
+\item The processor offers nothing to ease the installation of the
+  bootloader, in which case the JTAG has to be used to initialize
+  flash storage and write the bootloader code to flash. Detailed
+  knowledge of the hardware is of course required to perform these
+  operations.
+
+\item The processor offers a monitor, implemented in ROM, and through
+  which access to the memories is made easier.
+
+\end{itemize}
+
+The i.MX93 processor falls into the second category. At startup, the
+ROM code initializes minimal hardware (clocks, RAM, etc.) and selects
+the boot source based on BOOT MODE pins and fuse values. It then looks
+for a valid boot container, typically stored on an SD card, eMMC, NOR
+flash, or received USB.
+
+The boot image container must include at least one valid OEM container
+(mandatory) and may include an optional NXP container. These
+containers hold firmware images for the Cortex-A55 and Cortex-M33
+cores. The images are authenticated by the EdgeLock Secure Enclave. If
+authentication fails or no valid image is found, the processor enters
+a fallback mode using the Serial Download Protocol (SDP), allowing
+bootloader installation via USB with tools like uuu.
+
+This mechanism allows an i.MX93-based board such as the FRDM-i.MX93 to boot
+even without any pre-installed software, making initial setup easier.
+
+\section{Setup}
+
+Go to the \code{$HOME/__SESSION_NAME__-labs/bootloader} directory.
+
+\section{Setting up serial communication with the board}
+
+Plug the USB-C to USB-C cable into the Discovery board. The board has
+two USB-C ports: connect the power supply to the one labeled POWER,
+and use the one labeled DEBUG for data. The DEBUG port provides
+several debugging interfaces, including a serial console. Once
+connected to your computer, a new serial port should appear, {\tt
+  \hosttty}.
+
+You can also see this device appear by looking at the output of
+\code{sudo dmesg}.
+
+To communicate with the board through the serial port, install a
+serial communication program, such as \code{picocom}:
+
+\bashcmd{$ sudo apt install picocom}
+
+If you run {\tt ls -l \hosttty}, you can also see that only
+\code{root} and users belonging to the \code{dialout} group have
+read and write access to the serial console. Therefore, you need
+to add your user to the \code{dialout} group:
+
+\bashcmd{$ sudo adduser $USER dialout}
+
+{\bf Important}: for the group change to be effective, you have to
+reboot your computer (at least on Ubuntu 24.04) and log in again.
+A workaround is to run \code{newgrp dialout}, but it is not global.
+You have to run it in each terminal.
+
+Run {\tt picocom -b 115200 \hosttty}, to start serial
+communication on {\tt \hosttty}, with a baudrate of 115200.
+If you wish to exit \code{picocom}, press \code{[Ctrl][a]} followed by
+\code{[Ctrl][x]}.
+
+Don't be surprised if you don't get anything on the serial console yet,
+even if you reset the board. That's because the SoC has nothing to boot
+on yet. We will prepare a micro SD card to boot on in the next paragraphs.
+
+\section{i.MX93 boot flow}
+
+On the NXP i.MX93, the boot flow is as follows:
+
+\begin{itemize}
+
+\item The i.MX93 ROM code finds a boot media with a valid boot image
+  container and loads the first stage bootloader in internal SRAM
+
+\item In our case, the first stage bootloader is U-Boot SPL, and it
+  will be responsible for initializing the DDR. For this operation,
+  additional closed-source firmware files from the DDR controler
+  manufacturer Synopsys are needed, and those firmware files therefore
+  need to be bundled into the boot image.
+
+\item Then, U-Boot SPL loads the secure monitor BL31 into DDR. In our
+  case this BL31 secure monitor is provided by the TF-A project.
+
+\item Once the secure monitor is in place, U-Boot SPL loads U-Boot
+  proper into DDR and runs it.
+
+\end{itemize}
+
+Our setup doesn't use a trusted execution environment such as OP-TEE.
+
+\section{TF-A setup}
+
+Get the mainline TF-A sources:
+
+\begin{bashinput}
+$ cd ..
+$ git clone https://git.trustedfirmware.org/TF-A/trusted-firmware-a.git
+$ cd trusted-firmware-a/
+$ git checkout v2.12.0
+\end{bashinput}
+
+Two configuration parameters have to be passed to the Makefile:
+\begin{itemize}
+\item Specify the cross-compiler prefix (the part before gcc in the
+  cross-compiler executable name), either using the environment
+  variable:\inlinebash{$ export CROSS_COMPILE=aarch64-linux-}, or just
+  by adding it to the \code{make} command line.
+\item And we have to specify the platform \code{PLAT=imx93}
+\end{itemize}
+
+We can now generate the \code{bl31} needed to build the container with
+U-Boot:
+
+\begin{bashinput}
+$ make PLAT=imx93
+\end{bashinput}
+
+At the end of the build, the important output files generated are
+located in \code{build/imx93/release/}. We will find \code{bl31.bin},
+which is our secure monitor.
+
+\section{U-Boot setup}
+
+Download U-Boot:
+
+\begin{bashinput}
+$ git clone https://github.com/u-boot/u-boot.git
+$ cd u-boot
+$ git checkout v2025.10
+\end{bashinput}
+
+Get an understanding of U-Boot's configuration and compilation steps
+by reading the \code{README} file, and specifically the {\em Building
+the Software} section.
+
+Basically, you need to:
+
+\begin{enumerate}
+
+\item Retrieve the previously compiled bl31.bin file and place it in the U-Boot directory:
+\bashcmd{$ cp ../trusted-firmware-a/build/imx93/release/bl31.bin .}
+
+\item Retrieve the NXP firmware required for DDR memory support
+\begin{bashinput}
+$ wget https://www.nxp.com/lgfiles/NMG/MAD/YOCTO/firmware-imx-8.25-27879f8.bin
+$ chmod +x firmware-imx-8.25-27879f8.bin
+$ ./firmware-imx-8.25-27879f8.bin
+\end{bashinput}
+
+Once the conditions are accepted, copy the following files located in
+\code{firmware-imx-8.25-27879f8/firmware/ddr/synopsys/} to the root of
+the U-Boot source tree: \code{lpddr4_dmem_1d_v202201.bin},
+\code{lpddr4_dmem_2d_v202201.bin}, \code{lpddr4_imem_1d_v202201.bin}
+and \code{lpddr4_imem_2d_v202201.bin}.
+
+\item Specify the cross-compiler prefix
+(the part before \code{gcc} in the cross-compiler executable name) and the
+architecture:
+\bashcmd{$ export CROSS_COMPILE=aarch64-linux-}
+
+\item Run \inlinebash{$ make <NAME>_defconfig}, where the list of
+  available configurations can be found in the \code{configs/}
+  directory. We will use the standard one: \code{imx93_frdm}.
+
+\item Now that you have a valid initial configuration, you can now run
+  \inlinebash{$ make menuconfig} to further edit your bootloader
+  configuration.
+
+  \begin{itemize}
+
+  \item In the \code{Environment} submenu, we will configure U-Boot so
+    that it stores its environment inside a file called \code{uboot.env}
+    in an ext4 filesystem:
+    \begin{itemize}
+    \item Disable \code{Environment is not stored}. We want changes to variables to
+      be persistent across reboots
+    \item Disable \code{Environment in an MMC device}
+    \item Enable \code{Environment is in a EXT4 filesystem}. Disable all other
+        options for environment storage (e.g.SPI, UBI)
+    \item The value for \code{Name of the block device for the environment} should be \code{mmc}
+    \item The value for \code{Device and partition for where to store
+      the environment in EXT4} should be \code{1:1} which indicates
+      we want to store the environment in the 1th partition of the
+      second MMC device (sd card).
+    \item The value for \code{Name of the EXT4 file to use for the
+      environment} should be \code{/uboot.env}, which indicates the
+      filename inside which the U-Boot environment will be stored
+    \end{itemize}
+
+  \item In the \code{Device Drivers} submenu, we will enable the
+    appropriate network driver
+
+    \begin{itemize}
+    \item In \code{Network device support}, enable \code{Synopsys DWC
+      Ethernet QOS device support} and its sub-option \code{Synopsys
+      DWC Ethernet QOS device support for IMX}
+    \end{itemize}
+
+  \item In the \code{Networking} submenu, we will need to enable
+    support for generating a random MAC address
+    \begin{itemize}
+    \item Enable the option \code{Random ethaddr if unset}
+    \end{itemize}
+
+  \end{itemize}
+
+  Install the following packages which should be needed to compile U-Boot for
+  your board:
+
+  \begin{bashinput}
+    $ sudo apt install libssl-dev device-tree-compiler swig \
+    python3-dev python3-setuptools uuid-dev libgnutls28-dev
+  \end{bashinput}
+
+\item Finally, run \bashcmd{make DEVICE_TREE=imx93-11x11-frdm}
+  which will build U-Boot
+  \footnote{You can speed up the compiling by using the \code{-jX}
+  option with \code{make}, where X is the number of parallel jobs used
+  for compiling. Twice the number of CPU cores is a good value.}.  The
+  \code{DEVICE_TREE} variable specifies the specific Device Tree that
+  describes our hardware board. If you wish to run just make, specify
+  our board’s device tree name on Device Tree Control → Default Device
+  Tree for DT Control option.
+
+\end{enumerate}
+
+The important final result of this build is the \code{flash.bin} file,
+whose layout is as follows:
+
+\begin{center}
+  \includegraphics[height=7cm]{labs/sysdev-u-boot-imx93-frdm/imx93-flash-bin.pdf}
+\end{center}
+
+\section{Flashing the bootloaders}
+
+The ROM code of the NXP i.MX93 simply expects to find the contents of
+\code{flash.bin}, raw, at offset 32 KiB in the storage medium. So,
+what we're going to do is create a single partition to store the
+U-Boot environment, but the starting offset of this partition will be
+2 MB to leave enough room for flash.bin.
+
+Overall, this will give us the following SD card layout:
+
+\begin{center}
+  \includegraphics[width=0.8\textwidth]{labs/sysdev-u-boot-imx93-frdm/imx93-sd-card.pdf}
+\end{center}
+
+On your workstation, plug in the SD card your instructor gave you. Type
+the \code{sudo dmesg} command to see which device is used by your
+workstation. In case the device is \code{/dev/mmcblk0}, you will see
+something like
+
+\begin{verbatim}
+[46939.425299] mmc0: new high speed SDHC card at address 0007
+[46939.427947] mmcblk0: mmc0:0007 SD16G 14.5 GiB
+\end{verbatim}
+
+The device file name may be different (such as \code{/dev/sdb} if the
+card reader is connected to a USB bus (either internally or using a
+USB card reader).
+
+In the following instructions, we will assume that your SD card is
+seen as \code{/dev/mmcblk0} by your PC workstation.
+
+Type the \code{mount} command to check your currently mounted
+partitions. If SD partitions are mounted, unmount them:
+
+\bashcmd{$ sudo umount /dev/mmcblk0p*}
+
+We will erase the existing partition table and partition contents
+by simply zero-ing the first 128 MiB of the SD card:
+
+\bashcmd{$ sudo dd if=/dev/zero of=/dev/mmcblk0 bs=1M count=128}
+
+Now, let's use the \code{parted} command to create the partitions that
+we are going to use:
+
+\bashcmd{$ sudo parted /dev/mmcblk0}
+
+Let's be modern and use a {\em GPT} partition table:
+
+\begin{verbatim}
+(parted) mklabel gpt
+\end{verbatim}
+
+Then, the one partition, from offset 2 MiB to offset 10 MiB, will be
+created using:
+
+\begin{verbatim}
+(parted) unit mib
+(parted) mkpart bootfs ext4 2 10
+\end{verbatim}
+
+You can verify everything looks right with:
+
+\begin{verbatim}
+(parted) print
+Model: SD SA08G (sd/mmc)
+Disk /dev/mmcblk0: 15278080s
+Sector size (logical/physical): 512B/512B
+Partition Table:
+Disk Flags:
+
+Number  Start    End       Size      File system  Name    Flags
+ 1      2.00MiB  10.0MiB   8.00MiB   ext4         bootfs
+
+\end{verbatim}
+
+Once done, quit:
+\begin{verbatim}
+(parted) quit
+\end{verbatim}
+
+Now, format the boot partition as an ext4 filesystem. This is where
+U-Boot saves its environment:
+\bashcmd{$ sudo mkfs.ext4 -L boot -O ^metadata_csum /dev/mmcblk0p1}
+
+The \code{-O ^metadata_csum} option allows to create the filesystem
+without enabling metadata checksums, which U-Boot doesn't seem to
+support yet.
+
+Now flash the \code{flash.bin} file to the SD card. As it must be
+flash at offset 32 KiB, we pass the \code{seek=32} parameter below:
+
+\begin{bashinput}
+$ sudo dd if=./flash.bin of=/dev/mmcblk0 bs=1k seek=32 conv=fsync
+\end{bashinput}
+
+\section{Testing the bootloaders}
+
+Insert the SD card in the board slot. You can now power-up the board
+by connecting the USB-C cable to the board, \code{POWER} and
+to your PC at the other end. Check that it boots your new bootloaders.
+You can verify this by checking the build dates:
+
+\begin{verbatim}
+U-Boot SPL 2025.10 (Dec 30 2025 - 11:12:36 +0100)
+PMIC: Over Drive Voltage Mode
+DDR: 3733MTS
+DDR: 3733MTS
+found DRAM 2GB DRAM matched
+M33 prepare ok
+Normal Boot
+Trying to boot from BOOTROM
+Boot Stage: Primary boot
+image offset 0x8000, pagesize 0x200, ivt offset 0x0
+Load image from 0x39c00 by ROM_API
+NOTICE:  TRDC init done
+NOTICE:  BL31: v2.12.0(release):v2.12.0
+NOTICE:  BL31: Built : 17:46:21, Dec 29 2025
+
+
+U-Boot 2025.10 (Dec 30 2025 - 11:12:36 +0100)
+
+Reset Status: POR 
+
+CPU:   NXP i.MX93(52) Rev1.1 A55 at 1700 MHz
+CPU:   Industrial temperature grade (-40C to 105C) at 40C
+Model: NXP i.MX93 11X11 FRDM board
+DRAM:  2 GiB
+Core:  195 devices, 22 uclasses, devicetree: separate
+WDT:   Started wdog@42490000 with servicing every 1000ms (40s timeout)
+MMC:   FSL_SDHC: 0, FSL_SDHC: 1
+Loading Environment from EXT4... OK
+In:    serial@44380000
+Out:   serial@44380000
+Err:   serial@44380000
+Net:   
+Warning: ethernet@428a0000 (eth0) using random MAC address - 72:11:99:7a:34:09
+eth0: ethernet@428a0000
+Hit any key to stop autoboot: 0
+\end{verbatim}
+
+In U-Boot, type the \code{help} command, and explore the few commands
+available.
+
+\subsection{Adding a new command to the U-Boot shell}
+
+Check whether the \code{config} command is available. This command
+allows to dump the configuration settings U-Boot was compiled from.
+
+If it's not, go back to U-Boot's configuration and enable it.
+
+Rebuild U-Boot, then re-flash the SD card with the new
+\code{flash.bin} and verify that the command is now available and
+works as expected.
+
+\subsection{Playing with the U-Boot environment}
+
+Display the U-Boot environment using \code{printenv}.
+
+Set a new U-Boot variable \code{foo} to a value of your choice, using
+\code{setenv}, and verify it has been set. Reset the board, and check
+if \code{foo} is still defined: it should not.
+
+Now repeat this process, but before resetting the board, use
+\code{saveenv}. After the reset, check the \code{foo} variable is
+still defined.
+
+Now reset the environment to its default settings using \code{env
+  default -a}, and save these changes using \code{saveenv}.
+
+\section{Setting up networking}
+
+The next step is to configure U-boot and your workstation to let your
+board download files, such as the kernel image and Device Tree Binary
+(DTB), using the TFTP protocol through a network connection.
+
+With a network cable, connect the \code{ENET1} Ethernet port of your
+board to the one of your computer. If your computer already has a
+wired connection to the network, your instructor will provide you with
+a USB Ethernet adapter. A new network interface should appear on your
+Linux system.
+
+\subsection{Network configuration on the target}
+
+Let's configure networking in U-Boot:
+
+\begin{itemize}
+  \item \code{ipaddr}: IP address of the board
+  \item \code{serverip}: IP address of the PC host
+\end{itemize}
+
+\begin{ubootinput}
+=> setenv ipaddr 192.168.0.100
+=> setenv serverip 192.168.0.1
+\end{ubootinput}
+
+Of course, make sure that this address belongs to a separate network
+segment from the one of the main company network.
+
+To make these settings permanent, save the environment:
+
+\begin{ubootinput}
+=> saveenv
+\end{ubootinput}
+
+\subsection{Network configuration on the PC host}
+
+To configure your network interface on the workstation side, we need
+to know the name of the network interface connected to your board.
+
+Find the name of this interface by typing:
+\bashcmd{=> ip a}
+
+The network interface name is likely to be
+\code{enxxx}\footnote{Following the {\em Predictable Network Interface
+Names} convention:
+\url{https://www.freedesktop.org/wiki/Software/systemd/PredictableNetworkInterfaceNames/}}.
+If you have a pluggable Ethernet device, it's easy to identify as it's
+the one that shows up after pluging in the device.
+
+Then, instead of configuring the host IP address from NetworkManager's
+graphical interface, let's do it through its command line interface,
+which is so much easier to use:
+
+\bashcmd{$ nmcli con add type ethernet ifname en... ip4 192.168.0.1/24}
+
+\section{Setting up the TFTP server}
+
+Let's install a TFTP server on your development workstation:
+
+\begin{verbatim}
+sudo apt install tftpd-hpa
+\end{verbatim}
+
+You can then test the TFTP connection. First, put a small text file in
+the directory exported through TFTP on your development
+workstation. Then, from U-Boot, do:
+
+\begin{ubootinput}
+=> tftp %\zimageboardaddr% textfile.txt
+\end{ubootinput}
+
+The \code{tftp} command should have downloaded the \code{textfile.txt}
+file from your development workstation into the board's memory at
+location {\tt \zimageboardaddr}\footnote{ This location is part of the
+board DRAM, check the output of the \code{bdinfo} command to find the
+start address of the RAM and its size.}
+
+You can verify that the download was successful by dumping the
+contents of the memory:
+
+\begin{ubootinput}
+=> md %\zimageboardaddr%
+\end{ubootinput}
+
+We will see in the next labs how to use U-Boot to download, flash and
+boot a kernel.
+
+\section{Rescue binaries}
+
+If you have trouble generating binaries that work properly, or later
+make a mistake that causes you to lose your bootloader binaries, you
+will find working versions under \code{data/} in the current lab
+directory.
