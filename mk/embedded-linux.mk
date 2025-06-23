@@ -6,6 +6,7 @@ EMBEDDED_LINUX_SLIDES = \
 	shopping-list-stm32mp157 \
 	shopping-list-beagleplay \
 	shopping-list-stm32mp257 \
+	shopping-list-imx93-frdm \
 	course-information \
 	sysdev-intro \
 	sysdev-dev-environment \
@@ -114,6 +115,20 @@ EMBEDDED_LINUX_STM32MP2_LABS = \
 	sysdev-tinysystem \
 	sysdev-accessing-hardware-stm32 \
 	sysdev-block-filesystems-stm32 \
+	sysdev-thirdparty \
+	sysdev-buildroot \
+	sysdev-system-integration \
+	sysdev-application-development-and-debugging
+
+EMBEDDED_LINUX_IMX93_FRDM_LABS   = \
+	setup \
+	sysdev-toolchain \
+	sysdev-u-boot-imx93-frdm \
+	sysdev-kernel-fetch-sources \
+	sysdev-kernel-cross-compiling \
+	sysdev-tinysystem \
+	sysdev-accessing-hardware-imx93-frdm \
+	sysdev-block-filesystems-imx93-frdm \
 	sysdev-thirdparty \
 	sysdev-buildroot \
 	sysdev-system-integration \
