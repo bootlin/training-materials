@@ -26,7 +26,7 @@ ready to be used. You can also build them on your own if you wish, all
 instructions are provided in chapter 3.
 
 ```
-git clone https://github.com/tleb/training-materials/
+git clone https://github.com/bootlin/training-materials.git
 cd training-materials/lab-data/common/bootloader/beaglebone-black/
 ```
 
