@@ -78,7 +78,7 @@ Don't be upset by the following message, it's expected...
 
 Then from the host, flash the image:
 
-    $ snagflash -P fastboot -p 0451:d022 -f oem_format -f download:sdcard.img -f flash:1:0
+    $ snagflash -P fastboot -p 0451:d022 -f oem_format -f download:snagboot.img -f flash:1:0
 
 Finally, return to U-Boot, exit fastboot mode using Ctrl+c and save the
 environment:
@@ -198,7 +198,7 @@ make menuconfig
 # set CONFIG_SYS_MMC_ENV_DEV=1
 ```
 
-#### Assembling all files into sdcard.img
+#### Assembling all files into snagboot.img
 
 This is done using the `src/snagboot/blobs/gen.sh` script, which itself uses the genimage
 tool.
