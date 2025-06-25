@@ -6,6 +6,7 @@ EMBEDDED_LINUX_BBB_SLIDES = \
 		sysdev-shopping-list-bbb \
 		discovery-board-also-supported \
 		beagleplay-board-also-supported \
+		stm32mp2-board-also-supported \
 		course-information \
 		sysdev-intro \
 		sysdev-dev-environment \
