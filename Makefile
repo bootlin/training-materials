@@ -50,7 +50,7 @@ STYLESHEET = common/beamerthemeBootlin.sty
 # in .pdf in the output directory. This is used to compute the list of
 # .pdf files that need to be generated from .dia or .svg files.
 PICTURES_WITH_TRANSFORMATION = \
-	$(patsubst %.$(2),$(OUTDIR)/%.pdf,$(foreach s,$(1),$(wildcard $(s)/*.$(2))))
+    $(patsubst %.$(2),$(OUTDIR)/%.pdf,$(foreach s,$(1),$(shell find -L $(s) -type f -name '*.$(2)')))
 
 # Function that computes the list of pictures of the extension given
 # in $(2) from the directories in $(1). This is used for pictures that
