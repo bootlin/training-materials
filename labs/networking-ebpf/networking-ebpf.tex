@@ -1,0 +1,167 @@
+\subchapter{XDP - Using eBPF}
+{Objective: learn eBPF programming using the XDP hook}
+
+\section{Goals}
+
+ \begin{itemize}
+ \item Compile our first eBPF program, and use it to drop everything
+ \item Use eBPF maps through a userspace program
+ \item Circumvent the hardware flaws of the armada3720 with XDP\_REDIRECT
+ \end{itemize}
+
+\section{Compiling and loading our first XDP program}
+
+The Armada 3720 uses the \href{tod}{mvneta} driver, which has support for XDP upstream.
+
+Let's first start by compiling and loading the simplest possible program, which
+will accept any incoming frame.
+
+Let's do this work in our \textbf{buildroot overlay} directory :
+
+\begin{hostbashinput}
+$ cd /home/$USER/networking-labs/buildroot/overlay/root
+$ mkdir xdp
+$ cd xdp
+\end{hostbashinput}
+
+Create a simple program named \code{xdp-pass.bpf.c} that always returns \code{XDP_PASS}, based on the following
+skeleton :
+
+\begin{verbatim}
+#include <linux/bpf.h>
+#include <bpf/bpf_helpers.h>
+
+SEC("xdp")
+int xdp_pass_prog(struct xdp_md *ctx)
+{
+	/* Your code here */
+}
+
+char _license[] SEC("license") = "GPL";
+\end{verbatim}
+
+Compile it to eBPF with \code{clang} :
+
+\begin{hostbashinput}
+clang -target bpf -g -O2 -c xdp-pass.bpf.c -o xdp-pass.bpf.o
+\end{hostbashinput}
+
+Finally, we need to re-generate our linux image, so that it now contains our XDP
+program. We need to enable a few options in buildroot for that :
+
+\begin{hostbashinput}
+$ cd /home/$USER/networking-labs/buildroot
+$ make menuconfig
+\end{hostbashinput}
+
+Search with '/' the option "bpftool", enable it by pressing space. Then look for "elfutils", and also enable it.
+Move to the "Save" option, and hit "Quit" mutiple times until you get out of the menuconfig interface.
+
+You can now re-generate the image :
+
+\begin{hostbashinput}
+$ make
+\end{hostbashinput}
+
+Now re-flash your micro SDcard with the \textbf{dd} command, as explained in the
+setup lab.
+
+Once your Espressbin has started, let's setup the network interface lan1
+
+
+\section{Filtering}
+
+
+Our first XDP test program will perform the simple task of dropping every packet
+that arrives onto the lan0 interface. This is not as simple as it sounds, as the
+Espressobin uses a DSA switch. This means that by default, the \code{eth0} port
+receives frames from ALL ports. It distinguises between the frames from each port
+by looking at the \textbf{DSA tag}. This will be covered in greater details in
+the next section of the training.
+
+Each frame that arrives into our interfaces has the following layout :
+
+\begin{verbatim}
+   .----.----.--------.--------.-----.----.---------
+   | DA | SA | 0xdada | 0x0000 | DSA | ET | Payload ...
+   '----'----'--------'--------'-----'----'---------
+     6    6       2        2      4    2       N
+\end{verbatim}
+
+This layout is called "Extended DSA", and includes an 8-byte in-between the MAC
+source address and the Ethertype.
+
+The tag contains :
+\begin{itemize}
+	\item a 2-bytes etherype \code{0xdada}
+	\item 2 bytes of zeroes
+	\item A 4-bytes DSA tag with the value :
+		\begin{verbatim}
+		dsa_header[0] = (1 << 6) | tag_dev;
+		dsa_header[1] = tag_port << 3;
+		dsa_header[2] = 0;
+		dsa_header[3] = 0;
+		\end{verbatim}
+\end{itemize}
+
+In order to know the TAG id of a given interface, you need to look at the devicetree :
+\kfile{arch/arm64/boot/dts/marvell/armada-3720-espressobin.dtsi\#L182}
+
+The Tag id is set by the \code{reg} value.
+
+If we summarize, we only need to get the 8-byte tag, and recover the \code{tag_port} with
+
+\begin{verbatim}
+
+    /* Skip the first 4 bytes of the EDSA tag*/
+
+    /* Check byte 1 of the DSA tag */
+    source_port = (dsa_header[1] >> 3) & 0x1f;
+
+\end{verbatim}
+
+Create a new file in \code{buildroot/overlay/root/xdp} named \code{xdp-filter.bpf.c}, and use
+the following skeleton :
+
+\begin{verbatim}
+#include <linux/bpf.h>
+#include <bpf/bpf_helpers.h>
+
+SEC("xdp")
+int xdp_filter_prog(struct xdp_md *ctx)
+{
+        void *data_end = (void *)(long)ctx->data_end;
+	void *data = (void *)(long)ctx->data;
+
+	/* Grab the Ethernet header */
+	struct ethhdr *eth = data;
+
+	/* Check the size */
+	if (eth + 1 > data_end)
+	        return XDP_DROP;
+
+	/* Skip the 2 '0' bytes */
+	/* Get the next 4 bytes and check the source_port */
+
+        return XDP_PASS;
+}
+char _license[] SEC("license") = "GPL";
+\end{verbatim}
+
+Compile and load that program.
+
+You should now be only able to use the LAN1 and WAN, the LAN0 interface should
+drop any incoming packet.
+
+%\section{Redirect to CPU}
+%
+%Armada 3720 has a known issue, the network interrupts aren't routed correctly and all network interrupts
+%are handled by CPU core 0.
+%
+%We however have 2 cores available, it would be nice to be able to spread the load
+%
+% - Redirect to other CPU
+%
+%\kfile{tools/testing/selftests/bpf/progs/test_xdp_with_cpumap_helpers.c}
+%
+% - Maps : Simple firewall drop all udp traffic except ports we configure

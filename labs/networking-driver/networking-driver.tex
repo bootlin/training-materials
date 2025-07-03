@@ -1,0 +1,114 @@
+\subchapter{Investigating low level behaviour}
+{Objective: Configure our testing setup for the labs}
+
+\section{Goals}
+
+\begin{itemize}
+\item Configure offloading and measure its impacts
+\item Analyse traffic and drops
+\item Use MQPrio to improve performances in specific setups
+\item Use traffic generation tools
+\end{itemize}
+
+\section{Install the required packages}
+
+\begin{hostbashinput}
+$ sudo apt install iperf3 dropwatch
+\end{hostbashinput}
+
+\section{Traffic generation with iperf3}
+
+Let's use \code{iperf3} to generate traffic between the Host and Target.
+
+Run iperf3 in servermode (\code{-s}) and in the background (\code{-D})
+\begin{targetbashinput}
+$ ip link set lan1 up
+$ ip address add 192.168.42.2/24 dev lan1
+$ iperf3 -s -D
+\end{targetbashinput}
+
+Generate some traffic from your host :
+
+\begin{hostbashinput}
+$ iperf3 -c 192.168.42.2
+\end{hostbashinput}
+
+By default, TCP traffic is sent. Let's now try UDP, using 400 bytes datagrams
+
+\begin{hostbashinput}
+$ iperf3 -c 192.168.42.2 -u -b 0 -l 400
+\end{hostbashinput}
+
+The speed you are seeing is the speed at which the Host sends UDP to the Target.
+
+To see the speed at which the target manages to receive the packets, you need to
+run the \code{iperf3} server in the foreground :
+
+\begin{targetbashinput}
+$ killall iperf3
+$ iperf3 -s
+\end{targetbashinput}
+
+Run the host-side iperf3 again. What do you see ?
+
+\section{Analysing performances}
+
+One way of investigating the ingress processing is by \textbf{profiling} the system.
+
+Run the iperf3 UDP stream in the background, and start perf :
+
+\begin{targetbashinput}
+$ perf top
+\end{targetbashinput}
+
+Can you identify the bottleneck ?
+
+\section{Using mqprio for traffic priorisation}
+
+When using a tool such as MQPrio, the process is more involved as you will need
+to classify your traffic, to indicate which packets are high-priority.
+
+We will use VLANs for that purpose. We are going to create 2 flows between the
+host and target :
+\begin{itemize}
+	\item An untagged flow, with low-priority traffic, on 192.168.42.0/24
+	\item A tagged flow, with high-priority traffic, on 192.168.50.0/24
+\end{itemize}
+
+Create a VLAN interface on your host machine, with an \textbf{egress mapping} :
+
+\begin{hostbashinput}
+$ ip link add link <iface> name e.10 type vlan id 10 egress 0:0 1:1 2:2 3:3 4:4 5:5 6:6 7:7
+$ ip address add 192.168.50.1/24 dev e.10
+$ ip address add 192.168.42.1/24 dev <iface>
+\end{hostbashinput}
+
+Do the equivalent command on the Espressobin :
+\begin{targetbashinput}
+$ ip link add link lan1 name lan1.10 type vlan id 10 egress 0:0 1:1 2:2 3:3 4:4 5:5 6:6 7:7
+$ ip address add 192.168.50.2/24 dev lan1.10
+$ ip address add 192.168.42.2/24 dev lan1
+\end{targetbashinput}
+
+Don't forget to put your interfaces UP !
+
+Now, run the \code{iperf3} server on your Espressbin, in the background :
+\begin{targetbashinput}
+$ iperf3 -s -D
+\end{targetbashinput}
+
+Let's now mark all traffic on \code{lan1.10} as priority 7 :
+\begin{targetbashinput}
+iptables -t mangle -A POSTROUTING -o lan1.100 -p udp -j CLASSIFY --set-class 0:7
+iptables -t mangle -A POSTROUTING -o lan1.100 -p tcp -j CLASSIFY --set-class 0:7
+\end{targetbashinput}
+
+Finally, let's configure \textbf{mqprio} :
+\begin{targetbashinput}
+tc qdisc add dev eth0 parent root handle 100 mqprio num_tc 2 \
+map 0 0 0 0 0 0 0 1 \
+queues 7@0 1@7 hw 1 mode channel shaper \
+bw_rlimit min_rate 0 0 max_rate 50Mbit 1000Mbit
+\end{targetbashinput}
+
+Now check that traffic on lan1 is rate-limited to 50Mbps and that traffic on lan1.100 goes at full speed !

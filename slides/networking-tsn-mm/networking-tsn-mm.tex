@@ -1,0 +1,43 @@
+\subsection{Mac Merge and Frame Preemption}
+
+\begin{frame}{Frame preemption}
+	\begin{itemize}
+		\item At low speeds, it takes a while to transmit a full frame (123 microseconds at 100Mbps)
+		\item Frame Preemption allows stopping the emission of a non-important frame
+		\item A high-priority frame can then be sent, followed by the rest of the original frame
+		\item Frame fragments have a different \textbf{Start of Frame Delimiter}
+			\begin{itemize}
+				\item This requires both link-partners to support FP, which can be negociated
+				\item Incompatible link-partners will consider fragments as malformed frames
+			\end{itemize}
+	\end{itemize}
+\end{frame}
+
+\begin{frame}{ethtool MAC merge}
+	\begin{itemize}
+		\item The 802.3 standard defines 2 virtual MACs used for Frame Preemption
+		\item The \textbf{eMAC} is the \textbf{express MAC}, high-priority traffic is sent through it
+		\item The \textbf{pMAC} is the \textbf{preemptible MAC}, low-priority traffic is sent through it
+		\item \code{ethtool --set-mm eth0 pman-enabled on tx-enabled on}
+		\item Requires hardware support
+		\item Steering between \code{eMAC} and \code{pMAC} is done using \code{tc mqprio} or \code{tc taprio}
+	\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Frame Preemption in mqprio and taprio}
+	\begin{itemize}
+		\item Can only be used if hardware supports it and \code{pMAC} is enabled
+		\item The \code{fp} parameter indicates if the class is express (E) or preemptible (P)
+	\end{itemize}
+	\begin{block}{mqprio example}
+		\begin{minted}{bash}
+tc qdisc add dev eth0 handle 100: parent root mqprio num_tc 4 \
+map 0 0 0 0 1 1 1 1 2 2 2 2 3 3 3 3 queues 1@0 1@1 1@2 1@3 \
+fp P P P E \ # Class 3 is express, classes 0, 1 and 2 are preemptible
+hw 1 # offload to hardware
+		\end{minted}
+	\end{block}
+\end{frame}
+% MM
+% FP
+

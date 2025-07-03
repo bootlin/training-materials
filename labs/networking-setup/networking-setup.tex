@@ -1,0 +1,176 @@
+\subchapter{Setup the build environment}
+{Objective: Configure our testing setup for the labs}
+
+\section{Goals}
+
+\begin{itemize}
+\item Have an overview of the build setup
+\item Run our first buildroot build
+\item Setup the Host machine
+\end{itemize}
+
+\section{Install the required packages}
+
+You need some packages installed on your host machine :
+
+\begin{hostbashinput}
+$ sudo apt install build-essential git tcpdump wireshark iperf3 python3-scapy ethtool \
+  clang linux-tools-common libbpf-dev pahole
+\end{hostbashinput}
+
+\section{Getting started with Buildroot}
+
+For this training session, we will be running a pre-configured Linux OS image that
+we will generate usnig \href{https://buildroot.org/}{Buildroot} version 2025.02
+
+The Espressobin V7 is already well supported in Buildroot, the image we are using
+contains a few extra setup options that will make the next labs easier to run :
+
+\begin{itemize}
+	\item The Linux Kernel version is v6.12.y, the latest LTS release
+	\item Some networking related packages are pre-installed, namely :
+		\begin{itemize}
+			\item ethtool, for low-level network interface configuration (see \manpage{ethtool}{8})
+			\item iperf3, for traffic generation (see \manpage{iperf3}{1})
+			\item iproute2, replacing the busybox-based implementation, for network configuration (see \manpage{ip}{8})
+			\item tcpdump, for traffic analysis (see \manpage{tcpdump}{8})
+			\item Custom packages for the various labs.
+		\end{itemize}
+\end{itemize}
+
+Our configuration also includes an overlay directory, which will allows us to very easily
+install custom-made files into our rootfilesystem.
+
+\section{Understanding the Lab materials}
+
+In this training, we will be running some commands both on the Espressobin and the Host machine.
+
+In order to quickly see where a given command should run, we have color-coded the instructions.
+
+\subsection{Target commands}
+
+Commands on a Yellow background are to be run on the Espressobin, also referred to as \textbf{Target} :
+
+\begin{targetbashinput}
+$ echo "Hello world, I am an Espressobin"
+\end{targetbashinput}
+
+For simplicity, the expected output of commands running on the Espressbin also appear on a yellow background :
+\begin{targetterminaloutput}
+Hello world, I am an Espressobin
+\end{targetterminaloutput}
+
+\subsection{Target commands}
+
+Commands that needs to run on your \textbf{Host} machine are on a Green background :
+\begin{hostbashinput}
+$ echo "Hello world, I am the host machine"
+\end{hostbashinput}
+
+For simplicity, the expected output of commands running on the Espressbin also appear on a yellow background :
+\begin{hostterminaloutput}
+Hello world, I am the host machine
+\end{hostterminaloutput}
+
+\section{Setup the host machine for the neworking labs}
+
+You can use a built-in Ethernet port n your host machine, provided that it is not in use, and that it is capable of 1Gbps speed. This can be checked with :
+
+\begin{hostbashinput}
+$ethtool <host_iface>
+        settings for enp0s20f0u1u1:
+        Supported ports: [ TP	 MII ]
+        Supported link modes:   10baseT/Half 10baseT/Full
+                                100baseT/Half 100baseT/Full
+                                1000baseT/Half 1000baseT/Full
+        Supported pause frame use: No
+        Supports auto-negotiation: Yes
+        Supported FEC modes: Not reported
+        ...
+\end{hostbashinput}
+
+If you do not have such an interface, you can use the provided USB to Ethernet adapter. It supports 1Gbps, but its driver doesn't report that.
+
+We will be doing some manual re-configuration of the host interface. Regardless if you chose to use
+the built-in interface, you need to make sure that NetworkManager will not try to re-configure
+your interface, thus overriding your configuration. You can achieve that temporarily by running :
+
+\begin{hostbashinput}
+$ nmcli device set <iface> managed no
+\end{hostbashinput}
+
+This only temporary, as the interface will become managed again when your host machine reboots.
+
+\section{Building our image}
+
+Let's now build our buildroot image :
+
+\begin{hostbashinput}
+$ cd /home/$USER/networking-labs/buildroot
+$ make globalscale_espressobin_networking_defconfig
+$ make
+\end{hostbashinput}
+
+This should take a while :) The buildroot image provided is also hosted on our github, you can take a look \href{https://github.com/bootlin/buildroot}{here} for more details.
+
+\subsection{Preparing the Espressobin}
+
+The Espressobin is powered by a 12V DC external PSU. Make sure that your PSU is rated for 2A, and has a center-positive Barrel Jack.
+
+In addition, to access the debug serial console, you need to use a
+micro-USB cable connected to the micro-USB port, near the Barrel Jack.
+
+Once your micro-USB cable is connected, a \code{/dev/ttyUSB0} device
+will apear on your PC. You can see this device appear by looking at
+the output of \code{dmesg} on your workstation.
+
+To communicate with the board through the serial port, install a
+serial communication program, such as \code{picocom}:
+
+\begin{hostbashinput}
+sudo apt install picocom
+\end{hostbashinput}
+
+If you run \code{ls -l /dev/ttyUSB0}, you can also see that only
+\code{root} and users belonging to the \code{dialout} group have read
+and write access to this file. Therefore, you need to add your user to
+the \code{dialout} group:
+
+\begin{hostbashinput}
+sudo adduser $USER dialout
+\end{hostbashinput}
+
+{\bf Important}: for the group change to be effective, you have to
+{\em completely reboot} the system \footnote{As explained on
+\url{https://askubuntu.com/questions/1045993/after-adding-a-group-logoutlogin-is-not-enough-in-18-04/}.}.
+A workaround is to run \code{newgrp dialout}, but it is not global.
+You have to run it in each terminal.
+
+Now, you can run \code{picocom -b 115200 /dev/ttyUSB0}, to start
+serial communication on \code{/dev/ttyUSB0}, with a baudrate of
+\code{115200}. If you wish to exit \code{picocom}, press
+\code{[Ctrl][a]} followed by \code{[Ctrl][x]}.
+
+There should be nothing on the serial line so far, as the board is not
+powered up yet.
+
+
+
+\subsection{Flashing the SDCard}
+
+You will now need to flash a sdcard with the 
+\code{output/images/sdcard.img} file. Plug your sdcard on your computer and
+check on which \code{/dev/sdX} it has been mounted (you can use the \code{dmesg}
+command to check that). For instance, if the sdcard has been mounted on
+\code{/dev/sde}, use the following command:
+
+\begin{hostbashinput}
+$ sudo dd if=output/images/sdcard.img of=/dev/sde
+$ sync
+\end{hostbashinput}
+
+NOTE: Double-check that you are targeting the correct device before executing
+the dd command!
+
+Once flashed, insert the sdcard into the Espressobin.
+

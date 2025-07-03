@@ -1,0 +1,403 @@
+\subsection{Control interfaces for the Network Stack}
+
+\begin{frame}{Networking stack control path}
+	\begin{itemize}
+		\item The Networking stack is very highly configurable, at all levels :
+		\item Controller and driver behaviour, through \code{ethtool}, \textit{e.g.} set the link speed
+		\item Interface configuration, with \code{iproute2}, \textit{e.g.} configure the IP address
+		\item System-wide configuration, \textit{e.g.} enable IP forwarding 
+		\item Per-connection configuration, \textit{e.g.} select the TCP congestion-control algorithm
+			\begin{itemize}
+				\item The \code{setsockopts()} syscall is covered later in this training.
+			\end{itemize}
+	\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{ioctl interface}
+	\begin{itemize}
+		\item The \code{ioctl} syscall is used to perform device-specific configuration
+		\item \code{ioctl()} acts on a \textbf{file descriptor}.
+			\begin{itemize}
+				\item For hardware configuration, we usually use \code{ioctl} on \code{/dev/xxx} descriptors
+			\end{itemize}
+		\item We don't have any \code{fd} that corresponds to a specific \kstruct{net_device}
+		\item Network admin \code{ioctl} uses a \code{fd} corresponding to a \textbf{socket} with unspecified family : \code{AF_UNSPEC}
+		\item Any socket \textbf{fd} can be used for network ioctls.
+	\end{itemize}
+	\begin{block}{Example ioctl - Get interface name}
+	\begin{minted}{c}
+struct ifreq ifr;
+ifr.ifr_ifindex = ifindex;
+ioctl (fd, SIOCGIFNAME, &ifr);
+	\end{minted}
+	\end{block}
+\end{frame}
+
+\begin{frame}{ioctl API}
+	\begin{itemize}
+		\item Network-related \code{ioctl} have the \code{SIOC} prefix :
+			\begin{itemize}
+				\item \textit{e.g.} \ksym{SIOCGIFNAME} : Returns the name of an interface from its index
+				\item \textit{e.g.} \ksym{SIOCADDMULTI} : Add to the multicast address list
+				\item \textit{e.g.} \ksym{SIOCSHWTSTAMP} : Contigure hardware timestamping
+			\end{itemize}
+		\item Most of the \code{ioctl} API is now frozen, and maintained for compatibility
+		\item Replaced with \code{Netlink}, which offers more flexibility
+	\end{itemize}
+\end{frame}
+
+\begin{frame}{sysctl interface}
+	\begin{itemize}
+		\item The \textbf{sysctl} parameters are global, kernel-level parameters tunable at runtime
+		\item \textbf{sysctl} is equivalent to writing into the corresponding files under \code{/proc/sys/}
+		\item e.g. \code{systcl net.ipv4.ip_forward=1} is equivalent to \code{echo 1 > /proc/sys/net/ipv4/ip_forward}
+		\item Values can be stored in \code{/etc/sysctl.d/*.conf}, and loaded with \code{sysctl -p}
+		\item \textbf{sysctl} values are per-namespace, inheriting values from the \code{init_net}
+		\item \code{net.core} : Core and net\_device level configuration
+			\begin{itemize}
+				\item \code{sysctl net.core.netdev_budget} : Displays the default NAPI budget
+			\end{itemize}
+		\item \code{net.ipv4} IPv4 and Layer 4 configuration
+			\begin{itemize}
+				\item \code{sysctl net.ipv4.ip_forward} : Allow IP forwarding (Router mode)
+				\item \code{sysctl net.ipv4.tcp_fin_timeout} : Set the TCP connection timeout (even for IPv6)
+			\end{itemize}
+
+		\item \code{net.ipv6} IPv6 configuration
+
+	\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Netlink interface}
+	\begin{itemize}
+		\item More flexible kernel to userspace communication mechanism, based on sockets
+			\begin{minted}{c}
+fd = socket(AF_NETLINK, SOCK_RAW, NETLINK_GENERIC);
+			\end{minted}
+		\item Allows easy extension of the userspace API without breaking compatibility
+		\item User applications must open a \textbf{netlink socket} and send specially-formatted messages
+		\item The socket can also be listened to for Kernel to userspace notificatins
+		\item Netlink messages are grouped in \textbf{families}, grouping message types per class.
+			\begin{itemize}
+				\item routing, ethtool, 802.11, team, macsec, etc. 
+			\end{itemize}
+		\item Netlink messages have a well-defined and stable format, but extensible.
+	\end{itemize}
+\end{frame}
+
+\begin{frame}{Netlink Classic vs Netlink Generic}
+	\begin{itemize}
+		\item Most netlink users today use \textbf{generic netlink}
+		\item This replaces \textbf{classic netlink}, which has statically allocated familiy ID
+		\item Generic Netlink (\code{genetlink}) allows dynamic family regstration 
+			\begin{itemize}
+				\item Allows easy implementation of custom families
+				\item Families are looked-up by \textbf{name} (a string) instead of ID.
+			\end{itemize}
+		\item Example families :
+			\begin{itemize}
+				\item "ethtool": Ethtool commands, also called \textbf{ethnl}
+				\item "wireguard": Wireguard tunneling configuration
+				\item "nl80211": Wifi-configuration netlink commands
+			\end{itemize}
+	\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Netlink Messages}
+	\begin{itemize}
+		\item Transmission of \textbf{netlink messages} :
+			\begin{itemize}
+				\item A fixed-format Header begins the message
+				\item The information is conveyed through TLV items : \textbf{Type}, \textbf{Length}, \textbf{Value}
+			\end{itemize}
+	\end{itemize}
+	\begin{minted}{c}
+struct nlmsghdr {
+      __u32   nlmsg_len;      /* Length of message including headers */
+      __u16   nlmsg_type;     /* Generic Netlink Family (subsystem) ID */
+      __u16   nlmsg_flags;    /* Flags - request or dump */
+      __u32   nlmsg_seq;      /* Sequence number */
+      __u32   nlmsg_pid;      /* Port ID, set to 0 */
+};
+struct genlmsghdr {
+      __u8    cmd;            /* Command, as defined by the Family */
+      __u8    version;        /* Irrelevant, set to 1 */
+      __u16   reserved;       /* Reserved, set to 0 */
+};
+/* TLV attributes follow... */
+	\end{minted}
+\end{frame}
+
+\begin{frame}{Netlink commands}
+	\begin{itemize}
+		\item There are multiple types of Netlink requests based on the \code{nlmsg_flags}
+		\item Commands may be used to Get or Set some kernel attributes 
+		\item Netlink \code{Get} commands can target one or several objects
+			\begin{itemize}
+				\item A single object request is a \code{.doit()} request
+					\begin{itemize}
+						\item \code{ip link show eth0}
+					\end{itemize}
+				\item An object listing request is a \code{.dumpit()} request
+					\begin{itemize}
+						\item \code{ip link show}
+					\end{itemize}
+			\end{itemize}
+		\item Netlink also exposes \textbf{multicast notifications}
+		\item The message content is made of a set of pre-defined Attributes, based on the Command and Family
+			\begin{itemize}
+				\item \textit{e.g.} Command \code{ETHTOOL_MSG_LINKMODES_GET} for family "ethtool"
+				\item Contains \code{ETHTOOL_A_LINKMODES_SPEED}
+			\end{itemize}
+	\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Netlink specifications}
+	\begin{itemize}
+		\item Message content used to be specified directly in the kernel uAPI headers
+		\item Formats are now defined as \textbf{Netlink Specs} written in \code{YAML}
+		\item Specifications are written per-family in \kfile{Documentation/netlink/specs}
+	\end{itemize}
+	\begin{block}{Documentation/netlink/specs/ethtool.yaml}
+	\begin{minted}{yaml}
+name: ethtool
+protocol: genetlink-legacy
+doc: Partial family for Ethtool Netlink.
+
+definitions:
+  - ...
+attribute-sets:
+  - ...
+operations:
+  - ...
+	\end{minted}
+	\end{block}
+\end{frame}
+
+\begin{frame}{Netlink specifications - 2}
+	\begin{itemize}
+		\item Netlink specs are used internally to \textbf{generate} the uAPI headers
+			\begin{itemize}
+				\item Generated in \kfile{include/uapi/linux/ethtool_netlink_generated.h}
+				\item Included by \kfile{include/uapi/linux/ethtool_netlink.h}
+			\end{itemize}
+		\item When modifying the specs, headers can be regenerated with \code{${KDIR}/tools/net/ynl/ynl-regen.sh}
+		\item The \textbf{ynl} tool included in the kernel's sources can be used to sent hand-crafted messages
+			\begin{itemize}
+				\item \code{make -C tools/net/ynl}
+			\end{itemize}
+		\item Uses the Netlink Specs to derive the format and family :
+			\code{ynl --family ethtool --no-schema --do linkinfo-get \ }
+			\code{--json '{"header" : { "dev-name" : "eth0"}}'}
+	\end{itemize}
+\end{frame}
+
+\begin{frame}{Netlink monitor}
+	\begin{itemize}
+		\item \textbf{Netlink Monitoring} car refer to 2 distinct operations :
+		\item One can listen to \textbf{netlink notifications}
+			\begin{itemize}
+				\item Emitted by the kernel upon configuration change
+				\item Applications can listen for specific notifications (Address change, link up, etc.)
+				\item e.g. \code{ip monitor}, \code{ethtool --monitor}, etc.
+			\end{itemize}
+		\item It is also possible to listen to \textbf{All Netlink Traffic}
+			\begin{itemize}
+				\item It includes All netlink messages, requests, replies and notifications
+				\item Done through a dedicated virtual interface : \code{nlmon}
+				\item e.g. \code{ip link add name nlmon0 type nlmon}
+				\item Tools such as \code{tcpdump} and \code{wireshark} can be used on the nlmon interface
+			\end{itemize}
+		\item All these mechanisms still go through network namespaces
+	\end{itemize}
+\end{frame}
+
+\begin{frame}{Configuration serialization in the kernel}
+	\begin{itemize}
+		\item Actions triggered by \code{ioctl} or \code{netlink} messages often need serialization
+			\begin{itemize}
+				\item Some actions impact multiple devices (e.g. netns removal)
+				\item Actions may be performed on multiple CPUs concurrently
+			\end{itemize}
+		\item The main lock used to serialize the configuration is the \textbf{rtnl lock}
+			\begin{itemize}
+				\item Global \kstruct{mutex}, taken with \kfunc{rtnl_lock} and released with \kfunc{rtnl_unlock}
+				\item \textbf{R}ou\textbf{T}ing \textbf{N}et\textbf{L}ink
+			\end{itemize}
+		\item \code{net_device.lock} : Mutex to protect \textit{some} of the \kstruct{net_device} fields
+			\begin{itemize}
+				\item Very recent feature, introduced in \code{v6.14}
+			\end{itemize}
+		\item The list of \kstruct{net_device} is protected by RCU
+		\item All \kstruct{net_device} instance are reference-counted and reference-tracked
+	\end{itemize}
+\end{frame}
+
+\begin{frame}{The RTNL lock}
+	\begin{itemize}
+		\item Sometimes the Network Stack's Big Kernel Lock
+			\begin{itemize}
+				\item Its scope is slowly getting removed, replaced with more specific locks
+			\end{itemize}
+		\item Serializes most NDOs that aren't on the datapath
+			\begin{itemize}
+				\item e.g. it does not protect \code{.ndo_start_xmit()}.
+			\end{itemize}
+		\item Also serializes most \kstruct{ethtool_ops}
+		\item Protects some of the \kstruct{net_device} fields
+		\item For now, RTNL is \textbf{not} per-namespace, it is global. This is being reworked.
+		\item Functions that rely on the caller holding rtnl ofen use \kfunc{ASSERT_RTNL}
+		\item It is a \code{mutex} :
+			\begin{itemize}
+				\item It is possible to sleep while holding rtnl
+				\item rtnl cannot be used when sleeping is forbidden (e.g. interrupt and softirq context)
+			\end{itemize}
+	\end{itemize}
+\end{frame}
+
+\begin{frame}{Using Netlink in the kernel}
+	\begin{itemize}
+		\item A new family can be registered by registering a \kstruct{genl_family}
+		\item This allows registering custom messages and associated handlers
+			\begin{itemize}
+				\item e.g the \href{https://elixir.bootlin.com/linux/v6.15.2/source/drivers/net/macsec.c\#L3360}{macsec family}
+			\end{itemize}
+		\item Existing families already provide layers of abstractions :
+			\begin{itemize}
+				\item The \kstruct{rtnl_link_ops} is used for virtual netdev types
+				\item The \href{https://elixir.bootlin.com/linux/v6.15.2/source/net/ethtool}{ethnl} abstraction is used for ethtool commands
+			\end{itemize}
+	\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Netlink Attributes}
+	\begin{itemize}
+		\item As netlink is part of \textbf{userspace API}, all attribute values are heavily checked
+		\item When declaring attributes, we can specify a \textbf{policy}
+			\begin{itemize}
+				\item Allows specifying a range of acceptable values
+					\begin{minted}{c}
+const struct nla_policy ethnl_linkmodes_set_policy[] = {
+        [ETHTOOL_A_LINKMODES_LANES] = NLA_POLICY_RANGE(NLA_U32, 1, 8),
+};
+					\end{minted}
+			\end{itemize}
+		\item Handling messages is done in the genetlink \code{.doit()} callback
+		\item Netlink attributes are represented as \kstruct{nlattr}
+		\item Attributes are passed as an array, indexed by attribute id, usually named \code{tb}
+		\item Helpers are provided to get attribute values, \textit{e.g.} \kfunc{nla_get_u32}
+		\begin{minted}{c}
+if (data[IFLA_MACSEC_WINDOW])
+        secy->replay_window = nla_get_u32(data[IFLA_MACSEC_WINDOW]);	
+		\end{minted}
+	\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{\kstruct{netlink_ext_ack}}
+	\begin{itemize}
+		\item \kstruct{netlink_ext_ack} allows reporting error messages to userspace
+		\item It is included as part of the reply to netlink requests
+		\item It can be found passed as a parameter to numerous internal kernel function
+	\end{itemize}
+	{\fontsize{9}{10}
+	\begin{minted}{c}
+int dsa_port_mst_enable(struct dsa_port *dp, bool on, struct netlink_ext_ack *extack)
+{
+        if (on && !dsa_port_supports_mst(dp)) {
+                NL_SET_ERR_MSG_MOD(extack, "Hardware does not support MST");
+                return -EINVAL;
+        }
+
+        return 0;
+}
+	\end{minted}
+	}
+\end{frame}
+
+\begin{frame}{Userpace libraries}
+	\begin{itemize}
+		\item \href{https://www.netfilter.org/projects/libmnl/index.html}{libmnl}: Simple and lightweight library to access netlink
+			\begin{itemize}
+				\item Used by \code{nftables}, \code{iproute2} and \code{ethtool}
+			\end{itemize}
+		\item \href{https://www.infradead.org/~tgr/libnl/}{libnl}: Higher level of abstraction but bigger binary
+			\begin{itemize}
+				\item Useful for programs that "just work"
+			\end{itemize}
+	\end{itemize}
+\end{frame}
+
+\begin{frame}{Userspace tooling}
+	\begin{itemize}
+		\item \textbf{iproute2}
+			\begin{itemize}
+				\item \code{ip} : Configure and query interfaces, routing and tunnels
+				\item \code{bridge} : Configures bridges (switching)
+				\item \code{tc} : Configures traffic control policing, shaping and filtering
+				\item \code{dcb} : Configures "Data Center Bridging" for traffic priorisation
+				\item These tools use the \textbf{Netlink} API
+			\end{itemize}
+		\item \textbf{net-tools}
+			\begin{itemize}
+				\item Obsolete ! replaced by \textbf{iproute2}
+				\item \code{ifconfig} : Configure interfaces (replaced by \code{ip})
+				\item \code{brctl} : Configure bridges (replaced by \code{bridge})
+			\end{itemize}
+		\item \textbf{ethtool}
+			\begin{itemize}
+				\item Used to configure Ethernet devices.
+				\item Can be compiled with \code{ioctl} or \code{netlink} support.
+			\end{itemize}
+	\end{itemize}
+\end{frame}
+
+\begin{frame}{Userspace tooling - 2}
+	\begin{itemize}
+		\item \textbf{NetworkManager}
+			\begin{itemize}
+				\item Automatic configuration of interfaces based on config files
+				\item Handles IP assignment, low-level parameters
+				\item Very featureful, but bigger binary
+				\item Exposes a DBus API to interact with other software
+				\item See \manpage{NetworkManager}{8}
+			\end{itemize}
+		\item \textbf{Connman}
+			\begin{itemize}
+				\item Alternative to NetworkManager, more embedded-oriented and lightweight
+				\item Also uses DBus to communicate with other software
+			\end{itemize}
+		\item \textbf{Systemd-networkd}
+			\begin{itemize}
+				\item Network configuration tool provided by SystemD 
+				\item \code{.network} files are used to describe interfaces
+				\item See \manpage{systemd-networkd}{8}
+			\end{itemize}
+		\end{itemize}
+\end{frame}
+
+\begin{frame}{C library}
+	\begin{itemize}
+		\item The C library exposes a few helper functions to manipulate Network features
+		\item \code{if_nametoindex}: Get the \code{ifindex} of a given interface
+		\item \code{if_indextoname}: Get the name of an interface from its \code{index}
+			\begin{itemize}
+				\item Can use either netlink or \code{ioctl}
+			\end{itemize}
+		\item \code{inet_aton}, \code{inet_addr}: Convert IP address from string to binary
+		\item \code{htons}, \code{ntohs}, \code{htonl}, \code{ntohl}: Endianness conversion
+			\begin{itemize}
+				\item On most protocol headers, data is sent in \textbf{big endian} format
+				\item Also referred-to as Network Byte Order
+				\item \textbf{h}ost \textbf{to} \textbf{n}etwork \textbf{s}ort / \textbf{l}ong
+			\end{itemize}
+	\end{itemize}
+\end{frame}
+
+
+
+% nothing in /dev
+% ioctl
+% netlink, principle
+% netlink families
+% Common userspace tools
+

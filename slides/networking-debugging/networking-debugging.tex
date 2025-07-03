@@ -1,0 +1,151 @@
+\section{Debugging and tracing the Network Stack}
+
+\begin{frame}{Challenges}
+	\begin{itemize}
+		\item Latency issues : Can come from different locations
+			\begin{itemize}
+				\item The network itself
+				\item Internal queueing and buffering
+				\item Hardware and OS-level latencies
+			\end{itemize}
+		\item Throughput issues
+			\begin{itemize}
+				\item May depend on the traffic type
+				\item May simply be a symptom : TCP retransmissions due to bad L1 link quality
+			\end{itemize}
+		\item Link issues
+			\begin{itemize}
+				\item May be hardware related
+				\item The kernel can't only tell you what it knows
+			\end{itemize}
+	\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Monitoring traffic and drops}
+	\begin{itemize}
+		\item In case of large number of repeats or local drops
+		\item dropwatch : monitor the in-kernel packet drops, see \manpage{dropwatch}{1}
+			\begin{minted}{bash}
+$ dropwatch -lkas
+$ dropwatch> start
+2 drops at ip6_mc_input+1a8 (0xffffffff83347ba8) [software]
+			\end{minted}
+		\item retis : eBPF based monitoring. monitor drops as well as \code{skb} lifetime
+		\item See the \href{https://retis.readthedocs.io/en/stable/}{official documentation}
+			\begin{minted}{bash}
+retis collect -c skb-drop --stack
+			\end{minted}
+	\end{itemize}
+\end{frame}
+
+\begin{frame}{Monitoring traffic with a capture}
+	\begin{itemize}
+		\item Tools such as wireshark and tcpdump use \code{AF_PACKET} sockets for monitoring 
+		\item Some hardware devices may include extra information
+			\begin{itemize}
+				\item \textit{e.g.} the \textbf{radiotap} headers on 802.11 frames
+			\end{itemize}
+		\item The monitoring happens between the \textbf{driver} and \code{tc}
+		\item On the receive side, it happends before firewalling with netfilter
+		\item Capture format is standardised with the \code{pcap} format
+			\begin{itemize}
+				\item frames can be replayed, or analysed on another host
+			\end{itemize}
+	\end{itemize}
+\end{frame}
+
+\begin{frame}{Offloading}
+	\begin{itemize}
+		\item Offloading issues are hard to troubleshoot, as the host doesn't see them
+		\item \code{wireshark} may tell you \textbf{receive checksumming} issues
+		\item \code{ethtool -k eth0} shows you the \textbf{features}
+		\item Hardware counters should be used for debugging :
+			\begin{itemize}
+				\item \code{ethtool -S eth0}
+				\item \code{ethtool --phy-statistics eth0}
+				\item \code{ethtool -S eth0 --groups eth-mac|eth-phy|eth-ctrl|rmon}
+			\end{itemize}
+		\item Some information may be available in \textbf{debugfs}
+		\item \code{ip -s link show eth0} shows software counters
+		\item \code{cat /proc/interrupts} indicate the hardware interrupt counters
+		\item \code{cat /proc/softirq} indicate the softirq counters
+	\end{itemize}
+\end{frame}
+
+\begin{frame}{Traffic generation}
+	\begin{itemize}
+		\item iperf3 : Troughput testing, fairly simple to use
+		\item netperf : Made by kernel developers, similar to iperf3, more featureful
+		\item scapy : Traffic generator written in python, craft arbitrary frames
+		\item DPDK's \href{https://pktgen-dpdk.readthedocs.io/en/latest/}{pktgen}
+			\begin{itemize}
+				\item PKTgen uses \textbf{kernel bypass}, not supported on every platform
+				\item Allows very fast packet crafting (10gbs)
+				\item Useful to test multi-flow setups, or HW offloading
+			\end{itemize}
+	\end{itemize}
+\end{frame}
+
+\begin{frame}{iperf3}
+	\begin{itemize}
+		\item Widely used traffic generator
+		\item \code{iperf3 -s -D} : Start in server mode
+		\item \code{iperf3 -c 192.168.1.1} : Start in client mode, default is TCP
+		\item \code{iperf3 -c 192.168.1.1 -u -b 0} : UDP mode, with unlimited bandwidth
+		\item \code{iperf3 -c 192.168.1.1 -u -b 0 -l 100} : UDP mode, small packets
+		\item \code{iperf3 -c 192.168.1.1 -P 16} : Multi-flow mode
+	\end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{scapy}
+	\begin{itemize}
+		\item Traffic generator written in python. See the \href{https://scapy.net/}{official website}
+		\item Allows generating arbitrary traffic very easily
+		\item Each header can be crafted, for high flexibility
+		\item Very easily scriptable
+	\end{itemize}
+	\begin{minted}{python}
+# IPv4 with ToS field varying between 1 and 4
+sendp(Ether()/IP(dst="1.2.3.4",tos=(1,4)), iface="eth0")
+
+# Raw ethernet frame
+sendp(Ether(dst="00:51:82:11:22:02"), iface="eth0") 
+
+# Send and wait for reply, simple ping implementation
+packet = IP(dst="192.168.42.1", ttl=20)/ICMP()
+reply = sr1(packet) 	\end{minted}
+\end{frame}
+
+\begin{frame}{Counters}
+	\begin{itemize}
+		\item Layer 4 counters : Maintained by the kernel.
+			\begin{itemize}
+				\item \code{netstat -s} or \code{cat /proc/net/netstat}
+				\item More statstics in \code{/proc/net/stat}
+			\end{itemize}
+		\item Layer 3 counters : Provided by \code{ip -s link show}
+		\item Layer 2 counters : Hardware-provided
+		\item XDP programs can be custom-written to gather specific statistics
+		\item \code{xdp-monitor -s} tracks XDP statistics such as the number of drops and redirects
+	\end{itemize}
+\end{frame}
+
+\begin{frame}{profiling}
+	\begin{itemize}
+		\item Allows identifying the bottlnecks in software
+		\item \code{perf} can be used : Rely on hardware and software counters
+		\item \code{Flamegraphs} help identify software bottlenecks, in kernel and userspace
+			\begin{itemize}
+				\item Covered in our \href{https://bootlin.com/training/debugging/}{debugging training}
+			\end{itemize}
+		\item \code{ftrace} will generate timelines of events, to track \textbf{latencies}
+		\item See \href{https://docs.kernel.org/trace/ftrace.html}{the ftrace documentation}
+	\end{itemize}
+\end{frame}
+
+% Existing infrastructure
+% Selftests
+% Profiling and performance issues
+% Traffic issues and drops
+% TCPdump, wireshark
+% Link issues

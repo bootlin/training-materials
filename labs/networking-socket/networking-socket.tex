@@ -1,0 +1,207 @@
+\subchapter{Using Sockets in userspace}
+{Objective: Learn the basics of socket programming}
+
+\section{Goals}
+ 
+\begin{itemize}
+\item Create a simple TCP client program
+\item Use tcpdump to visualise traffic
+\item Implement a simple packet dump program
+\end{itemize}
+
+\subsection{Network configuration}
+
+In this lab, we'll setup a direct connection between the host and the target on the \textbf{192.168.42.0/24} subnet.
+
+\begin{targetbashinput}
+$ ip address flush lan0
+$ ip link set lan0 up
+$ ip address add 192.168.42.2/24 dev lan0
+\end{targetbashinput}
+
+\begin{hostbashinput}
+$ ip address flush <iface>
+$ ip link set <iface> up
+$ ip address add 192.168.42.1/24 dev <iface>
+\end{hostbashinput}
+
+You can then run a simple \code{ping} test to make sure everything works :
+
+\begin{hostbashinput}
+$ ping 192.168.42.2
+\end{hostbashinput}
+
+\section{Simple TCP client}
+
+Let's start simple by creating a simple TCP client program, that will run on the \textcolor{green}{Host}, and connect to a server running on the targe. We will use the \textbf{netcat} program on the target, which provides a very simple implementation of TCP and UDP servers and clients.
+
+Go in the lab3 host-side directory :
+
+\begin{hostbashinput}
+$ cd /home/$USER/networking-labs/host/lab3
+\end{hostbashinput}
+
+In the \code{tcp_client.c} file, let's implement a very simple program to get familiar with the socket programming aspects.
+The program will take 2 parameters :
+\begin{itemize}
+	\item The server's address, using the \textbf{dotted notation}
+	\item The server's port
+\end{itemize}
+
+Start by creating your socket file descriptor, using the \textbf{socket} function. Use the \code{AF_xxx} family correspondig to the IPv4 address family. Use the \code{SOCK_xxx} type corresponding to TCP :
+
+\code{int sockfd;}
+\code{sockfd = socket(AF_???, SOCK_???, 0);}
+
+We pass a 0 as the last paraemeter as we won't be using any flags.
+
+Next, create an object representing an IPv4 address :
+\code{struct sockaddr_in addr;}
+
+You need to populate 3 fields within this struct :
+\begin{itemize}
+	\item \code{addr.sin_family} : Use the \code{AF_xxx} family corresponding to IPv4
+	\item \code{addr.sin_port} : The server's port. You can use \code{atoi()} to convert the user-pased ASCII string to an integer. This field must be specified in \textbf{network byte order}, use \code{htons()} to convert the port in the right endianness.
+	\item \code{addr.sin_addr} : The server's IP address. You can use \code{inet_aton} to convert from dotted notation to the 32bits value.
+\end{itemize}
+
+Next, let's connect to the server. The \code{connect()} call must be made, but it expects a generic \code{struct sockaddr} as a parameter, which is subclassed by \code{struct sockaddr_in}, so we need to cast it back to the parent class :
+
+\code{connect(sockfd, (struct sockaddr *)&addr, sizeof(addr));}
+
+Finally, write the string "hi !" into the socket, using \code{write()} or \code{send()}.
+
+Don't forget to \code{close()} the socket before terminating the program.
+
+You can compile it with :
+
+\begin{hostbashinput}
+$ make tcp_client
+\end{hostbashinput}
+
+Once your program looks good, you can start testing it !
+
+Start the netcat TCP server on the Espressobin, listening on port 3000 :
+
+\begin{targetbashinput}
+$ nc -l -p 3000
+\end{targetbashinput}
+
+And test your client on the host machine :
+
+\begin{hostbashinput}
+$ ./tcp_client 192.164.42.2 3000
+\end{hostbashinput}
+
+You should see the string "hi !" printed on the Espressobin's console :)
+
+\section{Visualize traffic with TCPdump}
+
+Let's make sure that our data is indeed sent in TCP over IPv4. For that, we'll use the \textbf{tcpdump} tool.
+
+First let's leave the netcat TCP server running in the background :
+
+\begin{targetbashinput}
+$ nc -l -k -p 3000 &
+\end{targetbashinput}
+
+Now run \textbf{tcpdump} on the Espressobin, listening on \code{lan0}, with the following flags :
+\begin{itemize}
+	\item \code{-n} : Print addresses instead of hostnames
+	\item \code{-e} : Include Layer 2 information
+\end{itemize}
+
+\begin{targetbashinput}
+$ tcpdump -n -e -i lan0
+\end{targetbashinput}
+
+Send the message to the server from the client :
+
+\begin{hostbashinput}
+$ ./tcp_client 192.164.42.2 3000
+\end{hostbashinput}
+
+You should see in the TCPDump output, on the target, the various packets exchanges during the establinshment of the TCP stream : SYN, SYN-ACK, ACK. Acknowledgments are represented with a \textbf{.} in the flags.
+\begin{targetterminaloutput}
+... Flags [S], ...
+... Flags [S.], ...
+... Flags [.], ...
+\end{targetterminaloutput}
+
+To dump the content of the packets, you can use :
+\begin{targetbashinput}
+$ tcpdump -XX -n -e -i lan0
+\end{targetbashinput}
+
+The Espressobin integrates a DSA switch, all traffic running on \code{lan0} goes through the \textbf{conduit interface} \code{eth0}. Try running the capture on \code{lan0} and \code{eth0}. Do you see any difference ?
+
+\section{RAW socket: Implementing our own custom TCPDUMP}
+
+TCPdump is based on the use of \code{AF_PACKET} sockets, which give access to raw Layer 2 frames. Let's write our very simple implementatin of tcpdump.
+
+We will be running this program on the target, so move into the target-side of our lab folder :
+
+\begin{hostbashinput}
+$ cd /home/$USER/networking-labs/target/lab3
+\end{hostbashinput}
+
+Open the \code{monitor.c} file and let's start implementing it. Start by opening a new socket, with the \code{AF_PACKET} family, \code{SOCK_RAW} type and using the \code{htons(ETH_P_ALL)} protocol to listen to everything.
+
+To listen on a given interface, we need to \code{bind} the socket to the given interface.
+
+As a reminder, \code{bind()} takes 3 parameters :
+\begin{itemize}
+	\item \code{int sockfd} : The socket file descriptor
+	\item \code{struct sockaddr *addr} : a sockaddr pointer. For \code{AF_PACKET}, we must use the \code{struct sockaddr_ll} subclass
+	\item \code{socklen_t addrlen} : The size of our addres object, that is \code{sizeof(struct sockaddr_ll)}
+\end{itemize}
+
+The \code{stuct sockaddr_ll} is a generic structure representing a Layer 2 address :
+
+\begin{verbatim}
+struct sockaddr_ll {
+    unsigned short sll_family;   /* Always AF_PACKET */
+    unsigned short sll_protocol; /* Physical-layer protocol */
+    int            sll_ifindex;  /* Interface number */
+    unsigned short sll_hatype;   /* ARP hardware type */
+    unsigned char  sll_pkttype;  /* Packet type */
+    unsigned char  sll_halen;    /* Length of address */
+    unsigned char  sll_addr[8];  /* Physical-layer address */
+};
+\end{verbatim}
+
+We need to populate :
+\begin{itemize}
+	\item \code{sll_family} : \code{AF_PACKET}
+	\item \code{sll_ifindex} : The interface index to listen to. Use \code{if_nametoindex()} to convert the interface name to its index
+\end{itemize}
+
+With these parameters constructed, call \code{bind()} on your socket.
+
+You can now start reading traffic from your socket. To simplify a bit, let's read only the first 40 bytes of each packet.
+
+In a \code{while} loop, call \code{recv} to read the first 40 bytes into a buffer, then display its content by calling the provided "hexdump" functin.
+
+You can compile your code locally to test it :
+\begin{hostbashinput}
+$ make monitor
+\end{hostbashinput}
+
+To install it on your target, you have to update your linux image :
+
+\begin{hostbashinput}
+$ # clean your host-compiled monitor program :
+$ make clean
+$ Go in your buildroot folder
+$ cd ../../buildroot
+$ make lab3-rebuild all
+\end{hostbashinput}
+
+You can now re-flash your SDcard with the \code{dd} command, and reboot your Espressobin.
+
+To run the monitor program :
+\begin{targetbashinput}
+$ cd lab3
+$ ./monitor lan0
+\end{targetbashinput}
+
