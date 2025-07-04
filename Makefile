@@ -50,7 +50,7 @@ STYLESHEET = common/beamerthemeBootlin.sty
 # in .pdf in the output directory. This is used to compute the list of
 # .pdf files that need to be generated from .dia or .svg files.
 PICTURES_WITH_TRANSFORMATION = \
-	$(patsubst %.$(2),$(OUTDIR)/%.pdf,$(foreach s,$(1),$(wildcard $(s)/*.$(2))))
+    $(patsubst %.$(2),$(OUTDIR)/%.pdf,$(foreach s,$(1),$(shell find $(s) -type f -name '*.$(2)')))
 
 # Function that computes the list of pictures of the extension given
 # in $(2) from the directories in $(1). This is used for pictures that
@@ -94,6 +94,7 @@ SLIDES_COMMON_BEFORE = common/slide-header.tex \
 		       common/$(SLIDES_TRAINING)-title.tex
 SLIDES_CHAPTERS      = $($(call UPPERCASE, $(subst  -,_, $(SLIDES_TRAINING)))_SLIDES)
 SLIDES_COMMON_AFTER  = common/slide-footer.tex
+SLIDES_VARSFILE      = common/$(SLIDES_TRAINING)-labs-vars.tex
 else
 SLIDES_TRAINING      = $(firstword $(subst -, ,  $(SLIDES)))
 ifeq ($(SLIDES_TRAINING),sysdev)
@@ -122,6 +123,7 @@ endif
 
 # Compute the set of corresponding .tex files and pictures
 SLIDES_TEX      = \
+	$(SLIDES_VARSFILE) \
 	$(SLIDES_COMMON_BEFORE) \
 	$(foreach s,$(SLIDES_CHAPTERS),$(wildcard slides/$(s)/$(s).tex)) \
 	$(SLIDES_COMMON_AFTER)
