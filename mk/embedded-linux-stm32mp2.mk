@@ -7,6 +7,7 @@ EMBEDDED_LINUX_STM32MP2_SLIDES = \
 		discovery-board-also-supported \
 		beagleboneblack-board-also-supported \
 		beagleplay-board-also-supported \
+		imx93-frdm-board-also-supported \
 		course-information \
 		sysdev-intro \
 		sysdev-dev-environment \
