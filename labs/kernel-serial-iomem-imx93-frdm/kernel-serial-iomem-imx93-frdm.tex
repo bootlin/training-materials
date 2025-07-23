@@ -1,0 +1,259 @@
+\subchapter{Accessing I/O memory and ports}{Objective: read /
+  write data from / to a hardware device}
+
+Throughout the upcoming labs, we will implement a character driver
+allowing to write data to additional CPU serial ports available on
+the BeagleBone, and to read data from them.
+
+After this lab, you will be able to:
+
+\begin{itemize}
+\item Add UART devices to the board device tree.
+\item Access I/O registers to control the device and
+      send first characters to it.
+\end{itemize}
+
+\section{Setup}
+
+Go to your kernel source directory and continue working with the
+\code{bootlin-labs} branch, this way we can keep the same custom Device
+Tree we already created, and build on top of it.
+
+\section{Add UART devices}
+
+Before developing a driver for additional UARTS on the board, we
+need to add the corresponding descriptions to the board Device Tree.
+
+First, open the board design files and find the available connectors
+for LPUART3 and LPUART8.You should see that it is possible to connect LPUART3 to GPIO\_IO14/15 and LPUART8 to GPIO\_IO12/13.
+
+Using a new USB-serial cable with Female connectors, provided by your
+instructor, connect your PC to LPUART3. The wire colors are the same
+as for the cable that you're using for the console:
+
+\begin{itemize}
+\item The blue wire should be connected \code{GND}.
+\item The red wire (\code{TX}) should be connected to the board's \code{RX} pin.
+\item The green wire (\code{RX}) should be connected to the board's \code{TX} pin.
+\end{itemize}
+
+Now, create again a new
+\code{arch/arm/boot/dts/freescale/imx93-11x11-frdm.dts} file including
+the standard board DTS file and reference the pin controller node and add declarations for the pin states needed for LPUART3 and LPUART8.
+
+{\scriptsize \sourcecode{labs/kernel-serial-iomem-imx93-frdm/uarts-pinctrl.dts}}
+
+Then, declare the corresponding devices:
+
+\sourcecode{labs/kernel-serial-iomem-imx93-frdm/uarts.dts}
+
+This is a good example of how we can override definitions in the Device
+Tree. \code{lpuart3} and \code{lpuart8} are already defined in
+\kfile{arch/arm/boot/dts/freescale/imx93.dtsi}. In the above code, we
+just override a few properties and add the missing ones:
+
+\begin{itemize}
+\item \code{compatible}: use our driver instead of using the default one
+      (\code{fsl,imx8ulp-lpuart}).
+\item \code{status}: enable the device (was set to \code{disabled} in
+      the original definition).
+\item \code{pinctrl-names}, \code{pinctrl-0}: add pinmux settings
+      (none were defined so far).
+\end{itemize}
+
+Compile and update your DTB.
+
+\section{Operate a platform device driver}
+
+Go to the \code{~/linux-kernel-labs/modules/nfsroot/root/serial/} directory.
+You will find a \code{serial.c} file which already provides a platform
+driver skeleton.
+
+Add the code needed to match the driver with the devices which you have
+just declared in the device tree.
+
+Compile your module and load it on your target. Check the kernel log
+messages, that should confirm that the \code{probe()} routine was
+called\footnote{Don't be surprised if the \code{probe()} routine is
+actually called twice! That's because we have declared two devices.
+Even if we only connect a serial-to-USB dongle to one of them, both
+of them are ready to be used!}.
+
+\section{Create a device private structure}
+
+In the same way as in the nunchuk lab, we now need to create a
+structure that will hold device specific information and help
+keeping pointers between logical and physical devices.
+
+As the first thing to store will be the base virtual address for
+each device, let's declare this structure as follows:
+
+\begin{verbatim}
+struct serial_dev {
+        void __iomem *regs;
+};
+\end{verbatim}
+
+The first thing to do is allocate such a structure at the beginning
+of the \code{probe()} routine. Let's do it with the \kfunc{devm_kzalloc}
+function again as in the previous lab. Again, resource deallocation is
+automatically taken care of when we use the \code{devm_} functions.
+
+So, add the below line to your code:
+
+\begin{verbatim}
+struct serial_dev *serial;
+...
+serial = devm_kzalloc(&pdev->dev, sizeof(*serial), GFP_KERNEL);
+if (!serial)
+        return -ENOMEM;
+\end{verbatim}
+
+\section{Get a base virtual address for your device registers}
+
+You can now get a virtual address for your device's base physical
+address, by calling:
+
+\begin{verbatim}
+serial->regs = devm_platform_ioremap_resource(pdev, 0);
+if (IS_ERR(serial->regs))
+        return PTR_ERR(serial->regs);
+\end{verbatim}
+
+What's nice is that you won't ever have to release this resource,
+neither in the \code{remove()} routine, nor if there are failures
+in subsequent steps of the \code{probe()} routine.
+
+Make sure that your updated driver compiles, loads and unloads well.
+
+\section{Device initialization}
+
+Now that we have a virtual address to access registers, we are ready to
+configure a few registers which will allow us to enable the UART
+devices. Of course, this will be done in the \code{probe()} routine.
+
+\subsection{Accessing device registers}
+
+As we will have multiple registers to read, create a \code{reg_read()}
+routine, returning a \code{u32} value, and taking a \code{serial}
+pointer to a \code{serial_dev} structure and an \code{unsigned int}
+register offset.
+
+Your prototype should look like:
+\begin{verbatim}
+static u32 reg_read(struct serial_dev *serial, unsigned int reg);
+\end{verbatim}
+
+In this function, read from a 32 bits register at the base virtual
+address for the device, plus the register offset.
+
+All the UART register offsets have standardized values, shared between
+several types of serial drivers.
+
+Create a similar \code{reg_write()} routine, writing an \code{u32}
+value at a given register offset from the device base virtual address.
+The following code samples are using
+the \kfunc{writel} convention of passing the value first, then the
+offset.
+
+In the next sections, we will tell you what register offsets to use
+to drive the hardware.
+
+
+\subsection{Use of macros}
+
+To improve code readability and maintainability, macros are used to define both the register offsets and the individual bit fields for the LPUART peripheral. These macros act as symbolic names, making the code more understandable and less error-prone compared to using hard-coded values.
+
+For example:
+\begin{itemize}
+  \item \code{LPUART_CTRL_TE} represents the bit that enables the UART transmitter.
+  \item \code{LPUART_CTRL_RE} enables the receiver.
+  \item \code{LPUART_CTRL_RIE} enables receiver interrupts.
+  \item \code{LPUART_STAT_TDRE} indicates when the transmit data register is empty.
+  \item \code{LPUART_GLOBAL_RST} triggers a software reset of the peripheral.
+\end{itemize}
+
+Register offsets like \code{LPUART_CTRL} (0x18) and \code{LPUART_BAUD} (0x10) are also defined with macros to simplify memory-mapped register access.
+
+Additionally, control over FIFO behavior is abstracted using macros like \code{LPUART_FIFO_TXFE} (Transmit FIFO Enable) or \code{LPUART_FIFO_RXFLUSH} (Receive FIFO Flush), which are essential during initialization or reset procedures.Look at the code below to see how these macros are defined and used.
+
+\subsection{Line and baud rate configuration}
+
+After these lines, let’s add some code to extract the clock frequency from the device tree, then initialize the UART peripheral with the correct baud value.
+
+In the LPUART controller, two important parameters allow configuring the serial data transmission speed: SBR and OSR.
+OSR (Oversampling Ratio): The OSR determines how many times a data bit is sampled on the serial line.
+SBR (Serial Baud Rate)
+
+The SBR register defines the frequency of the serial transmission signal (the baud rate) in combination with the OSR. More precisely, the UART signal frequency is calculated as follows:
+$$Baud\ rate = Source-Clock / ((OSR+1) × SBR)$$
+
+To perform this calculation, we will use lpuart\_build\_baud\_val().
+
+\verbatimtabinput{labs/kernel-serial-iomem-imx93-frdm/uart-line-init-0.c}
+
+For the following parts, they must be placed in the probe() function, right after the devm\_platform\_ioremap\_resource() call.
+
+This part maps the UART register space into memory, retrieves the IPG
+clock handle, and enables it to provide the clock source for the UART
+peripheral.
+\verbatimtabinput{labs/kernel-serial-iomem-imx93-frdm/uart-line-init-1.c}
+
+Don't forget to declare \code{struct clk *clk_ipg} in the serial\_dev structure.
+
+This part calculates the optimal baud rate settings (OSR and SBR
+values) based on the input clock frequency to achieve the closest
+possible match to the desired baud rate.
+\verbatimtabinput{labs/kernel-serial-iomem-imx93-frdm/uart-line-init-2.c}
+
+This part performs a software reset of the UART, configures the FIFOs,
+programs the computed baud rate into the register, and finally enables
+the transmitter to start communication.
+\verbatimtabinput{labs/kernel-serial-iomem-imx93-frdm/uart-line-init-3.c}
+
+Dont forget to declare \code{baud_val} in the probe function.
+
+We are now ready to transmit characters over the serial ports!
+
+If you have a bit of spare time, you can look at chapter 60 of the
+i.MX93 processor reference manual for details about how to use the LPUART ports, to understand
+better what we are doing here.
+
+\section{Standalone write routine}
+
+Implement a C routine taking a pointer to a \code{serial_dev}
+structure and one character as parameters, and writing
+this character to the serial port, using the following steps:
+
+\begin{enumerate}
+\item Wait until the \ksym{LPUART_STAT_TDRE} bit gets set in the
+  \ksym{LPUART_STAT} register. You can busy-wait for this condition to happen.
+  In the busy-wait loop, you can call the \kfunc{cpu_relax} kernel function
+  to ensure the compiler won't optimise away this loop.
+\item Write the character to the \ksym{LPUART_DATA} register.
+\end{enumerate}
+
+Add a call to this routine from your module \code{probe()} function,
+and recompile your module.
+
+Open a new \code{picocom} instance on your new serial port (not the
+serial console):
+
+\begin{verbatim}
+picocom -b 115200 /dev/ttyUSB1
+\end{verbatim}
+
+Load your module on the target. You should see the
+corresponding character in the new \code{picocom} instance,
+showing what was written to UART3.
+
+You can also check that you also get the same character on UART8
+(just connect to the UART8 pins instead of the UART3 ones and reload the module).
+
+\section{Driver sanity check}
+
+Remove your module and try to load it again. If the second attempt to
+load the module fails, it is probably because your driver doesn't
+properly free the resources it allocated or registered, either at module
+exit time, or after a failure during the module \code{probe()} function. Check
+and fix your module code if you have such problems.
