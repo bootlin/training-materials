@@ -1,0 +1,271 @@
+\subchapter{Describing Hardware Devices}
+{Objective: learn how to describe hardware devices.}
+
+\section{Goals}
+
+Now that we covered the Device Tree theory, we can explore the list of
+existing devices and make new ones available. In particular, we will
+create a custom Device Tree to describe the few extensions we will make
+to our board.
+
+\section{Setup}
+
+Go to the \code{~/linux-kernel-imx93-frdm-labs/src/linux} directory. Check out the
+\code{6.15.bootlin} branch.
+Now create a new \code{bootlin-labs} branch starting from this branch,
+for your upcoming Device Tree changes on the i.MX93-FRDM board.
+
+Download a useful document sharing useful details about the Nunchuk
+and its connector:\\
+\url{https://bootlin.com/labs/doc/nunchuk.pdf}
+
+\section{Create a custom device tree}
+
+To let the Linux kernel handle a new device, we need to add a
+description of this device in the board device tree.
+
+As the i.MX93-FRDM device tree is provided by the kernel community,
+and will continue to evolve on its own, we don't want to make changes
+directly to the device tree file for this board.
+
+The easiest way to customize the board DTS is to create a new DTS file
+that includes the imx93-11x11-frdm one, and adds
+its own definitions.
+
+So, create a new
+\code{arch/arm64/boot/dts/freescale/imx93-11x11-frdm-custom.dts} file in which
+you just include the regular board DTS file. We will add further
+definitions in the next sections.
+
+\begin{verbatim}
+// SPDX-License-Identifier: GPL-2.0
+#include "imx93-11x11-frdm.dts"
+\end{verbatim}
+Modify the \kfile{arch/arm64/boot/dts/freescale/Makefile} file to add your custom
+Device Tree, and then have it compiled with (\code{make dtbs}). Now,
+copy the new DTB to the tftp server home directory, change the DTB file
+name in the U-Boot configuration\footnote{Tip: you just need to run
+\code{editenv bootcmd} and \code{saveenv}.}, and boot the board.
+
+\section{Setting the board's model name}
+
+Modify the custom Device Tree file to override the model name for your
+system. Set the \code{model} property to \code{Training i.MX93-FRDM}. Don't hesitate to ask your instructor if you're not sure how.
+
+Recompile the device tree, and reboot the board with it. You should see
+the new model name in two different places:
+
+\begin{itemize}
+\item In the first kernel messages on the serial console.
+\item In \code{/sys/firmware/devicetree/base/model}. This can be
+      handy for a distribution to identify the device it's running on.
+\end{itemize}
+
+\section{Driving LEDs}
+
+The i.MX93-FRDM board has a RGB LED on the side of the debug USB-C port.But it does not light up.
+
+Start by looking at the different description files and look for a node
+that would be defining the LED.
+
+The LED is actually supposed to be triggered by a driver matching
+the compatible \code{gpio-leds}. This is a generic driver which acts on
+LEDs connected to GPIOs. But as you can observe, despite being part of
+the in-use Device Tree, the LED remains off. The reason for that is the
+absence of driver for this node: nothing actually drives the LED even
+it is described. So you can start by recompiling your kernel with
+\kconfigval{CONFIG_LEDS_CLASS}{y} and \kconfigval{CONFIG_LEDS_GPIO}{y}.
+
+You should now see the LED bright in white. If you look at the binding
+documents
+\kfile{Documentation/devicetree/bindings/leds/common.yaml} and
+\kfile{Documentation/devicetree/bindings/leds/leds-gpio.yaml}, you'll
+notice we can tweak the \code{default-state} in order to change the
+color of the LED to blue.
+
+You would need to modify the "official" DTS file in order to do that.
+But because we do not want to impact the orginal file, we might instead
+add a label to the \code{leds} container node. We
+could then reference this new label in our custom DTS and overwrite the
+\code{default-state} property of each LED subnode.
+
+Reboot the board using the new DTS and observe the LED default states
+change.
+
+\section{Managing I2C buses and devices}
+
+The next thing we want to do is connect a Nunchuk joystick
+to an I2C bus on our board. The I2C bus is very frequently used
+to connect all sorts of external devices. That's why we're covering
+it here.
+
+\subsection{Enabling an I2C bus}
+
+As we can see in the board reference manual, the i.MX93-FRDM board has
+only one I2C bus available on its expansion connectors. This is LPI2C1,
+which is connected to the 10-pin 2x5 2.54 mm connector. But if we look
+at the design files, we can see that the SoC's LPI2C4 bus is connected
+to \code{EXP_GPIO_IO02} and \code{EXP_GPIO_IO03} of the expansion
+connector.
+
+From a training perspective, we will enable bus LPI2C4, which is
+disabled by default in the board's Device Tree.
+
+So, let's see which I2C buses are already enabled:
+
+\begin{bashinput}
+# i2cdetect -l 
+i2c-1	i2c       	44350000.i2c                    	I2C adapter
+i2c-2	i2c       	42530000.i2c                    	I2C adapter
+i2c-0	i2c       	44340000.i2c                    	I2C adapter
+
+\end{bashinput}
+
+Here you can see there are only three I2C controllers.
+
+As the bus numbering scheme in Linux doesn't always match the one
+in the datasheets, let's check the base addresse of these controllers:
+
+\begin{bashinput}
+# ls -l /sys/bus/i2c/devices/i2c-*
+lrwxrwxrwx    1 root     root             0 Jan  1 00:08 /sys/bus/i2c/devices/i2c-0 -> ../../../devices/platform/soc@0/44000000.bus/44340000.i2c/i2c-0
+lrwxrwxrwx    1 root     root             0 Jan  1 00:08 /sys/bus/i2c/devices/i2c-1 -> ../../../devices/platform/soc@0/44000000.bus/44350000.i2c/i2c-1
+lrwxrwxrwx    1 root     root             0 Jan  1 00:08 /sys/bus/i2c/devices/i2c-2 -> ../../../devices/platform/soc@0/42000000.bus/42530000.i2c/i2c-2
+
+\end{bashinput}
+
+That's not completely straightforward, but you can suppose that:
+\begin{itemize}
+\item LPI2C0 is at address \code{0x44340000}
+\item LPI2C1 is at address \code{0x44350000}
+\item LPI2C2 is at address \code{0x42530000}
+\end{itemize}
+
+Now let's double check the addressing by looking at the imx 93 processor reference manual, downloaded earlier.
+in the \code{Low Power Inter-Integrated Circuit (LPI2C)} and \code{LPI2C memory map} sections:
+
+\begin{itemize}
+\item LPI2C1 is at address \code{0x44340000}
+\item LPI2C2 is at address \code{0x44350000}
+\item LPI2C3 is at address \code{0x42530000}
+\end{itemize}
+
+So, we are lucky that \code{i2c-0} in Linux corresponds to I2C1 in the
+datasheet, that \code{i2c-1} corresponds to IC I2C2, and that \code{i2c-2} corresponds to I2C3.
+
+Fortunately, I2C4 is already defined in the DTS includes
+used by the Device Tree for our board. In our case, that's in
+\kfile{arch/arm64/boot/dts/freescale/imx93.dtsi}. Look by yourself in this
+file, and you will find its definition, but with \code{status =
+"disabled";}. This means that this I2C controller is not enabled yet,
+and it's up to boards using it to do so.
+
+Make a reference to this definition in your custom DTS and enable this
+bus. Also configure it to function at 100 kHz. Reboot your board with
+the update.
+
+Back to the running system, we can now see that there is one more
+I2C bus:
+
+\begin{bashinput}
+# i2cdetect -l
+i2c-3	i2c       	42540000.i2c                    	I2C adapter
+i2c-1	i2c       	44350000.i2c                    	I2C adapter
+i2c-2	i2c       	42530000.i2c                    	I2C adapter
+i2c-0	i2c       	44340000.i2c                    	I2C adapter
+
+\end{bashinput}
+
+Run the below command to confirm that the new bus has the same address
+as in the datasheet (\code{0x42540000}):
+
+\bashcmd{ls -l /sys/bus/i2c/devices/i2c-3}
+
+\subsection{Prepare the I2C device DT description}
+
+Before describing your nunchuk device, let's think about what will be
+needed:
+\begin{itemize}
+\item The device node should follow a standard pattern.
+
+  The node name should be \code{joystick@addr}, the convention for node
+  names is \code{<device-type>@<addr>}.
+
+\item We want to be able to fully identify the programming model.
+
+  This is usually done using a unique compatible string. The compatible
+  contains a vendor prefix and then a more specific string. We will use
+  \code{nintendo,nunchuk}.
+
+\item We need to identify how to reach the device.
+
+  This is the \code{reg} property and we should set it to the I2C
+  address of the nunchuk. You will find the I2C slave address of the
+  Nunchuk on the nunckuk document that we have downloaded
+  earlier\footnote{This I2C slave address is enforced by the device
+    itself. You can't change it.}.
+
+\item (Optional) There are two types of nunchuks.
+
+  There are white and black nunchuks, which don't expect the same
+  initialization flow. We could imagine a boolean property named
+  \code{nintendo,alternate-init} which will change the initialization
+  logic. See the nunchuk pdf for details about the alternate flow, but if you
+  are attending an on-site session, mind the nunchuk you got behaves like a
+  black, even though it looks very white\footnote{The Nunchuk copies we
+  carry got a white cover even though their electronics behaves like the
+  orginal black version.}.
+
+\end{itemize}
+
+Stopping here is sufficient as writing device-tree bindings is not
+strictly required to continue the labs, but if you feel comfortable
+you may want to write your own binding file, eg:
+\begin{bashinput}
+Documentation/devicetree/bindings/misc/nintendo,nunchuk.yaml
+\end{bashinput}
+Once you are confident with your bindings, you can even copy the
+examples from the \code{wrong-nunchuk-examples.yaml} (in the
+\code{nunchuk} labs folder) inside your bindings and verify they all
+pass/fail as expected!
+\begin{bashinput}
+sudo apt install python3 python3-pip
+pip3 install dtschema
+
+make DT_SCHEMA_FILES=misc/nintendo,nunchuk.yaml dt_binding_check
+\end{bashinput}
+
+\subsection{Declare the Nunchuk device}
+
+As a child node to the \code{LPI2C1} bus, now declare an I2C device
+for the Nunchuk, following the above rules.
+
+If you wrote an optional YAML binding, you can also double check your
+node:
+\begin{bashinput}
+make DT_SCHEMA_FILES=misc/nintendo,nunchuk.yaml dtbs_check
+\end{bashinput}
+
+After updating the running Device Tree, explore
+\code{/sys/firmware/devicetree}, where every subdirectory corresponds to
+a DT node, and every file corresponds to a DT property. You can search
+for presence of the new \code{joystick} node:
+
+{\small
+\begin{verbatim}
+# find /sys/firmware/devicetree -name "*joystick*"
+/sys/firmware/devicetree/base/soc@0/bus@44000000/i2c@44340000/joystick@52
+\end{verbatim}
+}
+
+You can also check the whole structure of the loaded Device Tree, using
+the Device Tree Compiler (\code{dtc}), which we put in the root
+filesystem:
+\begin{verbatim}
+# dtc -I fs /sys/firmware/devicetree/base/ > /tmp/dts
+# grep -C10 nunchuk /tmp/dts
+\end{verbatim}
+
+Once your new Device Tree seems correct, commit your changes. As you
+modified a shared file and a custom file, it is good practice to commit
+these changes in two different patches.
