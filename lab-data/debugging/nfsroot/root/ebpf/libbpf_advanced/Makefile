@@ -5,7 +5,7 @@ all: trace_programs
 trace_programs: trace_programs.c trace_programs.skel.h
 	$(CC) $< -lbpf -o $@
 
-vmlinux.h:
+vmlinux.h: $(KDIR)/vmlinux
 	bpftool btf dump file $(KDIR)/vmlinux format c > vmlinux.h
 
 %.bpf.o: %.bpf.c vmlinux.h
