@@ -6,7 +6,9 @@
 #define MAX_FILENAME_LEN 32
 
 SEC("kprobe/sys_execve")
-int BPF_KPROBE(trace_execve, char *pathname, char *argv[], char *envp[])
+int BPF_KPROBE(trace_execve, const char *path, char *const _Nullable argv[],
+               char *const _Nullable envp[])
+
 {
 	int pid = bpf_get_current_pid_tgid() & 0xFFFFFFFF;
 	char fmt[] = "New process %d running program %s";
