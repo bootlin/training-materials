@@ -86,12 +86,11 @@
 \begin{frame}[fragile]
   \frametitle{Instrumenting code crashes}
   \begin{itemize}
-      \item Manually displaying a backtrace from your application is
-        helpful, whether you have an explicit crash or not.
-      \item This can be done by using external libraries like
-        \href{https://www.nongnu.org/libunwind/man/libunwind(3).html}{libunwind},
-        or even directly your C library, for example \code{backtrace()}
-        (\manpage{backtrace}{3}) if you are using glibc:
+      \item Call stacks can be manually requested/generated in applications
+      \item This can be done either with specialized libraries (eg:
+        \href{https://www.nongnu.org/libunwind/man/libunwind(3).html}{libunwind})
+        or even directly the C library, e.g by using \code{backtrace()}
+        (\manpage{backtrace}{3}) with glibc:
   \end{itemize}
     \begin{block}{}
       \begin{minted}[fontsize=\small]{c}
@@ -100,22 +99,26 @@ char **backtrace_symbols(void *const *buffer, int size);
     \end{block}
 
   \begin{itemize}
-	  \item Thanks to \code{sigaction()} (\manpage{sigaction}{2})
-          we can add hooks on specific signals to print our backtrace
-    \begin{itemize}
-      \item This is for example very useful to catch \code{SIGSEGV} signal to dump our current backtrace
-    \end{itemize}
+    \item We can wire those custom backtraces on signals thanks to
+      \code{sigaction()} (\manpage{sigaction}{2})
+      \begin{itemize}
+        \item \code{SIGSEGV} signal can be hooked to dump a call stack of
+          an invalid memory access
+        \end{itemize}
     \begin{block}{}
       \begin{minted}[fontsize=\small]{c}
 int sigaction(int sig, const struct sigaction *restrict act,
               struct sigaction *restrict oact);
       \end{minted}
     \end{block}
+  \item Some libraries like
+    \href{https://www.gnu.org/software/libsigsegv/}{libsigsegv} ease the
+      instrumentation of those signals
   \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{Custom code crash report}
+  \frametitle{Custom code crash report (1/2)}
   \begin{columns}
     \column{0.5\textwidth}
     \begin{block}{}
@@ -135,8 +138,9 @@ void caller(void) {
 void segfault_handler(int sig) {
   void *array[20];
   size_t size;
+  char msg[]= "Segmentation fault!\n";
 
-  fprintf(stderr, "Segmentation fault!\n");
+  write(STDERR_FILENO, msg, sizeof(msg));
   size = backtrace(array, 20);
   backtrace_symbols_fd(array, size, STDERR_FILENO);
   exit(1);
@@ -160,10 +164,12 @@ int main() {
 }
       \end{minted}
     \end{block}
+  \end{columns}
+\end{frame}
 
-
+\begin{frame}[fragile]{Custom code crash report (2/2)}
     \begin{block}{}
-      \begin{minted}[fontsize=\tiny]{console}
+      \begin{minted}[fontsize=\small]{console}
 [root@arch-bootlin-alexis custom_backtrace]# ./main
 Calling a faulty function
 Executing suspicious operation
@@ -178,7 +184,17 @@ Segmentation fault!
 ./main(_start+0x25)[0x55c6e4c170b5]
       \end{minted}
     \end{block}
-  \end{columns}
+    \begin{itemize}
+      \item Writing robust signal handlers is not easy
+        \begin{itemize}
+          \item When your application has received a \code{SIGSEGV} signal,
+            its execution can not really be trusted anymore
+          \item We are for example supposed to use only
+            \href{https://man7.org/linux/man-pages/man7/signal-safety.7.html}{reentrant
+            functions} in signal handlers
+          \item Not following this rule may lead to undefined behavior
+        \end{itemize}
+    \end{itemize}
 \end{frame}
 
 \subsection{The ptrace system call}
