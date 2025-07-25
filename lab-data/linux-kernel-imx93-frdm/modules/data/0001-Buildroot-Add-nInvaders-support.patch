@@ -1,0 +1,208 @@
+From 09443c2e2d837331b171fe1ed96004ead3a02f90 Mon Sep 17 00:00:00 2001
+From: Michael Opdenacker <michael.opdenacker@bootlin.com>
+Date: Wed, 8 Apr 2020 18:15:06 +0200
+Subject: [PATCH] Add nInvaders support
+
+Signed-off-by: Michael Opdenacker <michael.opdenacker@bootlin.com>
+---
+ package/Config.in                             |   1 +
+ package/ninvaders/0001-joystick-support.patch | 122 ++++++++++++++++++
+ package/ninvaders/Config.in                   |   7 +
+ package/ninvaders/ninvaders.hash              |   3 +
+ package/ninvaders/ninvaders.mk                |  19 +++
+ 5 files changed, 152 insertions(+)
+ create mode 100644 package/ninvaders/0001-joystick-support.patch
+ create mode 100644 package/ninvaders/Config.in
+ create mode 100644 package/ninvaders/ninvaders.hash
+ create mode 100644 package/ninvaders/ninvaders.mk
+
+diff --git a/package/Config.in b/package/Config.in
+index edf7687ab7..28483d3e94 100644
+--- a/package/Config.in
++++ b/package/Config.in
+@@ -252,6 +252,7 @@ endmenu
+ 
+ menu "Games"
+ 	source "package/ascii-invaders/Config.in"
++	source "package/ninvaders/Config.in"
+ 	source "package/chocolate-doom/Config.in"
+ 	source "package/doom-wad/Config.in"
+ 	source "package/flare-engine/Config.in"
+diff --git a/package/ninvaders/0001-joystick-support.patch b/package/ninvaders/0001-joystick-support.patch
+new file mode 100644
+index 0000000000..433930fd3b
+--- /dev/null
++++ b/package/ninvaders/0001-joystick-support.patch
+@@ -0,0 +1,122 @@
++diff --git a/nInvaders.c b/nInvaders.c
++index 793139c2e171..8ded1e292455 100644
++--- a/nInvaders.c
+++++ b/nInvaders.c
++@@ -22,9 +22,12 @@
++  */
++ 
++ 
+++#include <linux/joystick.h>
+++#include <fcntl.h>
++ #include <stdio.h>
++ #include <string.h>
++ #include <sys/time.h>
+++#include <time.h>
++ #include "nInvaders.h"
++ #include "player.h"
++ #include "aliens.h"
++@@ -35,6 +38,7 @@
++ int lives;
++ long score;
++ int status; // status handled in timer
+++int resend;
++ 
++ #define GAME_LOOP 1
++ #define GAME_NEXTLEVEL 2
++@@ -127,6 +131,58 @@ void drawscore()
++ 	statusDisplay(level, score, lives);
++ }
++ 
+++int td()
+++{
+++	static struct timespec t0;
+++	struct timespec t1;
+++	double dt;
+++
+++	clock_gettime(CLOCK_MONOTONIC, &t1);
+++	dt = t1.tv_nsec - t0.tv_nsec;
+++	t0 = t1;
+++
+++	return dt > 500000;
+++}
+++
+++int getjs()
+++{
+++	static int fd = -1;
+++	struct js_event js;
+++
+++	if (fd == -1) {
+++		fd = open("/dev/input/js0", O_RDONLY | O_NONBLOCK);
+++		if (fd < 0)
+++			return -1;
+++	}
+++
+++	read(fd, &js, sizeof(struct js_event));
+++
+++	switch (js.type & ~JS_EVENT_INIT) {
+++		case JS_EVENT_AXIS:
+++			if (js.number == 0 && js.value < 0) {
+++				resend |= 1 << 0;
+++				return KEY_LEFT;
+++			} else if (js.number == 0 && js.value > 0) {
+++				resend |= 1 << 1;
+++				return KEY_RIGHT;
+++			} else if (js.number == 0 && js.value == 0) {
+++				resend &= ~0x3;
+++			}
+++			break;
+++		case JS_EVENT_BUTTON:
+++			if (js.number == 2 && js.value == 1) {
+++				resend |= 1 << 2;
+++				return ' ';
+++			} else if (js.number == 2 && js.value == 0) {
+++				resend &= ~0x4;
+++			} else if (js.number == 5 && js.value == 1) {
+++				return 'p';
+++			}
+++			break;
+++	}
+++
+++	return EOF;
+++}
++ 
++ /**
++  * reads input from keyboard and do action
++@@ -136,7 +192,9 @@ void readInput()
++ 	int ch;
++ 	static int lastmove;
++ 
++-	ch = getch();		// get key pressed
+++	ch = getch();
+++	if (ch == EOF)
+++		ch = getjs();
++ 
++ 	switch (status) {
++ 
++@@ -273,6 +331,17 @@ void handleTimer()
++ 		if (player_shot_counter++ >= 1) {player_shot_counter=0;}     // speed of player shot
++ 		if (aliens_move_counter++ >= weite) {aliens_move_counter=0;} // speed of aliend
++ 		if (ufo_move_counter++ >= 3) {ufo_move_counter=0;}           // speed of ufo
+++
+++
+++		if (td()) {
+++			if (resend & (1 << 0))
+++				playerMoveLeft();
+++			else if (resend & (1 << 1))
+++				playerMoveRight();
+++			if (resend & (1 << 2))
+++				playerLaunchMissile();
+++
+++		}
++ 		
++ 		refreshScreen();
++ 		break;
++@@ -336,6 +405,8 @@ int main(int argc, char **argv)
++ 
++ 	evaluateCommandLine(argc, argv);	// evaluate command line parameters
++ 	graphicEngineInit();			// initialize graphic engine
+++
+++	nodelay(stdscr, TRUE);
++ 	
++ 	// set up timer/ game handling
++ 	setUpTimer();		
+diff --git a/package/ninvaders/Config.in b/package/ninvaders/Config.in
+new file mode 100644
+index 0000000000..fce3a887da
+--- /dev/null
++++ b/package/ninvaders/Config.in
+@@ -0,0 +1,7 @@
++config BR2_PACKAGE_NINVADERS
++	bool "ninvaders"
++	select BR2_PACKAGE_NCURSES
++	help
++	  A Space Invaders Clone based on ncurses.
++
++	  http://ninvaders.sourceforge.net/
+diff --git a/package/ninvaders/ninvaders.hash b/package/ninvaders/ninvaders.hash
+new file mode 100644
+index 0000000000..ec9ecf6d13
+--- /dev/null
++++ b/package/ninvaders/ninvaders.hash
+@@ -0,0 +1,3 @@
++# From https://sourceforge.net/projects/ninvaders/files/ninvaders/0.1.1/
++sha1	5ab825694b108cbfa988377ca216188fa9a76e89	ninvaders-0.1.1.tar.gz
++md5	97b2c3fb082241ab5c56ab728522622b		ninvaders-0.1.1.tar.gz
+diff --git a/package/ninvaders/ninvaders.mk b/package/ninvaders/ninvaders.mk
+new file mode 100644
+index 0000000000..cb79adca59
+--- /dev/null
++++ b/package/ninvaders/ninvaders.mk
+@@ -0,0 +1,19 @@
++################################################################################
++#
++# ninvaders
++#
++################################################################################
++
++NINVADERS_VERSION = 0.1.1
++NINVADERS_SITE = http://downloads.sourceforge.net/project/ninvaders/ninvaders/$(NINVADERS_VERSION)
++NINVADERS_DEPENDENCIES = ncurses
++
++define NINVADERS_BUILD_CMDS
++	$(TARGET_MAKE_ENV) $(MAKE) $(TARGET_CONFIGURE_OPTS) -C $(@D)
++endef
++
++define NINVADERS_INSTALL_TARGET_CMDS
++	$(INSTALL) -D -m 0755 $(@D)/nInvaders $(TARGET_DIR)/usr/bin/nInvaders
++endef
++
++$(eval $(generic-package))
+-- 
+2.20.1
+
