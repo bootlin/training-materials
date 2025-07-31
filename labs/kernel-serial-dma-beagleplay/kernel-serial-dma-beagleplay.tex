@@ -86,8 +86,12 @@ the device tree:
 
 \sourcecode{labs/kernel-serial-dma-beagleplay/uarts-dma.dts}
 
-This channel will be used by all the \code{dmaengine} helpers, so better
-save it in our \code{serial_dev} structure.
+Don't forget to update your device tree and reboot your board!
+
+These channels need to be retrieved by the device driver in order to be used
+with all the \code{dmaengine} helpers, so better save each of them in
+our \code{serial_dev} structure.
+
 \begin{verbatim}
 struct serial_dev {
         ...
@@ -95,7 +99,11 @@ struct serial_dev {
 };
 \end{verbatim}
 
-Don't forget to update your device tree and reboot your board!
+Then, request the DMA channel descriptors with \kfunc{dma_request_chan}. Care
+must be taken to check and return the error code wrapped in the
+returned \kstruct{dma_chan} pointer. This can be done with the \code{IS_ERR()}
+and \code{PTR_ERR()} macros. You may display the corresponding error string with
+{\tt \%pe}!
 
 We can now configure the DMA controller with details about the upcoming
 transfers:
