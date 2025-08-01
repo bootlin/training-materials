@@ -3,6 +3,7 @@ NETWORKING_SLIDES = \
 	about-us \
 	course-information-title \
 	espressobin \
+	networking-shopping-list \
 	course-information \
 	setup-lab \
 	networking-stack-overview \
