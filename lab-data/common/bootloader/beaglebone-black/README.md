@@ -52,7 +52,7 @@ in [the snagboot documentation
 ](https://github.com/bootlin/snagboot/blob/main/docs/board_setup.md#ti-am335x-usb-recovery).
 
 Put the BBB into recovery mode by unplugging and replugging the power cable
-while pressing the S2 switch. Please beware that a warm reset performed
+while pressing the \code{S2} switch. Please beware that a warm reset performed
 with the reset button won't work, as it does not affect the boot source!
 
 Check that the following USB device is present:
@@ -127,9 +127,9 @@ line.
 
 First, insert the micro-SD card in the corresponding slot in the board.
 
-Then, press and hold the 'Boot Switch' button (the only one close to the
-micro-SD slot), power up the board (either through the power or USB device
-connectors), and release the button.
+Then, press and hold the boot switch button labelled \code{S2} (the only
+one close to the micro-SD slot), power up the board (either through the
+power or USB device connectors), and release the button.
 
 After about 10 to 20 seconds, you should see the 4 LEDs turned on next to:
 - the Ethernet connector on BeagleBoneBlack
