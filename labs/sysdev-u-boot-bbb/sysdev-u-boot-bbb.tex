@@ -228,10 +228,11 @@ sudo umount /media/$USER/boot/
 \section{Testing U-Boot}
 
 Insert the SD card in the board slot. To boot the board on the external micro-SD
-card, you need to hold the \code{USER} button close to the USB host
-port, and then power-up the board by unplugging and replugging the power cable.
-You can then release the \code{USER} button. Please beware that a warm reset performed
-with the reset button won't work, as it does not affect the boot source!
+card, you need to hold the \code{USER(S2)} button close to the USB host port,
+and then power-up the board by unplugging and replugging the power cable.  You
+can then release the \code{USER(S2)} button. Please beware that a warm reset
+performed with the reset button won't work, as it does not affect the boot
+source!
 
 This seems like a very inconvenient way of booting the board, but
 the selection of attempting to boot from the external micro-SD card
@@ -269,6 +270,8 @@ Hit any key to stop autoboot:  0
 =>
 \end{verbatim}
 
+Make sure to hit any key to prevent autoboot.
+
 Make sure that the version and compile date are right. Otherwise, try
 again, because this means that you booted on the internal eMMC.
 
@@ -302,9 +305,9 @@ Now reset the environment to its default settings using \code{env
 
 \section{Setting up networking}
 
-The next step is to configure U-boot and your workstation to let your
-board download files, such as the kernel image and Device Tree Binary
-(DTB), using the TFTP protocol through a network connection.
+The next step is to configure U-boot and your workstation to let your board
+download files, such as the kernel image and Device Tree Binary (DTB), using
+TFTP (Trivial File Transfer Protocol) through a network connection.
 
 As this course supports both the BeagleBone Black and BeagleBone Black
 Wireless boards, we're keeping things simple by using Ethernet over USB
@@ -392,7 +395,14 @@ workstation. Then, from U-Boot, do:
 => tftp %\zimageboardaddr% textfile.txt
 \end{ubootinput}
 
-The \code{tftp} command should have downloaded the
+In case the download fails, make sure your host interface is correctly
+configured and if a firewall is enabled make sure it does not filter out our
+requests:
+\begin{verbatim}
+sudo ufw allow from 192.168.0.100
+\end{verbatim}
+
+Otherwise the \code{tftp} command should have downloaded the
 \code{textfile.txt} file from your development workstation into
 the board's memory at location {\tt \zimageboardaddr}\footnote{
 This location is part of the board DRAM. If you want
