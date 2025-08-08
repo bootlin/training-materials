@@ -132,7 +132,7 @@ struct dentry *debugfs_create_blob(const char *name,
 \end{frame}
 
 \begin{frame}
-  \frametitle{More kernel debugging tips}
+  \frametitle{More kernel debugging tips 1/2}
   \begin{itemize}
   \item Make sure \kconfig{CONFIG_KALLSYMS_ALL} is enabled
     \begin{itemize}
@@ -152,6 +152,29 @@ struct dentry *debugfs_create_blob(const char *name,
     \item Will enable all the debug logs in the device-driver core
       section
     \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{More kernel debugging tips 2/2}
+  Device Tree output can be better understood with the in-tree \code{dtx_diff} script
+  \begin{itemize}
+  \item Show the origin of each property/node: \code{scripts/dtc/dtx_diff -T <dts>}
+    \begin{minted}[fontsize=\scriptsize]{yaml}
+main_i2c3: i2c@20030000 { /* arch/arm64/boot/dts/ti/k3-am62-main.dtsi:450:26-460:4,
+                             arch/arm64/boot/dts/ti/k3-am625-beagleplay.dts:820:12-825:3,
+                             arch/arm64/boot/dts/ti/k3-am625-beagleplay-custom.dts:20:12-25:3 */
+     ...
+     reg = <0x00 0x20030000 0x00 0x100>; /* arch/arm64/boot/dts/ti/k3-am62-main.dtsi:452:3-452:38 */
+     status = "okay"; /* arch/arm64/boot/dts/ti/k3-am625-beagleplay.dts:824:2-824:18 */
+
+     joystick@52 { /* arch/arm64/boot/dts/ti/k3-am625-beagleplay-custom.dts:21:14-24:4 */
+         compatible = "nintendo,nunchuk"; /* arch/arm64/boot/dts/ti/k3-am625-beagleplay-custom.dts:23:3-23:35 */
+         reg = <0x52>; /* arch/arm64/boot/dts/ti/k3-am625-beagleplay-custom.dts:22:3-22:16 */
+     };
+};
+    \end{minted}
+  \item Can also be used to diff DTS
   \end{itemize}
 \end{frame}
 
