@@ -182,15 +182,17 @@ From \kfile{drivers/char/tpm/tpm_ibmvtpm.c}
 \end{frame}
 
 \begin{frame}[fragile]
+  \newcommand\kfuncbis[2]{\href{https://elixir.bootlin.com/linux/latest/ident/#1}{\codelink{#2()}}}
   \frametitle{How to sleep with completions 2/2}
   \begin{itemize}
-  \item Enter a wait state with
-    \mint{c}+void wait_for_completion(struct completion *done)+
+  \item Enter a wait state with \mint{c}+void wait_for_completion(struct completion *done)+
     \begin{itemize}
     \item All \kfunc{wait_event} flavors are also supported, such as:
-      \kfunc{wait_for_completion_timeout},
-      \kfunc{wait_for_completion_interruptible{,_timeout}},
-      \kfunc{wait_for_completion_killable{,_timeout}}, etc
+      \kfunc{wait_for_completion_timeout}, \\
+      \kfunc{wait_for_completion_interruptible} /
+      \kfuncbis{wait_for_completion_interruptible_timeout}{_timeout}, \\
+      \kfunc{wait_for_completion_killable} /
+      \kfuncbis{wait_for_completion_killable_timeout}{_timeout}, etc.
     \end {itemize}
   \item Wake up consumers with
     \mint{c}+void complete(struct completion *done)+
@@ -229,7 +231,7 @@ From \kfile{drivers/char/tpm/tpm_ibmvtpm.c}
     \begin{itemize}
     \item \kfunc{msleep}/\kfunc{msleep_interruptible} put the process
       in sleep for a given amount of milliseconds
-    \item \kfunc{udelay}/\kfunc{udelay_range} waste CPU cycles in order
+    \item \kfunc{udelay} waste CPU cycles in order
       to save a couple of context switches for a sub-millisecond period
     \item \kfunc{cpu_relax} does nothing, but may be used as a way to
       not being optimized out by the compiler when busy looping for very
