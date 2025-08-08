@@ -50,42 +50,54 @@
 
 \begin{frame}[fragile]
   \frametitle{Linked lists examples 1/2}
-  From \kfile{include/soc/at91/atmel_tcb.h}
-\begin{minted}{c}
-/*
- * Definition of a list element, with a
- * struct list_head member
+\begin{block}{\kfile{drivers/i2c/busses/i2c-stm32f7.c}}
+\begin{minted}[fontsize=\scriptsize]{c}
+/**
+ * struct stm32f7_i2c_timings - private I2C output parameters
+ * @node: List entry
+ * @presc: Prescaler value
+ * @scldel: Data setup time
+ * @sdadel: Data hold time
+ * @sclh: SCL high period (master mode)
+ * @scll: SCL low period (master mode)
  */
-struct atmel_tc
-{
-    /* some members */
-    struct list_head node;
+struct stm32f7_i2c_timings {
+  struct list_head node;
+  u8 presc;
+  u8 scldel;
+  u8 sdadel;
+  u8 sclh;
+  u8 scll;
 };
 \end{minted}
+\end{block}
 \end{frame}
 
 \begin{frame}[fragile]
   \frametitle{Linked lists examples 2/2}
-  From \kfile{drivers/misc/atmel_tclib.c}
+
+\begin{block}{\kfile{drivers/i2c/busses/i2c-stm32f7.c}}
 \begin{minted}[fontsize=\scriptsize]{c}
-/* Define the global list */
-static LIST_HEAD(tc_list);
-
-static int __init tc_probe(struct platform_device *pdev) {
-    struct atmel_tc *tc;
-    tc = kzalloc(sizeof(struct atmel_tc), GFP_KERNEL);
-    /* Add an element to the list */
-    list_add_tail(&tc->node, &tc_list);
-}
-
-struct atmel_tc *atmel_tc_alloc(unsigned block, const char *name)
+static int stm32f7_i2c_compute_timing(/* ... */)
 {
-    struct atmel_tc *tc;
-    /* Iterate over the list elements */
-    list_for_each_entry(tc, &tc_list, node) {
-        /* Do something with tc */
+  struct stm32f7_i2c_timings *v;
+  struct list_head solutions;
+  INIT_LIST_HEAD(&solutions);
+  /* ... */
+
+  for (p = 0; p < STM32F7_PRESC_MAX; p++) {
+    for (l = 0; l < STM32F7_SCLDEL_MAX; l++) {
+      v = kmalloc(sizeof(*v), GFP_KERNEL);
+      v->presc = p;
+      v->scldel = l;
+      list_add_tail(&v->node, &solutions);
     }
-    [...]
+  }
+
+  list_for_each_entry(v, &solutions, node) {
+    /* ... */
+  }
 }
 \end{minted}
+\end{block}
 \end{frame}
