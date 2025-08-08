@@ -1,66 +1,81 @@
-\begin{frame}[fragile]
-  \frametitle{Debugging using messages (1/3)}
-  Three APIs are available
+\begin{frame}[fragile]{Debugging/tracing using logs 1/4}
   \begin{itemize}
-  \item The old \kfunc{printk}, no longer recommended for new debugging
-    messages
-  \item The \code{pr_*()} family of functions: \kfunc{pr_emerg},
-    \kfunc{pr_alert}, \kfunc{pr_crit}, \kfunc{pr_err},
-    \kfunc{pr_warn}, \kfunc{pr_notice}, \kfunc{pr_info},
-    \kfunc{pr_cont} \\
-    and the special \kfunc{pr_debug} (see next pages)
+  \item Good old \kfunc{printk}!
     \begin{itemize}
-    \item Defined in \kfile{include/linux/printk.h}
-    \item They take a classic format string with arguments
-    \item Example:
-      \begin{minted}{c}
-pr_info("Booting CPU %d\n", cpu);
-      \end{minted}
-    \item Here's what you get in the kernel log:
-      \begin{verbatim}
-[  202.350064] Booting CPU 1
-      \end{verbatim}
+    \item Works in all contexts
+    \item Can specify a log level ranging from \code{0} (emergency) to
+      \code{7} (debug)
+    \item Be careful of the delays introduced when logs are spitted out on a
+      serial console at 115200 bauds
+      \begin{itemize}
+      \item A \code{*_ratelimited()} version exists to limit the amount of
+        print if called too often
+      \end{itemize}
+    \item Not recommended for upstream contributions
     \end{itemize}
-    \item \kfunc{print_hex_dump_debug}: useful to dump a buffer with
-      \code{hexdump} like display
   \end{itemize}
+  Example:
+  \begin{minted}{c}
+printk("in probe\n");
+  \end{minted}
+  Here's what you get in the kernel log:
+\begin{verbatim}
+[    1.878382] in probe
+\end{verbatim}
+All other logging facilities are based on it.
 \end{frame}
 
-\begin{frame}[fragile]
-  \frametitle{Debugging using messages (2/3)}
+\begin{frame}[fragile]{Debugging/tracing using logs 2/4}
   \begin{itemize}
-  \item The \code{dev_*()} family of functions: \kfunc{dev_emerg},
-    \kfunc{dev_alert}, \kfunc{dev_crit}, \kfunc{dev_err},
-    \kfunc{dev_warn}, \kfunc{dev_notice}, \kfunc{dev_info} \\
-    and the special \kfunc{dev_dbg} (see next page)
+  \item The \code{pr_*()} family of functions
     \begin{itemize}
-    \item They take a pointer to \kstruct{device} as first
-      argument, and then a format string with arguments
+    \item They include the log level in the name:\\
+      \kfunc{pr_emerg}, \kfunc{pr_alert}, \kfunc{pr_crit},
+      \kfunc{pr_err}, \kfunc{pr_warn}, \kfunc{pr_notice}, \kfunc{pr_info},
+      \kfunc{pr_cont} and the special \kfunc{pr_debug} (see next pages)
+    \end{itemize}
+  \item Also defined in \kfile{include/linux/printk.h}
+  \end{itemize}
+  Example:
+  \begin{minted}{c}
+pr_info("in probe\n");
+  \end{minted}
+  Here's what you get in the kernel log:
+\begin{verbatim}
+[    1.878382] in probe
+\end{verbatim}
+\end{frame}
+
+\begin{frame}[fragile]{Debugging/tracing using logs 3/4}
+  \begin{itemize}
+  \item The \code{dev_*()} family of functions
+    \begin{itemize}
+    \item They include a formatted prefix with the device
+      name:\\ \kfunc{dev_emerg}, \kfunc{dev_alert}, \kfunc{dev_crit},
+      \kfunc{dev_err}, \kfunc{dev_warn}, \kfunc{dev_notice}, \kfunc{dev_info}
+      and the special \kfunc{dev_dbg} (see next pages)
+    \item They additionally take a pointer to \kstruct{device} as first
+      argument
     \item Defined in \kfile{include/linux/dev_printk.h}
-    \item To be used in drivers integrated with the Linux device
-      model
-    \item Example:
-      \begin{minted}{c}
-dev_info(&pdev->dev, "in probe\n");
-      \end{minted}
-    \item Here's what you get in the kernel log:
-      \begin{verbatim}
-[   25.878382] serial 48024000.serial: in probe
-[   25.884873] serial 481a8000.serial: in probe
-      \end{verbatim}
+    \item To be used in device drivers
     \end{itemize}
-  \item \code{*_ratelimited()} version exists which limits the amount of print
-    if called too much based on \code{/proc/sys/kernel/printk_ratelimit{_burst}}
-    values
   \end{itemize}
+  Example:
+  \begin{minted}{c}
+dev_info(&pdev->dev, "in probe\n");
+  \end{minted}
+  Here's what you get in the kernel log:
+\begin{verbatim}
+[    1.878382] serial 48024000.serial: in probe
+[    1.884873] serial 481a8000.serial: in probe
+\end{verbatim}
 \end{frame}
 
-\begin{frame}[fragile]
-  \frametitle{Debugging using messages (3/3)}
+\begin{frame}[fragile]{Debugging/tracing using logs 4/4}
   \begin{itemize}
   \item The kernel defines many more format specifiers than the standard
     \code{printf()} existing ones.
-  \begin{itemize}
+    \begin{itemize}
     % \path of package url directly supports percent characters, unless it is
     % used inside arguments of other macros which is the case of the \code macro
     \item {\codecolor \path{%p}}: Display the hashed value of pointer by default.
@@ -75,10 +90,8 @@ dev_info(&pdev->dev, "in probe\n");
     \item {\codecolor \path{%pe}}: Error pointer (displays the string
       corresponding to the error number)
   \end{itemize}
-  \item \code{/proc/sys/kernel/kptr_restrict} should be set to \code{1} in order
-    to display pointers using {\codecolor \path{%pK}}
-  \item See \kdochtml{core-api/printk-formats} for an exhaustive list of supported format
-    specifiers
+  \item See \kdochtml{core-api/printk-formats} for an exhaustive list of format specifiers
+  \item Also features a helper to dump entire buffers with a \code{hexdump} like display: \kfunc{print_hex_dump}
   \end{itemize}
 \end{frame}
 
@@ -134,25 +147,25 @@ dev_info(&pdev->dev, "in probe\n");
 \begin{frame}
   \frametitle{Configuring the priority}
   \begin{itemize}
-  \item Each message is associated to a priority, ranging from \code{0} for
-    emergency to \code{7} for debug, as specified in
+  \item Each message is associated to a priority, as specified in
     \kfile{include/linux/kern_levels.h}.
   \item All the messages, regardless of their priority, are stored in
     the kernel log ring buffer
     \begin{itemize}
     \item Typically accessed using the \code{dmesg} command
     \end{itemize}
-  \item Some of the messages may appear on the console, depending on
-    their priority and the configuration of
+  \item Messages with a priority lower than the \code{loglevel} also
+    appear on the console
+  \item The \code{loglevel} can be changed:
     \begin{itemize}
-    \item The \code{loglevel} kernel parameter, which defines the
-      priority number below which messages are displayed on the console.
-      Details in \kdochtml{admin-guide/kernel-parameters}.
-      \newline Examples: \code{loglevel=0}: no message, \code{loglevel=8}: all messages
-    \item The value of \code{/proc/sys/kernel/printk}, which allows to
-      change at runtime the priority above which messages are
-      displayed on the console. Details in
-      \kdochtml{admin-guide/sysctl/kernel}
+    \item in the kernel configuration using \kconfig{CONFIG_CONSOLE_LOGLEVEL_DEFAULT})
+    \item on the cmdline with \code{loglevel=} (see \kdochtml{admin-guide/kernel-parameters})
+    \item at runtime through \code{/proc/sys/kernel/printk} (\kdochtml{admin-guide/sysctl/kernel})
+    \end{itemize}
+  \item Examples:
+    \begin{itemize}
+    \item \code{loglevel=0}: no message on the console (see also: \code{quiet})
+    \item \code{loglevel=8}: all messages on the console (see also: \code{ignore_loglevel})
     \end{itemize}
   \end{itemize}
 \end{frame}
