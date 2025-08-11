@@ -20,7 +20,7 @@ dev->ethtool_ops = &mvneta_eth_tool_ops;
 	\begin{itemize}
 		\item Most Ethernet controllers today have multiple \textbf{transmit} and \textbf{receive} queues
 		\item \textbf{tx} queues hold \textbf{descriptors} for packets that are yet-to-be-sent
-		\item The NIC will dequeue une packet at a time during transmission, from one of the tx queues
+		\item The NIC will dequeue one packet at a time during transmission, from one of the tx queues
 		\item The TX de-queueing behaviour can sometimes be controlled : Weighted Round-Robin, Per-queue priorities, etc.
 		\item \textbf{rx} queues hold descriptors for packets received that weren't yet handled by the CPU
 		\item the RX buffer size depends on the configured \textbf{MTU}
@@ -48,7 +48,7 @@ void (*ndo_set_rx_mode)(struct net_device *dev);
 			\item \code{dev->uc} contains all the Unicast addresses the interface must accept
 			\item \code{dev->mc} contains all the Multicast addresses the interface must accept
 		\end{itemize}
-	\item The address list in maintained by the Networking stack, updated through \kfunc{dev_uc_add}, \kfunc{dev_uc_del}, \kfunc{dev_mc_add}, etc.
+	\item The address list is maintained by the Networking stack, updated through \kfunc{dev_uc_add}, \kfunc{dev_uc_del}, \kfunc{dev_mc_add}, etc.
 	\end{itemize}
 
 \end{frame}
@@ -146,7 +146,7 @@ int (*set_channels)(struct net_device *, struct ethtool_channels *);
 				\item If the budget is exhausted but there are still packets to process, return \code{budget}
 				\item The polling function may be called with a budget of \code{0}, for TX processing only
 			\end{itemize}
-		\item If the budget isn't exahusted but all packets are processed, call \code{napi_complete_done()} and unmask interrupts
+		\item If the budget isn't exhausted but all packets are processed, call \code{napi_complete_done()} and unmask interrupts
 	\end{enumerate}
 \end{frame}
 
@@ -209,7 +209,7 @@ static int foo_poll(struct napi_struct *napi, int budget)
 		\item During a NAPI poll, drivers are free to acknowledge as many TX packets as they want
 		\item \code{budget} does not apply to TX packets
 			\begin{itemize}
-				\item The NAPI poll function can acknowledge as my TX packets as it wants
+				\item The NAPI poll function can acknowledge as many TX packets as it wants
 			\end{itemize}
 	\end{itemize}
 \end{frame}
@@ -279,7 +279,7 @@ static int foo_poll(struct napi_struct *napi, int budget)
 		\item \textbf{filtering} offloads makes so that the MAC drops unknown MAC addresses and VLANs
 		\item \textbf{classification}-capable controllers may implement more powerful features :
 			\begin{itemize}
-				\item \textbf{header hashing} computes a has of a specific set of fields in the header. Useful for RSS.
+				\item \textbf{header hashing} computes a hash of a specific set of fields in the header. Useful for RSS.
 				\item \textbf{flow steering} allows specific actions (enqueueing, drop, redirection) to be done based on specific header values
 			\end{itemize}
 		\item \textbf{crypto} offload for some tunneling technologies such as MACSec
@@ -338,7 +338,7 @@ static int foo_poll(struct napi_struct *napi, int budget)
 
 \begin{frame}{Flow steering}
 	\begin{itemize}
-		\item Advances controllers have the ability to \textbf{parse} packet headers
+		\item Advanced controllers have the ability to \textbf{parse} packet headers
 		\item This is complex, as the header fields are not at fixed offsets (presence of VLAN tags, encapsulation, etc.)
 		\item This is usually achieved with internal \textbf{TCAM-based lookup engines}
 		\item Traffic is classified based on specific fields : src/dst MAC, src/dst IP, src/dst Port, VLAN, etc.
@@ -359,7 +359,7 @@ static int foo_poll(struct napi_struct *napi, int budget)
 ethtool -K eth0 ntuple on
 ethtool -N eth0 flow-type tcp4 vlan 0xa000 m 0x1fff action 3 loc 1
 			\end{minted}
-		\item Steers Vlan-tagged TCP over IPv3 with priority 6 (\code{0xa000 & 0x1fff}) in queue 3
+		\item Steers Vlan-tagged TCP over IPv4 with priority 6 (\code{0xa000 & 0x1fff}) in queue 3
 		\item Implemented in the \code{.set_rxnfc} ethtool op, \textit{e.g.} \kfunc{mvpp2_ethtool_set_rxnfc}
 		\item Can also be done with \textbf{tc flower}
 			\begin{itemize}
@@ -372,10 +372,10 @@ ethtool -N eth0 flow-type tcp4 vlan 0xa000 m 0x1fff action 3 loc 1
 \begin{frame}{Multi-queue and priorisation}
 	\begin{itemize}
 		\item Some Ethernet Controllers have multiple \code{tx} and\code{rx} queues
-		\item On the \textbf{transmit} side, allows shaping and priorizing traffic
-		\item On the \textbf{receive} side, allows load-balancing and per-queue actions
+		\item On the \textbf{transmit} side, allow shaping and priorizing traffic
+		\item On the \textbf{receive} side, allow load-balancing and per-queue actions
 		\item flows can be assigned to dedicated \textbf{rx queues}
-		\item These queues can in turn be pinned to CPUs, apps, VMs, of be rate-limited.
+		\item These queues can in turn be pinned to CPUs, apps, VMs, or be rate-limited.
 		\item Most of this is controlled through \textbf{tc} in \code{.ndo_setup_tc}
 		\item Example in \kfunc{mvneta_setup_mqprio}
 	\end{itemize}
