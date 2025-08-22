@@ -1,0 +1,197 @@
+\subchapter{Lab3: System partitionning}{}
+
+During this lab, you will:
+\begin{itemize}
+	\item Configure a process's CPU affinity
+	\item Configure interrupt affinities to avoid interference
+	\item Use ftrace to identify latency sources
+\end{itemize}
+
+\subsection{CPU Pinning}
+
+Take a look at how many CPUs are on your system. You can run "htop", or
+look in \code{/sys/devices/system/cpu/}. This place is useful since you'll find
+lots of ways to manage the CPUs:
+
+\begin{itemize}
+	\item in \code{cpuX/cpufreq}, you'll find ways to inspect and control the CPU's frequency
+	\item in \code{cpuX/cpuidle}, you'll find ways to inspect and control the CPU's idle states
+\end{itemize}
+
+If you have multiple CPU cores, it's a good idea to start by isolating:
+\begin{itemize}
+	\item Your process
+	\item Important interrupts
+\end{itemize}
+
+On the contrary, you might want to restrict interrupts to cores that won't affect
+you process.
+
+To perform this, use the \code{taskset} command, both for running your process, but
+also to change the interrupt CPU affinity.
+
+For cyclictest, you can either run cyclictest with the \code{-a <cpu_num>} option,
+or use \code{taskset -c <cpu_num> cyclictest ...}.
+
+Try running hackbench and cyclictest on the same CPU, and then on different CPU and
+compare the induced latencies.
+
+\subsection{Interrupt Pinning}
+
+It might be a good idea to make sure that no unexpected interrupts occur on the CPU
+you use for your realtime application. To know how many interrupts fire on each CPU
+core, take a look at the \code{/proc/interrupts} file:
+
+\code{cat /proc/interrupts}.
+
+After you identify the interrupts that fire (take a look at the \code{ethernet} interrupt
+when you generate traffic), you cat change it's CPU affinity by going into \code{/proc/irq/<num>/}.
+
+You can then limit it by echo-ing an integer corresponding to the bitfield of enabled CPUS:
+
+\code{echo 1 > smp_affinity} will limit the interrupt to the CPU 0
+
+\code{echo 3 > smp_affinity} will limit the interrupt to the CPU 0 and 1
+
+Try to limit the ethernet interrupt to one CPU core, and launch \code{cyclictest -p 40} on the
+other core. You can see that even when launching cyclictest with a priority lower than
+the threaded interrupt's, you don't see any impact of network traffic on the latencies.
+
+\subsection{CPU Isolation}
+
+To go even further, you can completely isolate one CPU from the scheduler's pool,
+abd have it only accessible through \code{taskset}. To do so, you need to change
+the kernel's commandline, passed by the bootloader. On the STM32MP157 platform,
+this is done using the \code{extlinux} infrastructure. You can change the
+commandline by editing the \code{/boot/extlinux/extlinux.conf} file:
+
+\code{vi /boot/extlinux/extlinux.conf}
+
+Add the \code{isolcpus=1} to the \code{append} line to isolate CPU 1.
+
+Reboot your target, and run cyclictest on CPU1. What can you notice?
+
+\subsection{Using the Tracing subsystem}
+
+In order to use Ftrace, we need to make sure it is enabled in the kernel
+configuration. Using \code{make linux-menuconfig}, go in the "Kernel hacking" section
+and enable the following options:
+
+\begin{itemize}
+	\item Generic Kernel Debugging Instruments -> Debug Filesystem
+	\item Tracers -> Kernel Function Tracer
+	\item Tracers -> Kernel Function Profiler
+	\item Tracers -> Interrupts-off Latency Tracer
+	\item Tracers -> Preemption-off Latency Tracer
+	\item Tracers -> Scheduling Latency Tracer
+	\item Tracers -> Tracer to detect hardware latencies
+\end{itemize}
+
+You can now recompile your kernel and re-generate your full image:
+
+\begin{bashinput}
+make linux-rebuild
+make
+\end{bashinput}
+
+Once you've rebooted your board with ftrace enabled, you'll need to mount the
+Tracing Filesystem, that gets automatically mounted in debugfs:
+
+\code{mount -t debugfs debugfs /sys/kernel/debug}
+
+\code{mount -t tracefs nodev /sys/kernel/tracing}
+
+You can now move into the tracing subsystem's main directory:
+
+\code{cd /sys/kernel/debug/tracing}
+
+You can now take a little tour of the files here:
+
+\begin{itemize}
+	\item \code{available_tracers}: Lists all tracers you can use. Each tracer
+		corresponds to what and how do you want the tracing to occur.
+	\item \code{current_tracer}: Write the tracer you want to use in this file
+	\item \code{tracing_on}: Write 1 to start tracing, 0 to stop tracing
+	\item \code{trace}: The content of the trace buffer after tracing is finished
+\end{itemize}
+
+First, try the \code{preemptirqsoff} tracer and start tracing:
+
+\begin{bashinput}
+echo preemptirqsoff > current_tracer
+echo 1 > tracing_on
+sleep 10
+echo 0 > tracing_on
+cat trace
+\end{bashinput}
+
+Give a try to other traces: \code{wakeup_rt}, \code{function}, \code{function_graph},
+using various of the stressing methods proposed above. Can you get meaningful information?
+
+\section{Using trace-cmd and kernelshark}
+
+Trace-cmd is a wrapper over the raw silesystem-based interface of ftrace. There
+are various ways of using it, either standalone, or by recording the behaviour
+of the system during a command.
+
+\subsection{Recording}
+
+To record traces during a command, run trace-cmd with the \code{record} keyword:
+
+\begin{bashinput}
+# record a full function_graph trace for the duration of the cyclictest run
+trace-cmd record -p function_graph cyclictest -p 80 -D 10
+
+# Display the output
+trace-cmd report
+\end{bashinput}
+
+Running a recording session will automatically export the generated trace in a
+"trace.dat" file, that can be displayed with \code{trace-cmd report} or \code{kernelshark}.
+
+\subsection{Manual tracing}
+
+Another approach is to simply start an ftrace session, without relying on a process's
+execution. This is useful in combination with the \code{wakeup_rt}, \code{wakeup}, \code{preemptirqsoff} tracers.
+
+\begin{bashinput}
+	# Start a tracing session
+	trace-cmd start -p wakeup_rt
+
+	# Stop a tracing session
+	trace-cmd stop
+
+	# Display the generated trace
+	trace-cmd show
+
+	# Export and clear the trace buffer into trace.dat
+	trace-cmd extract
+
+	# Display the extraced trace
+	trace-cmd report
+\end{bashinput}
+
+This approach also allows you to use \code{cyclictest} in conjunction with \code{ftrace},
+since you can start at tracing session with \code{trace-cmd start} and have it
+stopped automatically when cyclictest detects a high latency:
+
+\begin{bashinput}
+	# Start a tracing session
+	trace-cmd start -p function_graph
+
+	# Launch cyclictest with the breaktrace option
+	cyclictest -p 80 --breaktrace=2000 --tracemark
+
+	# When the high latency is hit, you can display the trace
+	trace-cmd show
+\end{bashinput}
+
+\section{Using the osnoise tracer}
+
+The following command is used to generate an histogram of os noises with the 
+\code{osnoise} tracer:
+
+\code{osnoise hist -c 1 -P f:49 -d 1m}
+
+The output shoud show a maximum latency around 50 000 microseconds. Why is that?
+

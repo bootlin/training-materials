@@ -8,10 +8,11 @@ PREEMPT_RT_SLIDES    = \
 	realtime-linux-realtime-systems \
 	realtime-linux-preempt-rt \
 	realtime-linux-setup-lab \
-	realtime-linux-hardware \
 	realtime-linux-benchmarking \
-	realtime-linux-configuration \
 	realtime-linux-benchmark-lab \
+	realtime-linux-hardware \
+	realtime-linux-configuration \
+	realtime-linux-configuration-lab \
 	realtime-linux-application-development \
 	realtime-linux-application-development-lab \
 	last-slides
