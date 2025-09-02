@@ -5,7 +5,7 @@ After this lab, you will be able to:
 
 \begin{itemize}
 \item Write a simple misc driver, allowing to write data to the
-  serial ports of your Beaglebone.
+  serial ports of your Board.
 \item Write simple \code{file_operations} functions for a device,
   including \code{ioctl} controls.
 \item Copy data from user memory space to kernel memory space and
@@ -41,13 +41,10 @@ The first thing to do is to create:
 The next step is to create a \ksym{miscdevice} structure and initialize
 it. However, we are facing the same usual constraint to handle multiple
 devices. Like in the Nunchuk driver, we have to add such a structure
-to our device specific private data structure:
+to our device specific private data structure (serial\_dev):
 
 \begin{verbatim}
-struct serial_dev {
-        void __iomem *regs;
-        struct miscdevice miscdev;
-};
+struct miscdevice miscdev;
 \end{verbatim}
 
 To be able to access our private data structure in other parts of the
@@ -209,7 +206,7 @@ and that \code{SERIAL_GET_COUNTER} is ioctl operation \code{1}.
 
 Compile them:
 
-\ifdefstring{\labboard}{beagleplay}{
+\ifdefstring{\arch}{ARM64}{
 \bashcmd{aarch64-linux-gnueabi-gcc -static -o serial-get-counter serial-get-counter.c}
 \bashcmd{aarch64-linux-gnueabi-gcc -static -o serial-reset-counter serial-reset-counter.c}
 }{
