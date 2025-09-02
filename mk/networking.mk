@@ -9,8 +9,9 @@ NETWORKING_SLIDES = \
 	networking-stack-overview \
 	networking-setup-lab \
 	networking-stack-netdevice \
-	networking-stack-control \
 	networking-stack-lab \
+	networking-stack-control \
+	networking-netdev-lab \
 	networking-socket \
 	networking-socket-lab \
 	networking-skb \
