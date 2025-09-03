@@ -17,8 +17,7 @@ We will first create a basic BitBake append file, without any change made
 to the original recipe, to see how it is integrated into the build. We will then
 extend some configuration variables of the original recipe.
 
-We here aim to extend the \ifdefstring{\labboard}{stm32mp1}{\code{linux-stm32mp}}
-{{\ifdefstring{\labboard}{beagleplay}{\code{linux-ti-staging}}{\code{linux-bb.org}}}} kernel recipe.
+We here aim to extend the \ifdefstring{\labboard}{stm32mp1}{\code{linux-stm32mp}}{}\ifdefstring{\labboard}{beagleplay}{\code{linux-ti-staging}}{}\ifdefstring{\labboard}{BeagleBone Black}{\code{linux-bb.org}}{}\ifdefstring{\labboard}{imx93-frdm}{\code{linux-imx}}{} kernel recipe.
 
 Try to create an appended recipe using the guidelines given in the slides.
 
@@ -35,25 +34,29 @@ environment, you should see:
 linux-stm32mp_6.1.bb:
   $HOME/__SESSION_NAME__-labs/meta-bootlinlabs/recipes-kernel/linux/linux-stm32mp_6.1.bbappend
 \end{verbatim}
-\else
-  \if\defstring{\labboard}{beagleplay}
+\fi
+\if\defstring{\labboard}{beagleplay}
 \begin{verbatim}
 linux-ti-staging_6.6.bb:
   $HOME/__SESSION_NAME__-labs/meta-bootlinlabs/recipes-kernel/linux/linux-ti-staging_6.6.bbappend
 \end{verbatim}
-  \else
+\fi
+\if\defstring{\labboard}{BeagleBone Black}
 \begin{verbatim}
 linux-bb.org_git.bb:
   $HOME/__SESSION_NAME__-labs/meta-bootlinlabs/recipes-kernel/linux/linux-bb.org_git.bbappend
 \end{verbatim}
-  \fi
+\fi
+\if\defstring{\labboard}{imx93-frdm}
+\begin{verbatim}
+linux-imx_6.6.bb:
+  $HOME/__SESSION_NAME__-labs/meta-bootlinlabs/recipes-kernel/linux/linux-imx_6.6.bbappend
+\end{verbatim}
 \fi
 
 \section{Add patches to apply in the recipe}
 
-We want our extended
-\ifdefstring{\labboard}{stm32mp1}{\code{linux-stm32mp}}
-{{\ifdefstring{\labboard}{beagleplay}{\code{linux-ti-staging}}{\code{linux-bb.org}}}}
+We want our extended \ifdefstring{\labboard}{stm32mp1}{\code{linux-stm32mp}}{}\ifdefstring{\labboard}{beagleplay}{\code{linux-ti-staging}}{}\ifdefstring{\labboard}{BeagleBone Black}{\code{linux-bb.org}}{}\ifdefstring{\labboard}{imx93-frdm}{\code{linux-imx}}{}
 kernel to support the Nunchuk as
 a joystick input. We can add this by applying patches during the
 \code{do_patch} task. The needed patches are provided with this lab. You can
@@ -75,9 +78,11 @@ alongside the patches. This file contains the kernel configuration.
 Add \code{KERNEL_DEFCONFIG = ""} and \code{KERNEL_EXTERNAL_DEFCONFIG =
 "defconfig"} so it is used by the \code{linux-stm32mp} recipe.
 \footnote{These settings are specific to the \code{linux-stm32mp} recipe!}
+\fi
+\if\defstring{\labboard}{imx93-frdm}
+Add \code{KBUILD_DEFCONFIG:imx93frdm = ""} to allow the use of our \code{defconfig} file.
 \else
-It is handled automatically in the
- \ifdefstring{\labboard}{beagleplay}{\code{linux-ti-staging}}{\code{linux-bb.org}} original recipe.
+It is handled automatically in the \ifdefstring{\labboard}{beagleplay}{\code{linux-ti-staging}}{}\ifdefstring{\labboard}{BeagleBone Black}
 \fi
 
 You can now rebuild the kernel to take the new patches into account:
@@ -110,7 +115,7 @@ Connect the Nunchuk pins:
 \begin{center}
 \includegraphics[width=12cm]{common/dk1-nunchuk-connect.jpg}
 \end{center}
-}{
+}
 \ifdefstring{\labboard}{beagleplay}{
 Connect the Nunchuk pins:
 \begin{itemize}
@@ -122,6 +127,19 @@ Connect the Nunchuk pins:
 
 \begin{center}
 \includegraphics[width=12cm]{common/beagleplay-connect-nunchuk.jpg}
+\end{center}
+}
+\ifdefstring{\labboard}{imx93-frdm}{
+Connect the Nunchuk pins:
+\begin{itemize}
+\item The \code{GND} pin to P12 pin 6 (\code{GND})
+\item The \code{PWR} pin to P12 pin 1 (\code{3V3})
+\item The \code{SDA} pin to P12 pin 9 (\code{SDA})
+\item The \code{SCL} pin to P12 pin 7 (\code{SCL})
+\end{itemize}
+
+\begin{center}
+\includegraphics[width=12cm]{labs/yocto-extend-recipe/imx93-frdm-connect-nunchuk.png}
 \end{center}
 }{
 Connect the Nunchuk pins:
@@ -135,7 +153,7 @@ Connect the Nunchuk pins:
 \begin{center}
 \includegraphics[width=12cm]{common/bbb-connect-nunchuk.pdf}
 \end{center}
-}}
+}
 
 \section{Test the Nunchuk}
 
