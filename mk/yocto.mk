@@ -70,3 +70,15 @@ YOCTO_STM32MP1_LABS    = \
 		yocto-custom-image \
 		yocto-sdk \
 		yocto-devtool
+
+YOCTO_IMX93_FRDM_LABS    = \
+		setup \
+		yocto-first-build-imx93-frdm \
+		yocto-advanced-configuration-imx93-frdm \
+		yocto-add-application \
+		yocto-layer \
+		yocto-extend-recipe \
+		yocto-custom-machine \
+		yocto-custom-image \
+		yocto-sdk \
+		yocto-devtool
