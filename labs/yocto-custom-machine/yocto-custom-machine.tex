@@ -10,15 +10,18 @@ During this lab, you will:
 \section{Create a custom machine}
 
 The machine file configures various hardware related settings. That's
-what we did in lab1, when we chose the \ifdefstring{\board}{stm32mp1}
-{\code{stm32mp1}} {\ifdefstring{\board}{beagleplay}{\code{beagleplay}}{\code{beaglebone}}} one.
-While it is not necessary to make our custom machine image here, we'll create a
-new one to demonstrate the process.
+what we did in lab1, when we chose the \board{} one.
+While it is not necessary to make our custom machine image here, we'll create a new one to demonstrate the process.
 
 Add a new \code{bootlinlabs} machine to the previously created layer, which
-will make the
-\ifdefstring{\board}{stm32mp1}{Discovery}{{\ifdefstring{\board}{beagleplay}{BeaglePlay}{BeagleBone}}}
-properly boot.
+will make the \board\ properly boot.
+
+\if\defstring{\board}{imx93-frdm}
+This machine describes a board using the \code{imx93} SoC and we take the board \code{imx93-evk} as a base. Add the following line to your machine configuration file:
+\begin{verbatim}
+require conf/machine/include/imx93-evk.inc
+\end{verbatim}
+\fi
 
 \if\defstring{\board}{stm32mp1}
 This machine describes a board using the \code{cortexa7thf-neon-vfpv4}
@@ -32,8 +35,9 @@ require conf/machine/include/st-machine-providers-stm32mp.inc
 DEFAULTTUNE = "cortexa7thf-neon-vfpv4"
 require conf/machine/include/arm/armv7a/tune-cortexa7.inc
 \end{verbatim}
-\else
-  \if\defstring{\board}{beagleplay}
+\fi
+
+\if\defstring{\board}{beagleplay}
 This machine describes a board which is a part of the \code{am62xx} SoC family.
 This family is based on the arm64-based TI K3 platform.
 Add the following lines to your machine configuration file:
@@ -46,7 +50,9 @@ SOC_FAMILY:append = ":am62xx"
 
 The \code{k3.inc} include defines a lot of useful variables, especially
 the \yoctovar{DEFAULTTUNE}.
-  \else
+\fi
+
+\if\defstring{\board}{bbb}
 This machine describes a board using the \code{cortexa8thf-neon} tune
 and is a part of the \code{ti33x} SoC family. Add the following lines
 to your machine configuration file:
@@ -58,11 +64,42 @@ SOC_FAMILY:append = ":ti33x"
 DEFAULTTUNE = "armv7athf-neon"
 require conf/machine/include/arm/armv7a/tune-cortexa8.inc
 \end{verbatim}
-  \fi
 \fi
+
 \section{Populate the machine configuration}
 
 This \code{bootlinlabs} machine needs:
+
+\if\defstring{\board}{imx93-frdm}
+\begin{itemize}
+  \item We must add the NXP firmware for DDR memory initialization
+\begin{verbatim}
+DDR_FIRMWARE_NAME = " \
+    lpddr4_dmem_1d_v202201.bin \
+    lpddr4_dmem_2d_v202201.bin \
+    lpddr4_imem_1d_v202201.bin \
+    lpddr4_imem_2d_v202201.bin \
+"
+\end{verbatim}
+
+  \item We must also specify which kernel recipe to choose, which device tree the kernel must use. We add that we want a rootfs of type tar. We specify the type of kernel image that we want:
+\begin{verbatim}
+KERNEL_DEVICETREE = "freescale/imx93-11x11-evk.dtb"
+PREFERRED_PROVIDER_virtual/kernel = "linux-fslc-imx"
+IMAGE_FSTYPES:append = " tar.gz"
+KERNEL_IMAGETYPE = "Image"
+
+\end{verbatim}
+
+  \item We must also specify the same elements for U-Boot.
+\begin{verbatim}
+UBOOT_CONFIG_BASENAME = "imx93_11x11_evk"
+UBOOT_DTB_NAME = "imx93-11x11-evk.dtb"
+PREFERRED_PROVIDER_virtual/bootloader ?= "u-boot-imx"
+\end{verbatim}
+\end{itemize}
+\fi
+
 
 \if\defstring{\board}{stm32mp1}
 \begin{itemize}
@@ -73,8 +110,10 @@ UBOOT_CONFIG = "trusted_stm32mp15"
 STM32MP_DT_FILES_SDCARD = "stm32mp157a-dk1 stm32mp157d-dk1"
 \end{verbatim}
   \item To add \code{m4copro} to \yoctovar{MACHINE_FEATURES}
-\else
-  \if\defstring{\board}{beagleplay}
+\end{itemize}
+\fi
+
+\if\defstring{\board}{beagleplay}
 \begin{itemize}
   \item To define a few variables to set to get the tooling from TI
    to work properly:
@@ -99,7 +138,10 @@ KERNEL_DEVICETREE = "ti/k3-am625-beagleplay.dtb"
 \begin{verbatim}
 require conf/machine/include/extlinux-bb.inc
 \end{verbatim}
-  \else
+\end{itemize}
+\fi
+
+\if\defstring{\board}{bbb}
 \begin{itemize}
   \item To select \code{linux-bb.org} as the preferred provider
     for the kernel.
@@ -131,9 +173,8 @@ require conf/machine/include/extlinux-bb.inc
       \item \code{alsa}
     \end{itemize}
   \item To add \code{tar.xz} as a rootfs type to generate.
-  \fi
-\fi
 \end{itemize}
+\fi
 
 \if\defstring{\board}{beagleplay}
 \section{Populate the k3r5 machine configuration}
