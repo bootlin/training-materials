@@ -44,14 +44,16 @@
     \begin{block}{}
       \scriptsize
 \begin{verbatim}
-config BR2_PACKAGE_STRACE
-        bool "strace"
+config BR2_PACKAGE_VTUN
+        bool "vtun"
+	[...]
         help
-          A useful diagnostic, instructional, and debugging tool.
-          Allows you to track what system calls a program makes
-          while it is running.
+          Tool for easily creating Virtual Tunnels over TCP/IP networks
+          with traffic shaping, compression, and encryption.
 
-          http://sourceforge.net/projects/strace/
+          It supports IP, PPP, SLIP, Ethernet and other tunnel types.
+
+          http://vtun.sourceforge.net/
 \end{verbatim}
     \end{block}
   \item The main package option is a \code{bool} with the package name
@@ -176,14 +178,15 @@ comment "btrfs-progs needs a toolchain w/ threads"
 \begin{verbatim}
 config BR2_PACKAGE_LIBGLIB2
         bool "libglib2"
-        select BR2_PACKAGE_GETTEXT if ...
-        select BR2_PACKAGE_LIBICONV if ...
-        select BR2_PACKAGE_LIBFFI
-        select BR2_PACKAGE_ZLIB
-        [...]
         depends on BR2_USE_WCHAR # gettext
         depends on BR2_TOOLCHAIN_HAS_THREADS
         depends on BR2_USE_MMU # fork()
+        select BR2_PACKAGE_HOST_QEMU if ...
+        select BR2_PACKAGE_HOST_QEMU_LINUX_USER_MODE if ...
+        select BR2_PACKAGE_LIBICONV if !BR2_ENABLE_LOCALE
+        select BR2_PACKAGE_LIBFFI
+        select BR2_PACKAGE_PCRE2
+        select BR2_PACKAGE_ZLIB
 [...]
 \end{verbatim}
     \end{block}
@@ -194,9 +197,10 @@ config BR2_PACKAGE_LIBGLIB2
 config BR2_PACKAGE_NEARD
         bool "neard"
         depends on BR2_USE_WCHAR # libglib2
-        # libnl, dbus, libglib2
-        depends on BR2_TOOLCHAIN_HAS_THREADS
+        depends on BR2_TOOLCHAIN_HAS_THREADS # libnl, dbus, libglib2
         depends on BR2_USE_MMU # dbus, libglib2
+        depends on !BR2_STATIC_LIBS # dlopen
+        depends on BR2_TOOLCHAIN_HAS_SYNC_4
         select BR2_PACKAGE_DBUS
         select BR2_PACKAGE_LIBGLIB2
         select BR2_PACKAGE_LIBNL
@@ -247,6 +251,7 @@ endmenu
 \begin{verbatim}
 config BR2_PACKAGE_HOST_OPENOCD
         bool "host openocd"
+        depends on BR2_HOST_GCC_AT_LEAST_4_9 # host-libusb
         help
           OpenOCD - Open On-Chip Debugger
 
@@ -284,11 +289,6 @@ config BR2_PACKAGE_PPPD_FILTER
           Packet filtering abilities for pppd. If enabled,
           the pppd active-filter and pass-filter options
           are available.
-
-config BR2_PACKAGE_PPPD_RADIUS
-        bool "radius"
-        help
-          Install RADIUS support for pppd
 
 endif
 \end{verbatim}
@@ -535,9 +535,17 @@ NODEJS_MODULES_LIST = $(call qstrip,$(BR2_PACKAGE_NODEJS_MODULES_ADDITIONAL))
   \item Subversion repository accessed over HTTP:
     \begin{block}{}
       \begin{minted}{make}
-CJSON_VERSION = 58
-CJSON_SITE_METHOD = svn
-CJSON_SITE = http://svn.code.sf.net/p/cjson/code
+LIBXMLRPC_VERSION = r3176
+LIBXMLRPC_SITE = https://svn.code.sf.net/p/xmlrpc-c/code/advanced
+LIBXMLRPC_SITE_METHOD = svn
+      \end{minted}
+    \end{block}
+  \item Git repository accessed over HTTP:
+    \begin{block}{}
+      \begin{minted}{make}
+LIBUCI_VERSION = 4b3db1179747b6a6779029407984bacef851325c
+LIBUCI_SITE = https://git.openwrt.org/project/uci.git
+LIBUCI_SITE_METHOD = git
       \end{minted}
     \end{block}
   \item Source code available in a local directory:
@@ -571,7 +579,7 @@ MYAPP_SITE_METHOD = local
   \item Examples:
     \begin{block}{sysvinit.mk}
       \begin{minted}[fontsize=\tiny]{make}
-SYSVINIT_PATCH = sysvinit_$(SYSVINIT_VERSION)dsf-13.1+squeeze1.diff.gz
+UNZIP_PATCH = unzip_$(UNZIP_VERSION)-27.debian.tar.xz
       \end{minted}
     \end{block}
 
@@ -620,18 +628,18 @@ PERL_EXTRA_DOWNLOADS = $(PERL_CROSS_SITE)/$(PERL_CROSS_SOURCE)
   \begin{block}{package/perl/perl.hash}
     {\tiny
 \begin{verbatim}
-# Hashes from: https://www.cpan.org/src/5.0/perl-5.32.1.tar.xz.{md5,sha1,sha256}.txt
-md5  7f104064b906ad8c7329ca5e409a32d7  perl-5.32.1.tar.xz
-sha1  1fb4f710d139da1e1a3e1fa4eaba201fcaa8e18e  perl-5.32.1.tar.xz
-sha256  57cc47c735c8300a8ce2fa0643507b44c4ae59012bfdad0121313db639e02309  perl-5.32.1.tar.xz
+# Hashes from: https://www.cpan.org/src/5.0/perl-5.40.1.tar.xz.{md5,sha1,sha256}.txt
+md5  bab3547a5cdf2302ee0396419d74a42e  perl-5.40.1.tar.xz
+sha1  4ffe5246c791df884363aed05ba81ba41cb02084  perl-5.40.1.tar.xz
+sha256  dfa20c2eef2b4af133525610bbb65dd13777ecf998c9c5b1ccf0d308e732ee3f  perl-5.40.1.tar.xz
 
-# Hashes from: https://github.com/arsv/perl-cross/releases/download/1.3.5/perl-cross-1.3.5.hash
-sha256  91c66f6b2b99fccfd4fee14660b677380b0c98f9456359e91449798c2ad2ef25  perl-cross-1.3.5.tar.gz
+# Hash from: https://github.com/arsv/perl-cross/releases/download/1.6.1/perl-cross-1.6.1.hash
+sha256  b5f4b4457bbd7be37adac8ee423beedbcdba8963a85f79770f5e701dabc5550f  perl-cross-1.6.1.tar.gz
 
 # Locally calculated
 sha256  dd90d4f42e4dcadf5a7c09eea0189d93c7b37ae560c91f0f6d5233ed3b9292a2  Artistic
 sha256  d77d235e41d54594865151f4751e835c5a82322b0e87ace266567c3391a4b912  Copying
-sha256  df6ad59aefea68676c38325f25f6707f026ddde6c71291b2ca231b6247859907  README
+sha256  af805523b88a8ebb60afc009caaf247a498208502f7b8b3d9d3e329fcfb1dc3b  README
 \end{verbatim}
     }
   \end{block}
@@ -639,12 +647,10 @@ sha256  df6ad59aefea68676c38325f25f6707f026ddde6c71291b2ca231b6247859907  README
   \begin{block}{package/ipset/ipset.hash}
     {\tiny
 \begin{verbatim}
-# From http://ipset.netfilter.org/ipset-7.6.tar.bz2.md5sum.txt
-md5 e107b679c3256af795261cece864d6d9  ipset-7.6.tar.bz2
-# Calculated based on the hash above
-sha256 0e7d44caa9c153d96a9b5f12644fbe35a632537a5a7f653792b72e53d9d5c2db  ipset-7.6.tar.bz2
+# From https://ipset.netfilter.org/ipset-7.16.tar.bz2.sha512sum.txt
+sha512  e69ddee956f0922c8e08e7e5d358d6b5b24178a9f08151b20957cc3465baaba9ecd6aa938ae157f2cd286ccd7f0b7a279cfd89cec2393a00b43e4d945c275307  ipset-7.16.tar.bz2
 # Locally calculated
-sha256 231f7edcc7352d7734a96eef0b8030f77982678c516876fcb81e25b32d68564c  COPYING
+sha256  231f7edcc7352d7734a96eef0b8030f77982678c516876fcb81e25b32d68564c  COPYING
 \end{verbatim}
     }
   \end{block}
@@ -1076,16 +1082,15 @@ $(eval $(host-autotools-package))
     \column{0.5\textwidth}
     \begin{block}{}
       \begin{minted}[fontsize=\tiny]{make}
-GNUPG2_VERSION = 2.2.25
+GNUPG2_VERSION = 2.4.7
 GNUPG2_SOURCE = gnupg-$(GNUPG2_VERSION).tar.bz2
 GNUPG2_SITE = https://gnupg.org/ftp/gcrypt/gnupg
 GNUPG2_LICENSE = GPL-3.0+
 GNUPG2_LICENSE_FILES = COPYING
 GNUPG2_CPE_ID_VENDOR = gnupg
 GNUPG2_CPE_ID_PRODUCT = gnupg
-GNUPG2_DEPENDENCIES = zlib libgpg-error libgcrypt libassuan \
-        libksba libnpth host-pkgconf \
-        $(if $(BR2_PACKAGE_LIBICONV),libiconv)
+GNUPG2_DEPENDENCIES = zlib libgpg-error libgcrypt libassuan libksba libnpth \
+        $(if $(BR2_PACKAGE_LIBICONV),libiconv) host-pkgconf
 
 ifeq ($(BR2_PACKAGE_BZIP2),y)
 GNUPG2_CONF_OPTS += --enable-bzip2 --with-bzip2=$(STAGING_DIR)
@@ -1203,7 +1208,7 @@ $(eval $(autotools-package))
   \end{itemize}
   \begin{block}{package/bison/bison.mk}
 \begin{minted}[fontsize=\tiny]{make}
-BISON_VERSION = 3.7.1
+BISON_VERSION = 3.8.2
 BISON_SOURCE = bison-$(BISON_VERSION).tar.xz
 BISON_SITE = $(BR2_GNU_MIRROR)/bison
 BISON_LICENSE = GPL-3.0+
@@ -1244,7 +1249,7 @@ config BR2_PACKAGE_HOST_FATCAT
 
   \begin{block}{package/fatcat/fatcat.mk}
     \begin{minted}[fontsize=\tiny]{make}
-FATCAT_VERSION = 1.1.0
+FATCAT_VERSION = 1.1.1
 FATCAT_SITE = $(call github,Gregwar,fatcat,v$(FATCAT_VERSION))
 FATCAT_LICENSE = MIT
 FATCAT_LICENSE_FILES = LICENSE
