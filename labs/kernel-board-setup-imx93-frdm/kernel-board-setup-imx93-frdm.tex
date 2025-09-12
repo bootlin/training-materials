@@ -1,0 +1,226 @@
+\subchapter{Board setup}{Objective: setup communication
+with the board and configure the bootloader.}
+
+After this lab, you will be able to:
+\begin{itemize}
+\item Access the board through its serial line.
+\item Configure the U-boot bootloader and a tftp server
+      on your workstation to download files through tftp.
+\end{itemize}
+
+\section{Getting familiar with the board}
+
+Take some time to read about the board features and connectors:
+
+\url{https://www.nxp.com/design/design-center/development-boards-and-designs/frdm-i-mx-93-development-board:FRDM-IMX93}
+
+Don't hesitate to share your questions with the instructor.
+
+\section{Download technical documentation}
+
+We are going to download documents which we will need during our
+practical labs.
+
+The first document to download is the datasheet for the
+i.MX93 SoC, available at
+\url{https://www.nxp.com/webapp/Download?colCode=IMX93RM}. The document
+will
+give us all the details abouts th SoC's features.
+
+Secondly, download the Board User Manual for
+the i.MX93 FRDM, available at
+\url{https://www.nxp.com/webapp/Download?colCode=UM12181}.
+
+This document details the board's features, connectors and pin
+assignments.
+
+Finally, download the board design files for the i.MX93 FRDM, available
+at
+\url{https://www.nxp.com/webapp/Download?colCode=FRDM-iMX93-DESIGN-FILES}.
+These files contain the schematics about the board, which will be
+useful to understand the hardware layout and external wiring.
+
+\section{Setting up serial communication with the board}
+
+The i.MX93-FRDM serial connector is the USB-C port labeled DEBUG on the
+side, next to the power USB-C port. You just need to connect the USB-C
+cable provided by your instructor to your PC.
+
+Once the USB to Serial connector is plugged in, a new serial port
+should appear: \code{/dev/ttyACM0}.  You can also see this device
+appear by looking at the output of \code{dmesg}.
+
+To communicate with the board through the serial port, install a
+serial communication program, such as \code{picocom}:
+
+\begin{verbatim}
+sudo apt install picocom
+\end{verbatim}
+
+If you run \code{ls -l /dev/ttyACM0}, you can also see that only
+\code{root} and users belonging to the \code{dialout} group have
+read and write access to this file. Therefore, you need to add your user
+to the \code{dialout} group:
+
+\begin{verbatim}
+sudo adduser $USER dialout
+\end{verbatim}
+
+{\bf Important}: for the group change to be effective, you have to
+{\em completely log out} from your session and log in again (no need to
+reboot). A workaround is to run \code{newgrp dialout}, but it is not
+global.
+You have to run it in each terminal.
+
+Now, you can run \code{picocom -b 115200 /dev/ttyACM0}, to start serial
+communication on \code{/dev/ttyACM0}, with a baudrate of \code{115200}. If
+you wish to exit \code{picocom}, press \code{[Ctrl][a]} followed by
+\code{[Ctrl][x]}.
+
+There should be nothing on the serial line so far, as the board is not
+powered up yet.
+
+It is now time to power up your board by plugging in the USB-C
+cable supplied by your instructor to your PC.
+
+See what messages you get on the serial line. You should see U-boot
+start.
+
+\section{Bootloader interaction}
+
+In order to follow the labs, {\bf you need to use a board flashed
+with a specific Bootloader!}
+
+If you are in an on-site session and the trainer gave you the hardware,
+the right Bootloader is already there, you just need to reset the
+environment (see below).
+
+If you are doing the labs on your own, please follow instructions 1. and
+2.i from the README available at:
+\url{https://github.com/bootlin/training-materials/tree/master/lab-data/common/bootloader/imx93-frdm}
+
+Do not try to use stock/random images from the Internet!
+
+Once this done, reset your board, press the space bar in the
+\code{picocom} terminal to stop the U-boot countdown. You should then see the
+U-Boot prompt:
+
+\begin{verbatim}
+=>
+\end{verbatim}
+
+You can now use U-Boot. Run the \code{help} command to see the available
+commands.
+
+Type the \code{help saveenv} command to make sure that the
+\code{saveenv} command exists. We use it in these labs to
+save your U-Boot environment settings to the eMMC.
+
+\begin{verbatim}
+env default -f -a
+saveenv
+\end{verbatim}
+
+If the \code{saveenv} command fails, it means you need to follow
+(again?) the flashing procedure above.
+
+Otherwise, you can now use U-Boot! Type \code{help} to see the available
+commands.
+
+\section{Setting up networking}
+
+The next step is to configure U-boot and your workstation to let your
+board download files, such as the kernel image and Device Tree Blob
+(DTB), using the TFTP protocol through a network connection.
+
+For these next steps, make sure that your board is directly connected
+to your host PC through its ethernet port. If your computer already has a wired
+connection to the network, your instructor will provide you with a USB Ethernet
+adapter. A new network interface should appear on your Linux system.
+
+\subsection{Network configuration on the target}
+
+Let's configure networking in U-Boot:
+
+\begin{itemize}
+\item \code{ipaddr}: IP address of the board
+\item \code{serverip}: IP address of the PC host
+\end{itemize}
+
+\begin{ubootinput}
+=> setenv ipaddr 192.168.1.100
+=> setenv serverip 192.168.1.1
+\end{ubootinput}
+
+Of course, make sure that this address belongs to a separate network
+segment from the one of the main company network.
+
+To make these settings permanent, save the environment:
+
+\begin{ubootinput}
+=> saveenv
+\end{ubootinput}
+
+\subsection{Network configuration on the PC host}
+
+To configure your network interface on the workstation side, we need
+to know the name of the network interface connected to your board.
+
+Find the name of this interface by typing:
+
+\begin{verbatim}
+ip a
+\end{verbatim}
+
+The network interface name is likely to be
+\code{enxxx}\footnote{Following the {\em Predictable Network Interface
+Names} convention:
+\url{https://www.freedesktop.org/wiki/Software/systemd/PredictableNetworkInterfaceNames/}}.
+If you have a pluggable Ethernet device, it's easy to identify as it's
+the one that shows up after pluging in the device.
+
+Then, instead of configuring the host IP address from NetWork Manager's
+graphical interface, let's do it through its command line interface,
+which is so much easier to use:
+
+\begin{verbatim}
+nmcli con add type ethernet ifname en... ip4 192.168.1.1/24
+\end{verbatim}
+
+\section{Setting up the TFTP server}
+
+Let's install a TFTP server on your development workstation:
+
+\begin{verbatim}
+sudo apt install tftpd-hpa
+\end{verbatim}
+
+You can then test the TFTP connection. First, put a small text file in
+the directory exported through TFTP on your development
+workstation. Then, from U-Boot, do:
+
+\begin{ubootinput}
+=> tftp 0x80000000 textfile.txt
+\end{ubootinput}
+
+The \code{tftp} command should have downloaded the
+\code{textfile.txt} file from your development workstation into
+the board's memory at location {\tt 0x80000000}\footnote{
+This location is part of the board DRAM. If you want
+to check where this value comes from, you can check the SoC
+reference manual at
+\url{https://www.nxp.com/webapp/Download?colCode=IMX93RM}.
+It's a big document (more than 5,000 pages). In this document, look
+for \code{Memory Map} and you will find the SoC memory map.
+You will see that the address range for the memory controller
+({\em DRAM})
+starts at the address we are looking for.
+You can also try with other values in the RAM address range.}.
+
+You can verify that the download was successful by dumping the
+contents of the memory:
+
+\begin{ubootinput}
+=> md 0x80000000
+\end{ubootinput}
+

@@ -1,4 +1,4 @@
-LINUX_KERNEL_BEAGLEPLAY_SLIDES = \
+LINUX_KERNEL_IMX93_FRDM_SLIDES = \
 		first-slides \
 		about-us \
 		course-information-title \
@@ -42,19 +42,19 @@ LINUX_KERNEL_BEAGLEPLAY_SLIDES = \
 		kernel-driver-development-mmap \
 		kernel-driver-development-general-apis
 
-LINUX_KERNEL_BEAGLEPLAY_LABS   = setup \
-				kernel-sources-download \
-				kernel-sources-exploring \
-				kernel-board-setup-beagleplay \
-				kernel-compiling-and-nfs-booting-beagleplay \
-				kernel-module-simple \
-				kernel-i2c-describing-hardware-beagleplay \
-				kernel-i2c-multiplexing-beagleplay \
-				kernel-i2c-communication \
-				kernel-i2c-input-interface \
-				kernel-serial-iomem-beagleplay \
-				kernel-serial-output \
-				kernel-serial-interrupt \
-				kernel-locking \
-				kernel-serial-dma \
-				kernel-debugging-beagleplay \
+LINUX_KERNEL_IMX93_FRDM_LABS   = setup \
+		kernel-sources-download \
+		kernel-sources-exploring \
+		kernel-board-setup-imx93-frdm \
+		kernel-compiling-and-nfs-booting-imx93-frdm \
+		kernel-module-simple \
+		kernel-i2c-describing-hardware-imx93-frdm \
+		kernel-i2c-multiplexing-imx93-frdm \
+		kernel-i2c-communication \
+		kernel-i2c-input-interface \
+		kernel-serial-iomem-imx93-frdm \
+		kernel-serial-output \
+		kernel-serial-interrupt \
+		kernel-locking \
+		kernel-serial-dma \
+		kernel-debugging \
