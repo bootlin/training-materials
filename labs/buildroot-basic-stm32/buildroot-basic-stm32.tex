@@ -35,11 +35,11 @@ git clone https://gitlab.com/buildroot.org/buildroot.git
 
 Go into the newly created \code{buildroot} directory.
 
-We're going to start a branch from the {\em 2024.02} Buildroot
+We're going to start a branch from the {\em 2025.02.6} Buildroot
 release, with which this training has been tested.
 
 \begin{bashinput}
-git checkout -b bootlin 2024.02
+git checkout -b bootlin 2025.02.6
 \end{bashinput}
 
 \section{Configuring Buildroot}
@@ -109,7 +109,7 @@ Now, let's do the configuration:
 
   \item Select \code{Bootlin toolchains} as the \code{Toolchain}. It
     will automatically select the \code{armv7-eabihf glibc
-    bleeding-edge 2023.11-1} variant, which is fine for our
+      bleeding-edge 2024.05-1} variant, which is fine for our
     needs. Buildroot can either use pre-defined toolchains such as the
     ones provided by ARM, or custom toolchains (either downloaded from
     a given location, or pre-installed on your machine).
@@ -139,13 +139,13 @@ Now, let's do the configuration:
     the time of the Buildroot release is used. In our case, we want to
     use a specific version, to make sure our build is reproducible. So
     select \code{Custom version} as the \code{Kernel version}, and
-    enter \code{6.6.32} in the \code{Kernel version} text field that
+    enter \code{6.12.47} in the \code{Kernel version} text field that
     appears.
 
   \item Now, we need to define which kernel configuration to use. The
     Linux kernel comes with a number of pre-defined configurations for
     ARM 32-bit platforms, in
-    \url{https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/arch/arm/configs/?id=v6.6}. However,
+    \url{https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/arch/arm/configs/?id=v6.12}. However,
     the only configuration that supports STM32MP1 is
     \code{multi_v7_defconfig}, which has support for all ARMv7
     platforms, not just the STM32MP1, making it a very large
@@ -173,9 +173,9 @@ Now, let's do the configuration:
     describe the hardware. The STM32MP1 Discovery kit 1 is in this
     situation, so you'll have to enable the \code{Build a Device Tree
     Blob}
-    option. At \url{https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/arch/arm/boot/dts/?id=v6.6},
+    option. At \url{https://git.kernel.org/cgit/linux/kernel/git/torvalds/linux.git/tree/arch/arm/boot/dts/?id=v6.12},
     you can see the list of all Device Tree files available in the
-    5.15 Linux kernel (note: the Device Tree files for boards use
+    6.12 Linux kernel (note: the Device Tree files for boards use
     the \code{.dts} extension). The one for the STM32MP1 Discovery kit
     1 is \code{stm32mp157a-dk1.dts} located in the \code{st/}
     subdirectory. Even if talking about Device Tree is beyond the
@@ -193,7 +193,7 @@ Now, let's do the configuration:
   \end{itemize}
 
 \item \code{Target packages} menu. This is probably the most important
-  menu, as this is the one where you can select amongst the 2800+
+  menu, as this is the one where you can select amongst the 3000+
   available Buildroot packages which ones should be built and
   installed in your system. For our basic system, enabling
   \code{BusyBox} is sufficient and is already enabled by default, but
@@ -224,16 +224,16 @@ Now, let's do the configuration:
     recent enough U-Boot version, we are going to use the latter,
     called {\em Kconfig}.
 
-  \item Use the custom version of U-Boot \code{2024.04}.
+  \item Use the custom version of U-Boot \code{2025.07}.
 
   \item Look at
-    \url{https://gitlab.denx.de/u-boot/u-boot/-/tree/v2024.04/configs}
+    \url{https://gitlab.denx.de/u-boot/u-boot/-/tree/v2025.07/configs}
     to identify the available U-Boot configurations. For many STM32MP1
     platforms, U-Boot has a single configuration called
     \code{stm32mp15_basic_defconfig}, which can then be given the exact
     hardware platform to support using a Device Tree. So we need to
     use \code{stm32mp15_basic} as \code{Board defconfig} and
-    \code{DEVICE_TREE=stm32mp157a-dk1} as \code{Custom make options}
+    \code{DEVICE_TREE=st/stm32mp157a-dk1} as \code{Custom make options}
 
   \item U-Boot on STM32MP1 is split in two parts: the first stage
     bootloader called \code{u-boot-spl.stm32} and the second stage
@@ -243,10 +243,10 @@ Now, let's do the configuration:
     \code{U-Boot SPL binary image name}.
 
   \item The U-Boot build with need the Python interpreter and the {\em
-      pylibfdt} library, so we need to enable the options \code{U-Boot
-      needs host python 3.x} and \code{U-Boot needs pylibfdt}. If you
-    wonder how you can know these details: you adjust these options
-    after seeing build failures due to missing dependencies.
+    pylibfdt} library, so we need to enable the option \code{U-Boot
+    needs pylibfdt}. If you wonder how you can know these details: you
+    adjust these options after seeing build failures due to missing
+    dependencies.
 
   \end{itemize}
 
