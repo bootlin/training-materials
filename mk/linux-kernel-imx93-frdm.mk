@@ -56,5 +56,5 @@ LINUX_KERNEL_IMX93_FRDM_LABS   = setup \
 		kernel-serial-output \
 		kernel-serial-interrupt \
 		kernel-locking \
-		kernel-serial-dma-imx93-frdm \
+		kernel-serial-dma \
 		kernel-debugging \
