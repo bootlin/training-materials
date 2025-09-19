@@ -5,8 +5,8 @@
 
 #define MAX_FILENAME_LEN 32
 
-SEC("kprobe/sys_execve")
-int BPF_KPROBE(trace_execve, const char *path, char *const _Nullable argv[],
+SEC("ksyscall/execve")
+int BPF_KPROBE_SYSCALL(trace_execve, const char *path, char *const _Nullable argv[],
                char *const _Nullable envp[])
 
 {
