@@ -2,6 +2,7 @@
 #include <bpf/bpf_helpers.h>
 #define __TARGET_ARCH_arm
 #include <bpf/bpf_tracing.h>
+#include <bpf/bpf_core_read.h>
 
 #define MAX_FILENAME_LEN 32
 
