@@ -13,7 +13,7 @@ int BPF_KPROBE(trace_execve, const char *path, char *const _Nullable argv[],
 	int pid = bpf_get_current_pid_tgid() & 0xFFFFFFFF;
 	char fmt[] = "New process %d running program %s";
 
-	bpf_trace_printk(fmt, sizeof(fmt), pid, pathname);
+	bpf_trace_printk(fmt, sizeof(fmt), pid, path);
 	return 0;
 }
 
