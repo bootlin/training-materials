@@ -127,11 +127,18 @@ Having to open ftrace to display the logs is cumbersome, we would like to get th
   \item Edit your eBPF program to push data into a perf ring buffer instead of ftrace:
   \begin{itemize}
     \item Create a structure type containing the data we will push in the ring buffer. This struct will contain two pieces of information for now: a PID, and a program name. Since you will need to use this structure from both the eBPF program and the userspace program, define it in a shared header.
-    \item Create the map in your eBPF program file. There are \href{https://ebpf-docs.dylanreimerink.nl/linux/concepts/maps/}{different ways of defining maps} in eBPF programs, we will create a BTF-defined map:
+    \item Create the map in your eBPF program file. There are
+      \href{https://ebpf-docs.dylanreimerink.nl/linux/concepts/maps/}{different
+        ways of defining maps} in eBPF programs, we will create a BTF Style
+      map.
+    \item Look at the
+      \href{https://docs.ebpf.io/linux/map-type/BPF_MAP_TYPE_RINGBUF/}{\code{BPF_MAP_TYPE_RINGBUF}}
+      documentation to know how to set (or not set) the \code{key_size},
+      \code{value_size} and \code{max_entries} attributes.
     \begin{verbatim}
         struct {
             __uint(type, BPF_MAP_TYPE_RINGBUF);
-            __uint(max_entries, 32);
+            __uint(max_entries, 4096);
         } rb SEC(".maps");
     \end{verbatim}
     \item Edit your program code to push data in the ring buffer each time it is triggered: create an instance of your custom data structure in the BPF program, fill it with the event information and push it into the buffer.
