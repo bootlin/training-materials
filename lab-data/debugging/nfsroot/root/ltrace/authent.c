@@ -25,6 +25,8 @@ int main(int argc, char **argv)
 		return EXIT_FAILURE;
 	}
 
+	printf("Authentication successful\n");
+
 	al_free_context(ctx);
 
 	al_deinit();
