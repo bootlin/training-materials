@@ -1,0 +1,190 @@
+\subchapter{Lab1: First Yocto Project build}{Your first dive into Yocto
+Project and its build mechanism}
+
+During this lab, you will:
+\begin{itemize}
+  \item Set up an OpenEmbedded environment
+  \item Configure the project and choose a target
+  \item Build your first Poky image
+\end{itemize}
+
+\section{Setup}
+
+Before starting this lab, make sure your home directory is not
+encrypted using eCryptFS. OpenEmbedded cannot be used on top of an eCryptFS file
+system due to limitations in file name lengths.
+
+Install the required packages:
+\begin{bashinput}
+sudo apt install gawk wget git diffstat unzip texinfo gcc build-essential \
+  chrpath socat cpio python3 python3-pip python3-pexpect xz-utils debianutils \
+  iputils-ping python3-git python3-jinja2 python3-subunit zstd liblz4-tool \
+  file locales libacl1
+\end{bashinput}
+
+\section{Avoiding unprivileged user namespace restrictions}
+
+Ubuntu 24.04 added an apparmor policy preventing usage of unprivileged user
+namespace restrictions to improve security. Unfortunately this prevents
+bitbake from working, because it uses namespaces to forbid untracked
+downloads outside of the \code{do_fetch} task. Ironically, bitbake does
+this to improve security. This results in the following error message:
+
+\begin{verbatim}
+ERROR: PermissionError: [Errno 1] Operation not permitted
+...
+    with open("/proc/self/uid_map", "w") as f:
+\end{verbatim}
+
+To disable this apparmor restriction, run this command in a shell:
+
+\begin{bashinput}
+echo 0 | sudo tee /proc/sys/kernel/apparmor_restrict_unprivileged_userns
+\end{bashinput}
+
+You will need to run this command every time you reboot your machine.
+
+For more information, including how to disable this restriction
+persistently, see
+\href{https://discourse.ubuntu.com/t/ubuntu-24-04-lts-noble-numbat-release-notes/39890#p-99950-unprivileged-user-namespace-restrictions}
+     {the Ubuntu 24.04 Release Notes}.
+
+\section{Download Yocto}
+
+Go to the \code{$HOME/__SESSION_NAME__-labs/} directory.
+
+Download the \code{scarthgap} version of Poky:
+\begin{bashinput}
+git clone https://git.yoctoproject.org/git/poky
+cd $HOME/__SESSION_NAME__-labs/poky
+git checkout -b scarthgap-5.0.4 scarthgap-5.0.4
+\end{bashinput}
+
+Return to your project root directory (\code{cd $HOME/__SESSION_NAME__-labs/})
+and download the \code{meta-openembedded}, \code{meta-arm}, \code{meta-freescale} and \code{meta-imx} layers:
+\begin{bashinput}
+git clone https://github.com/openembedded/meta-openembedded.git
+cd meta-openembedded
+git checkout 80e01188fa822d87d301ee71973c462d7a865493
+cd ..
+
+git clone https://git.yoctoproject.org/git/meta-arm
+cd meta-arm
+git checkout 1b85bbb4cab9658da3cd926c62038b8559c5c64e
+cd ..
+
+git clone https://github.com/nxp-imx/meta-imx.git
+cd meta-imx
+git checkout rel_imx_6.6.36_2.1.0
+cd ..
+
+git clone https://github.com/Freescale/meta-freescale.git
+cd meta-freescale
+git checkout 0f8091c63dd8805610c09b08409bc58492a3b16f
+cd ..
+
+git clone https://github.com/Freescale/meta-freescale-3rdparty.git
+cd meta-freescale-3rdparty
+git checkout 6c063450d464eb2f380443c7d9af1b94ce9b9d7
+cd ..
+
+git clone https://github.com/nxp-imx-support/meta-imx-frdm.git
+\end{bashinput}
+
+\section{Set up the build environment}
+
+Check you're using Bash. This is the default shell when using Ubuntu.
+
+Export all needed variables and set up the build directory:
+\begin{bashinput}
+cd $HOME/__SESSION_NAME__-labs
+source poky/oe-init-build-env
+\end{bashinput}
+
+You must specify which machine is your target. By default it
+is \code{qemu}. We need to build an image for a \code{imx93-frdm}.
+Update the \yoctovar{MACHINE} variable with the machine name \code{imx93frdm}. Also change the kernel to use by adding \code{PREFERRED_PROVIDER_virtual/kernel = "linux-imx"}. You must also accept the Freescale EULA by adding the following line to the \code{local.conf} file: \code{FSL_EULA_ACCEPT = "1"}.
+  
+Also, if you need to save disk space on your computer you can add \code{INHERIT
++= "rm_work"} in the previous configuration file. This will remove the
+package work directory once a package is built.
+
+Don't forget to update the configuration to include all the layers you have just added. Edit the
+layer configuration file (\code{$BUILDDIR/conf/bblayers.conf}) and append the
+full path to the \code{meta-freescale},
+\code{meta-imx-frdm/meta-imx-bsp}, \code{meta-imx/meta-imx-bsp}, \code{meta-arm/meta-arm},
+\code{meta-arm/meta-arm-toolchain}, \code{meta-openembedded/meta-python},
+\code{meta-openembedded/meta-oe}, \code{meta-openembedded/meta-multimedia}, and
+\code{meta-freescale-3rdparty} directories to the \code{BBLAYERS} variable.
+
+\section{Build your first image}
+
+Now that you're ready to start the compilation, simply run:
+\begin{bashinput}
+bitbake core-image-minimal
+\end{bashinput}
+
+Once the build finished, you will find the output images under
+\code{$BUILDDIR/tmp/deploy/images/imx93-frdm}.
+
+\section{Set up the SD card}
+
+In this first lab we will use an SD card to store the bootloader, kernel and
+root filesystem files. The SD card image has been generated and is
+named \code{core-image-minimal-imx93-frdm.rootfs.wic.zst}.
+
+Now uncompress and flash the image with the following command:
+\begin{bashinput}
+zstdcat core-image-minimal-imx93frdm.rootfs.wic.zst | sudo dd of=/dev/mmcblkX conv=fdatasync bs=1M status=progress
+\end{bashinput}
+
+\section{Setting up serial communication with the board}
+To set up serial communication with the board, simply connect the USB-C cable to the port labeled DEBUG. 
+
+Once the cable is plugged in, a new serial port
+should appear: \code{/dev/ttyACM0}.  You can also see this device
+appear by looking at the output of \code{dmesg}.
+
+To communicate with the board through the serial port, install a
+serial communication program, such as \code{picocom}:
+
+\begin{bashinput}
+sudo apt install picocom
+\end{bashinput}
+
+If you run \code{ls -l /dev/ttyACM0}, you can also see that only
+\code{root} and users belonging to the \code{dialout} group have
+read and write access to this file. Therefore, you need to add your user
+to the \code{dialout} group:
+
+\begin{bashinput}
+sudo adduser $USER dialout
+\end{bashinput}
+
+{\bf Important}: for the group change to be effective, in Ubuntu 18.04, you have to
+{\em completely reboot} the system \footnote{As explained on
+\url{https://askubuntu.com/questions/1045993/after-adding-a-group-logoutlogin-is-not-enough-in-18-04/}.}.
+A workaround is to run \code{newgrp dialout}, but it is not global.
+You have to run it in each terminal.
+
+Now, you can run \code{picocom -b 115200 /dev/ttyACM0}, to start serial
+communication on \code{/dev/ttyACM0}, with a baudrate of \code{115200}. If
+you wish to exit \code{picocom}, press \code{[Ctrl][a]} followed by
+\code{[Ctrl][x]}.
+
+There should be nothing on the serial line so far, as the board is not
+powered up yet.
+
+\section{Boot}
+Insert the SD card in the dedicated slot on the imx93-frdm. Make sure that switches 1 and 2 in the center of the board are set to ON, and switches 3 and 4 are set to OFF.
+
+plug in the power USB-C. You should see U-Boot messages on the console.
+Stop the autoboot process by typing SPACE BAR and run the following commands:
+
+\begin{verbatim}
+  boot
+\end{verbatim}
+
+You should see Linux boot messages on the console.
+Wait until the login prompt, then enter \code{root} as user.
+Congratulations! The board has booted and you now have a shell.
