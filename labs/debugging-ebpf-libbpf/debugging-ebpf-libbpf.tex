@@ -20,20 +20,24 @@ The first step is to prepare our bpf program:
   \item Go to the labs directory, in \path{ebpf/libbpf} directory. In there, you will find \code{trace_programs.bpf.c}. It is the exact same eBPF program as the one used in the BCC script, but any BCC-specific API or macro has been replaced with libbpf functions or macros. Take some time to spot and understand the differences with the previous version:
     \begin{itemize}
       \item This program may access some kernel structures at some point, so it has been prepared to benefit from CO-RE (to remain compatible between different kernel versions), that's why it depends on a \path{vmlinux.h} header that we will have to generate.
-      \item In order to manipulate kprobes, the program needs some libbpf header, and because the data manipulated by kprobes changes with the platform (it directly uses registers), we need to define the target architecture with \code{__TARGET_ARCH_arm}
+      \item In order to manipulate kprobes, the program needs some libbpf header, and because the data manipulated by kprobes changes with the platform (it directly uses registers), we need to define the target architecture with
+	      \ifdefstring{\labboard}{beagleplay}{\code{__TARGET_ARCH_arm64}}{\code{__TARGET_ARCH_arm}}
       \item The code uses the \code{SEC} macro to place the eBPF program in a specific section: libbpf will use this section to learn about the program type and attach point
       \item It also uses the \code{BPF_KPROBE_SYSCALL} macro to allow to get access to already-interpreted arguments from the kprobes: without this macro, we would have to identify the relevant registers to parse the targeted function arguments
       \item Be careful that the \code{bpf_trace_printk} is not the same helper as the one used with BCC, and so the way to call it is slightly different
     \end{itemize}
   \item You will first need to generate the vmlinux header used in the eBPF program. You can use bpftool to do so:
   \begin{bashinput}
-$ bpftool btf dump file /home/${USER}/debugging-labs/buildroot/output/build/linux-%\workingkernel%/vmlinux format c > vmlinux.h
+$ bpftool btf dump file /home/${USER}/__SESSION_NAME__-labs/buildroot/output/build/linux-%\workingkernel%/vmlinux format c > vmlinux.h
   \end{bashinput}
   \item Next you need to build your eBPF program into a loadable object:
   \begin{bashinput}
 $ clang -target bpf -g -O2 -c trace_programs.bpf.c -o trace_programs.bpf.o
   \end{bashinput}
-{\em Note: since our program deals with pt\_regs, it is not portable between architectures, that's why we have to provide the target architecture with \code{__TARGET_ARCH_arm}}
+{\em Note: since our program deals with pt\_regs, it is not portable
+		between architectures, that's why we have to provide the
+		target architecture with
+		\ifdefstring{\labboard}{beagleplay}{\code{__TARGET_ARCH_arm64}}{\code{__TARGET_ARCH_arm}}}
 \end{itemize}
 
 Your eBPF program does not really need a userspace program to run, and the
@@ -119,7 +123,7 @@ this makefile, make sure to have your \code{CROSS_COMPILE} variable
 properly set, as well as a \code{KDIR} variable pointing to your kernerl
 directory:
 \begin{bashinput}
-export KDIR=/home/$USER/debugging-labs/buildroot/output/build/linux-%\workingkernel%
+export KDIR=/home/$USER/__SESSION_NAME__-labs/buildroot/output/build/linux-%\workingkernel%
 \end{bashinput}
 
 Having to open ftrace to display the logs is cumbersome, we would like to get the trace directly in the console in which we have started the tool. We will use the opportunity to switch our program output from a log line in ftrace to events pushed in a \href{https://docs.kernel.org/6.6/bpf/ringbuf.html}{perf ring buffer}. A perf ring buffer is a kind of map which can be used in eBPF programs to stream data to userspace in a very efficient way. To use a perf ring buffer, perform the following steps:

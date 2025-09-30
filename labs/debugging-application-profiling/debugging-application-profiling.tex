@@ -16,7 +16,7 @@ side of an application. Compile the \code{heap_profile} example that we did prov
 using the following command on your development host
 
 \begin{bashinput}
-$ cd /home/$USER/debugging-labs/nfsroot/root/heap_profile
+$ cd /home/$USER/__SESSION_NAME__-labs/nfsroot/root/heap_profile
 $ make
 \end{bashinput}
 
@@ -44,7 +44,7 @@ interface thanks to \code{massif-visualizer}. To do so, execute the
 following commands on your development host:
 
 \begin{bashinput}
-$ cd /home/$USER/debugging-labs/nfsroot/root/heap_profile
+$ cd /home/$USER/__SESSION_NAME__-labs/nfsroot/root/heap_profile
 $ sudo apt install massif-visualizer
 $ massif-visualizer massif.out.*
 \end{bashinput}
@@ -66,7 +66,7 @@ one. We provided a sample image in \code{tux_small.png} which can be used as an
 input file. First let's compile it using the following commands on our development host:
 
 \begin{bashinput}
-$ cd /home/$USER/debugging-labs/nfsroot/root/app_profiling
+$ cd /home/$USER/__SESSION_NAME__-labs/nfsroot/root/app_profiling
 $ make
 \end{bashinput}
 
@@ -124,12 +124,20 @@ event, use \code{perf list} on the target to find it amongst the cache events:
 $ perf list cache
 \end{bashinput}
 
-Once found, execute the program on the target using \code{perf stat} and
-specify that event using \code{-e}:
+\ifdefstring{\labboard}{beagleplay}{ You will quickly see that perf does
+not expose L1 D-cache write misses ! That's because our processor's PMU
+does not implement and expose such an event. So we are not really able to
+count this very specific event. However, based on the nature of the issue
+we have worked on so far, we should be able to see a benefit on the read
+side as well, and fortunately, the processor is able to record the L1
+D-cache read misses:}{Once found, execute the program on the
+target using \code{perf stat} and specify that event using \code{-e}:}
+
 
 \begin{bashinput}
-$ perf stat -e L1-dcache-store-misses ./png_convert tux.png out.png
+$ perf stat -e %\ifdefstring{\labboard}{beagleplay}{L1-dcache-load-misses}{L1-dcache-store-misses}% ./png_convert tux.png out.png
 \end{bashinput}
+
 
 Revert the modifications that we did to invert the program loops and again,
 measure the amount of misses.
@@ -148,8 +156,8 @@ contain the traces that have been recorded. These traces can be analyzed using
 \begin{bashinput}
 $ sudo chown $USER:$USER perf.data
 $ perf report \
-	--symfs=/home/$USER/debugging-labs/buildroot/output/staging/ \
-	-k /home/$USER/debugging-labs/buildroot/output/build/linux-%\workingkernel%/vmlinux
+	--symfs=/home/$USER/__SESSION_NAME__-labs/buildroot/output/staging/ \
+	-k /home/$USER/__SESSION_NAME__-labs/buildroot/output/build/linux-%\workingkernel%/vmlinux
 \end{bashinput}
 
 You will quickly notice that the output is not the same as valgrind because it
