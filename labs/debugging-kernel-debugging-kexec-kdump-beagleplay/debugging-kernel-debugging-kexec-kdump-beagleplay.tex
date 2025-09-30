@@ -21,42 +21,59 @@ using the following commands on the development host:
 
 \begin{bashinput}
 $ cd /home/$USER/__SESSION_NAME__-labs/buildroot
-$ make O=build_kexec stm32mp157a_dk1_debugging_kexec_defconfig
+$ make O=build_kexec beagleplay_debugging_kexec_defconfig
 $ make O=build_kexec
 \end{bashinput}
 
-Then, we'll copy the zImage and the device-tree to the nfs /root/kexec
-directory:
+Then, we'll copy the generated Image file to the nfs /root/kexec directory:
 
 \begin{bashinput}
 $ mkdir /home/$USER/__SESSION_NAME__-labs/nfsroot/root/kexec
-$ cp build_kexec/images/zImage /home/$USER/__SESSION_NAME__-labs/nfsroot/root/kexec
-$ cp build_kexec/images/stm32mp157a-dk1.dtb /home/$USER/__SESSION_NAME__-labs/nfsroot/root/kexec
+$ cp build_kexec/images/Image /home/$USER/__SESSION_NAME__-labs/nfsroot/root/kexec
 \end{bashinput}
 
-These files are now ready to be used from the target using kexec.
+The files is now ready to be used from the target using kexec.
 
 \subsection{Configuring kexec}
 
 First of all we need to setup a kexec suitable memory zone for our crash kernel
 image. This is achieved via the linux command line. Reboot, interrupt U-Boot and
-add the \code{crashkernel=60M} parameter. This will tell the kernel to reserve
-60M of memory to load a "rescue" kernel that will be booted on panic. We will
+add the \code{crashkernel=256M} parameter. This will tell the kernel to reserve
+256M of memory to load a "rescue" kernel that will be booted on panic. We will
 also add an option which will panic the kernel on oops to allow executing the
 kexec kernel.
 
 \begin{bashinput}
-STM32MP> env edit bootargs
-STM32MP> <existing bootargs> crashkernel=60M oops=panic
-STM32MP> boot
+=> env edit bootargs
+=> <existing bootargs> crashkernel=256M oops=panic
+=> boot
 \end{bashinput}
 
 To load the crash kernel into the previously reserved memory zone, run the
 following command on the target:
 
 \begin{bashinput}
-# kexec --type zImage -p /root/kexec/zImage --dtb=/root/kexec/stm32mp157a-dk1.dtb
-  --command-line="console=ttySTM0,115200n8 maxcpus=1 reset_devices"
+# kexec -p /root/kexec/Image --command-line="console=ttyS2,115200n8 nr_cpus=1 reset_devices"
+\end{bashinput}
+
+Before actually triggering the crash, we also need to prepare a storage
+medium to be able to retrieve the vmcore file from the kdump kernel.
+
+\textbf{Note:} it would have been very convenient to be able to retrieve
+the vmcore file over the network (e.g. using SSH), but as we are just
+restarting a new kernel without going throught the nominal boot chain, many
+peripherals are not going to work correctly. This issue is due to other
+firmwares running on the board that are not properly reinitialized, and so
+refusing to reinit peripherals. The AM625 internal switch is one of those
+affected peripherals.
+
+We will use the SD card to retrieve the vmcore file. We just need to make
+sure that it has a large enough ext4 partition. The partition is actually
+already present on the sd card, we just need to format it. This can be done
+directly from the target:
+
+\begin{bashinput}
+$ mkfs.ext4 /dev/mmcblk1p3
 \end{bashinput}
 
 Once done, you can trigger a crash using the previously mentioned watchdog
@@ -74,22 +91,17 @@ kernel after displaying the backtrace and a message:
 [ 1181.990839] Bye!
 \end{bashinput}
 
-After reboot, log into the new kernel normally and bring up the eth0 interface:
-(We will use 192.168.0.101 to avoid cloberring ssh \code{know_hosts} file for
-the 192.168.0.100 entry).
+After reboot, log into the new kernel normally and mount the sd card
+partition, and copy the vmcore file into it:
 \begin{bashinput}
-$ ifconfig eth0 192.168.0.101
+$ mount /dev/mmcblk1p3 /mnt
+$ cp /proc/vmcore /mnt/.
+$ umount /mnt
 \end{bashinput}
 
-\textbf{Note:} ethernet setup might timeout due to some init issues after kexec
-boot so this commands needs to be run another time.
-
-\begin{bashinput}
-$ cd /home/$USER/__SESSION_NAME__-labs/
-$ scp root@192.168.0.101:/proc/vmcore .
-\end{bashinput}
-
-You can load the \code{vmcore} file using cross GDB:
+You can now unplug the SD card from the board, plug it into your host, put
+the vmcore file in your kernel sources directory in buildroot, and start
+analyzing it with GDB:
 
 \begin{bashinput}
 $ ${CROSS_COMPILE}gdb /home/$USER/__SESSION_NAME__-labs/buildroot/output/build/linux-%\workingkernel%/vmlinux vmcore

@@ -2,7 +2,7 @@
 {Preparing the system}
 {Objectives:
   \begin{itemize}
-    \item Prepare the STM32MP157D board
+	  \item Prepare the \boardname{} board
   \end{itemize}
 }
 
@@ -21,11 +21,11 @@ we need (tools, configured kernel, etc). This image will be built with buildroot
 which allows to build a complete image for embedded systems.
 
 \begin{bashinput}
-$ cd /home/$USER/debugging-labs/
+$ cd /home/$USER/__SESSION_NAME__-labs
 $ git clone https://github.com/bootlin/buildroot
 $ cd buildroot
-$ git checkout debugging-training/2025.02
-$ make stm32mp157a_dk1_debugging_defconfig
+$ git checkout %\brbranch%
+$ make %\brdefconfig%
 $ make
 \end{bashinput}
 
@@ -35,18 +35,18 @@ used on the board. During this course, we will use a kernel located on a
 sdcard and a rootfs via NFS. This will let us transfer data freely from and
 to the target board.
 
-The rootfs should be extracted at \code{/home/$USER/debugging-labs/nfsroot}
+The rootfs should be extracted at \code{/home/$USER/__SESSION_NAME__-labs/nfsroot}
 using this command:
 
 \begin{bashinput}
-$ tar xvf output/images/rootfs.tar -C /home/$USER/debugging-labs/nfsroot
+$ tar xvf output/images/rootfs.tar -C /home/$USER/__SESSION_NAME__-labs/nfsroot
 \end{bashinput}
 
 We will also export the \code{CROSS_COMPILE} variable to set the toolchain as our
 cross compiling toolchain:
 
 \begin{bashinput}
-$ export CROSS_COMPILE=/home/$USER/debugging-labs/buildroot/output/host/bin/arm-linux-
+$ export CROSS_COMPILE=/home/$USER/__SESSION_NAME__-labs/buildroot/output/host/bin/%\crosscompile%
 \end{bashinput}
 
 This export needs to be either done in each shell in which \code{CROSS_COMPILE} is
@@ -69,9 +69,8 @@ $ sync
 NOTE: Double-check that you are targeting the correct device before executing
 the dd command!
 
-Once flashed, insert the sdcard into the STM32MP157D board.
-
-\input{../common/stm32-prepare.tex}
+\ifdefstring{\labboard}{stm32mp1}{\input{stm32-prepare.tex}}
+\ifdefstring{\labboard}{beagleplay}{\input{beagleplay-prepare.tex}}
 
 \section{Set up the Ethernet communication on the workstation}
 
@@ -112,11 +111,9 @@ Once installed, edit the \code{/etc/exports} file as
 \code{root} to add the following lines, assuming that the IP address
 of your board will be \code{192.168.0.100}:
 
-\scriptsize
 \begin{bashinput}
-/home/<user>/debugging-labs/nfsroot 192.168.0.100(rw,no_root_squash,no_subtree_check)
+/home/<user>/__SESSION_NAME__-labs/nfsroot 192.168.0.100(rw,no_root_squash,no_subtree_check)
 \end{bashinput}
-\normalsize
 
 Of course, replace \code{<user>} by your actual user name.
 
@@ -137,24 +134,37 @@ errors disappear.
 
 \section{U-Boot setup}
 
+You can now insert the freshly flashed SD card into the board micro SD card
+slot and plug power into the board. You should see some logs in your serial
+monitor software: those logs are emitted by the u-boot bootloader.
+
+\ifdefstring{\labboard}{beagleplay}{\textbf{Warning: take care that if you also have
+some valid software flashed in the on-board eMMC, the board will boot it by
+default ! To force the bootrom to select the SD Card as default boot
+support, make sure to press the "USR" button while applying power to the
+board. You only need to do this on "cold boots": the board will keep using
+the SD card as default boot medium if you press the reset button or enter
+"reboot" in Linux.}}{}
+
 In order to use a rootfs on NFS, we will use an external rootfs. This can be
 specified by passing bootargs to the kernel. To do so, we are going to set the
 \code{bootargs} U-Boot variable and save the environment. To be able to edit
 U-Boot variables, we need to interrupt its standard boot sequence: with the
-serial console opened, maintain Enter key while pressing once the reset button,
+serial console opened, maintain the {\em Enter} key while pressing once the reset button,
 and wait for U-Boot prompt to appear. Then, enter the following commands:
 
 \begin{bashinput}
-STM32MP1> env set bootargs root=/dev/nfs ip=192.168.0.100:::::eth0
-  nfsroot=192.168.0.1:/home/<user>/debugging-labs/nfsroot/,nfsvers=3,tcp rw
-STM32MP1> saveenv
+=> env set bootargs root=/dev/nfs ip=192.168.0.100:::::eth0
+  nfsroot=192.168.0.1:/home/<user>/__SESSION_NAME__/nfsroot/,nfsvers=3,tcp rw
+=> saveenv
 \end{bashinput}
 
-NOTE: Be sure to replace the \code{<user>} string with the correct user.
+NOTE: Be sure to replace the \code{<user>} string with the correct user
+from your host
 
 \section{Login}
 
-You can now run the system by pressing the RESET button on the board.
+You can now run the system by typing "boot" in u-boot.
 
 You can login on the serial console or via SSH (\code{ssh
 root@192.168.0.100}). The username is \code{root} and the password
