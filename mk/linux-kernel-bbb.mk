@@ -1,4 +1,4 @@
-LINUX_KERNEL_SLIDES = \
+LINUX_KERNEL_BBB_SLIDES = \
 		first-slides \
 		about-us \
 		course-information-title \
@@ -42,17 +42,17 @@ LINUX_KERNEL_SLIDES = \
 		kernel-driver-development-mmap \
 		kernel-driver-development-general-apis
 
-LINUX_KERNEL_LABS   = setup \
+LINUX_KERNEL_BBB_LABS = setup \
 		kernel-sources-download \
 		kernel-sources-exploring \
-		kernel-board-setup \
-		kernel-compiling-and-nfs-booting \
+		kernel-board-setup-bbb \
+		kernel-compiling-and-nfs-booting-bbb \
 		kernel-module-simple \
-		kernel-i2c-describing-hardware \
-		kernel-i2c-multiplexing \
+		kernel-i2c-describing-hardware-bbb \
+		kernel-i2c-multiplexing-bbb \
 		kernel-i2c-communication \
 		kernel-i2c-input-interface \
-		kernel-serial-iomem \
+		kernel-serial-iomem-bbb \
 		kernel-serial-output \
 		kernel-serial-interrupt \
 		kernel-locking \

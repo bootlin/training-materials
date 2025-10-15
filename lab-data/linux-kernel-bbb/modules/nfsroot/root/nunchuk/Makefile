@@ -1,7 +1,7 @@
 ifneq ($(KERNELRELEASE),)
-obj-m := drvbroken.o
+obj-m := nunchuk.o
 else
-KDIR := $(HOME)/linux-kernel-labs/src/linux
+KDIR := $(HOME)/linux-kernel-labs-bbb/src/linux
 all:
 	$(MAKE) -C $(KDIR) M=$$PWD
 
