@@ -2,7 +2,8 @@ LINUX_KERNEL_IMX93_FRDM_SLIDES = \
 		first-slides \
 		about-us \
 		course-information-title \
-		beagleboneblack-board \
+		imx93-frdm-board \
+		beagleboneblack-board-also-supported \
 		beagleplay-board-also-supported \
 		kernel-shopping-list \
 		course-information \
