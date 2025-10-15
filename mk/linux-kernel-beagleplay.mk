@@ -2,8 +2,8 @@ LINUX_KERNEL_BEAGLEPLAY_SLIDES = \
 		first-slides \
 		about-us \
 		course-information-title \
-		beagleboneblack-board \
-		beagleplay-board-also-supported \
+		beagleplay-board \
+		beagleboneblack-board-also-supported \
 		kernel-shopping-list \
 		course-information \
 		setup-lab \
