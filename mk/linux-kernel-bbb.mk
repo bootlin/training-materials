@@ -5,7 +5,7 @@ LINUX_KERNEL_BBB_SLIDES = \
 		beagleboneblack-board \
 		beagleplay-board-also-supported \
 		imx93-frdm-board-also-supported \
-		kernel-shopping-list \
+		kernel-shopping-list-bbb \
 		course-information \
 		setup-lab \
 		kernel-introduction-title \
