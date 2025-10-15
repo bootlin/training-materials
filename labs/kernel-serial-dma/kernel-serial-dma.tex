@@ -74,7 +74,6 @@ In a complete driver we should probably use the helpers checking
 capabilities. Let's just skip this part and assume the two IPs are
 compatible and the addressing masks properly set to 32-bit.
 
-
 \if\defstring{\labboard}{beaglebone}{
 We should at the very least request the DMA channel to use.
 Open the SoC device tree and find the uart2 and uart4 nodes. Look for
@@ -88,9 +87,7 @@ wrapped in the returned \kstruct{dma_chan} pointer. This can be done with the
 error string with {\tt \%pe}! Also make sure that this case is correctly handled
 both in the calling code to fallback to the \code{serial_fops_pio} file
 operations and in the DMA cleanup function.
-}
-\fi 
-
+}\fi
 \if\defstring{\labboard}{imx93-frdm}{
 We should at the very least request the DMA channel to use. Open the SoC
 device tree and find the lpuart3 and lpuart8 nodes. Look for \code{dma}
@@ -103,16 +100,21 @@ error string with {\tt \%pe}! Also make sure that this case is correctly handled
 both in the calling code to fallback to the \code{serial_fops_pio} file
 operations and in the DMA cleanup function.
 }\fi
-
 \if\defstring{\labboard}{beagleplay}{
-  The BeaglePlay device tree does not describe DMA channels for UART5 and UART6,
-so we will have to add the channels to our custom device tree. References to DMA channels in the device tree have the following form:
+The BeaglePlay device tree does not describe DMA channels for UART5 and UART6,
+so we will have to add the channels to our custom device tree. References to DMA
+channels in the device tree have the following form:
 
 \begin{verbatim}
 dmas = <[controller reference] [dma-cells parameters]>
 \end{verbatim}
 
-Go to your kernel source tree and open the \kfile{Documentation/devicetree/bindings/dma/ti/k3-pktdma.yaml} file, which contains the bindings for the AM62x PKTDMA controller. Find the description of the \code{#dma-cells} property. You will see that two cells are required: the first one is the thread ID for the UART controller and the second one is the ASEL value for the channel.
+Go to your kernel source tree and open
+the \kfile{Documentation/devicetree/bindings/dma/ti/k3-pktdma.yaml} file, which
+contains the bindings for the AM62x PKTDMA controller. Find the description of
+the \code{#dma-cells} property. You will see that two cells are required: the
+first one is the thread ID for the UART controller and the second one is the
+ASEL value for the channel.
 
 ASEL is an AM62 acronym for "address selection" and takes a 4-bit value related to
 the I/O coherency requirements. The TRM indicates to use 0 for regular SoC
@@ -133,8 +135,7 @@ the device tree:
 \sourcecode{labs/kernel-serial-dma/uarts-dma-beagleplay.dts}
 
 Don't forget to update your device tree and reboot your board!
-}
-\fi
+}\fi
 
 These channels need to be retrieved by the device driver in order to be
 used with all the \code{dmaengine} helpers, so better save each of them
@@ -153,8 +154,7 @@ must be taken to check and return the error code wrapped in the
 returned \kstruct{dma_chan} pointer. This can be done with the \code{IS_ERR()}
 and \code{PTR_ERR()} macros. You may display the corresponding error string with
 {\tt \%pe}!
-}
-\fi
+}\fi
 
 We can now configure the DMA controller with details about the upcoming
 transfers:
@@ -168,7 +168,9 @@ transfers:
   handles the internal ``flow'')
   \end{itemize}
 
-  The LPUART\_DATA register itself should not be accessed directly. To be generic, we first map the resource using \kfunc{dma_map_resource} and store it in \code{serial_dev} to unmap it later.
+  The LPUART\_DATA register itself should not be accessed directly. To be
+  generic, we first map the resource using \kfunc{dma_map_resource} and store it
+  in \code{serial_dev} to unmap it later.
 }{
   \item the destination is the UART Tx FIFO, we will ask the DMA to
   transfer the bytes one after the other (hardware signaling already
@@ -221,9 +223,9 @@ flow. We must enable the controlling logic on the Tx DMA channel, by enabling
 \code{LPUART_BAUD_TDMAE}.
 
 \begin{verbatim}
-  u32 val = reg_read(serial, LPUART_BAUD);
-  val |= LPUART_BAUD_TDMAE;
-  reg_write(serial, val, LPUART_BAUD);
+u32 val = reg_read(serial, LPUART_BAUD);
+val |= LPUART_BAUD_TDMAE;
+reg_write(serial, val, LPUART_BAUD);
 \end{verbatim}
 }\else{
 \code{DMACTL} in mode 3. We also configure the UART to transmit all the bytes
@@ -275,7 +277,8 @@ struct serial_dev {
         struct completion txcomplete;
 };
 \end{verbatim}
-}
+}\fi
+
 In the write hook, we shall first check if the DMA channel has been
 properly retrieved. If not, we should definitely fallback to the PIO
 implementation.
@@ -308,7 +311,7 @@ bounce buffer by copying the user data using \kfunc{copy_from_user}. Let's
 handle up to \code{SERIAL_BUFSIZE} bytes at a time. One can use \kfunc{min_t}
 to derive the right amount of bytes to deal with.
 
-\ifdefstring{\labboard}{beaglebone}{
+\if\defstring{\labboard}{beaglebone}{
 Before mapping the buffer for DMA purposes, we need to handle one last
 thing. The OMAP 8250 UART controller has a limitation, its internal circuitry
 to trigger DMA transfers is a bit broken, and the first character needs to be
@@ -320,7 +323,7 @@ char first;
 /* OMAP 8250 UART quirk: need to write the first byte manually */
 first = serial->tx_buf[0];
 \end{verbatim}
-}{}
+}\else{}\fi
 
 Now we can remap the buffer. We have a single buffer so we can use
 \kfunc{dma_map_single}. The output value is a \ksym{dma_addr_t}. Save this
