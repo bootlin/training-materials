@@ -116,6 +116,11 @@ SLIDES_COMMON_AFTER  = common/slide-footer.tex
 endif
 
 TRAINING = $(SLIDES_TRAINING)
+
+BOARD_SUFFIXES = -bbb -beagleplay -qemu -stm32mp2 -expressobin
+TRAINING_TYPE = $(TRAINING)
+$(foreach s,$(BOARD_SUFFIXES),$(eval TRAINING_TYPE := $(subst $(s),,$(TRAINING_TYPE))))
+
 ifeq ($(SLIDES_CHAPTERS),)
 $(error "No chapter to build, maybe you're building a single chapter whose name doesn't start with a training session name")
 endif
@@ -140,6 +145,7 @@ $(foreach file,$(SLIDES_TEX),$(if $(wildcard $(file)),,$(error Missing file $(fi
 	echo "\input{$(VARS)}" >> $(OUTDIR)/$(basename $@).tex
 	for f in $(filter %.tex,$^) ; do \
 		cp $$f $(OUTDIR)/`basename $$f` ; \
+		sed -i 's%__SESSION_TYPE__%$(TRAINING_TYPE)%' $(OUTDIR)/`basename $$f` ; \
 		sed -i 's%__SESSION_NAME__%$(SLIDES_TRAINING)%' $(OUTDIR)/`basename $$f` ; \
 		printf "\input{%s}\n" `basename $$f .tex` >> $(OUTDIR)/$(basename $@).tex ; \
 	done
