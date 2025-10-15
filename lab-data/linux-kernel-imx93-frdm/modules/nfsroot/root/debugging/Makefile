@@ -1,7 +1,7 @@
 ifneq ($(KERNELRELEASE),)
 obj-m := drvbroken.o
 else
-KDIR := $(HOME)/linux-kernel-labs/src/linux
+KDIR := $(HOME)/linux-kernel-labs-imx93-frdm/src/linux
 all:
 	$(MAKE) -C $(KDIR) M=$$PWD
 
