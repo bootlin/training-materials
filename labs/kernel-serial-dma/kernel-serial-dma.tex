@@ -50,25 +50,22 @@ in order to fallback to the the \code{serial_fops_pio} file operations.
 
 \section{Prepare the DMA controller}
 
-\if\defstring{\labboard}{BeagleBone Black}{
+\if\defstring{\labboard}{beaglebone}{
 The OMAP UART controller can make use of an external DMA controller. On
 the AM3359, it is actually wired to a DMA controller named EDMA. So we
 will have to deal with the \code{dmaengine} API in order to prepare DMA
-transfers on the controller side.
-} 
+transfers on the controller side.}
 \fi
-\if\defstring{\labboard}{BeaglePlay}{
+\if\defstring{\labboard}{beagleplay}{
 The AM62x UART controller is internally wired to a DMA controller named
 PKTDMA. So we will have to deal with the \code{dmaengine} API in order
-to prepare DMA transfers on the controller side.
-}
+to prepare DMA transfers on the controller side.}
 \fi
 \if\defstring{\labboard}{imx93-frdm}{
 The LPUART controller can make use of an external DMA controller. On
 the imx93, it is actually wired to a DMA controller named eDMA. So we
 will have to deal with the \code{dmaengine} API in order to prepare DMA
-transfers on the controller side.
-}
+transfers on the controller side.}
 \fi
 The idea of this API is to fully abstract the characteristics of the
 DMA controller.
@@ -78,7 +75,7 @@ capabilities. Let's just skip this part and assume the two IPs are
 compatible and the addressing masks properly set to 32-bit.
 
 
-\if\defstring{\labboard}{BeagleBone Black}{
+\if\defstring{\labboard}{beaglebone}{
 We should at the very least request the DMA channel to use.
 Open the SoC device tree and find the uart2 and uart4 nodes. Look for
 \code{dma} channel properties and their names. While uart2 seem to be
@@ -107,7 +104,7 @@ both in the calling code to fallback to the \code{serial_fops_pio} file
 operations and in the DMA cleanup function.
 }\fi
 
-\if\defstring{\labboard}{Beagle Play}{
+\if\defstring{\labboard}{beagleplay}{
   The BeaglePlay device tree does not describe DMA channels for UART5 and UART6,
 so we will have to add the channels to our custom device tree. References to DMA channels in the device tree have the following form:
 
@@ -150,7 +147,7 @@ struct serial_dev {
 };
 \end{verbatim}
 
-\if\defstring{\labboard}{BeagleBone Black}{
+\if\defstring{\labboard}{beaglebone}{
 Then, request the DMA channel descriptors with \kfunc{dma_request_chan}. Care
 must be taken to check and return the error code wrapped in the
 returned \kstruct{dma_chan} pointer. This can be done with the \code{IS_ERR()}
@@ -259,7 +256,7 @@ Before doing anything in the \code{write} hook, we shall fill-in the
   \code{init_completion(&serial->txcomplete)}.
 \end{itemize}
 
-\if\defstring{\labboard}{BeaglePlay}{
+\if\defstring{\labboard}{beagleplay}{
 \begin{verbatim}
 struct serial_dev {
         ...
@@ -311,7 +308,7 @@ bounce buffer by copying the user data using \kfunc{copy_from_user}. Let's
 handle up to \code{SERIAL_BUFSIZE} bytes at a time. One can use \kfunc{min_t}
 to derive the right amount of bytes to deal with.
 
-\ifdefstring{\labboard}{BeagleBone Black}{
+\ifdefstring{\labboard}{beaglebone}{
 Before mapping the buffer for DMA purposes, we need to handle one last
 thing. The OMAP 8250 UART controller has a limitation, its internal circuitry
 to trigger DMA transfers is a bit broken, and the first character needs to be
@@ -335,7 +332,7 @@ step, like the \ksym{dma_addr_t} of the buffer and its length. Let's create a
 descriptor filled with all the default information known by the DMA controller
 plus the additional details we can now provide:
 
-\if\defstring{\labboard}{BeagleBone Black}{
+\if\defstring{\labboard}{beaglebone}{
 \begin{verbatim}
 struct dma_async_tx_descriptor *desc;
 
@@ -347,7 +344,7 @@ Mind the \code{+ 1} and \code{- 1} operations in the snippet above, they are
 here to skip the first character which we will send manually.
 
 }\fi
-\if\defstring{\labboard}{BeaglePlay}{
+\if\defstring{\labboard}{beagleplay}{
 \begin{verbatim}
 struct dma_async_tx_descriptor *desc;
 
