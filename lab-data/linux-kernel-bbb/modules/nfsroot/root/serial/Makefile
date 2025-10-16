@@ -1,7 +1,7 @@
 ifneq ($(KERNELRELEASE),)
 obj-m := serial.o
 else
-KDIR := $(HOME)/linux-kernel-labs-bbb/src/linux
+KDIR := $(HOME)/linux-kernel-bbb-labs/src/linux
 all:
 	$(MAKE) -C $(KDIR) M=$$PWD
 
