@@ -6,11 +6,11 @@
   \item Several power management \emph{building blocks}
     \begin{itemize}
     \item Clock framework
-    \item Suspend and resume
-    \item CPUidle
-    \item Runtime power management
-    \item Power domains
-    \item Frequency and voltage scaling
+    \item CPUidle (system wide)
+    \item Frequency and voltage scaling (system wide)
+    \item Suspend and resume (system wide)
+    \item Runtime power management (peripheral specific)
+    \item Power domains (SoC specific)
     \end{itemize}
   \item Independent \emph{building blocks} that can be improved
     gradually during development
@@ -35,7 +35,6 @@
     \end{itemize}
   \end{itemize}
 \end{frame}
-
 
 \begin{frame}{Clock framework (2)}
   The common clock framework
@@ -96,6 +95,97 @@
 \end{frame}
 
 \begin{frame}
+  \frametitle{Saving power in the idle loop}
+  \begin{itemize}
+  \item The idle loop is what you run when there's nothing left to run
+    in the system.
+  \item \kfunc{arch_cpu_idle} implemented in all architectures in
+    \code{arch/<arch>/kernel/process.c}
+  \item Example: \kfile{arch/arm/kernel/process.c}
+  \item The CPU can run power saving HLT instructions, enter NAP mode,
+    and even disable the timers (tickless systems).
+  \item See also \url{https://en.wikipedia.org/wiki/Idle_loop}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Managing idle}
+  Adding support for multiple idle levels
+  \begin{itemize}
+  \item Modern CPUs have several sleep states offering different
+    power savings with associated wake up latencies
+  \item The {\em dynamic tick} feature allows to remove the
+    periodic timer tick to save power, and to know when the next event is
+    scheduled, for smarter sleeps.
+  \item CPUidle infrastructure to change sleep states
+    \begin{itemize}
+    \item Platform-specific driver defining sleep states and
+      transition operations
+    \item Platform-independent governors
+    \item Available in particular for x86/ACPI and most ARM SoCs
+    \item See \kdochtml{admin-guide/pm/cpuidle} in kernel documentation.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{PowerTOP}
+  \url{https://en.wikipedia.org/wiki/PowerTOP}
+  \begin{itemize}
+  \item With dynamic ticks, allows to fix parts of kernel code and
+    applications that wake up the system too often.
+  \item PowerTOP allows to track the worst offenders
+  \item Now available on ARM cpus implementing CPUidle
+  \item Also gives you useful hints for reducing power.
+  \item Try it on your x86 laptop:\\
+	\code{sudo powertop}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Frequency and voltage scaling (1)}
+  Frequency and voltage scaling possible through the
+  \code{cpufreq} kernel infrastructure.
+  \begin{itemize}
+  \item Generic infrastructure: \kfile{drivers/cpufreq/cpufreq.c} and
+    \kfile{include/linux/cpufreq.h}
+  \item Generic governors, responsible for deciding frequency and
+    voltage transitions
+    \begin{itemize}
+    \item \code{performance}: maximum frequency
+    \item \code{powersave}: minimum frequency
+    \item \code{ondemand}: measures CPU consumption to adjust frequency
+    \item \code{conservative}: often better than
+      \code{ondemand}. Only increases frequency gradually when the
+      CPU gets loaded.
+    \item \code{schedutil}: Tightly integrated with the scheduler, making per-policy decisions, RT tasks running at full speed.
+    \item \code{userspace}: leaves the decision to a user space
+      daemon.
+    \end{itemize}
+  \item This infrastructure can be controlled from
+    \code{/sys/devices/system/cpu/cpu<n>/cpufreq/}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Frequency and voltage scaling (2)}
+  \begin{itemize}
+  \item CPU frequency drivers are in \kdir{drivers/cpufreq}.  Example:
+    \kfile{drivers/cpufreq/omap-cpufreq.c}
+  \item Must implement the operations of the \code{cpufreq_driver}
+    structure and register them using \kfunc{cpufreq_register_driver}
+    \begin{itemize}
+    \item \code{init()} for initialization
+    \item \code{exit()} for cleanup
+    \item \code{verify()} to verify the user-chosen policy
+    \item \code{setpolicy()} or \code{target()} to actually perform
+      the frequency change
+    \end{itemize}
+  \item See documentation in \kdochtmldir{cpu-freq} for useful explanations
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
   \frametitle{Suspend and resume (to / from RAM)}
   \begin{itemize}
   \item Infrastructure in the kernel to support suspend and resume
@@ -145,54 +235,6 @@
 \end{frame}
 
 \begin{frame}
-  \frametitle{Saving power in the idle loop}
-  \begin{itemize}
-  \item The idle loop is what you run when there's nothing left to run
-    in the system.
-  \item \kfunc{arch_cpu_idle} implemented in all architectures in
-    \code{arch/<arch>/kernel/process.c}
-  \item Example: \kfile{arch/arm/kernel/process.c}
-  \item The CPU can run power saving HLT instructions, enter NAP mode,
-    and even disable the timers (tickless systems).
-  \item See also \url{https://en.wikipedia.org/wiki/Idle_loop}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Managing idle}
-  Adding support for multiple idle levels
-  \begin{itemize}
-  \item Modern CPUs have several sleep states offering different
-    power savings with associated wake up latencies
-  \item The {\em dynamic tick} feature allows to remove the
-    periodic timer tick to save power, and to know when the next event is
-    scheduled, for smarter sleeps.
-  \item CPUidle infrastructure to change sleep states
-    \begin{itemize}
-    \item Platform-specific driver defining sleep states and
-      transition operations
-    \item Platform-independent governors
-    \item Available in particular for x86/ACPI and most ARM SoCs
-    \item See \kdochtml{admin-guide/pm/cpuidle} in kernel documentation.
-    \end{itemize}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{PowerTOP}
-  \url{https://en.wikipedia.org/wiki/PowerTOP}
-  \begin{itemize}
-  \item With dynamic ticks, allows to fix parts of kernel code and
-    applications that wake up the system too often.
-  \item PowerTOP allows to track the worst offenders
-  \item Now available on ARM cpus implementing CPUidle
-  \item Also gives you useful hints for reducing power.
-  \item Try it on your x86 laptop:\\
-	\code{sudo powertop}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
   \frametitle{Runtime power management}
   \begin{itemize}
   \item Managing per-device idle, each device being managed by its
@@ -213,7 +255,7 @@
 
 \begin{frame}[fragile]
   \newcommand\kfuncbis[2]{\href{https://elixir.bootlin.com/linux/latest/ident/#1}{\codelink{#2()}}}
-  \frametitle{Generic PM Domains (genpd)}
+  \frametitle{Generic PM Domains (pmdomain, ex-genpd)}
   \begin{itemize}
   \item Generic infrastructure to implement power domains based on
         Device Tree descriptions, allowing to group devices by the
@@ -228,86 +270,6 @@
         (\kfile{arch/arm64/boot/dts/rockchip/px30.dtsi}) and find PD definitions
         and corresponding devices.
   \item See Kevin Hilman's talk at Kernel Recipes 2017: \url{https://youtu.be/SctfvoskABM}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Frequency and voltage scaling (1)}
-  Frequency and voltage scaling possible through the
-  \code{cpufreq} kernel infrastructure.
-  \begin{itemize}
-  \item Generic infrastructure: \kfile{drivers/cpufreq/cpufreq.c} and
-    \kfile{include/linux/cpufreq.h}
-  \item Generic governors, responsible for deciding frequency and
-    voltage transitions
-    \begin{itemize}
-    \item \code{performance}: maximum frequency
-    \item \code{powersave}: minimum frequency
-    \item \code{ondemand}: measures CPU consumption to adjust frequency
-    \item \code{conservative}: often better than
-      \code{ondemand}. Only increases frequency gradually when the
-      CPU gets loaded.
-    \item \code{schedutil}: Tightly integrated with the scheduler, making per-policy decisions, RT tasks running at full speed.
-    \item \code{userspace}: leaves the decision to a user space
-      daemon.
-    \end{itemize}
-  \item This infrastructure can be controlled from
-    \code{/sys/devices/system/cpu/cpu<n>/cpufreq/}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Frequency and voltage scaling (2)}
-  \begin{itemize}
-  \item CPU frequency drivers are in \kdir{drivers/cpufreq}.  Example:
-    \kfile{drivers/cpufreq/omap-cpufreq.c}
-  \item Must implement the operations of the \code{cpufreq_driver}
-    structure and register them using \kfunc{cpufreq_register_driver}
-    \begin{itemize}
-    \item \code{init()} for initialization
-    \item \code{exit()} for cleanup
-    \item \code{verify()} to verify the user-chosen policy
-    \item \code{setpolicy()} or \code{target()} to actually perform
-      the frequency change
-    \end{itemize}
-  \item See documentation in \kdochtmldir{cpu-freq} for useful explanations
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Regulator framework}
-  \begin{itemize}
-  \item Modern embedded platforms have hardware responsible for voltage
-    and current regulation
-  \item The regulator framework allows to take advantage of this
-    hardware to save power when parts of the system are unused
-    \begin{itemize}
-    \item A consumer interface for device drivers (i.e. users)
-    \item Regulator driver interface for regulator drivers
-    \item Machine interface for board configuration
-    \item sysfs interface for user space
-    \end{itemize}
-  \item See \kdochtmldir{power/regulator} in kernel documentation.
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{BSP work for a new board}
-  In case you just need to create a BSP for your board, and your
-  CPU already has full PM support, you should just need to:
-  \begin{itemize}
-  \item Create clock definitions and bind your devices to them.
-  \item Implement PM handlers (suspend, resume) in the drivers for
-    your board specific devices.
-  \item Implement runtime PM handlers in your drivers.
-  \item Implement board specific power management if needed (mainly
-    battery management)
-  \item Implement regulator framework hooks for your board if
-    needed.
-  \item Attach on-board devices to PM domains if needed
-  \item All other parts of the PM infrastructure should be already
-    there: suspend / resume, cpuidle, cpu frequency and voltage
-    scaling, PM domains.
   \end{itemize}
 \end{frame}
 
