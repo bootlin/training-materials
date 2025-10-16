@@ -136,12 +136,47 @@ if (IS_ERR(base))
 \begin{frame}[fragile]
   \frametitle{Accessing MMIO devices: using accessor functions}
   \begin{itemize}
-  \item Directly reading from or writing to addresses returned by
-    \kfunc{ioremap} (\emph{pointer dereferencing}) may not work on some
-    architectures.
+  \item Care must be taken when accessing MMIO registers
+    \begin{itemize}
+    \item Memory mapped I/O can be weakly ordered
+      \begin{itemize}
+      \item Developer's responsibility to enforcing proper ordering
+      \end{itemize}
+    \item Endianness of the device may be different than the CPU endianness
+      \begin{itemize}
+      \item Endianness conversions might be required
+      \end{itemize}
+    \item Directly reading from or writing to addresses returned by
+      \kfunc{ioremap} (\emph{pointer dereferencing}) may not work on some
+      architectures.
+    \end{itemize}
   \item A family of architecture-independent accessor functions are
     available covering most needs.
-  \item A few architecture-specific accessor functions also exists.
+    \begin{itemize}
+    \item A few architecture-specific accessor functions also exists.
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{Ordering}
+  \begin{itemize}
+  \item Reads/writes to MMIO-mapped registers of given device are done
+    in program order
+  \item However reads/writes to RAM can be re-ordered between
+    themselves, and between MMIO-mapped read/writes
+  \item Some of the accessor functions include memory barriers to help
+    with this:
+    \begin{itemize}
+    \item Write operation starts with a write memory barrier which prior
+      writes cannot cross
+    \item Read operation ends with a read memory barrier which
+      guarantees the ordering with regard to the subsequent reads
+    \end{itemize}
+  \item Sometimes compiler/CPU reordering is not an issue, in this case
+    the code may be optimized by dropping the memory barriers, using the
+    raw or relaxed helpers
+  \item See \kfile{Documentation/memory-barriers.txt}
   \end{itemize}
 \end{frame}
 
@@ -181,28 +216,6 @@ if (IS_ERR(base))
     \end{tabular}
   \end{center}
   More details at \url{https://docs.kernel.org/driver-api/device-io.html}
-\end{frame}
-
-\begin{frame}[fragile]
-  \frametitle{Ordering}
-  \begin{itemize}
-  \item Reads/writes to MMIO-mapped registers of given device are done
-    in program order
-  \item However reads/writes to RAM can be re-ordered between
-    themselves, and between MMIO-mapped read/writes
-  \item Some of the accessor functions include memory barriers to help
-    with this:
-    \begin{itemize}
-    \item Write operation starts with a write memory barrier which prior
-      writes cannot cross
-    \item Read operation ends with a read memory barrier which
-      guarantees the ordering with regard to the subsequent reads
-    \end{itemize}
-  \item Sometimes compiler/CPU reordering is not an issue, in this case
-    the code may be optimized by dropping the memory barriers, using the
-    raw or relaxed helpers
-  \item See \kfile{Documentation/memory-barriers.txt}
-  \end{itemize}
 \end{frame}
 
 \begin{frame}
