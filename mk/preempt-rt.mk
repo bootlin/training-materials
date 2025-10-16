@@ -20,5 +20,6 @@ PREEMPT_RT_SLIDES    = \
 PREEMPT_RT_LABS    = setup \
 		preempt-rt-patch-download \
 		preempt-rt-benchmarking \
+		preempt-rt-configuration \
 		preempt-rt-application-development \
 		last-slides
