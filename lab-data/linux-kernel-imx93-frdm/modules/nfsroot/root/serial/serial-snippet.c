@@ -7,6 +7,7 @@
 /* Baud Rate Register */
 #define LPUART_BAUD 0x10
 #define   LPUART_BAUD_SBR_MASK 0x1FFF /* Baud Rate Modulo Divisor */
+#define   LPUART_BAUD_BOTHEDGE BIT(17) /* Sample on both edges when receiving */
 #define   LPUART_BAUD_TDMAE BIT(23) /* Transmit DMA Enable */
 /* Status Register */
 #define LPUART_STAT 0x14
@@ -97,7 +98,7 @@ static int serial_init_controller(struct serial_dev *serial)
 	if (ret)
 		return ret;
 
-	writel(baud_val, serial->regs + LPUART_BAUD);
+	writel(baud_val | LPUART_BAUD_BOTHEDGE, serial->regs + LPUART_BAUD);
 	writel(LPUART_CTRL_TE, serial->regs + LPUART_CTRL);
 
 	return 0;
