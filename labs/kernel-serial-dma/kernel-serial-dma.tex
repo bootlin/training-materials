@@ -50,30 +50,99 @@ in order to fallback to the the \code{serial_fops_pio} file operations.
 
 \section{Prepare the DMA controller}
 
+\if\defstring{\labboard}{BeagleBone Black}{
 The OMAP UART controller can make use of an external DMA controller. On
 the AM3359, it is actually wired to a DMA controller named EDMA. So we
 will have to deal with the \code{dmaengine} API in order to prepare DMA
-transfers on the controller side. The idea of this API is to fully
-abstract the characteristics of the DMA controller.
+transfers on the controller side.
+} 
+\fi
+\if\defstring{\labboard}{BeaglePlay}{
+The AM62x UART controller is internally wired to a DMA controller named
+PKTDMA. So we will have to deal with the \code{dmaengine} API in order
+to prepare DMA transfers on the controller side.
+}
+\fi
+\if\defstring{\labboard}{imx93-frdm}{
+The LPUART controller can make use of an external DMA controller. On
+the imx93, it is actually wired to a DMA controller named eDMA. So we
+will have to deal with the \code{dmaengine} API in order to prepare DMA
+transfers on the controller side.
+}
+\fi
+The idea of this API is to fully abstract the characteristics of the
+DMA controller.
 
 In a complete driver we should probably use the helpers checking
 capabilities. Let's just skip this part and assume the two IPs are
 compatible and the addressing masks properly set to 32-bit.
 
-We should at the very least request the DMA channel to use. Open the SoC
-device tree and find the uart2 and uart4 nodes. Look for \code{dma}
-channel properties and their names. While uart2 seem to be connected to
-the DMA controller through two different channels (one for each
-direction), uart4 is not. Hence, when requesting the channels with
+
+\if\defstring{\labboard}{BeagleBone Black}{
+We should at the very least request the DMA channel to use.
+Open the SoC device tree and find the uart2 and uart4 nodes. Look for
+\code{dma} channel properties and their names. While uart2 seem to be
+connected to the DMA controller through two different channels (one for
+each direction), uart4 is not.
+Hence, when requesting the channels with
 \kfunc{dma_request_chan}, we must take care to check and return the error code
 wrapped in the returned \kstruct{dma_chan} pointer. This can be done with the
 \code{IS_ERR()} and \code{PTR_ERR()} macros. You may display the corresponding
 error string with {\tt \%pe}! Also make sure that this case is correctly handled
 both in the calling code to fallback to the \code{serial_fops_pio} file
 operations and in the DMA cleanup function.
+}
+\fi 
 
-This channel will be used by all the \code{dmaengine} helpers, so better
-save it in our \code{serial_dev} structure.
+\if\defstring{\labboard}{imx93-frdm}{
+We should at the very least request the DMA channel to use. Open the SoC
+device tree and find the lpuart3 and lpuart8 nodes. Look for \code{dma}
+channel properties and their names.
+Hence, when requesting the channels with
+\kfunc{dma_request_chan}, we must take care to check and return the error code
+wrapped in the returned \kstruct{dma_chan} pointer. This can be done with the
+\code{IS_ERR()} and \code{PTR_ERR()} macros. You may display the corresponding
+error string with {\tt \%pe}! Also make sure that this case is correctly handled
+both in the calling code to fallback to the \code{serial_fops_pio} file
+operations and in the DMA cleanup function.
+}\fi
+
+\if\defstring{\labboard}{Beagle Play}{
+  The BeaglePlay device tree does not describe DMA channels for UART5 and UART6,
+so we will have to add the channels to our custom device tree. References to DMA channels in the device tree have the following form:
+
+\begin{verbatim}
+dmas = <[controller reference] [dma-cells parameters]>
+\end{verbatim}
+
+Go to your kernel source tree and open the \kfile{Documentation/devicetree/bindings/dma/ti/k3-pktdma.yaml} file, which contains the bindings for the AM62x PKTDMA controller. Find the description of the \code{#dma-cells} property. You will see that two cells are required: the first one is the thread ID for the UART controller and the second one is the ASEL value for the channel.
+
+ASEL is an AM62 acronym for "address selection" and takes a 4-bit value related to
+the I/O coherency requirements. The TRM indicates to use 0 for regular SoC
+memory mappings, which is what we are going to do. The thread ID value however
+is a bit harder to find, and is currently not listed in the TRM. It is however
+available on TI's website:
+\url{https://software-dl.ti.com/tisci/esd/latest/5_soc_doc/am62x/psil_cfg.html#psi-l-source-and-destination-thread-ids}
+Following the table mentioned in the above link, we are going to need the
+following values:
+\begin{itemize}
+\item \code{UART_5} has a TX thread ID of 0xc405
+\item \code{UART_6} has a TX thread ID of 0xc406
+\end{itemize}
+
+With this information in hand, we can add the description of the DMA channels in
+the device tree:
+
+\sourcecode{labs/kernel-serial-dma/uarts-dma-beagleplay.dts}
+
+Don't forget to update your device tree and reboot your board!
+}
+\fi
+
+These channels need to be retrieved by the device driver in order to be
+used with all the \code{dmaengine} helpers, so better save each of them
+in our \code{serial_dev} structure.
+
 \begin{verbatim}
 struct serial_dev {
         ...
@@ -81,27 +150,58 @@ struct serial_dev {
 };
 \end{verbatim}
 
+\if\defstring{\labboard}{BeagleBone Black}{
+Then, request the DMA channel descriptors with \kfunc{dma_request_chan}. Care
+must be taken to check and return the error code wrapped in the
+returned \kstruct{dma_chan} pointer. This can be done with the \code{IS_ERR()}
+and \code{PTR_ERR()} macros. You may display the corresponding error string with
+{\tt \%pe}!
+}
+\fi
+
 We can now configure the DMA controller with details about the upcoming
 transfers:
 \begin{itemize}
 \item memory to device transfers
 \item the source will be memory, we will map buffers when they come,
   there is no particular constraint on this side
-\item the destination is the UART Tx FIFO, we will ask the DMA to
+\ifdefstring{\labboard}{imx93-frdm}{
+  \item the destination is the LPUART\_DATA register, we will ask the DMA
+  to transfer the bytes one after the other (hardware signaling already
+  handles the internal ``flow'')
+  \end{itemize}
+
+  The LPUART\_DATA register itself should not be accessed directly. To be generic, we first map the resource using \kfunc{dma_map_resource} and store it in \code{serial_dev} to unmap it later.
+}{
+  \item the destination is the UART Tx FIFO, we will ask the DMA to
   transfer the bytes one after the other (hardware signaling already
   handles the internal ``flow'')
-\item we shall not use the UART Tx FIFO directly, to be generic we shall use
+  \item we shall not use the UART Tx FIFO directly, to be generic we shall use
   \kfunc{dma_map_resource} first (and save it in \code{serial_dev} to be able
   to unmap it later)
-\end{itemize}
+  \end{itemize}
+}
 
+\if\defstring{\labboard}{imx93-frdm}{
 \begin{verbatim}
 struct dma_slave_config txconf = {};
+serial->fifo_dma_addr = dma_map_resource(serial->dev,
+serial->res->start + LPUART_DATA, 4, DMA_TO_DEVICE, 0);
+if (dma_mapping_error(serial->dev, serial->fifo_dma_addr)) ...
 
+txconf.dst_maxburst = 1;
+\end{verbatim}
+}
+\else{
+\begin{verbatim}
+struct dma_slave_config txconf = {};
 serial->fifo_dma_addr = dma_map_resource(serial->dev, serial->res->start + UART_TX * 4,
                                          4, DMA_TO_DEVICE, 0);
 if (dma_mapping_error(serial->dev, serial->fifo_dma_addr)) ...
-
+\end{verbatim}
+}
+\fi
+\begin{verbatim}
 txconf.direction = DMA_MEM_TO_DEV;
 txconf.dst_addr_width = DMA_SLAVE_BUSWIDTH_1_BYTE;
 txconf.dst_addr = serial->fifo_dma_addr;
@@ -120,6 +220,15 @@ It is time to recompile your driver and see if any header is missing...
 
 On its side, the UART controller must assert some signals to drive the DMA
 flow. We must enable the controlling logic on the Tx DMA channel, by enabling
+\if\defstring{\labboard}{imx93-frdm}{
+\code{LPUART_BAUD_TDMAE}.
+
+\begin{verbatim}
+  u32 val = reg_read(serial, LPUART_BAUD);
+  val |= LPUART_BAUD_TDMAE;
+  reg_write(serial, val, LPUART_BAUD);
+\end{verbatim}
+}\else{
 \code{DMACTL} in mode 3. We also configure the UART to transmit all the bytes
 as soon as they get in.
 
@@ -131,6 +240,7 @@ as soon as they get in.
 reg_write(serial, OMAP_UART_SCR_DMAMODE_CTL3 | OMAP_UART_SCR_TX_TRIG_GRANU1,
           UART_OMAP_SCR);
 \end{verbatim}
+}\fi
 
 \section{Process user write requests}
 
@@ -149,8 +259,18 @@ Before doing anything in the \code{write} hook, we shall fill-in the
   \code{init_completion(&serial->txcomplete)}.
 \end{itemize}
 
+\if\defstring{\labboard}{BeaglePlay}{
 \begin{verbatim}
 struct serial_dev {
+        ...
+        struct dma_chan *txchan;
+        bool txongoing;
+        struct completion txcomplete;
+};
+\end{verbatim}
+}\else{
+\begin{verbatim}
+  struct serial_dev {
         ...
         struct dma_chan *txchan;
         dma_addr_t fifo_dma_addr;
@@ -158,7 +278,7 @@ struct serial_dev {
         struct completion txcomplete;
 };
 \end{verbatim}
-
+}
 In the write hook, we shall first check if the DMA channel has been
 properly retrieved. If not, we should definitely fallback to the PIO
 implementation.
@@ -191,6 +311,7 @@ bounce buffer by copying the user data using \kfunc{copy_from_user}. Let's
 handle up to \code{SERIAL_BUFSIZE} bytes at a time. One can use \kfunc{min_t}
 to derive the right amount of bytes to deal with.
 
+\ifdefstring{\labboard}{BeagleBone Black}{
 Before mapping the buffer for DMA purposes, we need to handle one last
 thing. The OMAP 8250 UART controller has a limitation, its internal circuitry
 to trigger DMA transfers is a bit broken, and the first character needs to be
@@ -202,6 +323,7 @@ char first;
 /* OMAP 8250 UART quirk: need to write the first byte manually */
 first = serial->tx_buf[0];
 \end{verbatim}
+}{}
 
 Now we can remap the buffer. We have a single buffer so we can use
 \kfunc{dma_map_single}. The output value is a \ksym{dma_addr_t}. Save this
@@ -213,6 +335,7 @@ step, like the \ksym{dma_addr_t} of the buffer and its length. Let's create a
 descriptor filled with all the default information known by the DMA controller
 plus the additional details we can now provide:
 
+\if\defstring{\labboard}{BeagleBone Black}{
 \begin{verbatim}
 struct dma_async_tx_descriptor *desc;
 
@@ -220,9 +343,29 @@ desc = dmaengine_prep_slave_single(serial->txchan, dma_addr + 1, len -1,
                                    DMA_MEM_TO_DEV, DMA_PREP_INTERRUPT);
 if (!desc) ...
 \end{verbatim}
-
 Mind the \code{+ 1} and \code{- 1} operations in the snippet above, they are
 here to skip the first character which we will send manually.
+
+}\fi
+\if\defstring{\labboard}{BeaglePlay}{
+\begin{verbatim}
+struct dma_async_tx_descriptor *desc;
+
+desc = dmaengine_prep_slave_single(serial->txchan, dma_addr, len,
+                                   DMA_MEM_TO_DEV, DMA_PREP_INTERRUPT);
+if (!desc) ...
+\end{verbatim}
+}\fi
+\if\defstring{\labboard}{imx93-frdm}{
+\begin{verbatim}
+struct dma_async_tx_descriptor *desc;
+
+desc = dmaengine_prep_slave_single(serial->txchan, dma_addr,
+                                   len, DMA_MEM_TO_DEV,
+                                   DMA_PREP_INTERRUPT | DMA_CTRL_ACK);
+if (!desc) ...
+\end{verbatim}
+}\fi
 
 We can now use the returned descriptor to register a callback. This callback
 will just call \kfunc{complete} over the completion object. Which also means

@@ -1,0 +1,266 @@
+\subchapter{Kernel compiling and booting}{Objective: compile and boot
+a kernel for your board, booting on a directory on your workstation
+shared by NFS.}
+
+After this lab, you will be able to:
+\begin{itemize}
+
+\item Cross-compile the Linux kernel for the ARM platform.
+
+\item Boot this kernel on an NFS root filesystem, which is somewhere
+on your development workstation\footnote{NFS root filesystems are
+particularly useful to compile modules on your host, and make them
+directly visible on the target. You no longer have to update the root
+filesystem by hand and transfer it to the target (requiring a shutdown
+and reboot).}.
+
+\end{itemize}
+
+\section{Lab implementation}
+
+While developing a kernel module, the developer wants to change the
+source code, compile and test the new kernel module very
+frequently. While writing and compiling the kernel module is done on the
+development workstation, the test of the kernel module usually has to
+be done on the target, since it might interact with hardware specific
+to the target.
+
+However, flashing the root filesystem on the target for every test is
+time-consuming and would use the flash chip needlessly.
+
+Fortunately, it is possible to set up networking between the
+development workstation and the target. Then, workstation files can be
+accessed through the network by the target, using NFS.
+
+\begin{center}
+\includegraphics[width=\textwidth]{labs/kernel-compiling-and-nfs-booting-imx93-frdm/host-vs-target.pdf}
+\end{center}
+
+\section{Setup}
+
+Go to the \code{$HOME/__SESSION_NAME__-labs/src/linux} directory.
+
+Install packages needed for configuring, compiling and booting
+the kernel for your board:
+
+\begin{verbatim}
+sudo apt install libssl-dev bison flex
+\end{verbatim}
+
+\section{Cross-compiling toolchain setup}
+
+We are going to install a cross-compiling toolchain provided by Ubuntu:
+
+\begin{verbatim}
+sudo apt install gcc-aarch64-linux-gnu
+\end{verbatim}
+
+Now find out the path and name of the cross-compiler executable by looking at the contents of the package:
+
+\begin{verbatim}
+dpkg -L gcc-aarch64-linux-gnu
+\end{verbatim}
+
+\section{Kernel configuration}
+
+Set the \code{ARCH} and \code{CROSS_COMPILE} definitions for the \code{arm64}
+platform and your cross-compiler.
+
+There is only one default configuration for arm64 platforms, which is called
+\code{defconfig}. Apply this configuration, then run \code{make menuconfig}.
+
+\begin{itemize}
+\item Disable \kconfig{CONFIG_GCC_PLUGINS} if it is set. This will skip
+  building special {\em gcc} plugins, which would require extra dependencies
+  for the build.
+\item In the \code{System Type} menu, remove support for all the SoCs except the \code{NXP SoC support} ones and in particular \code{NXP i.MX SoC family}.
+\item Disable \kconfig{CONFIG_DRM}, which will skip support for many display
+controller and GPU drivers.
+\item Disable \kconfig{CONFIG_LEDS_GPIO}, we will reenable it later as a demonstration.
+\item To use ethetnet port enable as built in, \kconfig{CONFIG_DWMAC_IMX8} and \kconfig{CONFIG_NVMEM_IMX_OCOTP_ELE}.
+These options will allow Linux to retrieve the MAC address of the Ethernet devices from the eFuse memory.
+
+\end{itemize}
+
+Make sure that this configuration has \kconfigval{CONFIG_ROOT_NFS}{y} (support
+booting on an NFS exported root directory).
+
+\section{Kernel compiling}
+
+Compile your kernel and generate the Device Tree Binaries (DTBs)
+(running 8 compile jobs in parallel):
+
+\begin{verbatim}
+make -j 8
+\end{verbatim}
+
+Now, copy the \code{Image.gz} and \code{imx93-11x11-frdm.dtb} files to the
+TFTP server home directory (as specified in \code{/etc/default/tftpd-hpa}).
+
+\section{Setting up the NFS server}
+
+Install the NFS server by installing the \code{nfs-kernel-server}
+package. Once installed, edit the \code{/etc/exports} file as
+\code{root} to add the following lines, assuming that the IP address
+of your board will be \code{192.168.1.100}:
+
+\scriptsize
+\begin{verbatim}
+/home/<user>/__SESSION_NAME__-labs/modules/nfsroot 192.168.1.100(rw,no_root_squash,no_subtree_check)
+\end{verbatim}
+\normalsize
+
+Of course, replace \code{<user>} by your actual user name.
+
+Make sure that the path and the options are on the same line.
+Also make sure that there is no space between the IP address and the NFS
+options, otherwise default options will be used for this IP address,
+causing your root filesystem to be read-only.
+
+Then, restart the NFS server:
+
+\begin{verbatim}
+sudo exportfs -r
+\end{verbatim}
+
+If there is any error message, this usually means that there was a
+syntax error in the \code{/etc/exports} file. Don't proceed until these
+errors disappear.
+
+\section{Boot the system}
+
+First, boot the board to the U-Boot prompt. Before booting the kernel,
+we need to tell it which console to use and that the root filesystem
+should be mounted over NFS, by setting some kernel parameters.
+
+Do this by setting U-boot's \code{bootargs} environment variable (all in
+just one line):
+
+\code{setenv bootargs 'console=ttyLP0,115200 root=/dev/nfs 
+nfsroot=192.168.1.1:/home/<user>/linux-kernel-imx93-frdm-labs/modules/nfsroot,nfsvers=3,tcp rw ip=192.168.1.100::192.168.0.1:255.255.255.0::eth0'}
+
+Once again, replace \code{<user>} by your actual user name.
+
+Now save this definition:
+\begin{verbatim}
+saveenv
+\end{verbatim}
+
+If you later want to make changes to this setting, you can type the
+below command in U-boot:
+
+\begin{verbatim}
+editenv bootargs
+\end{verbatim}
+
+Now, download the kernel image through \code{tftp}:
+
+\begin{verbatim}
+tftp 0x80000000 Image.gz
+\end{verbatim}
+
+You'll also need to download the device tree blob:
+
+\begin{verbatim}
+tftp 0x83000000 imx93-11x11-frdm.dtb
+\end{verbatim}
+
+Now, boot your kernel:
+
+\begin{verbatim}
+booti 0x80000000 - 0x83000000
+\end{verbatim}
+
+This last command should show you an error message of this type:
+\bashcmd{kernel_comp_addr_r or kernel_comp_size is not provided!}
+
+This is because the boot image that we use, \code{Image.gz}, is compressed, and
+therfore, needs to be uncompressed by U-Boot before continue booting. To do so
+U-Boot needs to know the maximum size of the uncompressed image and where to
+store it.
+
+If you look at the size of the uncompressed kernel (\code{Image} file),
+you can estimate that 32 MB (0x2000000) is a reasonable upper bound
+for the size of the uncompressed kernel, even with a more exhaustive
+configuration.
+
+This gives us,
+
+\begin{ubootinput}
+=> setenv kernel_comp_addr_r 0x85000000
+=> setenv kernel_comp_size 0x2000000
+=> saveenv
+\end{ubootinput}
+
+Now you can retry the \code{booti} command and see the kernel be uncompressed
+and then loaded.
+
+If everything goes right, you should reach a login prompt (user:
+\code{root}, password: \code{root}). Otherwise, check your setup and
+ask your instructor for support if you are stuck.
+
+If the kernel fails to mount the NFS filesystem, look carefully at the
+error messages in the console. If this doesn't give any clue, you can
+also have a look at the NFS server logs in \code{/var/log/syslog}.
+
+\section{Checking the kernel version}
+
+It's often a good idea to make sure you booted the right kernel.
+By mistake, you could have booted a kernel previously stored in flash
+(typically through a default boot command in U-Boot), or forgotten to
+update the kernel image in the TFTP server home directory.
+
+This could explain some unexpected behavior.
+
+There are two ways of checking your kernel version:
+\begin{itemize}
+\item By looking at the first kernel messages
+\item By running the \code{uname -a} command after booting Linux.
+\end{itemize}
+
+In both cases, you will not only know the kernel version, but also
+the date when the kernel was compiled and the name of the user who
+did it.
+
+Similarly, you can also check the command line actually received by
+the kernel, either by looking at the first boot messages, or once you
+have reached a command line shell, by running \code{cat /proc/cmdline}.
+
+\section{Automate the boot process}
+
+To avoid typing the same U-boot commands over and over again each time
+you power on or reset your board, you can use U-Boot's \code{bootcmd}
+environment variable:
+
+{\footnotesize
+\begin{verbatim}
+setenv bootcmd 'tftp 0x80000000 Image.gz; tftp 0x83000000 imx93-11x11-frdm.dtb; booti 0x80000000 - 0x83000000'
+saveenv
+\end{verbatim}
+}
+
+Don't hesitate to change it according to your exact needs.
+
+We could also copy the \code{Image.gz} file to the eMMC flash and avoid
+downloading it over and over again. However, detailed bootloader
+usage is outside of the scope of this course. See our
+\href{https://bootlin.com/training/embedded-linux/}{Embedded
+Linux system development course} and its on-line materials for
+details.
+
+\section{Save your kernel configuration}
+
+Now that you have a working (and satisfying) kernel configuration, you
+can save it under the \code{configs} folder:
+
+\begin{verbatim}
+make savedefconfig
+cp defconfig arch/arm64/configs/ix93_frdm_defconfig
+\end{verbatim}
+
+So if you later overwrite the \code{.config} file inadvertently, you can
+just get back to a working configuration by running:
+
+\begin{verbatim}
+make imx93_frdm_defconfig
+\end{verbatim}

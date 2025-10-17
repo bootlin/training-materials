@@ -6,7 +6,7 @@ During this lab, you will:
 
 \begin{itemize}
 \item Register an interrupt handler for the serial controller of the
-  Beaglebone.
+  board.
 \item Implement the read() operation of the serial port driver to put
   the process to sleep when no data are available.
 \item Implement the interrupt handler to wake-up the sleeping process
@@ -45,9 +45,16 @@ Then, in the interrupt handler, just print a message and return
 \ksym{IRQ_HANDLED} (to tell the kernel that we have handled the
 interrupt).
 
-You'll also need to enable interrupts.
-To do so, in the \code{probe()} function, write
-\ksym{UART_IER_RDI} to the \ksym{UART_IER} register.
+To enable reception and its associated interrupt, the UART control register must be configured accordingly. This configuration is done within the \code{probe} function by setting the following bits:
+\if\defstring{\labboard}{imx93-frdm}
+  \begin{verbatim}
+  reg_write(serial, LPUART_CTRL_TE | LPUART_CTRL_RE | LPUART_CTRL_RIE, LPUART_CTRL);
+  \end{verbatim}
+\else
+  \begin{verbatim}
+	reg_write(serial, UART_IER_RDI, UART_IER);
+  \end{verbatim}
+\fi
 
 Compile and load your module. Send a character on the serial link (just
 type something in the corresponding \code{picocom} terminal, and
@@ -65,7 +72,7 @@ experienced here is called an \code{interrupt flood}.
 
 Now, in our interrupt handler, we want to acknowledge the
 interrupt. On the UART controllers that we drive, it's done simply by
-reading the contents of the \ksym{UART_RX} register, which holds the
+reading the contents of the \ifdefstring{\labboard}{imx93-frdm}{\ksym{LPUART_DATA}}{\ksym{UART_RX}} register, which holds the
 next character received. You can display the value you read to see
 that the driver will receive whatever character you sent.
 
@@ -96,9 +103,7 @@ we can read from:
 #define SERIAL_BUFSIZE 16
 
 struct serial_dev {
-        void __iomem *regs;
-        struct miscdevice miscdev;
-        unsigned int counter
+        ...
         char rx_buf[SERIAL_BUFSIZE];
         unsigned int buf_rd;
         unsigned int buf_wr;
