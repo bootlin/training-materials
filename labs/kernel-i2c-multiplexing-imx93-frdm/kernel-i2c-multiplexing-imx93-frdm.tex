@@ -26,7 +26,7 @@ devices. That is also why we get a warning when using it.
 
 Let's start by probing the bus associated to \code{i2c-0}:
 
-\begin{bashinput}
+\begin{verbatim}
 # i2cdetect -r 1
 i2cdetect: WARNING! This program can confuse your I2C bus
 Continue? [y/N] y
@@ -39,7 +39,7 @@ Continue? [y/N] y
 50: 50 -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
 60: -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- -- 
 70: -- -- -- -- -- -- -- --     
-\end{bashinput}
+\end{verbatim}
 
 We can see three devices on this internal bus:
 \begin{itemize}
@@ -47,35 +47,43 @@ We can see three devices on this internal bus:
       which means that there is a kernel driver actively
       driving these devices.
 \item One other device at addresses \code{0x50}.
-      We just know that is currently not bound to a kernel driver.
+      This one is currently not bound to a kernel driver.
 \end{itemize}
 
 Now try to probe I2C4 with \code{i2cdetect -r 3}.
 
-You will see that the command will fail to connect to
-the bus. That's because the corresponding signals are
+You will see that the output will take an endless amount of time, because it
+fails and timeouts on every check. That's because the corresponding signals are
 not propely muxed, yet.
 
 \section{Find pin muxing configuration information for i2c4}
 
-As you found in the previous lab, we now managed to have our nunchuk
-device enumerated on the \code{lpi2c4} bus.
+As done in the previous lab, we managed to have our nunchuk
+device described on the \code{lpi2c4} bus. However, to access the bus data and
+clock signals, and hence verify the physical presence of the nunchuk on the bus,
+we need to configure the pin muxing of the SoC.
 
-However, to access the bus data and clock signals, we need to configure
-the pin muxing of the SoC.
+To this end, NXP provides ready-made configurations for the i.MX93 SoC.  You can
+refer to the imx93-pinfunc.h file, which contains a list of predefined macros
+used to configure the pin multiplexing.
 
-To this end, NXP provides ready-made configurations for the i.MX93 SoC.
-You can refer to the imx93-pinfunc.h file, which contains a list of predefined macros used to configure the pin multiplexing.
+By searching for \code{LPI2C4}, we find the
+macros \code{MX93_PAD_GPIO_IO02__LPI2C4_SDA}
+and \code{MX93_PAD_GPIO_IO03__LPI2C4_SCL}, which allow us to multiplex
+the \code{GPIO_IO02} and \code{GPIO_IO03} pins as \code{LPI2C4_SDA}
+and \code{LPI2C4_SCL}, respectively.
 
-By searching for \code{LPI2C4}, we find the macros \code{MX93_PAD_GPIO_IO02__LPI2C4_SDA} and \code{MX93_PAD_GPIO_IO03__LPI2C4_SCL}, which allow us to multiplex the \code{GPIO_IO02} and \code{GPIO_IO03} pins as \code{LPI2C4_SDA} and \code{LPI2C4_SCL}, respectively.
+For more information on the multiplexing values, you can refer to the i.MX93
+processor reference manual, in the {\em IOMUX Controller (IOMUXC)} section.
 
-For more information on the multiplexing values, you can refer to the i.MX93 processor reference manual, in the
-{\em IOMUX Controller (IOMUXC)} section.
-
-Now that we have our multiplexing macros, we still need to define the pad control value.
-We will use the same value that is used for the other I2C buses, namely \code{0x40000B9E}.Here, this means that the pad control is configured with a fast slew rate, in pull-up mode, with a drive strength equivalent to X4, in open-drain mode, and without a Schmitt trigger input.
-For more details on pad control values, you can also refer to the
-{\em IOMUX Controller (IOMUXC)} section in the i.MX93 processor reference manual.
+Now that we have our multiplexing macros, we still need to define the pad
+control value. We will use the same value that is used for the other I2C buses,
+namely \code{0x40000B9E}. This register value implies that the pad control is
+configured with a fast slew rate, in pull-up mode, with a drive strength
+equivalent to X4, in open-drain mode (important for being compliant with the I2C
+specification!). For more details on pad control values, you can also refer to
+the {\em IOMUX Controller (IOMUXC)} section in the i.MX93 processor reference
+manual.
 
 \section{Multiplexing the I2C controller outputs correctly}
 
@@ -86,8 +94,8 @@ It is also helpful to look into other \code{.dts} files to see how the other I2C
 \begin{verbatim}
 pinctrl_lpi2c4: lpi2c4grp {
       fsl,pins = <
-            MX93_PAD_GPIO_IO03__LPI2C4_SCL                  0x40000b9e
-            MX93_PAD_GPIO_IO02__LPI2C4_SDA                  0x40000b9e
+            MX93_PAD_GPIO_IO03__LPI2C4_SCL 0x40000b9e
+            MX93_PAD_GPIO_IO02__LPI2C4_SDA 0x40000b9e
       >;
 };
 \end{verbatim}
