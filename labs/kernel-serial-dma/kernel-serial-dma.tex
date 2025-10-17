@@ -44,9 +44,9 @@ Let's now create two helpers supposed to initialize and cleanup our DMA
 setup. We will call \code{serial_init_dma()} right before registering
 the \code{misc} device. In the \code{->probe()} error path and in the
 remove callback, we will call \code{serial_cleanup_dma()}. Make sure that errors
-are handled correctly and returned to the caller. A special case should be
+are handled correctly and returned to the caller. A special case may be
 handled when no DMA channel is available (with the \code{-ENODEV} code returned)
-in order to fallback to the the \code{serial_fops_pio} file operations.
+in order to fallback to a \code{serial_fops_pio} file operations alternative.
 
 \section{Prepare the DMA controller}
 
@@ -184,8 +184,8 @@ transfers:
 \if\defstring{\labboard}{imx93-frdm}{
 \begin{verbatim}
 struct dma_slave_config txconf = {};
-serial->fifo_dma_addr = dma_map_resource(serial->dev,
-serial->res->start + LPUART_DATA, 4, DMA_TO_DEVICE, 0);
+serial->fifo_dma_addr = dma_map_resource(serial->dev, serial->res->start + LPUART_DATA,
+                                         4, DMA_TO_DEVICE, 0);
 if (dma_mapping_error(serial->dev, serial->fifo_dma_addr)) ...
 
 txconf.dst_maxburst = 1;
@@ -195,7 +195,7 @@ txconf.dst_maxburst = 1;
 \begin{verbatim}
 struct dma_slave_config txconf = {};
 serial->fifo_dma_addr = dma_map_resource(serial->dev, serial->res->start + UART_TX * 4,
-                                         4, DMA_TO_DEVICE, 0);
+4, DMA_TO_DEVICE, 0);
 if (dma_mapping_error(serial->dev, serial->fifo_dma_addr)) ...
 \end{verbatim}
 }
@@ -223,9 +223,8 @@ flow. We must enable the controlling logic on the Tx DMA channel, by enabling
 \code{LPUART_BAUD_TDMAE}.
 
 \begin{verbatim}
-u32 val = reg_read(serial, LPUART_BAUD);
-val |= LPUART_BAUD_TDMAE;
-reg_write(serial, val, LPUART_BAUD);
+writel(readl(serial->regs + LPUART_BAUD) | LPUART_BAUD_TDMAE,
+       serial->regs + LPUART_BAUD);
 \end{verbatim}
 }\else{
 \code{DMACTL} in mode 3. We also configure the UART to transmit all the bytes
