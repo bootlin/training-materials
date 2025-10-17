@@ -128,98 +128,42 @@ in subsequent steps of the \code{probe()} routine.
 
 Make sure that your updated driver compiles, loads and unloads well.
 
-\section{Device initialization}
+The second step very common step is to grab and enable the clock, otherwise the
+registers will not be accessible:
 
-Now that we have a virtual address to access registers, we are ready to
-configure a few registers which will allow us to enable the UART
-devices. Of course, this will be done in the \code{probe()} routine.
-
-\subsection{Accessing device registers}
-
-As we will have multiple registers to read, create a \code{reg_read()}
-routine, returning a \code{u32} value, and taking a \code{serial}
-pointer to a \code{serial_dev} structure and an \code{unsigned int}
-register offset.
-
-Your prototype should look like:
 \begin{verbatim}
-static u32 reg_read(struct serial_dev *serial, unsigned int reg);
+serial->clk = devm_clk_get_enabled(&pdev->dev, "ipg");
+if (IS_ERR(serial->clk)) {
+	dev_err(&pdev->dev, "Failed to get/enable IPG clock\n");
+	return PTR_ERR(serial->clk);
+}
 \end{verbatim}
 
-In this function, read from a 32 bits register at the base virtual
-address for the device, plus the register offset.
+Again, the resource is managed (thanks to the \code{devm_} prefix, so there is
+nothing to disable nor free upon error/removal.
 
-All the UART register offsets have standardized values, shared between
-several types of serial drivers.
+In order to verify the validity of the previous steps and check the
+accessibility of the registers, read and display the version ID of the LPUART
+controller by reading and displaying, in your probe function, the content of the
+\code{VERID} register (at offset 0x00).
 
-Create a similar \code{reg_write()} routine, writing an \code{u32}
-value at a given register offset from the device base virtual address.
-The following code samples are using
-the \kfunc{writel} convention of passing the value first, then the
-offset.
+\section{Device initialization}
 
-In the next sections, we will tell you what register offsets to use
-to drive the hardware.
+We are ready to configure a few registers which will allow us to enable the UART
+devices. As the initialization is a bit tedious and brings little added value
+for the purpose of this training, we give in a separated file a few
+register/bitfields definitions, as well as a bit of logic to easily configure
+all the registers at once.
 
+Make sure to copy the content of \code{serial-snippet.c} (in the \code{serial}
+folder) in your driver, and call \code{serial_init_controller()} in
+your \code{probe()} function.
 
-\subsection{Use of macros}
-
-To improve code readability and maintainability, macros are used to define both the register offsets and the individual bit fields for the LPUART peripheral. These macros act as symbolic names, making the code more understandable and less error-prone compared to using hard-coded values.
-
-For example:
-\begin{itemize}
-  \item \code{LPUART_CTRL_TE} represents the bit that enables the UART transmitter.
-  \item \code{LPUART_CTRL_RE} enables the receiver.
-  \item \code{LPUART_CTRL_RIE} enables receiver interrupts.
-  \item \code{LPUART_STAT_TDRE} indicates when the transmit data register is empty.
-  \item \code{LPUART_GLOBAL_RST} triggers a software reset of the peripheral.
-\end{itemize}
-
-Register offsets like \code{LPUART_CTRL} (0x18) and \code{LPUART_BAUD} (0x10) are also defined with macros to simplify memory-mapped register access.
-
-Additionally, control over FIFO behavior is abstracted using macros like \code{LPUART_FIFO_TXFE} (Transmit FIFO Enable) or \code{LPUART_FIFO_RXFLUSH} (Receive FIFO Flush), which are essential during initialization or reset procedures.Look at the code below to see how these macros are defined and used.
-
-\subsection{Line and baud rate configuration}
-
-After these lines, let’s add some code to extract the clock frequency from the device tree, then initialize the UART peripheral with the correct baud value.
-
-In the LPUART controller, two important parameters allow configuring the serial data transmission speed: SBR and OSR.
-OSR (Oversampling Ratio): The OSR determines how many times a data bit is sampled on the serial line.
-SBR (Serial Baud Rate)
-
-The SBR register defines the frequency of the serial transmission signal (the baud rate) in combination with the OSR. More precisely, the UART signal frequency is calculated as follows:
-$$Baud\ rate = Source-Clock / ((OSR+1) × SBR)$$
-
-To perform this calculation, we will use lpuart\_build\_baud\_val().
-
-\verbatimtabinput{labs/kernel-serial-iomem-imx93-frdm/uart-line-init-0.c}
-
-For the following parts, they must be placed in the probe() function, right after the devm\_platform\_ioremap\_resource() call.
-
-This part maps the UART register space into memory, retrieves the IPG
-clock handle, and enables it to provide the clock source for the UART
-peripheral.
-\verbatimtabinput{labs/kernel-serial-iomem-imx93-frdm/uart-line-init-1.c}
-
-Don't forget to declare \code{struct clk *clk_ipg} in the serial\_dev structure.
-
-This part calculates the optimal baud rate settings (OSR and SBR
-values) based on the input clock frequency to achieve the closest
-possible match to the desired baud rate.
-\verbatimtabinput{labs/kernel-serial-iomem-imx93-frdm/uart-line-init-2.c}
-
-This part performs a software reset of the UART, configures the FIFOs,
-programs the computed baud rate into the register, and finally enables
-the transmitter to start communication.
-\verbatimtabinput{labs/kernel-serial-iomem-imx93-frdm/uart-line-init-3.c}
-
-Dont forget to declare \code{baud_val} in the probe function.
+If you have a bit of spare time, you can look at chapter 60 of the i.MX93
+processor reference manual for details about how to use the LPUART ports, to
+understand better what we are doing here.
 
 We are now ready to transmit characters over the serial ports!
-
-If you have a bit of spare time, you can look at chapter 60 of the
-i.MX93 processor reference manual for details about how to use the LPUART ports, to understand
-better what we are doing here.
 
 \section{Standalone write routine}
 
