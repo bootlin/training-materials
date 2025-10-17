@@ -11,10 +11,9 @@ static int serial_probe(struct platform_device *pdev)
 	return 0;
 }
 
-static int serial_remove(struct platform_device *pdev)
+static void serial_remove(struct platform_device *pdev)
 {
 	pr_info("Called %s\n", __func__);
-        return 0;
 }
 
 static struct platform_driver serial_driver = {
