@@ -24,12 +24,13 @@ Tree we already created, and build on top of it.
 Before developing a driver for additional UARTS on the board, we
 need to add the corresponding descriptions to the board Device Tree.
 
-First, open the board design files and find the available connectors
-for LPUART3 and LPUART8.You should see that it is possible to connect LPUART3 to GPIO\_IO14/15 and LPUART8 to GPIO\_IO12/13.
+First, open the board design files and find the available connectors for LPUART3
+and LPUART8. You should see that it is possible to connect LPUART3 to
+GPIO\_IO14/15 and LPUART8 to GPIO\_IO12/13.
 
 Using a new USB-serial cable with Female connectors, provided by your
-instructor, connect your PC to LPUART3. The wire colors are the same
-as for the cable that you're using for the console:
+instructor, connect your PC to LPUART3, after finding the correct pins in the
+board user manual. The wire colors we typically use are:
 
 \begin{itemize}
 \item The blue wire should be connected \code{GND}.
@@ -43,9 +44,12 @@ the standard board DTS file and reference the pin controller node and add declar
 
 {\scriptsize \sourcecode{labs/kernel-serial-iomem-imx93-frdm/uarts-pinctrl.dts}}
 
+In your custom DTS file, reference again the pin controller node and add
+declarations for the pin states needed for LPUART3 and LPUART8.
+
 Then, declare the corresponding devices:
 
-\sourcecode{labs/kernel-serial-iomem-imx93-frdm/uarts.dts}
+{\scriptsize \sourcecode{labs/kernel-serial-iomem-imx93-frdm/uarts.dts}}
 
 This is a good example of how we can override definitions in the Device
 Tree. \code{lpuart3} and \code{lpuart8} are already defined in
@@ -85,16 +89,18 @@ In the same way as in the nunchuk lab, we now need to create a
 structure that will hold device specific information and help
 keeping pointers between logical and physical devices.
 
-As the first thing to store will be the base virtual address for
-each device, let's declare this structure as follows:
+As the first things to store will be the base virtual address for
+each device as well as one of their primary resource, the main clock feeding
+each of them, let's declare this structure as follows:
 
 \begin{verbatim}
 struct serial_dev {
         void __iomem *regs;
+        struct clk *clk;
 };
 \end{verbatim}
 
-The first thing to do is allocate such a structure at the beginning
+The first thing to do is allocating such a structure at the beginning
 of the \code{probe()} routine. Let's do it with the \kfunc{devm_kzalloc}
 function again as in the previous lab. Again, resource deallocation is
 automatically taken care of when we use the \code{devm_} functions.
@@ -247,8 +253,8 @@ Load your module on the target. You should see the
 corresponding character in the new \code{picocom} instance,
 showing what was written to UART3.
 
-You can also check that you also get the same character on UART8
-(just connect to the UART8 pins instead of the UART3 ones and reload the module).
+You can also check that you also get the same character on UART8 (just connect
+to the UART8 pins instead of the UART3 ones and reload the module).
 
 \section{Driver sanity check}
 
