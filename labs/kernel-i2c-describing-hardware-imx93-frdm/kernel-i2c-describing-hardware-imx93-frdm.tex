@@ -99,12 +99,14 @@ it here.
 
 \subsection{Enabling an I2C bus}
 
-As we can see in the board reference manual, the i.MX93-FRDM board has
+As we can see in the board user manual, the i.MX93-FRDM board has
 only one I2C bus available on its expansion connectors. This is LPI2C1,
 which is connected to the 10-pin 2x5 2.54 mm connector. But if we look
-at the design files, we can see that the SoC's LPI2C4 bus is connected
-to \code{EXP_GPIO_IO02} and \code{EXP_GPIO_IO03} of the expansion
-connector.
+at the design files, we can see that among all the GPIOs connected on the main
+EXPI connector, \code{EXP_GPIO_IO02} and \code{EXP_GPIO_IO03} are physically
+wired to the SoC \code{GPIO_IO02} and \code{GPIO_IO} pins, which can be routed
+internally to the LPI2C4 bus by enabling the alternate mode 1 (see reference
+manual \code{27.3.1.8 SW_MUX_CTL_PAD_GPIO_IO02 SW MUX Control Register}).
 
 From a training perspective, we will enable bus LPI2C4, which is
 disabled by default in the board's Device Tree.
@@ -112,7 +114,7 @@ disabled by default in the board's Device Tree.
 So, let's see which I2C buses are already enabled:
 
 \begin{bashinput}
-# i2cdetect -l 
+# i2cdetect -l
 i2c-1	i2c       	44350000.i2c                    	I2C adapter
 i2c-2	i2c       	42530000.i2c                    	I2C adapter
 i2c-0	i2c       	44340000.i2c                    	I2C adapter
@@ -252,7 +254,7 @@ for presence of the new \code{joystick} node:
 {\small
 \begin{verbatim}
 # find /sys/firmware/devicetree -name "*joystick*"
-/sys/firmware/devicetree/base/soc@0/bus@44000000/i2c@44340000/joystick@52
+/sys/firmware/devicetree/base/soc@0/bus@42000000/i2c@42540000/joystick@52
 \end{verbatim}
 }
 
@@ -261,7 +263,7 @@ the Device Tree Compiler (\code{dtc}), which we put in the root
 filesystem:
 \begin{verbatim}
 # dtc -I fs /sys/firmware/devicetree/base/ > /tmp/dts
-# grep -C10 nunchuk /tmp/dts
+# grep -B15 -A4 nunchuk /tmp/dts
 \end{verbatim}
 
 Once your new Device Tree seems correct, commit your changes. As you
