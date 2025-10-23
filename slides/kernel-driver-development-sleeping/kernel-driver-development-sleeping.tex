@@ -213,31 +213,18 @@ From \kfile{drivers/char/tpm/tpm_ibmvtpm.c}
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{Waiting when there is no interrupt}
+  \frametitle{Blocking}
   \begin{itemize}
-  \item When there is no interrupt mechanism tied to a particular
-        hardware state, it is tempting to implement a custom busy-wait loop.
+  \item Use helpers which implement software loops or use hardware timers
     \begin{itemize}
-    \item Spoiler alert: this is highly discouraged!
-    \end{itemize}
-  \item For long lasting pauses, rely on helpers which leverage the
-    system clock
-    \begin{itemize}
-    \item \kfunc{wait_event} helpers are (also) very useful outside of
-      interrupt situations
-    \item Release the CPU with \kfunc{schedule}
-    \end{itemize}
-  \item For shorter pauses, use helpers which implement software loops
-    \begin{itemize}
-    \item \kfunc{msleep}/\kfunc{msleep_interruptible} put the process
-      in sleep for a given amount of milliseconds
-    \item \kfunc{usleep}/\kfunc{usleep_range} put the process in sleep
-      for some amount of µs (range allows minimising timer interrupts)
     \item \kfunc{udelay} waste CPU cycles in order
-      to save a couple of context switches for a sub-millisecond period
-    \item \kfunc{cpu_relax} does nothing, but may be used as a way to
-      not being optimized out by the compiler when busy looping for very
-      short periods
+      to save a couple of context switches, suitable for $\le$ 10us or in atomic
+      situations
+    \item \kfunc{usleep}/\kfunc{usleep_range}/\kfunc{msleep} put the
+      process in sleep for a given amount of micro/milliseconds (not suitable in
+      atomic contexts)
+    \item If in doubt, use \kfunc{fsleep}, which will use the more suitable
+      internal function depending on the period you've asked!
     \end{itemize}
   \end{itemize}
 \end{frame}
@@ -267,5 +254,6 @@ int read[bwlq]_poll_timeout[_atomic](addr, val, cond,
         \end{itemize}
         \item \code{_atomic} variant uses \kfunc{udelay} instead of \kfunc{usleep}.
     \end{itemize}
+  \item Avoid implementing custom busy-wait loops if possible
   \end{itemize}
 \end{frame}
