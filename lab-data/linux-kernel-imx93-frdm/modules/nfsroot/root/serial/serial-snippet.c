@@ -21,8 +21,8 @@
 #define LPUART_DATA 0x1C
 /* FIFO Register */
 #define LPUART_FIFO 0x28
-#define   LPUART_FIFO_TXFE BIT(23) /* Transmit FIFO Enable */
-#define   LPUART_FIFO_RXFE BIT(22) /* Receive FIFO Enable */
+#define   LPUART_FIFO_TXFE BIT(7) /* Transmit FIFO Enable */
+#define   LPUART_FIFO_RXFE BIT(3) /* Receive FIFO Enable */
 #define   LPUART_FIFO_TXFLUSH BIT(15) /* Transmit FIFO Flush */
 #define   LPUART_FIFO_RXFLUSH BIT(14) /* Receive FIFO Flush */
 
