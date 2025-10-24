@@ -34,9 +34,10 @@ our \code{struct serial_dev *} object.
 
 Before going further, re-compile and test your driver.
 
-The \code{serial_write} callback and \code{serial_fops} can now be renamed \code{serial_write_pio} and \code{serial_fops_pio},
-while we will implement a new callback named \code{serial_write_dma} and a new
-set of file operations called \code{serial_fops_dma} which uses this callback
+The \code{serial_write} callback and \code{serial_fops} can now be
+renamed \code{serial_write_pio} and \code{serial_fops_pio}, while we will
+implement a new callback named \code{serial_write_dma} and a new set of file
+operations called \code{serial_fops_dma} which uses this callback
 for \code{.write} and keeps the same values for other fields. This new set of
 file operations should be used by default.
 
@@ -278,13 +279,9 @@ struct serial_dev {
 \end{verbatim}
 }\fi
 
-In the write hook, we shall first check if the DMA channel has been
-properly retrieved. If not, we should definitely fallback to the PIO
-implementation.
-
-Then, in order to simplify the code, we will no longer deal with
-concurrent operations. In order to safely serialize writes, we can start
-and end the write hook with something like:
+In order to simplify the code, we will no longer deal with concurrent
+operations. In order to safely serialize writes, we can start and end the write
+hook with something like:
 
 \begin{verbatim}
 unsigned long flags;
