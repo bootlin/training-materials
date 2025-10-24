@@ -175,22 +175,27 @@ In the probe routine (run every time a matching device is found):
       using \kfunc{device_property_read_bool}, and derive the right
       initialization bytes from it.
 
-\item Let the CPU wait for 1 ms by using the \kfunc{udelay} routine.
-      Let's use Elixir again to find the right C headers to include...
+\item Let the CPU wait for 1 ms by using \kfunc{fsleep} (more on sleeping
+      mechanisms later in the training).\footnote{\kfunc{fsleep} is a flexible
+      function that finds out what is the best internal waiting function for the
+      delay requested. It will either enter a busy-wait state
+      (eg. \kfunc{udelay}) or will block by entering a sleep state
+      (eg. \kfunc{usleep_range} or \kfunc{msleep}).
 
-      The Elixir results are a bit confusing here, because
-      \kfunc{udelay} is defined in \code{arch/<arch>/include/asm/delay.h} files,
-      but not in an \code{include/linux/<file>.h>} that is normally used
-      in kernel code.
-
-      However, look at \kfile{include/linux/delay.h} and you will see
+      As a going further task, you can use Elixir to find the right C headers to
+      include if you wanted to use a function like \kfunc{udelay} directly. The
+      Elixir results may be a bit confusing here, because \kfunc{udelay} is
+      defined in \code{arch/<arch>/include/asm/delay.h} files, and not
+      in \kfile{include/linux/delay.h>} that would normally be the canonical
+      place. However, look at \kfile{include/linux/delay.h} and you will see
       that it includes \code{asm/delay.h} which corresponds to the
-      specific headers for the current architecture. So you need to include
-      \code{linux/delay.h}.
+      specific headers for the current architecture. So you would indeed need to
+      include \code{linux/delay.h} anyway!
 
       {\bf General rule}: whenever the symbol you're looking
       for is defined in \code{arch/<arch>/include/asm/<file>.h}, you
-      can include \code{linux/<file>.h} in your kernel code.
+      should include \code{linux/<file>.h} in your kernel code.
+      }
 
 \item In the same way, send the \code{0xfb} and \code{0x00} bytes now.
       This completes the nunchuk initialization.
@@ -215,21 +220,11 @@ To keep the code simple and readable, let's create a
 In this function:
 
 \begin{enumerate}
-\item Start by putting a \code{10 ms} delay by calling
-      \code{usleep_range(10000, 20000)}, guaranteed to sleep between 10 and 20
-      ms.\footnote{That's better than using \kfunc{udelay} because it is not making
-      an active wait, and instead lets the CPU run other tasks in the meantime.
-      Moreover, this is better than using \kfunc{usleep} if your wait time is
-      flexible because this function will try to group tasks wakeup rather than
-      creating a specific timer to wake up that task.
-      You'll find interesting details on how to sleep or wait in kernel
-      code for specified durations in the kernel documentation:
-      \kdochtml{timers/delay_sleep_functions}.}
-      Such waiting time is needed to add time between the previous i2c
-      operation and the next one.
+\item Start by putting a \code{10 ms} sleep. Such waiting time is
+      needed to add time between the previous i2c operation and the next one.
 \item Write \code{0x00} to the bus. That will allow us to read
       the device registers.
-\item Add another \code{10 ms} delay.
+\item Add another \code{10 ms} sleep.
 \item Read 6 bytes from the device, still using the I2C raw API.
       Check the return value as usual.
 \end{enumerate}
