@@ -26,9 +26,8 @@
 #define   LPUART_FIFO_TXFLUSH BIT(15) /* Transmit FIFO Flush */
 #define   LPUART_FIFO_RXFLUSH BIT(14) /* Receive FIFO Flush */
 
-/* Time window for the global reset in microseconds */
+/* Minimum duration for the global reset (microseconds) */
 #define GLOBAL_RST_MIN_US 20
-#define GLOBAL_RST_MAX_US 40
 
 /*
  * Compute the LPUART baud rate register value (OSR + SBR) for a given clock
@@ -87,7 +86,7 @@ static int serial_init_controller(struct serial_dev *serial)
 
 	/* Reset the controller, enable and flush the FIFOs, compute the prescaler */
 	writel(LPUART_GLOBAL_RST, serial->regs + LPUART_GLOBAL);
-	usleep_range(GLOBAL_RST_MIN_US, GLOBAL_RST_MAX_US);
+	fsleep(GLOBAL_RST_MIN_US);
 	writel(0x00000000, serial->regs + LPUART_GLOBAL);
 	writel(0x0, serial->regs + LPUART_CTRL);
 	writel(LPUART_FIFO_TXFLUSH | LPUART_FIFO_RXFLUSH, serial->regs + LPUART_FIFO);
