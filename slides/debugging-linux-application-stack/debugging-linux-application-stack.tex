@@ -196,7 +196,7 @@
   \center \includegraphics[height=0.7\textheight]{slides/debugging-linux-application-stack/mem_type.pdf}
 \end{frame}
 
-\begin{frame}[fragile]
+\begin{frame}
   \frametitle{On-demand memory mapping ({\em Lazy allocation})}
   \begin{columns}
     \column{0.60\textwidth}
@@ -221,6 +221,29 @@
     \column{0.40\textwidth}
     \includegraphics[height=0.85\textheight]{slides/debugging-linux-application-stack/lazy_mapping.pdf}
   \end{columns}
+\end{frame}
+
+\begin{frame}
+  \frametitle{On-demand memory mapping: page faults}
+  \begin{itemize}
+    \item Lazy allocation is implemented based on {\em Page faults}
+    \begin{enumerate}
+      \item The CPU accesses a virtual address, valid but not yet
+        physically mapped
+        \begin{itemize}
+        \item E.g.: executes an instruction or reads/writes data
+        \end{itemize}
+      \item The MMU finds no mapping in the Page table $\rightarrow$ issues
+        a Page fault {\em exception} to the CPU
+      \item The CPU is immediately turned in kernel mode and executes an
+        exception vector (a function provided by the kernel)
+      \item The kernel checks if the virtual address is valid, finds a
+        suitable physical page to map, fills the page (reads from disk if
+        needed) and creates a page table entry
+      \item The kernel continues execution normally
+      \item The MMU now finds a mapping and continues
+    \end{enumerate}
+  \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]
