@@ -14,7 +14,7 @@ http://beagleboard.org/latest-images and follow instructions.
 1. [Download the images](#1-download-the-images)
 2. Flash using either option:
 	1. [Flash the image using Ethernet over USB with 'snagboot'](#2i-flash-the-image-using-ethernet-over-usb) (**recommended**)
-	2. [Flash the image using a micro-SD card](#2ii-flash-the-image-using-a-micro-sd-card) (legacy)
+	2. [Flash the image using a micro-SD card](#2ii-flash-the-image-using-a-micro-sd-card)
 3. How images were built
 	1. [How snagboot images were built](#3i-how-the-binaries-were-compiled-for-snagboot-recovery)
 	2. [How the images for SD card recovery were built](#3ii-how-the-binaries-were-compiled-for-sd-card-recovery)
@@ -92,9 +92,6 @@ Don't forget to exit the shell created by the am335x setup script, as
 failing to do so may result in network issues later.
 
 ### 2.ii. Flash the image using a micro-SD card
-
-These instructions are given as reference only, they will install an old
-U-Boot. Prefer using method 2a using Snagboot.
 
 #### Make a bootable micro-SD card
 
