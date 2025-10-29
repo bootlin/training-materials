@@ -43,7 +43,8 @@ LINUX_KERNEL_BBB_SLIDES = \
 		kernel-driver-development-mmap \
 		kernel-driver-development-general-apis
 
-LINUX_KERNEL_BBB_LABS = setup \
+LINUX_KERNEL_BBB_LABS = \
+		setup \
 		kernel-sources-download \
 		kernel-sources-exploring \
 		kernel-board-setup-bbb \

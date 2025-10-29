@@ -43,19 +43,20 @@ LINUX_KERNEL_BEAGLEPLAY_SLIDES = \
 		kernel-driver-development-mmap \
 		kernel-driver-development-general-apis
 
-LINUX_KERNEL_BEAGLEPLAY_LABS   = setup \
-				kernel-sources-download \
-				kernel-sources-exploring \
-				kernel-board-setup-beagleplay \
-				kernel-compiling-and-nfs-booting-beagleplay \
-				kernel-module-simple \
-				kernel-i2c-describing-hardware-beagleplay \
-				kernel-i2c-multiplexing-beagleplay \
-				kernel-i2c-communication \
-				kernel-i2c-input-interface \
-				kernel-serial-iomem-beagleplay \
-				kernel-serial-output \
-				kernel-serial-interrupt \
-				kernel-locking \
-				kernel-serial-dma \
-				kernel-debugging \
+LINUX_KERNEL_BEAGLEPLAY_LABS = \
+		setup \
+		kernel-sources-download \
+		kernel-sources-exploring \
+		kernel-board-setup-beagleplay \
+		kernel-compiling-and-nfs-booting-beagleplay \
+		kernel-module-simple \
+		kernel-i2c-describing-hardware-beagleplay \
+		kernel-i2c-multiplexing-beagleplay \
+		kernel-i2c-communication \
+		kernel-i2c-input-interface \
+		kernel-serial-iomem-beagleplay \
+		kernel-serial-output \
+		kernel-serial-interrupt \
+		kernel-locking \
+		kernel-serial-dma \
+		kernel-debugging \

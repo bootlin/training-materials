@@ -43,7 +43,8 @@ LINUX_KERNEL_IMX93_FRDM_SLIDES = \
 		kernel-driver-development-mmap \
 		kernel-driver-development-general-apis
 
-LINUX_KERNEL_IMX93_FRDM_LABS   = setup \
+LINUX_KERNEL_IMX93_FRDM_LABS = \
+		setup \
 		kernel-sources-download \
 		kernel-sources-exploring \
 		kernel-board-setup-imx93-frdm \
