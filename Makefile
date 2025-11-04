@@ -243,21 +243,14 @@ endif
 #
 # === Compilation of agendas ===
 #
-ifdef AGENDA
-AGENDA_TEX = agenda/$(AGENDA)-agenda.tex
 AGENDA_PICTURES = $(COMMON_PICTURES) $(call PICTURES,agenda)
 
-%-agenda.pdf: common/agenda_old.sty common/agenda.sty $(AGENDA_TEX) $(AGENDA_PICTURES) $(OUTDIR)/last-update.tex
+%-agenda.pdf: common/agenda_old.sty common/agenda.sty agenda/%-agenda.tex $(AGENDA_PICTURES) $(OUTDIR)/last-update.tex
 	rm -f $(OUTDIR)/$(basename $@).tex
 	cp $(filter %-agenda.tex,$^) $(OUTDIR)/$(basename $@).tex
 	(cd $(OUTDIR); $(PDFLATEX_ENV) $(PDFLATEX) $(basename $@).tex)
 	(cd $(OUTDIR); $(PDFLATEX_ENV) $(PDFLATEX) $(basename $@).tex > /dev/null 2>&1)
 	cat $(OUTDIR)/$@ > $@
-else
-FORCE:
-%-agenda.pdf: FORCE
-	@$(MAKE) $@ AGENDA=$*
-endif
 
 #
 # === Last update file generation ===
