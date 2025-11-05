@@ -43,7 +43,7 @@ After doing so, you need to re-flash your sdcard using \code{dd}.
 You can now boot your Espressobin, and insert the module corresponding to our driver :
  
 \begin{targetbashinput}
-insmod blan.ko
+modprobe bootlinlan
 \end{targetbashinput}
  
  You should see your Hello World message being printed out.
@@ -62,6 +62,10 @@ static struct rtnl_link_ops bootlinlan_link_ops = {
         .dellink = bootlinlan_dellink,
 };
 \end{verbatim}
+
+In our driver's module initialisation and cleanup callback functions \code{bootlinlan_init} and \code{bootlinlan_exit}, we need to register to the linux kernel our new device type "blan". To achieve that, call
+the \kfunc{rtnl_link_register} and \kfunc{rtnl_link_deregister}, passing as a parameter the definition
+of our \code{rtnl_link_ops}.
 
  We will need some private data structure to be associated to our \kstruct{net_device}, that will store context to be used in all our callback functions.
 
@@ -109,7 +113,7 @@ room in its \code{net_device.priv} field, we can pass the size of the private da
 
  In our case, the patched version of \code{iproute2} that is provided will :
  \begin{itemize}
-	 \item Place the parent's interface index into \code{tb[IFLA_LINK]}, as a u32 value
+	 \item Place the lower device's interface index into \code{tb[IFLA_LINK]}, as a u32 value
 		 \begin{itemize}
 			\item \code{ip link add link }\textcolor{red}{\code{eth0}}\code{ name blan0 type blan id 10}
 		 \end{itemize}
@@ -133,14 +137,14 @@ A pointer to your private data structure is stored in \code{net_device.priv} :
 struct bootlinlan_priv *priv = netdev_priv(dev);
 \end{verbatim}
 
-Then, you need to retrieve a pointer to the \textcolor{red}{parent} netdev. This will be used to configure our netdev.
+Then, you need to retrieve a pointer to the \textcolor{red}{lower} netdev. This will be used to configure our netdev.
 To get a netdev from its index, you can call \kfunc{__dev_get_by_index}. Take a look at its documentation to know what are the expected parameters.
 
-Now that you have a pointer tothe parent netdev, we can configure our device :
+Now that you have a pointer to the lower netdev, we can configure our device :
 
 \begin{itemize}
-	\item The \kstruct{device} that backs our netdev is the same as the parent's. We can use \code{SET_NETDEV_DEV(dev, &parent_dev->dev);} to set it.
-	\item We want to inherit the same MAC address as the parent. Use \kfunc{eth_hw_addr_inherit} for that.
+	\item The \kstruct{device} that backs our netdev is the same as the lower device's. We can use \code{SET_NETDEV_DEV(dev, &lowerdev->dev);} to set it.
+	\item We want to inherit the same MAC address as the lower dev. Use \kfunc{eth_hw_addr_inherit} for that.
 \end{itemize}
 
 We can finally register our device ! We need to call either \kfunc{register_netdevice}, or \kfunc{register_netdev}. Only one of them will work in our case :)
@@ -164,7 +168,7 @@ a special helper named \kfunc{unregister_netdevice_queue}, as we are currently h
 
 One final step is to notify the entire system that our \code{blan0} interface is stacked on \textcolor{red}{\code{lan0}}. To do this, add a call to \kfunc{netdev_upper_dev_link} after the registration of your netdev.
 
-In the \code{bootlinlan_dellink}, the opposite is done by calling \kfunc{netdev_upper_dev_unlink}, however you'll notice that it takes as parameters both the \textcolor{red}{parent} device and our netdevice. So, let's add a \kstruct{net_device} field in the \code{bootlinlan_priv} data structure :
+In the \code{bootlinlan_dellink}, the opposite is done by calling \kfunc{netdev_upper_dev_unlink}, however you'll notice that it takes as parameters both the \textcolor{red}{lower} device and our netdevice. So, let's add a \kstruct{net_device} field in the \code{bootlinlan_priv} data structure :
 
 \begin{verbatim}
 struct bootlinlan_priv {
