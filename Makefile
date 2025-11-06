@@ -124,6 +124,7 @@ TRAINING = $(SLIDES_TRAINING)
 
 TRAINING_TYPE = $(TRAINING)
 $(foreach s,$(BOARD_SUFFIXES),$(eval TRAINING_TYPE := $(subst $(s),,$(TRAINING_TYPE))))
+BOARD_TYPE = $(strip $(subst $(TRAINING_TYPE)-,,$(TRAINING)))
 
 ifeq ($(SLIDES_CHAPTERS),)
 $(error "No chapter to build, maybe you're building a single chapter whose name doesn't start with a training session name")
@@ -327,6 +328,7 @@ $(VARS): FORCE
 	@mkdir -p $(dir $@)
 	/bin/echo "\def \sessionurl {$(patsubst %/,%,$(SESSION_URL))}" > $@
 	/bin/echo "\def \training {$(TRAINING_TYPE)}" >> $@
+	/bin/echo "\def \board {$(BOARD_TYPE)}" >> $@
 	/bin/echo "\def \trainer {$(TRAINER)}" >> $@
 
 clean:
