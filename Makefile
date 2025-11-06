@@ -73,6 +73,11 @@ COMMON_PICTURES   = $(call PICTURES,common)
 
 default: help
 
+# List of all supported boards among all trainings.
+# /!\ You need to update this variable when you support a new board in any
+# training
+BOARD_SUFFIXES = -bbb -beagleplay -qemu -stm32mp2 -expressobin
+
 #
 # === Compilation of slides ===
 #
@@ -117,7 +122,6 @@ endif
 
 TRAINING = $(SLIDES_TRAINING)
 
-BOARD_SUFFIXES = -bbb -beagleplay -qemu -stm32mp2 -expressobin
 TRAINING_TYPE = $(TRAINING)
 $(foreach s,$(BOARD_SUFFIXES),$(eval TRAINING_TYPE := $(subst $(s),,$(TRAINING_TYPE))))
 
