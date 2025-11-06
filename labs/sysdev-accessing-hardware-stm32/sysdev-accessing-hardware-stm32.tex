@@ -122,7 +122,7 @@ GPIOs are already in use:
 # cat /sys/kernel/debug/gpio
 \end{bashinput}
 
-\if\defstring{\labboard}{stm32mp1}
+\if\defstring{\board}{stm32mp1}
 We are now going to use one of the Arduino Uno header pins at the back
 of the board, which is not already used by another device.
 
@@ -148,7 +148,7 @@ numbers 576 to 591. Hence, PE1, the second pin on this bank corresponds to
 GPIO number \gpionum.
 \fi
 
-\if\defstring{\labboard}{stm32mp2}
+\if\defstring{\board}{stm32mp2}
 We are now going to use one of the header pins at the top of the
 board, which is not already used by another device.
 
@@ -207,12 +207,12 @@ And check its value:
 \end{bashinput}
 
 The value should be \code{0} as the pin is connected to a ground level.
-\if\defstring{\labboard}{stm32mp1}
+\if\defstring{\board}{stm32mp1}
 Now, let's connect our GPIO pin to pin 2 (IOREF 3V3) of connector CN16.
 That's the same connector as before, just the second pin from the top
 (in the board picture above), instead of the seventh one.
 \fi
-\if\defstring{\labboard}{stm32mp2}
+\if\defstring{\board}{stm32mp2}
 Now, let's connect our GPIO pin to pin 1 (IOREF 3V3).
 \fi
 Let's check the value again:
@@ -294,13 +294,13 @@ The next thing we want to do is connect an Nunchuk joystick
 to an I2C bus on our board. The I2C bus is very frequently used
 to connect all sorts of external devices. That's why we're covering
 it here.
-\if\defstring{\labboard}{stm32mp1}
+\if\defstring{\board}{stm32mp1}
 The first task is to find a suitable bus. If you study the
 same document about the board, you will find that only I2C5 is
 conveniently available through the Arduino headers. Let's try
 to use this one!
 \fi
-\if\defstring{\labboard}{stm32mp2}
+\if\defstring{\board}{stm32mp2}
 The first task is to find a suitable bus. If you study the
 same document about the board, you will find that only I2C2 and I2C8 are
 conveniently available through the headers pin. Let's try
@@ -309,21 +309,21 @@ to use I2C8!
 
 First, let's see which I2C buses are already enabled:
 
-\if\defstring{\labboard}{stm32mp1}
+\if\defstring{\board}{stm32mp1}
 \begin{bashinput}
 # i2cdetect -l
 i2c-1	i2c             STM32F7 I2C(0x5c002000)                 I2C adapter
 i2c-0	i2c             STM32F7 I2C(0x40012000)                 I2C adapter
 \end{bashinput}
 \fi
-\if\defstring{\labboard}{stm32mp2}
+\if\defstring{\board}{stm32mp2}
 \begin{bashinput}
 # i2cdetect -l
 i2c-0	i2c       	STM32F7 I2C(0x0000000040130000) 	I2C adapter
 \end{bashinput}
 \fi
 
-\if\defstring{\labboard}{stm32mp1}
+\if\defstring{\board}{stm32mp1}
 \code{i2c-0} is the I2C controller with registers at
 \code{0x40012000}, which is \code{I2C1} in the STM32MP1
 nomenclature. \code{i2c-1} is the I2C controller with registers at
@@ -335,7 +335,7 @@ of enabled I2C busses. Here, because only I2C1 and I2C4 are enabled,
 they are called \code{i2c-0} and \code{i2c-1}.
 \fi
 
-\if\defstring{\labboard}{stm32mp2}
+\if\defstring{\board}{stm32mp2}
 \code{i2c-0} is the I2C controller with registers at
 \code{0x0000000040130000}, which is \code{I2C2} in the STM32MP2
 nomenclature. Refer to the STM32MP25 memory map in the datasheet for
@@ -344,14 +344,14 @@ the Linux numbering, based on the registration order of enabled I2C
 busses. Here, because only I2C2 is enabled, it is called \code{i2c-0}.
 \fi
 
-\if\defstring{\labboard}{stm32mp1}
+\if\defstring{\board}{stm32mp1}
 Using the datasheet for the SoC
 \footnote{\url{https://www.st.com/resource/en/reference_manual/dm00327659-stm32mp157-advanced-arm-based-32-bit-mpus-stmicroelectronics.pdf}},
 we can find what is the base address of the registers for the
 \code{I2C5} controller: it is \code{0x40015000}.
 \fi
 
-\if\defstring{\labboard}{stm32mp2}
+\if\defstring{\board}{stm32mp2}
 Using the datasheet for the SoC
 \footnote{\url{https://www.st.com/resource/en/reference_manual/rm0457-stm32mp25xx-advanced-armbased-3264bit-mpus-stmicroelectronics.pdf}},
 we can find what is the base address of the registers for the
@@ -365,10 +365,10 @@ To enable \busname on our system, we need to assign set \code{status =
 
 Fortunately, \busname is already defined in the one of the DTS includes
 used by the Device Tree for our board. In our case, that's in
-\if\defstring{\labboard}{stm32mp1}
+\if\defstring{\board}{stm32mp1}
 \kfileversion{arch/arm/boot/dts/st/stm32mp151.dtsi}{6.6}.
 \fi
-\if\defstring{\labboard}{stm32mp2}
+\if\defstring{\board}{stm32mp2}
 \kfileversion{arch/arm64/boot/dts/st/stm32mp251.dtsi}{6.6}.
 \fi
 Look by yourself in this
@@ -376,10 +376,10 @@ file, and you will find its definition, but with \code{status =
 "disabled";}. This means that this I2C controller is not enabled yet,
 and it's up to boards using it to do so.
 
-\if\defstring{\labboard}{stm32mp1}
+\if\defstring{\board}{stm32mp1}
 We could modify the \kfile{arch/arm/boot/dts/st/stm32mp157a-dk1.dts} file
 \fi
-\if\defstring{\labboard}{stm32mp2}
+\if\defstring{\board}{stm32mp2}
 We could modify the \kfile{arch/arm64/boot/dts/st/stm32mp257f-dk.dts} file
 \fi
 for our board, but that's not a very good idea as this file is
@@ -390,7 +390,7 @@ A more futureproof idea is to create a new Device Tree file which
 includes the standard one, and adds custom definitions. So, create a
 new
 
-\if\defstring{\labboard}{stm32mp1}
+\if\defstring{\board}{stm32mp1}
 \code{arch/arm/boot/dts/st/stm32mp157a-dk1-custom.dts} file containing:
 \begin{verbatim}
 /dts-v1/;
@@ -402,7 +402,7 @@ new
 };
 \end{verbatim}
 \fi
-\if\defstring{\labboard}{stm32mp2}
+\if\defstring{\board}{stm32mp2}
 \code{arch/arm64/boot/dts/st/stm32mp257f-dk-custom.dts} file containing:
 \begin{verbatim}
 /dts-v1/;
@@ -426,7 +426,7 @@ A device like an I2C controller node is typically declared in the DTSI
 files for the SoC, without pin settings as these are board
 specific. Pin definitions are then usually defined at board level.
 
-\if\defstring{\labboard}{stm32mp1}
+\if\defstring{\board}{stm32mp1}
 In our case, we don't see such definitions, but they are actually
 found in the \kfile{arch/arm/boot/dts/st/stm32mp15xx-dkx.dtsi}
 file, shared between multiple stm32mp15 DK boards, which is included
@@ -435,7 +435,7 @@ by the toplevel Device Tree for our board.
 Modify the \kfile{arch/arm/boot/dts/st/Makefile} file to add your custom
 Device Tree, and then have it compiled (\code{make dtbs}).
 \fi
-\if\defstring{\labboard}{stm32mp2}
+\if\defstring{\board}{stm32mp2}
 In our case, we don't see such definitions, but they are actually
 found in the \kfile{arch/arm64/boot/dts/st/stm32mp251.dtsi}
 file, shared between multiple stm32mp25 boards, which is included
@@ -447,7 +447,7 @@ Device Tree, and then have it compiled (\code{make dtbs}).
 
 Reboot your board with the update.
 
-\if\defstring{\labboard}{stm32mp1}
+\if\defstring{\board}{stm32mp1}
 Back to the running system, we can now see that there is one more
 I2C bus. We can also recognize the \busname address (\code{0x40015000})
 though it's now associated to the \code{i2c-1} device name, which
@@ -460,7 +460,7 @@ i2c-2	i2c             STM32F7 I2C(0x5c002000)                 I2C adapter
 i2c-0	i2c             STM32F7 I2C(0x40012000)                 I2C adapter
 \end{bashinput}
 \fi
-\if\defstring{\labboard}{stm32mp2}
+\if\defstring{\board}{stm32mp2}
 Back to the running system, we can now see that there is one more
 I2C bus. We can also recognize the I2C8 address (\code{0x46040000})
 though it's now associated to the \code{i2c-0} device name, which
@@ -473,7 +473,7 @@ i2c-0	i2c       	STM32F7 I2C(0x0000000040130000) 	I2C adapter
 \end{bashinput}
 \fi
 
-\if\defstring{\labboard}{stm32mp1}
+\if\defstring{\board}{stm32mp1}
 Now, let's use \code{i2cdetect}'s capability to probe a bus for devices.
 Let's start by the bus associated to \code{i2c-2}:
 
@@ -500,7 +500,7 @@ We can see two devices here:
   currently not bound to a kernel driver.
 \end{itemize}
 \fi
-\if\defstring{\labboard}{stm32mp2}
+\if\defstring{\board}{stm32mp2}
 Now, let's use \code{i2cdetect}'s capability to probe a bus for devices.
 Let's start by the bus associated to \code{i2c-0}:
 
@@ -563,7 +563,7 @@ to the \busname bus on the board, using breadboard wires:
 \includegraphics[width=4cm]{common/nunchuk-pinout.pdf}
 \end{center}
 
-\if\defstring{\labboard}{stm32mp1}
+\if\defstring{\board}{stm32mp1}
 \includegraphics[width=12cm]{common/dk1-nunchuk-connect.jpg}
 \begin{center}
   \includegraphics[width=6cm]{labs/sysdev-accessing-hardware-stm32/dk1-board-nunchuk-connected.jpg}
@@ -576,7 +576,7 @@ to the \busname bus on the board, using breadboard wires:
 \item Connect the Nunchuk SDA pin to pin 9 (D14 - I2C5\_SDA) of connector CN13
 \end{itemize}
 \fi
-\if\defstring{\labboard}{stm32mp2}
+\if\defstring{\board}{stm32mp2}
 \begin{center}
   \includegraphics[width=10cm]{labs/sysdev-accessing-hardware-stm32/stm32mp2_pin_map.png}
   \includegraphics[width=6cm]{labs/sysdev-accessing-hardware-stm32/stm32mp2_nunchuk.jpg}
@@ -618,7 +618,7 @@ headset provided by your instructor.
 
 Before plugging the device, look at the output of \code{lsusb}:
 
-\if\defstring{\labboard}{stm32mp1}
+\if\defstring{\board}{stm32mp1}
 \begin{bashinput}
 # lsusb
 Bus 002 Device 002: ID 0424:2514
@@ -626,7 +626,7 @@ Bus 001 Device 001: ID 1d6b:0002
 Bus 002 Device 001: ID 1d6b:0002
 \end{bashinput}
 \fi
-\if\defstring{\labboard}{stm32mp2}
+\if\defstring{\board}{stm32mp2}
 \begin{bashinput}
 # lsusb
 Bus 001 Device 001: ID 1d6b:0002 Linux 6.6.48-g3682d604ecbd ehci_hcd EHCI Host Controller
@@ -638,7 +638,7 @@ Now, when you plug the USB headset, a number of messages should appear
 on the console, and running \code{lsusb} again should show an
 additional device:
 
-\if\defstring{\labboard}{stm32mp1}
+\if\defstring{\board}{stm32mp1}
 \begin{bashinput}
 # lsusb
 Bus 002 Device 004: ID 0d8c:0014
@@ -647,7 +647,7 @@ Bus 001 Device 001: ID 1d6b:0002
 Bus 002 Device 001: ID 1d6b:0002
 \end{bashinput}
 \fi
-\if\defstring{\labboard}{stm32mp2}
+\if\defstring{\board}{stm32mp2}
 \begin{bashinput}
 # lsusb
 Bus 001 Device 001: ID 1d6b:0002 Linux 6.6.48-g3682d604ecbd ehci_hcd EHCI Host Controller
@@ -823,7 +823,7 @@ To allow the kernel to manage our Nunchuk device, let's declare the
 device in the custom Device Tree for our board. The declaration of the
 \busname bus will then look as follows:
 
-\if\defstring{\labboard}{stm32mp1}
+\if\defstring{\board}{stm32mp1}
 \begin{verbatim}
 &i2c5 {
       status = "okay";
@@ -836,7 +836,7 @@ device in the custom Device Tree for our board. The declaration of the
 };
 \end{verbatim}
 \fi
-\if\defstring{\labboard}{stm32mp2}
+\if\defstring{\board}{stm32mp2}
 \begin{verbatim}
 &i2c2 {
         status = "okay";
@@ -903,7 +903,7 @@ We will use the Nunchuk to control audio playback in an upcoming lab.
 \section{Setting the board's model name}
 
 Modify the custom Device Tree file one last time to override the model
-name for your system. Set the \code{model} property to \labboard media
+name for your system. Set the \code{model} property to \board media
 player. Don't hesitate to ask your instructor if you're not sure how.
 
 Recompile the device tree, and reboot the board with it. You should see
@@ -937,14 +937,14 @@ command, as required by the Linux kernel contribution guidelines.
 
 Let's create the branch and the patch now:
 
-\if\defstring{\labboard}{stm32mp1}
+\if\defstring{\board}{stm32mp1}
 \begin{bashinput}
 git checkout -b bootlin-labs
 git add arch/arm/boot/dts/st/stm32mp157a-dk1-custom.dts arch/arm/boot/dts/st/Makefile
 git commit -as -m "Custom DTS for Bootlin lab"
 \end{bashinput}
 \fi
-\if\defstring{\labboard}{stm32mp2}
+\if\defstring{\board}{stm32mp2}
 \begin{bashinput}
 git checkout -b bootlin-labs
 git add arch/arm64/boot/dts/st/stm32mp257f-dk-custom.dts arch/arm64/boot/dts/st/Makefile

@@ -73,6 +73,19 @@ COMMON_PICTURES   = $(call PICTURES,common)
 
 default: help
 
+# List of all supported boards among all trainings.
+# /!\ You need to update this variable when you support a new board in any
+# training
+BOARD_SUFFIXES = \
+		 -native \
+		 -bbb \
+		 -beagleplay \
+		 -espressobin \
+		 -imx93-frdm \
+		 -qemu \
+		 -stm32mp1 \
+		 -stm32mp2
+
 #
 # === Compilation of slides ===
 #
@@ -98,8 +111,6 @@ else
 SLIDES_TRAINING      = $(firstword $(subst -, ,  $(SLIDES)))
 ifeq ($(SLIDES_TRAINING),sysdev)
 SLIDES_TRAINING = embedded-linux
-else ifeq ($(SLIDES_TRAINING),kernel)
-SLIDES_TRAINING = linux-kernel
 endif
 # We might be building multiple chapters that share a common
 # prefix. In this case, we want to build them in the order they are
@@ -117,9 +128,9 @@ endif
 
 TRAINING = $(SLIDES_TRAINING)
 
-BOARD_SUFFIXES = -bbb -beagleplay -qemu -stm32mp2 -expressobin
 TRAINING_TYPE = $(TRAINING)
 $(foreach s,$(BOARD_SUFFIXES),$(eval TRAINING_TYPE := $(subst $(s),,$(TRAINING_TYPE))))
+BOARD_TYPE = $(strip $(subst $(TRAINING_TYPE)-,,$(TRAINING)))
 
 ifeq ($(SLIDES_CHAPTERS),)
 $(error "No chapter to build, maybe you're building a single chapter whose name doesn't start with a training session name")
@@ -145,7 +156,6 @@ $(foreach file,$(SLIDES_TEX),$(if $(wildcard $(file)),,$(error Missing file $(fi
 	echo "\input{$(VARS)}" >> $(OUTDIR)/$(basename $@).tex
 	for f in $(filter %.tex,$^) ; do \
 		cp $$f $(OUTDIR)/`basename $$f` ; \
-		sed -i 's%__SESSION_TYPE__%$(TRAINING_TYPE)%' $(OUTDIR)/`basename $$f` ; \
 		sed -i 's%__SESSION_NAME__%$(SLIDES_TRAINING)%' $(OUTDIR)/`basename $$f` ; \
 		printf "\input{%s}\n" `basename $$f .tex` >> $(OUTDIR)/$(basename $@).tex ; \
 	done
@@ -184,6 +194,10 @@ LABS_FOOTER        = common/labs-footer.tex
 endif
 
 TRAINING           = $(LABS_TRAINING)
+
+TRAINING_TYPE = $(TRAINING)
+$(foreach s,$(BOARD_SUFFIXES),$(eval TRAINING_TYPE := $(subst $(s),,$(TRAINING_TYPE))))
+BOARD_TYPE = $(strip $(subst $(TRAINING_TYPE)-,,$(TRAINING)))
 
 # Compute the set of corresponding .tex files and pictures
 LABS_TEX      = \
@@ -247,9 +261,14 @@ ifdef AGENDA
 AGENDA_TEX = agenda/$(AGENDA)-agenda.tex
 AGENDA_PICTURES = $(COMMON_PICTURES) $(call PICTURES,agenda)
 
-%-agenda.pdf: common/agenda_old.sty common/agenda.sty $(AGENDA_TEX) $(AGENDA_PICTURES) $(OUTDIR)/last-update.tex
+TRAINING_TYPE = $(AGENDA)
+AGENDA_MODIFIERS = -fr -online
+$(foreach s,$(AGENDA_MODIFIERS),$(eval TRAINING_TYPE := $(subst $(s),,$(TRAINING_TYPE))))
+
+%-agenda.pdf: common/agenda_old.sty common/agenda.sty $(VARS) $(AGENDA_TEX) $(AGENDA_PICTURES) $(OUTDIR)/last-update.tex
 	rm -f $(OUTDIR)/$(basename $@).tex
-	cp $(filter %-agenda.tex,$^) $(OUTDIR)/$(basename $@).tex
+	echo "\input{$(VARS)}" >> $(OUTDIR)/$(basename $@).tex
+	echo "\input{$(filter %-agenda.tex,$^)}" >> $(OUTDIR)/$(basename $@).tex
 	(cd $(OUTDIR); $(PDFLATEX_ENV) $(PDFLATEX) $(basename $@).tex)
 	(cd $(OUTDIR); $(PDFLATEX_ENV) $(PDFLATEX) $(basename $@).tex > /dev/null 2>&1)
 	cat $(OUTDIR)/$@ > $@
@@ -318,16 +337,18 @@ $(OUTDIR)/%.pdf: %.pdf
 $(VARS): FORCE
 	@mkdir -p $(dir $@)
 	/bin/echo "\def \sessionurl {$(patsubst %/,%,$(SESSION_URL))}" > $@
-	/bin/echo "\def \training {$(TRAINING)}" >> $@
+	/bin/echo "\def \training {$(TRAINING_TYPE)}" >> $@
+	/bin/echo "\def \board {$(BOARD_TYPE)}" >> $@
 	/bin/echo "\def \trainer {$(TRAINER)}" >> $@
 
 clean:
 	$(RM) -rf $(OUTDIR) *.pdf *-labs *.xz
 
-ALL_TRAININGS = $(sort $(patsubst %.mk,%,$(notdir $(wildcard mk/*.mk))))
+ALL_TRAININGS_MKS = $(sort $(notdir $(wildcard mk/*.mk)))
+ALL_TRAININGS = $(patsubst %.mk,%,$(ALL_TRAININGS_MKS))
 
 ALL_SLIDES = $(foreach p,$(ALL_TRAININGS),$(if $($(call UPPERCASE,$(p)_SLIDES)),full-$(p)-slides.pdf))
-ALL_LABS = $(foreach p,$(ALL_TRAININGS),$(if $($(call UPPERCASE,$(p)_LABS)),full-$(p)-labs.pdf))
+ALL_LABS = $(foreach p,$(ALL_TRAININGS),$(foreach b,$(BOARD_SUFFIXES),$(if $($(call UPPERCASE,$(p)$(subst -,_,$(b))_LABS)),full-$(p)$(b)-labs.pdf)))
 ALL_AGENDAS = $(patsubst %.tex,%.pdf,$(filter-out %.inc.tex,$(notdir $(wildcard agenda/*.tex))))
 ALL_LABS_TARBALLS = $(patsubst %,%-labs.tar.xz,$(filter-out common,$(notdir $(wildcard lab-data/*))))
 
@@ -336,8 +357,8 @@ all: $(ALL_SLIDES) $(ALL_LABS) $(ALL_AGENDAS) $(ALL_LABS_TARBALLS)
 list-courses:
 	@echo $(ALL_TRAININGS)
 
-.PHONY: $(ALL_TRAININGS) linux-kernel
-$(ALL_TRAININGS) linux-kernel:
+.PHONY: $(ALL_TRAININGS)
+$(ALL_TRAININGS):
 	$(MAKE) \
 		$(filter full-$@%,$(ALL_SLIDES)) \
 		$(filter full-$@%,$(ALL_LABS)) \
