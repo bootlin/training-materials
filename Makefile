@@ -76,7 +76,14 @@ default: help
 # List of all supported boards among all trainings.
 # /!\ You need to update this variable when you support a new board in any
 # training
-BOARD_SUFFIXES = -bbb -beagleplay -qemu -stm32mp2 -expressobin
+BOARD_SUFFIXES = \
+		 -native \
+		 -bbb \
+		 -beagleplay \
+		 -imx93-frdm \
+		 -qemu \
+		 -stm32mp1 \
+		 -stm32mp2
 
 #
 # === Compilation of slides ===
