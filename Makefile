@@ -319,6 +319,7 @@ $(VARS): FORCE
 	@mkdir -p $(dir $@)
 	/bin/echo "\def \sessionurl {$(patsubst %/,%,$(SESSION_URL))}" > $@
 	/bin/echo "\def \training {$(TRAINING)}" >> $@
+	/bin/echo "\def \trainingtype {$(TRAINING_TYPE)}" >> $@
 	/bin/echo "\def \trainer {$(TRAINER)}" >> $@
 
 clean:
