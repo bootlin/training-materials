@@ -17,8 +17,8 @@ We will first create a basic BitBake append file, without any change made
 to the original recipe, to see how it is integrated into the build. We will then
 extend some configuration variables of the original recipe.
 
-We here aim to extend the \ifdefstring{\labboard}{stm32mp1}{\code{linux-stm32mp}}
-{{\ifdefstring{\labboard}{beagleplay}{\code{linux-ti-staging}}{\code{linux-bb.org}}}} kernel recipe.
+We here aim to extend the \ifdefstring{\board}{stm32mp1}{\code{linux-stm32mp}}
+{{\ifdefstring{\board}{beagleplay}{\code{linux-ti-staging}}{\code{linux-bb.org}}}} kernel recipe.
 
 Try to create an appended recipe using the guidelines given in the slides.
 
@@ -30,13 +30,13 @@ bitbake-layers show-appends
 
 If the BitBake append file you just created is recognized by your Yocto
 environment, you should see:
-\if\defstring{\labboard}{stm32mp1}
+\if\defstring{\board}{stm32mp1}
 \begin{verbatim}
 linux-stm32mp_6.1.bb:
   $HOME/__SESSION_NAME__-labs/meta-bootlinlabs/recipes-kernel/linux/linux-stm32mp_6.1.bbappend
 \end{verbatim}
 \else
-  \if\defstring{\labboard}{beagleplay}
+  \if\defstring{\board}{beagleplay}
 \begin{verbatim}
 linux-ti-staging_6.6.bb:
   $HOME/__SESSION_NAME__-labs/meta-bootlinlabs/recipes-kernel/linux/linux-ti-staging_6.6.bbappend
@@ -52,8 +52,8 @@ linux-bb.org_git.bb:
 \section{Add patches to apply in the recipe}
 
 We want our extended
-\ifdefstring{\labboard}{stm32mp1}{\code{linux-stm32mp}}
-{{\ifdefstring{\labboard}{beagleplay}{\code{linux-ti-staging}}{\code{linux-bb.org}}}}
+\ifdefstring{\board}{stm32mp1}{\code{linux-stm32mp}}
+{{\ifdefstring{\board}{beagleplay}{\code{linux-ti-staging}}{\code{linux-bb.org}}}}
 kernel to support the Nunchuk as
 a joystick input. We can add this by applying patches during the
 \code{do_patch} task. The needed patches are provided with this lab. You can
@@ -71,13 +71,13 @@ list.
 Try adding the patches included in this lab to your BitBake append
 file. Do not forget to also add the \code{defconfig} file provided
 alongside the patches. This file contains the kernel configuration.
-\if\defstring{\labboard}{stm32mp1}
+\if\defstring{\board}{stm32mp1}
 Add \code{KERNEL_DEFCONFIG = ""} and \code{KERNEL_EXTERNAL_DEFCONFIG =
 "defconfig"} so it is used by the \code{linux-stm32mp} recipe.
 \footnote{These settings are specific to the \code{linux-stm32mp} recipe!}
 \else
 It is handled automatically in the
- \ifdefstring{\labboard}{beagleplay}{\code{linux-ti-staging}}{\code{linux-bb.org}} original recipe.
+ \ifdefstring{\board}{beagleplay}{\code{linux-ti-staging}}{\code{linux-bb.org}} original recipe.
 \fi
 
 You can now rebuild the kernel to take the new patches into account:
@@ -89,7 +89,7 @@ bitbake virtual/kernel
 
 Take the Nunchuk device provided by your instructor.
 
-We will connect it to the \ifdefstring{\labboard}{beagleplay}{\code{i2c3}}{\code{i2c1}} port
+We will connect it to the \ifdefstring{\board}{beagleplay}{\code{i2c3}}{\code{i2c1}} port
 of the CPU, with pins available on the \code{P9} connector.
 
 Identify the 4 pins of the Nunchuk connector:
@@ -98,7 +98,7 @@ Identify the 4 pins of the Nunchuk connector:
 \includegraphics[width=4cm]{common/nunchuk-pinout.pdf}
 \end{center}
 
-\ifdefstring{\labboard}{stm32mp1}{
+\ifdefstring{\board}{stm32mp1}{
 Connect the Nunchuk pins:
 \begin{itemize}
 \item The \code{GND} pin to CN16 pin 6 (\code{GND})
@@ -111,7 +111,7 @@ Connect the Nunchuk pins:
 \includegraphics[width=12cm]{common/dk1-nunchuk-connect.jpg}
 \end{center}
 }{
-\ifdefstring{\labboard}{beagleplay}{
+\ifdefstring{\board}{beagleplay}{
 Connect the Nunchuk pins:
 \begin{itemize}
 \item Connect the Nunchuk PWR pin to \code{+3.3V} pin of mikroBUS connector
@@ -156,7 +156,7 @@ cat /dev/input/js0
 \end{verbatim}
 
 You should see random characters appearing while playing with the Nunchuk.
-\ifdefstring{\labboard}{beagleplay}{}
+\ifdefstring{\board}{beagleplay}{}
 {Be aware that the driver we integrated also handles accelerometer events.
 Therefore, moving the device will produce many events!}
 

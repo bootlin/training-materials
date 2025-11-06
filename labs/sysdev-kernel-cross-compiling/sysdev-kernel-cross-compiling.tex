@@ -17,8 +17,8 @@ Stay in the \code{$HOME/__SESSION_NAME__-labs/kernel} directory.
 \section{Choose a particular stable version of Linux}
 
 We will use \texttt{linux-\workingkernel.x},
-\ifdefstring{\labboard}{qemu}{}{%
-  \ifdefstring{\labboard}{beagleplay}{}{which corresponds to an LTS release, and}
+\ifdefstring{\board}{qemu}{}{%
+  \ifdefstring{\board}{beagleplay}{}{which corresponds to an LTS release, and}
 }
 which this lab was tested with.
 
@@ -58,7 +58,7 @@ toolchain. We will use the cross-compiling toolchain that we
 previously produced, so we just need to make it available in the PATH:
 
 \begin{bashinput}
-$ export PATH=$HOME/x-tools/%\ifdefstring{\labboard}{beagleplay}{aarch64-training-linux-musl}{arm-training-linux-musleabihf}%/bin:$PATH
+$ export PATH=$HOME/x-tools/%\ifdefstring{\board}{beagleplay}{aarch64-training-linux-musl}{arm-training-linux-musleabihf}%/bin:$PATH
 \end{bashinput}
 
 Also, don't forget to either:
@@ -69,7 +69,7 @@ Also, don't forget to either:
 \item {\bf Or} specify them on the command line at every invocation of
   \code{make}, i.e.: \code{make ARCH=... CROSS_COMPILE=... <target>}
 \end{itemize}
-\ifdefstring{\labboard}{beagleplay}{
+\ifdefstring{\board}{beagleplay}{
 \textbf{Important:} The majority of tools use \code{aarch64} to define 64 bits
 ARM processors. However in specific cases, the tools may use \code{arm64} to 
 define such architecture. In the case of the kernel Makefile we will use the
@@ -83,21 +83,21 @@ It is assumed that the \code{ARCH} and \code{CROSS_COMPILE} variables have been 
 By running \code{make help}, look for the proper Makefile target to
 configure the kernel for your processor.
 
-\ifdefstring{\labboard}{stm32mp1}
+\ifdefstring{\board}{stm32mp1}
 {The standard configuration for this kernel is actually \code{multi_v7_defconfig},
 but this will generate a pretty big kernel with support for many other
 SoCs. However, we can reduce it to compile faster and get a small
 kernel.}{}
 
-\ifdefstring{\labboard}{beaglebone}
+\ifdefstring{\board}{bbb}
 {In our case look for a configuration for boards in the OMAP2 and
 later family which the AM335x found in the BeagleBone belongs to.}{}
-\ifdefstring{\labboard}{beagleplay}
+\ifdefstring{\board}{beagleplay}
 {If you search for a configuration file that corresponds to the \code{arm64}
 architecture that the kernel will use, you might see that only one
 \code{defconfig} file is available. We will therefore load this basic
 configuration file and modify it later.}{}
-\ifdefstring{\labboard}{qemu}
+\ifdefstring{\board}{qemu}
 {In course case, use the configuration for the ARM Vexpress boards
 (\code{vexpress_defconfig}).}{}
 
@@ -108,16 +108,16 @@ then run \code{make menuconfig} to fine-tune it.
 \item Disable \kconfig{CONFIG_GCC_PLUGINS} if it is set. This will skip
   building special {\em gcc} plugins, which would require extra dependencies
   for the build.
-\ifdefstring{\labboard}{stm32mp1}{
+\ifdefstring{\board}{stm32mp1}{
   \item In the \code{System Type} menu, remove support for all the SoCs except
-  the STM32MP157 ones. Don't forget to disable the TI ones too, which are
+  the STM32MP157 ones. Don't forget to disable the TI ones too which are
   in a submenu.
   \item Disable \kconfig{CONFIG_DRM}, which will skip support for many display
   controller and GPU drivers.}{}
-\ifdefstring{\labboard}{qemu}{
+\ifdefstring{\board}{qemu}{
   Also start \code{make menuconfig} to
   add \kconfig{CONFIG_DEVTMPFS_MOUNT} to your configuration.}{}
-\ifdefstring{\labboard}{beaglebone}{
+\ifdefstring{\board}{bbb}{
 \item Add options to support USB host and networking over USB device:
 \begin{itemize}
   \item \kconfigval{CONFIG_USB}{y}
@@ -137,7 +137,7 @@ then run \code{make menuconfig} to fine-tune it.
 \item Also compile your kernel with \kconfigval{CONFIG_INPUT_EVDEV}{y},
   to have the same default setting as in our labs with the STM32MP1 boards.
 }{}
-\ifdefstring{\labboard}{beagleplay}{
+\ifdefstring{\board}{beagleplay}{
 \item In the \code{Platform Selection} menu, remove support for all the SoCs except
 for the Texas Instruments Inc. K3 multicore SoC architecture.
 \item Disable \kconfig{CONFIG_DRM}, which will skip support for many display
@@ -145,13 +145,13 @@ controller and GPU drivers.
 }{}
 \end{itemize}
 
-\ifdefstring{\labboard}{stm32mp1}{
+\ifdefstring{\board}{stm32mp1}{
 Please note that this will definitely not build the smallest
 and most optimized kernel for STM32MP1: \code{multi_v7_defconfig}
 enables plenty of features and drivers that will not be useful on our
 particular board.}{}
 
-\ifdefstring{\labboard}{beagleplay}{
+\ifdefstring{\board}{beagleplay}{
 Please note that this will definitely not build the smallest and most
 optimized kernel for the BeaglePlay: the ARM64 \code{defconfig}
 enables plenty of features and drivers that will not be useful on our
@@ -172,7 +172,7 @@ the kernel image.
 Also look in the Device Tree Source directory to see which \code{.dtb}
 files got compiled. Find which \code{.dtb} file corresponds to your board.
 
-\ifdefstring{\labboard}{beaglebone}
+\ifdefstring{\board}{bbb}
 {For the BeagleBone Black, its \code{am335x-boneblack.dtb},
 and for the BeagleBone Black Wireless, its
 \code{am335x-boneblack-wireless.dtb}.}
@@ -192,13 +192,13 @@ We will use TFTP to load the kernel image on the board:
 
 \begin{itemize}
 
-\item On your workstation, copy the {\tt \ifdefstring{\labboard}{beagleplay}{Image.gz}{zImage}} and DTB
+\item On your workstation, copy the {\tt \ifdefstring{\board}{beagleplay}{Image.gz}{zImage}} and DTB
 (\texttt{\dtname}\texttt{.dtb}) to the directory exposed by the TFTP server.
 
-\item On the target (in the U-Boot prompt), load {\tt \ifdefstring{\labboard}{beagleplay}{Image.gz}{zImage}} from
+\item On the target (in the U-Boot prompt), load {\tt \ifdefstring{\board}{beagleplay}{Image.gz}{zImage}} from
 TFTP into RAM:
 \begin{ubootinput}
-=> tftp %\zimageboardaddr% %\ifdefstring{\labboard}{beagleplay}{Image.gz}{zImage}%
+=> tftp %\zimageboardaddr% %\ifdefstring{\board}{beagleplay}{Image.gz}{zImage}%
 \end{ubootinput}
 
 \item Now, also load the DTB file into RAM:
@@ -208,12 +208,12 @@ TFTP into RAM:
 
 \item Boot the kernel with its device tree:
 \begin{ubootinput}
-=> %\ifdefstring{\labboard}{beagleplay}{booti}{bootz} \zimageboardaddr% - %\dtbboardaddr%
+=> %\ifdefstring{\board}{beagleplay}{booti}{bootz} \zimageboardaddr% - %\dtbboardaddr%
 \end{ubootinput}
 
 \end{itemize}
 
-\if\defstring{\labboard}{beagleplay}
+\if\defstring{\board}{beagleplay}
 This last command should show you an error message of this type:
 \bashcmd{kernel_comp_addr_r or kernel_comp_size is not provided!}
 
@@ -246,11 +246,11 @@ You can now automate all this every time the board is booted or
 reset. Reset the board, and customize \code{bootcmd}:
 
 \begin{ubootinput}
-=> setenv bootcmd 'tftp %\zimageboardaddr\ \ifdefstring{\labboard}{beagleplay}{Image.gz}{zImage}; tftp \dtbboardaddr\ {\dtname}.dtb; \ifdefstring{\labboard}{beagleplay}{booti}{bootz} \zimageboardaddr\ - \dtbboardaddr'%
+=> setenv bootcmd 'tftp %\zimageboardaddr\ \ifdefstring{\board}{beagleplay}{Image.gz}{zImage}; tftp \dtbboardaddr\ {\dtname}.dtb; \ifdefstring{\board}{beagleplay}{booti}{bootz} \zimageboardaddr\ - \dtbboardaddr'%
 => saveenv
 \end{ubootinput}
 
-\ifdefstring{\labboard}{beaglebone}
+\ifdefstring{\board}{bbb}
 {{\bf Known issue}: with at least U-Boot 2023.04 and 2024.04 and with
 USB networking, there is an issue running two \code{tftp} commands in a
 row in \code{bootcmd}. To work around this issue before we get a chance

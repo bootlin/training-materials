@@ -30,17 +30,17 @@ BOOT_TIME_SLIDES = \
 		boot-time-references \
 		last-slides \
 
-BOOT_TIME_LABS = boot-time-goals \
-		setup \
-		boot-time-sources-download \
-		boot-time-board-setup \
-		boot-time-build-system \
-		boot-time-build-bootloader \
-		boot-time-build-kernel-and-start-system \
-		boot-time-software-measurement \
-		boot-time-toolchain \
-		boot-time-application \
-		boot-time-init-scripts \
-		boot-time-filesystem-optimizations \
-		boot-time-kernel \
-		boot-time-bootloader \
+BOOT_TIME_BBB_LABS = boot-time-goals \
+		     setup \
+		     boot-time-sources-download \
+		     boot-time-board-setup \
+		     boot-time-build-system \
+		     boot-time-build-bootloader \
+		     boot-time-build-kernel-and-start-system \
+		     boot-time-software-measurement \
+		     boot-time-toolchain \
+		     boot-time-application \
+		     boot-time-init-scripts \
+		     boot-time-filesystem-optimizations \
+		     boot-time-kernel \
+		     boot-time-bootloader \
