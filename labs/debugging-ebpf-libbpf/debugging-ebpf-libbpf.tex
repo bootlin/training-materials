@@ -45,7 +45,8 @@ data it emits can be read from the trace buffer. So to use it in a minimal
 way you can use \code{bpftool} without writing a userspace tool.
 
 However you'll also need to use the bpf filesystem to keep a reference to
-the loaded program, or it will be unloaded as soon as bpftool exits:
+the loaded program, or it will be unloaded as soon as bpftool exits. On the
+target:
 
 \begin{verbatim}
   mount -t bpf none /sys/fs/bpf
@@ -53,7 +54,9 @@ the loaded program, or it will be unloaded as soon as bpftool exits:
   bpftool prog loadall trace_programs.bpf.o /sys/fs/bpf/myprog autoattach
 \end{verbatim}
 
-Display the ftrace buffer content:
+Now the eBPF program should be loaded on the kernel and run every time
+the \code{execve} syscall is invoked. Check its output by reading the
+ftrace buffer content:
 
 \begin{verbatim}
 bpftool prog tracelog
