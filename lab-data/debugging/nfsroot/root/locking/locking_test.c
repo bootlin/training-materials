@@ -20,13 +20,13 @@ static void do_atomic_work(void)
 	unsigned long flags;
 	void *data;
 
-	local_irq_save(flags);
+	local_irq_save(flags); /* Disable interrupts */
 
 	data = kmalloc(1024, GFP_KERNEL);
 	/* Do something with the data */
 	kfree(data);
 
-	local_irq_restore(flags);
+	local_irq_restore(flags); /* Re-enable interrupts */
 }
 
 static void my_work_fn(struct work_struct *work)
