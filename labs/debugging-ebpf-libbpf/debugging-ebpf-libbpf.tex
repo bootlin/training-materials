@@ -11,7 +11,6 @@ Unfortunately, embedding BCC scripts onto our target is not very convenient: we 
 \begin{itemize}
   \item \code{clang} to be able to build bpf programs
   \item \code{linux-tools-common} to get \code{bpftool} (needed to generate skeletons)
-  \item \code{libbpf-dev} to get access to \code{libbpf} APIs in our eBPF program
   \item \code{pahole} to allow BTF header (vmlinux.h) generation with bpftool
 \end{itemize}
 
@@ -32,12 +31,21 @@ $ bpftool btf dump file /home/${USER}/__SESSION_NAME__-labs/buildroot/output/bui
   \end{bashinput}
   \item Next you need to build your eBPF program into a loadable object:
   \begin{bashinput}
-$ clang -target bpf -g -O2 -c trace_programs.bpf.c -o trace_programs.bpf.o
+$ clang -target bpf -g -O2 --sysroot=/home/${USER}/__SESSION_NAME__-labs/buildroot/output/staging -c trace_programs.bpf.c -o trace_programs.bpf.o
   \end{bashinput}
-{\em Note: since our program deals with pt\_regs, it is not portable
-		between architectures, that's why we have to provide the
-		target architecture with
-		\ifdefstring{\labboard}{beagleplay}{\code{__TARGET_ARCH_arm64}}{\code{__TARGET_ARCH_arm}}}
+
+{\em Notes:
+\begin{itemize}
+    \item since our program deals with pt\_regs, it is not portable
+        between architectures, that's why we have to provide the
+        target architecture with
+        \ifdefstring{\board}{beagleplay}{\code{__TARGET_ARCH_arm64}}{\code{__TARGET_ARCH_arm}}
+    \item our program needs to headers provided by libbpf. We can
+        provide access to those headers to clang with the --sysroot
+        parameter
+\end{itemize}
+}
+
 \end{itemize}
 
 Your eBPF program does not really need a userspace program to run, and the
