@@ -263,9 +263,16 @@ ifdef AGENDA
 AGENDA_TEX = agenda/$(AGENDA)-agenda.tex
 AGENDA_PICTURES = $(COMMON_PICTURES) $(call PICTURES,agenda)
 
-%-agenda.pdf: common/agenda_old.sty common/agenda.sty $(AGENDA_TEX) $(AGENDA_PICTURES) $(OUTDIR)/last-update.tex
+TRAINING_TYPE = $(AGENDA)
+AGENDA_MODIFIERS = \
+	       -fr \
+	       -online
+$(foreach s,$(AGENDA_MODIFIERS),$(eval TRAINING_TYPE := $(subst $(s),,$(TRAINING_TYPE))))
+
+%-agenda.pdf: common/agenda_old.sty common/agenda.sty $(VARS) $(AGENDA_TEX) $(AGENDA_PICTURES) $(OUTDIR)/last-update.tex
 	rm -f $(OUTDIR)/$(basename $@).tex
-	cp $(filter %-agenda.tex,$^) $(OUTDIR)/$(basename $@).tex
+	echo "\input{$(VARS)}" >> $(OUTDIR)/$(basename $@).tex
+	echo "\input{$(filter %-agenda.tex,$^)}" >> $(OUTDIR)/$(basename $@).tex
 	(cd $(OUTDIR); $(PDFLATEX_ENV) $(PDFLATEX) $(basename $@).tex)
 	(cd $(OUTDIR); $(PDFLATEX_ENV) $(PDFLATEX) $(basename $@).tex > /dev/null 2>&1)
 	cat $(OUTDIR)/$@ > $@
