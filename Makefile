@@ -336,6 +336,14 @@ all: $(ALL_SLIDES) $(ALL_LABS) $(ALL_AGENDAS) $(ALL_LABS_TARBALLS)
 list-courses:
 	@echo $(ALL_TRAININGS)
 
+.PHONY: $(ALL_TRAININGS) linux-kernel
+$(ALL_TRAININGS) linux-kernel:
+	$(MAKE) \
+		$(filter full-$@%,$(ALL_SLIDES)) \
+		$(filter full-$@%,$(ALL_LABS)) \
+		$(filter $@%,$(ALL_AGENDAS)) \
+		$(filter $@%,$(ALL_LABS_TARBALLS))
+
 HELP_FIELD_FORMAT = " %-36s %s\n"
 
 help:
@@ -361,3 +369,5 @@ help:
 	@printf $(HELP_FIELD_FORMAT) "<some-chapter>-labs.pdf" "Labs for a particular chapter in labs/"
 	@echo
 	@printf $(HELP_FIELD_FORMAT) "list-courses" "List all courses"
+	@printf $(HELP_FIELD_FORMAT) "<course>" "Slides, labs, agendas and tarballs for the course"
+	@printf $(HELP_FIELD_FORMAT) "linux-kernel" "Slides, labs, agendas and tarballs for all variants of the course"
