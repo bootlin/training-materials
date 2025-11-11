@@ -49,7 +49,7 @@ EMBEDDED_LINUX_SLIDES = \
 		last-slides \
 		sysdev-extra-slides
 
-EMBEDDED_LINUX_LABS   = setup \
+EMBEDDED_LINUX_STM32MP1_LABS   = setup \
 		sysdev-toolchain \
 		sysdev-u-boot-stm32 \
 		sysdev-kernel-fetch-sources \
@@ -99,5 +99,19 @@ EMBEDDED_LINUX_QEMU_LABS   = \
                 sysdev-block-filesystems-qemu \
                 sysdev-thirdparty-qemu \
                 sysdev-buildroot-qemu \
-				sysdev-application-development-qemu \
-				sysdev-application-debugging-qemu
+		sysdev-application-development-qemu \
+		sysdev-application-debugging-qemu
+
+EMBEDDED_LINUX_STM32MP2_LABS   = setup \
+				 sysdev-toolchain \
+				 sysdev-u-boot-stm32mp2 \
+				 sysdev-kernel-fetch-sources-stm32mp2 \
+				 sysdev-kernel-cross-compiling-stm32mp2 \
+				 sysdev-tinysystem \
+				 sysdev-accessing-hardware-stm32 \
+				 sysdev-block-filesystems \
+				 sysdev-thirdparty \
+				 sysdev-buildroot \
+				 sysdev-system-integration \
+				 sysdev-application-development-and-debugging
+
