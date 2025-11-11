@@ -158,7 +158,6 @@ $(foreach file,$(SLIDES_TEX),$(if $(wildcard $(file)),,$(error Missing file $(fi
 	echo "\input{$(VARS)}" >> $(OUTDIR)/$(basename $@).tex
 	for f in $(filter %.tex,$^) ; do \
 		cp $$f $(OUTDIR)/`basename $$f` ; \
-		sed -i 's%__SESSION_TYPE__%$(TRAINING_TYPE)%' $(OUTDIR)/`basename $$f` ; \
 		sed -i 's%__SESSION_NAME__%$(SLIDES_TRAINING)%' $(OUTDIR)/`basename $$f` ; \
 		printf "\input{%s}\n" `basename $$f .tex` >> $(OUTDIR)/$(basename $@).tex ; \
 	done
