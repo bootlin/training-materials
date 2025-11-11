@@ -17,7 +17,7 @@ PREEMPT_RT_SLIDES    = \
 	realtime-linux-application-development-lab \
 	last-slides
 
-PREEMPT_RT_LABS    = setup \
+PREEMPT_RT_STM32MP1_LABS    = setup \
 		preempt-rt-patch-download \
 		preempt-rt-benchmarking \
 		preempt-rt-configuration \
