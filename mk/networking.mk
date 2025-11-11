@@ -28,7 +28,7 @@ NETWORKING_SLIDES = \
 	networking-debugging-lab \
 	last-slides
 
-NETWORKING_LABS   = setup \
+NETWORKING_ESPRESSOBIN_LABS   = setup \
 		    networking-setup \
 		    networking-stack \
 		    networking-netlink \

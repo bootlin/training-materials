@@ -80,6 +80,7 @@ BOARD_SUFFIXES = \
 		 -native \
 		 -bbb \
 		 -beagleplay \
+		 -espressobin \
 		 -imx93-frdm \
 		 -qemu \
 		 -stm32mp1 \
