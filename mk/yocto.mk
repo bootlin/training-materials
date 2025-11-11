@@ -35,7 +35,7 @@ YOCTO_SLIDES    = \
 		last-slides \
 		yocto-extra-slides
 
-YOCTO_LABS    = setup \
+YOCTO_BBB_LABS    = setup \
 		yocto-first-build \
 		yocto-advanced-configuration \
 		yocto-add-application \
