@@ -185,6 +185,10 @@ endif
 
 TRAINING           = $(LABS_TRAINING)
 
+TRAINING_TYPE = $(TRAINING)
+$(foreach s,$(BOARD_SUFFIXES),$(eval TRAINING_TYPE := $(subst $(s),,$(TRAINING_TYPE))))
+BOARD_TYPE = $(strip $(subst $(TRAINING_TYPE)-,,$(TRAINING)))
+
 # Compute the set of corresponding .tex files and pictures
 LABS_TEX      = \
 	$(LABS_VARSFILE) \
