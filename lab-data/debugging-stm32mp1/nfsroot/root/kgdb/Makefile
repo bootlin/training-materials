@@ -1,7 +1,7 @@
 ifneq ($(KERNELRELEASE),)
-obj-m := locking_test.o
+obj-m := kgdb_test.o
 else
-KDIR ?= $(HOME)/debugging-labs/src/linux
+KDIR ?= $(HOME)/debugging-stm32mp1-labs/src/linux
 all:
 	$(MAKE) -C $(KDIR) M=$$PWD
 

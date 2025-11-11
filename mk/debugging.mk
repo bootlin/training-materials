@@ -18,7 +18,7 @@ DEBUGGING_SLIDES = \
 	debugging-going-further \
 	last-slides
 
-DEBUGGING_LABS = \
+DEBUGGING_STM32MP1_LABS = \
 	setup \
 	debugging-setup \
 	debugging-system-status \
