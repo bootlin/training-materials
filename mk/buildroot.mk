@@ -25,7 +25,7 @@ BUILDROOT_SLIDES = \
 		buildroot-acknowledgements \
 		last-slides
 
-BUILDROOT_LABS = setup \
+BUILDROOT_BBB_LABS = setup \
 		buildroot-basic \
 		buildroot-rootfs \
 		buildroot-new-packages \
