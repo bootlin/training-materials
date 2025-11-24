@@ -1,0 +1,60 @@
+\subsection{Pipelines}
+
+\begin{frame}{I/O with graphics hardware, pipelines}
+  \begin{itemize}
+  \item Graphics hardware is \textbf{I/O-based} and interacts with pixel data
+  \item Pipeline elements have input-output abilities:
+    \begin{itemize}
+    \item \textbf{Source} components: \textbf{feed pixel data}: \textit{e.g. camera}
+    \item \textbf{Sink} components: \textbf{grab pixel data}: \textit{e.g. display}
+    \end{itemize}
+  \item Some components are \textbf{both a source and a sink}: \textit{e.g. converters}
+  \item Graphics components can be chained in \textbf{pipelines}\\
+    \textit{Usually from a source-only element to a sink-only element}
+  \end{itemize}
+
+  \vspace{-2em}
+  \begin{center}
+  \includegraphics[width=0.7\textwidth]{slides/graphics-hardware-pipelines/pipeline-sink-source.pdf}
+  \end{center}
+\end{frame}
+
+\begin{frame}{Building complex pipelines}
+  \begin{itemize}
+  \item Display, rendering and video elements are chained from source(s) to sink(s)
+  \item On source-sink boundaries:
+    \begin{itemize}
+    \item Mutually-supported pixel format (or conversion)
+    \item Mutually-accessible memory (or copy) or internal FIFO
+    \end{itemize}
+  \item Target frame rate (\(fps\)) gives a time budget for pipeline traversal:
+  \( t_0 + t_2 + t_4 + t_5 < fps^{-1},~ t_0 + t_3 < fps^{-1},~ t_1 + t_4 + t_5 < fps^{-1} \)
+  \end{itemize}
+
+  \begin{center}
+  \includegraphics[width=0.7\textwidth]{slides/graphics-hardware-pipelines/pipeline-complex.pdf}
+  \end{center}
+\end{frame}
+
+\begin{frame}{Debugging pipelines}
+  \begin{itemize}
+  \item Debugging a complex pipeline can become \textbf{hard}:
+    \begin{itemize}
+    \item Many elements in the chain means many possibilities for trouble
+    \item A single point of failure is enough
+    \item Can be difficult to identify
+    \end{itemize}
+  \item Debugging \textbf{tips}:
+    \begin{itemize}
+    \item Validating each element separately
+    \item Dumping (intermediary) framebuffers to memory/storage for validation
+    \item Using hardware pattern generators
+    \end{itemize}
+  \item Common \textbf{pitfalls}:
+    \begin{itemize}
+    \item Mismatch between advertized format and reality
+    \item Lack of output-input sync between elements
+    \item Input data updated too fast
+    \end{itemize}
+  \end{itemize}
+\end{frame}
