@@ -2,9 +2,9 @@ YOCTO_SLIDES    = \
 		first-slides \
 		about-us \
 		course-information-title \
-		yocto-shopping-list \
-		beagleboneblack-board \
-		discovery-board-dk1 \
+		shopping-list-beaglebone-nunchuk \
+		shopping-list-stm32mp157-nunchuk \
+		shopping-list-beagleplay-nunchuk \
 		course-information \
 		setup-lab \
 		buildroot-yocto-introduction \
@@ -38,6 +38,28 @@ YOCTO_SLIDES    = \
 YOCTO_LABS    = setup \
 		yocto-first-build \
 		yocto-advanced-configuration \
+		yocto-add-application \
+		yocto-layer \
+		yocto-extend-recipe \
+		yocto-custom-machine \
+		yocto-custom-image \
+		yocto-sdk \
+		yocto-devtool
+
+YOCTO_BEAGLEPLAY_LABS    = setup \
+		yocto-first-build-beagleplay \
+		yocto-advanced-configuration-beagleplay \
+		yocto-add-application \
+		yocto-layer \
+		yocto-extend-recipe \
+		yocto-custom-machine \
+		yocto-custom-image \
+		yocto-sdk \
+		yocto-devtool
+
+YOCTO_STM32MP1_LABS    = setup \
+		yocto-first-build-stm32 \
+		yocto-advanced-configuration-stm32 \
 		yocto-add-application \
 		yocto-layer \
 		yocto-extend-recipe \

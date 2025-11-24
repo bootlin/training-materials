@@ -2,8 +2,8 @@ BUILDROOT_SLIDES = \
 		first-slides \
 		about-us \
 		course-information-title \
-		beagleboneblack-board \
-		buildroot-shopping-list \
+		shopping-list-beaglebone-nunchuk \
+		shopping-list-stm32mp157-nunchuk \
 		course-information \
 		setup-lab \
 		buildroot-yocto-introduction \
@@ -28,6 +28,14 @@ BUILDROOT_SLIDES = \
 BUILDROOT_LABS = setup \
 		buildroot-basic \
 		buildroot-rootfs \
+		buildroot-new-packages \
+		buildroot-advanced-packages \
+		buildroot-advanced \
+		buildroot-appdev
+
+BUILDROOT_STM32MP1_LABS = setup \
+		buildroot-basic-stm32 \
+		buildroot-rootfs-stm32 \
 		buildroot-new-packages \
 		buildroot-advanced-packages \
 		buildroot-advanced \

@@ -2,7 +2,7 @@ PREEMPT_RT_SLIDES    = \
 	first-slides \
 	about-us \
 	course-information-title \
-	discovery-board-dk1 \
+	shopping-list-stm32mp157 \
 	course-information \
 	setup-lab \
 	realtime-linux-realtime-systems \

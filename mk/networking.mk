@@ -2,8 +2,7 @@ NETWORKING_SLIDES = \
 	first-slides \
 	about-us \
 	course-information-title \
-	espressobin \
-	networking-shopping-list \
+	shopping-list-espressobin \
 	course-information \
 	setup-lab \
 	networking-stack-overview \

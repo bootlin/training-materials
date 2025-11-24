@@ -341,10 +341,11 @@ $(VARS): FORCE
 clean:
 	$(RM) -rf $(OUTDIR) *.pdf *-labs *.xz
 
-ALL_TRAININGS = $(sort $(patsubst %.mk,%,$(notdir $(wildcard mk/*.mk))))
+ALL_TRAININGS_MKS = $(sort $(notdir $(wildcard mk/*.mk)))
+ALL_TRAININGS = $(patsubst %.mk,%,$(ALL_TRAININGS_MKS))
 
 ALL_SLIDES = $(foreach p,$(ALL_TRAININGS),$(if $($(call UPPERCASE,$(p)_SLIDES)),full-$(p)-slides.pdf))
-ALL_LABS = $(foreach p,$(ALL_TRAININGS),$(if $($(call UPPERCASE,$(p)_LABS)),full-$(p)-labs.pdf))
+ALL_LABS = $(foreach p,$(ALL_TRAININGS),$(foreach b,$(BOARD_SUFFIXES),$(if $($(call UPPERCASE,$(p)$(subst -,_,$(b))_LABS)),full-$(p)$(b)-labs.pdf)))
 ALL_AGENDAS = $(patsubst %.tex,%.pdf,$(filter-out %.inc.tex,$(notdir $(wildcard agenda/*.tex))))
 ALL_LABS_TARBALLS = $(patsubst %,%-labs.tar.xz,$(filter-out common,$(notdir $(wildcard lab-data/*))))
 
