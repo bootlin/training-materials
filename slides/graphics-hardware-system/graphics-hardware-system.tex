@@ -1,0 +1,183 @@
+\subsection{System Integration, Memory and Performance}
+
+\begin{frame}{Graphics integration and memory}
+  \begin{itemize}
+  \item Graphics devices integrated in larger systems need two main interfaces:
+    \begin{itemize}
+    \item \textbf{Control interface} (low speed): to program the device from the main CPU
+    \item \textbf{Memory interface} (high speed): to read the source data and write their framebuffer
+    \end{itemize}
+  \item Other usual required elements: clocks, interrupts, reset
+  \item Both the graphics device and the CPU need to access the memory
+  \item Different types of memory used by graphics hardware:
+    \begin{itemize}
+    \item \textbf{graphics memory}: dedicated memory attached to the graphics device\\
+    \textit{the memory is made available to the CPU through the memory interface}
+    \item \textbf{dedicated system memory}: a reserved contiguous area of system memory\\
+    \textit{required when the device has no mapping unit}
+    \item \textbf{system memory pages}: any system memory page can be mapped for access\\
+    \textit{for devices with a dedicated IOMMU and graphics address remapping table (GART)}
+    \end{itemize}
+  \item Since the two parties access the same memory, cache can become incoherent
+  \item Cache must be \textbf{synchronized} before reading and after writing, or \textbf{disabled}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Shared graphics memory access}
+  \begin{itemize}
+  \item Concurrent access to memory can lead to trouble:
+    \begin{itemize}
+    \item Concurrent read-write accesses result in partially-updated data
+    \item Concurrent write-write accesses result in incoherent data
+    \end{itemize}
+  \item Common issue with display hardware: tearing
+    \begin{itemize}
+    \item The framebuffer is scanned out at a fixed rate (e.g. \(60~fps\))
+    \item Any modification during scan out will result in a \textbf{partial update}
+    \item Causes an unpleasant \textbf{visual glitch} effect
+    \end{itemize}
+  \item Solved using (at least) \textbf{double-buffering}:
+    \begin{itemize}
+    \item The displayed buffer (\textbf{front buffer}) is kept intact
+    \item Another buffer (\textbf{back buffer}) is used for drawing the next contents
+    \item Front and back buffer are exchanged with \textbf{page flipping}, during vertical blanking
+    \item Using more buffers is possible if rendering can be done in advance
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Graphics shared memory access (illustrated tearing)}
+  \begin{center}
+  \includegraphics[width=0.7\textwidth]{slides/graphics-hardware-system/tearing-glitch.jpg}\\
+  \textit{\small Tearing example: data is updated during scanout}
+  \end{center}
+\end{frame}
+
+\begin{frame}{Graphics memory constraints and performance}
+  \begin{itemize}
+  \item Fixed-pipeline 2D graphics hardware usually streams pixels through FIFOs
+  \item A DMA engine fetches pixel data from framebuffer memory
+  \item To simplify the logic and optimize memory access, memory constraints may apply:\\
+    \begin{itemize}
+    \item The start address of each line needs to be aligned to \(2^n\)
+    \item The byte size of each line needs to be aligned to \(2^n\)
+    \end{itemize}
+  \item The \textbf{stride} or \textbf{pitch} describes the line byte size
+    \begin{itemize}
+    \item Calculated as: \(ALIGN(width \times bpp / 8,~2^n)\)
+    \item The size of a framebuffer becomes (single-planar): \(stride \times height\)\\
+      \textit{memory may be over-allocated to satisfy alignment constraints}
+    \end{itemize}
+  \item Pixel order in memory may not follow raster order:
+    \begin{itemize}
+    \item Optimized depending on the hardware architecture
+    \item Optimized for efficient memory access
+    \item Tiled orders are frequent for parallel hardware
+    \item Framebuffer sizes are calculated with a specific formula
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Tiled framebuffer format example}
+  \begin{minipage}{0.45\textwidth}
+    \centering
+    \textit{\small The Allwinner VPU tiled format}
+  \end{minipage}
+  \hfill
+  \begin{minipage}{0.45\textwidth}
+    \centering
+    \vspace{1em}
+    \includegraphics[width=0.35\textwidth]{slides/graphics-hardware-system/sunxi-tiled-format.png}\\
+  \end{minipage}
+  \vspace{2em}
+  \begin{minipage}[b]{0.45\textwidth}
+    \centering
+    \vspace{1em}
+    \includegraphics[width=\textwidth]{slides/graphics-hardware-system/sunxi-tiled-linear.png}
+    \textit{\small A tiled framebuffer read in raster order}
+  \end{minipage}
+  \hfill
+  \begin{minipage}[b]{0.45\textwidth}
+    \centering
+    \vspace{1em}
+    \includegraphics[width=\textwidth]{slides/graphics-hardware-system/sunxi-tiled.png}
+    \textit{\small The same framebuffer read properly}
+  \end{minipage}
+\end{frame}
+
+\begin{frame}{Offloading graphics to hardware}
+  \begin{itemize}
+  \item Offloading graphics to hardware frees up significant CPU time
+  \item For many use cases, it is crucially needed:
+    \begin{itemize}
+    \item Video presentation at a given frame-rate, with format conversion and scaling
+    \item 3D scene rendering at display refresh rate
+    \item Windows and cursor composition at display refresh rate
+    \end{itemize}
+  \item Offloading is not (always) a magical solution:
+    \begin{itemize}
+    \item Fixed setup costs must be significantly lower than CPU processing time\\
+      \textit{small operations are sometimes more efficient on-CPU}
+    \item Asynchronous interrupts can introduce latency compared to active polling\\
+      \textit{but blocking the whole system is not always an option}
+    \end{itemize}
+  \item 2D hardware is usually more efficient and adapted than bringing up the GPU\\
+    \textit{the GPU is a power-hungry war machine that solves problems at a price}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Graphics performance tips}
+  \begin{itemize}
+  \item Making the most of hardware can help a lot\\
+    \textit{e.g. camera controllers can often provide format conversion and scaling}
+  \item Generally reducing the number of devices in the graphics pipeline
+  \item One major bottleneck in graphics pipelines is memory access:
+    \begin{itemize}
+    \item Memory buffer copies must be avoided at all costs (zero-copy)
+    \item Chained elements in a pipeline should share the same buffer\\
+      \textit{hardware constraints are usually compatible in SoCs}
+    \end{itemize}
+  \item Redrawing full frames should be avoided when possible
+    \begin{itemize}
+    \item Local operations should be clipped
+    \item Buffer damage has to be accumulated in the multi-buffering case
+    \end{itemize}
+  \item Graphics in operating systems is usually best-effort
+  \item DSPs can usually provide real-time guarantees
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Graphics hardware online references}
+  \small
+  \begin{itemize}
+  \item Wikipedia (\url{https://en.wikipedia.org/}):
+    \begin{itemize}
+    \item \href{https://en.wikipedia.org/wiki/Graphics_pipeline}{Graphics pipeline}
+    \item \href{https://en.wikipedia.org/wiki/Comparison_of_display_technology}{Comparison of display technology}
+    \item \href{https://en.wikipedia.org/wiki/List_of_video_connectors}{List of video connectors}
+    \item \href{https://en.wikipedia.org/wiki/Digital_signal_processor}{Digital signal processor}
+    \item \href{https://en.wikipedia.org/wiki/Graphics_processing_unit}{Graphics processing unit}
+    \item \href{https://en.wikipedia.org/wiki/Tiled_rendering}{Tiled rendering}
+    \item \href{https://en.wikipedia.org/wiki/Multiple_buffering}{Multiple buffering}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Graphics hardware illustrations attributions}
+  \small
+  \begin{itemize}
+  \item \href{https://commons.wikimedia.org/wiki/File:ATI_Hercules_Card_1986.xcf}{ATI Hercules Card 1986: Jörgen Nixdorf, CC BY-SA 3.0}
+  \item \href{https://commons.wikimedia.org/wiki/File:Intel@14nm@@Skylake@Skylake-X(LCC)@i7-7820X@SR3L5_DSC00646_(25952474218).jpg}{Intel Skylake 14nm: Fritzchens Fritz, CC0 1.0}
+  \item \href{https://commons.wikimedia.org/wiki/File:TN_display_closeup_300X.jpg}{TN display closeup 300X: Akpch, CC BY-SA 3.0}
+  \item \href{https://commons.wikimedia.org/wiki/File:LCDmonitorscreenimage.jpg}{LCD monitor screen image: Koperczak, CC BY-SA 3.0}
+  \item \href{https://commons.wikimedia.org/wiki/File:CRT_color_enhanced_unlabeled.png}{CRT color enhanced unlabeled: Grm\_wnr, CC BY-SA 3.0}
+  \item \href{https://commons.wikimedia.org/wiki/File:Wiki_dell_lcd.jpg}{Dell TFT LCD: Szasz-Revai Endre, CC BY 2.5}
+  \item \href{https://commons.wikimedia.org/wiki/File:CeBIT_2011_Samstag_PD_115.JPG}{CeBIT 2011 3D Passport system: Bin im Garten, CC BY-SA 3.0}
+  \item \href{https://commons.wikimedia.org/wiki/File:Bouquin_\%C3\%A9lectronique_iLiad_en_plein_soleil.jpg}{Bouquin électronique iLiad en plein soleil: Mathieu Despont, public domain}
+  \item \href{https://commons.wikimedia.org/wiki/File:Kindle_3_texture_(crop).jpg}{Kindle 3 E Ink screen: HorsePunchKid, CC BY-SA 3.0}
+  \item \href{https://commons.wikimedia.org/wiki/File:DP_to_DVI_converter_unmounted.jpg}{DP to DVI converter unmounted: Antifumo, CC BY-SA 3.0}
+  \item \href{https://commons.wikimedia.org/wiki/File:Anisotropic_filtering_en.png}{Anisotropic filtering: Thomas, Lampak, CC BY-SA 3.0}
+  \item \href{https://commons.wikimedia.org/wiki/File:MipMap_Example_STS101.jpg}{MipMap Example STS101: Mike Hicks, NASA, CC BY-SA 3.0}
+  \item \href{https://peach.blender.org/}{Big Bug Bunny: Blender Foundation, CC BY 3.0}
+  \end{itemize}
+\end{frame}
