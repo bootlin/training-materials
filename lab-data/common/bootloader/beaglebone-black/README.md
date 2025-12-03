@@ -49,7 +49,7 @@ sudo ./am335x_usb_setup.sh
 
 If you have trouble with this step, you can find more detailed instructions
 in [the snagboot documentation
-](https://github.com/bootlin/snagboot/blob/main/docs/board_setup.md#ti-am335x-usb-recovery).
+](https://snagboot.readthedocs.io/en/latest/snagrecover/#ti-am335x-usb-recovery).
 
 Put the BBB into recovery mode by unplugging and replugging the power cable
 while pressing the \code{S2} switch. Please beware that a warm reset performed
