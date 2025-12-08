@@ -111,8 +111,6 @@ else
 SLIDES_TRAINING      = $(firstword $(subst -, ,  $(SLIDES)))
 ifeq ($(SLIDES_TRAINING),sysdev)
 SLIDES_TRAINING = embedded-linux
-else ifeq ($(SLIDES_TRAINING),kernel)
-SLIDES_TRAINING = linux-kernel
 endif
 # We might be building multiple chapters that share a common
 # prefix. In this case, we want to build them in the order they are
@@ -361,8 +359,8 @@ all: $(ALL_SLIDES) $(ALL_LABS) $(ALL_AGENDAS) $(ALL_LABS_TARBALLS)
 list-courses:
 	@echo $(ALL_TRAININGS)
 
-.PHONY: $(ALL_TRAININGS) linux-kernel
-$(ALL_TRAININGS) linux-kernel:
+.PHONY: $(ALL_TRAININGS)
+$(ALL_TRAININGS):
 	$(MAKE) \
 		$(filter full-$@%,$(ALL_SLIDES)) \
 		$(filter full-$@%,$(ALL_LABS)) \
