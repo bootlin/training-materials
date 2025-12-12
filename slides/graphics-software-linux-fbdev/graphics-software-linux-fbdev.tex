@@ -1,0 +1,71 @@
+\subsection{Linux Kernel: Framebuffer Device}
+
+\begin{frame}{Fbdev overview}
+  \begin{itemize}
+  \item Fbdev is the \textbf{historical and legacy} display subsystem in Linux
+  \item Exposes a number of display-related features:
+    \begin{itemize}
+    \item Framebuffer access (pre-allocated for one or two frames)
+    \item Operation primitives (bit blit, solid fill, area copy, etc)
+    \item Cursor drawing
+    \item Power management (blank/unblank, power down)
+    \end{itemize}
+  \item Initial state can be configured with the \code{video} option of the \code{cmdline}
+  \item Available to userspace via \code{/dev/fb*} nodes:
+    \begin{itemize}
+    \item Generic base \code{ioctls} with driver-specific additions
+    \item Direct framebuffer memory mapping using \code{mmap}
+    \item Relatively simple and minimalistic interface
+    \end{itemize}
+  \item Used by the kernel to provide a graphical console with \textbf{fbcon}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]{Fbdev basic operations}
+  \begin{itemize}
+  \item \textbf{Fixed information} about the display is retrieved with:
+  \begin{minted}[fontsize=\small]{console}
+struct fb_fix_screeninfo fix_screeninfo = { 0 };
+ret = ioctl(fb_fd, FBIOGET_FSCREENINFO, &fix_screeninfo);
+  \end{minted}
+  \item \textbf{Variable information} (including mode) is retrieved and configured with:
+  \begin{minted}[fontsize=\small]{console}
+struct fb_var_screeninfo var_screeninfo = { 0 };
+ret = ioctl(fb_fd, FBIOGET_VSCREENINFO, &var_screeninfo);
+...
+ret = ioctl(fb_fd, FBIOPUT_VSCREENINFO, &var_screeninfo);
+  \end{minted}
+  \item \textbf{Power management} is operated with:
+  \begin{minted}[fontsize=\small]{console}
+ret = ioctl(fb_fd, FBIOBLANK, FB_BLANK_POWERDOWN);
+  \end{minted}
+  \item \textbf{Double-buffering} is sometimes supported (within the same buffer):
+  \begin{minted}[fontsize=\small]{console}
+var_screeninfo.yoffset = height;
+ret = ioctl(fb_fd, FBIOPAN_DISPLAY, &var_screeninfo);
+  \end{minted}
+  \item Blocking until the next \textbf{vblank} is possible with:
+  \begin{minted}[fontsize=\small]{console}
+int vsync = 0;
+ret = ioctl(fb_fd, FBIO_WAITFORVSYNC, &vsync);
+  \end{minted}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Fbdev limitations}
+  \begin{itemize}
+  \item Fbdev does not expose or allow configuration of the display pipeline
+  \item Output setup is mostly static (provided through the \code{cmdline})
+  \item Designed for simple cases (with a single output)
+  \item Buffer allocation and management is not available
+  \item No possibility of zero-copy import from other devices
+  \item Limited page flipping with no associated synchronization mechanism
+  \item Insufficient external synchronization interface (blocking wait)
+  \item Mixes display, operation primitives and power management
+  \end{itemize}
+
+  \begin{center}
+  \textbf{Fbdev is mostly adapted to display from the 1990s and 2000s}\\
+  \small please consider avoiding it at all costs!
+  \end{center}
+\end{frame}
