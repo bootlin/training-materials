@@ -9,7 +9,7 @@ AUTOTOOLS_SLIDES = first-slides \
 		autotools-references \
 		last-slides
 
-AUTOTOOLS_LABS = setup \
-		autotools-usage \
-		autotools-basics \
-		autotools-advanced
+AUTOTOOLS_NATIVE_LABS = setup \
+			autotools-usage \
+			autotools-basics \
+			autotools-advanced

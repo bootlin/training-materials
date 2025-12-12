@@ -1,1 +1,1 @@
-../../embedded-linux/appdev/nunchuk-mpd-client.c
+../../embedded-linux-stm32mp1/appdev/nunchuk-mpd-client.c

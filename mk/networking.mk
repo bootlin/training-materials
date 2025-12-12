@@ -2,8 +2,7 @@ NETWORKING_SLIDES = \
 	first-slides \
 	about-us \
 	course-information-title \
-	espressobin \
-	networking-shopping-list \
+	shopping-list-espressobin \
 	course-information \
 	setup-lab \
 	networking-stack-overview \
@@ -29,7 +28,7 @@ NETWORKING_SLIDES = \
 	networking-debugging-lab \
 	last-slides
 
-NETWORKING_LABS   = setup \
+NETWORKING_ESPRESSOBIN_LABS   = setup \
 		    networking-setup \
 		    networking-stack \
 		    networking-netlink \
