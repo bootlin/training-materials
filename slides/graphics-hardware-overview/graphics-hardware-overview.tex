@@ -1,0 +1,138 @@
+\section{Hardware Aspects}
+
+\subsection{Overview}
+
+\begin{frame}{Technological types of graphics hardware implementations}
+  \begin{itemize}
+  \item Dedicated graphics hardware is often used along a general-purpose CPU
+  \item Two commonly-used technologies, with typical pros/cons:
+  \end{itemize}
+
+  \begin{center}
+  \small
+  \def\arraystretch{1.2}
+  \begin{tabular}{l|c|c}
+  & \textbf{Fixed-function} & \textbf{Programmable} \\
+  \hline
+  \textbf{Technology} & Circuit & Software \\
+  \textbf{Source form} & HDL & Source code \\
+  \textbf{Product form} & Silicon, bitstream & Firmware binaries \\
+  \textbf{Implementation} & FPGA, ASIC, SoC block & DSP, custom ISA \\
+  \textbf{Arithmetic} & Fixed-point & Fixed-point, floating point \\
+  \textbf{Clock rate / power} & Low & High \\
+  \textbf{Pixel data access} & Queue (FIFO) & Memory \\
+  \textbf{CPU control} & Direct registers & Mailbox \\
+  \textbf{Die surface} & High & Low \\
+  \textbf{Reusability} & Low & High \\
+  \hline
+  \textbf{Example} & Allwinner SoCs Display Engine & TI TMS340 DSP \\
+  \end{tabular}
+  \end{center}
+\end{frame}
+
+\begin{frame}{Graphics memory and buffers}
+  \begin{itemize}
+  \item Pixel data is stored in memory buffers, called \textbf{framebuffers}
+  \item Framebuffers live either in:
+    \begin{itemize}
+    \item \textbf{System memory}: shared with the rest of the system (e.g. SDRAM or SRAM)
+    \item \textbf{Dedicated memory}: only for graphics (e.g. SGRAM)
+    \end{itemize}
+  \item Framebuffers that can be displayed are called \textbf{scanout framebuffers}\\
+  \textit{hardware constraints don't always allow any framebuffer to be scanned out}
+  \item CPU access to pixel data in dedicated memory is neither always granted nor easy!
+  \item Graphics hardware \textbf{needs configuration} to interpret framebuffer pixel data\\
+    \textit{pixel meta-data is rarely to never stored aside of the pixel data}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Display hardware overview}
+  \begin{itemize}
+  \item \textbf{Stream pixel data} to a display device, via a display interface
+  \item Internal pipeline with \textbf{multiple components}
+  \item Generally \textbf{fixed-function} hardware, pipeline sink only
+  \item Either \textbf{discrete} (video card) or \textbf{integrated}
+  \item Connected to the CPU (and RAM) via a \textbf{high-speed bus}:\\
+  \textit{e.g. AXI with ARM, ISA, PCI, AGP, PCI-e with x86}
+  \end{itemize}~
+
+  \begin{minipage}[t]{0.45\textwidth}
+    \centering
+    \includegraphics[height=7em]{slides/graphics-hardware-overview/ati-hercules-1986.png}\\
+    \textit{\small A 1986 Hercules discrete video card}
+  \end{minipage}
+  \hfill
+  \begin{minipage}[t]{0.45\textwidth}
+    \centering
+    \includegraphics[height=7em]{slides/graphics-hardware-overview/intel-skylake.jpg}\\
+    \textit{\small An Intel processor with integrated graphics}
+  \end{minipage}
+\end{frame}
+
+\begin{frame}{Common components of a display pipeline overview}
+  \begin{center}
+  \includegraphics[width=0.7\textwidth]{slides/graphics-hardware-overview/display-pipe.pdf}
+  \end{center}
+
+  \begin{enumerate}
+  \item \textbf{Framebuffers} for storing the pixel data\\
+  \textit{streamed using a DMA engine}
+  \item \textbf{Planes} for associating a framebuffer with its dimensions and position\\
+  \textit{composited into a single result on-the-fly}
+  \item \textbf{CRTC} for streaming resulting pixels with specific timings\\
+  \textit{terminology comes from the legacy Cathode-Ray Tube Controller}
+  \item \textbf{Encoder} for meta-data addition and physical signal conversion
+  \item \textbf{Connector} for video signal, display data channel (DDC), hotplug detection
+  \item \textbf{Display} for decoding and displaying pixels (panel or monitor)
+  \end{enumerate}
+\end{frame}
+
+\begin{frame}{Render hardware overview}
+  \textbf{Rendering} hardware includes a wide range of aspects (usual cases below):
+  \begin{itemize}
+  \item \textbf{Basic} pixel processing:
+  \begin{itemize}
+    \item Common operations: pixel format conversion, dithering, scaling, blitting and blending
+    \item Fixed-function hardware, pipeline sink and source
+  \end{itemize}
+  \item \textbf{Complex} pixel processing:
+  \begin{itemize}
+    \item Defined by the application: any computable operation
+    \item Programmable hardware (DSP), pipeline sink and source
+  \end{itemize}
+  \item \textbf{2D vector} drawing:
+  \begin{itemize}
+    \item Rasterization from equations, parameters and data (e.g. points)
+    \item Either fixed-function or programmable hardware (custom), pipeline source
+  \end{itemize}
+  \item \textbf{3D scene} rendering:
+  \begin{itemize}
+    \item Rasterization from programs (shaders) and data (e.g. vertices, lines, triangles textures)
+    \item Programmable hardware (GPU), pipeline source
+  \end{itemize}
+  \item Rendering can \textbf{always fallback} to general-purpose CPU operations
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Video hardware overview}
+  \textbf{Video-oriented} hardware comes in different forms (usual cases below):
+
+  \begin{itemize}
+  \item \textbf{Hardware video decoder} (VPU/video codec decoder)
+  \begin{itemize}
+    \item Decodes a video from compressed data (bitstream) to pixel frames
+    \item Fixed-function hardware, pipeline source
+  \end{itemize}
+  \item \textbf{Hardware video encoder} (VPU/video codec encoder)
+  \begin{itemize}
+    \item Encodes a video from pixel frames to compressed data (bitstream)
+    \item Fixed-function hardware, pipeline sink
+  \end{itemize}
+  \item \textbf{Camera sensors, video input, video broadcasting} (DVB)
+  \begin{itemize}
+    \item Receives/sends data in a given configuration from/to \textit{the outside}
+    \item Can be compressed data (bitstream) or raw pixel data
+    \item Fixed-function hardware, pipeline source
+  \end{itemize}
+  \end{itemize}~
+\end{frame}
