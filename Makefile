@@ -165,13 +165,14 @@ endif
 ifdef LABS
 ifeq ($(firstword $(subst -, , $(LABS))),full)
 LABS_TRAINING      = $(strip $(subst -labs, , $(subst full-, , $(LABS))))
+LABS_TRAINING_NO_BOARD = $(strip $(foreach c,$(ALL_TRAININGS),$(if $(filter full-$(c)-%,$(LABS)),$(c))))
 LABS_HEADER        = common/labs-header.tex
-LABS_VARSFILE      = common/$(LABS_TRAINING)-labs-vars.tex
+LABS_VARSFILE      = common/$(LABS_TRAINING_NO_BOARD)-vars.tex common/$(LABS_TRAINING)-labs-vars.tex
 LABS_CHAPTERS      = $($(call UPPERCASE, $(subst  -,_, $(LABS_TRAINING)))_LABS)
 LABS_FOOTER        = common/labs-footer.tex
 else
 LABS_TRAINING      = $(firstword $(subst -, , $(LABS)))
-LABS_VARSFILE      = common/single-lab-vars.tex
+LABS_VARSFILE      = common/$(LABS_TRAINING_NO_BOARD)-vars.tex common/single-lab-vars.tex
 LABS_CHAPTERS      = $(LABS)
 LABS_HEADER        = common/single-lab-header.tex
 LABS_FOOTER        = common/labs-footer.tex
@@ -237,10 +238,13 @@ endif
 #
 ifdef AGENDA
 AGENDA_TEX = agenda/$(AGENDA)-agenda.tex
+AGENDA_TRAINING = $(subst -online,,$(subst -fr,,$(AGENDA)))
+AGENDA_TRAINING_VARS = common/$(AGENDA_TRAINING)-vars.tex
 AGENDA_PICTURES = $(COMMON_PICTURES) $(call PICTURES,agenda)
 
-%-agenda.pdf: common/agenda_old.sty common/agenda.sty $(VARS) $(AGENDA_TEX) $(AGENDA_PICTURES) $(OUTDIR)/last-update.tex
+%-agenda.pdf: common/agenda_old.sty common/agenda.sty $(AGENDA_TRAINING_VARS) $(VARS) $(AGENDA_TEX) $(AGENDA_PICTURES) $(OUTDIR)/last-update.tex
 	rm -f $(OUTDIR)/$(basename $@).tex
+	echo "\input{$(AGENDA_TRAINING_VARS)}" >> $(OUTDIR)/$(basename $@).tex
 	echo "\input{$(VARS)}" >> $(OUTDIR)/$(basename $@).tex
 	echo "\input{$(filter %-agenda.tex,$^)}" >> $(OUTDIR)/$(basename $@).tex
 	(cd $(OUTDIR); $(PDFLATEX_ENV) $(PDFLATEX) $(basename $@).tex)
