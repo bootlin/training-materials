@@ -174,8 +174,6 @@ LABS_HEADER        = common/single-lab-header.tex
 LABS_FOOTER        = common/labs-footer.tex
 endif
 
-TRAINING           = $(LABS_TRAINING)
-
 # Compute the set of corresponding .tex files and pictures
 LABS_TEX      = \
 	$(LABS_VARSFILE) \
