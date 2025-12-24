@@ -335,7 +335,6 @@ $(OUTDIR)/%.pdf: %.pdf
 $(VARS): FORCE
 	@mkdir -p $(dir $@)
 	/bin/echo "\def \sessionurl {$(patsubst %/,%,$(SESSION_URL))}" > $@
-	/bin/echo "\def \training {$(TRAINING_TYPE)}" >> $@
 	/bin/echo "\def \trainer {$(TRAINER)}" >> $@
 
 clean:
