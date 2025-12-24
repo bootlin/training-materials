@@ -41,6 +41,9 @@ PDFLATEX_OPT = -shell-escape -file-line-error -halt-on-error
 # The common slide stylesheet
 STYLESHEET = common/beamerthemeBootlin.sty
 
+ALL_TRAININGS_MKS = $(sort $(notdir $(wildcard mk/*.mk)))
+ALL_TRAININGS = $(patsubst %.mk,%,$(ALL_TRAININGS_MKS))
+
 #
 # === Picture lookup ===
 #
@@ -312,9 +315,6 @@ $(VARS): FORCE
 
 clean:
 	$(RM) -rf $(OUTDIR) *.pdf *-labs *.xz
-
-ALL_TRAININGS_MKS = $(sort $(notdir $(wildcard mk/*.mk)))
-ALL_TRAININGS = $(patsubst %.mk,%,$(ALL_TRAININGS_MKS))
 
 ALL_SLIDES = $(foreach p,$(ALL_TRAININGS),$(if $($(call UPPERCASE,$(p)_SLIDES)),full-$(p)-slides.pdf))
 ALL_LABS = $(patsubst common/%-labs-vars.tex,full-%-labs.pdf,$(wildcard common/*-labs-vars.tex))
