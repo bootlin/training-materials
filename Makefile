@@ -73,19 +73,6 @@ COMMON_PICTURES   = $(call PICTURES,common)
 
 default: help
 
-# List of all supported boards among all trainings.
-# /!\ You need to update this variable when you support a new board in any
-# training
-BOARD_SUFFIXES = \
-		 -native \
-		 -bbb \
-		 -beagleplay \
-		 -espressobin \
-		 -imx93-frdm \
-		 -qemu \
-		 -stm32mp1 \
-		 -stm32mp2
-
 #
 # === Compilation of slides ===
 #
@@ -336,7 +323,7 @@ ALL_TRAININGS_MKS = $(sort $(notdir $(wildcard mk/*.mk)))
 ALL_TRAININGS = $(patsubst %.mk,%,$(ALL_TRAININGS_MKS))
 
 ALL_SLIDES = $(foreach p,$(ALL_TRAININGS),$(if $($(call UPPERCASE,$(p)_SLIDES)),full-$(p)-slides.pdf))
-ALL_LABS = $(foreach p,$(ALL_TRAININGS),$(foreach b,$(BOARD_SUFFIXES),$(if $($(call UPPERCASE,$(p)$(subst -,_,$(b))_LABS)),full-$(p)$(b)-labs.pdf)))
+ALL_LABS = $(patsubst common/%-labs-vars.tex,full-%-labs.pdf,$(wildcard common/*-labs-vars.tex))
 ALL_AGENDAS = $(patsubst %.tex,%.pdf,$(filter-out %.inc.tex,$(notdir $(wildcard agenda/*.tex))))
 ALL_LABS_TARBALLS = $(patsubst %,%-labs.tar.xz,$(filter-out common,$(notdir $(wildcard lab-data/*))))
 
