@@ -104,7 +104,7 @@ ifdef SLIDES
 ifeq ($(firstword $(subst -, , $(SLIDES))),full)
 SLIDES_TRAINING      = $(strip $(subst -slides, , $(subst full-, , $(SLIDES))))
 SLIDES_COMMON_BEFORE = common/slide-header.tex \
-		       common/$(SLIDES_TRAINING)-title.tex
+		       common/$(SLIDES_TRAINING)-vars.tex
 SLIDES_CHAPTERS      = $($(call UPPERCASE, $(subst  -,_, $(SLIDES_TRAINING)))_SLIDES)
 SLIDES_COMMON_AFTER  = common/slide-footer.tex
 else
@@ -119,9 +119,9 @@ endif
 # chapter name.
 SLIDES_CHAPTERS      = $(filter $(SLIDES)%, $($(call UPPERCASE, $(SLIDES_TRAINING))_SLIDES))
 ifeq ($(words $(SLIDES_CHAPTERS)),1)
-SLIDES_COMMON_BEFORE = common/slide-header.tex common/single-subsection-slide-title.tex
+SLIDES_COMMON_BEFORE = common/slide-header.tex common/single-subsection-slide-vars.tex
 else
-SLIDES_COMMON_BEFORE = common/slide-header.tex common/single-slide-title.tex
+SLIDES_COMMON_BEFORE = common/slide-header.tex common/single-slide-vars.tex
 endif
 SLIDES_COMMON_AFTER  = common/slide-footer.tex
 endif
