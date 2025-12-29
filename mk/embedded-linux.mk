@@ -57,7 +57,7 @@ EMBEDDED_LINUX_STM32MP1_LABS   = setup \
 		sysdev-tinysystem \
 		sysdev-accessing-hardware-stm32 \
 		sysdev-block-filesystems-stm32 \
-		sysdev-thirdparty-stm32 \
+		sysdev-thirdparty \
 		sysdev-buildroot \
 		sysdev-system-integration \
 		sysdev-application-development-and-debugging
@@ -110,7 +110,7 @@ EMBEDDED_LINUX_STM32MP2_LABS   = setup \
 				 sysdev-tinysystem \
 				 sysdev-accessing-hardware-stm32 \
 				 sysdev-block-filesystems-stm32 \
-				 sysdev-thirdparty-stm32 \
+				 sysdev-thirdparty \
 				 sysdev-buildroot \
 				 sysdev-system-integration \
 				 sysdev-application-development-and-debugging
