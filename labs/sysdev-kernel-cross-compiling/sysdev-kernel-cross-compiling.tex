@@ -58,7 +58,7 @@ toolchain. We will use the cross-compiling toolchain that we
 previously produced, so we just need to make it available in the PATH:
 
 \begin{bashinput}
-$ export PATH=$HOME/x-tools/%\ifdefstring{\board}{beagleplay}{aarch64-training-linux-musl}{arm-training-linux-musleabihf}%/bin:$PATH
+$ export PATH=$HOME/x-tools/%\ifdefstring{\arch}{ARM64}{aarch64-training-linux-musl}{arm-training-linux-musleabihf}%/bin:$PATH
 \end{bashinput}
 
 Also, don't forget to either:
@@ -69,7 +69,7 @@ Also, don't forget to either:
 \item {\bf Or} specify them on the command line at every invocation of
   \code{make}, i.e.: \code{make ARCH=... CROSS_COMPILE=... <target>}
 \end{itemize}
-\ifdefstring{\board}{beagleplay}{
+\ifdefstring{\arch}{ARM64}{
 \textbf{Important:} The majority of tools use \code{aarch64} to define 64 bits
 ARM processors. However in specific cases, the tools may use \code{arm64} to 
 define such architecture. In the case of the kernel Makefile we will use the
@@ -92,7 +92,7 @@ kernel.}{}
 \ifdefstring{\board}{bbb}
 {In our case look for a configuration for boards in the OMAP2 and
 later family which the AM335x found in the BeagleBone belongs to.}{}
-\ifdefstring{\board}{beagleplay}
+\ifdefstring{\arch}{ARM64}
 {If you search for a configuration file that corresponds to the \code{arm64}
 architecture that the kernel will use, you might see that only one
 \code{defconfig} file is available. We will therefore load this basic
@@ -151,7 +151,7 @@ and most optimized kernel for STM32MP1: \code{multi_v7_defconfig}
 enables plenty of features and drivers that will not be useful on our
 particular board.}{}
 
-\ifdefstring{\board}{beagleplay}{
+\ifdefstring{\arch}{ARM64}{
 Please note that this will definitely not build the smallest and most
 optimized kernel for the BeaglePlay: the ARM64 \code{defconfig}
 enables plenty of features and drivers that will not be useful on our
@@ -192,13 +192,13 @@ We will use TFTP to load the kernel image on the board:
 
 \begin{itemize}
 
-\item On your workstation, copy the {\tt \ifdefstring{\board}{beagleplay}{Image.gz}{zImage}} and DTB
+\item On your workstation, copy the {\tt \ifdefstring{\arch}{ARM64}{Image.gz}{zImage}} and DTB
 (\texttt{\dtname}\texttt{.dtb}) to the directory exposed by the TFTP server.
 
-\item On the target (in the U-Boot prompt), load {\tt \ifdefstring{\board}{beagleplay}{Image.gz}{zImage}} from
+\item On the target (in the U-Boot prompt), load {\tt \ifdefstring{\arch}{ARM64}{Image.gz}{zImage}} from
 TFTP into RAM:
 \begin{ubootinput}
-=> tftp %\zimageboardaddr% %\ifdefstring{\board}{beagleplay}{Image.gz}{zImage}%
+=> tftp %\zimageboardaddr% %\ifdefstring{\arch}{ARM64}{Image.gz}{zImage}%
 \end{ubootinput}
 
 \item Now, also load the DTB file into RAM:
@@ -208,12 +208,12 @@ TFTP into RAM:
 
 \item Boot the kernel with its device tree:
 \begin{ubootinput}
-=> %\ifdefstring{\board}{beagleplay}{booti}{bootz} \zimageboardaddr% - %\dtbboardaddr%
+=> %\ifdefstring{\arch}{ARM64}{booti}{bootz} \zimageboardaddr% - %\dtbboardaddr%
 \end{ubootinput}
 
 \end{itemize}
 
-\if\defstring{\board}{beagleplay}
+\if\defstring{\arch}{ARM64}
 This last command should show you an error message of this type:
 \bashcmd{kernel_comp_addr_r or kernel_comp_size is not provided!}
 
