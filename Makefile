@@ -188,7 +188,7 @@ LABS_PICTURES = $(call PICTURES,$(foreach s,$(LABS_CHAPTERS),labs/$(s))) $(COMMO
 
 
 # Check for all labs .tex file to exist
-$(foreach file,$(LABS_TEX),$(if $(wildcard $(file)),,$(error Missing file $(file) !)))
+$(foreach file,$(LABS_TEX),$(if $(wildcard $(file)),,$(error Missing file $(file) for $(LABS) !)))
 
 %-labs.pdf: common/labs.sty $(VARS) $(LABS_TEX) $(LABS_PICTURES) $(OUTDIR)/last-update.tex
 	@mkdir -p $(OUTDIR)
