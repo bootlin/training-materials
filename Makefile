@@ -261,8 +261,9 @@ endif
 #
 $(OUTDIR)/last-update.tex: FORCE
 	mkdir -p $(@D)
-	t=`git log -1 --format=%ct` && printf "\def \lastupdateen{%s}\n" "`(LANG=en_EN.UTF-8 date -d @$${t} +'%B %d, %Y')`" > $@
-	t=`git log -1 --format=%ct` && printf "\def \lastupdatefr{%s}\n" "`(LANG=fr_FR.UTF-8 date -d @$${t} +'%d %B %Y')`" >> $@
+	t=`git log -1 --format=%ct` && printf "\def \lastupdateen{%s}\n" "`(LANG=en_EN.UTF-8 date -d @$${t} +'%B %d, %Y')`" > $@.tmp
+	t=`git log -1 --format=%ct` && printf "\def \lastupdatefr{%s}\n" "`(LANG=fr_FR.UTF-8 date -d @$${t} +'%d %B %Y')`" >> $@.tmp
+	if ! cmp $@ $@.tmp ; then mv $@.tmp $@ ; fi
 
 
 #
@@ -314,8 +315,9 @@ $(OUTDIR)/%.pdf: %.pdf
 
 $(VARS): FORCE
 	@mkdir -p $(dir $@)
-	/bin/echo "\def \sessionurl {$(patsubst %/,%,$(SESSION_URL))}" > $@
-	/bin/echo "\def \trainer {$(TRAINER)}" >> $@
+	/bin/echo "\def \sessionurl {$(patsubst %/,%,$(SESSION_URL))}" > $@.tmp
+	/bin/echo "\def \trainer {$(TRAINER)}" >> $@.tmp
+	if ! cmp $@ $@.tmp ; then mv $@.tmp $@ ; fi
 
 clean:
 	$(RM) -rf $(OUTDIR) *.pdf *-labs *.xz
