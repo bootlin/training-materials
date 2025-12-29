@@ -1,4 +1,4 @@
-PREEMPT_RT_SLIDES    = \
+PREEMPT_RT_SLIDES = \
 	first-slides \
 	about-us \
 	course-information-title \
@@ -17,8 +17,9 @@ PREEMPT_RT_SLIDES    = \
 	realtime-linux-application-development-lab \
 	last-slides
 
-PREEMPT_RT_STM32MP1_LABS    = setup \
-		preempt-rt-patch-download \
-		preempt-rt-benchmarking \
-		preempt-rt-configuration \
-		preempt-rt-application-development
+PREEMPT_RT_STM32MP1_LABS = \
+	setup \
+	preempt-rt-patch-download \
+	preempt-rt-benchmarking \
+	preempt-rt-configuration \
+	preempt-rt-application-development
