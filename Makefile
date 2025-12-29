@@ -182,7 +182,7 @@ endif
 LABS_TEX      = \
 	$(LABS_VARSFILE) \
 	$(LABS_HEADER) \
-	$(foreach s,$(LABS_CHAPTERS),$(wildcard labs/$(s)/$(s).tex)) \
+	$(foreach s,$(LABS_CHAPTERS),labs/$(s)/$(s).tex) \
 	$(LABS_FOOTER)
 LABS_PICTURES = $(call PICTURES,$(foreach s,$(LABS_CHAPTERS),labs/$(s))) $(COMMON_PICTURES)
 
