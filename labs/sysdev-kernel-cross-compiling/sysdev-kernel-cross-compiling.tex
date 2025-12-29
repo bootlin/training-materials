@@ -51,6 +51,20 @@ $ git checkout stable/linux-%\workingkernel%.y
 Check the version again using the \code{make kernelversion} command
 to make sure you now have a \workingkernel.x version.
 
+\if\defstring{\lab}{imx93-frdm}
+Before continuing, we still need to apply a patch in kernel/data to
+add the Device Tree for the \boarddescription{} in
+\code{arch/arm64/boot/dts/freescale} because the board is not yet
+supported in the upstream Linux kernel.
+
+\begin{bashinput}
+$ git apply ../data/0001-arm64-dts-freescale-add-support-for-NXP-i.MX93-FRDM.patch
+\end{bashinput}
+
+After applying the patch edit the Makefile to build
+imx93-11x11-frdm.dts
+\fi
+
 \section{Cross-compiling environment setup}
 
 To cross-compile Linux, you need to have a cross-compiling
@@ -151,6 +165,21 @@ for the Texas Instruments Inc. K3 multicore SoC architecture.
 \item Disable \kconfig{CONFIG_DRM}, which will skip support for many display
 controller and GPU drivers.
 }{}
+
+\if\defstring{\board}{imx93-frdm}
+\item In the \code{Platform Selection} menu, remove support for all the
+  SoCs except the \code{NXP SoC support} ones and in particular
+  \code{NXP i.MX SoC family}.
+\item To use ethetnet port enable as built in
+  \code{CONFIG_STMMAC_ETH},
+  \code{CONFIG_STMMAC_PLATFORM},\code{CONFIG_NVMEM_IMX_OCOTP_ELE}, and
+  \code{CONFIG_DWMAC_IMX8}
+\item Disable \kconfig{CONFIG_DRM} and \code{CONFIG_MEDIA_SUPPORT},
+  which will disable support for display controller drivers, GPU
+  drivers and camera drivers, that we don't need and will save quite a
+  bit of build time.
+\fi
+
 \end{itemize}
 
 \ifdefstring{\board}{stm32mp1}{
