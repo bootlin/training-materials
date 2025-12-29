@@ -35,7 +35,8 @@ YOCTO_SLIDES    = \
 		last-slides \
 		yocto-extra-slides
 
-YOCTO_BBB_LABS    = setup \
+YOCTO_BBB_LABS    = \
+		setup \
 		yocto-first-build \
 		yocto-advanced-configuration \
 		yocto-add-application \
@@ -46,7 +47,8 @@ YOCTO_BBB_LABS    = setup \
 		yocto-sdk \
 		yocto-devtool
 
-YOCTO_BEAGLEPLAY_LABS    = setup \
+YOCTO_BEAGLEPLAY_LABS    = \
+		setup \
 		yocto-first-build-beagleplay \
 		yocto-advanced-configuration-beagleplay \
 		yocto-add-application \
@@ -57,7 +59,8 @@ YOCTO_BEAGLEPLAY_LABS    = setup \
 		yocto-sdk \
 		yocto-devtool
 
-YOCTO_STM32MP1_LABS    = setup \
+YOCTO_STM32MP1_LABS    = \
+		setup \
 		yocto-first-build-stm32 \
 		yocto-advanced-configuration-stm32 \
 		yocto-add-application \
