@@ -21,5 +21,4 @@ PREEMPT_RT_STM32MP1_LABS    = setup \
 		preempt-rt-patch-download \
 		preempt-rt-benchmarking \
 		preempt-rt-configuration \
-		preempt-rt-application-development \
-		last-slides
+		preempt-rt-application-development
