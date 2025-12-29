@@ -751,7 +751,53 @@ We can then get details on GPIOF GPIOs by running
 \code{gpioinfo}.
 \fi
 
-You can now read the state of your GPIO \gpioname:
+\if\defstring{\board}{bbb}
+First, connect \code{GPIO1_28} (pin 12 of connector P9) connected
+to ground (pin 1 of connector P9), as in the
+{\em Accessing Hardware Devices} lab.
+
+Now, let's run the \code{gpiodetect} command on the target, and check
+that you can list the various GPIO banks on your system.
+
+\begin{bashinput}
+# gpiodetect
+gpiochip0 [gpio-0-31] (32 lines)
+gpiochip1 [gpio-32-63] (32 lines)
+gpiochip2 [gpio-64-95] (32 lines)
+gpiochip3 [gpio-96-127] (32 lines)
+\end{bashinput}
+
+So, \code{GPIO1_28} should be part of \code{gpiochip0}.
+
+We can then get details on GPIOE GPIOs by running \code{gpioinfo
+gpiochip0} or on all GPIOs by simply running \code{gpioinfo}.
+\fi
+
+\if\defstring{\board}{beagleplay}
+
+First, connect \code{GPIO1_9} (\code{INT} pin of \code{mikroBUS}
+connector) connected to ground (\code{GND} pin of \code{mikroBUS}
+connector), as in the {\em Accessing Hardware Devices} lab.
+
+Now, let's run the \code{gpiodetect} command on the target, and check
+that you can list the various GPIO banks on your system.
+
+\begin{bashinput}
+# gpiodetect
+gpiochip0 [tps65219-gpio] (3 lines)
+gpiochip1 [4201000.gpio] (24 lines)
+gpiochip2 [600000.gpio] (92 lines)
+gpiochip3 [601000.gpio] (52 lines)
+\end{bashinput}
+
+But how can we know which gpiochip is actually driving our \code{INT}
+gpio?  The easiest way to do this in our case is to run the
+\code{gpioinfo} command and look for \code{GPIO1_9} in its
+output. That's how you'll find that \code{GPIO1_9} is line \code{9} on
+\code{gpiochip3}.
+\fi
+
+You can now read the state of your GPIO:
 
 \if\defstring{\board}{stm32mp1}
 \begin{bashinput}
@@ -766,6 +812,21 @@ You can now read the state of your GPIO \gpioname:
 "1"=inactive
 \end{bashinput}
 \fi
+
+\if\defstring{\board}{bbb}
+\begin{bashinput}
+# gpioget -c gpiochip0 28
+"28"=inactive
+\end{bashinput}
+\fi
+
+\if\defstring{\board}{beagleplay}
+\begin{bashinput}
+# gpioget -c gpiochip3 9
+"9"=inactive
+\end{bashinput}
+\fi
+
 
 \if\defstring{\board}{stm32mp1}
 Now, connect your wire to 3V3 (pin 2 of connector CN16). You should now
@@ -786,13 +847,33 @@ Now, let's connect our GPIO pin to pin 1 (IOREF 3V3).
 \end{bashinput}
 \fi
 
+\if\defstring{\board}{bbb}
+Now, connect your wire to 3V3 (pin 3 or 4 of connector P9). You should now
+read:
+
+\begin{bashinput}
+# gpioget -c gpiochip0 28
+"28"=active
+\end{bashinput}
+\fi
+
+\if\defstring{\board}{beagleplay}
+Now, connect your wire to 3V3 (\code{+3.3V} pin  of the \code{mikroBUS}
+connector). You should now read:
+
+\begin{bashinput}
+# gpioget -c gpiochip3 9
+"9"=active
+\end{bashinput}
+\fi
+
 You see that you didn't have to configure the GPIO as input. {\em
 libgpiod} did that for you.
 
-If you have an LED and a small breadboard (or M-F breadboard wires),
-you could also try to drive the GPIO in output mode. Connect the short
-pin of the LED to GND, and the long one to the GPIO. Then then following
-command should light up the diode:
+If you have an LED and a small breadboard and appropriate breadboard
+wires, you could also try to drive the GPIO in output mode. Connect
+the short pin of the LED to GND, and the long one to the GPIO. Then
+then following command should light up the diode:
 
 \if\defstring{\board}{stm32mp1}
 \begin{bashinput}
@@ -803,6 +884,18 @@ command should light up the diode:
 \if\defstring{\board}{stm32mp2}
 \begin{bashinput}
 # gpioset -c gpiochip5 -t0 11=1
+\end{bashinput}
+\fi
+
+\if\defstring{\board}{bbb}
+\begin{bashinput}
+gpioset -c gpiochip0 -t0 28=1
+\end{bashinput}
+\fi
+
+\if\defstring{\board}{beagleplay}
+\begin{bashinput}
+# gpioset -c gpiochip3 -t0 9=1
 \end{bashinput}
 \fi
 
@@ -820,6 +913,18 @@ Here's how to turn the LED off:
 \if\defstring{\board}{stm32mp2}
 \begin{bashinput}
 # gpioset -c gpiochip5 -t0 11=0
+\end{bashinput}
+\fi
+
+\if\defstring{\board}{bbb}
+\begin{bashinput}
+gpioset -c gpiochip0 -t0 28=0
+\end{bashinput}
+\fi
+
+\if\defstring{\board}{beagleplay}
+\begin{bashinput}
+# gpioset -c gpiochip3 -t0 9=0
 \end{bashinput}
 \fi
 
@@ -871,6 +976,32 @@ c = 'aarch64-linux-gcc'
 system = 'linux'
 cpu_family = 'arm64'
 cpu = 'cortex-a35'
+endian = 'little'
+\end{verbatim}
+\fi
+
+\if\defstring{\board}{bbb}
+\begin{verbatim}
+[binaries]
+c = 'arm-linux-gcc'
+
+[host_machine]
+system = 'linux'
+cpu_family = 'arm'
+cpu = 'cortex-a8'
+endian = 'little'
+\end{verbatim}
+\fi
+
+\if\defstring{\board}{beagleplay}
+\begin{verbatim}
+[binaries]
+c = 'aarch64-linux-gcc'
+
+[host_machine]
+system = 'linux'
+cpu_family = 'aarch64'
+cpu = 'cortex-a53'
 endian = 'little'
 \end{verbatim}
 \fi

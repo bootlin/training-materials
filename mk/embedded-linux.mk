@@ -72,7 +72,7 @@ EMBEDDED_LINUX_BBB_LABS = \
 	sysdev-tinysystem \
 	sysdev-accessing-hardware-bbb \
 	sysdev-block-filesystems-bbb \
-	sysdev-thirdparty-bbb \
+	sysdev-thirdparty \
 	sysdev-buildroot \
 	sysdev-system-integration \
 	sysdev-application-development-and-debugging
@@ -86,7 +86,7 @@ EMBEDDED_LINUX_BEAGLEPLAY_LABS = \
 	sysdev-tinysystem \
 	sysdev-accessing-hardware-beagleplay \
 	sysdev-block-filesystems-beagleplay \
-	sysdev-thirdparty-beagleplay \
+	sysdev-thirdparty \
 	sysdev-buildroot \
 	sysdev-system-integration \
 	sysdev-application-development-and-debugging
