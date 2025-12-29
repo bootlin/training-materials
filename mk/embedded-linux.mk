@@ -109,8 +109,8 @@ EMBEDDED_LINUX_STM32MP2_LABS   = setup \
 				 sysdev-kernel-cross-compiling-stm32mp2 \
 				 sysdev-tinysystem \
 				 sysdev-accessing-hardware-stm32 \
-				 sysdev-block-filesystems \
-				 sysdev-thirdparty \
+				 sysdev-block-filesystems-stm32 \
+				 sysdev-thirdparty-stm32 \
 				 sysdev-buildroot \
 				 sysdev-system-integration \
 				 sysdev-application-development-and-debugging
