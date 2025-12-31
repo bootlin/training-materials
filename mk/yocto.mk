@@ -5,6 +5,7 @@ YOCTO_SLIDES = \
 	shopping-list-beaglebone \
 	shopping-list-stm32mp157 \
 	shopping-list-beagleplay \
+	shopping-list-imx93-frdm \
 	course-information \
 	setup-lab \
 	buildroot-yocto-introduction \
