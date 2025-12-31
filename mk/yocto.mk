@@ -47,7 +47,7 @@ YOCTO_BBB_LABS = \
 	yocto-sdk \
 	yocto-devtool
 
-YOCTO_BEAGLEPLAY_LABS    = \
+YOCTO_BEAGLEPLAY_LABS = \
 	setup \
 	yocto-first-build-beagleplay \
 	yocto-advanced-configuration-beagleplay \
@@ -59,7 +59,7 @@ YOCTO_BEAGLEPLAY_LABS    = \
 	yocto-sdk \
 	yocto-devtool
 
-YOCTO_STM32MP1_LABS    = \
+YOCTO_STM32MP1_LABS = \
 	setup \
 	yocto-first-build-stm32 \
 	yocto-advanced-configuration-stm32 \
