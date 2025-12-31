@@ -48,12 +48,12 @@ Labs formatting guidelines
  * To create a new lab, the chapter must start with a 'subchapter'
    command, as in:
 
-```
-\subchapter{Bootloader – U-Boot}{Objectives: Set up serial
-  communication, compile and install the X-Loader and U-Boot
-  bootloaders, use basic U-Boot commands, set up TFTP communication
-  with the development workstation.}
-```
+   ```
+   \subchapter{Bootloader – U-Boot}{Objectives: Set up serial
+      communication, compile and install the X-Loader and U-Boot
+      bootloaders, use basic U-Boot commands, set up TFTP communication
+      with the development workstation.}
+   ```
 
  * You can use `\section{}` and `\subsection{}` to create sections in your
    lab document.
@@ -63,15 +63,15 @@ Labs formatting guidelines
    the `\code` macro as follows:
 
    ```
-Blabla. Look in the \code{/usr/bin} directory. Blabla.
+   Blabla. Look in the \code{/usr/bin} directory. Blabla.
    ```
 
    Note that the `\code{}` macro doesn't require escaping of $ or _
    signs:
 
    ```
-You can look for the \code{platform_device_register()} function in the
-\code{$HOME/linux/blabla.c} file.
+   You can look for the \code{platform_device_register()} function in the
+   \code{$HOME/linux/blabla.c} file.
    ```
 
    This macro *MUST* be used instead of `{\tt }`, because `\code{}`
@@ -85,14 +85,14 @@ You can look for the \code{platform_device_register()} function in the
  * To add some fixed-size font text as a complete paragraph, use the
    'verbatim' environment:
 
-In order to build the kernel run:
+   In order to build the kernel run:
 
-```
-\begin{verbatim}
-make blabla_defconfig
-make
-\end{verbatim}
-```
+   ```
+   \begin{verbatim}
+   make blabla_defconfig
+   make
+   \end{verbatim}
+   ```
 
    Here as well, it does not require escaping of `$` or `_` signs.
 
@@ -103,11 +103,11 @@ make
    `\begin{verbatim}...\end{verbatim}` environment by doing:
 
    ```
-{\small
-\begin{verbatim}
-...
-\end{verbatim}
-}
+   {\small
+   \begin{verbatim}
+   ...
+   \end{verbatim}
+   }
    ```
 
    This must be used parsimoniously because changing the font size all
