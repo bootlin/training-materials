@@ -12,7 +12,6 @@ NETWORKING_SLIDES = \
 	networking-stack-control \
 	networking-netdev-lab \
 	networking-socket \
-	networking-socket-lab \
 	networking-skb \
 	networking-skb-lab \
 	networking-filtering \
@@ -32,7 +31,6 @@ NETWORKING_ESPRESSOBIN_LABS   = setup \
 		    networking-setup \
 		    networking-stack \
 		    networking-netlink \
-		    networking-socket \
 		    networking-skb \
 		    networking-ebpf \
 		    networking-driver

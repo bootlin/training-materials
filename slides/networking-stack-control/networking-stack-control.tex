@@ -85,49 +85,6 @@ fd = socket(AF_NETLINK, SOCK_RAW, NETLINK_GENERIC);
 	\end{itemize}
 \end{frame}
 
-\begin{frame}{Netlink Classic vs Netlink Generic}
-	\begin{itemize}
-		\item Most netlink users today use \textbf{generic netlink}
-		\item This replaces \textbf{classic netlink}, which has statically allocated family ID
-		\item Generic Netlink (\code{genetlink}) allows dynamic family registration
-			\begin{itemize}
-				\item Allows easy implementation of custom families
-				\item Families are looked-up by \textbf{name} (a string) instead of ID.
-			\end{itemize}
-		\item Example families :
-			\begin{itemize}
-				\item "ethtool": Ethtool commands, also called \textbf{ethnl}
-				\item "wireguard": Wireguard tunneling configuration
-				\item "nl80211": Wifi-configuration netlink commands
-			\end{itemize}
-	\end{itemize}
-\end{frame}
-
-\begin{frame}[fragile]{Netlink Messages}
-	\begin{itemize}
-		\item Transmission of \textbf{netlink messages} :
-			\begin{itemize}
-				\item A fixed-format Header begins the message
-				\item The information is conveyed through TLV items : \textbf{Type}, \textbf{Length}, \textbf{Value}
-			\end{itemize}
-	\end{itemize}
-	\begin{minted}{c}
-struct nlmsghdr {
-      __u32   nlmsg_len;      /* Length of message including headers */
-      __u16   nlmsg_type;     /* Generic Netlink Family (subsystem) ID */
-      __u16   nlmsg_flags;    /* Flags - request or dump */
-      __u32   nlmsg_seq;      /* Sequence number */
-      __u32   nlmsg_pid;      /* Port ID, set to 0 */
-};
-struct genlmsghdr {
-      __u8    cmd;            /* Command, as defined by the Family */
-      __u8    version;        /* Irrelevant, set to 1 */
-      __u16   reserved;       /* Reserved, set to 0 */
-};
-/* TLV attributes follow... */
-	\end{minted}
-\end{frame}
-
 \begin{frame}{Netlink commands}
 	\begin{itemize}
 		\item There are multiple types of Netlink requests based on the \code{nlmsg_flags}
@@ -149,46 +106,6 @@ struct genlmsghdr {
 				\item \textit{e.g.} Command \code{ETHTOOL_MSG_LINKMODES_GET} for family "ethtool"
 				\item Contains \code{ETHTOOL_A_LINKMODES_SPEED}
 			\end{itemize}
-	\end{itemize}
-\end{frame}
-
-\begin{frame}[fragile]{Netlink specifications}
-	\begin{itemize}
-		\item Message content used to be specified directly in the kernel uAPI headers
-		\item Formats are now defined as \textbf{Netlink Specs} written in \code{YAML}
-		\item Specifications are written per-family in \kfile{Documentation/netlink/specs}
-	\end{itemize}
-	\begin{block}{Documentation/netlink/specs/ethtool.yaml}
-	\begin{minted}{yaml}
-name: ethtool
-protocol: genetlink-legacy
-doc: Partial family for Ethtool Netlink.
-
-definitions:
-  - ...
-attribute-sets:
-  - ...
-operations:
-  - ...
-	\end{minted}
-	\end{block}
-\end{frame}
-
-\begin{frame}{Netlink specifications - 2}
-	\begin{itemize}
-		\item Netlink specs are used internally to \textbf{generate} the uAPI headers
-			\begin{itemize}
-				\item Generated in \kfile{include/uapi/linux/ethtool_netlink_generated.h}
-				\item Included by \kfile{include/uapi/linux/ethtool_netlink.h}
-			\end{itemize}
-		\item When modifying the specs, headers can be regenerated with \code{${KDIR}/tools/net/ynl/ynl-regen.sh}
-		\item The \textbf{ynl} tool included in the kernel's sources can be used to send hand-crafted messages
-			\begin{itemize}
-				\item \code{make -C tools/net/ynl}
-			\end{itemize}
-		\item Uses the Netlink Specs to derive the format and family :
-			\code{ynl --family ethtool --no-schema --do linkinfo-get \ }
-			\code{--json '{"header" : { "dev-name" : "eth0"}}'}
 	\end{itemize}
 \end{frame}
 
@@ -267,29 +184,6 @@ operations:
 				\item The \kstruct{rtnl_link_ops} is used for virtual netdev types
 				\item The \href{https://elixir.bootlin.com/linux/v6.15.2/source/net/ethtool}{ethnl} abstraction is used for ethtool commands
 			\end{itemize}
-	\end{itemize}
-\end{frame}
-
-\begin{frame}[fragile]{Netlink Attributes}
-	\begin{itemize}
-		\item As netlink is part of \textbf{userspace API}, all attribute values are heavily checked
-		\item When declaring attributes, we can specify a \textbf{policy}
-			\begin{itemize}
-				\item Allows specifying a range of acceptable values
-					\begin{minted}{c}
-const struct nla_policy ethnl_linkmodes_set_policy[] = {
-        [ETHTOOL_A_LINKMODES_LANES] = NLA_POLICY_RANGE(NLA_U32, 1, 8),
-};
-					\end{minted}
-			\end{itemize}
-		\item Handling messages is done in the genetlink \code{.doit()} callback
-		\item Netlink attributes are represented as \kstruct{nlattr}
-		\item Attributes are passed as an array, indexed by attribute id, usually named \code{tb}
-		\item Helpers are provided to get attribute values, \textit{e.g.} \kfunc{nla_get_u32}
-		\begin{minted}{c}
-if (data[IFLA_MACSEC_WINDOW])
-        secy->replay_window = nla_get_u32(data[IFLA_MACSEC_WINDOW]);
-		\end{minted}
 	\end{itemize}
 \end{frame}
 
