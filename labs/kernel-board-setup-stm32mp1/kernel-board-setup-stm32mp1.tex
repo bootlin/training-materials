@@ -1,0 +1,225 @@
+\subchapter{Board setup}{Objective: setup communication
+with the board and configure the bootloader.}
+
+After this lab, you will be able to:
+\begin{itemize}
+\item Access the board through its serial line.
+\item Configure the U-boot bootloader and a tftp server
+      on your workstation to download files through tftp.
+\end{itemize}
+
+\section{Getting familiar with the board}
+
+Take some time to read about the board features:
+
+\url{https://www.st.com/en/evaluation-tools/stm32mp157d-dk1.html}
+
+Don't hesitate to share your questions with the instructor.
+
+\section{Download technical documentation}
+
+We are going to download documents which we will need during our
+practical labs.
+
+The first document to download is the STM32MP157 user manual found at
+\url{https://www.st.com/resource/en/user_manual/um2637-discovery-kits-with-increasedfrequency-800-mhz-stm32mp157-mpus-stmicroelectronics.pdf}.
+This document will give us details about board connectors.
+
+The second document to download is the datasheet for the STM32MP157 SoCs,
+available on
+\url{https://www.st.com/resource/en/datasheet/stm32mp157a.pdf}.
+This document will give us details about pin assignments.
+
+Last but not least, download the STM32MP157 Reference Manual found at
+\url{https://www.st.com/resource/en/reference_manual/rm0436-stm32mp157-advanced-armbased-32bit-mpus-stmicroelectronics.pdf}.
+This document is more than 4000 pages long!
+You will need it too during the practical labs.
+
+\section{Setting up serial communication with the board}
+
+Plug the USB-A to micro USB-B cable on the Discovery board. There is
+only one micro USB port on the board, it is CN11, also named ST-LINK.
+It exposes multiple debugging interfaces, including a serial interface.
+
+Once the USB to Serial connector is plugged in, a new serial port
+should appear: \code{/dev/ttyACM0}.  You can also see this device
+appear by looking at the output of \code{dmesg}.
+
+To communicate with the board through the serial port, install a
+serial communication program, such as \code{picocom}:
+
+\begin{verbatim}
+sudo apt install picocom
+\end{verbatim}
+
+If you run \code{ls -l /dev/ttyACM0}, you can also see that only
+\code{root} and users belonging to the \code{dialout} group have
+read and write access to this file. Therefore, you need to add your user
+to the \code{dialout} group:
+
+\begin{verbatim}
+sudo adduser $USER dialout
+\end{verbatim}
+
+{\bf Important}: for the group change to be effective, you have to
+{\em completely log out} from your session and log in again (no need to
+reboot). A workaround is to run \code{newgrp dialout}, but it is not global.
+You have to run it in each terminal.
+
+Now, you can run \code{picocom -b 115200 /dev/ttyACM0}, to start serial
+communication on \code{/dev/ttyACM0}, with a baudrate of \code{115200}. If
+you wish to exit \code{picocom}, press \code{[Ctrl][a]} followed by
+\code{[Ctrl][x]}.
+
+There should be nothing on the serial line so far, as the board is not
+powered up yet.
+
+It is now time to power up your board by connecting the USB-C cable to
+the board, in CN6, \code{PWR_IN} and to your PC at the other end.
+
+See what messages you get on the serial line. You should see U-boot
+start.
+
+\section{Bootloader interaction}
+
+In order to follow the labs, {\bf you need to use a board flashed
+with a specific Bootloader!}
+
+If you are in an on-site session and the trainer gave you the hardware,
+the right Bootloader is already there, you just need to reset the
+environment (see below).
+
+If you are doing the labs on your own, please follow instructions 1. and
+2. from the README available at:
+\url{https://github.com/bootlin/training-materials/tree/master/lab-data/common/bootloader/stm32mp157d-dk1}
+
+Do not try to use stock/random images from the Internet!
+
+Once this done, reset your board.
+You should then see the U-Boot prompt:
+
+\begin{verbatim}
+STM32MP>
+\end{verbatim}
+
+Then reset the U-Boot environment variables:
+
+\begin{verbatim}
+env default -f -a
+saveenv
+\end{verbatim}
+
+If the \code{saveenv} command fails, it means you need to follow
+(again?) the flashing procedure above.
+
+Otherwise, you can now use U-Boot! Type \code{help} to see the available
+commands.
+
+\section{Setting up networking}
+
+The next step is to configure U-boot and your workstation to let your
+board download files, such as the kernel image and Device Tree Binary
+(DTB), using the TFTP protocol through a network connection.
+
+For these next steps, make sure that your STM32MP157D-DK1 board is directly
+connected to your host PC through its ethernet port. If your computer already
+has a wired connection to the network, your instructor will provide you with
+a USB Ethernet adapter. A new network interface should appear on your Linux system.
+
+\subsection{Network configuration on the target}
+Now, let's configure networking in U-Boot:
+
+\begin{itemize}
+  \item \code{ipaddr}: IP address of the board
+  \item \code{serverip}: IP address of the PC host
+\end{itemize}
+
+\begin{verbatim}
+setenv ipaddr 192.168.1.100
+setenv serverip 192.168.1.1
+\end{verbatim}
+
+Of course, make sure that this address belongs to a separate network
+segment from the one of the main company network.
+
+To make these settings permanent, save the environment:
+
+\begin{verbatim}
+saveenv
+\end{verbatim}
+
+\subsection{Network configuration on the PC host}
+
+To configure your network interface on the workstation side, we need
+to know the name of the network interface connected to your board.
+
+Find the name of this interface by typing:
+
+\begin{verbatim}
+ip a
+\end{verbatim}
+
+The network interface name is likely to be
+\code{enxxx}\footnote{Following the {\em Predictable Network Interface
+Names} convention:
+\url{https://www.freedesktop.org/wiki/Software/systemd/PredictableNetworkInterfaceNames/}}.
+If you have a pluggable Ethernet device, it's easy to identify as it's
+the one that shows up after pluging in the device.
+
+Then, instead of configuring the host IP address from NetWork Manager's
+graphical interface, let's do it through its command line interface,
+which is so much easier to use:
+
+\begin{verbatim}
+nmcli con add type ethernet ifname en... ip4 192.168.0.1/24
+\end{verbatim}
+
+\section{Setting up the TFTP server}
+
+Let's install a TFTP server on your development workstation:
+
+\begin{verbatim}
+sudo apt install tftpd-hpa
+\end{verbatim}
+
+Once the package is installed, view the contents of
+\code{/etc/default/tftpd-hpa}, and check what the TFTP server home directory
+(\code{TFTP_DIRECTORY} setting). If \code{/srv} exists on your system,
+it should be \code{/srv/tftp}, otherwise \code{/var/lib/tftpboot/}.
+
+If you wish to make a change to this file, you will have to restart the TFTP server:
+
+\begin{verbatim}
+sudo /etc/init.d/tftpd-hpa restart
+\end{verbatim}
+
+\section{Testing the network connection}
+
+You can then test the TFTP connection. First, put a small text
+file in TFTP server home directory. Then, from U-Boot, do:
+
+\begin{verbatim}
+tftp 0xc2000000 textfile.txt
+\end{verbatim}
+
+In case the download fails, make sure your host interface is correctly
+configured and if a firewall is enabled make sure it does not filter out our
+requests:
+\begin{verbatim}
+sudo ufw allow from 192.168.1.100
+\end{verbatim}
+
+Otherwise, the \code{tftp} command should have downloaded the
+\code{textfile.txt} file from your development workstation into the
+board's memory at location \code{0xc2000000} (this location is part of
+the board DRAM). You can verify that the download was successful by
+dumping the content of the memory:
+
+\begin{verbatim}
+md 0xc2000000
+\end{verbatim}
+
+We are now ready to load and boot a Linux kernel!
+
+Note: As for every network-related issue, you might want to start by
+having a look at firewall settings when troubleshooting.
