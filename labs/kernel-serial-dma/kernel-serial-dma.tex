@@ -68,6 +68,14 @@ the imx93, it is actually wired to a DMA controller named eDMA. So we
 will have to deal with the \code{dmaengine} API in order to prepare DMA
 transfers on the controller side.}
 \fi
+\if\defstring{\board}{stm32mp1}{
+The USART AND UART controllers cannot directly make use of the external DMA controller.
+They have to use an intermediate DMAMUX request multiplexer that enables routing
+a DMA request line between the USART/UART and the DMA controllers.
+The DMA multiplexer uses the same API than the DMA controller. So we
+will have to deal with the \code{dmaengine} API in order to prepare DMA
+transfers on the controller side.}
+\fi
 The idea of this API is to fully abstract the characteristics of the
 DMA controller.
 
@@ -93,6 +101,18 @@ operations and in the DMA cleanup function.
 We should at the very least request the DMA channel to use. Open the SoC
 device tree and find the lpuart3 and lpuart8 nodes. Look for \code{dma}
 channel properties and their names.
+Hence, when requesting the channels with
+\kfunc{dma_request_chan}, we must take care to check and return the error code
+wrapped in the returned \kstruct{dma_chan} pointer. This can be done with the
+\code{IS_ERR()} and \code{PTR_ERR()} macros. You may display the corresponding
+error string with {\tt \%pe}! Also make sure that this case is correctly handled
+both in the calling code to fallback to the \code{serial_fops_pio} file
+operations and in the DMA cleanup function.
+}\fi
+\if\defstring{\board}{stm32mp1}{
+We should at the very least request the DMA channel to use.
+Open the SoC device tree and find the usart3 and uart7 nodes. Look for
+\code{dma} channel properties and their names.
 Hence, when requesting the channels with
 \kfunc{dma_request_chan}, we must take care to check and return the error code
 wrapped in the returned \kstruct{dma_chan} pointer. This can be done with the
@@ -191,16 +211,31 @@ if (dma_mapping_error(serial->dev, serial->fifo_dma_addr)) ...
 
 txconf.dst_maxburst = 1;
 \end{verbatim}
-}
-\else{
+}\fi
+\if\defstring{\board}{bbb}{
 \begin{verbatim}
 struct dma_slave_config txconf = {};
 serial->fifo_dma_addr = dma_map_resource(serial->dev, serial->res->start + UART_TX * 4,
 4, DMA_TO_DEVICE, 0);
 if (dma_mapping_error(serial->dev, serial->fifo_dma_addr)) ...
 \end{verbatim}
-}
-\fi
+}\fi
+\if\defstring{\board}{beagleplay}{
+\begin{verbatim}
+struct dma_slave_config txconf = {};
+serial->fifo_dma_addr = dma_map_resource(serial->dev, serial->res->start + UART_TX * 4,
+4, DMA_TO_DEVICE, 0);
+if (dma_mapping_error(serial->dev, serial->fifo_dma_addr)) ...
+\end{verbatim}
+}\fi
+\if\defstring{\board}{stm32mp1}{
+\begin{verbatim}
+struct dma_slave_config txconf = {};
+serial->fifo_dma_addr = dma_map_resource(serial->dev, serial->res->start + USART_TDR,
+                                         4, DMA_TO_DEVICE, 0);
+if (dma_mapping_error(serial->dev, serial->fifo_dma_addr)) ...
+\end{verbatim}
+}\fi
 \begin{verbatim}
 txconf.direction = DMA_MEM_TO_DEV;
 txconf.dst_addr_width = DMA_SLAVE_BUSWIDTH_1_BYTE;
@@ -227,7 +262,8 @@ flow. We must enable the controlling logic on the Tx DMA channel, by enabling
 writel(readl(serial->regs + LPUART_BAUD) | LPUART_BAUD_TDMAE,
        serial->regs + LPUART_BAUD);
 \end{verbatim}
-}\else{
+}\fi
+\if\defstring{\board}{bbb}{
 \code{DMACTL} in mode 3. We also configure the UART to transmit all the bytes
 as soon as they get in.
 
@@ -238,6 +274,30 @@ as soon as they get in.
 /* Enable DMA */
 reg_write(serial, OMAP_UART_SCR_DMAMODE_CTL3 | OMAP_UART_SCR_TX_TRIG_GRANU1,
           UART_OMAP_SCR);
+\end{verbatim}
+}\fi
+\if\defstring{\board}{beagleplay}{
+\code{DMACTL} in mode 3. We also configure the UART to transmit all the bytes
+as soon as they get in.
+
+\begin{verbatim}
+#define OMAP_UART_SCR_DMAMODE_CTL3 0x7
+#define OMAP_UART_SCR_TX_TRIG_GRANU1 BIT(6)
+
+/* Enable DMA */
+reg_write(serial, OMAP_UART_SCR_DMAMODE_CTL3 | OMAP_UART_SCR_TX_TRIG_GRANU1,
+          UART_OMAP_SCR);
+\end{verbatim}
+}\fi
+\if\defstring{\board}{stm32mp1}{
+\code{USART_CR3_DMAT}.
+
+\begin{verbatim}
+
+/* Enable DMA */
+unsigned int cr3 = 0;
+cr3 |= USART_CR3_DMAT;
+reg_write(serial, cr3, USART_CR3);
 \end{verbatim}
 }\fi
 
