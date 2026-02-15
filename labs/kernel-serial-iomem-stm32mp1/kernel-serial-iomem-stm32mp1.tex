@@ -1,0 +1,222 @@
+\subchapter{Accessing I/O memory and ports}{Objective: read /
+  write data from / to a hardware device}
+
+Throughout the upcoming labs, we will implement a character driver
+allowing to write data to additional CPU serial ports available on
+the STM32MP157D-DK1, and to read data from them.
+
+After this lab, you will be able to:
+
+\begin{itemize}
+\item Add UART devices to the board device tree.
+\item Access I/O registers to control the device and
+      send first characters to it.
+\end{itemize}
+
+\section{Setup}
+
+Go to your kernel source directory and continue working with the
+\code{bootlin-labs} branch, this way we can keep the same custom Device
+Tree we already created, and build on top of it.
+
+\section{Add UART devices}
+
+Before developing a driver for additional UARTS on the board, we
+need to add the corresponding descriptions to the board Device Tree.
+
+First, open the board user manual and find the connectors
+and pinmux modes for USART3 and UART7.
+
+Using a USB-serial cable with female connectors, provided by your
+instructor, connect your PC to USART3. The wire colors are:
+
+\begin{itemize}
+\item The blue wire should be connected \code{GND}.
+\item The red wire (\code{TX}) should be connected to the board's \code{RX} pin.
+\item The green wire (\code{RX}) should be connected to the board's \code{TX} pin.
+\end{itemize}
+
+Then, declare the corresponding devices in our custom dts file
+\code{arch/arm/boot/dts/st/stm32mp157d-dk1-custom.dts} :
+
+\sourcecode{labs/kernel-serial-iomem-stm32mp1/uarts.dts}
+
+This is a good example of how we can override definitions in the Device
+Tree. \code{usart3} and \code{uart7} are already defined in
+\kfile{arch/arm/boot/dts/st/stm32mp15xx-dkx.dtsi}. In the above code, we just
+override a few properties:
+duplicate the valid ones:
+
+\begin{itemize}
+\item \code{compatible}: use our driver instead of using the default one
+      (\code{stm32h7-uart}).
+\item \code{status}: enable the device (was set to \code{disabled} in
+	the original definition).
+\end{itemize}
+
+Compile and update your DTB.
+
+\section{Operate a platform device driver}
+
+Go to the \code{~/linux-kernel-labs/modules/nfsroot/root/serial/} directory.
+You will find a \code{serial.c} file which already provides a platform
+driver skeleton.
+
+Add the code needed to match the driver with the devices which you have
+just declared in the device tree.
+
+Compile your module and load it on your target. Check the kernel log
+messages, that should confirm that the \code{probe()} routine was
+called\footnote{Don't be surprised if the \code{probe()} routine is
+actually called twice! That's because we have declared two devices.
+Even if we only connect a serial-to-USB dongle to one of them, both
+of them are ready to be used!}.
+
+\section{Create a device private structure}
+
+In the same way as in the nunchuk lab, we now need to create a
+structure that will hold device specific information and help
+keeping pointers between logical and physical devices.
+
+As the first thing to store will be the base virtual address for
+each device, let's declare this structure as follows:
+
+\begin{verbatim}
+struct serial_dev {
+        void __iomem *regs;
+};
+\end{verbatim}
+
+The first thing to do is allocate such a structure at the beginning
+of the \code{probe()} routine. Let's do it with the \kfunc{devm_kzalloc}
+function again as in the previous lab. Again, resource deallocation is
+automatically taken care of when we use the \code{devm_} functions.
+
+So, add the below line to your code:
+
+\begin{verbatim}
+struct serial_dev *serial;
+...
+serial = devm_kzalloc(&pdev->dev, sizeof(*serial), GFP_KERNEL);
+if (!serial)
+        return -ENOMEM;
+\end{verbatim}
+
+\section{Get a base virtual address for your device registers}
+
+You can now get a virtual address for your device's base physical
+address, by calling:
+
+\begin{verbatim}
+serial->regs = devm_platform_ioremap_resource(pdev, 0);
+if (IS_ERR(serial->regs))
+        return PTR_ERR(serial->regs);
+\end{verbatim}
+
+What's nice is that you won't ever have to release this resource,
+neither in the \code{remove()} routine, nor if there are failures
+in subsequent steps of the \code{probe()} routine.
+
+Make sure that your updated driver compiles, loads and unloads well.
+
+\section{Device initialization}
+
+Now that we have a virtual address to access registers, we are ready to
+configure a few registers which will allow us to enable the UART
+devices. Of course, this will be done in the \code{probe()} routine.
+
+\subsection{Accessing device registers}
+
+As we will have multiple registers to read, create a \code{reg_read()}
+routine, returning a \code{u32} value, and taking a \code{serial}
+pointer to a \code{serial_dev} structure and an \code{unsigned int}
+register offset.
+
+Your prototype should look like:
+\begin{verbatim}
+static u32 reg_read(struct serial_dev *serial, unsigned int reg);
+\end{verbatim}
+
+In this function, read from a 32 bits register at the base virtual
+address for the device.
+
+Create a similar \code{reg_write()} routine, writing an \code{int}
+value at a given register offset from the device base virtual address.
+The following code samples are using
+the \kfunc{writel} convention of passing the value first, then the
+offset. Your prototype should look like:
+\begin{verbatim}
+static void reg_write(struct serial_dev *serial, u32 val, unsigned int reg);
+\end{verbatim}
+
+In the next sections, we will tell you what register offsets to use
+to drive the hardware.
+
+\subsection{Line and baud rate configuration}
+
+The next step is to store the clk structure in our device specific private
+data structure:
+\begin{verbatim}
+struct serial_dev {
+        void __iomem *regs;
+        struct clk *clk;
+};
+\end{verbatim}
+
+To be able to access our private data structure in other parts of the driver,
+you need to attach it to the \code{pdev} structure using the
+\code{platform_set_drvdata()} function. Look for examples in the source code
+to find out how to do it.
+
+After these lines, let's add code to initialize the line
+and configure the baud rate. This shows how to get a special
+property from the device tree, in this case \code{clock-frequency}:
+
+\sourcecode{labs/kernel-serial-iomem-stm32mp1/uart-line-init.c}
+
+Declare \code{baud_divisor} and \code{uartclk} as \code{unsigned int}.
+
+We are now ready to transmit characters over the serial ports!
+
+If you have a bit of spare time, you can look at section 53 of the
+STM32MP157 TRM for details about how to use the UART ports, to understand
+better what we are doing here.
+
+\section{Standalone write routine}
+
+Implement a C routine taking a pointer to a \code{serial_dev}
+structure and one character as parameters, and writing
+this character to the serial port, using the following steps:
+
+\begin{enumerate}
+\item Wait until the \ksym{USART_ISR_TXE} bit gets set in the
+  \ksym{UART_ISR} register.  You can busy-wait for this condition to happen.
+  In the busy-wait loop, you can call the \kfunc{cpu_relax} kernel function
+  to ensure the compiler won't optimise away this loop.
+\item Write the character to the \ksym{USART_TDR} register.
+\end{enumerate}
+
+Add a call to this routine from your module \code{probe()} function,
+and recompile your module.
+
+Open a new \code{picocom} instance on your new serial port (not the
+serial console):
+
+\begin{verbatim}
+picocom -b 115200 /dev/ttyUSB0
+\end{verbatim}
+
+Load your module on the target. You should see the
+corresponding character in the new \code{picocom} instance,
+showing what was written to USART3.
+
+You can also check that you also get the same character on UART7
+(just connect to the UART7 pins instead of the USART3 ones).
+
+\section{Driver sanity check}
+
+Remove your module and try to load it again. If the second attempt to
+load the module fails, it is probably because your driver doesn't
+properly free the resources it allocated or registered, either at module
+exit time, or after a failure during the module \code{probe()} function. Check
+and fix your module code if you have such problems.
