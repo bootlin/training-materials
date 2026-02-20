@@ -1,0 +1,1 @@
+../../embedded-linux-beagleplay/appdev/nunchuk-mpd-client.c
