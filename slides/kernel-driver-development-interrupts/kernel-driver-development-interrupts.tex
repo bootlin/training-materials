@@ -125,90 +125,75 @@ Err:           0
   \item Wake up any process waiting for such data, typically on a
     per-device wait queue:\\
     \code{wake_up_interruptible(&device_queue);}
-\end{itemize}
-\end{frame}
-
-\begin{frame}[fragile]
-  \frametitle{Threaded interrupts}
-  The kernel also supports threaded interrupts:
-  \begin{itemize}
-  \item The interrupt handler is executed inside a thread.
-  \item Allows to block during the interrupt handler, which is often
-        needed for I2C/SPI devices as the interrupt handler needs time
-	to communicate with them.
-  \item Allows to set a priority for the interrupt handler
-        execution, which is useful for real-time usage of Linux
-  \end{itemize}
-  \begin{minted}{c}
-int devm_request_threaded_irq(struct device *dev, unsigned int irq,
-                              irq_handler_t handler, irq_handler_t thread_fn,
-                              unsigned long flags, const char *name,
-                              void *dev);
-  \end{minted}
-  \begin{itemize}
-  \item \code{handler}, ``hard IRQ'' handler
-  \item \code{thread_fn}, executed in a thread
   \end{itemize}
 \end{frame}
 
 \begin{frame}
   \frametitle{Top half and bottom half processing}
-  Splitting the execution of interrupt handlers in 2 parts
   \begin{itemize}
+  \item Splitting the execution of interrupt handlers in 2 parts is sometimes needed
+    \begin{itemize}
+    \item Hard IRQ handlers execute with all interrupts on the local CPU masked
+      \begin{itemize}
+      \item No interrupt nesting mechanism, higher priority IRQs will be delayed
+      \end{itemize}
+    \item Need to block/sleep (eg. accessing I2C devices may involve sleeping)
+    \end{itemize}
   \item Top half
     \begin{itemize}
-    \item This is the real interrupt handler, which should complete
-      as quickly as possible since all interrupts are disabled.
-      It takes the data out of the device and if substantial
-      post-processing is needed, schedule a bottom half to handle it.
+    \item This is the real interrupt handler, which should complete as quickly
+      as possible since all interrupts are disabled.  It takes the data out of
+      the device and if substantial post-processing is needed, schedules a
+      bottom half to handle it.
     \end{itemize}
   \item Bottom half
     \begin{itemize}
-    \item Is the general Linux name for various mechanisms which
-      allow to postpone the handling of interrupt-related
-      work. Implemented in Linux as: softirqs, tasklets, threaded handlers or
-      workqueues.
-    \item And yet, the abbreviation "bh" often means "softirqs"...
+    \item Is the general name for various mechanisms which allow to postpone the
+      handling of interrupt-related work.
+      \begin{itemize}
+      \item Implemented in Linux as softirqs, threaded handlers and workqueues
+      \item And yet, the abbreviation "bh" often means "softirqs" for historical
+        reasons!
+      \end{itemize}
     \end{itemize}
   \end{itemize}
 \end{frame}
 
 \begin{frame}
-  \frametitle{Top half and bottom half diagram}
+  \frametitle{Softirqs}
+  \begin{itemize}
+  \item Softirq handlers are callbacks executed once all interrupt handlers have
+    completed, before the kernel resumes scheduling processes
+    \begin{itemize}
+    \item They execute with all interrupts enabled
+    \item They run before the scheduler is in control, so sleeping is not allowed
+    \item A softirq handler can run simultaneously on multiple CPUs
+    \end{itemize}
+  \item The number of softirqs is fixed, softirqs are not used by drivers, but
+    by kernel subsystems (network, etc.). The list of softirqs is defined in
+    \kfile{include/linux/interrupt.h}
+  \item To avoid starving the system, there is typically a softirq budget
+    (by default, softirqs can run 10 times in a row for a maximum time of 2ms)
+    after which the callbacks are run in process context in a per CPU
+    \code{ksoftirqd/N} kernel thread.
+  \item A Tasklet is a deprecated mechanism which was dedicated to device
+    drivers and was implemented on top of softirqs.
+  \end{itemize}
+\end{frame}
+
+\begin{frame}
+  \frametitle{Softirq execution flow}
   \begin{center}
     \includegraphics[width=\textwidth]{slides/kernel-driver-development-interrupts/thread-halves.pdf}
   \end{center}
 \end{frame}
 
 \begin{frame}
-  \frametitle{Softirqs}
-  \begin{itemize}
-  \item Softirqs are a form of bottom half processing
-  \item The softirqs handlers are executed with all interrupts
-    enabled, and a given softirq handler can run simultaneously on
-    multiple CPUs
-  \item They are executed once all interrupt handlers have completed,
-    before the kernel resumes scheduling processes, so sleeping is not
-    allowed.
-  \item The number of softirqs is fixed in the system, so softirqs are
-    not directly used by drivers, but by kernel subsystems (network,
-    etc.)
-  \item The list of softirqs is defined in
-    \kfile{include/linux/interrupt.h}: \ksym{HI_SOFTIRQ}, \ksym{TIMER_SOFTIRQ},
-    \ksym{NET_TX_SOFTIRQ}, \ksym{NET_RX_SOFTIRQ}, \ksym{BLOCK_SOFTIRQ},
-    \ksym{IRQ_POLL_SOFTIRQ}, \ksym{TASKLET_SOFTIRQ},
-    \ksym{SCHED_SOFTIRQ}, \ksym{HRTIMER_SOFTIRQ}, \ksym{RCU_SOFTIRQ}
-  \item \ksym{HI_SOFTIRQ} and \ksym{TASKLET_SOFTIRQ} are used to execute
-    tasklets
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Example usage of softirqs - NAPI}
+  \frametitle{Example usage of softirqs: NAPI}
   \begin{itemize}
   \item Interface in the Linux kernel used for interrupt mitigation in
         network drivers
-  \item Principle: when the network traffic exceeds a given threshhold
+  \item Principle: when the network traffic exceeds a given threshold
         ("budget"), disable network interrupts and consume incoming packets
         through a polling function, instead of processing each new
         packet with an interrupt.
@@ -220,40 +205,44 @@ int devm_request_threaded_irq(struct device *dev, unsigned int irq,
   \item See also our commented network driver on
         \url{https://bootlin.com/pub/drivers/r6040-network-driver-with-comments.c}
   \end{itemize}
-
 \end{frame}
 
-\begin{frame}
-  \frametitle{Tasklets}
+\begin{frame}[fragile]
+  \frametitle{Threaded interrupts}
   \begin{itemize}
-  \item Tasklets are executed within the \ksym{HI_SOFTIRQ} and
-    \ksym{TASKLET_SOFTIRQ} softirqs. They are executed with all interrupts enabled, but a
-    given tasklet is guaranteed to execute on a single CPU at a time.
-  \item Tasklets are typically created with the \kfunc{tasklet_init}
-    function, when your driver manages multiple devices, otherwise
-    statically with \kfunc{DECLARE_TASKLET}. A tasklet is simply
-    implemented as a function. Tasklets can easily
-    be used by individual device drivers, as opposed to softirqs.
-  \item The interrupt handler can schedule tasklet execution with:
+  \item It is possible to associate a threaded handler to a hard IRQ handler
     \begin{itemize}
-    \item \kfunc{tasklet_schedule} to get it executed in
-      \ksym{TASKLET_SOFTIRQ}
-    \item \kfunc{tasklet_hi_schedule} to get it executed in
-      \ksym{HI_SOFTIRQ} (highest priority)
+    \item The hard IRQ handler triggers it by returning \ksym{IRQ_WAKE_THREAD}
+    \item The threaded handler is executed inside a thread, in process context
     \end{itemize}
+  \item The interrupt line may be kept masked if the handler registration
+    happened with \ksym{IRQF_ONESHOT}
+  \item Sleeping/blocking is allowed in the threaded handler
+    \begin{itemize}
+    \item The priority of the \code{irq/<nb>-<name>} thread can be tuned!
+    \end{itemize}
+  \item Heavily used by \code{PREEMPT_RT}
   \end{itemize}
-  {\footnotesize
-  Note: new kernel code should not introduce any new tasklet, because tasklets are now
-  deprecated (since 6.9) and being slowly replaced by the new BH workqueue
-  (\"Bottom Half workqueue\")}
+  \begin{minted}{c}
+int devm_request_threaded_irq(struct device *dev, unsigned int irq,
+                              irq_handler_t handler, irq_handler_t thread_fn,
+                              unsigned long flags, const char *name,
+                              void *dev);
+  \end{minted}
+  \begin{itemize}
+  \item \code{handler}: ``hard IRQ'' handler
+  \item \code{thread_fn}: executed in a thread
+  \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]
   \frametitle{Workqueues}
   \begin{itemize}
   \item Workqueues are a general mechanism for deferring work. It is
-    not limited in usage to handling interrupts. It can typically
-    be used for background jobs.
+    not limited in usage to handling interrupts.
+    \begin{itemize}
+    \item Typically used for background jobs.
+    \end{itemize}
   \item Functions registered to run in workqueues are called works:
     \begin{itemize}
     \item They can be created with the macro \kfunc{INIT_WORK}
@@ -280,6 +269,33 @@ schedule_work(&work_data->work);
 \end{frame}
 
 \begin{frame}
+  \frametitle{Interrupt and deferred mechanisms execution constraints summary}
+  \begin{center}
+    \begin{tabular}{| l || c | c | c | c | c |}
+\hline
+\textbf{Mechanism} & \textbf{Context} & \textbf{Other} & \textbf{Priority} & \textbf{Can}   & \textbf{Typical} \\
+                   &                  & \textbf{IRQs}  & \textbf{tuning}   & \textbf{sleep} & \textbf{Use} \\
+\hline
+Hard & Interrupt & Disabled    & No,  & No & Fast handling, \\
+IRQ  &           & (local CPU) & FIFO &    & gen. purpose \\
+\hline
+Softirq & Interrupt & Enabled & No               & No & Fast handling, \\
+        &           &         & Fixed priorities &    & net, timers, RCU \\
+\hline
+Softirq & Process     & Enabled & One kthread & No & Softirq \\
+        & (ksoftirqd) &         & per CPU     &    & overflow \\
+\hline
+Threaded & Process      & Enabled & Yes & Yes & Interrupt handling \\
+IRQ      & (irq thread) &         &     &     & needing to block \\
+\hline
+Workqueue & Process  & Enabled & Yes & Yes & General purpose \\
+          & (worker) &         &     &     & background worker \\
+\hline
+    \end{tabular}
+  \end{center}
+\end{frame}
+
+\begin{frame}
   \frametitle{Interrupt management summary}
   \begin{itemize}
   \item Device driver
@@ -292,8 +308,8 @@ schedule_work(&work_data->work);
     \begin{itemize}
     \item Called when an interrupt is raised.
     \item Acknowledge the interrupt
-    \item If needed, schedule a per-device tasklet taking care of handling
-      data.
+    \item If needed, trigger a bottom half mechanism (typically taking care of
+      handling data)
     \item Wake up processes waiting for the data on a per-device queue
     \end{itemize}
   \item Device driver
