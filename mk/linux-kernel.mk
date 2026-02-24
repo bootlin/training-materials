@@ -24,7 +24,6 @@ LINUX_KERNEL_SLIDES = \
 	kernel-device-model \
 	kernel-i2c \
 	kernel-frameworks \
-	kernel-input \
 	kernel-driver-development-memory \
 	kernel-driver-development-io-memory \
 	kernel-misc-subsystem \
