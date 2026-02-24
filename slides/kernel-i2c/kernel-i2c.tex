@@ -335,69 +335,6 @@ static int st1232_ts_read_data(struct st1232_ts_data *ts)
 From \kfile{drivers/input/touchscreen/st1232.c}
 \end{frame}
 
-\begin{frame}{SMBus calls}
-  \begin{itemize}
-  \item SMBus is a subset of the I2C protocol.
-  \item It defines a standard set of transactions, such as
-    reading/writing from a register-like interface.
-  \item Linux provides SMBus functions that should preferably be used
-    instead of the raw API with devices supporting SMBus.
-  \item Such a driver will be usable with both SMBus and I2C adapters
-    \begin{itemize}
-    \item SMBus adapters cannot send raw I2C commands
-    \item I2C adapters will receive an SMBus-like command crafted by the
-      core
-    \end{itemize}
-  \item Example: the \kfunc{i2c_smbus_read_byte_data} function allows
-    to read one byte of data from a device ``register''.
-    \begin{itemize}
-    \item It does the following operations:
-      \code{S Addr Wr [A] Comm [A] Sr Addr Rd [A] [Data] NA P}
-    \item Which means it first writes a one byte data command ({\em
-        Comm}, which is the ``register'' address), and then reads
-      back one byte of data ({\em [Data]}).
-    \end{itemize}
-  \item See \kdochtml{i2c/smbus-protocol} for details.
-  \end{itemize}
-\end{frame}
-
-\begin{frame}{List of SMBus functions}
-  \begin{itemize}
-  \item Read/write one byte
-    \begin{itemize}
-      \tiny
-    \item \code{s32 i2c_smbus_read_byte(const struct i2c_client *client);}
-    \item \code{s32 i2c_smbus_write_byte(const struct i2c_client *client, u8 value);}
-    \end{itemize}
-  \item Write a command byte, and read or write one byte
-    \begin{itemize}
-      \tiny
-    \item \code{s32 i2c_smbus_read_byte_data(const struct i2c_client *client, u8 command);}
-    \item \code{s32 i2c_smbus_write_byte_data(const struct i2c_client *client, u8 command, u8 value);}
-    \end{itemize}
-  \item Write a command byte, and read or write one word
-    \begin{itemize}
-      \tiny
-    \item \code{s32 i2c_smbus_read_word_data(const struct i2c_client *client, u8 command);}
-    \item \code{s32 i2c_smbus_write_word_data(const struct i2c_client *client, u8 command, u16 value);}
-    \end{itemize}
-  \item Write a command byte, and read or write a block of data (max
-    32 bytes)
-    \begin{itemize}
-      \tiny
-    \item \code{s32 i2c_smbus_read_block_data(const struct i2c_client *client, u8 command, u8 *values);}
-    \item \code{s32 i2c_smbus_write_block_data(const struct i2c_client *client, u8 command, u8 length, const u8 *values);}
-    \end{itemize}
-  \item Write a command byte, and read or write a block of data (no
-    limit)
-    \begin{itemize}
-      \tiny
-    \item \code{s32 i2c_smbus_read_i2c_block_data(const struct i2c_client *client, u8 command, u8 length, u8 *values);}
-    \item \code{s32 i2c_smbus_write_i2c_block_data(const struct i2c_client *client, u8 command, u8 length, const u8 *values);}
-    \end{itemize}
-  \end{itemize}
-\end{frame}
-
 \begin{frame}{I2C functionality}
   \begin{itemize}
   \item Not all I2C controllers support all functionalities.
