@@ -159,31 +159,28 @@
 \begin{frame}[fragile]
   \frametitle{\code{dma-mapping}: memory addressing constraints}
   \begin{itemize}
-  \item The default addressing capability of the DMA controllers is
-    assumed to be 32-bit.
+  \item Any device capable of being master on a bus shall assert its addressing
+    capabilities.
+  \item The default addressing capability is assumed to be 32-bit.
   \item If the platform supports it, the DMA addressing capability can be:
     \begin{itemize}
     \item increased (eg. need to access highmem)
     \item decreased (eg. ISA devices, where \kfunc{kmalloc} buffers can
       also be allocated in the first part of the RAM with
       \ksym{GFP_DMA})
+    \item Linux stores this capability in a per-device mask
     \end{itemize}
-  \item Linux stores this capability in a per-device mask, DMA mappings
-    can fail because a buffer is out of reach
+  \item DMA mappings can fail because a buffer is out of reach
+    \begin{itemize}
+    \item \code{swiotlb} may solve some situations by leveraging internal
+      bounce buffers
+    \end{itemize}
   \item In all cases, the DMA mask shall be consistent before
-    allocating buffers
+    allocating/mapping buffers
   \end{itemize}
-\begin{minted}[fontsize=\small]{c}
+  \begin{minted}[fontsize=\small]{c}
 int dma_set_mask_and_coherent(struct device *dev, u64 mask)
-\end{minted}
-  \begin{itemize}
-  \item Maximum and optimal buffer sizes can also be retrieved to
-    optimize allocations/buffer handling
-  \end{itemize}
-\begin{minted}[fontsize=\small]{c}
-size_t dma_max_mapping_size(struct device *dev);
-size_t dma_opt_mapping_size(struct device *dev);
-\end{minted}
+  \end{minted}
 \end{frame}
 
 \begin{frame}[fragile]
