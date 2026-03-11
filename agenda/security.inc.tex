@@ -1,0 +1,574 @@
+\usepackage{ifthen}
+\input{agenda/common.inc.tex}
+
+% Title
+\ifthenelse{\equal{\agendalanguage}{french}}{
+  \def \trainingtitle{Formation sécurité des systèmes Linux embarqués}
+}{
+  \def \trainingtitle{Embedded Linux Security}
+}
+
+\def \trainingicon{common/flaticon-security-training.png}
+
+% Duration
+\ifthenelse{\equal{\sessiontype}{online}}{
+  \def \trainingduration{4}
+}{
+  \def \trainingduration{3}
+}
+
+% Training objectives
+\ifthenelse{\equal{\agendalanguage}{french}}{
+  \def \traininggoals{
+    \begin{itemize}
+    \item Être capable de comprendre les mécanismes de sécurité et d'isolation des
+      systèmes Linux embarqués modernes : mémoire non exécutable, randomisation
+      de l'espace d'adressage, niveaux de privilèges, contrôle d'accès obligatoire
+      et discrétionnaire.
+    \item Être capable de concevoir et de mettre en œuvre une chaîne de démarrage
+      sécurisée, du chargeur de démarrage jusqu'à l'espace utilisateur, y compris
+      dm-verity.
+    \item Être capable de raisonner sur la cryptographie et de mettre en œuvre un
+      stockage sécurisé des clés, à l'aide d'un HSM matériel ou logiciel.
+    \item Être capable d'exploiter la technologie ARM TrustZone (monde sécurisé,
+      TF-A, OP-TEE) afin d'isoler les opérations sensibles et de développer des
+      Trusted Applications.
+    \item Être capable de mettre en œuvre des mécanismes de sécurité en espace
+      utilisateur : capacités Linux, namespaces, cgroups, SECCOMP, SELinux et
+      fonctionnalités de durcissement de systemd.
+    \item Être capable de configurer le chiffrement du système de fichiers à
+      l'aide de dm-crypt et de l'intégrer à une gestion sécurisée des clés via
+      PKCS\#11.
+    \item Être capable de gérer les vulnérabilités logicielles à l'aide de bases
+      de données CVE, de générer et d'analyser des Software Bills of Materials
+      (SBoM), et de comprendre les exigences de conformité, notamment le Cyber
+      Resilience Act.
+    \item Être capable de concevoir et de déployer des mécanismes de mise à jour
+      sécurisés à l'aide de schémas de partitionnement A/B et d'outils tels que
+      RAUC ou SWUpdate.
+    \item Être capable de comprendre les concepts de measured boot et de mettre
+      en œuvre la vérification de l'intégrité de la plateforme à l'aide de TPM
+      et de IMA/EVM.
+    \end{itemize}
+  }
+}{
+  \def \traininggoals{
+    \begin{itemize}
+    \item Be able to understand the security and isolation mechanisms of
+      modern embedded Linux systems: non-executable memory, address
+      space randomization, privilege levels, mandatory and discretionary
+      access control.
+    \item Be able to design and implement a secure boot chain, from
+      the bootloader all the way to userspace, including dm-verity.
+    \item Be able to reason about cryptography, and implement secure key
+      storage, using hardware or software HSM.
+    \item Be able to leverage ARM TrustZone technology (secure world,
+      TF-A, OP-TEE) to isolate sensitive operations and develop Trusted
+      Applications.
+    \item Be able to implement userland security mechanisms: Linux
+      capabilities, namespaces, cgroups, SECCOMP, SELinux, and systemd
+      hardening features.
+    \item Be able to set up filesystem encryption using dm-crypt and
+      integrate it with secure key management through PKCS\#11.
+    \item Be able to manage software vulnerabilities using CVE databases,
+      generate and analyze Software Bills of Materials (SBoM), and
+      understand compliance requirements including the Cyber Resilience Act.
+    \item Be able to design and deploy secure update mechanisms using
+      A/B partitioning schemes and tools like RAUC or SWUpdate.
+    \item Be able to understand measured boot concepts and implement
+      platform integrity verification using TPMs and IMA/EVM.
+    \end{itemize}
+  }
+}
+
+% Training prerequisites
+\def \trainingprerequisites{
+  \begin{itemize}
+    \prerequisitecommandline
+    \prerequisiteembeddedlinux
+    \prerequisiteenglish
+  \end{itemize}
+}
+
+% Training audience
+\ifthenelse{\equal{\agendalanguage}{french}}{
+  \def \trainingaudience{
+    Entreprises et ingénieurs qui conçoivent, développent et produisent
+    des systèmes Linux embarqués ayant des exigences en matière de
+    cybersécurité.
+  }
+}{
+  \def \trainingaudience{
+    Companies and engineers who design, develop and produce embedded
+    Linux systems that have cyber-security requirements.
+  }
+}
+
+\def \trainers {mathieu-dubois-briand,olivier-benjamin}
+
+% Time ratio
+\def \onsitelecturetimeratio{40}
+\def \onsitelabtimeratio{60}
+
+% Agenda items
+
+\defagendaitem
+{overview}
+{lecture}
+{Fundamental concepts}
+{
+  \begin{itemize}
+  \item Threat modeling
+  \item Cryptography basics: public/private key
+  \item Understanding a TLS handshake from start to finish
+  \item Understanding Public Key Infrastructures
+  \end{itemize}
+}
+{Concepts fondamentaux}
+{
+  \begin{itemize}
+  \item Modélisation des menaces
+  \item Bases de la cryptographie : clé publique / clé privée
+  \item Comprendre un handshake TLS du début à la fin
+  \item Comprendre les infrastructures à clés publiques (PKI)
+  \end{itemize}
+}
+
+\defagendaitem
+{pki}
+{lab}
+{Setting up a small PKI}
+{
+  \begin{itemize}
+  \item Using OpenSSL to generate a key hierarchy
+  \item Experimenting with key revocation
+  \item Performance comparison of public/private key encryption
+  \end{itemize}
+}
+{Configuration d'une PKI simple}
+{
+  \begin{itemize}
+  \item Utilisation d’OpenSSL pour générer une hiérarchie de clés
+  \item Expérimentation de la révocation de clés
+  \item Comparaison des performances du chiffrement par clé publique/clé privée
+  \end{itemize}
+}
+
+\defagendaitem
+{hwsec}
+{lecture}
+{Harware-enforced security barriers}
+{
+  \begin{itemize}
+  \item General security concepts: kernel/user split, CPL, memory protections
+  \item Common mitigations: ASLR, NX/DEP, SMAP/SMEP, RELRO
+  \item ARM features: Exception levels
+  \item ARM features: Secure world, TF-A, OP-TEE
+  \item Understanding a full ARMv8 bootflow, including secure world
+  \item Understanding Trusted Applications
+  \end{itemize}
+}
+{Limites de sécurité assistées par le matériel}
+{
+  \begin{itemize}
+\item Concepts généraux de sécurité : séparation noyau/utilisateur,
+  CPL, protections mémoire
+\item Contre-mesures courantes : ASLR, NX/DEP, SMAP/SMEP, RELRO
+\item Fonctionnalités ARM : niveaux d’exception
+\item Fonctionnalités ARM : {\em secure world}, TF-A, OP-TEE
+\item Compréhension d’un flux de démarrage complet ARMv8, y compris le
+  monde sécurisé
+\item Compréhension des Trusted Applications
+  \end{itemize}
+}
+
+\defagendaitem
+{hwsec}
+{lab}
+{Exploring the secure world}
+{
+  \begin{itemize}
+  \item Building secure world software (TF-A, OP-TEE, TA)
+  \item Adding logs to observe Exception level transitions
+  \item Adding logs to observe world transitions
+  \item Writing a small Trusted Application in OP-TEE
+  \item Interacting with our Trusted Application from userland
+  \end{itemize}
+}
+{Exploration du {\em secure world}}
+{
+  \begin{itemize}
+  \item Compilation de logiciel pour le {\em secure world} (TF-A,
+    OP-TEE, TA)
+  \item Ajout de journaux pour observer les transitions de niveaux
+    d’exception
+  \item Ajout de journaux pour observer les transitions entre mondes
+  \item Écriture d’une petite Trusted Application dans OP-TEE
+  \item Interaction avec notre Trusted Application depuis l’espace
+    utilisateur
+  \end{itemize}
+}
+
+\defagendaitem
+{secureboot}
+{lecture}
+{Secure boot: part 1}
+{
+  \begin{itemize}
+  \item Understanding the secure boot chain concept
+  \item Secure boot implementation examples: x86 and ARM SoCs
+  \item Secure boot: threat model
+  \item Be able to design and implement a secure boot chain
+  \end{itemize}
+}
+{Secure boot: première partie}
+{
+  \begin{itemize}
+  \item Compréhension du concept de chaîne de démarrage sécurisée
+  \item Exemples de mise en œuvre du secure boot : x86 et SoC ARM
+  \item Secure boot : modèle de menace
+  \item Être capable de concevoir et de mettre en œuvre une chaîne de
+    démarrage sécurisée
+  \end{itemize}
+}
+
+\defagendaitem
+{secureboot}
+{lab}
+{Secure boot on i.MX93: ROM stage}
+{
+  \begin{itemize}
+  \item Building all software components for secure boot (AHAB) on
+    i.MX93
+  \item Creating a signed AHAB container using SPSDK
+  \item Flashing the fuses on the i.MX93 to enable secure boot (AHAB)
+  \item Testing that secure boot (AHAB) is correctly enabled
+  \end{itemize}
+}
+{Secure boot sur i.MX93}
+{
+  \begin{itemize}
+  \item Compilation de tous les composants logiciels pour le secure
+    boot (AHAB) sur i.MX93
+  \item Création d’un conteneur AHAB signé à l’aide de SPSDK
+  \item Programmation des fusibles sur l’i.MX93 pour activer le secure
+    boot (AHAB)
+  \item Vérification que le secure boot (AHAB) est correctement activé
+  \end{itemize}
+}
+
+\defagendaitem
+{secureuboot}
+{lecture}
+{Secure boot: part 2}
+{
+  \begin{itemize}
+  \item Deep dive into the U-Boot components: TPL/SPL, U-Boot proper,
+    FIT images
+  \item Hardware description: Device Tree
+  \item Enabling signature verification in the U-Boot bootloader
+  \item RootFS verification: {\em dm-verity} and implications for system
+    design
+  \end{itemize}
+}
+{}
+{
+  \begin{itemize}
+  \item Analyse approfondie des composants d’U-Boot: TPL/SPL, U-Boot principal, images FIT
+  \item Description matérielle: Device Tree
+  \item Activation de la vérification des signatures dans le chargeur de démarrage U-Boot
+  \item Vérification du RootFS: {\em dm-verity} et implications pour la conception du système
+  \end{itemize}
+}
+
+\defagendaitem
+{secureuboot}
+{lab}
+{Secure boot on i.MX93: bootloader stage}
+{
+  \begin{itemize}
+  \item Integrating the public key into the DTB
+  \item Adding signature to the kernel FIT image
+  \item Configuring U-Boot to enforce signature verification
+  \item (optional) Configuring SPL to also enforce signature verification
+  \end{itemize}
+}
+{Secure boot sur i.MX93: étape du bootloader}
+{
+  \begin{itemize}
+  \item Intégration de la clé publique dans le DTB
+  \item Ajout d’une signature à l’image FIT du noyau
+  \item Configuration de U-Boot pour imposer la vérification des signatures
+  \item (optionnel) Configuration du SPL pour imposer également la vérification des signatures
+  \end{itemize}
+}
+
+\defagendaitem
+{filesystem}
+{lecture}
+{Confidential information}
+{
+  \begin{itemize}
+  \item Filesystem encryption, presentation of dm-crypt/cryptsetup
+  \item Key management: Hardware Security Module
+  \item Secure key usage: Introduction to PKCS\#11
+  \item Secure key usage: kernel keyring and trusted keys
+  \end{itemize}
+}
+{Protection des données}
+{
+  \begin{itemize}
+  \item Chiffrement du système de fichiers, présentation de dm-crypt/cryptsetup
+  \item Gestion des clés : module matériel de sécurité (HSM)
+  \item Utilisation sécurisée des clés : introduction à PKCS\#11
+  \item Utilisation sécurisée des clés : trousseau de clés du noyau et clés de confiance
+  \end{itemize}
+}
+
+\defagendaitem
+{keymanagement}
+{lab}
+{Secure key management}
+{
+  \begin{itemize}
+  \item Provisioning keys into the i.MX93 ELE
+  \item Using OP-TEE as software HSM
+  \item (optional) Filesystem encryption using the ELE key
+  \item (optional) Signing U-Boot FITs with HSM integration over PKCS\#11
+  \end{itemize}
+}
+{Gestion des clés}
+{
+  \begin{itemize}
+  \item Provisionnement des clés dans l’ELE du i.MX93
+  \item Utilisation d’OP-TEE comme HSM logiciel
+  \item (optionnel) Chiffrement du système de fichiers à l’aide de la clé ELE
+  \item (optionnel) Signature des images FIT de U-Boot avec intégration d’un HSM via PKCS\#11
+  \end{itemize}
+}
+
+\defagendaitem
+{userland}
+{lecture}
+{Userland security measures}
+{
+  \begin{itemize}
+  \item Access Control paradigms: MAC/DAC
+  \item Linux capabilities: usage and examples
+  \item Process isolation: Namespaces, Cgroups, SECCOMP
+  \item Linux Security Modules: SELinux, AppArmor
+  \item Application hardening via {\em systemd}
+  \end{itemize}
+}
+{Mécanismes de sécurité en user-space}
+{
+  \begin{itemize}
+  \item Paradigmes de contrôle d’accès : MAC/DAC
+  \item Linux {\em capabilities} : utilisation et exemples
+  \item Isolation des processus : namespaces, cgroups, SECCOMP
+  \item Modules de sécurité Linux : SELinux, AppArmor
+  \item {\em Hardening} des applications via {\em systemd}
+  \end{itemize}
+}
+
+\defagendaitem
+{userland}
+{lab}
+{Restricting userland applications}
+{
+  \begin{itemize}
+  \item Preventing a simple application from executing shellcode using SECCOMP
+  \item Manipulating SELinux contexts
+  \item Using systemd to restrict a daemon's access to resources
+  \end{itemize}
+}
+{Restriction des applications user-space}
+{
+  \begin{itemize}
+  \item Empêcher une application simple d’exécuter du shellcode à l’aide de SECCOMP
+  \item Manipulation des contextes SELinux
+  \item Utilisation de systemd pour restreindre l’accès d’un démon aux ressources
+  \end{itemize}
+}
+
+\defagendaitem
+{measuredboot}
+{lecture}
+{Measured Boot}
+{
+  \begin{itemize}
+  \item Boot event logs
+  \item TPM's role in platform integrity
+  \item Introduction to IMA/EVM
+  \end{itemize}
+}
+{Measured Boot}
+{
+  \begin{itemize}
+  \item Journaux des événements de démarrage
+  \item Rôle du TPM dans l’intégrité de la plateforme
+  \item Introduction à IMA/EVM
+  \end{itemize}
+}
+
+\defagendaitem
+{compliance}
+{lecture}
+{Maintenance, regulations and compliance}
+{
+  \begin{itemize}
+  \item Introduction to vulnerability frameworks: CVE, CWE, CVSS
+  \item A walkthrough of the Cyber Resilience Act (CRA)
+  \item Defining an upgrade strategy, based on the release and
+    maintenance cycles of important open-source projects
+  \item Generating a Software Bill of Materials
+  \item Analyzing a Software Bill of Materials
+  \end{itemize}
+}
+{Maintenance, réglementations et conformité}
+{
+  \begin{itemize}
+  \item Introduction aux cadres de gestion des vulnérabilités : CVE,
+    CWE, CVSS
+  \item Présentation du Cyber Resilience Act (CRA)
+  \item Définition d’une stratégie de mise à jour, basée sur les
+    cycles de publication et de maintenance des projets open source
+    importants
+  \item Génération d’un Software Bill of Materials
+  \item Analyse d’un Software Bill of Materials
+  \end{itemize}
+}
+
+\defagendaitem
+{compliance}
+{lab}
+{Getting familiar with SBoMs and CVEs}
+{
+  \begin{itemize}
+  \item Generating an SBoM for a Yocto distribution
+  \item Analyzing the generated SBoM using \code{sbom-cve-check}
+  \item Patching a CVE present in the SBoM
+  \item Differential analysis
+  \end{itemize}
+}
+{Prise en main des SBoM et des CVE}
+{
+  \begin{itemize}
+  \item Génération d’un SBoM pour une distribution Yocto
+  \item Analyse du SBoM généré à l’aide de \code{sbom-cve-check}
+  \item Correction d’une CVE présente dans le SBoM
+  \item Analyse différentielle
+  \end{itemize}
+}
+\defagendaitem
+{updates}
+{lecture}
+{Secure updates}
+{
+  \begin{itemize}
+  \item A/B updates
+  \item Presentation of SWUpdate
+  \item Presentation of RAUC
+  \item Bootloader integration
+  \item Consequences on the secure boot chain
+  \end{itemize}
+}
+{Mises à jour sécurisées}
+{
+  \begin{itemize}
+  \item Mises à jour A/B
+  \item Présentation de SWUpdate
+  \item Présentation de RAUC
+  \item Intégration au chargeur de démarrage
+  \item Conséquences sur la chaîne de démarrage sécurisée
+  \end{itemize}
+}
+
+\defagendaitem
+{updates}
+{lab}
+{Setting up RAUC for secure updates}
+{
+  \begin{itemize}
+  \item RAUC configuration on the target
+  \item Building, shipping and installing a RAUC bundle 
+  \item Bundle signature verification using PKCS\#11
+  \item (optional) RAUC bundle encryption
+  \item (bonus) HSM integration
+  \end{itemize}
+}
+{Mise en oeuvre de RAUC pour les mises à jour sécurisées}
+{
+  \begin{itemize}
+  \item Configuration de RAUC sur la cible
+  \item Création, déploiement et installation d’un bundle RAUC
+  \item Vérification de la signature du bundle à l’aide de PKCS\#11
+  \item (optionnel) Chiffrement du bundle RAUC
+  \item (bonus) Intégration d’un HSM
+  \end{itemize}
+}
+
+\def \agendaboards{imx93-frdm}
+
+\def \onsiteagenda {
+  \ifthenelse{\equal{\agendalanguage}{french}}{
+    \section{Programme de la formation}
+  }{
+    \section{Training Schedule}
+  }
+  \begin{tabularx}{\textwidth}{p{2cm}p{5cm}p{11cm}}
+  \showagendaday{1}
+  \showagendaitem{overview}{lecture}
+  \showagendaitem{pki}{lab}
+  \showagendaitem{hwsec}{lecture}
+  \showagendaday{2}
+  \showagendaitem{hwsec}{lab}
+  \showagendaitem{secureboot}{lecture}
+  \showagendaitem{secureboot}{lab}
+  \showagendaday{3}
+  \showagendaitem{secureuboot}{lecture}
+  \showagendaitem{secureuboot}{lab}
+  \showagendaday{4}
+  \showagendaitem{filesystem}{lecture}
+  \showagendaitem{keymanagement}{lab}
+  \showagendaitem{userland}{lecture}
+  \showagendaday{5}
+  \showagendaitem{userland}{lab}
+  \showagendaitem{measuredboot}{lecture}
+  \showagendaitem{compliance}{lecture}
+  \showagendaitem{compliance}{lab}
+  \showagendaday{6}
+  \showagendaitem{updates}{lecture}
+  \showagendaitem{updates}{lab}
+  \end{tabularx}
+}
+
+\def \onlineagenda {
+  \ifthenelse{\equal{\agendalanguage}{french}}{
+    \section{Programme de la formation}
+  }{
+    \section{Training Schedule}
+  }
+  \begin{tabularx}{\textwidth}{p{2cm}p{5cm}p{11cm}}
+  \showagendaday{1}
+  \showagendaitem{overview}{lecture}
+  \showagendaitem{pki}{lab}
+  \showagendaitem{hwsec}{lecture}
+  \showagendaitem{hwsec}{lab}
+  \showagendaday{2}
+  \showagendaitem{secureboot}{lecture}
+  \showagendaitem{secureboot}{lab}
+  \showagendaitem{secureuboot}{lecture}
+  \showagendaitem{secureuboot}{lab}
+  \showagendaday{3}
+  \showagendaitem{filesystem}{lecture}
+  \showagendaitem{keymanagement}{lab}
+  \showagendaitem{userland}{lecture}
+  \showagendaitem{userland}{lab}
+  \showagendaday{4}
+  \showagendaitem{compliance}{lecture}
+  \showagendaitem{compliance}{lab}
+  \showagendaitem{updates}{lecture}
+  \showagendaitem{updates}{lab}
+  \end{tabularx}
+}
