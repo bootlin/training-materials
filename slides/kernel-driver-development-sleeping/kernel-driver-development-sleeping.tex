@@ -4,7 +4,7 @@
   \frametitle{Sleeping}
   \begin{center}
     \includegraphics[width=\textwidth]{slides/kernel-driver-development-sleeping/sleeping.pdf}\\
-    Sleeping is needed when a process (user space or kernel space) is
+    Sleeping is needed when a userspace or kernelspace thread is
     waiting for data.
   \end{center}
 \end{frame}
@@ -39,14 +39,14 @@ init_waitqueue_head(&dev->smi_busy_wait);
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{How to sleep with a waitqueue 2/3}
-  Several ways to make a kernel process sleep
+  \frametitle{How to sleep with a wait queue 2/3}
+  Several ways to make a thread sleep
   \begin{itemize}
   \item \mint{c}+void wait_event(queue, condition);+
     \begin{itemize}
-    \item Sleeps until the task is woken up {\bf and} the given C
-      expression is true. Caution: can't be interrupted (can't kill
-      the user space process!)
+    \item Sleeps until the wait queue is woken up {\bf and} the given C
+      expression is true. Caution: once entered, the thread sleep
+      cannot be interrupted!
     \end{itemize}
   \item \mint{c}+int wait_event_killable(queue, condition);+
     \begin{itemize}
@@ -63,11 +63,11 @@ init_waitqueue_head(&dev->smi_busy_wait);
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{How to sleep with a waitqueue 3/3}
+  \frametitle{How to sleep with a wait queue 3/3}
   \begin{itemize}
   \item \mint{c}+int wait_event_timeout(queue, condition, timeout);+
     \begin{itemize}
-    \item Also stops sleeping when the task is woken up {\bf or} the
+    \item Also stops sleeping when the thread is woken up {\bf or} the
       timeout expired (a timer is used).
     \item Returns \code{0} if the timeout elapsed, non-zero if
       the condition was met.
@@ -85,7 +85,7 @@ int wait_event_interruptible_timeout(queue, condition, timeout);
 \end{frame}
 
 \begin{frame}[fragile]
-\frametitle{How to sleep with a waitqueue - Example}
+\frametitle{How to sleep with a wait queue - Example}
 \begin{minted}{c}
 sig = wait_event_interruptible(ibmvtpm->wq,
                                !ibmvtpm->tpm_processing_cmd);
@@ -98,41 +98,42 @@ From \kfile{drivers/char/tpm/tpm_ibmvtpm.c}
 \begin{frame}
   \frametitle{Waking up!}
   Typically done by interrupt handlers when data sleeping
-  processes are waiting for become available.
+  threads are waiting for become available.
   \begin{itemize}
   \item \code{wake_up(&queue);}
     \begin{itemize}
-    \item Wakes up all processes in the wait queue
+    \item Wakes up all threads in the wait queue
     \end{itemize}
   \item \code{wake_up_interruptible(&queue);}
     \begin{itemize}
-    \item Wakes up all processes waiting in an interruptible sleep
+    \item Wakes up all threads waiting in an interruptible sleep
       on the given queue
     \end{itemize}
   \end{itemize}
 \end{frame}
 
+
 \begin{frame}
   \frametitle{Exclusive vs. non-exclusive}
   \begin{itemize}
-  \item \kfunc{wait_event_interruptible} puts a task in a
+  \item \kfunc{wait_event_interruptible} puts a thread in a
     non-exclusive wait.
     \begin{itemize}
-    \item All non-exclusive tasks are woken up by \kfunc{wake_up} /
+    \item All non-exclusive threads are woken up by \kfunc{wake_up} /
       \kfunc{wake_up_interruptible}
     \end{itemize}
-  \item \kfunc{wait_event_interruptible_exclusive} puts a task in an
+  \item \kfunc{wait_event_interruptible_exclusive} puts a thread in an
     exclusive wait.
     \begin{itemize}
     \item \kfunc{wake_up} / \kfunc{wake_up_interruptible} wakes up
-      all non-exclusive tasks and only one exclusive task
+      all non-exclusive threads and only one exclusive thread
     \item \kfunc{wake_up_all} / \kfunc{wake_up_interruptible_all}
-      wakes up all non-exclusive and all exclusive tasks
+      wakes up all non-exclusive and all exclusive threads
     \end{itemize}
-  \item Exclusive sleeps are useful to avoid waking up multiple tasks
-    when only one will be able to ``consume'' the event.
-  \item Non-exclusive sleeps are useful when the event can ``benefit''
-    to multiple tasks.
+  \item Exclusive sleeps are useful to avoid waking up multiple threads
+    when only one will be able to \textit{consume} the event.
+  \item Non-exclusive sleeps are useful when the event can
+    \textit{benefit} to multiple threads.
   \end{itemize}
 \end{frame}
 
@@ -145,9 +146,9 @@ From \kfile{drivers/char/tpm/tpm_ibmvtpm.c}
        The scheduler doesn't keep evaluating the sleeping condition!
        \begin{itemize}
        \item \mint{c}+wait_event(queue, cond);+
-         The process is put in the \ksym{TASK_UNINTERRUPTIBLE} state.
+         The thread is put in the \ksym{TASK_UNINTERRUPTIBLE} state.
        \item \mint{c}+wake_up(&queue);+
-         All processes waiting in \code{queue} are woken up, so they get
+         All threads waiting in \code{queue} are woken up, so they get
          scheduled later and have the opportunity to evaluate the
          condition again and go back to sleep if it is not met.
        \end{itemize}
@@ -207,7 +208,8 @@ From \kfile{drivers/char/tpm/tpm_ibmvtpm.c}
     \begin{itemize}
     \item Resets the number of ``done'' completions still pending
     \item Mind not to call \kfunc{init_completion} twice, which could
-      confuse the enqueued tasks
+      confuse the enqueued threads
+
     \end{itemize}
   \end{itemize}
 \end{frame}
@@ -217,12 +219,11 @@ From \kfile{drivers/char/tpm/tpm_ibmvtpm.c}
   \begin{itemize}
   \item Use helpers which implement software loops or use hardware timers
     \begin{itemize}
-    \item \kfunc{udelay} waste CPU cycles in order
-      to save a couple of context switches, suitable for $\le$ 10us or in atomic
-      situations
+    \item \kfunc{udelay} waste CPU cycles in order to save a couple of
+      context switches, suitable for $\le$ 10us or in atomic situations
     \item \kfunc{usleep}/\kfunc{usleep_range}/\kfunc{msleep} put the
-      process in sleep for a given amount of micro/milliseconds (not suitable in
-      atomic contexts)
+      thread in sleep for a given amount of micro/milliseconds
+      (not suitable in atomic contexts)
     \item If in doubt, use \kfunc{fsleep}, which will use the more suitable
       internal function depending on the period you've asked!
     \end{itemize}
