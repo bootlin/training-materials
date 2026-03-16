@@ -1,45 +1,29 @@
-#!/usr/bin/env python3
+#!/bin/sh
 
-# Usage:
-# 1/ Go to a source directory (such as kernel sources
-# 2/ Run: source-code-line-statistics
+nb_files=$(git ls-files | wc -l)
+printf "close to %.0fk files, " $(echo "scale=5; $nb_files / 1000" | bc)
 
-# Author: michael.opdenacker@bootlin.com
-# License: Public Domain
+# Ignoring stdout because of symlinks to directories and spaces in filepaths.
+git ls-files | xargs cat 2>/dev/null | wc | \
+	awk '{printf "%.0fM lines, %.1fGiB\n", $1/1e6, $3/1024^3}'
 
+echo
 
-import os
+dirs="$(find * -maxdepth 0 -type d)"
+total=$(printf "%s\n" $dirs | xargs -I{} find {} -type f -print0 | xargs -0 cat | wc -l)
 
-excludes = ['.git']
+for dir in $dirs
+do
+	lines=$(find $dir -type f -print0 | xargs -0 cat | wc -l)
+	percent=$(echo "scale=5; $lines / $total * 100" | bc)
+	if test $(echo "$percent >= 10" | bc) -eq 1
+	then
+		printf "\\item \\kdir{%s}: %.0f\\%%\n" $dir $percent
+	else
+		printf "\\item \\kdir{%s}: %.1f\\%%\n" $dir $percent
+	fi
+done | sort -nrk3
 
-def count_lines_in_file(filename):
-	return (sum(1 for line in open(filename, 'rb')))
-
-def count_lines_in_dir(dirname):
-	sum=0
-	for root, dirs, files in os.walk(o):
-		for f in files:
-			size = count_lines_in_file(os.path.join(root, f))
-			sum += size
-	return sum
-
-total = 0
-
-sizes = []
-
-for o in os.listdir('.'):
-	if os.path.isdir(o) and not (o in excludes):
-		s = count_lines_in_dir(o)
-		sizes.append([o, s])
-		total += s
-
-print('size summary in number of lines of source code:')
-
-for i in sorted(sizes, key=lambda s: s[1], reverse=True):
-	print(i[0] + ': ' + "{:.1%}".format(i[1]/total))
-
-print('\nSummary in number of lines of source code (Bootlin kernel slides format):')
-
-for i in sorted(sizes, key=lambda s: s[1], reverse=True):
-	print('\item \kdir{' + i[0] + '}: ' + "{:03.1f}".format(100*i[1]/total) + '\%')
-
+echo
+echo "files at root:"
+find * -maxdepth 0 -type f | awk 'NR==1{printf "%s", $0} NR!=1{printf ", %s", $0} END{printf "\n"}'
