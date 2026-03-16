@@ -101,6 +101,8 @@ else
 SLIDES_TRAINING      = $(firstword $(subst -, ,  $(SLIDES)))
 ifeq ($(SLIDES_TRAINING),sysdev)
 SLIDES_TRAINING = embedded-linux
+else ($(SLIDES_TRAINING),kernel)
+SLIDES_TRAINING = linux-kernel
 endif
 # We might be building multiple chapters that share a common
 # prefix. In this case, we want to build them in the order they are
