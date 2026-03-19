@@ -101,7 +101,8 @@ else
 SLIDES_TRAINING      = $(firstword $(subst -, ,  $(SLIDES)))
 ifeq ($(SLIDES_TRAINING),sysdev)
 SLIDES_TRAINING = embedded-linux
-else ($(SLIDES_TRAINING),kernel)
+endif
+ifeq ($(SLIDES_TRAINING),kernel)
 SLIDES_TRAINING = linux-kernel
 endif
 # We might be building multiple chapters that share a common
