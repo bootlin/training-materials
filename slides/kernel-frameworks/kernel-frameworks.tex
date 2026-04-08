@@ -734,215 +734,129 @@ void foo_remove(struct platform_device *pdev)
 \subsection{Driver data structures and links}
 
 \begin{frame}
-  \frametitle{Driver-specific Data Structure}
+  \frametitle{Driver data layout}
+  Three main data structures:
   \begin{itemize}
-  \item Each \emph{framework} defines a structure that a device driver
-    must register to be recognized as a device in this framework
-    \begin{itemize}
-    \item \kstruct{uart_port} for serial ports, \kstruct{net_device} for network
-      devices, \kstruct{fb_info} for framebuffers, etc.
-    \end{itemize}
-  \item In addition to this structure, the driver usually needs to
-    store additional information about each device
-  \item This is typically done
-    \begin{itemize}
-    \item By subclassing the appropriate framework structure
-    \item By storing a reference to the appropriate framework
-      structure
-    \item Or by including your information in the framework structure
-    \end{itemize}
+
+  \item Bus-specific device structure (\kstruct{i2c_client},
+    \kstruct{usb_dev}, etc)
+  \begin{itemize}
+  \item It \emph{always embeds} a \kstruct{device}
+  \item A pointer to it is passed to the \code{probe()} function
+  \end{itemize}
+
+  \item Framework-specific device struct (\kstruct{input_dev},
+    \kstruct{rtc_device}, etc)
+  \begin{itemize}
+  \item It \emph{might embed} a \kstruct{device} if the framework wants
+    a sysfs device
+  \item Careful! We might have one bus \kstruct{device} and one
+    framework \kstruct{device} for the same device!
+  \end{itemize}
+
+  \item Driver private data
+  \begin{itemize}
+  \item The structure is driver specific, with space for all device
+    state information
+  \item It stores references to both the bus and framework devices
+  \end{itemize}
+
   \end{itemize}
 \end{frame}
 
 \begin{frame}[fragile]
-  \frametitle{Driver-specific Data Structure Examples 1/2}
-  \begin{itemize}
-  \item i.MX serial driver: \kstruct{imx_port} is a subclass of
-    \kstruct{uart_port}
-  \begin{minted}[fontsize=\scriptsize]{c}
+  \frametitle{Driver data allocation stategies}
+  \begin{columns}
+    \column{0.33\textwidth}
+      \small Private data embeds the framework device therefore a single
+      allocation allocates both the framework device and the private
+      data.
+
+      \begin{minted}[fontsize=\scriptsize]{c}
 struct imx_port {
     struct uart_port port;
     struct timer_list timer;
     unsigned int old_status;
     int txirq, rxirq, rtsirq;
-    unsigned int have_rtscts:1;
-    [...]
-};
-  \end{minted}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}[fragile]
-  \frametitle{Driver-specific Data Structure Examples 2/2}
-  \begin{itemize}
-  \item ds1305 RTC driver: \kstruct{ds1305} has a reference to
-    \kstruct{rtc_device}
-  \begin{minted}[fontsize=\scriptsize]{c}
-struct ds1305 {
-    struct spi_device       *spi;
-    struct rtc_device       *rtc;
     [...]
 };
 
-static int ds1305_alarm_irq_enable(struct device *dev, unsigned int enabled)
-{
-    struct ds1305 *ds1305 = dev_get_drvdata(dev);
-    [ ..]
-}
-  \end{minted}
-  \item rtl8150 network driver: \kstruct{rtl8150} has a reference to
-    \kstruct{net_device} and is allocated within that framework structure.
-  \begin{minted}[fontsize=\scriptsize]{c}
-struct rtl8150 {
-    unsigned long flags;
-    struct usb_device *udev;
-    struct tasklet_struct tl;
-    struct net_device *netdev;
-    [...]
-};
-  \end{minted}
-  \end{itemize}
+sport = devm_kzalloc(&pdev->dev,
+                sizeof(*sport),
+                GFP_KERNEL);
+if (!sport)
+    return -ENOMEM;
+      \end{minted}
+
+    \column{0.33\textwidth}
+      \small The framework exposes an helper to allocate the framework device,
+      with space at the end to put the private data.
+
+      \begin{minted}[fontsize=\scriptsize]{c}
+struct da311_data *data;
+struct iio_dev *idev;
+
+idev = devm_iio_device_alloc(
+                &client->dev,
+                sizeof(*data));
+if (!idev)
+  return -ENOMEM;
+
+data = iio_priv(idev);
+data->client = client;
+      \end{minted}
+
+    \column{0.33\textwidth}
+      \small The framework device and private data are allocated separately.
+
+      \begin{minted}[fontsize=\scriptsize]{c}
+struct rtc_device *rtc;
+struct ds1305 *ds1305;
+
+ds1305 = devm_kzalloc(&spi->dev,
+                sizeof(*ds1305),
+                GFP_KERNEL);
+if (!ds1305)
+    return -ENOMEM;
+
+rtc = devm_rtc_allocate_device(
+                &spi->dev);
+if (IS_ERR(rtc))
+    return PTR_ERR(rtc);
+      \end{minted}
+  \end{columns}
 \end{frame}
 
 \begin{frame}
-  \frametitle{Links between structures 1/4}
-  \begin{itemize}
-  \item The framework structure typically contains a \kstruct{device} \code{*}
-    pointer that the driver must point to the corresponding
-    \kstruct{device}
+  \frametitle{Links between data structures}
+
+  \begin{columns}
+
+  \column{0.6\textwidth}
+
     \begin{itemize}
-    \item It's the relationship between the logical device (for example a
-      network interface) and the physical device (for example the USB
-      network adapter)
+    \item Inside bus callbacks, we get passed our bus device
+      \begin{itemize}
+      \item Inside \kstruct{device}, a pointer-sized field
+        \code{dev->driver_data} is reserved for driver usage
+      \item Use \kfunc{dev_set_drvdata} at \code{probe()} time to put a
+        reference to our private data
+      \item From bus callbacks, we can retrieve our private
+        data using \kfunc{dev_get_drvdata}
+      \end{itemize}
+
+    \item Inside framework callbacks, we get passed our framework device
+      \begin{itemize}
+      \item If our framework device is embedded in our private data, we
+        use \kfunc{container_of} that works using compiler provided
+        \code{offsetof()}
+      \item Otherwise, we use the framework device \code{dev->driver_data}
+        and retrieve our private data reference
+      \end{itemize}
     \end{itemize}
-  \item The device structure also contains a \code{void *} pointer
-    that the driver can freely use.
-    \begin{itemize}
-    \item It's often used to link back the device to the higher-level
-      structure from the framework.
-    \item It allows, for example, from the \kstruct{platform_device}
-      structure, to find the structure describing the logical device
-    \end{itemize}
-  \end{itemize}
-\end{frame}
 
-\begin{frame}[fragile]
-  \frametitle{Links between structures 2/4}
-  \begin{columns}
-    \column{0.7\textwidth}
-    \begin{minted}[fontsize=\tiny]{c}
-static int serial_imx_probe(struct platform_device *pdev)
-{
-    struct imx_port *sport; /* per device structure */
-    [...]
-    sport = devm_kzalloc(&pdev->dev, sizeof(*sport), GFP_KERNEL);
-    [...]
-    /* setup the link between uart_port and the struct
-     * device inside the platform_device */
-    sport->port.dev = &pdev->dev;                                // Arrow 1
-    [...]
-    /* setup the link between the struct device inside
-     * the platform device to the imx_port structure */
-    platform_set_drvdata(pdev, sport);                           // Arrow 2
-    [...]
-    uart_add_one_port(&imx_reg, &sport->port);
-}
-
-static int serial_imx_remove(struct platform_device *pdev)
-{
-    /* retrieve the imx_port from the platform_device */
-    struct imx_port *sport = platform_get_drvdata(pdev);
-    [...]
-    uart_remove_one_port(&imx_reg, &sport->port);
-    [...]
-}
-    \end{minted}
-    \column{0.3\textwidth}
-    \begin{center}
-      \includegraphics[height=0.8\textheight]{slides/kernel-frameworks/link-structures-imx.pdf}
-    \end{center}
-  \end{columns}
-\end{frame}
-
-\begin{frame}[fragile]
-  \frametitle{Links between structures 3/4}
-  \begin{columns}
-    \column{0.7\textwidth}
-    \begin{minted}[fontsize=\tiny]{c}
-static int ds1305_probe(struct spi_device *spi)
-{
-    struct ds1305                   *ds1305;
-
-    [...]
-
-    /* set up driver data */
-    ds1305 = devm_kzalloc(&spi->dev, sizeof(*ds1305), GFP_KERNEL);
-    if (!ds1305)
-            return -ENOMEM;
-    ds1305->spi = spi;                         // Arrow 1
-    spi_set_drvdata(spi, ds1305);              // Arrow 2
-
-    [...]
-
-    ds1305->rtc = devm_rtc_allocate_device(&spi->dev); 
-                                               // Arrows 3 and 4
-
-    [...]
-}
-
-static int ds1305_remove(struct spi_device *spi)
-{
-    struct ds1305 *ds1305 = spi_get_drvdata(spi);
-
-    [...]
-}
-    \end{minted}
-    \column{0.3\textwidth}
-    \begin{center}
-      \includegraphics[height=0.8\textheight]{slides/kernel-frameworks/link-structures-rtc.pdf}
-    \end{center}
-  \end{columns}
-\end{frame}
-
-\begin{frame}[fragile]
-  \frametitle{Links between structures 4/4}
-  \begin{columns}
-    \column{0.7\textwidth}
-    \begin{minted}[fontsize=\tiny]{c}
-static int rtl8150_probe(struct usb_interface *intf,
-    const struct usb_device_id *id)
-{
-    struct usb_device *udev = interface_to_usbdev(intf);
-    rtl8150_t *dev;
-    struct net_device *netdev;
-
-    netdev = alloc_etherdev(sizeof(rtl8150_t));
-    dev = netdev_priv(netdev);
-
-    [...]
-
-    dev->udev = udev;      // Arrow 1
-    dev->netdev = netdev;  // Arrow 2
-
-    [...]
-
-    usb_set_intfdata(intf, dev);        // Arrow 3
-    SET_NETDEV_DEV(netdev, &intf->dev); // Arrow 4
-
-    [...]
-}
-
-static void rtl8150_disconnect(struct usb_interface *intf)
-{
-    rtl8150_t *dev = usb_get_intfdata(intf);
-
-    [...]
-}
-    \end{minted}
-    \column{0.3\textwidth}
-    \begin{center}
-      \includegraphics[height=0.8\textheight]{slides/kernel-frameworks/link-structures-netdev.pdf}
-    \end{center}
+  \column{0.4\textwidth}
+    \includegraphics[height=0.8\textheight]{slides/kernel-frameworks/link-structures.pdf}
   \end{columns}
 \end{frame}
 
