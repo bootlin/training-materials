@@ -1,44 +1,60 @@
-\section{Power Management}
+\subsection{Clocking and power management}
 
 \begin{frame}
-  \frametitle{PM building blocks}
+  \frametitle{Enabling hardware}
+  In order to become functional, hardware blocks require:
   \begin{itemize}
-  \item Several power management \emph{building blocks}
+  \item Power to be applied
+  \item Clocks to be ticking
     \begin{itemize}
-    \item Clock framework
-    \item CPUidle (system wide)
-    \item Frequency and voltage scaling (system wide)
-    \item Suspend and resume (system wide)
-    \item Runtime power management (peripheral specific)
-    \item Power domains (SoC specific)
+    \item Hardware blocks are connected through hardware buses (AHB, APB,
+      AXI...), their interface logic require an input clock to respond
+      \begin{itemize}
+      \item One will experience bus hangs otherwise
+      \end{itemize}
+    \item When a device exposes a bus (eg. a SPI controller), there is
+      typically a second clock whose frequency can be tuned
     \end{itemize}
-  \item Independent \emph{building blocks} that can be improved
-    gradually during development
+  \item Resets to be released
   \end{itemize}
 \end{frame}
 
 \begin{frame}
-  \frametitle{Clock framework (1)}
+  \frametitle{Power handling}
   \begin{itemize}
-  \item Generic framework to manage clocks used by devices in the
-    system
-  \item Allows to reference count clock users and to shutdown the
-    unused clocks to save power
-  \item Simple API described in \kfile{include/linux/clk.h}.
+  \item Internal and external devices can be fed by a regulator
     \begin{itemize}
-    \item \kfunc{clk_get} to lookup and obtain a reference to a clock producer
-    \item \kfunc{clk_put} to free the clock source
-    \item \kfunc{clk_prepare_enable} to inform the system when the clock source should be running
-    \item \kfunc{clk_disable_unprepare} to inform the system when the clock source is no longer required.
-    \item \kfunc{clk_get_rate} to obtain the current clock rate (in Hz) for a clock source
-    \item \kfunc{clk_set_rate} to set the current clock rate (in Hz) of a clock source
+    \item Shared refcounted resources
+    \item See \kfunc{devm_regulator_get_enable} 
+    \end{itemize}
+  \item Internal devices can typically be part of a power management domain
+    (named \code{pmdomain}, formerly \code{genpd})
+    \begin{itemize}
+    \item Shared refcounted resources
+    \item For example: all display related controllers may be in one power
+      domain (CRTC, LCD controller, HDMI phy, etc). The whole domain
+      is either powered on or off.
     \end{itemize}
   \end{itemize}
 \end{frame}
 
-\begin{frame}{Clock framework (2)}
-  The common clock framework
+\begin{frame}
+  \frametitle{Clocks handling}
   \begin{itemize}
+  \item A clock tree typically starts from the main crystal, feeds PLLs, gates,
+    divisors and reaches every device in the system
+    \begin{itemize}
+    \item Shared refcounted resources
+    \item Managed by the Common Clock Framework (CCF)
+    \item Simple API described in \kfile{include/linux/clk.h}.
+      \begin{itemize}
+      \item \kfunc{devm_clk_get} to lookup and obtain a reference to a clock producer
+      \item \kfunc{clk_prepare_enable} to inform the system when the clock source should be running
+      \item \kfunc{clk_disable_unprepare} to inform the system when the clock source is no longer required.
+      \item \kfunc{clk_get_rate} to obtain the current clock rate (in Hz) for a clock source
+      \item \kfunc{clk_set_rate} to set the current clock rate (in Hz) of a clock source
+      \end{itemize}
+    \end{itemize}
   \item Allows to declare the available clocks and their association
     to devices in the Device Tree
   \item Provides a {\em debugfs} representation of the clock tree
@@ -49,196 +65,35 @@
 \begin{frame}{Diagram overview of the common clock framework}
   \begin{center}
     \includegraphics[width=\textwidth]{slides/kernel-power-management/clock-framework.pdf}
-\end{center}
-\end{frame}
-
-\begin{frame}{Clock framework (3)}
-  The interface of the CCF divided into two halves:
-  \begin{itemize}
-  \item Common Clock Framework core
-    \begin{itemize}
-    \item Common definition of \kstruct{clk}
-    \item Common implementation of the \code{clk.h} API (defined in
-      \kfile{drivers/clk/clk.c})
-    \item \kstruct{clk_ops}: operations invoked by the clk API
-      implementation
-    \item Not supposed to be modified when adding a new driver
-    \end{itemize}
-  \item Hardware-specific
-    \begin{itemize}
-    \item Callbacks registered with \kstruct{clk_ops} and the
-      corresponding hardware-specific structures
-    \item Has to be written for each new hardware clock
-    \item Example: \kfile{drivers/clk/mvebu/clk-cpu.c}
-    \end{itemize}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}{Clock framework (4)}
-  Hardware clock operations: device tree
-  \begin{itemize}
-  \item The \textbf{device tree} is the \textbf{mandatory way} to
-    declare a clock and to get its resources, as for any other
-    driver using DT we have to:
-    \begin{itemize}
-    \item \textbf{Parse} the device tree to \textbf{setup} the
-      clock: the resources but also the properties are retrieved.
-    \item Declare the \textbf{compatible} clocks and associate each
-      to an \textbf{initialization} function using
-      \kfunc{CLK_OF_DECLARE}
-    \item Example: \kfile{arch/arm/boot/dts/marvell/armada-xp.dtsi} and
-	\kfile{drivers/clk/mvebu/armada-xp.c}
-    \end{itemize}
-  \end{itemize}
-  See our presentation about the Clock Framework for more details:\\
-  \scriptsize \url{https://bootlin.com/pub/conferences/2013/elce/common-clock-framework-how-to-use-it/}
+  \end{center}
 \end{frame}
 
 \begin{frame}
-  \frametitle{Saving power in the idle loop}
+  \frametitle{Reset handling}
   \begin{itemize}
-  \item The idle loop is what you run when there's nothing left to run
-    in the system.
-  \item \kfunc{arch_cpu_idle} implemented in all architectures in
-    \code{arch/<arch>/kernel/process.c}
-  \item Example: \kfile{arch/arm/kernel/process.c}
-  \item The CPU can run power saving HLT instructions, enter NAP mode,
-    and even disable the timers (tickless systems).
-  \item See also \url{https://en.wikipedia.org/wiki/Idle_loop}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Managing idle}
-  Adding support for multiple idle levels
-  \begin{itemize}
-  \item Modern CPUs have several sleep states offering different
-    power savings with associated wake up latencies
-  \item The {\em dynamic tick} feature allows to remove the
-    periodic timer tick to save power, and to know when the next event is
-    scheduled, for smarter sleeps.
-  \item CPUidle infrastructure to change sleep states
+  \item Goal is to put a device in a known harder default state
+  \item Typically done while probing
+  \item Resets can be simple GPIOs
+  \item More complex resets can be registered in the reset control framework
     \begin{itemize}
-    \item Platform-specific driver defining sleep states and
-      transition operations
-    \item Platform-independent governors
-    \item Available in particular for x86/ACPI and most ARM SoCs
-    \item See \kdochtml{admin-guide/pm/cpuidle} in kernel documentation.
+    \item Pointed by the \code{resets} DT property
+    \item API is straightforward:
+      \begin{itemize}
+      \item \kfunc{devm_reset_control_get}
+      \item \kfunc{reset_control_assert}
+      \item \kfunc{reset_control_deassert}
+      \end{itemize}
     \end{itemize}
   \end{itemize}
 \end{frame}
 
 \begin{frame}
-  \frametitle{PowerTOP}
-  \url{https://en.wikipedia.org/wiki/PowerTOP}
+  \frametitle{Runtime Power Management}
   \begin{itemize}
-  \item With dynamic ticks, allows to fix parts of kernel code and
-    applications that wake up the system too often.
-  \item PowerTOP allows to track the worst offenders
-  \item Now available on ARM cpus implementing CPUidle
-  \item Also gives you useful hints for reducing power.
-  \item Try it on your x86 laptop:\\
-	\code{sudo powertop}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Frequency and voltage scaling (1)}
-  Frequency and voltage scaling possible through the
-  \code{cpufreq} kernel infrastructure.
-  \begin{itemize}
-  \item Generic infrastructure: \kfile{drivers/cpufreq/cpufreq.c} and
-    \kfile{include/linux/cpufreq.h}
-  \item Generic governors, responsible for deciding frequency and
-    voltage transitions
+  \item The state of a device can change at runtime to save power
     \begin{itemize}
-    \item \code{performance}: maximum frequency
-    \item \code{powersave}: minimum frequency
-    \item \code{ondemand}: measures CPU consumption to adjust frequency
-    \item \code{conservative}: often better than
-      \code{ondemand}. Only increases frequency gradually when the
-      CPU gets loaded.
-    \item \code{schedutil}: Tightly integrated with the scheduler, making per-policy decisions, RT tasks running at full speed.
-    \item \code{userspace}: leaves the decision to a user space
-      daemon.
+    \item Sort of per-device idle state
     \end{itemize}
-  \item This infrastructure can be controlled from
-    \code{/sys/devices/system/cpu/cpu<n>/cpufreq/}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Frequency and voltage scaling (2)}
-  \begin{itemize}
-  \item CPU frequency drivers are in \kdir{drivers/cpufreq}.  Example:
-    \kfile{drivers/cpufreq/omap-cpufreq.c}
-  \item Must implement the operations of the \code{cpufreq_driver}
-    structure and register them using \kfunc{cpufreq_register_driver}
-    \begin{itemize}
-    \item \code{init()} for initialization
-    \item \code{exit()} for cleanup
-    \item \code{verify()} to verify the user-chosen policy
-    \item \code{setpolicy()} or \code{target()} to actually perform
-      the frequency change
-    \end{itemize}
-  \item See documentation in \kdochtmldir{cpu-freq} for useful explanations
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Suspend and resume (to / from RAM)}
-  \begin{itemize}
-  \item Infrastructure in the kernel to support suspend and resume
-  \item System on Chip hooks
-    \begin{itemize}
-    \item Define operations (at least \code{valid()} and \code{enter()})
-      \kstruct{platform_suspend_ops} structure. See the documentation
-      for this structure for details about possible operations and the
-      way they are used.
-    \item Registered using the \kfunc{suspend_set_ops} function
-    \item See \kfile{arch/arm/mach-at91/pm.c}
-    \end{itemize}
-  \item Device driver hooks
-    \begin{itemize}
-    \item \code{pm} operations (\code{suspend()} and
-      \code{resume()} hooks) in the
-      \kstruct{device_driver} as a \kstruct{dev_pm_ops}
-      structure in (\kstruct{platform_driver}, \kstruct{usb_driver}, etc.)
-    \item See \kfile{drivers/net/ethernet/cadence/macb_main.c}
-    \end{itemize}
-   \item {\em Hibernate to disk} is based on suspend to RAM, copying
-    the RAM contents (after a simulated suspend) to a swap partition.
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Triggering suspend / hibernate}
-  \begin{itemize}
-  \item \kstruct{suspend_ops} functions are called by the
-    \kfunc{enter_state} function. \kfunc{enter_state} also
-    takes care of executing the suspend and resume functions
-    for your devices.
-  \item Read \kfile{kernel/power/suspend.c}
-  \item The execution of this function can be triggered from
-    user space:
-    \begin{itemize}
-    \item \code{echo mem > /sys/power/state} (suspend to RAM)
-    \item \code{echo disk > /sys/power/state} (hibernate to disk)
-    \end{itemize}
-  \item Systemd can also manage suspend and hibernate for you, and
-        offers customizations
-    \begin{itemize}
-       \item \code{systemctl suspend} or \code{systemctl hibernate}.
-       \item \small See \url{https://www.man7.org/linux/man-pages/man8/systemd-suspend.service.8.html}
-    \end{itemize}
-  \end{itemize}
-\end{frame}
-
-\begin{frame}
-  \frametitle{Runtime power management}
-  \begin{itemize}
-  \item Managing per-device idle, each device being managed by its
-        device driver independently from others.
   \item According to the kernel configuration interface: \emph{Enable
       functionality allowing I/O devices to be put into energy-saving
       (low power) states at run time (or autosuspended) after a
@@ -247,29 +102,18 @@
   \item New hooks must be added to the drivers:
     \code{runtime_suspend()}, \code{runtime_resume()},
     \code{runtime_idle()} in the \kstruct{dev_pm_ops}
-    structure in \kstruct{device_driver}.
-  \item API and details on \kdochtml{power/runtime_pm}
-  \item See \kfile{drivers/net/ethernet/cadence/macb_main.c} again.
-  \end{itemize}
-\end{frame}
-
-\begin{frame}[fragile]
-  \newcommand\kfuncbis[2]{\href{https://elixir.bootlin.com/linux/latest/ident/#1}{\codelink{#2()}}}
-  \frametitle{Generic PM Domains (pmdomain, ex-genpd)}
-  \begin{itemize}
-  \item Generic infrastructure to implement power domains based on
-        Device Tree descriptions, allowing to group devices by the
-        physical power domain they belong to.
-        This sits at the same level as bus type for calling PM hooks.
-  \item All the devices in the same PD get the same state at the same time.
-  \item Specifications and examples available at \kdoctext{devicetree/bindings/power/power_domain.txt}
-  \item Driver example: \kfile{drivers/pmdomain/rockchip/pm-domains.c} \\
-        See \kfuncbis{rockchip_pd_power_on}{_pd_power_on}, \kfuncbis{rockchip_pd_power_off}{_pd_power_off},
-        \kfuncbis{rockchip_pm_add_one_domain}{_pm_add_one_domain}
-  \item DT example: look for \kcompat{rockchip\%2Cpx30-power-controller}{rockchip,px30-power-controller}
-        (\kfile{arch/arm64/boot/dts/rockchip/px30.dtsi}) and find PD definitions
-        and corresponding devices.
-  \item See Kevin Hilman's talk at Kernel Recipes 2017: \url{https://youtu.be/SctfvoskABM}
+    structure of \kstruct{device_driver}.
+  \item API and details on \kdochtml{power/runtime_pm}:
+    \begin{itemize}
+    \item \kfunc{pm_runtime_enable}
+    \item \kfunc{pm_runtime_get_sync}
+    \item \kfunc{pm_runtime_put}
+    \end{itemize}
+  \item Runtime PM may use resets, clocks, power...
+    \begin{itemize}
+    \item It sometimes replaces direct clock lookups and handling on some old
+      ARM platforms, like the AM335x.
+    \end{itemize}
   \end{itemize}
 \end{frame}
 
@@ -277,17 +121,21 @@
   \frametitle{Useful resources}
   \begin{itemize}
   \item \kdochtmldir{power} in kernel documentation.
+  \item Introduction to kernel power management \\
+    Kevin Hilman (Kernel Recipes 2015)
     \begin{itemize}
-    \item Will give you many useful details.
+    \item \url{https://www.youtube.com/watch?v=juJJZORgVwI}
     \end{itemize}
-  \item Introduction to kernel power management, Kevin Hilman (Kernel Recipes 2015)
+  \item Overview of Generic PM Domains \\
+    Kevin Hilman (Kernel Recipes 2017)
     \begin{itemize}
-      \item \url{https://www.youtube.com/watch?v=juJJZORgVwI}
+    \item \url{https://www.youtube.com/watch?v=SctfvoskABM}
     \end{itemize}
   \item Linux Power Management Features, Their Relationships and
-    Interactions — \\ Théo Lebrun (Embedded Linux Conference Europe 2024)
+    Interactions \\
+    Théo Lebrun (Embedded Linux Conference Europe 2024)
     \begin{itemize}
-      \item \url{https://www.youtube.com/watch?v=_jb6U40ZCZk}
+    \item \url{https://www.youtube.com/watch?v=_jb6U40ZCZk}
     \end{itemize}
   \end{itemize}
 \end{frame}

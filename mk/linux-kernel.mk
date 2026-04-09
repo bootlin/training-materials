@@ -26,6 +26,7 @@ LINUX_KERNEL_SLIDES = \
 	kernel-frameworks \
 	kernel-driver-development-memory \
 	kernel-driver-development-io-memory \
+	kernel-power-management \
 	kernel-driver-development-io-memory-lab \
 	kernel-misc-subsystem \
 	kernel-driver-development-processes \
@@ -35,7 +36,6 @@ LINUX_KERNEL_SLIDES = \
 	kernel-driver-development-dma \
 	kernel-driver-development-debugging \
 	kernel-porting \
-	kernel-power-management \
 	kernel-resources-references \
 	last-slides \
 	kernel-backup-slides-title \
