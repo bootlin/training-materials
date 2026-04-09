@@ -26,6 +26,7 @@ LINUX_KERNEL_SLIDES = \
 	kernel-frameworks \
 	kernel-driver-development-memory \
 	kernel-driver-development-io-memory \
+	kernel-driver-development-io-memory-lab \
 	kernel-misc-subsystem \
 	kernel-driver-development-processes \
 	kernel-driver-development-sleeping \
