@@ -141,9 +141,8 @@
     16 pages, etc.
   \item Typical maximum size is 8192 KB, but it might depend on the
     kernel configuration.
-  \item The allocated area is contiguous in the kernel virtual address
-    space, but also maps to physically contiguous pages. It is
-    allocated in the identity-mapped part of the kernel memory space.
+  \item The allocated area maps to physically contiguous pages, in the
+    identity-mapped part of the kernel memory space.
     \begin{itemize}
     \item This means that large areas may not be available or hard to
       retrieve due to physical memory fragmentation.
@@ -170,8 +169,8 @@
   \item \mint{c}+unsigned long __get_free_pages(gfp_t gfp_mask, unsigned int order)+
     \begin{itemize}
     \item Returns the starting virtual address of an area of several
-      contiguous pages in physical RAM, with order being
-      \code{log2(number_of_pages)}.Can be computed
+      physically contiguous pages, with order being
+      \code{log2(number_of_pages)}. Can be computed
       from the size with the \kfunc{get_order} function.
     \end{itemize}
   \item \mint{c}+void free_page(unsigned long addr)+
@@ -343,13 +342,11 @@ kfree(tprops);
 \begin{frame}[fragile]
   \frametitle{vmalloc allocator}
   \begin{itemize}
-  \item The \kfunc{vmalloc} allocator can be used to obtain
-    memory zones that are contiguous in the virtual addressing space,
-    but not made out of physically contiguous pages.
+  \item The \kfunc{vmalloc} allocator is used to obtain memory zones
+    that are not made out of physically contiguous pages, outside of
+    the identically-mapped area.
   \item The requested memory size is rounded up to the next page (not
     efficient for small allocations).
-  \item The allocated area is in the kernel space part of the address
-    space, but outside of the identically-mapped area
   \item Allocations of fairly large areas is possible (almost as big
     as total available memory, see \url{https://j.mp/YIGq6W} again),
     since physical memory fragmentation is not an issue.
