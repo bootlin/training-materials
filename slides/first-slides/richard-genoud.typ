@@ -1,0 +1,20 @@
+
+===  Richard Genoud
+
+- Embedded Linux engineer and trainer at *Bootlin*
+
+- Joined Bootlin in 2024
+
+- Over 20 years of experience in embedded Linux engineering
+
+- Expertise in Linux kernel development, drivers, build system
+  integration, application development
+
+- Maintainer of the `atmel_serial` kernel driver, contributor to Linux,
+  U-Boot, mtd-utils, Buildroot, Busybox, dnsmasq, msmtp
+
+- Living in *Villefranche-sur Saône*, north of Lyon in France
+
+- `richard.genoud@bootlin.com`
+
+#link("https://bootlin.com/company/staff/richard-genoud/")

@@ -1,0 +1,78 @@
+#import "@local/bootlin:0.1.0": *
+
+#import "/typst/local/common.typ": *
+
+===  ltrace 
+
+#[
+  #set list(spacing: 1em)
+A tool to trace *shared* library calls used by a program and all the signals it receives
+
+- Very useful complement to `strace`, which shows only system calls.
+
+- Of course, works even if you don’t have the sources
+
+- Allows to filter library calls with regular expressions, or just by a
+  list of function names.
+
+- With the `-S` option it shows system calls too!
+
+- Also offers a summary with its `-c` option.
+
+- Manual page: #link("https://linux.die.net/man/1/ltrace")
+
+- Works better with _glibc_. `ltrace` used to be broken with
+  _uClibc_ (now fixed), and is not supported with _Musl_
+  (Buildroot 2022.11 status).
+
+See #link("https://en.wikipedia.org/wiki/Ltrace") for details
+]
+===  ltrace example output
+#text(size: 15pt)[
+```
+# ltrace  ffmpeg -f video4linux2 -video_size 544x288 -input_format mjpeg -i /dev
+/video0 -pix_fmt rgb565le -f fbdev /dev/fb0
+__libc_start_main([ "ffmpeg", "-f", "video4linux2", "-video_size"... ] <unfinished ...>
+setvbuf(0xb6a0ec80, nil, 2, 0)                   = 0
+av_log_set_flags(1, 0, 1, 0)                     = 1
+strchr("f", ':')                                 = nil strlen("f")                                      = 1
+strncmp("f", "L", 1)                             = 26
+strncmp("f", "h", 1)                             = -2
+strncmp("f", "?", 1)                             = 39
+strncmp("f", "help", 1)                          = -2
+strncmp("f", "-help", 1)                         = 57
+strncmp("f", "version", 1)                       = -16
+strncmp("f", "buildconf", 1)                     = 4
+strncmp("f", "formats", 1)                       = 0
+strlen("formats")                                = 7
+strncmp("f", "muxers", 1)                        = -7
+strncmp("f", "demuxers", 1)                      = 2
+strncmp("f", "devices", 1)                       = 2
+strncmp("f", "codecs", 1)                        = 3
+...
+```
+]
+===  ltrace summary 
+Example summary at the end of the ltrace output (`-c` option)
+#text(size: 15pt)[
+```
+% time     seconds  usecs/call     calls      function
+------ ----------- ----------- --------- --------------------
+ 52.64    5.958660     5958660         1 __libc_start_main
+ 20.64    2.336331     2336331         1 avformat_find_stream_info
+ 14.87    1.682895         421      3995 strncmp
+  7.17    0.811210      811210         1 avformat_open_input
+  0.75    0.085290         584       146 av_freep
+  0.49    0.055150         434       127 strlen
+  0.29    0.033008         660        50 av_log
+  0.22    0.025090         464        54 strcmp
+  0.20    0.022836       22836         1 avformat_close_input
+  0.16    0.017788         635        28 av_dict_free
+  0.15    0.016819         646        26 av_dict_get
+  0.15    0.016753         440        38 strchr
+  0.13    0.014536         581        25 memset
+...
+------ ----------- ----------- --------- --------------------
+100.00   11.318773                  4762 total
+```
+]
