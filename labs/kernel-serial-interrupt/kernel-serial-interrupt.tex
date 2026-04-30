@@ -46,13 +46,25 @@ Then, in the interrupt handler, just print a message and return
 interrupt).
 
 To enable reception and its associated interrupt, the UART control register must be configured accordingly. This configuration is done within the \code{probe} function by setting the following bits:
-\if\defstring{\board}{imx93-frdm}
+\if\defstring{\board}{imx93-frdm}{
   \begin{verbatim}
   reg_write(serial, LPUART_CTRL_TE | LPUART_CTRL_RE | LPUART_CTRL_RIE, LPUART_CTRL);
   \end{verbatim}
-\else
+\fi
+\if\defstring{\board}{stm32mp1}{
   \begin{verbatim}
-	reg_write(serial, UART_IER_RDI, UART_IER);
+  cr1 |= USART_CR1_RXNEIE;
+  reg_write(serial, cr1, USART_CR1);
+  \end{verbatim}
+\fi
+\if\defstring{\board}{beagleplay}{
+  \begin{verbatim}
+  reg_write(serial, UART_IER_RDI, UART_IER);
+  \end{verbatim}
+\fi
+\if\defstring{\board}{bbb}{
+  \begin{verbatim}
+  reg_write(serial, UART_IER_RDI, UART_IER);
   \end{verbatim}
 \fi
 
@@ -72,7 +84,10 @@ experienced here is called an \code{interrupt flood}.
 
 Now, in our interrupt handler, we want to acknowledge the
 interrupt. On the UART controllers that we drive, it's done simply by
-reading the contents of the \ifdefstring{\board}{imx93-frdm}{\ksym{LPUART_DATA}}{\ksym{UART_RX}} register, which holds the
+reading the contents of the \ifdefstring{\board}{imx93-frdm}{\ksym{LPUART_DATA}}{}
+\ifdefstring{\board}{stm32mp1}{\ksym{USART_RDR}}{}
+\ifdefstring{\board}{bbb}{\ksym{UART_RX}}{}
+\ifdefstring{\board}{beagleplay}{\ksym{UART_RX}}{} register, which holds the
 next character received. You can display the value you read to see
 that the driver will receive whatever character you sent.
 
