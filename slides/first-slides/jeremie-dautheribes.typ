@@ -1,4 +1,3 @@
-
 ===  Jérémie Dautheribes
 
 - Embedded Linux engineer and trainer at *Bootlin*
@@ -12,4 +11,4 @@
 
 - `jeremie.dautheribes@bootlin.com`
 
-#link("https://bootlin.com/company/staff/jeremie-dautheribes/")
+#text(fill: rgb("#4B6FA9"))[#link("https://bootlin.com/company/staff/jeremie-dautheribes/")]

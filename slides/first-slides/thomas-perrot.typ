@@ -1,4 +1,3 @@
-
 ===  Thomas Perrot
 
 - Embedded Linux engineer and trainer at *Bootlin*
@@ -12,4 +11,4 @@
 
 - `thomas.perrot@bootlin.com`
 
-#link("https://bootlin.com/company/staff/thomas-perrot/")
+#text(fill: rgb("#4B6FA9"))[#link("https://bootlin.com/company/staff/thomas-perrot/")]
