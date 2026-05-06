@@ -1,0 +1,263 @@
+\section{A/B updates}
+
+\begin{frame}{A/B updates}
+  \begin{itemize}
+    \item Mecanism for Over-The-Air (OTA) \textit{image} updates
+    \item Key idea: avoid one update bricking the device
+    \begin{itemize}
+      \item Even if tested, one update might prevent the system from booting
+      \item Enable the device to recover from a bad update automatically
+      \item Avoid RMAs or in-the-field intervention
+    \end{itemize}
+    \item The key idea is to maintain 2 copies of the system, in two \textbf{slots}
+    \begin{itemize}
+      \item minimum is 2 rootFS
+      \item usually also includes the kernel
+      \item can involve the bootloader, depending on the bootROM
+    \end{itemize}
+    \item Non-A/B OTAs are \href{https://source.android.com/docs/core/ota/nonab}{deprecated in Android}
+          since Android 6 (pre August 2016)
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{A/B updates: slots}
+  \begin{itemize}
+    \item A/B systems have 2 slots: slot A and slot B
+    \item They each have dedicated boot locations (usually boot medium partitions)
+    % Because OTA happen on live systems, there is always a current slot
+    \item On the running system, the slot booted is the \textbf{current} slot
+    \item An OTA should never touch boot locations from the \textbf{current} slot
+    \item Each slot can be marked \textbf{bootable}
+    \item Updates will usually be built independently from the slot they will occupy
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{A/B updates: strategy}
+  \begin{itemize}
+    \item At boot, the system detect which slot (A or B) is the \textbf{current} slot
+    \item The updater will locate the boot locations for the \textbf{alternate} slot
+    \item The updater then applies the update to the \textbf{alternate} boot locations
+    \item The updater marks the \textbf{alternate} slot as \textbf{next} to be booted
+    \item Eventually, the system reboots. Possibly triggered at the end of the update
+    \item At boot, the bootloader detects the \textbf{next} slot and boots it
+    \begin{itemize}
+      \item If the system fails to boot, the watchdog reboots the system. If the slot
+            fails to boot several times, the system boots the other slot.
+      \item If the boot succeed, the system runs checks and if they pass, marks the
+            \textbf{current} slot as \textbf{primary}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{A/B updates: bootloader}
+  \begin{itemize}
+    \item The bootloader is responsible for:
+    \begin{itemize}
+      \item Booting the \textbf{primary} slot by default
+      \item Keeping track of boot failures per slot
+      \item Trying out the \textbf{alternate} slot if it is marked as \textbf{next}
+      \item Optionally, telling the kernel which slot has been booted (A or B)
+    \end{itemize}
+    \item Communication between bootloader and the system is short
+  \end{itemize}
+\end{frame}
+
+
+\begin{frame}{Updater: SWUpdate}
+  \begin{itemize}
+    \item Open source project
+    \item \href{https://swupdate.org/}{website} -- \href{https://github.com/sbabic/swupdate}{code} --  \href{https://sbabic.github.io/swupdate/index.html}{doc}
+    \item Used e.g. by the \href{https://cip-project.org/}{Civil Infrastructure Project}
+    \item Integrated in both Buildroot and Yocto
+    \item Written in C
+    \item Uses \code{libconfig} syntax for configuration
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{SWUpdate: configuration}
+  \begin{minted}[fontsize=\tiny]{yaml}
+software =
+{
+        version = "0.1.0";
+        description = "Firmware update for XXXXX Project";
+
+        hardware-compatibility: [ "1.0", "1.2", "1.3"];
+
+        partitions: (
+                { name = "rootfs"; device = "mtd4"; size = 104896512; },
+                { name = "data"; device = "mtd5"; size = 50448384; }
+        );
+
+        images: (
+                { filename = "rootfs.ubifs"; volume = "rootfs"; },
+                { filename = "swupdate.ext3.gz.u-boot"; volume = "fs_recovery"; },
+                { filename = "sdcard.ext3.gz"; device = "/dev/mmcblk0p1"; compressed = "zlib";},
+                { filename = "bootlogo.bmp"; volume = "splash"; },
+                { filename = "uImage.bin"; volume = "kernel"; },
+                { filename = "fpga.txt"; type = "fpga"; },
+                { filename = "bootloader-env"; type = "bootloader"; }
+        );
+
+        files: ({ filename = "README"; path = "/README"; device = "/dev/mmcblk0p1"; filesystem = "vfat"; });
+
+        scripts: ( { filename = "erase_at_end"; type = "lua"; }, { filename = "display_info"; type = "lua"; });
+
+        bootenv: (
+                { name = "vram"; value = "4M"; },
+                { name = "addfb"; value = "setenv bootargs \${bootargs} omapfb.vram=1:2M,2:2M,3:2M omapdss.def_disp=lcd"; }
+        );
+}
+  \end{minted}
+\end{frame}
+
+\begin{frame}{Updater: RAUC}
+  \begin{itemize}
+    \item Robust Auto-Update Controller
+    \item Also open source
+    \item \href{https://rauc.io/}{website} -- \href{https://github.com/rauc/rauc}{code} -- \href{https://rauc.readthedocs.io/en/latest/}{doc}
+    \item Integrated in Buildroot and Yocto
+    \item Written in python
+    \item Uses a configuration and \code{manifest} in INI format
+    \item Updates are handled in the form of \code{bundles}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{RAUC: configuration}
+  \begin{minted}[fontsize=\scriptsize]{yaml}
+[system]
+compatible=rauc-demo-x86
+bootloader=grub
+mountprefix=/mnt/rauc
+bundle-formats=-plain
+
+[keyring]
+path=demo.cert.pem
+
+[slot.rootfs.0]
+device=/dev/sda2
+type=ext4
+bootname=A
+
+[slot.rootfs.1]
+device=/dev/sda3
+type=ext4
+bootname=B
+  \end{minted}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{RAUC: Bundle \href{https://rauc.readthedocs.io/en/latest/reference.html\#sec-ref-manifest}{manifest}}
+  \begin{itemize}
+    \item Must be called \code{manifest.raucm}
+  \end{itemize}
+  \begin{minted}[fontsize=\scriptsize]{yaml}
+[update]
+compatible=Test Platform
+version=2023.11.0
+
+[bundle]
+format=verity
+
+[image.rootfs]
+filename=system-image.ext4
+
+[image.bootloader]
+filename=barebox.img
+  \end{minted}
+\end{frame}
+
+\begin{frame}{Updates backend: \href{https://hawkbit.eclipse.dev}{hawkBit}}
+  \begin{itemize}
+    \item Open Source project from the Eclipse foundation
+    \item Back-end for update rollout
+    \item Can break down shipping updates into groups
+    \item Includes a management interface and visualisation
+    \item Supported by both RAUC and SWUpdate
+  \end{itemize}
+\end{frame}
+
+\subsection{Examples}
+
+\begin{frame}{A/B updates using RAUC + U-Boot}
+  \begin{itemize}
+    \item U-Boot is natively supported by RAUC
+    \item RAUC will use U-Boot's environment to affect boot order
+    \begin{itemize}
+      \item \code{BOOT_ORDER}: Names of all slots, in order of priority
+      \item \code{BOOT_<slot_name>_LEFT}: remaining boot attempts for the slot
+    \end{itemize}
+    \item The environments variables will be read and set by a
+          boot script
+    \begin{itemize}
+      \item RAUC includes an \href{}https://github.com/rauc/rauc/blob/master/contrib/uboot.sh{example}
+            (see next slide)
+    \end{itemize}
+    \item Alternatively, one can configure U-Boot to use the
+          \href{https://docs.u-boot.org/en/latest/develop/bootstd/rauc.html}{RAUC bootmeth}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}[fragile]
+  \frametitle{A/B updates using RAUC + U-Boot}
+  \begin{minted}[fontsize=\tiny]{shell}
+test -n "${BOOT_ORDER}" || setenv BOOT_ORDER "A B"
+test -n "${BOOT_A_LEFT}" || setenv BOOT_A_LEFT 3
+test -n "${BOOT_B_LEFT}" || setenv BOOT_B_LEFT 3
+
+setenv bootargs
+for BOOT_SLOT in "${BOOT_ORDER}"; do
+  if test "x${bootargs}" != "x"; then
+    # skip remaining slots
+  elif test "x${BOOT_SLOT}" = "xA"; then
+    if test 0x${BOOT_A_LEFT} -gt 0; then
+      echo "Found valid slot A, ${BOOT_A_LEFT} attempts remaining"
+      setexpr BOOT_A_LEFT ${BOOT_A_LEFT} - 1
+      setenv load_kernel "nand read ${kernel_loadaddr} ${kernel_a_nandoffset} ${kernel_size}"
+      setenv bootargs "${default_bootargs} root=/dev/mmcblk0p1 rauc.slot=A"
+    fi
+  elif test "x${BOOT_SLOT}" = "xB"; then
+    if test 0x${BOOT_B_LEFT} -gt 0; then
+      setexpr BOOT_B_LEFT ${BOOT_B_LEFT} - 1
+      setenv load_kernel "nand read ${kernel_loadaddr} ${kernel_b_nandoffset} ${kernel_size}"
+      setenv bootargs "${default_bootargs} root=/dev/mmcblk0p2 rauc.slot=B"
+    fi
+  fi
+done
+
+if test -n "${bootargs}"; then
+  saveenv
+else
+  echo "No valid slot found, resetting tries to 3"
+  setenv BOOT_A_LEFT 3
+  setenv BOOT_B_LEFT 3
+  saveenv
+  reset
+fi
+
+run load_kernel
+bootm ${loadaddr_kernel}
+  \end{minted}
+\end{frame}
+
+
+\begin{frame}{A/B updates on RPi 5}
+  \begin{itemize}
+    \item Raspberry Pis have an interesting \href{https://www.raspberrypi.com/documentation/computers/raspberry-pi.html\#boot-sequence}{boot sequence}
+    \item the boot actually stats on the VideoCore, which is the GPU
+    \item this lets users configure the CPU's bootloader via \code{.txt} files
+    \begin{itemize}
+      \item \href{https://www.raspberrypi.com/documentation/computers/config_txt.html\#what-is-config-txt}{\code{config.txt}}
+      \item \href{https://www.raspberrypi.com/documentation/computers/config_txt.html\#autoboot-txt}{\code{autoboot.txt}}
+    \end{itemize}
+    \item the RPi bootloader already supports A/B updates, via its 
+          \href{https://www.raspberrypi.com/documentation/computers/config_txt.html\#the-tryboot-filter}{\code{tryboot}} feature
+    \item It also supports dynamically changing configuration based on the
+          \href{https://www.raspberrypi.com/documentation/computers/config_txt.html\#boot_partition-2}{\code{boot_partition}}
+    \begin{itemize}
+      \item This helps making the OTA update slot-agnostic
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
