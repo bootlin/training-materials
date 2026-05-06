@@ -17,4 +17,4 @@
 
 - `herve.codina@bootlin.com`
 
-#link("https://bootlin.com/company/staff/herve-codina/")
+#text(fill: rgb("#4B6FA9"))[#link("https://bootlin.com/company/staff/herve-codina/")]

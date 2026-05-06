@@ -1,4 +1,3 @@
-
 ===  Théo Lebrun
 
 - Embedded Linux engineer and trainer at *Bootlin*
@@ -12,4 +11,4 @@
 
 - `theo.lebrun@bootlin.com`
 
-#link("https://bootlin.com/company/staff/theo-lebrun/")
+#text(fill: rgb("#4B6FA9"))[#link("https://bootlin.com/company/staff/theo-lebrun/")]

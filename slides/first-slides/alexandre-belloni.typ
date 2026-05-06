@@ -1,4 +1,3 @@
-
 ===  Alexandre Belloni
 
 - Co-owner and COO at *Bootlin*
@@ -18,4 +17,4 @@
 
 - `alexandre.belloni@bootlin.com`
 
-#link("https://bootlin.com/company/staff/alexandre-belloni/")
+#text(fill: rgb("#4B6FA9"))[#link("https://bootlin.com/company/staff/alexandre-belloni/")]

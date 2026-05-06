@@ -1,4 +1,3 @@
-
 ===  Romain Gantois
 
 - Embedded Linux engineer and trainer at *Bootlin*
@@ -15,4 +14,4 @@
 
 - `romain.gantois@bootlin.com`
 
-#link("https://bootlin.com/company/staff/romain-gantois/")
+#text(fill: rgb("#4B6FA9"))[#link("https://bootlin.com/company/staff/romain-gantois/")]

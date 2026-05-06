@@ -1,4 +1,3 @@
-
 ===  Kamel Bouhara
 
 - Embedded Linux engineer at *Bootlin* since 2019
@@ -13,4 +12,4 @@
 
 - `kamel.bouhara@bootlin.com`
 
-#link("https://bootlin.com/company/staff/kamel-bouhara/")
+#text(fill: rgb("#4B6FA9"))[#link("https://bootlin.com/company/staff/kamel-bouhara/")]

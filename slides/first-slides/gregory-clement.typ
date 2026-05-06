@@ -1,5 +1,3 @@
-
-
 ===  Gregory Clement
 
 - Embedded Linux engineer and trainer at *Bootlin* since 2010
@@ -14,4 +12,4 @@
 
 - `gregory@bootlin.com`
 
-#link("https://bootlin.com/company/staff/gregory-clement/")
+#text(fill: rgb("#4B6FA9"))[#link("https://bootlin.com/company/staff/gregory-clement/")]

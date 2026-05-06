@@ -109,8 +109,7 @@ columns: (70%, 30%), stroke: none,
 ],[
 
 #align(center, [#image("www.png", width: 85%)]) 
-#[
-  #set text(size: 13pt)
+#[ #set text(size: 13pt)
 #align(center, [_Icon by Freepik, Flaticon_])
 ]
 

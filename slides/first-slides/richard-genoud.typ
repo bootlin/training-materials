@@ -1,4 +1,3 @@
-
 ===  Richard Genoud
 
 - Embedded Linux engineer and trainer at *Bootlin*
@@ -17,4 +16,4 @@
 
 - `richard.genoud@bootlin.com`
 
-#link("https://bootlin.com/company/staff/richard-genoud/")
+#text(fill: rgb("#4B6FA9"))[#link("https://bootlin.com/company/staff/richard-genoud/")]

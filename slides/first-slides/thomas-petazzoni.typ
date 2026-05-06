@@ -1,4 +1,3 @@
-
 ===  Thomas Petazzoni
 
 - Co-owner and CEO at *Bootlin*
@@ -19,4 +18,4 @@
 
 - `thomas@bootlin.com`
 
-#link("https://bootlin.com/company/staff/thomas-petazzoni/")
+#text(fill: rgb("#4B6FA9"))[#link("https://bootlin.com/company/staff/thomas-petazzoni/")]

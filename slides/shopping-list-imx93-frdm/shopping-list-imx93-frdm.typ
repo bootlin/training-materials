@@ -1,0 +1,76 @@
+#let training = sys.inputs.at("training", default: "")
+
+#let imx93-frdm-nunchuk = (
+  training in ("yocto", "embedded-linux", "linux-kernel")
+)
+
+#let imx93-frdm-audio = (
+  training == "embedded-linux"
+)
+
+#let imx93-frdm-extra-serial = (
+  training == "linux-kernel"
+)
+
+#import "@local/bootlin:0.1.0": *
+
+#import "/typst/local/common.typ": *
+
+#show: bootlin-theme
+
+=== IMX93 FRDM shopping list
+
+#table(columns: (80%, 20%), stroke: none, gutter: 20pt,
+[
+  #text(size: 23pt)[
+  - NXP i.MX93 11x11 FRDM board
+    
+
+    - #text(size: 22pt)[NXP i.MX93 (Dual Cortex-A55 + Cortex-M33)]
+    - #text(size: 22pt)[2 GB LPDDR4]
+    - #text(size: 22pt)[32 GB eMMC]
+    - #text(size: 22pt)[Plenty of peripherals: I2C, SPI, UART, USB]
+
+  
+
+  - 2 × USB-C cables (power + console)
+  - RJ45 cable
+
+  #if imx93-frdm-extra-serial [
+  - USB Serial Cable - 3.3 V - Female ends
+    #footnote[#text(size: 16pt)[#link("https://www.olimex.com/Products/USB-Modules/Interfaces/USB-SERIAL-F")]]
+  ]
+
+  #if imx93-frdm-nunchuk [
+  - Nintendo Nunchuk with UEXT connector
+    #footnote[#text(size: 16pt)[#link("https://www.olimex.com/Products/Modules/Sensors/MOD-WII/MOD-Wii-UEXT-NUNCHUCK/")]]
+  - Breadboard jumper wires - Male/Female ends
+    #footnote[#text(size: 16pt)[#link("https://www.olimex.com/Products/Breadboarding/JUMPER-WIRES/JW-200x10-FM/")]]
+  ]
+
+  #if imx93-frdm-audio [
+  - A standard USB audio headset
+  ]]
+],
+[
+  #align(center)[
+    #v(-1em)
+    #image("imx93-frdm.png", width: 55%) \
+    #v(-0.5em)
+    #if imx93-frdm-extra-serial [
+      #image("/common/usb-serial-cable-female.jpg", width: 50%) \
+    ]
+    #v(-0.5em)
+    #if imx93-frdm-nunchuk [
+      #image("/common/nunchuk.jpg", width: 50%) \
+      #v(-0.5em)
+      #image("/common/jumper-wires.jpg", width: 50%) \
+      #v(-0.5em)
+    ]
+
+    #if imx93-frdm-audio [
+      #image("/common/usb-audio.png", width: 50%) \
+    ]
+  ]
+]
+)
