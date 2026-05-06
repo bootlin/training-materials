@@ -4,8 +4,7 @@
 
 ===  ltrace 
 
-#[
-  #set list(spacing: 1em)
+#[ #set list(spacing: 1em)
 A tool to trace *shared* library calls used by a program and all the signals it receives
 
 - Very useful complement to `strace`, which shows only system calls.
@@ -27,6 +26,7 @@ A tool to trace *shared* library calls used by a program and all the signals it 
 
 See #link("https://en.wikipedia.org/wiki/Ltrace") for details
 ]
+
 ===  ltrace example output
 #text(size: 15pt)[
 ```
@@ -52,6 +52,7 @@ strncmp("f", "codecs", 1)                        = 3
 ...
 ```
 ]
+
 ===  ltrace summary 
 Example summary at the end of the ltrace output (`-c` option)
 #text(size: 15pt)[

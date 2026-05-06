@@ -120,7 +120,7 @@ Here's what you get in the kernel log:
 
 - When the driver is compiled with `DEBUG` defined, all these messages
   are compiled and printed at the debug level. `DEBUG` can be defined by
-  at the beginning of the driver, or using `ccflags-\$(CONFIG_DRIVER) += -DDEBUG` in the `Makefile`
+  at the beginning of the driver, or using `ccflags-$(CONFIG_DRIVER) += -DDEBUG` in the `Makefile`
 
 - When the kernel is compiled with
   #kconfig("CONFIG_DYNAMIC_DEBUG"), then these messages can
@@ -203,7 +203,7 @@ Here's what you get in the kernel log:
 ===  Debug logs troubleshooting
 
 - When using dynamic debug, make sure that your debug call is enabled:
-  it must be visible in `control` file in debugfs #strong[and] be
+  it must be visible in `control` file in debugfs *and* be
   activated (`=p`)
 
 - Is your log output only in the kernel log buffer?
