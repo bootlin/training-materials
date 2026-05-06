@@ -1,27 +1,37 @@
-\subsection{Auxiliary devices}
+#import "@local/bootlin:0.1.0": *
 
-\begin{frame}{Amplifier}
-  What about the amplifier?
-  \begin{itemize}
-  \item Supported using {\em auxiliary devices}
-  \item Register a \kstruct{snd_soc_aux_dev} array using the
-    \code{.aux_dev} and \code{.num_aux_devs} fields of the registered
-    \kstruct{snd_soc_card}
-  \item This will expose the auxiliary devices control widgets as part
-    of the sound card
-  \item There is a driver for simple amplifiers driven by a single
-    GPIO, \code{simple-amplifier}
-    \begin{itemize}
-      \item \kfile{Documentation/devicetree/bindings/sound/simple-audio-amplifier.yaml}
-      \item \kfile{sound/soc/codecs/simple-amplifier.c}
-    \end{itemize}
-  \end{itemize}
-\end{frame}
+#import "/typst/local/common.typ": *
 
-\begin{frame}[fragile]{Auxiliary devices}
-  \begin{block}{\kfile{sound/soc/samsung/neo1973_wm8753.c}}
-    \fontsize{9}{9}\selectfont
-    \begin{minted}{c}
+#show: bootlin-theme
+
+== Auxiliary devices
+
+===  Amplifier 
+
+What about the amplifier?
+
+- Supported using _auxiliary devices_
+
+- Register a #kstruct("snd_soc_aux_dev") array using the
+  `.aux_dev` and `.num_aux_devs` fields of the registered
+  #kstruct("snd_soc_card")
+
+- This will expose the auxiliary devices control widgets as part of the
+  sound card
+
+- There is a driver for simple amplifiers driven by a single GPIO,
+  `simple-amplifier`
+
+  - #kfile("Documentation/devicetree/bindings/sound/simple-audio-amplifier.yaml")
+
+  - #kfile("sound/soc/codecs/simple-amplifier.c")
+
+===  Auxiliary devices
+
+#text(size: 14pt)[#kfile("sound/soc/samsung/neo1973_wm8753.c")]
+#v(-0.3em)
+
+```c
 static struct snd_soc_aux_dev neo1973_aux_devs[] = {
         {
                 .name = "dfbmcs320",
@@ -36,15 +46,14 @@ static struct snd_soc_card neo1973 = {
         .num_links = ARRAY_SIZE(neo1973_dai),
         .aux_dev = neo1973_aux_devs,
         .num_aux_devs = ARRAY_SIZE(neo1973_aux_devs),
-    \end{minted}
-  \end{block}
-\end{frame}
+```
 
-\begin{frame}[fragile]{simple-amplifier - example 1}
-\kfile{arch/arm64/boot/dts/allwinner/sun50i-a64-pinebook.dts}
-  \begin{block}{}
-    \fontsize{7}{6}\selectfont
-    \begin{minted}{c}
+===  simple-amplifier - example 1
+
+#text(size: 14pt)[#kfile("arch/arm64/boot/dts/allwinner/sun50i-a64-pinebook.dts")]
+#v(-0.3em)
+
+```c
 
         speaker_amp: audio-amplifier {
                 compatible = "simple-audio-amplifier";
@@ -68,14 +77,11 @@ static struct snd_soc_card neo1973 = {
                         "Internal Speaker", "Speaker Amp OUTL",
                         "Internal Speaker", "Speaker Amp OUTR",
                         "Headphone Jack", "HP",
-    \end{minted}
-  \end{block}
-\end{frame}
+```
 
-\begin{frame}[fragile]{simple-amplifier - example 2}
-  \begin{block}{}
-    \fontsize{7}{6}\selectfont
-    \begin{minted}{c}
+===  simple-amplifier - example 2
+
+```c
         dio2133: analog-amplifier {
                 compatible = "simple-audio-amplifier";
                 sound-name-prefix = "AU2";
@@ -92,30 +98,28 @@ static struct snd_soc_card neo1973 = {
                                 "AU2 INR", "ACODEC LORN",
                                 "Lineout", "AU2 OUTL",
                                 "Lineout", "AU2 OUTR";
-    \end{minted}
-  \end{block}
-  Audio is routed through \code{AU2}, the amplifier.
-\end{frame}
+```
 
-\begin{frame}{Input Muxing}
-  \begin{itemize}
-  \item There may be a muxer on the analog input lines.
-  \item If controlled using a gpio, the \code{simple-mux} driver is
-    available.
-  \item It exposes two inputs: "IN1" and "IN2" and one output, "OUT".
-  \item The device tree binding allows to provide a prefix to make the
-    routes specific.
-    \begin{itemize}
-      \item \kfile{Documentation/devicetree/bindings/sound/simple-audio-mux.yaml}
-      \item \kfile{sound/soc/codecs/simple-mux.c}
-    \end{itemize}
-  \end{itemize}
-\end{frame}
+Audio is routed through `AU2`, the amplifier.
 
-\begin{frame}[fragile]{\code{simple-mux} example}
-  \begin{block}{}
-    \fontsize{8}{8}\selectfont
-    \begin{minted}{c}
+===  Input Muxing
+
+- There may be a muxer on the analog input lines.
+
+- If controlled using a gpio, the `simple-mux` driver is available.
+
+- It exposes two inputs: "IN1" and "IN2" and one output, "OUT".
+
+- The device tree binding allows to provide a prefix to make the routes
+  specific.
+
+  - #kfile("Documentation/devicetree/bindings/sound/simple-audio-mux.yaml")
+
+  - #kfile("sound/soc/codecs/simple-mux.c")
+
+===  `simple-mux` example
+
+```c
         mic_mux: mic-mux {
                 compatible = "simple-audio-mux";
                 pinctrl-names = "default";
@@ -123,21 +127,22 @@ static struct snd_soc_card neo1973 = {
                 mux-gpios = <&gpio5 5 GPIO_ACTIVE_LOW>;
                 sound-name-prefix = "Mic Mux";
         };
-    \end{minted}
-  \end{block}
-  \begin{itemize}
-  \item This exposes routes between \code{Mic Mux IN1} and \code{Mic
-    Mux IN2} to \code{Mic Mux OUT}.
-  \item This route is controlled by \code{gpio5 5}.
-  \item A control named \code{Mic Mux Muxer} will be exposed to
-    userspace.
-  \end{itemize}
-\end{frame}
+```
 
-\begin{frame}[fragile]{\code{simple-mux} example}
-  \begin{block}{\kfile{arch/arm64/boot/dts/freescale/imx8mq-librem5-devkit.dts}}
-    \fontsize{7}{6}\selectfont
-    \begin{minted}{c}
+- This exposes routes between `Mic Mux IN1` and `Mic Mux IN2` to `Mic Mux OUT`.
+
+- This route is controlled by `gpio5 5`.
+
+- A control named `Mic Mux Muxer` will be exposed to userspace.
+
+===  `simple-mux` example
+
+#text(size: 14pt)[#kfile("arch/arm64/boot/dts/freescale/imx8mq-librem5-devkit.dts")]
+#v(-0.3em)
+
+#[
+        #show raw.where(lang: "c", block: true): set text(size: 9pt)
+```c
         sound {
                 compatible = "simple-audio-card";
                 pinctrl-names = "default";
@@ -171,6 +176,5 @@ static struct snd_soc_card neo1973 = {
                         bitclock-master;
                 };
         };
-    \end{minted}
-  \end{block}
-\end{frame}
+```
+]
