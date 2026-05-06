@@ -1,0 +1,252 @@
+\section{Measured boot}
+
+\subsection{Concept}
+
+\begin{frame}{Measured boot}
+  \begin{itemize}
+    \item Another way of establishing \textbf{trust}
+    \item Idea: measure caracteristics of the system and record the measurement
+    \item One major target for measurement is the software being run
+    \item Other targets include:
+    \begin{itemize}
+      \item configuration (e.g. U-Boot environment)
+      \item boot parameters (e.g. kernel command line)
+    \end{itemize}
+    \item Also called \textbf{trusted} boot \code{!=} secure/verified boot
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Differences from Secure Boot}
+  \begin{itemize}
+    \item The software is not \textbf{authenticated}, only \textbf{measured}
+    \item To be useful, the measurement needs to be used to make some
+          decision
+    \item This is a different step called \textbf{attestation} or \textbf{appraisal}
+    \item It can only consist of recording the measurement discrepancy, or more complex actions
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Measurements}
+  \begin{itemize}
+    \item A measurement is a hash of the data we are trying to measure
+    \item We need to use a cryptographically secure hash function
+    \item In a later step, we'll want to compare this hash to a known-good value
+    \item We need to store these hashes
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Measured boot support}
+  \begin{itemize}
+    \item A lot of the software components we've already covered support Measured boot:
+    \begin{itemize}
+      \item TF-A
+      \item U-Boot
+    \end{itemize}
+    \item systemd supports measured boot using
+          \href{https://www.freedesktop.org/software/systemd/man/latest/systemd-measure.html}{systemd-measure}
+    \begin{itemize}
+      \item this feature is experimental
+      \item currently only supports UKI, which are mostly used in UEFI boots
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\subsection{Trusted Platform Module (TPM)}
+
+\begin{frame}{Trusted Platform Module}
+  \begin{itemize}
+    \item Dedicated and isolated crypto component
+    \item Following the \href{https://trustedcomputinggroup.org/}{Trusted Computing Group} (TCG)'s specification:
+    \begin{itemize}
+        \item \href{https://trustedcomputinggroup.org/resource/tpm-main-specification/}{TPM 1.2}, originally published in 2003
+        \item TPM 2.0 Library, also known as ISO/IEC 11889
+    \end{itemize}
+    \item In 1.2, the TPM was explicitly specified as a hardware component
+          including a crypto co-processor among others.
+    \item The current 2.0 spec explicitly drops this requirement\\
+          % Here, ask "can you think of something we've seen that fits this description?"
+          % This is from Part 0, Introduction, 4.3 Trusted Platform Module.
+          % In version 184, this is on page 26.
+          \code{Another reasonable implementation of a TPM is to have the code run on the host processor
+                while the processor is in a special execution mode}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{TPM 2.0}
+  \begin{itemize}
+    \item Current version of the specification
+    \item This is e.g. the one that is a Windows 11 requirement
+    \item Specifies the TPM as a \textit{library}
+    \item The TCG's \href{https://trustedcomputinggroup.org/wp-content/uploads/2019_TCG_TPM2_BriefOverview_DR02web.pdf}{Brief overview}
+          recognizes 5 types of TPM:
+    \begin{itemize}
+      \item Discrete TPMs, or dTPM: dedicated hardened chip\\
+            example: the \href{<https://www.st.com/en/secure-mcus/st33ktpm2x.html}{ST33KTPM2X}
+      \item Integrated TPMs: co-processor. Examples:
+            % For some reason, it seems like both are being referenced to as an fTPM,
+            % but it clearly seems to be silicon that is integrated in some Intel and Ryzen SoCs
+      \begin{itemize}
+        \item Microsoft's \href{https://learn.microsoft.com/en-us/windows/security/hardware-security/pluton/microsoft-pluton-security-processor}{Pluton}
+        \item The AMD \href{https://dayzerosec.com/blog/2023/04/17/reversing-the-amd-secure-processor-psp.html}{Secure Processor} (ASP, or PSP)
+      \end{itemize}
+      \item Firmware TPMs, or fTPMs: hardware-isolated software. Examples:
+      \begin{itemize}
+        \item the \href{https://github.com/OP-TEE/optee_ftpm}{OP-TEE fTPM}
+      \end{itemize}
+      \item Software TPMs: only useful for testing\\
+            example: this \href{https://github.com/microsoft/ms-tpm-20-ref}{reference implementation}
+            from Microsoft.
+      \item Virtual TPMs, or vTPMs: basically an fTPM running in a hypervisor\\
+            Google \href{https://cloud.google.com/blog/products/identity-security/virtual-trusted-platform-module-for-shielded-vms-security-in-plaintext?hl=en}{implemented one}
+            for GCP
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+% Oops https://www.amd.com/en/resources/product-security/bulletin/amd-sb-4011.html
+\begin{frame}{Using the TPM}
+  \begin{itemize}
+    \item Key storage and generation
+    \item Platform Configuration Registers (PCRs)
+    \begin{itemize}
+      \item "Shielded Locations", meaning hardware protected by the TPM
+            % This shows that this was clearly designed with measured boot in mind
+      \item Meant to contain a log of measurements
+      \item Some persist across reboot, most should be reset to initial value
+      \item Initial value must be all 0s or all 1s, except for PCR[0], which
+            can be used as a locality indicator
+      \item Cannot be set, only \textbf{reset} or \textbf{extended}
+        \begin{itemize}
+          \item This means hashing the current value of the PCR appended with the measurement
+          \item The order of measurement therefore impacts the final PCR value
+        \end{itemize}
+    \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Additional references}
+  \begin{itemize}
+    \item The Open Security Training 2 "Trusted Computing" track:
+          \href{https://p.ost2.fyi/courses/course-v1:OpenSecurityTraining2+TC1101_IntroTPM+2024_v2/about}{TC1101},
+          \href{https://p.ost2.fyi/courses/course-v1:OpenSecurityTraining2+TC1102_IntermediateTPM+2024_v1/about}{TC1102},
+          \href{https://p.ost2.fyi/courses/course-v1:OpenSecurityTraining2+TC2202_tpm2-pytss+2025_v1/about}{TC2202}
+    \item The Open Access \href{https://link.springer.com/book/10.1007/978-1-4302-6584-9}{Practical Guide to TPM 2.0}
+  \end{itemize}
+\end{frame}
+
+\subsection{IMA/EVM}
+
+\begin{frame}{Integrity Measurement Architecture (IMA)}
+  \begin{itemize}
+    \item \href{https://ima-doc.readthedocs.io/en/latest/index.html}{IMA} is a Linux
+          kernel subsystem, found under \code{security/integrity/ima}
+    \item Uses extended attributes (\kdochtml{filesystems/ext4/attributes.html}) to store
+          measurement of files at runtime.
+    \item Enabled via \kconfig{CONFIG_IMA}
+    \item Continues the measurement process after the kernel takes over
+    \item Focuses on the integrity of file \textbf{contents}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Integrity Measurement Architecture Appraisal}
+  \begin{itemize}
+    \item IMA appraisal validates the integrity of file content
+    \item File content is verified either with:
+      \begin{itemize}
+        \item A hash: file content is protected against offline modifications
+        \item A signature: file content is protected against both offline and
+          online modifications
+      \end{itemize}
+    \item Only the file content is validated: nothing prevent from renaming
+      a file or replacing it with another valid file
+    \item IMA appraisal behaviour is controlled by the \texttt{ima\_appraise}
+      kernel command line parameter:
+      \begin{itemize}
+        \item \texttt{enforce} appraisal is fully enabled: access to file with
+          invalid or missing hashes of signatures is denied
+        \item \texttt{log} access to file with invalid or missing hashes or
+          signature is allowed, but logged
+        \item \texttt{fix} hashes of files covered by the policy are updated,
+          when a file is accessed
+        \item \texttt{off}: appraisal is completely disabled: hashes or signature
+          are neither generated nor validates
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Integrity Measurement Architecture Policies}
+  \begin{itemize}
+    \item Policies defines what is measured
+    \item Controlled by the \texttt{ima\_policy} kernel command line parameter
+    \item Several policies can be combined
+    \item IMA comes with predefined policies:
+      \begin{itemize}
+        \item Controls what is measured
+        \item \texttt{tcb}: measures all executed programs, files mmap'd for
+          execution, and all files read with uid or effective uid set to 0
+        \item \texttt{appraise\_tcb} appraises the integrity of all files owned by root
+        \item \texttt{secure\_boot} appraises the integrity of files based on file signatures
+        \item \texttt{fail\_securely} always force file signature verification
+        \item \texttt{critical\_data} measures kernel integrity critical data
+      \end{itemize}
+    \item Custom policies can be defined
+      \begin{itemize}
+        \item Only well-known stable files should be measured
+          \begin{itemize}
+            \item Binaries, libraries, configuration\ldots
+          \end{itemize}
+        \item Files with frequent modifications should not be measured
+          \begin{itemize}
+            \item Logs, databases\ldots
+          \end{itemize}
+      \end{itemize}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Extended Verification Module (EVM)}
+  \begin{itemize}
+    \item \href{https://ima-doc.readthedocs.io/en/latest/ima-concepts.html\#extended-verification-module-evm}{EVM}
+          is also a Linux kernel subsystem, found under \code{security/integrity/evm}
+    \item Uses extended attributes (\kdochtml{filesystems/ext4/attributes.html}) to store
+          measurement of files at runtime.
+    \item Enabled via \kconfig{CONFIG_EVM}
+    \item Continues the measurement process after the kernel takes over
+    \item Focuses on the integrity of file \textbf{metadata}
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{Extended Verification Module (EVM)}
+  \begin{itemize}
+    \item Similarly to IMA, EVM is split into:
+    \begin{itemize}
+      \item EVM HMAC: allows to protect against offline modifications
+      \item EVM Signature: also protects against runtime modifications
+    \end{itemize}
+  \item EVM can be enabled with the \texttt{securityfs} pseudo-filesystem:
+    \texttt{/sys/kernel/security/evm}:
+      \begin{itemize}
+        \item Value is a bit mask of enabled configuration, bits can only
+          transition from 0 to 1
+        \item bit 0: Enable HMAC validation and creation
+        \item bit 1: Enable digital signature validation
+        \item bit 31: Disable further runtime modification of EVM policy
+      \end{itemize}
+    \item As for IMA, nothing prevent from renaming the file: filename is not
+      part of the metadata
+  \end{itemize}
+\end{frame}
+
+\begin{frame}{IMA/EVM vs dm-verity}
+  \begin{itemize}
+    \item Both aim to enforce userland integrity
+    \item IMA/EVM enables:
+    \begin{itemize}
+      \item remote attestation
+      \item auditing
+    \end{itemize}
+    \item This comes at the cost of a more complicated setup
+    \item IMA policies must be crafted very carefully
+    \item Neither is very useful without a full secure boot chain
+  \end{itemize}
+\end{frame}
+
