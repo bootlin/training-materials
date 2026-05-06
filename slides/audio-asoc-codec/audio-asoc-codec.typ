@@ -1,28 +1,35 @@
+#import "@local/bootlin:0.1.0": *
 
-\subsection{CODEC driver}
+#import "/typst/local/common.typ": *
 
-\begin{frame}[fragile]{CODEC driver}
-  The CODEC driver registers a \kstruct{snd_soc_component_driver}.
-  Before v4.17, it was \code{struct snd_soc_codec_driver}.
-  Also registers a \kstruct{snd_soc_dai_driver}
+#show: bootlin-theme
 
-  \begin{block}{\kfile{include/sound/soc.h}}
-    \fontsize{9}{9}\selectfont
-    \begin{minted}{c}
+== CODEC driver
+
+===  CODEC driver 
+
+The CODEC driver registers a #kstruct("snd_soc_component_driver"). Before v4.17, it was `struct
+snd_soc_codec_driver`. Also registers a
+#kstruct("snd_soc_dai_driver")
+
+#v(0.5em)
+#text(size: 14pt)[#kfile("include/sound/soc.h")]
+#v(-0.3em)
+
+```c
 int snd_soc_register_component(struct device *dev,
                  const struct snd_soc_component_driver *component_driver,
-                 struct snd_soc_dai_driver *dai_drv, int num_dai);
-int devm_snd_soc_register_component(struct device *dev,
+                 struct snd_soc_dai_driver *dai_drv, int num_dai); int devm_snd_soc_register_component(struct device *dev,
                  const struct snd_soc_component_driver *component_driver,
                  struct snd_soc_dai_driver *dai_drv, int num_dai);
-    \end{minted}
-  \end{block}
-\end{frame}
+```
 
-\begin{frame}[fragile]{\code{snd_soc_component_driver}}
-  \begin{block}{\kfile{include/sound/soc-component.h}}
-    \fontsize{9}{9}\selectfont
-    \begin{minted}{c}
+===  `snd_soc_component_driver`
+
+#text(size: 14pt)[#kfile("include/sound/soc-component.h")]
+#v(-0.3em)
+
+```c
 struct snd_soc_component_driver {
         const char *name;
 
@@ -40,27 +47,26 @@ struct snd_soc_component_driver {
         int (*resume)(struct snd_soc_component *component);
 
     [...]
-    \end{minted}
-  \end{block}
-\end{frame}
+```
 
-\begin{frame}{\code{snd_soc_component_driver}}
-  \begin{itemize}
-  \item \kstruct{snd_kcontrol_new}\code{ *controls} is an array of
-    controls (volume, mixing, muxing, switches) available on the
-    CODEC.
-  \item \kstruct{snd_soc_dapm_widget}\code{ *dapm_widgets} is an array of
-    power management controls so ASoC can power down the routes that
-    are not currently used.
-  \item \kstruct{snd_soc_dapm_route}\code{ *dapm_routes} is an array
-    describing those routes.
-  \end{itemize}
-\end{frame}
+===  `snd_soc_component_driver`
 
-\begin{frame}[fragile]{\code{snd_soc_component_driver}}
-  \begin{block}{\kfile{include/sound/soc-component.h}}
-    \fontsize{9}{9}\selectfont
-    \begin{minted}{c}
+- #kstruct("snd_kcontrol_new")` *controls` is an array of controls
+  (volume, mixing, muxing, switches) available on the CODEC.
+
+- #kstruct("snd_soc_dapm_widget")` *dapm_widgets` is an array of
+  power management controls so ASoC can power down the routes that are
+  not currently used.
+
+- #kstruct("snd_soc_dapm_route")` *dapm_routes` is an array
+  describing those routes.
+
+===  `snd_soc_component_driver`
+
+#text(size: 14pt)[#kfile("include/sound/soc-component.h")]
+#v(-0.3em)
+
+```c
         /* component wide operations */
         int (*set_sysclk)(struct snd_soc_component *component,
                           int clk_id, int source, unsigned int freq, int dir);
@@ -72,29 +78,28 @@ struct snd_soc_component_driver {
                          struct snd_pcm_hw_params *params);
         [...]
 }
-    \end{minted}
-  \end{block}
-\end{frame}
+```
 
-\begin{frame}{\code{snd_soc_component_driver}}
-  \begin{itemize}
-  \item \code{set_sysclk} allows setting the input clock of the
-    component.
-  \item \code{set_pll} allows setting the PLLs, this is mostly useful
-    when the component is the clock producer.
-  \item \code{hw_params} is a callback called on PCM stream setup.
-    When called, all the parameters of the stream are known so it is
-    possible to configure the component to handle the stream
-    correctly.
-  \item Those are mostly not used, the DAI specific callbacks are used
-    instead.
-  \end{itemize}
-\end{frame}
+===  `snd_soc_component_driver`
 
-\begin{frame}[fragile]{\code{snd_soc_dai_driver}}
-  \begin{block}{\kfile{include/sound/soc-dai.h}}
-    \fontsize{8}{8}\selectfont
-    \begin{minted}{c}
+- `set_sysclk` allows setting the input clock of the component.
+
+- `set_pll` allows setting the PLLs, this is mostly useful when the
+  component is the clock producer.
+
+- `hw_params` is a callback called on PCM stream setup. When called,
+  all the parameters of the stream are known so it is possible to
+  configure the component to handle the stream correctly.
+
+- Those are mostly not used, the DAI specific callbacks are used
+  instead.
+
+===  `snd_soc_dai_driver`
+
+#text(size: 14pt)[#kfile("include/sound/soc-dai.h")]
+#v(-0.3em)
+
+```c
 /*
  * Digital Audio Interface Driver.
  *
@@ -119,14 +124,14 @@ struct snd_soc_dai_driver {
         struct snd_soc_pcm_stream playback;
         [...]
 };
-    \end{minted}
-  \end{block}
-\end{frame}
+```
 
-\begin{frame}[fragile]{\code{snd_soc_pcm_stream}}
-  \begin{block}{\kfile{include/sound/soc.h}}
-    \fontsize{9}{9}\selectfont
-    \begin{minted}{c}
+===  `snd_soc_pcm_stream`
+
+#text(size: 14pt)[#kfile("include/sound/soc.h")]
+#v(-0.3em)
+
+```c
 /* SoC PCM stream information */
 struct snd_soc_pcm_stream {
         const char *stream_name;
@@ -138,20 +143,19 @@ struct snd_soc_pcm_stream {
         unsigned int channels_max;         /* max channels */
         unsigned int sig_bits;             /* number of bits of content */
 };
-    \end{minted}
-  \end{block}
-\end{frame}
+```
 
-\begin{frame}[fragile]{PCM5102}
-  \begin{center}
-  \includegraphics[width=0.9\textwidth]{slides/audio-asoc-codec/pcm510x.png}
-  \end{center}
-\end{frame}
+===  PCM5102
 
-\begin{frame}[fragile]{\code{pcm5102a.c}}
-  \begin{block}{\kfile{sound/soc/codecs/pcm5102a.c}}
-    \fontsize{8}{8}\selectfont
-    \begin{minted}{c}
+#align(center, [#image("pcm510x.png", width: 90%)])
+
+===  `pcm5102a.c`
+
+#text(size: 14pt)[#kfile("sound/soc/codecs/pcm5102a.c")]
+#v(-0.3em)
+
+
+```c
 static struct snd_soc_dai_driver pcm5102a_dai = {
         .name = "pcm5102a-hifi",
         .playback = {
@@ -175,21 +179,19 @@ static int pcm5102a_probe(struct platform_device *pdev)
         return devm_snd_soc_register_component(&pdev->dev, &soc_component_dev_pcm5102a,
                         &pcm5102a_dai, 1);
 }
-    \end{minted}
-  \end{block}
-\end{frame}
+```
 
-\begin{frame}[fragile]{PCM3008}
-  \begin{center}
-  \includegraphics[width=0.7\textwidth]{slides/audio-asoc-codec/pcm3008.png}
-  \end{center}
-\end{frame}
+===  PCM3008
 
-\begin{frame}[fragile]{\code{pcm3008.c}}
-  \begin{block}{\kfile{sound/soc/codecs/pcm3008.c}}
-    \fontsize{9}{9}\selectfont
-    \begin{minted}{c}
-#define PCM3008_RATES (SNDRV_PCM_RATE_32000 | SNDRV_PCM_RATE_44100 |        \
+#align(center, [#image("pcm3008.png", width: 70%)])
+
+===  `pcm3008.c`
+
+#text(size: 14pt)[#kfile("sound/soc/codecs/pcm3008.c")]
+#v(-0.3em)
+
+```c
+#define PCM3008_RATES (SNDRV_PCM_RATE_32000 | SNDRV_PCM_RATE_44100 |        
                        SNDRV_PCM_RATE_48000)
 
 static struct snd_soc_dai_driver pcm3008_dai = {
@@ -209,14 +211,14 @@ static struct snd_soc_dai_driver pcm3008_dai = {
                 .formats = SNDRV_PCM_FMTBIT_S16_LE,
         },
 };
-    \end{minted}
-  \end{block}
-\end{frame}
+```
 
-\begin{frame}[fragile]{\code{pcm3008.c}}
-  \begin{block}{\kfile{sound/soc/codecs/pcm3008.c}}
-    \fontsize{9}{9}\selectfont
-    \begin{minted}{c}
+===  `pcm3008.c`
+
+#text(size: 14pt)[#kfile("sound/soc/codecs/pcm3008.c")]
+#v(-0.3em)
+
+```c
 static const struct snd_soc_component_driver soc_component_dev_pcm3008 = {
         .dapm_widgets           = pcm3008_dapm_widgets,
         .num_dapm_widgets       = ARRAY_SIZE(pcm3008_dapm_widgets),
@@ -234,25 +236,22 @@ static int pcm3008_codec_probe(struct platform_device *pdev)
         return devm_snd_soc_register_component(&pdev->dev,
                         &soc_component_dev_pcm3008, &pcm3008_dai, 1);
 }
-    \end{minted}
-  \end{block}
-\end{frame}
+```
 
-\begin{frame}[fragile]{\code{pcm3008.c}}
-  \begin{block}{\kfile{sound/soc/codecs/pcm3008.c}}
-    \fontsize{9}{9}\selectfont
-    \begin{minted}{c}
+===  `pcm3008.c`
+
+#text(size: 14pt)[#kfile("sound/soc/codecs/pcm3008.c")]
+#v(-0.3em)
+
+```c
 static const struct snd_soc_dapm_widget pcm3008_dapm_widgets[] = {
-SND_SOC_DAPM_INPUT("VINL"),
-SND_SOC_DAPM_INPUT("VINR"),
+SND_SOC_DAPM_INPUT("VINL"), SND_SOC_DAPM_INPUT("VINR"),
 
 SND_SOC_DAPM_DAC_E("DAC", NULL, SND_SOC_NOPM, 0, 0, pcm3008_dac_ev,
-                   SND_SOC_DAPM_PRE_PMU | SND_SOC_DAPM_POST_PMD),
-SND_SOC_DAPM_ADC_E("ADC", NULL, SND_SOC_NOPM, 0, 0, pcm3008_adc_ev,
+                   SND_SOC_DAPM_PRE_PMU | SND_SOC_DAPM_POST_PMD), SND_SOC_DAPM_ADC_E("ADC", NULL, SND_SOC_NOPM, 0, 0, pcm3008_adc_ev,
                    SND_SOC_DAPM_PRE_PMU | SND_SOC_DAPM_POST_PMD),
 
-SND_SOC_DAPM_OUTPUT("VOUTL"),
-SND_SOC_DAPM_OUTPUT("VOUTR"),
+SND_SOC_DAPM_OUTPUT("VOUTL"), SND_SOC_DAPM_OUTPUT("VOUTR"),
 };
 
 static const struct snd_soc_dapm_route pcm3008_dapm_routes[] = {
@@ -264,7 +263,4 @@ static const struct snd_soc_dapm_route pcm3008_dapm_routes[] = {
         { "VOUTL", NULL, "DAC" },
         { "VOUTR", NULL, "DAC" },
 };
-    \end{minted}
-  \end{block}
-\end{frame}
-
+```

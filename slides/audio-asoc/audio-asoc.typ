@@ -1,88 +1,109 @@
-\section{ASoC}
+#import "@local/bootlin:0.1.0": *
 
-\begin{frame}{ALSA = Advanced Linux Sound Architecture}
-  \begin{columns}
-    \column{0.6\textwidth}
-    \begin{itemize}
-    \item Merged in v2.5, 2002
-    \item 1 sound card = 1 device = 1 driver
-    \item Consistent user space API based on
-      \begin{itemize}
-        \item Streams: capture, playback
-        \item kcontrols to change settings
-      \end{itemize}
-    \item User space API still in use today
-    \item Hard to reuse code for components used on different cards
-    \end{itemize}
+#import "/typst/local/common.typ": *
 
-    \column{0.3\textwidth}
-    \centering
-    \includegraphics[width=0.7\textwidth]{slides/audio-asoc/intro-alsa-hw.pdf}
-    \\[0.15\textheight]
-    \includegraphics[height=0.5\textheight]{slides/audio-asoc/intro-alsa-linux.pdf}
+#show: bootlin-theme
 
-    \column{0.1\textwidth}
-    \includegraphics[height=0.8\textheight]{slides/audio-asoc/alsamixer-control.png}
-  \end{columns}
-\end{frame}
+#show raw.where(lang:"console", block: true): set text(10pt)
 
-\begin{frame}{ASoC = ALSA System on Chip}
-    \begin{itemize}
-    \item Merged in 2006
-    \item Additional ALSA layer ``to provide better ALSA support for embedded
-      System-on-Chip processors'' {\tiny (\url{https://docs.kernel.org/sound/soc/overview.html})}
-      \begin{itemize}
-      \item Great for embedded systems where different SoCs, codecs and
-        other components are mixed and matched
-      \end{itemize}
-    \item 1 sound card = N components and their interconnections + glue
-    \item Each component has a separate driver
-    \item allows to reuse component drivers across multiple architectures
-    \item Same user space API
-    \end{itemize}
-\end{frame}
+#[
+#show raw.where(lang: "c", block: true): set text(9pt)
 
-\begin{frame}{ASoC components}
-  \begin{itemize}
-  \item Codec class drivers: define the codec capabilities (audio
-    interface, audio controls, analog inputs and outputs).
-  \item Platform class drivers: defines the SoC audio interface (also
-    referred as CPU DAI), sets up DMA when applicable.
-  \item Codec to platform integration: nowadays, usually done through
-    device tree, previously required writing a machine driver in C.
-  \end{itemize}
-  Note: The codec can be part of another IC (PMIC, Bluetooth or MODEM
-  chips).
-\end{frame}
+= ASoC
 
-\subsection{simple-audio-card}
+===  ALSA = Advanced Linux Sound Architecture
 
-\begin{frame}[fragile]{simple-card}
-  Most sound cards, can now be described using device tree. This is
-  done using a sound node with a \code{simple-audio-card} compatible
-  string.
-  \begin{itemize}
-  \item The DT bindings are documented in
-    \kfile{Documentation/devicetree/bindings/sound/simple-card.yaml}
-  \item The driver handling it is \kfile{sound/soc/generic/simple-card.c}
-  \end{itemize}
-  Since 2017, OF-graph based bindings are available.
-  \begin{itemize}
-  \item They are documented in
-    \kfile{Documentation/devicetree/bindings/sound/audio-graph-card.yaml}
-  \item The driver handling it is \kfile{sound/soc/generic/audio-graph-card.c}
-  \end{itemize}
-  Both required a few changes in the SoC DAI drivers to be usable for
-  example to select the audio mode for the SSC on Microchip SoCs or
-  configure properly the i.MX audmux.
-\end{frame}
+#table(columns: (60%, 20%, 20%), stroke: none, gutter: 20pt, [
 
-\begin{frame}[fragile]{simple-card - example 1}
-  Let's say we have an ADAU1372 codec connected to an i.Mx6UL SAI.
-  First, enable the SAI and the codec:
-  \begin{block}{}
-    \fontsize{7}{6}\selectfont
-    \begin{minted}{c}
+- Merged in v2.5, 2002
+
+- 1 sound card = 1 device = 1 driver
+
+- Consistent user space API based on
+
+  - Streams: capture, playback
+
+  - kcontrols to change settings
+
+- User space API still in use today
+
+- Hard to reuse code for components used on different cards
+
+],[
+
+#align(center, [#image("intro-alsa-hw.pdf", width: 100%)]) 
+#v(2em)
+#align(center, [#image("intro-alsa-linux.pdf", height: 60%)])
+
+],[
+
+#align(center, [#image("alsamixer-control.png", height: 90%)])
+
+])
+
+===  ASoC = ALSA System on Chip
+
+- Merged in 2006
+
+- Additional ALSA layer "to provide better ALSA support for embedded
+  System-on-Chip processors"
+  (#link("https://docs.kernel.org/sound/soc/overview.html"))
+
+  - Great for embedded systems where different SoCs, codecs and other
+    components are mixed and matched
+
+- 1 sound card = N components and their interconnections + glue
+
+- Each component has a separate driver
+
+- allows to reuse component drivers across multiple architectures
+
+- Same user space API
+
+===  ASoC components
+
+- Codec class drivers: define the codec capabilities (audio interface,
+  audio controls, analog inputs and outputs).
+
+- Platform class drivers: defines the SoC audio interface (also referred
+  as CPU DAI), sets up DMA when applicable.
+
+- Codec to platform integration: nowadays, usually done through device
+  tree, previously required writing a machine driver in C.
+
+Note: The codec can be part of another IC (PMIC, Bluetooth or MODEM
+chips).
+
+== simple-audio-card
+<simple-audio-card>
+
+===  simple-card 
+
+Most sound cards, can now be described using device tree. This is done using a sound node with a
+`simple-audio-card` compatible string.
+
+- The DT bindings are documented in \
+  #kfile("Documentation/devicetree/bindings/sound/simple-card.yaml")
+
+- The driver handling it is #kfile("sound/soc/generic/simple-card.c")
+
+Since 2017, OF-graph based bindings are available.
+
+- They are documented in \
+  #kfile("Documentation/devicetree/bindings/sound/audio-graph-card.yaml")
+
+- The driver handling it is
+  #kfile("sound/soc/generic/audio-graph-card.c")
+
+Both required a few changes in the SoC DAI drivers to be usable for
+example to select the audio mode for the SSC on Microchip SoCs or
+configure properly the i.MX audmux.
+
+===  simple-card - example 1 
+
+Let's say we have an ADAU1372 codec connected to an i.Mx6UL SAI. First, enable the SAI and the codec:
+
+```c
 &sai2 {
         pinctrl-names = "default";
         pinctrl-0 = <&pinctrl_sai2>;
@@ -106,15 +127,13 @@
                 clock-frequency = <12288000>;
         };
 };
-    \end{minted}
-  \end{block}
-\end{frame}
+```
 
-\begin{frame}[fragile]{simple-card - example 1}
-  Now, describe the sound card:
-  \begin{block}{}
-    \fontsize{7}{6}\selectfont
-    \begin{minted}{c}
+===  simple-card - example 1 
+
+Now, describe the sound card:
+
+```c
         sound {
                 compatible = "simple-audio-card";
                 simple-audio-card,name = "imx6ul-adau1372";
@@ -133,17 +152,16 @@
                         };
                 };
         };
-    \end{minted}
-  \end{block}
-  For convenience, the codec is the producer, it generates both BCLK and
-  FSCLK.
-\end{frame}
+```
 
-\begin{frame}[fragile]{simple-card - example 2}
-  The ADAU1372 has actually 4 channels and can do TDM:
-  \begin{block}{}
-    \fontsize{7}{6}\selectfont
-    \begin{minted}{c}
+For convenience, the codec is the producer, it generates both BCLK and
+FSCLK.
+
+===  simple-card - example 2 
+
+The ADAU1372 has actually 4 channels and can do TDM:
+
+```c
         sound {
                 compatible = "simple-audio-card";
                 simple-audio-card,name = "imx6ul-adau1372";
@@ -166,17 +184,14 @@
                         };
                 };
         };
-    \end{minted}
-  \end{block}
-\end{frame}
+```
 
-\begin{frame}[fragile]{simple-card - example 3}
-  However, the ADAU1372 has an hardware issue and doesn't generate the
-  proper BCLK when doing TDM4 with a 32kHz sample rate. The SAI has to
-  be master:
-  \begin{block}{}
-    \fontsize{7}{6}\selectfont
-    \begin{minted}{c}
+===  simple-card - example 3 
+
+However, the ADAU1372 has an hardware issue and doesn't generate the proper BCLK when doing TDM4 with
+a 32kHz sample rate. The SAI has to be master:
+
+```c
         sound {
                 compatible = "simple-audio-card";
                 simple-audio-card,name = "imx6ul-adau1372";
@@ -199,15 +214,14 @@
                         };
                 };
         };
-    \end{minted}
-  \end{block}
-\end{frame}
+```
 
-\begin{frame}[fragile]{simple-card - example 3}
-  The result is not what is expected:
-  \begin{block}{}
-    \fontsize{7}{6}\selectfont
-    \begin{minted}{console}
+===  simple-card - example 3 
+
+The result is not what is
+expected:
+
+```console
     # aplay test.wav
     Playing WAVE 'test.wav' :
     Signed 16 bit Little Endian, Rate  32000 Hz, Stereo
@@ -226,19 +240,21 @@
                    sai2_pred          0        0        0   127058824          0     0  50000
                       sai2_podf       0        0        0    63529412          0     0  50000
                          sai2         0        0        0    63529412          0     0  50000
-    \end{minted}
-  \end{block}
-  Indeed, there is no way for the SAI to divide 63529412 to get the
-  proper BCLK!
-\end{frame}
+```
 
-\begin{frame}[fragile]{device tree - clocks}
-  It is possible to reparent clocks using
-  \code{assigned-clock-parents} and set the clock rate using
-  \code{assigned-clock-rates}.
-  \begin{block}{}
-    \fontsize{7}{6}\selectfont
-    \begin{minted}{c}
+Indeed, there is no way for the SAI to divide 63529412 to get the proper
+BCLK!
+
+]
+
+#[
+#show raw.where(lang: "c", block: true): set text(15pt)
+
+===  device tree - clocks
+
+It is possible to reparent clocks using `assigned-clock-parents` and set the clock rate using
+`assigned-clock-rates`.
+```c
 &sai2 {
         pinctrl-names = "default";
         pinctrl-0 = <&pinctrl_sai2>;
@@ -247,18 +263,22 @@
         assigned-clock-rates = <196608000>, <24576000>;
         status = "okay";
 };
-    \end{minted}
-  \end{block}
-  Notice that 24.576MHz was selected for the sai input clock as it is
-  not able to divide by 3 to obtain the 4.096MHz BCLK.
-\end{frame}
+```
 
-\begin{frame}[fragile]{simple-card - example 4}
-  There is a possible cost reduction, the SAI is able to output its
-  clock to feed to the codec MCLK instead of the crystal:
-  \begin{block}{}
-    \fontsize{7}{6}\selectfont
-    \begin{minted}{c}
+Notice that 24.576MHz was selected for the sai input clock as it is not
+able to divide by 3 to obtain the 4.096MHz BCLK.
+
+]
+
+#[
+#show raw.where(lang: "c", block: true): set text(9pt)
+
+===  simple-card - example 4 
+
+There is a possible cost reduction, the SAI is able to output its clock to feed to the codec MCLK
+instead of the crystal:
+
+```c
 &sai2 {
         pinctrl-names = "default";
         pinctrl-0 = <&pinctrl_sai2>;
@@ -278,36 +298,35 @@
                 assigned-clock-rates = <196608000>, <24576000>;
         };
 };
-    \end{minted}
-  \end{block}
-  This replaces the 12.288MHz crystal by the 24.576 MCLK from the SAI.
-  This works because the codec has a configurable divider for MCLK and
-  can divide by 2. Also the clock parents and rates assignment has
-  moved to the codec because of probing order.
-\end{frame}
+```
 
-\begin{frame}[fragile]{simple-card - routing}
-  It is possible but not mandatory to list the actual audio
-  connections present on the board, this is called routing.
-  The first step is to define the board connectors, in this case two
-  stereo line input jack (Line0 and Line1) and a stereo jack output.
-  \begin{block}{}
-    \fontsize{7}{6}\selectfont
-    \begin{minted}{c}
+This replaces the 12.288MHz crystal by the 24.576 MCLK from the SAI.
+This works because the codec has a configurable divider for MCLK and can
+divide by 2. Also the clock parents and rates assignment has moved to
+the codec because of probing order.
+]
+#[
+#show raw.where(lang: "c", block: true): set text(15pt)
+
+===  simple-card - routing 
+
+It is possible but not mandatory to list the actual audio connections present on the board, this is
+called routing. The first step is to define the board connectors, in
+this case two stereo line input jack (Line0 and Line1) and a stereo jack
+output.
+
+```c
         simple-audio-card,widgets =
                 "Line", "Line0",
                 "Line", "Line1",
                 "Headphone", "Headphone Jack",
-    \end{minted}
-  \end{block}
-\end{frame}
+```
 
-\begin{frame}[fragile]{simple-card - routing}
-  Routing audio from the codec to the board connector is then done
-  using \code{simple-audio-card,routing}
-  \begin{block}{}
-    \fontsize{7}{6}\selectfont
-    \begin{minted}{c}
+===  simple-card - routing 
+
+Routing audio from the codec to the board connector is then done using `simple-audio-card,routing`
+
+```c
         simple-audio-card,routing =
                 "AIN0", "Line0",
                 "AIN1", "Line0",
@@ -315,22 +334,28 @@
                 "AIN3", "Line1",
                 "Headphone Jack", "HPOUTL",
                 "Headphone Jack", "HPOUTR",
-    \end{minted}
-  \end{block}
-  Look for \code{SND_SOC_DAPM_OUTPUT} and \code{SND_SOC_DAPM_INPUT} to
-  know what the codec is providing.
-\end{frame}
+```
 
-\subsection{Machine driver}
+Look for `SND_SOC_DAPM_OUTPUT` and `SND_SOC_DAPM_INPUT` to know
+what the codec is providing.
+]
 
-\begin{frame}[fragile]{Machine driver}
-The machine driver registers a \kstruct{snd_soc_card}.
-      \begin{block}{\kfile{include/sound/soc.h}}
-        \fontsize{8}{8}\selectfont
-        \begin{minted}{c}
-int snd_soc_register_card(struct snd_soc_card *card);
-int snd_soc_unregister_card(struct snd_soc_card *card);
-int devm_snd_soc_register_card(struct device *dev, struct snd_soc_card *card);
+#[
+#show raw.where(lang: "c", block: true): set text(9pt)
+
+== Machine driver
+<machine-driver>
+
+===  Machine driver 
+
+The machine driver registers a #kstruct("snd_soc_card").
+
+#v(0.5em)
+#text(size: 13pt)[#kfile("include/sound/soc.h")]
+#v(-0.3em)
+
+```c
+int snd_soc_register_card(struct snd_soc_card *card); int snd_soc_unregister_card(struct snd_soc_card *card); int devm_snd_soc_register_card(struct device *dev, struct snd_soc_card *card);
 [...]
 /* SoC card */
 struct snd_soc_card {
@@ -347,16 +372,15 @@ struct snd_soc_card {
         int num_dai_links;
 [...]
 };
-        \end{minted}
-      \end{block}
-\end{frame}
+```
 
-\begin{frame}[fragile]{\kstruct{snd_soc_dai_link}}
-\kstruct{snd_soc_dai_link} is used to create the link between the
-  CPU DAI and the codec DAI.
-  \begin{block}{\kfile{include/sound/soc.h}}
-    \fontsize{8}{8}\selectfont
-    \begin{minted}{c}
+===  #kstruct("snd_soc_dai_link")
+#kstruct("snd_soc_dai_link") is used to create the link between
+the CPU DAI and the codec DAI.
+#v(0.5em)
+#text(size: 13pt)[#kfile("include/sound/soc.h")]
+#v(-0.3em)
+```c
 struct snd_soc_dai_link {
         /* config - must be set by machine driver */
         const char *name;                        /* Codec name */
@@ -376,14 +400,12 @@ struct snd_soc_dai_link {
          */
         struct snd_soc_dai_link_component *cpus;
         unsigned int num_cpus;
-     \end{minted}
-   \end{block}
-\end{frame}
+```
 
-\begin{frame}[fragile]{\kstruct{snd_soc_dai_link}}
-  \begin{block}{}
-    \fontsize{10}{10}\selectfont
-    \begin{minted}{c}
+
+===  #kstruct("snd_soc_dai_link")
+
+```c
         /*
          * You MUST specify the link's codec, either by device name, or by
          * DT/OF node, but not both.
@@ -395,14 +417,15 @@ struct snd_soc_dai_link {
         unsigned int dai_fmt;           /* format to set on init */
 [...]
 }
-    \end{minted}
-  \end{block}
-\end{frame}
+```
 
-\begin{frame}[fragile]{Example 1}
-  \begin{block}{\kfile{sound/soc/atmel/atmel_wm8904.c}}
-    \fontsize{8}{8}\selectfont
-    \begin{minted}{c}
+
+===  Example 1
+
+#text(size: 13pt)[#kfile("sound/soc/atmel/atmel_wm8904.c")]
+#v(-0.3em)
+
+```c
 SND_SOC_DAILINK_DEFS(pcm,
         DAILINK_COMP_ARRAY(COMP_EMPTY()),
         DAILINK_COMP_ARRAY(COMP_CODEC(NULL, "wm8904-hifi")),
@@ -427,14 +450,13 @@ static struct snd_soc_card atmel_asoc_wm8904_card = {
         .num_dapm_widgets = ARRAY_SIZE(atmel_asoc_wm8904_dapm_widgets),
         .fully_routed = true,
 };
-    \end{minted}
-  \end{block}
-\end{frame}
+```
 
-\begin{frame}[fragile]{Example 1}
-  \begin{block}{\kfile{sound/soc/atmel/atmel_wm8904.c}}
-    \fontsize{8}{8}\selectfont
-    \begin{minted}{c}
+===  Example 1
+
+#text(size: 13pt)[#kfile("sound/soc/atmel/atmel_wm8904.c")]
+#v(-0.3em)
+```c
 static int atmel_asoc_wm8904_dt_init(struct platform_device *pdev)
 {
         struct device_node *np = pdev->dev.of_node;
@@ -444,7 +466,7 @@ static int atmel_asoc_wm8904_dt_init(struct platform_device *pdev)
 [...]
         cpu_np = of_parse_phandle(np, "atmel,ssc-controller", 0);
         if (!cpu_np) {
-                dev_err(&pdev->dev, "failed to get dai and pcm info\n");
+                dev_err(&pdev->dev, "failed to get dai and pcm infon");
                 ret = -EINVAL;
                 return ret;
         }
@@ -454,20 +476,20 @@ static int atmel_asoc_wm8904_dt_init(struct platform_device *pdev)
 
         codec_np = of_parse_phandle(np, "atmel,audio-codec", 0);
         if (!codec_np) {
-                dev_err(&pdev->dev, "failed to get codec info\n");
+                dev_err(&pdev->dev, "failed to get codec infon");
                 ret = -EINVAL;
                 return ret;
         }
         dailink->codecs->of_node = codec_np;
         of_node_put(codec_np);
-    \end{minted}
-  \end{block}
-\end{frame}
+```
 
-\begin{frame}[fragile]{Example 1}
-  \begin{block}{\kfile{sound/soc/atmel/atmel_wm8904.c}}
-    \fontsize{8}{8}\selectfont
-    \begin{minted}{c}
+===  Example 1
+
+#text(size: 13pt)[#kfile("sound/soc/atmel/atmel_wm8904.c")]
+#v(-0.3em)
+
+```c
 static int atmel_asoc_wm8904_probe(struct platform_device *pdev)
 {
         struct snd_soc_card *card = &atmel_asoc_wm8904_card;
@@ -477,48 +499,54 @@ static int atmel_asoc_wm8904_probe(struct platform_device *pdev)
         card->dev = &pdev->dev;
         ret = atmel_asoc_wm8904_dt_init(pdev);
         if (ret) {
-                dev_err(&pdev->dev, "failed to init dt info\n");
+                dev_err(&pdev->dev, "failed to init dt infon");
                 return ret;
         }
 
         id = of_alias_get_id((struct device_node *)dailink->cpus->of_node, "ssc");
         ret = atmel_ssc_set_audio(id);
         if (ret != 0) {
-                dev_err(&pdev->dev, "failed to set SSC %d for audio\n", id);
+                dev_err(&pdev->dev, "failed to set SSC %d for audion", id);
                 return ret;
         }
 
         ret = snd_soc_register_card(card);
         if (ret) {
-                dev_err(&pdev->dev, "snd_soc_register_card failed\n");
+                dev_err(&pdev->dev, "snd_soc_register_card failedn");
                 goto err_set_audio;
         }
 [...]
 }
-    \end{minted}
-  \end{block}
-\end{frame}
+```
 
-\begin{frame}[fragile]{Routing}
-  After linking the codec driver with the SoC DAI driver, it is still
-  necessary to define what are the codec outputs and inputs that are
-  actually used on the board. This is called routing.
+]
 
-  \begin{itemize}
-  \item statically: using the \code{.dapm_routes} and
-    \code{.num_dapm_routes} members of \kstruct{snd_soc_card}
-  \item from device tree:
-    \begin{minted}{c}
-    int snd_soc_of_parse_audio_routing(struct snd_soc_card *card,
-                                       const char *propname);
-    \end{minted}
-  \end{itemize}
-\end{frame}
 
-\begin{frame}[fragile]{Routing example: static}
-  \begin{block}{\kfile{sound/soc/rockchip/rockchip_max98090.c}}
-    \fontsize{8}{8}\selectfont
-    \begin{minted}{c}
+===  Routing 
+
+After linking the codec driver with the SoC
+DAI driver, it is still necessary to define what are the codec outputs
+and inputs that are actually used on the board. This is called routing.
+
+- statically: using the `.dapm_routes` and `.num_dapm_routes` members
+  of #kstruct("snd_soc_card")
+
+- from device tree:
+
+  ```c
+      int snd_soc_of_parse_audio_routing(struct snd_soc_card *card,
+                                         const char *propname);
+  ```
+
+#[
+#show raw.where(lang: "c", block: true): set text(10pt)
+
+===  Routing example: static
+
+#text(size: 13pt)[#kfile("sound/soc/rockchip/rockchip_max98090.c")]
+#v(-0.3em)
+
+```c
 static const struct snd_soc_dapm_route rk_audio_map[] = {
         {"IN34", NULL, "Headset Mic"},
         {"IN34", NULL, "MICBIAS"},
@@ -537,45 +565,45 @@ static struct snd_soc_card snd_soc_card_rk = {
         .num_links = 1,
 [...]
         .dapm_widgets = rk_dapm_widgets,
-        .num_dapm_widgets = ARRAY_SIZE(rk_dapm_widgets),
+        .num_dapm_widgets = ARRAY_SIZE(rk_dapmg_widgets),
         .dapm_routes = rk_audio_map,
         .num_dapm_routes = ARRAY_SIZE(rk_audio_map),
         .controls = rk_mc_controls,
         .num_controls = ARRAY_SIZE(rk_mc_controls),
 };
-    \end{minted}
-  \end{block}
-\end{frame}
+```
 
-\begin{frame}[fragile]{Routing example: DT}
-  \begin{block}{\kfile{sound/soc/atmel/atmel_wm8904.c}}
-    \fontsize{10}{10}\selectfont
-    \begin{minted}{c}
+===  Routing example: DT
+
+#text(size: 13pt)[#kfile("sound/soc/atmel/atmel_wm8904.c")]
+#v(-0.3em)
+
+```c
 
 static int atmel_asoc_wm8904_dt_init(struct platform_device *pdev)
 {
 [...]
         ret = snd_soc_of_parse_card_name(card, "atmel,model");
         if (ret) {
-                dev_err(&pdev->dev, "failed to parse card name\n");
+                dev_err(&pdev->dev, "failed to parse card namen");
                 return ret;
         }
 
         ret = snd_soc_of_parse_audio_routing(card, "atmel,audio-routing");
         if (ret) {
-                dev_err(&pdev->dev, "failed to parse audio routing\n");
+                dev_err(&pdev->dev, "failed to parse audio routingn");
                 return ret;
         }
 [...]
 }
-    \end{minted}
-  \end{block}
-\end{frame}
+```
 
-\begin{frame}[fragile]{Routing example: DT}
-  \begin{block}{\kfile{Documentation/devicetree/bindings/sound/atmel-wm8904.txt}}
-    \fontsize{8}{8}\selectfont
-    \begin{minted}{c}
+===  Routing example: DT
+
+#text(size: 13pt)[#kfile("Documentation/devicetree/bindings/sound/atmel-wm8904.txt")]
+#v(-0.3em)
+
+```c
   - atmel,audio-routing: A list of the connections between audio components.
     Each entry is a pair of strings, the first being the connection's sink,
     the second being the connection's source. Valid names for sources and
@@ -600,14 +628,16 @@ static int atmel_asoc_wm8904_dt_init(struct platform_device *pdev)
     * Headphone Jack
     * Line In Jack
     * Mic
-    \end{minted}
-  \end{block}
-\end{frame}
+```
+]
 
-\begin{frame}[fragile]{Routing example}
-  \begin{block}{\kfile{Documentation/devicetree/bindings/sound/atmel-wm8904.txt}}
-    \fontsize{8}{8}\selectfont
-    \begin{minted}{c}
+===  Routing example
+
+#text(size: 13pt)[#kfile("Documentation/devicetree/bindings/sound/atmel-wm8904.txt")]
+#v(-0.3em)
+#[
+#show raw.where(lang: "c", block: true): set text(13pt)
+```c
 Example:
 sound {
         compatible = "atmel,asoc-wm8904";
@@ -627,61 +657,60 @@ sound {
         atmel,ssc-controller = <&ssc0>;
         atmel,audio-codec = <&wm8904>;
 };
-    \end{minted}
-  \end{block}
-\end{frame}
+```
+]
 
-\begin{frame}[fragile]{Routing: codec pins}
-  The available codec pins are defined in the codec driver. Look for
-  the \code{SND_SOC_DAPM_INPUT} and \code{SND_SOC_DAPM_OUTPUT}
-  definitions.
+===  Routing: codec pins 
 
-  \begin{block}{\kfile{sound/soc/codecs/wm8904.c}}
-    \fontsize{8}{8}\selectfont
-    \begin{minted}{c}
+The available codec pins are defined in the codec driver. Look for the `SND_SOC_DAPM_INPUT` and `SND_SOC_DAPM_OUTPUT` definitions.
+#v(0.5em)
+#text(size: 13pt)[#kfile("sound/soc/codecs/wm8904.c")]
+#v(-0.3em)
+
+```c
 static const struct snd_soc_dapm_widget wm8904_adc_dapm_widgets[] = {
-SND_SOC_DAPM_INPUT("IN1L"),
-SND_SOC_DAPM_INPUT("IN1R"),
-SND_SOC_DAPM_INPUT("IN2L"),
-SND_SOC_DAPM_INPUT("IN2R"),
-SND_SOC_DAPM_INPUT("IN3L"),
-SND_SOC_DAPM_INPUT("IN3R"),
+SND_SOC_DAPM_INPUT("IN1L"), SND_SOC_DAPM_INPUT("IN1R"), SND_SOC_DAPM_INPUT("IN2L"), SND_SOC_DAPM_INPUT("IN2R"), SND_SOC_DAPM_INPUT("IN3L"), SND_SOC_DAPM_INPUT("IN3R"),
 [...]
 };
 
 static const struct snd_soc_dapm_widget wm8904_dac_dapm_widgets[] = {
 [...]
-SND_SOC_DAPM_OUTPUT("HPOUTL"),
-SND_SOC_DAPM_OUTPUT("HPOUTR"),
-SND_SOC_DAPM_OUTPUT("LINEOUTL"),
-SND_SOC_DAPM_OUTPUT("LINEOUTR"),
+SND_SOC_DAPM_OUTPUT("HPOUTL"), SND_SOC_DAPM_OUTPUT("HPOUTR"), SND_SOC_DAPM_OUTPUT("LINEOUTL"), SND_SOC_DAPM_OUTPUT("LINEOUTR"),
 };
-    \end{minted}
-  \end{block}
-\end{frame}
+```
 
-\begin{frame}[fragile]{Routing: board connectors}
-  The board connectors are defined in the machine driver, in the
-  \kstruct{snd_soc_dapm_widget} part of the registered
-  \kstruct{snd_soc_card}.
-  \begin{block}{\kfile{sound/soc/atmel/atmel_wm8904.c}}
-    \fontsize{10}{10}\selectfont
-    \begin{minted}{c}
+===  Routing: board connectors 
+
+The board connectors are
+defined in the machine driver, in the
+#kstruct("snd_soc_dapm_widget") part of the registered
+#kstruct("snd_soc_card").
+
+#v(0.5em)
+#text(size: 14pt)[#kfile("sound/soc/atmel/atmel_wm8904.c")]
+#v(-0.3em)
+
+
+```c
 static const struct snd_soc_dapm_widget atmel_asoc_wm8904_dapm_widgets[] = {
         SND_SOC_DAPM_HP("Headphone Jack", NULL),
         SND_SOC_DAPM_MIC("Mic", NULL),
         SND_SOC_DAPM_LINE("Line In Jack", NULL),
 };
-    \end{minted}
-  \end{block}
-\end{frame}
+```
 
-\begin{frame}[fragile]{Clocking: producer/consumer}
-  The producer/consumer relationship is declared part of the
-  \code{.dai_fmt} field of \kstruct{snd_soc_dai_link}.
-  \begin{block}{\kfile{include/sound/soc.h}}
-    \fontsize{6}{6}\selectfont
-    \begin{minted}{c}
+===  Clocking: producer/consumer 
+
+#[
+#show raw.where(lang: "c", block: true): set text(9pt)
+
+The producer/consumer relationship is declared part of the `.dai_fmt` field of #kstruct("snd_soc_dai_link").
+
+#v(0.5em)
+#text(size: 14pt)[#kfile("include/sound/soc.h")]
+#v(-0.3em)
+
+```c
 /*
  * DAI hardware clock providers/consumers
  *
@@ -699,24 +728,35 @@ static const struct snd_soc_dapm_widget atmel_asoc_wm8904_dapm_widgets[] = {
 #define SND_SOC_DAIFMT_CBS_CFM                SND_SOC_DAIFMT_CBC_CFP
 #define SND_SOC_DAIFMT_CBM_CFS                SND_SOC_DAIFMT_CBP_CFC
 #define SND_SOC_DAIFMT_CBS_CFS                SND_SOC_DAIFMT_CBC_CFC
-    \end{minted}
-  \end{block}
-  \begin{block}{\kfile{sound/soc/atmel/atmel_wm8904.c}}
-    \fontsize{9}{9}\selectfont
-    \begin{minted}{c}
+``` ]
+
+
+#v(0.3em)
+#text(size: 14pt)[#kfile("sound/soc/atmel/atmel_wm8904.c")]
+#v(-0.3em)
+
+
+#[
+#show raw.where(lang: "c", block: true): set text(12pt)
+```c
           .dai_fmt = SND_SOC_DAIFMT_I2S
                 | SND_SOC_DAIFMT_NB_NF
                 | SND_SOC_DAIFMT_CBM_CFM,
-    \end{minted}
-  \end{block}
-\end{frame}
+```
+]
 
-\begin{frame}[fragile]{Clocking: dynamically changing clocks}
-  The \code{.ops} member of \kstruct{snd_soc_dai_link} contains
-  useful callbacks.
-  \begin{block}{\kfile{include/sound/soc.h}}
-    \fontsize{10}{10}\selectfont
-    \begin{minted}{c}
+===  Clocking: dynamically changing clocks 
+
+The `.ops` member of #kstruct("snd_soc_dai_link") contains useful callbacks.
+
+#v(0.5em)
+#text(size: 13pt)[#kfile("include/sound/soc.h")]
+#v(-0.3em)
+
+#[
+#show raw.where(lang: "c", block: true): set text(9pt)
+
+```c
 /* SoC audio ops */
 struct snd_soc_ops {
         int (*startup)(struct snd_pcm_substream *);
@@ -726,48 +766,49 @@ struct snd_soc_ops {
         int (*prepare)(struct snd_pcm_substream *);
         int (*trigger)(struct snd_pcm_substream *, int);
 };
-    \end{minted}
-  \end{block}
-  \code{.hw_params} is called when setting up the audio stream. The
-  \kstruct{snd_pcm_hw_params} contains the audio characteristics.
-  Use \code{params_rate()} to get the sample rate,
-  \code{params_channels} for the number of channels and
-  \code{params_format} to get the format (including the bit depth).
-  Finally, \code{snd_soc_params_to_bclk} calculates the bit clock.
-\end{frame}
+```
+]
+`.hw_params` is called when setting up the audio stream. The
+#kstruct("snd_pcm_hw_params") contains the audio characteristics.
+Use `params_rate()` to get the sample rate, `params_channels` for the
+number of channels and `params_format` to get the format (including the
+bit depth). Finally, `snd_soc_params_to_bclk` calculates the bit
+clock.
 
-\begin{frame}[fragile]{Clocking: \code{hw_params}}
-  \begin{itemize}
-  \item \code{params_rate} gets the sample rate
-  \item \code{params_channels} gets the number of channels
-  \item \code{params_format} gets the format (including the bit depth)
-  \item \code{snd_soc_params_to_bclk} calculates the bit clock.
-  \item \code{snd_soc_dai_set_sysclk} sets the clock rate and
-    direction for the DAI (SoC or codec)
-    \begin{block}{}
-      \begin{minted}{c}
-int snd_soc_dai_set_sysclk(struct snd_soc_dai *dai, int clk_id,
-        unsigned int freq, int dir);
-      \end{minted}
-    \end{block}
-  \item it is also possible to configure the PLLs and clock divisors
-    if necessary
-    \begin{block}{}
-      \fontsize{9}{9}\selectfont
-      \begin{minted}{c}
-int snd_soc_dai_set_clkdiv(struct snd_soc_dai *dai,
-        int div_id, int div);
-int snd_soc_dai_set_pll(struct snd_soc_dai *dai,
-        int pll_id, int source, unsigned int freq_in, unsigned int freq_out);
-      \end{minted}
-    \end{block}
-  \end{itemize}
-\end{frame}
+===  Clocking: `hw_params`
 
-\begin{frame}[fragile]{Clocking example}
-  \begin{block}{\kfile{sound/soc/atmel/atmel_wm8904.c}}
-    \fontsize{9}{9}\selectfont
-    \begin{minted}{c}
+- `params_rate` gets the sample rate
+
+- `params_channels` gets the number of channels
+
+- `params_format` gets the format (including the bit depth)
+
+- `snd_soc_params_to_bclk` calculates the bit clock.
+
+- `snd_soc_dai_set_sysclk` sets the clock rate and direction for the
+  DAI (SoC or codec)
+
+  ```c
+  int snd_soc_dai_set_sysclk(struct snd_soc_dai *dai, int clk_id,
+          unsigned int freq, int dir);
+  ```
+
+- it is also possible to configure the PLLs and clock divisors if
+  necessary
+
+        #text(size: 17pt)[
+        ```c
+        int snd_soc_dai_set_clkdiv(struct snd_soc_dai *dai,
+                int div_id, int div); int snd_soc_dai_set_pll(struct snd_soc_dai *dai,
+                int pll_id, int source, unsigned int freq_in, unsigned int freq_out);
+        ```
+        ]
+
+===  Clocking example
+
+#text(size: 15pt)[#kfile("sound/soc/atmel/atmel_wm8904.c")]
+#v(-0.3em)
+```c
 static int atmel_asoc_wm8904_hw_params(struct snd_pcm_substream *substream,
                 struct snd_pcm_hw_params *params)
 {
@@ -781,14 +822,14 @@ static int atmel_asoc_wm8904_hw_params(struct snd_pcm_substream *substream,
                 pr_err("%s - failed to set wm8904 codec PLL.", __func__);
                 return ret;
         }
-    \end{minted}
-  \end{block}
-\end{frame}
+```
 
-\begin{frame}[fragile]{Clocking example}
-  \begin{block}{\kfile{sound/soc/atmel/atmel_wm8904.c}}
-    \fontsize{9}{9}\selectfont
-    \begin{minted}{c}
+===  Clocking example
+
+#text(size: 15pt)[#kfile("sound/soc/atmel/atmel_wm8904.c")]
+#v(-0.3em)
+#text(size: 17pt)[
+```c
         /*
          * As here wm8904 use FLL output as its system clock
          * so calling set_sysclk won't care freq parameter
@@ -797,7 +838,7 @@ static int atmel_asoc_wm8904_hw_params(struct snd_pcm_substream *substream,
         ret = snd_soc_dai_set_sysclk(codec_dai, WM8904_CLK_FLL,
                         0, SND_SOC_CLOCK_IN);
         if (ret < 0) {
-                pr_err("%s -failed to set wm8904 SYSCLK\n", __func__);
+                pr_err("%s -failed to set wm8904 SYSCLKn", __func__);
                 return ret;
         }
 
@@ -807,6 +848,5 @@ static int atmel_asoc_wm8904_hw_params(struct snd_pcm_substream *substream,
 static struct snd_soc_ops atmel_asoc_wm8904_ops = {
         .hw_params = atmel_asoc_wm8904_hw_params,
 };
-    \end{minted}
-  \end{block}
-\end{frame}
+```
+]
