@@ -6,6 +6,7 @@ INKSCAPE = SELF_CALL=true inkscape
 PDFLATEX = xelatex
 DIA      = dia
 EPSTOPDF = epstopdf
+PDFTYPST = typst compile
 
 INKSCAPE_IS_NEW = $(shell $(INKSCAPE) --version | grep -q "^Inkscape 1" && echo YES)
 
@@ -38,8 +39,13 @@ PDFLATEX_ENV = TEXINPUTS=.:$(shell pwd):$(shell pwd)/common: texfot --tee /tmp/f
 # Arguments passed to pdflatex
 PDFLATEX_OPT = -shell-escape -file-line-error -halt-on-error
 
-# The common slide stylesheet
-STYLESHEET = common/beamerthemeBootlin.sty
+# Arguments passed to typst
+PDFTYPST_OPT = --root . --package-path ./typst
+TRAINING_OPT = --input training
+
+# Stylesheets
+LATEX_STYLESHEET = common/beamerthemeBootlin.sty
+TYPST_STYLESHEET = typst/local/bootlin/0.1.0/lib.typ
 
 ALL_TRAININGS_MKS = $(sort $(notdir $(wildcard mk/*.mk)))
 ALL_TRAININGS = $(patsubst %.mk,%,$(ALL_TRAININGS_MKS))
@@ -79,65 +85,124 @@ default: help
 #
 # === Compilation of slides ===
 #
-
-# This rule allows to build slides of the training. It is done in two
-# parts with make calling itself because it is not possible to compute
-# a list of prerequisites depending on the target name. See
-# https://stackoverflow.com/questions/3381497/dynamic-targets-in-makefiles
+# Target pattern:  <course>-slides.pdf
+# Examples:        make full-linux-kernel-slides.pdf
+#                  make linux-kernel-driver-slides.pdf
+#
+# The backend (Typst or LaTeX/Beamer) is selected automatically:
+#   - If .typ files are found for the resolved chapters → Typst
+#   - Otherwise                                         → LaTeX/Beamer
+#
+# This rule is done in two parts with make calling itself because it is
+# not possible to compute a list of prerequisites depending on the target
+# name. See https://stackoverflow.com/questions/3381497/dynamic-targets-in-makefiles
 # for details.
 #
-# The value of slide can be "full-kernel", "full-sysdev" (for the
-# complete trainings) or the name of an individual chapter.
+
 ifdef SLIDES
-# Compute the set of chapters to build depending on the name of the
-# PDF file that was requested.
+
+# ---------------------------------------------------------------------------
+# Resolve training name and chapter list from the SLIDES variable.
+# ---------------------------------------------------------------------------
 ifeq ($(firstword $(subst -, , $(SLIDES))),full)
-SLIDES_TRAINING      = $(strip $(subst -slides, , $(subst full-, , $(SLIDES))))
-SLIDES_COMMON_BEFORE = common/slide-header.tex \
-		       common/$(SLIDES_TRAINING)-vars.tex
-SLIDES_CHAPTERS      = $($(call UPPERCASE, $(subst  -,_, $(SLIDES_TRAINING)))_SLIDES)
-SLIDES_COMMON_AFTER  = common/slide-footer.tex
+SLIDES_TRAINING  = $(strip $(subst -slides, , $(subst full-, , $(SLIDES))))
+SLIDES_CHAPTERS  = $($(call UPPERCASE, $(subst -,_, $(SLIDES_TRAINING)))_SLIDES)
 else
-SLIDES_TRAINING      = $(firstword $(subst -, ,  $(SLIDES)))
+SLIDES_TRAINING  = $(firstword $(subst -, , $(SLIDES)))
 ifeq ($(SLIDES_TRAINING),sysdev)
-SLIDES_TRAINING = embedded-linux
+SLIDES_TRAINING  = embedded-linux
 endif
 ifeq ($(SLIDES_TRAINING),kernel)
-SLIDES_TRAINING = linux-kernel
+SLIDES_TRAINING  = linux-kernel
 endif
-# We might be building multiple chapters that share a common
-# prefix. In this case, we want to build them in the order they are
-# listed in the <training>_SLIDES variable that corresponds to the
-# current training, as identified by the first component of the
-# chapter name.
-SLIDES_CHAPTERS      = $(filter $(SLIDES)%, $($(call UPPERCASE, $(SLIDES_TRAINING))_SLIDES))
-ifeq ($(words $(SLIDES_CHAPTERS)),1)
-SLIDES_COMMON_BEFORE = common/slide-header.tex common/single-subsection-slide-vars.tex
-else
-SLIDES_COMMON_BEFORE = common/slide-header.tex common/single-slide-vars.tex
+ifeq ($(SLIDES_TRAINING),realtime)
+SLIDES_TRAINING  = preempt-rt
 endif
-SLIDES_COMMON_AFTER  = common/slide-footer.tex
+# We might be building multiple chapters that share a common prefix.
+# Build them in the order listed in the <training>_SLIDES variable.
+SLIDES_CHAPTERS  = $(filter $(SLIDES)%, $($(call UPPERCASE, $(SLIDES_TRAINING))_SLIDES))
 endif
 
 ifeq ($(SLIDES_CHAPTERS),)
 $(error "No chapter to build, maybe you're building a single chapter whose name doesn't start with a training session name")
 endif
 
-# Compute the set of corresponding .tex files and pictures
+# ---------------------------------------------------------------------------
+# Backend detection: use Typst only when every chapter has a .typ file.
+# If even one chapter is missing its .typ counterpart, fall back to LaTeX.
+# This avoids misdetection when only common or partial files exist in Typst.
+# ---------------------------------------------------------------------------
+SLIDES_TYP_FOUND = $(foreach s,$(SLIDES_CHAPTERS),$(wildcard slides/$(s)/$(s).typ))
+
+ifeq ($(words $(SLIDES_TYP_FOUND)),$(words $(SLIDES_CHAPTERS)))
+# ===========================================================================
+# Typst backend
+# ===========================================================================
+
+SLIDES_TYP      = $(SLIDES_TYP_FOUND)
+ifneq ($(TRAINER),)
+SLIDES_TYP     += slides/first-slides/$(TRAINER).typ
+endif
+SLIDES_PICTURES = $(call PICTURES,$(foreach s,$(SLIDES_CHAPTERS),slides/$(s))) $(COMMON_PICTURES)
+
+ifeq ($(TRAINER),)
+TRAINER_OPT     =
+else
+TRAINER_OPT     = --input trainer=
+endif
+ifeq ($(SESSION_URL),)
+SESSION_URL_OPT  =
+else
+SESSION_URL_OPT  = --input session_url=
+endif
+
+$(foreach file,$(SLIDES_TYP),$(if $(wildcard $(file)),,$(error Missing file $(file) !)))
+
+%-slides.pdf: $(SLIDES_TYP) $(SLIDES_PICTURES) $(TYPST_STYLESHEET)
+	@mkdir -p $(OUTDIR)/common
+	rm -f $(OUTDIR)/$(basename $@).typ
+	cp -r typst out/
+	cp $(wildcard common/*.typ) $(OUTDIR)/common/
+	for f in $(filter %.typ,$^) ; do \
+		mkdir -p $(OUTDIR)/`dirname $$f` ; \
+		cp $$f $(OUTDIR)/$$f ; \
+		sed -i 's%__SESSION_NAME__%$(SLIDES_TRAINING)%' $(OUTDIR)/$$f ; \
+		if [ "$$f" != "slides/first-slides/$(TRAINER).typ" ]; then \
+			printf "#include \"$$f\"\n" >> $(OUTDIR)/$(basename $@).typ ; \
+		fi ; \
+	done
+	(cd $(OUTDIR); $(PDFTYPST) $(PDFTYPST_OPT) $(TRAINING_OPT)=$(SLIDES_TRAINING) $(TRAINER_OPT)$(TRAINER) $(SESSION_URL_OPT)$(SESSION_URL) $(basename $@).typ)
+# Use cat instead of mv so that evince detects the change and reloads
+# ('Maxime's feature').
+	cat out/$@ > $@
+
+else
+# ===========================================================================
+# LaTeX/Beamer backend
+# ===========================================================================
+
+ifeq ($(firstword $(subst -, , $(SLIDES))),full)
+SLIDES_COMMON_BEFORE = common/slide-header.tex \
+		       common/$(SLIDES_TRAINING)-vars.tex
+else
+ifeq ($(words $(SLIDES_CHAPTERS)),1)
+SLIDES_COMMON_BEFORE = common/slide-header.tex common/single-subsection-slide-vars.tex
+else
+SLIDES_COMMON_BEFORE = common/slide-header.tex common/single-slide-vars.tex
+endif
+endif
+SLIDES_COMMON_AFTER  = common/slide-footer.tex
+
 SLIDES_TEX      = \
 	$(SLIDES_COMMON_BEFORE) \
 	$(foreach s,$(SLIDES_CHAPTERS),$(wildcard slides/$(s)/$(s).tex)) \
 	$(SLIDES_COMMON_AFTER)
 SLIDES_PICTURES = $(call PICTURES,$(foreach s,$(SLIDES_CHAPTERS),slides/$(s))) $(COMMON_PICTURES)
 
-# Check for all slides .tex file to exist
 $(foreach file,$(SLIDES_TEX),$(if $(wildcard $(file)),,$(error Missing file $(file) !)))
 
-%-slides.pdf: $(VARS) $(SLIDES_TEX) $(SLIDES_PICTURES) $(STYLESHEET) $(OUTDIR)/last-update.tex
+%-slides.pdf: $(VARS) $(SLIDES_TEX) $(SLIDES_PICTURES) $(LATEX_STYLESHEET) $(OUTDIR)/last-update.tex
 	@mkdir -p $(OUTDIR)
-# We generate a .tex file with \input{} directives (instead of just
-# concatenating all files) so that when there is an error, we are
-# pointed at the right original file and the right line in that file.
 	rm -f $(OUTDIR)/$(basename $@).tex
 	echo "\input{last-update}" >> $(OUTDIR)/$(basename $@).tex
 	echo "\input{$(VARS)}" >> $(OUTDIR)/$(basename $@).tex
@@ -147,19 +212,19 @@ $(foreach file,$(SLIDES_TEX),$(if $(wildcard $(file)),,$(error Missing file $(fi
 		printf "\input{%s}\n" `basename $$f .tex` >> $(OUTDIR)/$(basename $@).tex ; \
 	done
 	(cd $(OUTDIR); $(PDFLATEX_ENV) $(PDFLATEX) $(PDFLATEX_OPT) $(basename $@).tex)
-# The second call to pdflatex is to be sure that we have a correct table of
-# content and index
+# Second pass for correct table of contents and index.
 	(cd $(OUTDIR); $(PDFLATEX_ENV) $(PDFLATEX) $(PDFLATEX_OPT) $(basename $@).tex > /dev/null 2>&1)
-# We use cat to overwrite the final destination file instead of mv, so
-# that evince notices that the file has changed and automatically
-# reloads it (which doesn't happen if we use mv here). This is called
-# 'Maxime's feature'.
+# Use cat instead of mv so that evince detects the change and reloads
+# ('Maxime's feature').
 	cat out/$@ > $@
-else
+
+endif  # backend selection
+
+else   # ifndef SLIDES
 FORCE:
 %-slides.pdf: FORCE
 	@$(MAKE) $@ SLIDES=$*
-endif
+endif  # ifdef SLIDES
 
 #
 # === Compilation of labs ===
@@ -167,21 +232,20 @@ endif
 
 ifdef LABS
 ifeq ($(firstword $(subst -, , $(LABS))),full)
-LABS_TRAINING      = $(strip $(subst -labs, , $(subst full-, , $(LABS))))
+LABS_TRAINING          = $(strip $(subst -labs, , $(subst full-, , $(LABS))))
 LABS_TRAINING_NO_BOARD = $(strip $(foreach c,$(ALL_TRAININGS),$(if $(filter full-$(c)-%,$(LABS)),$(c))))
-LABS_HEADER        = common/labs-header.tex
-LABS_VARSFILE      = common/$(LABS_TRAINING_NO_BOARD)-vars.tex common/$(LABS_TRAINING)-labs-vars.tex
-LABS_CHAPTERS      = $($(call UPPERCASE, $(subst  -,_, $(LABS_TRAINING)))_LABS)
-LABS_FOOTER        = common/labs-footer.tex
+LABS_HEADER            = common/labs-header.tex
+LABS_VARSFILE          = common/$(LABS_TRAINING_NO_BOARD)-vars.tex common/$(LABS_TRAINING)-labs-vars.tex
+LABS_CHAPTERS          = $($(call UPPERCASE, $(subst  -,_, $(LABS_TRAINING)))_LABS)
+LABS_FOOTER            = common/labs-footer.tex
 else
-LABS_TRAINING      = $(firstword $(subst -, , $(LABS)))
-LABS_VARSFILE      = common/$(LABS_TRAINING_NO_BOARD)-vars.tex common/single-lab-vars.tex
-LABS_CHAPTERS      = $(LABS)
-LABS_HEADER        = common/single-lab-header.tex
-LABS_FOOTER        = common/labs-footer.tex
+LABS_TRAINING          = $(firstword $(subst -, , $(LABS)))
+LABS_VARSFILE          = common/$(LABS_TRAINING_NO_BOARD)-vars.tex common/single-lab-vars.tex
+LABS_CHAPTERS          = $(LABS)
+LABS_HEADER            = common/single-lab-header.tex
+LABS_FOOTER            = common/labs-footer.tex
 endif
 
-# Compute the set of corresponding .tex files and pictures
 LABS_TEX      = \
 	$(LABS_VARSFILE) \
 	$(LABS_HEADER) \
@@ -189,15 +253,10 @@ LABS_TEX      = \
 	$(LABS_FOOTER)
 LABS_PICTURES = $(call PICTURES,$(foreach s,$(LABS_CHAPTERS),labs/$(s))) $(COMMON_PICTURES)
 
-
-# Check for all labs .tex file to exist
 $(foreach file,$(LABS_TEX),$(if $(wildcard $(file)),,$(error Missing file $(file) for $(LABS) !)))
 
 %-labs.pdf: common/labs.sty $(VARS) $(LABS_TEX) $(LABS_PICTURES) $(OUTDIR)/last-update.tex
 	@mkdir -p $(OUTDIR)
-# We generate a .tex file with \input{} directives (instead of just
-# concatenating all files) so that when there is an error, we are
-# pointed at the right original file and the right line in that file.
 	rm -f $(OUTDIR)/$(basename $@).tex
 	echo "\input{last-update}" >> $(OUTDIR)/$(basename $@).tex
 	echo "\input{$(VARS)}" >> $(OUTDIR)/$(basename $@).tex
@@ -207,13 +266,8 @@ $(foreach file,$(LABS_TEX),$(if $(wildcard $(file)),,$(error Missing file $(file
 		printf "\input{%s}\n" `basename $$f .tex` >> $(OUTDIR)/$(basename $@).tex ; \
 	done
 	(cd $(OUTDIR); $(PDFLATEX_ENV) $(PDFLATEX) $(basename $@).tex)
-# The second call to pdflatex is to be sure that we have a correct table of
-# content and index
+# Second pass for correct table of contents and index.
 	(cd $(OUTDIR); $(PDFLATEX_ENV) $(PDFLATEX) $(basename $@).tex > /dev/null 2>&1)
-# We use cat to overwrite the final destination file instead of mv, so
-# that evince notices that the file has changed and automatically
-# reloads it (which doesn't happen if we use mv here). This is called
-# 'Maxime's feature'.
 	cat out/$@ > $@
 else
 FORCE:
@@ -240,10 +294,10 @@ endif
 # === Compilation of agendas ===
 #
 ifdef AGENDA
-AGENDA_TEX = agenda/$(AGENDA)-agenda.tex
-AGENDA_TRAINING = $(subst -online,,$(subst -fr,,$(AGENDA)))
+AGENDA_TEX           = agenda/$(AGENDA)-agenda.tex
+AGENDA_TRAINING      = $(subst -online,,$(subst -fr,,$(AGENDA)))
 AGENDA_TRAINING_VARS = common/$(AGENDA_TRAINING)-vars.tex
-AGENDA_PICTURES = $(COMMON_PICTURES) $(call PICTURES,agenda)
+AGENDA_PICTURES      = $(COMMON_PICTURES) $(call PICTURES,agenda)
 
 %-agenda.pdf: common/agenda_old.sty common/agenda.sty $(AGENDA_TRAINING_VARS) $(VARS) $(AGENDA_TEX) $(AGENDA_PICTURES) $(OUTDIR)/last-update.tex
 	rm -f $(OUTDIR)/$(basename $@).tex
@@ -267,7 +321,6 @@ $(OUTDIR)/last-update.tex: FORCE
 	t=`git log -1 --format=%ct` && printf "\def \lastupdateen{%s}\n" "`(LANG=en_EN.UTF-8 date -d @$${t} +'%B %d, %Y')`" > $@.tmp
 	t=`git log -1 --format=%ct` && printf "\def \lastupdatefr{%s}\n" "`(LANG=fr_FR.UTF-8 date -d @$${t} +'%d %B %Y')`" >> $@.tmp
 	if ! cmp $@ $@.tmp ; then mv $@.tmp $@ ; fi
-
 
 #
 # === Picture generation ===
@@ -325,9 +378,9 @@ $(VARS): FORCE
 clean:
 	$(RM) -rf $(OUTDIR) *.pdf *-labs *.xz
 
-ALL_SLIDES = $(foreach p,$(ALL_TRAININGS),$(if $($(call UPPERCASE,$(p)_SLIDES)),full-$(p)-slides.pdf))
-ALL_LABS = $(patsubst common/%-labs-vars.tex,full-%-labs.pdf,$(wildcard common/*-labs-vars.tex))
-ALL_AGENDAS = $(patsubst %.tex,%.pdf,$(filter-out %.inc.tex,$(notdir $(wildcard agenda/*.tex))))
+ALL_SLIDES        = $(foreach p,$(ALL_TRAININGS),$(if $($(call UPPERCASE,$(p)_SLIDES)),full-$(p)-slides.pdf))
+ALL_LABS          = $(patsubst common/%-labs-vars.tex,full-%-labs.pdf,$(wildcard common/*-labs-vars.tex))
+ALL_AGENDAS       = $(patsubst %.tex,%.pdf,$(filter-out %.inc.tex,$(notdir $(wildcard agenda/*.tex))))
 ALL_LABS_TARBALLS = $(patsubst %,%-labs.tar.xz,$(filter-out common,$(notdir $(wildcard lab-data/*))))
 
 all: $(ALL_SLIDES) $(ALL_LABS) $(ALL_AGENDAS) $(ALL_LABS_TARBALLS)
@@ -348,21 +401,21 @@ HELP_FIELD_FORMAT = " %-36s %s\n"
 help:
 	@echo "Available targets:"
 	@echo
-	@echo "Slides:"
+	@echo "Slides (backend selected automatically: Typst if .typ files exist, LaTeX otherwise):"
 	$(foreach p,$(ALL_SLIDES),\
-		@printf $(sort $(HELP_FIELD_FORMAT)) "$(p)" "Complete slides for the '$(patsubst full-%-slides.pdf,%,$(p))' course"$(sep))
+		@printf $(HELP_FIELD_FORMAT) "$(p)" "Complete slides for the '$(patsubst full-%-slides.pdf,%,$(p))' course"$(sep))
 	@echo
 	@echo "Labs:"
 	$(foreach p,$(ALL_LABS),\
-		@printf $(sort $(HELP_FIELD_FORMAT)) "$(p)" "Complete labs for the '$(patsubst full-%-labs.pdf,%,$(p))' course"$(sep))
+		@printf $(HELP_FIELD_FORMAT) "$(p)" "Complete labs for the '$(patsubst full-%-labs.pdf,%,$(p))' course"$(sep))
 	@echo
 	@echo "Agendas:"
 	$(foreach p,$(ALL_AGENDAS),\
-		@printf $(sort $(HELP_FIELD_FORMAT)) "$(p)" "Agenda for the '$(patsubst %-agenda.pdf,%,$(p))' course"$(sep))
+		@printf $(HELP_FIELD_FORMAT) "$(p)" "Agenda for the '$(patsubst %-agenda.pdf,%,$(p))' course"$(sep))
 	@echo
 	@echo "Tarballs:"
 	$(foreach p,$(ALL_LABS_TARBALLS),\
-		@printf $(sort $(HELP_FIELD_FORMAT)) "$(p)" "Lab data for the '$(patsubst %-labs.tar.xz,%,$(p))' course"$(sep))
+		@printf $(HELP_FIELD_FORMAT) "$(p)" "Lab data for the '$(patsubst %-labs.tar.xz,%,$(p))' course"$(sep))
 	@echo
 	@printf $(HELP_FIELD_FORMAT) "<some-chapter>-slides.pdf" "Slides for a particular chapter in slides/"
 	@printf $(HELP_FIELD_FORMAT) "<some-chapter>-labs.pdf" "Labs for a particular chapter in labs/"
