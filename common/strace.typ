@@ -17,10 +17,10 @@ System call tracer - #link("https://strace.io")
 
 - Usage:  \ 
   `strace <command>` (starting a new process)  \ 
-  `strace -f <command>` (#strong[f]ollow child processes too)  \ 
+  `strace -f <command>` (*\f*\ollow child processes too)  \ 
   `strace -p <pid>` (tracing an existing process)  \ 
   `strace -c <command>` (time statistics per system call)  \  
-  `strace -e <expr> <command>` (use #strong[e]xpression for advanced filtering)
+  `strace -e <expr> <command>` (use *\e*\xpression for advanced filtering)
 See
 #link("https://man7.org/linux/man-pages/man1/strace.1.html")[the strace manual]
 for details
