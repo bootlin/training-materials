@@ -57,7 +57,7 @@ static struct snd_soc_card neo1973 = {
 )]
 #v(-0.3em)
 
-```c
+```dts
 
         speaker_amp: audio-amplifier {
                 compatible = "simple-audio-amplifier";
@@ -85,7 +85,7 @@ static struct snd_soc_card neo1973 = {
 
 === simple-amplifier - example 2
 
-```c
+```dts
         dio2133: analog-amplifier {
                 compatible = "simple-audio-amplifier";
                 sound-name-prefix = "AU2";
@@ -123,7 +123,7 @@ Audio is routed through `AU2`, the amplifier.
 
 === `simple-mux` example
 
-```c
+```dts
         mic_mux: mic-mux {
                 compatible = "simple-audio-mux";
                 pinctrl-names = "default";
@@ -148,7 +148,7 @@ Audio is routed through `AU2`, the amplifier.
 
 #[
   #show raw.where(lang: "c", block: true): set text(size: 9pt)
-  ```c
+  ```dts
           sound {
                   compatible = "simple-audio-card";
                   pinctrl-names = "default";

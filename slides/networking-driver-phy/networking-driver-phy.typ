@@ -176,7 +176,7 @@
     #text(size: 15pt)[#kfile("arch/arm64/boot/dts/marvell/armada-37xx.dtsi")]
 
     #text(size: 17pt)[
-      ```perl
+      ```dts
       mdio: mdio@32004 {
           #address-cells = <1>;
           #size-cells = <0>;
@@ -190,7 +190,7 @@
     #text(size: 14pt)[#kfile("arch/arm/boot/dts/st/stm32mp15xx-dkx.dtsi")]
 
     #text(size: 17pt)[
-      ```perl
+      ```dts
       &ethernet0 {
           mdio {
               compatible = "snps,dwmac-mdio";
@@ -250,7 +250,7 @@
     )]
 
     #text(size: 17pt)[
-      ```perl
+      ```dts
       &cp0_mdio {
           status = "okay";
 
@@ -409,7 +409,7 @@
 #v(0.5em)
 #text(size: 15pt)[fixed link example]
 
-```perl
+```dts
 &eth0 {
         /* ... */
         fixed-link {
