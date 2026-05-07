@@ -184,7 +184,7 @@ app: ELF 32-bit LSB executable, ARM, EABI5 version 1 (SYSV), dynamically linked.
 
 === Building code for Buildroot: `environment-setup`
 
-#[ #set text(size: 13pt)
+#[ #set text(size: 12pt)
 ```
 $ source output/host/environment-setup
  _           _ _     _                 _
@@ -203,9 +203,6 @@ Some tips:
   the "configure" alias
 * To build CMake-based projects, use the "cmake" alias
 ```
-]
-#v(0.5em)
-#[ #set text(size: 13pt)
 ```
 $ echo $CC
 /home/thomas/projets/buildroot/output/host/bin/arm-linux-gcc
@@ -219,6 +216,7 @@ alias configure='./configure --target=arm-buildroot-linux-gnueabihf --host=arm-b
     --program-prefix='
 ```
 ]
+
 
 === `local` site method
 

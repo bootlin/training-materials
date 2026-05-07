@@ -172,6 +172,7 @@ OWL_LINUX_REDISTRIBUTE = NO
 
 === CPE information in packages
 
+#[ #show raw.where(block: true): set text(size: 14pt)
 #[ #set text(size: 15pt)
 `package/bash/bash.mk`
 ]
@@ -203,6 +204,7 @@ LINUX_CPE_ID_PREFIX = cpe:2.3:o
 LIBFFI_CPE_ID_VERSION = 3.3
 LIBFFI_CPE_ID_UPDATE = rc0
 ```
+]
 
 === `<pkg>_IGNORE_CVES` variable
 

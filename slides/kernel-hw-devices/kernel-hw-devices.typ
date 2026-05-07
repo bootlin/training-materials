@@ -325,7 +325,7 @@ $ dtc -I dtb -O dts foo.dtb
 
 #table(columns: (60%, 40%), stroke: none, gutter: 15pt, [
 
-#[ #set text(size: 13pt)
+#[ #set text(size: 12pt)
 ```perl
 / {
   cpus { ... };
@@ -366,7 +366,7 @@ $ dtc -I dtb -O dts foo.dtb
 
 #table(columns: (60%, 40%), stroke: none, gutter: 15pt, [
 
-#[ #set text(size: 13pt)
+#[ #set text(size: 12pt)
 ```perl
 / {
   cpus { ... };
@@ -406,7 +406,7 @@ $ dtc -I dtb -O dts foo.dtb
 
 #table(columns: (60%, 40%), stroke: none, gutter: 15pt, [
 
-#[ #set text(size: 13pt)
+#[ #set text(size: 12pt)
 ```perl
 / {
   cpus { ... };

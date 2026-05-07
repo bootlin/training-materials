@@ -1032,7 +1032,7 @@ $(eval $(generic-package))
 
 - `virtual-package` for _virtual_ packages, covered later.
 
-== `autotools-package` infrastructure
+== autotools-package infrastructure
 <autotools-package-infrastructure>
 
 ===  The `autotools-package` infrastructure: basics

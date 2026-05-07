@@ -199,40 +199,35 @@ $(BUILD_DIR)/%/.stamp_built::
 
 === The `generic-package` macro
 
+#[ #show raw.where(lang: "make", block: true): set text(size: 10pt)
 - Packages built for the target:
 
-#[ #set text(size: 13pt)
 ```make
 generic-package = $(call inner-generic-package,
                          $(pkgname),$(call UPPERCASE,$(pkgname)),
                          $(call UPPERCASE,$(pkgname)),target)
 ```
-]
 
 - Packages built for the host:
 
-#[ #set text(size: 13pt)
 ```make
 host-generic-package = $(call inner-generic-package,
                               host-$(pkgname),$(call UPPERCASE,host-$(pkgname)),
                               $(call UPPERCASE,$(pkgname)),host)
 ```
-]
+
 
 - In `package/libzlib/libzlib.mk`:
 
-#[ #set text(size: 13pt)
 ```make
 LIBZLIB_... = ...
 
 $(eval $(generic-package))
 $(eval $(host-generic-package))
 ```
-]
 
 - Leads to:
 
-#[ #set text(size: 13pt)
 ```make
 $(call inner-generic-package,libzlib,LIBZLIB,LIBZLIB,target)
 $(call inner-generic-package,host-libzlib,HOST_LIBZLIB,LIBZLIB,host)
@@ -245,7 +240,7 @@ $(call inner-generic-package,host-libzlib,HOST_LIBZLIB,LIBZLIB,host)
 #[ #set text(size: 15pt)
 Macro code
 ]
-#[ #set text(size: 14pt)
+#[ #set text(size: 13pt)
 ```make
 $(2)_TYPE    =  $(4)
 $(2)_NAME    =  $(1)
@@ -276,7 +271,7 @@ endif
 #[ #set text(size: 15pt)
 Expanded for `host-libzlib`
 ]
-#[ #set text(size: 14pt)
+#[ #set text(size: 13pt)
 ```make
 HOST_LIBZLIB_TYPE    = host
 HOST_LIBZLIB_NAME    = host-libzlib
@@ -558,7 +553,7 @@ endif
 
 === CMake package infrastructure (2/2)
 
-#[ #set text(size: 13pt)
+#[ #set text(size: 12pt)
 ```make
 $(2)_DEPENDENCIES += host-cmake
 

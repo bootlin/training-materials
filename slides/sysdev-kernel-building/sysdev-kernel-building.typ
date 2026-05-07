@@ -250,7 +250,7 @@ Enabling a network driver requires the network stack to be enabled, therefore co
   - Used to declare hardware features or select libraries
 ])
 #v(-1em)
-#[ #set text(size: 18pt)
+#[ #set text(size: 14pt)
 `
 config SPI_ATH79
         tristate "Atheros AR71XX/AR724X/AR913X SPI controller driver"
