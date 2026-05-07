@@ -183,7 +183,7 @@ static int pcm5102a_probe(struct platform_device *pdev)
 
 === PCM3008
 
-#align(center, [#image("pcm3008.png", width: 70%)])
+#align(center, [#image("pcm3008.png", width: 60%)])
 
 === `pcm3008.c`
 

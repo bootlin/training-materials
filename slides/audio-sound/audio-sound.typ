@@ -116,6 +116,10 @@ WAV is a format based on RIFF and has the following header:
   #align(center)[
     #table(
       columns: 3,
+      stroke: (x, y) => (
+        top: if y > 0 { stroke(1pt) },
+        left: if x > 0 { stroke(1pt) },
+      ),
       align: (col, row) => (center, center, left).at(col),
       inset: 6pt,
       [Position], [Value], [Description],

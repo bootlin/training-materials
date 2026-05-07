@@ -680,13 +680,21 @@ The available codec pins are defined in the codec driver. Look for the `SND_SOC_
 
 ```c
 static const struct snd_soc_dapm_widget wm8904_adc_dapm_widgets[] = {
-SND_SOC_DAPM_INPUT("IN1L"), SND_SOC_DAPM_INPUT("IN1R"), SND_SOC_DAPM_INPUT("IN2L"), SND_SOC_DAPM_INPUT("IN2R"), SND_SOC_DAPM_INPUT("IN3L"), SND_SOC_DAPM_INPUT("IN3R"),
+        SND_SOC_DAPM_INPUT("IN1L"),
+        SND_SOC_DAPM_INPUT("IN1R"),
+        SND_SOC_DAPM_INPUT("IN2L"),
+        SND_SOC_DAPM_INPUT("IN2R"),
+        SND_SOC_DAPM_INPUT("IN3L"),
+        SND_SOC_DAPM_INPUT("IN3R"),
 [...]
 };
 
 static const struct snd_soc_dapm_widget wm8904_dac_dapm_widgets[] = {
 [...]
-SND_SOC_DAPM_OUTPUT("HPOUTL"), SND_SOC_DAPM_OUTPUT("HPOUTR"), SND_SOC_DAPM_OUTPUT("LINEOUTL"), SND_SOC_DAPM_OUTPUT("LINEOUTR"),
+        SND_SOC_DAPM_OUTPUT("HPOUTL"),
+        SND_SOC_DAPM_OUTPUT("HPOUTR"),
+        SND_SOC_DAPM_OUTPUT("LINEOUTL"),
+        SND_SOC_DAPM_OUTPUT("LINEOUTR"),
 };
 ```
 
