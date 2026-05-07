@@ -196,7 +196,7 @@ static int adin1110_setup_notifiers(void)
   gutter: 15pt,
   [
 
-    ```
+    ```dts
     &mdio {
       switch0: ethernet-switch@1 {
         compatible = "marvell,mv88e6085";
@@ -234,7 +234,7 @@ static int adin1110_setup_notifiers(void)
   [
 
     #text(size: 13pt)[
-      ```
+      ```dts
           ...
           ethernet-ports {
             switch0port0: ethernet-port@0 {
