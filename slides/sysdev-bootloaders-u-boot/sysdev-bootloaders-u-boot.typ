@@ -957,7 +957,9 @@ label stm32mp157c-dk2-buildroot
 #[ #set text(size: 15pt)
 U-Boot boot log
 ]
-```
+
+#[ #show raw.where(block: true): set text(size: 9pt)
+  ```
   Hit any key to stop autoboot:  0
   Boot over mmc0!
   switch to partitions #0, OK
@@ -977,5 +979,5 @@ U-Boot boot log
     Loading Device Tree to cffe0000, end cffffcd0 ... OK
 
   Starting kernel ...
-  ```
+  ```]
 ])

@@ -32,6 +32,7 @@
 #align(center, [#image("richard-stallman.jpg", width: 100%)])
 
 Richard Stallman in 2019
+#v(-0.9em)
 #[ #set text(size: 15pt)
   #set par(leading: 0.5em)
 #link("https://commons.wikimedia.org/wiki/File:Richard_Stallman_at_LibrePlanet_2019.jpg")[https://commons.wikimedia.org/wiki/File:Richard_Stallman_at_LibrePlanet_2019.jpg]
@@ -257,6 +258,7 @@ The Linux kernel and most other architecture-dependent components support a wide
   
 ],[
 
+#[ #set par(leading: 0.4em)
 #align(center, [#image("stm32mp157c-ev1.png", width: 100%)])
   #[ #set text(size: 17pt)
 STM32MP157C-EV1evaluation board 
@@ -275,6 +277,7 @@ Image credits (Beagleboard.org):
   #[ #set text(size: 12pt)
 #link("https://beagleboard.org/pocket") 
   ]
+]
 ])
 
 ===  Types of hardware platforms (2)
