@@ -1,0 +1,96 @@
+%YAML 1.2
+---
+# Converted from devicetree.YAML-tmLanguage (TextMate format) to
+# .sublime-syntax format for use with syntect/Typst.
+#
+# Original work Copyright 2017 Justin Watson
+# Licensed under the Apache License, Version 2.0
+#
+# For the original source and license, see:
+# https://github.com/fallrisk/devicetree-highlighter/
+
+name: Devicetree
+scope: source.devicetree
+file_extensions:
+  - dts
+  - dtsi
+
+contexts:
+  main:
+    # Multiline comment
+    - match: /\*
+      scope: punctuation.definition.comment.begin.devicetree
+      push:
+        - meta_scope: comment.block.devicetree
+        - match: \*/
+          scope: punctuation.definition.comment.end.devicetree
+          pop: true
+
+    # One-line comment
+    - match: //(.*)
+      scope: comment.line.double-slash.devicetree
+      captures:
+        1: comment.line.double-slash.devicetree
+
+    # Version identifier
+    - match: ^/dts-[a-z0-9]*/;$
+      scope: support.constant.file-version.devicetree
+
+    # #include
+    - match: '#include (.*)'
+      scope: keyword.standard.devicetree
+      captures:
+        1: string.quoted.double.devicetree
+
+    # #define
+    - match: '#define\s(\S*)\s(.*)'
+      scope: keyword.standard.define.devicetree
+      captures:
+        1: entity.name.type.macro.name.devicetree
+        2: string.other.macro.value.devicetree
+
+    # Devicetree node (e.g. label: node@address { ... })
+    - match: '\b(?:([A-Za-z0-9]*):\s)?([A-Za-z0-9_\-]*)(@)?([A-Za-z0-9_\-]*)\s*\{'
+      captures:
+        1: storage.type.label.node.devicetree
+        2: entity.name.type.node-name.node.devicetree
+        3: keyword.operator.unit-address.node.devicetree
+        4: constant.numeric.unit-address.node.devicetree
+
+    # Property definition with value (e.g. compatible = "foo";)
+    - match: '((compatible|model|phandle|status|#address-cells|#size-cells|reg|virtual-reg|ranges|dma-ranges|device_type)|[\w,\-]*)\s='
+      captures:
+        1: variable.property-name.devicetree
+        2: variable.language.devicetree
+      push: property-value
+
+    # Property definition with empty value (e.g. ranges;)
+    - match: '((compatible|model|phandle|status|#address-cells|#size-cells|reg|virtual-reg|ranges|dma-ranges|device_type)|[\w,\-]*);'
+      scope: empty.property-definition.devicetree
+      captures:
+        1: variable.property-name.devicetree
+        2: variable.language.devicetree
+
+  property-value:
+    - match: ';'
+      pop: true
+    - include: quote
+    - include: numeric
+    - include: macro-def
+
+  numeric:
+    - match: '(0x)?[0-9a-fA-F]+'
+      scope: constant.numeric.devicetree
+
+  quote:
+    - match: '"'
+      scope: punctuation.definition.string.begin.devicetree
+      push:
+        - meta_scope: string.quoted.double.devicetree
+        - match: '"'
+          scope: punctuation.definition.string.end.devicetree
+          pop: true
+
+  macro-def:
+    - match: '[\w_]+'
+      scope: constant.numeric.devicetree
