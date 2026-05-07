@@ -74,7 +74,7 @@ The devices that require certains pins to be muxed will use the
   gutter: 15pt,
   [
 
-    ```perl
+    ```dts
     i2c0: i2c@11000 {
             ...
             pinctrl-0 = <&pmx_twsi0>;
@@ -88,7 +88,7 @@ The devices that require certains pins to be muxed will use the
   [
 
     #text(size: 17pt)[
-      ```perl
+      ```dts
       i2c0: i2c@f8014000 {
              ...
              pinctrl-names = "default", "gpio";
@@ -147,7 +147,7 @@ The devices that require certains pins to be muxed will use the
   [
 
     #text(size: 12pt)[
-      ```perl
+      ```dts
       /* Excerpt from am335x-bone-common.dts */
 
       &am33xx_pinmux {

@@ -802,7 +802,7 @@ KERNEL STACK SIZE: 8192
   - Or through device tree:
 
 #v(0.5em)
-```c
+```dts
 reserved-memory {
         [...]
         ramoops@8f000000 {
