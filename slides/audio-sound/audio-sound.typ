@@ -21,7 +21,7 @@
 
 #v(0.5em)
 
-#align(center, [#image("CPT-sound-physical-manifestation.pdf", width: 60%)])
+#align(center, [#image("CPT-sound-physical-manifestation.svg", width: 60%)])
 
 === Sound characteristics
 
@@ -68,7 +68,7 @@
 - The Human ear can hear sound frequencies between approximately 20 Hz
   and 20 kHz.
 
-#align(center, [#image("aliasing-1d.pdf", width: 60%)])
+#align(center, [#image("aliasing-1d.svg", width: 60%)])
 #align(center, [_Aliasing example, the sampled signal is in blue_])
 
 === Sound digitization - sample size

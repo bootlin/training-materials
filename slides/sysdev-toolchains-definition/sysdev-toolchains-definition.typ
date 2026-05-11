@@ -219,7 +219,7 @@ your project.
   [
 
     #align(center, [#image(
-      "Linux_kernel_System_Call_Interface_and_uClibc.pdf",
+      "Linux_kernel_System_Call_Interface_and_uClibc.svg",
       width: 100%,
     )])
     #text(size: 14pt)[
@@ -254,7 +254,7 @@ your project.
   ],
   [
 
-    #align(center, [#image("heckert_gnu_white.pdf", width: 100%)])
+    #align(center, [#image("heckert_gnu_white.svg", width: 100%)])
     #text(size: 14pt)[
       #link(
         "https://en.wikipedia.org/wiki/File:Heckert_GNU_white.svg",

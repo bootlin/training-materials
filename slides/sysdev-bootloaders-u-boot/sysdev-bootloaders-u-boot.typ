@@ -36,7 +36,7 @@
   ],
   [
 
-    #align(center, [#image("u-boot-logo.pdf", width: 100%)])
+    #align(center, [#image("u-boot-logo.svg", width: 100%)])
 
     #[ #set text(size: 16pt)
 

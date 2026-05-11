@@ -314,7 +314,7 @@ A more recent read-only, compressed solution
 
 === Filesystem benchmarks
 
-#align(center, [#image("rating.pdf", height: 80%)])
+#align(center, [#image("rating.svg", height: 80%)])
 
 #[ #set text(size: 16pt)
   See our presentation for more details and benchmarks (Linux 6.3, ARM32

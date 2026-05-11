@@ -219,7 +219,7 @@
   ],
   [
 
-    #align(center, [#image("ubifs.pdf", height: 80%)])
+    #align(center, [#image("ubifs.svg", height: 80%)])
 
   ],
 )
