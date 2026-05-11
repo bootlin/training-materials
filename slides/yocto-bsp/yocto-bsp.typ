@@ -11,7 +11,7 @@
 
 === BSP layers
 
-#align(center, [#image("yocto-bsp-overview.pdf", height: 90%)])
+#align(center, [#image("yocto-bsp-overview.svg", height: 90%)])
 
 === BSP layers overview
 

@@ -72,7 +72,7 @@
 - Indeed, we want the root filesystem on the target to be as minimal as
   possible.
 
-#align(center, [#image("source-build-target-spaces.pdf", width: 100%)])
+#align(center, [#image("source-build-target-spaces.svg", width: 100%)])
 
 === Cross-compiling with hand-written Makefiles
 
@@ -333,7 +333,7 @@
 
 === automake / autoconf / autoheader
 
-#align(center, [#image("autotools.pdf", height: 90%)])
+#align(center, [#image("autotools.svg", height: 90%)])
 
 === automake / autoconf
 
@@ -736,7 +736,7 @@ only the C cross-compiler needs to be specified:
   ],
   [
 
-    #align(center, [#image("destdir-and-prefix.pdf", width: 100%)])
+    #align(center, [#image("destdir-and-prefix.svg", width: 100%)])
 
   ],
 )

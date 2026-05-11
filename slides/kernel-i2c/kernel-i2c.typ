@@ -27,7 +27,7 @@
 
 === An I2C bus example
 
-#align(center, [#image("i2c-bus.pdf", width: 100%)])
+#align(center, [#image("i2c-bus.svg", width: 100%)])
 
 === The I2C bus driver
 

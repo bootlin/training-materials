@@ -588,7 +588,7 @@ R10: 0000000000000000 R11: 0000000000000246 R12: 00000000ffffffff R13: 000000000
   ],
   [
 
-    #align(center, [#image("kdmx.pdf", width: 100%)])
+    #align(center, [#image("kdmx.svg", width: 100%)])
 
   ],
 )

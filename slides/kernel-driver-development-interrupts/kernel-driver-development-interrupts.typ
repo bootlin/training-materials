@@ -189,7 +189,7 @@ Here are the most frequent `irq_flags` bit values in drivers (can be combined):
 
 === Softirq execution flow
 
-#align(center, [#image("thread-halves.pdf", width: 100%)])
+#align(center, [#image("thread-halves.svg", width: 100%)])
 
 === Example usage of softirqs: NAPI
 

@@ -76,7 +76,7 @@ In order to become functional, hardware blocks require:
 
 === Diagram overview of the common clock framework
 
-#align(center, [#image("clock-framework.pdf", width: 100%)])
+#align(center, [#image("clock-framework.svg", width: 100%)])
 
 === Reset handling
 

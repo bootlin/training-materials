@@ -387,7 +387,7 @@ process becomes runnable, no more need to wait for kernel code
 #v(0.5em)
 
 #align(center, [#image(
-  "/common/spinlock-deadlock-with-preemption.pdf",
+  "/common/spinlock-deadlock-with-preemption.svg",
   width: 90%,
 )])
 

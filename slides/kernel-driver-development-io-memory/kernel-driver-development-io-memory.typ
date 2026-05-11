@@ -24,7 +24,7 @@
   ],
   [
 
-    #align(center, [#image("mmio-vs-pio.pdf", width: 100%)])
+    #align(center, [#image("mmio-vs-pio.svg", width: 100%)])
 
   ],
 )
@@ -128,7 +128,7 @@
 
 === ioremap()
 
-#align(center, [#image("ioremap.pdf", height: 90%)])
+#align(center, [#image("ioremap.svg", height: 90%)])
 
 #align(center, [`ioremap(0xAFFEBC00, 4096) = 0xCDEFA000`])
 

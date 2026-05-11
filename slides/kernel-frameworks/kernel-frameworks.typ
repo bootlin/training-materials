@@ -27,7 +27,7 @@
   ],
   [
 
-    #align(center, [#image("driver-architecture.pdf", height: 95%)])
+    #align(center, [#image("driver-architecture.svg", height: 95%)])
 
   ],
 )
@@ -159,7 +159,7 @@ port
 
 === From user space to the kernel: character devices
 
-#align(center, [#image("user-kernel-exchanges.pdf", height: 90%)])
+#align(center, [#image("user-kernel-exchanges.svg", height: 90%)])
 
 === File operations
 
@@ -297,7 +297,7 @@ Many operations exist, they are all optional.
 
 === Exchanging data with user space 3/3
 
-#align(center, [#image("copy-to-from-user.pdf", height: 90%)])
+#align(center, [#image("copy-to-from-user.svg", height: 90%)])
 
 === Zero copy access to user memory
 
@@ -418,7 +418,7 @@ Selected excerpt from #kfile("drivers/misc/phantom.c")
 
 === Example: Some Kernel Frameworks
 
-#align(center, [#image("frameworks.pdf", height: 90%)])
+#align(center, [#image("frameworks.svg", height: 90%)])
 
 == Example: the input subsystem
 <example-the-input-subsystem>
@@ -447,7 +447,7 @@ Selected excerpt from #kfile("drivers/misc/phantom.c")
 
 === Input subsystem diagram
 
-#align(center, [#image("input-subsystem-diagram.pdf", height: 90%)])
+#align(center, [#image("input-subsystem-diagram.svg", height: 90%)])
 
 === Input subsystem overview
 
@@ -868,7 +868,7 @@ struct input_event {
   ],
   [
 
-    #align(center, [#image("link-structures.pdf", height: 90%)])
+    #align(center, [#image("link-structures.svg", height: 90%)])
 
   ],
 )

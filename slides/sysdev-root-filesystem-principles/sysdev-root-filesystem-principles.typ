@@ -153,7 +153,7 @@ is very convenient for system development:
   tools and build all the tools you need on the target itself (better to
   cross-compile though).
 
-#align(center, [#image("nfs-principle.pdf", width: 70%)])
+#align(center, [#image("nfs-principle.svg", width: 70%)])
 
 === Mounting rootfs over the network (2)
 
@@ -201,4 +201,4 @@ On the development workstation side, a NFS server is needed
 
 === Mounting rootfs over the network (4)
 
-#align(center, [#image("nfs-principle-with-details.pdf", width: 90%)])
+#align(center, [#image("nfs-principle-with-details.svg", width: 90%)])

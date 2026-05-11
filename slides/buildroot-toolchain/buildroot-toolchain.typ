@@ -15,7 +15,7 @@
 
 #v(0.5em)
 
-#align(center, [#image("components.pdf", height: 70%)])
+#align(center, [#image("components.svg", height: 70%)])
 
 === Two possibilities for the toolchain
 

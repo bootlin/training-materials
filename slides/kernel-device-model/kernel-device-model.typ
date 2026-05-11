@@ -48,7 +48,7 @@
   ],
   [
 
-    #align(center, [#image("driver-architecture.pdf", height: 95%)])
+    #align(center, [#image("driver-architecture.svg", height: 95%)])
 
   ],
 )
@@ -121,11 +121,11 @@
 
 === Example: USB bus 1/3
 
-#align(center, [#image("usb-bus-hardware.pdf", height: 90%)])
+#align(center, [#image("usb-bus-hardware.svg", height: 90%)])
 
 === Example: USB bus 2/3
 
-#align(center, [#image("usb-bus.pdf", height: 90%)])
+#align(center, [#image("usb-bus.svg", height: 90%)])
 
 === Example: USB bus 3/3
 
@@ -176,7 +176,7 @@
   ],
   [
 
-    #align(center, [#image("usb-network.pdf", width: 100%)])
+    #align(center, [#image("usb-network.svg", width: 100%)])
 
   ],
 )
@@ -265,7 +265,7 @@
 
 #v(0.5em)
 
-#align(center, [#image("usb-registering.pdf", height: 50%)])
+#align(center, [#image("usb-registering.svg", height: 50%)])
 
 #v(0.5em)
 
@@ -275,7 +275,7 @@
 
 === When a device is detected
 
-#align(center, [#image("usb-detection.pdf", width: 100%)])
+#align(center, [#image("usb-detection.svg", width: 100%)])
 
 === Probe method
 
@@ -357,7 +357,7 @@
 
 === The model is recursive
 
-#align(center, [#image("recursive-model.pdf", height: 90%)])
+#align(center, [#image("recursive-model.svg", height: 90%)])
 
 == Platform drivers
 <platform-drivers>

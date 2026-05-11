@@ -36,9 +36,9 @@
     ],
     [
 
-      #align(center, [#image("intro-alsa-hw.pdf", width: 100%)])
+      #align(center, [#image("intro-alsa-hw.svg", width: 100%)])
       #v(2em)
-      #align(center, [#image("intro-alsa-linux.pdf", height: 60%)])
+      #align(center, [#image("intro-alsa-linux.svg", height: 60%)])
 
     ],
     [

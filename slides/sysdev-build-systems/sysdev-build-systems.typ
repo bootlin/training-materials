@@ -54,7 +54,7 @@ Three main approaches to build your embedded Linux system:
 
 === Embedded Linux build system: principle
 
-#align(center, [#image("buildsystem-principle.pdf", width: 90%)])
+#align(center, [#image("buildsystem-principle.svg", width: 90%)])
 
 - Building from source → lot of flexibility
 
@@ -85,7 +85,7 @@ Three main approaches to build your embedded Linux system:
   [
 
     #align(center, [#image(
-      "build-system-vs-embedded-linux-build-system.pdf",
+      "build-system-vs-embedded-linux-build-system.svg",
       height: 80%,
     )])
 
