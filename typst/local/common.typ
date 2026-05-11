@@ -1,8 +1,5 @@
 #import "@local/bootlin:0.1.0": *
 
-// Linux Elixir commands
-#let manpage(arg1, arg2) = codelink("man "+arg2+ " " +arg1, "https://man7.org/linux/man-pages/man"+arg2+"/"+arg1+"."+arg2+".html")
-
 // Generic Elixir commands
 #let projdir(arg1, arg2) = codelink(arg2+"/","https://elixir.bootlin.com/"+arg1+"/latest/source/"+arg2)
 
@@ -19,6 +16,8 @@
 #let projconfignotset(arg1, arg2) = codelink(arg2+ " is not set","https://elixir.bootlin.com/"+arg1+"/latest/K/ident"+arg2)
 
 // Linux Elixir commands
+#let manpage(arg1, arg2) = codelink("man "+arg2+ " " +arg1, "https://man7.org/linux/man-pages/man"+arg2+"/"+arg1+"."+arg2+".html")
+
 #let kfunc(arg) = codelink(arg+"()","https://elixir.bootlin.com/linux/latest/ident/"+arg)
 
 #let ksym(arg) = codelink(arg, "https://elixir.bootlin.com/linux/latest/ident"+arg)
