@@ -11,7 +11,6 @@
 #table(
   columns: (70%, 35%),
   stroke: none,
-  gutter: 15pt,
   [
 
     In Linux, a driver is always interfacing with:
