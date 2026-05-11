@@ -543,7 +543,7 @@ mdio: mdio@32004 {
 
 - They follow a specific naming convention from IEEE 802.3
 
-- #text(fill: blue)[speed]`Band-`#text(fill: purple)[Medium]#text(fill: red)[Encoding]#text(fill: yellow)[Lanes]#text(fill: blue)[: 1000]Base-#text(fill: purple)[T], #text(fill: blue)[10G]Base-#text(fill: purple)[K]#text(fill: red)[R], #text(fill: blue)[10]Base-#text(fill: purple)[T]#text(fill: yellow)[1]…
+- #text(fill: blue)[speed]`Band-`#text(fill: purple)[Medium]#text(fill: red)[Encoding]#text(fill:  rgb("#dbab0dc7"))[Lanes]#text(fill: blue)[: 1000]Base-#text(fill: purple)[T], #text(fill: blue)[10G]Base-#text(fill: purple)[K]#text(fill: red)[R], #text(fill: blue)[10]Base-#text(fill: purple)[T]#text(fill: rgb("#dbab0dc7"))[1]…
 
 - Band: `BASE`band, `BROAD`band or `PASS`band.
 
@@ -574,7 +574,7 @@ mdio: mdio@32004 {
 
   - Base-*R*: 66b/64b encoding.
 
-- #text(fill: yellow)[Lanes]: Number of lanes per link (for Base-*T*, number of
+- #text(fill:  rgb("#dbab0dc7"))[Lanes]: Number of lanes per link (for Base-*T*, number of
   twisted pairs used).
 
 ===  linkmodes
