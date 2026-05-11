@@ -33,14 +33,17 @@
 #if sys.inputs.training == "networking"{
   trainingtitle="Embedded Linux networking"
 }
+#if sys.inputs.training == "security"{
+  trainingtitle="Embedded Linux Security"
+}
 #let last_update = datetime.today()
 
 // ── Couleurs ───────────────────────────────────────────────────────
 #let bootlin-orange = rgb("#FF631A")
-#let color-link     = rgb("#4B6FA9")
-#let color-code     = rgb("#868686")
+#let color-link     = rgb("#2c4cdb")
+#let color-code     = rgb("#595959")
 
-#let blorange   = bootlin-orange
+#let boldtext   = rgb("#000000")
 #let blcode     = rgb("#595959")
 #let blcodebg   = rgb("#E6E6E6")
 #let bldarkblue = rgb("#4040BF")
@@ -65,10 +68,7 @@
   it,
 )
 
-#let codelink(title, body) = [
-  #set text(fill: bldarkblue)
-  #link(body)[#title]
-]
+#let codelink(title, body) = text(fill: rgb("#4040BF"), std.link(body)[#title])
 
 #let codeblock(body) = block(
   fill: blcodebg,
@@ -78,10 +78,6 @@
   #set text(font: "Inconsolata", fill: blcode, size: 9pt)
   #body
 ]
-
-#let kfunc(body) = {
-  "https://elixir.bootlin.com/linux/latest/ident/" + body
-}
 
 #let todo(arg1) = {
   "TODO: " + arg1
@@ -303,7 +299,7 @@
       #h(1em)
       #title
     ]
-    #line(length: 100%, stroke: (paint: blorange, thickness: 1pt))
+    #line(length: 100%, stroke: (paint: bootlin-orange, thickness: 1pt))
   ]
   #v(1em)
   #body
@@ -543,6 +539,10 @@
           context {
             set text(18pt) if list-counter.get().first() == 2
             set text(16pt) if list-counter.get().first() >= 3
+            set list(spacing: 0.3em) if list-counter.get().first() >= 1
+            set par(leading: 0.3em) if list-counter.get().first() >= 1
+            set list(spacing: 0.4em) if list-counter.get().first() >= 2
+            set par(leading: 0.3em) if list-counter.get().first() >= 2
             it
           }
           list-counter.update(i => i - 1)
@@ -552,7 +552,7 @@
       alert: utils.alert-with-primary-color,
     ),
     config-colors(
-      primary: bootlin-orange,
+      primary: boldtext,
       primary-light: rgb("#2159A5"),
       primary-lightest: rgb("#F2F4F8"),
       neutral-lightest: rgb("#FFFFFF")
