@@ -36,7 +36,7 @@
 
 === Misc subsystem diagram
 
-#align(center, [#image("misc-subsystem-diagram.pdf", width: 100%)])
+#align(center, [#image("misc-subsystem-diagram.svg", width: 100%)])
 
 === Misc subsystem API (1/2)
 

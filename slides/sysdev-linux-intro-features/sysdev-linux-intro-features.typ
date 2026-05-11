@@ -34,7 +34,7 @@
 }
 === Linux kernel in the system
 
-#align(center, [#image("linux-kernel-in-system.pdf", height: 90%)])
+#align(center, [#image("linux-kernel-in-system.svg", height: 90%)])
 
 === Linux kernel main roles
 

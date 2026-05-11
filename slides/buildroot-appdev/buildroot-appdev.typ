@@ -262,7 +262,7 @@ $ ./configure --host=arm-linux
 
 === `local` site method workflow
 
-#align(center, [#image("local-site-method.pdf", height: 90%)])
+#align(center, [#image("local-site-method.svg", height: 90%)])
 
 === `<pkg>_OVERRIDE_SRCDIR`
 

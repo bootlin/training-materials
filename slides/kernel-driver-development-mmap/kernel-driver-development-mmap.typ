@@ -44,7 +44,7 @@
 
 === mmap overview
 
-#align(center, [#image("mmap-overview.pdf", height: 90%)])
+#align(center, [#image("mmap-overview.svg", height: 90%)])
 
 === How to Implement mmap - User space
 

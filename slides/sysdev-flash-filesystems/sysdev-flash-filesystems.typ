@@ -63,7 +63,7 @@
   ],
   [
 
-    #align(center, [#image("nand-organization.pdf", width: 100%)])
+    #align(center, [#image("nand-organization.svg", width: 100%)])
 
   ],
 )
@@ -92,7 +92,7 @@
   ],
   [
 
-    #align(center, [#image("mtd-architecture.pdf", width: 100%)])
+    #align(center, [#image("mtd-architecture.svg", width: 100%)])
 
   ],
 )
@@ -226,7 +226,7 @@
 
 === UBI (2)
 
-#align(center, [#image("ubi.pdf", width: 100%)])
+#align(center, [#image("ubi.svg", width: 100%)])
 When there is too much activity on an LEB, UBI can decide to move it to
 another PEB with a lower erase count. Even read-only volumes participate
 to wear leveling!
@@ -249,9 +249,9 @@ to wear leveling!
 
 === UBI: bad and good practice
 
-#align(center, [#image("ubifs-bad-layout.pdf", height: 45%)])
+#align(center, [#image("ubifs-bad-layout.svg", height: 45%)])
 
-#align(center, [#image("ubifs-good-layout.pdf", height: 45%)])
+#align(center, [#image("ubifs-good-layout.svg", height: 45%)])
 
 === UBIFS _Unsorted Block Images File System_
 
@@ -270,7 +270,7 @@ to wear leveling!
 
 === `ubinize for UBI image creation`
 
-#align(center, [#image("ubi-creation-workflow.pdf")])
+#align(center, [#image("ubi-creation-workflow.svg")])
 
 === Linux: Block emulation layers
 

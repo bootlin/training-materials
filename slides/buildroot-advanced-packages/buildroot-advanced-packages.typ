@@ -890,7 +890,7 @@ $(eval $(autotools-package))
 
 === Virtual packages
 
-#align(center, [#image("virtual-packages.pdf", width: 100%)])
+#align(center, [#image("virtual-packages.svg", width: 100%)])
 
 === Virtual package definition: Config.in
 

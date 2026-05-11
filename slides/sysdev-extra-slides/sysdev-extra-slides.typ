@@ -8,4 +8,4 @@
 
 === Linux connectivity stack
 
-#align(center, [#image("connectivity-stack.pdf", height: 80%)])
+#align(center, [#image("connectivity-stack.svg", height: 80%)])

@@ -49,12 +49,12 @@
   gutter: 30pt,
   [
 
-    #align(center, [#image("dapm-widgets-ain0.pdf", height: 25%)])
+    #align(center, [#image("dapm-widgets-ain0.svg", height: 25%)])
 
   ],
   [
 
-    #align(center, [#image("dapm-widgets-dmic0.pdf", height: 25%)])
+    #align(center, [#image("dapm-widgets-dmic0.svg", height: 25%)])
 
   ],
 )
@@ -63,7 +63,7 @@
 
 - DAPM widgets can be controlled by a regular kcontrol
 
-#align(center, [#image("dapm-mux.pdf", height: 40%)])
+#align(center, [#image("dapm-mux.svg", height: 40%)])
 
 === DAPM: Dynamic Audio Power Management
 
@@ -74,11 +74,11 @@
 
   - Border widgets and cross-component routes are added by the card
 
-#align(center, [#image("dapm-widgets-cross-components.pdf", width: 100%)])
+#align(center, [#image("dapm-widgets-cross-components.svg", width: 100%)])
 
 === [t]Endpoint widgets
 
-#align(center, [#image("widgets-endpoint.pdf", width: 70%)])
+#align(center, [#image("widgets-endpoint.svg", width: 70%)])
 
 #v(2em)
 
@@ -90,7 +90,7 @@
 
 === [t]Pass-through widgets
 
-#align(center, [#image("widgets-pass-through.pdf", width: 70%)])
+#align(center, [#image("widgets-pass-through.svg", width: 70%)])
 
 #v(2em)
 
@@ -102,7 +102,7 @@
 
 === [t]Supply widgets
 
-#align(center, [#image("widgets-supply.pdf", width: 70%)])
+#align(center, [#image("widgets-supply.svg", width: 70%)])
 
 #v(1em)
 
@@ -393,7 +393,7 @@ static struct snd_soc_dai_driver wm9705_dai[] = {
 
 === [t]Phase 1: determining power state
 
-#align(center, [#image("powerstate1.pdf", width: 70%)])
+#align(center, [#image("powerstate1.svg", width: 70%)])
 #v(1.5em)
 
 - Source widgets are powered if they are active (used by a stream) and
@@ -404,7 +404,7 @@ static struct snd_soc_dai_driver wm9705_dai[] = {
 
 === [t]Phase 1: determining power state
 
-#align(center, [#image("powerstate2.pdf", width: 70%)])
+#align(center, [#image("powerstate2.svg", width: 70%)])
 #v(1.5em)
 
 - Pass-through widgets are powered if they are on the route between two
@@ -414,7 +414,7 @@ static struct snd_soc_dai_driver wm9705_dai[] = {
 
 === [t]Phase 1: determining power state
 
-#align(center, [#image("powerstate3.pdf", width: 70%)])
+#align(center, [#image("powerstate3.svg", width: 70%)])
 
 #v(1.5em)
 

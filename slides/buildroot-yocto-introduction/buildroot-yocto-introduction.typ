@@ -9,11 +9,11 @@
 
 === Simplified Linux system architecture
 
-#align(center, [#image("linux-system-architecture.pdf", height: 80%)])
+#align(center, [#image("linux-system-architecture.svg", height: 80%)])
 
 === Overall Linux boot sequence
 
-#align(center, [#image("overall-boot-sequence.pdf", height: 80%)])
+#align(center, [#image("overall-boot-sequence.svg", height: 80%)])
 
 === Embedded Linux work
 
@@ -69,7 +69,7 @@
 
 === Embedded Linux build system: principle
 
-#align(center, [#image("buildsystem-principle.pdf", width: 90%)])
+#align(center, [#image("buildsystem-principle.svg", width: 90%)])
 
 #v(0.5em)
 

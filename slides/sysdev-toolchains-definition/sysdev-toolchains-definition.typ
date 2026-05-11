@@ -28,7 +28,7 @@
 
 === Toolchain definition (2)
 
-#align(center, [#image("cross-toolchain.pdf", width: 80%)])
+#align(center, [#image("cross-toolchain.svg", width: 80%)])
 
 === Architecture tuple and toolchain prefix
 
@@ -62,7 +62,7 @@
 
 === Components of gcc toolchains
 
-#align(center, [#image("components.pdf", width: 75%)])
+#align(center, [#image("components.svg", width: 75%)])
 
 === Binutils
 
@@ -142,7 +142,7 @@
   ],
   [
 
-    #align(center, [#image("kernel-headers.pdf", width: 100%)])
+    #align(center, [#image("kernel-headers.svg", width: 100%)])
 
   ],
 )

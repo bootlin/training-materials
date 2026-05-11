@@ -183,7 +183,7 @@ A few useful GDB commands
 
 === Remote debugging: architecture
 
-#align(center, [#image("gdb-vs-gdbserver-architecture.pdf", width: 100%)])
+#align(center, [#image("gdb-vs-gdbserver-architecture.svg", width: 100%)])
 
 === Remote debugging: target setup
 

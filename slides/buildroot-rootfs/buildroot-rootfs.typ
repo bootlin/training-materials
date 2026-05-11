@@ -8,7 +8,7 @@
 
 === Overall rootfs construction steps
 
-#align(center, [#image("overall-steps.pdf", height: 90%)])
+#align(center, [#image("overall-steps.svg", height: 90%)])
 
 === Root filesystem skeleton
 
@@ -36,7 +36,7 @@
 
 === Skeleton packages dependencies
 
-#align(center, [#image("skeleton.pdf", width: 100%)])
+#align(center, [#image("skeleton.svg", width: 100%)])
 
 === Custom root filesystem skeleton
 

@@ -221,7 +221,7 @@
 
     #v(0.5em)
 
-    #align(center, [#image("binary-blobs.pdf", height: 40%)])
+    #align(center, [#image("binary-blobs.svg", height: 40%)])
 
   ],
   [
@@ -235,7 +235,7 @@
 
     #v(0.5em)
 
-    #align(center, [#image("empty-modules.pdf", height: 40%)])
+    #align(center, [#image("empty-modules.svg", height: 40%)])
 
   ],
 )

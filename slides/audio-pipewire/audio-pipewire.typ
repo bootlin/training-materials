@@ -99,7 +99,7 @@
 
 #v(0.5em)
 
-#align(center, [#image("two-nodes.pdf", height: 50%)])
+#align(center, [#image("two-nodes.svg", height: 50%)])
 
 === Concepts — nodes, ports & links (2)
 
@@ -261,7 +261,7 @@
 
 #v(0.5em)
 
-#align(center, [#image("graph-execution.pdf", height: 60%)])
+#align(center, [#image("graph-execution.svg", height: 60%)])
 
 === Concepts — graph execution logic (3)
 
@@ -275,7 +275,7 @@
 
 #v(0.3em)
 
-#align(center, [#image("graph-execution2.pdf", height: 60%)])
+#align(center, [#image("graph-execution2.svg", height: 60%)])
 
 === Concepts — graph execution logic (4)
 
@@ -761,7 +761,7 @@ $ pw-config --name custom.conf paths
 
 #v(0.5em)
 
-#align(center, [#image("helvum-target.pdf", height: 35%)])
+#align(center, [#image("helvum-target.svg", height: 35%)])
 
 === Tools rundown — `helvum` (3)
 
