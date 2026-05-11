@@ -380,8 +380,8 @@ $(OUTDIR)/%.png: %.png
 .PRECIOUS: $(OUTDIR)/%.jpg
 
 $(OUTDIR)/%.jpg: %.jpg
-	mkdir -p $(dir $@)
-	@cp $^ $@
+	@mkdir -p $(dir $@)
+	magick $^ -colorspace sRGB -resize '987x1754>' -filter Cubic -quality 65 -sampling-factor 2x2 -strip $@
 
 $(OUTDIR)/%.pdf: %.pdf
 	mkdir -p $(dir $@)
