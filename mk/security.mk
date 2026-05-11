@@ -7,8 +7,6 @@ SECURITY_SLIDES = \
 	security-fundamental-concepts \
 	security-hw-sec-barriers \
 	security-secure-boot-part-1 \
-	security-hw-sec-barriers \
-	security-secure-boot-part-1 \
 	security-secure-boot-part-2 \
 	security-confidential-information \
 	security-userland \
