@@ -302,7 +302,7 @@ Segmentation fault!
 
 #v(0.5em)
 
-#align(center, [#image("python_logo.pdf", height: 20%)])
+#align(center, [#image("python_logo.svg", height: 20%)])
 
 === GDB Python Extension (1/2)
 

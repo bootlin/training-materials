@@ -45,7 +45,7 @@
     through Windows Subsystem for Linux (WSL2)
 ]
 
-#align(center, [#image("linux-as-development-os.pdf", width: 50%)])
+#align(center, [#image("linux-as-development-os.svg", width: 50%)])
 
 === Desktop Linux distribution
 
@@ -70,7 +70,7 @@
   ],
   [
 
-    #align(center, [#image("/common/ubuntu.pdf", width: 100%)])
+    #align(center, [#image("/common/ubuntu.svg", width: 100%)])
 
     #[ #set text(size: 11pt)
       Image credits:  \  #link("https://tinyurl.com/f4zxj5kw")]  ],

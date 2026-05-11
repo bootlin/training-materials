@@ -376,7 +376,7 @@ set of options
 
 #v(1em)
 
-#align(center, [#image("iso-example.pdf", width: 100%)])
+#align(center, [#image("iso-example.svg", width: 100%)])
 
 === make oldconfig
 
@@ -432,7 +432,7 @@ A frequent problem:
   ],
   [
 
-    #align(center, [#image("parallel-make-benefits.pdf", width: 100%)])
+    #align(center, [#image("parallel-make-benefits.svg", width: 100%)])
 
   ],
 )

@@ -212,14 +212,14 @@ They can lock up your system. Make sure they never happen!
 
     Rule 1: don't call a function that can try to get access to the same
     lock
-    #align(center, [#image("deadlock-same-lock.pdf", width: 90%)])
+    #align(center, [#image("deadlock-same-lock.svg", width: 90%)])
 
   ],
   [
 
     Rule 2: if you need multiple locks, always acquire them in the same
     order!
-    #align(center, [#image("deadlock-two-locks.pdf", width: 90%)])
+    #align(center, [#image("deadlock-two-locks.svg", width: 90%)])
 
   ],
 )

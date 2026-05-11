@@ -44,7 +44,7 @@
   ],
   [
 
-    #align(center, [#image("/common/bootlin-logo.pdf", width: 100%)])
+    #align(center, [#image("/common/bootlin-logo.svg", width: 100%)])
 
   ],
 )

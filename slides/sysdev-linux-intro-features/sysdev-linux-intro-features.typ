@@ -74,7 +74,7 @@
   ],
   [
 
-    #align(center, [#image("system-calls.pdf", width: 100%)])
+    #align(center, [#image("system-calls.svg", width: 100%)])
     #text(size: 18pt)[
       Image credits (Wikipedia):]  \
     #text(size: 17pt)[#link("https://bit.ly/2U2rdGB")]

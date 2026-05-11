@@ -83,9 +83,9 @@ PICTURES = \
 	$(call PICTURES_NO_TRANSFORMATION,$(1),jpg)   \
 	$(call PICTURES_NO_TRANSFORMATION,$(1),pdf)
 
-# Same as PICTURES but produces .svg from .dia (used by Typst backend).
+# Same as PICTURES but copies .svg as-is and produces .svg from .dia (Typst backend).
 PICTURES_TYPST = \
-	$(call PICTURES_WITH_TRANSFORMATION,$(1),svg) \
+	$(call PICTURES_NO_TRANSFORMATION,$(1),svg) \
 	$(call PICTURES_DIA_TO_SVG,$(1)) \
 	$(call PICTURES_NO_TRANSFORMATION,$(1),png)   \
 	$(call PICTURES_NO_TRANSFORMATION,$(1),jpg)   \
@@ -387,6 +387,10 @@ $(OUTDIR)/%.eps: %.dia
 	$(DIA) -e $@ -t eps $^
 
 .PRECIOUS: $(OUTDIR)/%.svg
+
+$(OUTDIR)/%.svg: %.svg
+	@mkdir -p $(dir $@)
+	@cp $^ $@
 
 $(OUTDIR)/%.svg: %.dia
 	@printf "%-15s%-20s->%20s\n" DIA-SVG $(notdir $^) $(notdir $@)

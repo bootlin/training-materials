@@ -37,7 +37,7 @@
   ```]
 #v(1em)
 
-#align(center, [#image("sparse.pdf", height: 12%)])
+#align(center, [#image("sparse.svg", height: 12%)])
 
 === Good practices in kernel development (1/2)
 
