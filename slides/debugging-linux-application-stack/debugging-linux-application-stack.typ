@@ -539,12 +539,11 @@ root          11       2 [rcu_tasks_kthread]          TS
 
 - Allocating memory in the kernel can be done using multiple functions:
 
-  - `c void *kmalloc(size_t size, gfp_t gfp_mask); `
+  - ```c void *kmalloc(size_t size, gfp_t gfp_mask); ```
 
-  - `c void *kzalloc(size_t size, gfp_t gfp_mask); `
+  - ```c void *kzalloc(size_t size, gfp_t gfp_mask); ```
 
-  - `c unsigned long __get_free_pages(gfp_t gfp_mask, unsigned
-    int order) `
+  - ```c unsigned long __get_free_pages(gfp_t gfp_mask, unsigned int order) ```
 
 - All allocation functions take a ` gfp_mask ` parameter which allows
   to designate the kind of memory that is needed.
