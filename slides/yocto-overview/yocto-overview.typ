@@ -19,7 +19,7 @@
 
 === Yocto: principle
 
-#align(center, [#image("yocto-principle.pdf", width: 100%)])
+#align(center, [#image("yocto-principle.svg", width: 100%)])
 
 #v(1em)
 
@@ -66,7 +66,7 @@ In Yocto / OpenEmbedded, the _build engine_ is implemented by the `bitbake` prog
   ],
   [
 
-    #align(center, [#image("recipe-dependencies.pdf", width: 90%)])
+    #align(center, [#image("recipe-dependencies.svg", width: 90%)])
 
   ],
 )
@@ -91,7 +91,7 @@ In Yocto / OpenEmbedded, the _build engine_ is implemented by the `bitbake` prog
   ],
   [
 
-    #align(center, [#image("recipe-dependencies-tasks.pdf", width: 100%)])
+    #align(center, [#image("recipe-dependencies-tasks.svg", width: 100%)])
 
   ],
 )
@@ -136,7 +136,7 @@ In Yocto / OpenEmbedded, the _build engine_ is implemented by the `bitbake` prog
 
 === The Yocto Project lexicon
 
-#align(center, [#image("yocto-project-overview.pdf", height: 90%)])
+#align(center, [#image("yocto-project-overview.svg", height: 90%)])
 
 === The Yocto Project lexicon
 
@@ -185,7 +185,7 @@ In Yocto / OpenEmbedded, the _build engine_ is implemented by the `bitbake` prog
 
 === Poky
 
-#align(center, [#image("yocto-overview-poky.pdf", height: 90%)])
+#align(center, [#image("yocto-overview-poky.svg", height: 90%)])
 
 === Poky source tree 1/2
 

@@ -41,7 +41,7 @@
 
 #v(0.5em)
 
-#align(center, [#image("address-space.pdf", height: 60%)])
+#align(center, [#image("address-space.svg", height: 60%)])
 
 === Relation between execution mode, address space and context
 
@@ -79,11 +79,11 @@
 
 === A thread life
 
-#align(center, [#image("threads-life.pdf", height: 90%)])
+#align(center, [#image("threads-life.svg", height: 90%)])
 
 === Execution of system calls
 
-#align(center, [#image("syscalls.pdf", width: 100%)])
+#align(center, [#image("syscalls.svg", width: 100%)])
 
 The execution of system calls takes place in the context of the thread
 requesting them.

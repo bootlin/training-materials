@@ -76,5 +76,5 @@ It is also possible to boot the system with a filesystem in memory: _initramfs_
     to be included in the kernel binary using this technique. Otherwise, use
     an external initramfs. ],
   [
-    #align(center, [#image("initramfs.pdf", width: 90%)]) ],
+    #align(center, [#image("initramfs.svg", width: 90%)]) ],
 )

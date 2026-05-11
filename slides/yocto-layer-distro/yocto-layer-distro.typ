@@ -11,7 +11,7 @@
 
 === Distro layers
 
-#align(center, [#image("yocto-layer-distro.pdf", height: 90%)])
+#align(center, [#image("yocto-layer-distro.svg", height: 90%)])
 
 === Distro layers
 

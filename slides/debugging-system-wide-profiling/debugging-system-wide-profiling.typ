@@ -591,7 +591,7 @@ dd-113   [000]   304.526708: funcgraph_entry:        6.167 us   |        __fget_
 
 #v(0.5em)
 
-#align(center, [#image("kernel_irqsoff.pdf", height: 40%)])
+#align(center, [#image("kernel_irqsoff.svg", height: 40%)])
 
 === irqsoff: report example
 
@@ -645,7 +645,7 @@ stress-n-114       0d.s.  290us : <stack trace>
 
 #v(0.5em)
 
-#align(center, [#image("kernel_hwlat.pdf", height: 30%)])
+#align(center, [#image("kernel_hwlat.svg", height: 30%)])
 
 === trace-cmd
 
@@ -753,7 +753,7 @@ $ trace-cmd reset
 
 #v(0.5em)
 
-#align(center, [#image("ftrace-remote.pdf", height: 20%)])
+#align(center, [#image("ftrace-remote.svg", height: 20%)])
 
 === #kfunc("trace_printk")
 
@@ -1092,7 +1092,7 @@ int main(int argc, char *argv[])
   ],
   [
 
-    #align(center, [#image("bpf-setup.pdf", height: 90%)])
+    #align(center, [#image("bpf-setup.svg", height: 90%)])
 
   ],
 )
@@ -1118,7 +1118,7 @@ int main(int argc, char *argv[])
   ],
   [
 
-    #align(center, [#image("bpf-capture.pdf", height: 80%)])
+    #align(center, [#image("bpf-capture.svg", height: 80%)])
 
   ],
 )
@@ -1170,7 +1170,7 @@ int main(int argc, char *argv[])
 
 === eBPF program lifecycle
 
-#align(center, [#image("bpf_lifecycle.pdf", height: 90%)])
+#align(center, [#image("bpf_lifecycle.svg", height: 90%)])
 
 === Kernel configuration for eBPF
 

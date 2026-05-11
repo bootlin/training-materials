@@ -9,7 +9,7 @@
 
 === Anatomy
 
-#align(center, [#image("anatomy.pdf", width: 100%)])
+#align(center, [#image("anatomy.svg", width: 100%)])
 #align(center, [#emph[Example of an embedded system sound card]])
 
 == CODECs
@@ -35,7 +35,7 @@
 
 The CODEC DAI is a synchronous serial bus. A common PCM interface is represented here:
 
-#align(center, [#image("i2s.pdf", height: 50%)])
+#align(center, [#image("i2s.svg", height: 50%)])
 
 === Digital audio interface - signals
 

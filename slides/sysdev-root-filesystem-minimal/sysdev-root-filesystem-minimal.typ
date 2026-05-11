@@ -43,4 +43,4 @@
 
 === Overall booting process
 
-#align(center, [#image("overall-boot-sequence.pdf", height: 90%)])
+#align(center, [#image("overall-boot-sequence.svg", height: 90%)])

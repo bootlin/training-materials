@@ -11,7 +11,7 @@
 
 === Recipes
 
-#align(center, [#image("yocto-recipe-basics-overview.pdf", width: 85%)])
+#align(center, [#image("yocto-recipe-basics-overview.svg", width: 85%)])
 
 === Basics
 
@@ -72,7 +72,7 @@
 
 === Organization of a recipe
 
-#align(center, [#image("yocto-recipe-basics-organisation.pdf", width: 85%)])
+#align(center, [#image("yocto-recipe-basics-organisation.svg", width: 85%)])
 
 === Organization of a recipe
 
@@ -372,7 +372,7 @@ You can get a list of existing tasks for a recipe with: \
 
 === The main tasks
 
-#align(center, [#image("tasks-basics.pdf", width: 100%)])
+#align(center, [#image("tasks-basics.svg", width: 100%)])
 
 === Writing tasks 1/2
 

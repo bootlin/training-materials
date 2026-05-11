@@ -51,11 +51,11 @@
 
 === Bootlin engineering services
 
-#align(center, [#image("engineering-services.pdf", height: 80%)])
+#align(center, [#image("engineering-services.svg", height: 80%)])
 
 === Bootlin training courses
 
-#align(center, [#image("training-courses.pdf", height: 70%)])
+#align(center, [#image("training-courses.svg", height: 70%)])
 
 === Bootlin, an open-source contributor
 

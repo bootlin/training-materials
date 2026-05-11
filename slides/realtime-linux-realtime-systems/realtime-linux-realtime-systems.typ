@@ -43,7 +43,7 @@ Time elapsed between an event and the reaction to the event
 
 #v(0.5em)
 
-#align(center, [#image("latency-basic.pdf", width: 90%)])
+#align(center, [#image("latency-basic.svg", width: 90%)])
 
 === Design constraints - Throughput
 
@@ -185,7 +185,7 @@ Time elapsed between an event and the reaction to the event
 
 #v(0.5em)
 
-#align(center, [#image("userspace-preemption.pdf", width: 90%)])
+#align(center, [#image("userspace-preemption.svg", width: 90%)])
 
 === Understanding preemption (2)
 
@@ -200,7 +200,7 @@ Time elapsed between an event and the reaction to the event
 
 #v(0.5em)
 
-#align(center, [#image("kernel-preemption.pdf", width: 100%)])
+#align(center, [#image("kernel-preemption.svg", width: 100%)])
 
 === Interrupts and events
 

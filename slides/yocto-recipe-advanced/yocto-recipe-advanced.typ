@@ -38,7 +38,7 @@
 
 === Extend a recipe
 
-#align(center, [#image("yocto-recipe-advanced-extend.pdf", width: 85%)])
+#align(center, [#image("yocto-recipe-advanced-extend.svg", width: 85%)])
 
 === Extend a recipe
 

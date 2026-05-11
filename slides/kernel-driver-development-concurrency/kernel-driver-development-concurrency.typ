@@ -32,7 +32,7 @@
 
 === Concurrency protection with locks
 
-#align(center, [#image("concurrency-protection.pdf", height: 90%)])
+#align(center, [#image("concurrency-protection.svg", height: 90%)])
 
 === Linux mutexes #emph[mutex = #strong[mut]ual #strong[ex]clusion]
 
@@ -95,7 +95,7 @@
 
 #v(0.5em)
 
-#align(center, [#image("spinlock.pdf", width: 40%)])
+#align(center, [#image("spinlock.svg", width: 40%)])
 
 === The spinlock API
 
@@ -123,7 +123,7 @@
 - Manipulating spinlocks implies some care:
 
 #align(center, [#image(
-  "/common/spinlock-deadlock-with-preemption.pdf",
+  "/common/spinlock-deadlock-with-preemption.svg",
   width: 90%,
 )])
 
@@ -142,7 +142,7 @@
   to get the same lock:
 
 #align(center, [#image(
-  "/common/spinlock-deadlock-with-interrupt.pdf",
+  "/common/spinlock-deadlock-with-interrupt.svg",
   width: 80%,
 )])
 

@@ -88,7 +88,7 @@
   debugging purposes, frequently a networking connection, sometimes a
   JTAG interface for low-level debugging
 
-#align(center, [#image("host-vs-target.pdf", width: 70%)])
+#align(center, [#image("host-vs-target.svg", width: 70%)])
 
 === Serial line communication program
 

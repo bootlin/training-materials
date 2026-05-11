@@ -132,7 +132,7 @@
   ],
   [
 
-    #align(center, [#image("driver-architecture.pdf", height: 80%)])
+    #align(center, [#image("driver-architecture.svg", height: 80%)])
 
   ],
 )
