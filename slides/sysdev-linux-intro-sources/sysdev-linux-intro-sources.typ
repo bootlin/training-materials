@@ -106,7 +106,7 @@
 
       - Try out #link("https://elixir.bootlin.com")!
 
-    #align(center, [#image("elixir.pdf", height: 50%)])
+    #align(center, [#image("elixir.svg", height: 50%)])
 
   ],
 )

@@ -250,7 +250,7 @@
   ],
   [
 
-    #align(center, [#image("xorg.pdf", width: 100%)])
+    #align(center, [#image("xorg.svg", width: 100%)])
 
   ],
 )
@@ -377,7 +377,8 @@
   ],
   [
 
-    #align(center, [#image("qt-logo.pdf", width: 100%)])
+    #align(center, [#image("qt-logo.svg", width: 100%)])
+
   ],
 )
 
@@ -443,8 +444,9 @@
   ],
   [
 
-    #align(center, [#image("Google-flutter-logo.pdf", width: 90%)])
+    #align(center, [#image("Google-flutter-logo.svg", width: 90%)])
     #align(center, [#image("flutter-app.png", width: 70%)])
+
   ],
 )
 

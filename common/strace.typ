@@ -42,7 +42,7 @@
 
 === strace example output
 
-#align(center, [#image("strace-output.pdf", height: 80%)])
+#align(center, [#image("strace-output.svg", height: 80%)])
 #text(size: 19pt)[
   Hint: follow the open file descriptors returned by `open()`. This tells
   you what files are handled by further system calls.
