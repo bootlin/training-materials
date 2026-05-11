@@ -40,7 +40,7 @@ PDFLATEX_ENV = TEXINPUTS=.:$(shell pwd):$(shell pwd)/common: texfot --tee /tmp/f
 PDFLATEX_OPT = -shell-escape -file-line-error -halt-on-error
 
 # Arguments passed to typst
-PDFTYPST_OPT = --root . --package-path ./typst
+PDFTYPST_OPT = --root . --package-path ./typst --font-path=typst/fonts
 TRAINING_OPT = --input training
 
 # Stylesheets
@@ -130,19 +130,26 @@ endif
 # ---------------------------------------------------------------------------
 # Backend detection: use Typst only when every chapter has a .typ file.
 # If even one chapter is missing its .typ counterpart, fall back to LaTeX.
-# This avoids misdetection when only common or partial files exist in Typst.
+# This avoids misdetection when only common or partial files exist in Typst.boot-sequence-initramfs
 # ---------------------------------------------------------------------------
-SLIDES_TYP_FOUND = $(foreach s,$(SLIDES_CHAPTERS),$(wildcard slides/$(s)/$(s).typ))
 
-ifeq ($(words $(SLIDES_TYP_FOUND)),$(words $(SLIDES_CHAPTERS)))
+COMMON_CHAPTERS  = first-slides about-us last-slides initramfs beaglecam beagleboneblack-board boot-sequence-initramfs setup-lab board-setup-lab
+SLIDES_SPECIFIC  = $(filter-out $(COMMON_CHAPTERS) shopping-list% course-information%,$(SLIDES_CHAPTERS))
+SLIDES_TYP_FOUND := $(strip $(foreach s,$(SLIDES_SPECIFIC),$(wildcard slides/$(s)/*.typ)))
+$(info SLIDES_CHAPTERS = $(SLIDES_CHAPTERS))
+
+ifneq ($(SLIDES_TYP_FOUND),)
+
 # ===========================================================================
 # Typst backend
 # ===========================================================================
 
-SLIDES_TYP      = $(SLIDES_TYP_FOUND)
+SLIDES_TYP      = $(wildcard slides/first-slides/first-slides.typ)
+SLIDES_TYP     += $(foreach s,$(filter-out first-slides,$(SLIDES_CHAPTERS)),$(wildcard slides/$(s)/*.typ))
 ifneq ($(TRAINER),)
 SLIDES_TYP     += slides/first-slides/$(TRAINER).typ
 endif
+
 SLIDES_PICTURES = $(call PICTURES,$(foreach s,$(SLIDES_CHAPTERS),slides/$(s))) $(COMMON_PICTURES)
 
 ifeq ($(TRAINER),)
@@ -167,7 +174,10 @@ $(foreach file,$(SLIDES_TYP),$(if $(wildcard $(file)),,$(error Missing file $(fi
 		mkdir -p $(OUTDIR)/`dirname $$f` ; \
 		cp $$f $(OUTDIR)/$$f ; \
 		sed -i 's%__SESSION_NAME__%$(SLIDES_TRAINING)%' $(OUTDIR)/$$f ; \
-		if [ "$$f" != "slides/first-slides/$(TRAINER).typ" ]; then \
+		chapter=$$(basename `dirname $$f`) ; \
+		filename=$$(basename $$f .typ) ; \
+		if [ "$$f" != "slides/first-slides/$(TRAINER).typ" ] && \
+		   [ "$$filename" = "$$chapter" -o "$$filename" = "first-slides" ] ; then \
 			printf "#include \"$$f\"\n" >> $(OUTDIR)/$(basename $@).typ ; \
 		fi ; \
 	done
