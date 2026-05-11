@@ -74,7 +74,7 @@
 
       #if stm32mp157-audio [
         #v(-0.5em)
-        #image("/common/usb-audio.png", width: 50%) \
+        #image("/common/usb-audio.jpg", width: 50%) \
       ]
     ]
   ],

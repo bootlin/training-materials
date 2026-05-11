@@ -50,7 +50,7 @@
   [
     #align(center)[
       #v(-1em)
-      #image("beagleboneblack.png", width: 50%) \
+      #image("beagleboneblack.jpg", width: 50%) \
       #v(-1em)
       #image("/common/usb-serial-cable-female.jpg", width: 50%) \
       #v(-1em)
@@ -61,7 +61,7 @@
       ]
       #v(-1em)
       #if beaglebone-audio [
-        #image("/common/usb-audio.png", width: 50%) \
+        #image("/common/usb-audio.jpg", width: 50%) \
         #v(-1em)
       ]
     ]

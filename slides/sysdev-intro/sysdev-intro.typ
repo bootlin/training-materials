@@ -329,7 +329,7 @@ The Linux kernel and most other architecture-dependent components support a wide
   ],
   [
     #align(center, [#image(
-      "../shopping-list-beaglebone/beagleboneblack.png",
+      "../shopping-list-beaglebone/beagleboneblack.jpg",
       height: 25%,
     )])
     #[ #set text(size: 15pt)
