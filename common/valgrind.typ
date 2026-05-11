@@ -78,5 +78,5 @@
 
 === Kcachegrind - Visualizing Valgrind profiling data
 
-#align(center, [#image("kcachegrind.png", height: 90%)
+#align(center, [#image("kcachegrind.jpg", height: 90%)
   #link("https://github.com/KDE/kcachegrind")])
