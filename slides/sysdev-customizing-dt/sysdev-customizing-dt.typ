@@ -4,7 +4,7 @@
 
 #show: bootlin-theme
 
-===  Customize your board device tree!
+=== Customize your board device tree!
 
 - Kernel developers write _Device Tree Sources (DTS)_, which become
   _Device Tree Blobs (DTB)_ once compiled.

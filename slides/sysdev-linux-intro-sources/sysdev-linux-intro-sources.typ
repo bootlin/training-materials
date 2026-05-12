@@ -6,7 +6,7 @@
 
 == Linux kernel sources
 
-===  Location of official kernel sources
+=== Location of official kernel sources
 
 - The mainline versions of the Linux kernel, as released by Torvalds
 
@@ -36,7 +36,7 @@
 
   - #link("https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git")
 
-===  Location of non-official kernel sources
+=== Location of non-official kernel sources
 
 - Many chip vendors supply their own kernel sources
 
@@ -67,7 +67,7 @@
 
   - Not suitable to be used in products
 
-===  Getting Linux sources
+=== Getting Linux sources
 
 - The kernel sources are available from
   #link("https://kernel.org/pub/linux/kernel") as *full tarballs*
@@ -80,32 +80,38 @@
 
   - Incidentally written by Torvalds
 
-===  Going through Linux sources
+=== Going through Linux sources
 
-#table(columns:(40%, 60%), stroke:none, gutter: 15pt,[
-- Development tools:
+#table(
+  columns: (40%, 60%),
+  stroke: none,
+  gutter: 15pt,
+  [
+    - Development tools:
 
-  - Any text editor will work
+      - Any text editor will work
 
-  - Vim and Emacs support ctags and cscope and therefore can help with
-    symbol lookup and auto-completion.
+      - Vim and Emacs support ctags and cscope and therefore can help with
+        symbol lookup and auto-completion.
 
-  - It's also possible to use more elaborate IDEs to develop kernel
-    code, like Visual Studio Code.
-],[
-- Powerful web browsing: Elixir
+      - It's also possible to use more elaborate IDEs to develop kernel
+        code, like Visual Studio Code.
+  ],
+  [
+    - Powerful web browsing: Elixir
 
-  - Generic source indexing tool and code browser for C and C++.
+      - Generic source indexing tool and code browser for C and C++.
 
-  - Very easy to find symbols declaration/implementation/usage
+      - Very easy to find symbols declaration/implementation/usage
 
-  - Try out #link("https://elixir.bootlin.com")!
+      - Try out #link("https://elixir.bootlin.com")!
 
-#align(center, [#image("elixir.pdf", height: 50%)])
+    #align(center, [#image("elixir.pdf", height: 50%)])
 
-])
+  ],
+)
 
-===  Linux kernel size and structure
+=== Linux kernel size and structure
 
 - Linux v5.18 sources: close to 80k files, 35M lines, 1.3GiB
 
@@ -117,41 +123,48 @@
 
 - As of kernel version v5.18 (in percentage of total number of lines):
 
-#table(columns:(25%, 25%, 50%), stroke:none, gutter: 15pt,[
+#table(
+  columns: (25%, 25%, 50%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-- #kdir("drivers"): 61.1%
+    - #kdir("drivers"): 61.1%
 
-- #kdir("arch"): 11.6%
+    - #kdir("arch"): 11.6%
 
-- #kdir("fs"): 4.4%
+    - #kdir("fs"): 4.4%
 
-- #kdir("sound"): 4.1%
+    - #kdir("sound"): 4.1%
 
-- #kdir("tools"): 3.9%
+    - #kdir("tools"): 3.9%
 
-- #kdir("net"): 3.7%
-],[
-- #kdir("include"): 3.5%
+    - #kdir("net"): 3.7%
+  ],
+  [
+    - #kdir("include"): 3.5%
 
-- #kdir("Documentation"): 3.4%
+    - #kdir("Documentation"): 3.4%
 
-- #kdir("kernel"): 1.3%
+    - #kdir("kernel"): 1.3%
 
-- #kdir("lib"): 0.7%
+    - #kdir("lib"): 0.7%
 
-- #kdir("usr"): 0.6%
+    - #kdir("usr"): 0.6%
 
-- #kdir("mm"): 0.5%
+    - #kdir("mm"): 0.5%
 
-], [
+  ],
+  [
 
-- #kdir("scripts"), #kdir("security"), #kdir("crypto"),  \
-  #kdir("block"), #kdir("samples"), #kdir("ipc"),  \
-  #kdir("virt"), #kdir("init"), #kdir("certs"): < 0.5%
+    - #kdir("scripts"), #kdir("security"), #kdir("crypto"),  \
+      #kdir("block"), #kdir("samples"), #kdir("ipc"),  \
+      #kdir("virt"), #kdir("init"), #kdir("certs"): < 0.5%
 
-- Build system files: #kfile("Kbuild"), #kfile("Kconfig"),  \
-  #kfile("Makefile")
+    - Build system files: #kfile("Kbuild"), #kfile("Kconfig"),  \
+      #kfile("Makefile")
 
-- Other files: #kfile("COPYING"), #kfile("CREDITS"),  \
-  #kfile("MAINTAINERS"), #kfile("README")
-  ])
+    - Other files: #kfile("COPYING"), #kfile("CREDITS"),  \
+      #kfile("MAINTAINERS"), #kfile("README")
+  ],
+)

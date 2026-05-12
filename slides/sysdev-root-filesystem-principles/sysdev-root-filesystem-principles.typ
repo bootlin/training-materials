@@ -6,7 +6,7 @@
 
 == Principle and solutions
 
-===  Filesystems
+=== Filesystems
 
 - Filesystems are used to organize data in directories and files on
   storage devices or on the network. The directories and files are
@@ -29,7 +29,7 @@
 - This allows applications to access files and directories easily,
   regardless of their exact storage location
 
-===  Filesystems (2)
+=== Filesystems (2)
 
 - Create a mount point, which is just a directory  \
   `$ sudo mkdir /mnt/usbkey`
@@ -44,7 +44,7 @@
   `docs prog.c picture.png movie.avi`   \
   `$`
 
-===  mount / umount
+=== mount / umount
 
 - `mount` allows to mount filesystems
 
@@ -67,7 +67,7 @@
     performance. `umount` makes sure that these writes are committed to
     the storage.
 
-===  Root filesystem
+=== Root filesystem
 
 - A particular filesystem is mounted at the root of the hierarchy,
   identified by `/`
@@ -91,7 +91,7 @@
   Please append a correct "root=" boot option Kernel panic - not syncing: VFS: Unable to mount root fs on unknown block(0,0)
   ```]
 
-===  Location of the root filesystem
+=== Location of the root filesystem
 
 - It can be mounted from different locations
 
@@ -113,7 +113,7 @@
 - It is up to the system designer to choose the configuration for the
   system, and configure the kernel behavior with `root=`
 
-===  Mounting rootfs from storage devices
+=== Mounting rootfs from storage devices
 
 - Partitions of a hard disk or USB key
 
@@ -137,7 +137,7 @@
   - `/dev/mtdblock3` is the fourth enumerated flash partition in the
     system (there could be multiple flash chips)
 
-===  Mounting rootfs over the network (1)
+=== Mounting rootfs over the network (1)
 
 Once networking works, your root filesystem could be a directory on your
 GNU/Linux development host, exported by NFS (Network File System). This
@@ -155,14 +155,14 @@ is very convenient for system development:
 
 #align(center, [#image("nfs-principle.pdf", width: 70%)])
 
-===  Mounting rootfs over the network (2)
+=== Mounting rootfs over the network (2)
 
 On the development workstation side, a NFS server is needed
 
 - Install an NFS server (example: Debian, Ubuntu)  \
   `sudo apt install nfs-kernel-server`
 
-- Add the exported directory to your `/etc/exports` file:  \ 
+- Add the exported directory to your `/etc/exports` file:  \
   `/home/tux/rootfs 192.168.1.111(rw,no_root_squash,no_subtree_check)`
 
   - `192.168.1.111` is the client IP address
@@ -173,7 +173,7 @@ On the development workstation side, a NFS server is needed
 - Ask your NFS server to reload this file:  \
   `sudo exportfs -r`
 
-===  Mounting rootfs over the network (3)
+=== Mounting rootfs over the network (3)
 
 - On the target system
 
@@ -199,6 +199,6 @@ On the development workstation side, a NFS server is needed
     as an NFS version 2 client and UDP may be rejected by the NFS server
     in recent GNU/Linux distributions.
 
-===  Mounting rootfs over the network (4)
+=== Mounting rootfs over the network (4)
 
 #align(center, [#image("nfs-principle-with-details.pdf", width: 90%)])

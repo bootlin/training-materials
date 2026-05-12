@@ -6,38 +6,43 @@
 
 = Overview of major embedded Linux software stacks
 
-===  D-Bus
+=== D-Bus
 
-#table(columns: (75%, 25%), stroke: none, [
+#table(
+  columns: (75%, 25%),
+  stroke: none,
+  [
 
-- _Message-oriented middleware mechanism that allows communication
-  between multiple processes running concurrently on the same machine_
+    - _Message-oriented middleware mechanism that allows communication
+      between multiple processes running concurrently on the same machine_
 
-- Relies on a daemon to pass messages between applications
+    - Relies on a daemon to pass messages between applications
 
-- Mainly used by system daemons to offer services to client applications
+    - Mainly used by system daemons to offer services to client applications
 
-- Example: a network configuration daemon, running as _root_,
-  offers a D-Bus API that CLI and GUI clients can use to configure
-  networking
+    - Example: a network configuration daemon, running as _root_,
+      offers a D-Bus API that CLI and GUI clients can use to configure
+      networking
 
-- Several busses
+    - Several busses
 
-  - One system bus, accessible by all users, for system services
+      - One system bus, accessible by all users, for system services
 
-  - One session bus for each user logged in
+      - One session bus for each user logged in
 
-- Object model: interfaces, objects, methods, signals
+    - Object model: interfaces, objects, methods, signals
 
-- #link("https://www.freedesktop.org/wiki/Software/dbus/")
+    - #link("https://www.freedesktop.org/wiki/Software/dbus/")
 
-],[
+  ],
+  [
 
-#align(center, [#image("dbus.pdf", width: 100%)])
+    #align(center, [#image("dbus.pdf", width: 100%)])
 
-])
+  ],
+)
 
-===  systemd (1)
+=== systemd (1)
 
 - Modern _init_ system used by almost all Linux desktop/server
   distributions
@@ -63,7 +68,7 @@
   - Declarative language, instead of shell scripts used in other init
     systems
 
-===  systemd (2)
+=== systemd (2)
 
 - Systemd also provides
 
@@ -81,32 +86,32 @@
 
 - #link("https://systemd.io/")
 
-===  systemd service unit file example
+=== systemd service unit file example
 
 #text(size: 16pt)[
-/usr/lib/systemd/system/sshd.service]
+  /usr/lib/systemd/system/sshd.service]
 
 #text(size: 17.5pt)[
-```
-[Unit]
-Description=OpenSSH server daemon 
-Documentation=man:sshd(8) man:sshd_config(5)
-After=network.target sshd-keygen.service 
-Wants=sshd-keygen.service
+  ```
+  [Unit]
+  Description=OpenSSH server daemon
+  Documentation=man:sshd(8) man:sshd_config(5)
+  After=network.target sshd-keygen.service
+  Wants=sshd-keygen.service
 
-[Service]
-EnvironmentFile=/etc/sysconfig/sshd 
-ExecStart=/usr/sbin/sshd -D $ OPTIONS
-ExecReload=/bin/kill -HUP $ MAINPID
-KillMode=process 
-Restart=on-failure 
-RestartSec=42s
+  [Service]
+  EnvironmentFile=/etc/sysconfig/sshd
+  ExecStart=/usr/sbin/sshd -D $ OPTIONS
+  ExecReload=/bin/kill -HUP $ MAINPID
+  KillMode=process
+  Restart=on-failure
+  RestartSec=42s
 
-[Install]
-WantedBy=multi-user.target
-```]
+  [Install]
+  WantedBy=multi-user.target
+  ```]
 
-===  Example systemctl/journalctl commands
+=== Example systemctl/journalctl commands
 
 - `systemctl status`, status of all services
 
@@ -126,11 +131,11 @@ WantedBy=multi-user.target
 
 - `journalctl -u`, logs from a particular service
 
-===  Linux graphics stack overview
+=== Linux graphics stack overview
 
 #align(center, [#image("graphics-stack.pdf", height: 95%)])
 
-===  Display controller support
+=== Display controller support
 
 - Deprecated Linux kernel subsystem: _fbdev_
 
@@ -138,7 +143,9 @@ WantedBy=multi-user.target
 
   - If possible, don't use!
 
-  - #link("https://en.wikipedia.org/wiki/Linux_framebuffer")[https://en.wikipedia.org/wiki/Linux_framebuffer]
+  - #link(
+      "https://en.wikipedia.org/wiki/Linux_framebuffer",
+    )[https://en.wikipedia.org/wiki/Linux_framebuffer]
 
 - Modern Linux kernel subsystem: _DRM_
 
@@ -153,9 +160,11 @@ WantedBy=multi-user.target
   - Companion user-space library: `libdrm`, includes a very handy test
     tool: `modetest`
 
-  - #link("https://en.wikipedia.org/wiki/Direct_Rendering_Manager")[https://en.wikipedia.org/wiki/Direct_Rendering_Manager]
+  - #link(
+      "https://en.wikipedia.org/wiki/Direct_Rendering_Manager",
+    )[https://en.wikipedia.org/wiki/Direct_Rendering_Manager]
 
-===  GPU support: OpenGL acceleration
+=== GPU support: OpenGL acceleration
 
 - Open-source
 
@@ -180,86 +189,106 @@ WantedBy=multi-user.target
   - A (huge) closed-source user-space binary blob implementing the
     various OpenGL APIs
 
-===  Concept of display servers
+=== Concept of display servers
 
-#table(columns: (60%, 40%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (60%, 40%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-- The Linux kernel does not handle the _multiplexing_ of the
-  display and input devices between applications
+    - The Linux kernel does not handle the _multiplexing_ of the
+      display and input devices between applications
 
-  - Only one user-space application can use a display and a given set of
-    input devices
+      - Only one user-space application can use a display and a given set of
+        input devices
 
-- Display servers are special user-space applications that multiplex
-  display/input by:
+    - Display servers are special user-space applications that multiplex
+      display/input by:
 
-  - Allowing multiple client GUI applications to submit their window
-    contents
+      - Allowing multiple client GUI applications to submit their window
+        contents
 
-  - Composing the final frame visible on the screen, based on contents
-    submitted by applications, window visibility and layering
+      - Composing the final frame visible on the screen, based on contents
+        submitted by applications, window visibility and layering
 
-  - Propagating input events to the appropriate clients, based on focus
+      - Propagating input events to the appropriate clients, based on focus
 
-],[
+  ],
+  [
 
-#align(center, [#image("display-server.pdf", width: 100%)])
+    #align(center, [#image("display-server.pdf", width: 100%)])
 
-])
+  ],
+)
 
-===  X11 and X.org
+=== X11 and X.org
 
-#table(columns: (75%, 25%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (75%, 25%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-- _X.org_ is the historical display server on UNIX systems,
-  including Linux
+    - _X.org_ is the historical display server on UNIX systems,
+      including Linux
 
-- Implements the _X11_ protocol, used between clients and the
-  server
+    - Implements the _X11_ protocol, used between clients and the
+      server
 
-  - UNIX socket for local clients, TCP for remote clients
+      - UNIX socket for local clients, TCP for remote clients
 
-- On modern Linux, works on top of DRM or fbdev for graphics, input
-  subsystem for input events
+    - On modern Linux, works on top of DRM or fbdev for graphics, input
+      subsystem for input events
 
-- Still maintained, but now legacy.
+    - Still maintained, but now legacy.
 
-- X11 license
+    - X11 license
 
-- #link("https://www.x.org")
+    - #link("https://www.x.org")
 
-],[
+  ],
+  [
 
-#align(center, [#image("xorg.pdf", width: 100%)])
+    #align(center, [#image("xorg.pdf", width: 100%)])
 
-])
+  ],
+)
 
-===  Wayland
+=== Wayland
 
-#table(columns: (80%, 20%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (80%, 20%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-- _Communication *protocol* that specifies the communication
-  between a display server and its clients, as well as a C library
-  implementation of that protocol_
+    - _Communication *protocol* that specifies the communication
+      between a display server and its clients, as well as a C library
+      implementation of that protocol_
 
-- A display server using the Wayland protocol is called a Wayland
-  *compositor*
+    - A display server using the Wayland protocol is called a Wayland
+      *compositor*
 
-- Modern replacement for the aging X11 protocol
+    - Modern replacement for the aging X11 protocol
 
-- More heavily based on OpenGL technologies
+    - More heavily based on OpenGL technologies
 
-- #link("https://wayland.freedesktop.org/")
+    - #link("https://wayland.freedesktop.org/")
 
-- #link("https://en.wikipedia.org/wiki/Wayland_(display_server_protocol)")[https://en.wikipedia.org/wiki/Wayland_(display_server_protocol)]
+    - #link(
+        "https://en.wikipedia.org/wiki/Wayland_(display_server_protocol)",
+      )[https://en.wikipedia.org/wiki/Wayland_(display_server_protocol)]
 
-],[
+  ],
+  [
 
-#align(center, [#image("wayland.png", width: 100%)]) 
+    #align(center, [#image("wayland.png", width: 100%)])
 
-])
+  ],
+)
 
-===  Wayland compositors
+=== Wayland compositors
 
 - Weston
 
@@ -267,158 +296,185 @@ WantedBy=multi-user.target
 
   - #link("https://gitlab.freedesktop.org/wayland/weston")
 
-- Mutter, used by the GNOME desktop environment 
+- Mutter, used by the GNOME desktop environment
   #link("https://gitlab.gnome.org/GNOME/mutter")
 
 - wlroots, a Wayland compositor library, used by
 
-  - Cage, a Wayland kiosk-style compositor 
+  - Cage, a Wayland kiosk-style compositor
     #link("https://github.com/Hjdskes/cage")
 
-  - swayWM, a tiling Wayland compositor 
+  - swayWM, a tiling Wayland compositor
     #link("https://swaywm.org/")
 
-- And many more 
-  #link("https://wiki.archlinux.org/title/wayland#Compositors")[https://wiki.archlinux.org/title/wayland#Compositors]
+- And many more
+  #link(
+    "https://wiki.archlinux.org/title/wayland#Compositors",
+  )[https://wiki.archlinux.org/title/wayland#Compositors]
 
-===  Concept of graphics toolkits
+=== Concept of graphics toolkits
 
-#table(columns: (70%, 30%), stroke: none, [
+#table(
+  columns: (70%, 30%),
+  stroke: none,
+  [
 
-- The X11 and Wayland protocols are very low-level protocols
+    - The X11 and Wayland protocols are very low-level protocols
 
-- While possible, developing applications directly using those protocols
-  or their corresponding client libraries would be painful
+    - While possible, developing applications directly using those protocols
+      or their corresponding client libraries would be painful
 
-- Existence of _toolkits_
+    - Existence of _toolkits_
 
-  - Some of them work only on top of a display server: X11 or Wayland
+      - Some of them work only on top of a display server: X11 or Wayland
 
-  - Some of them can work directly on top of DRM + input, for single
-    full-screen applications
+      - Some of them can work directly on top of DRM + input, for single
+        full-screen applications
 
-- Widget-oriented toolkits, with APIs to create windows, buttons, text
-  fields, drop-down lists, etc.
+    - Widget-oriented toolkits, with APIs to create windows, buttons, text
+      fields, drop-down lists, etc.
 
-- Game/multimedia-oriented toolkits, with no pre-defined widget API
+    - Game/multimedia-oriented toolkits, with no pre-defined widget API
 
-],[
+  ],
+  [
 
-#align(center, [#image("toolkit.pdf", height: 90%)])
+    #align(center, [#image("toolkit.pdf", height: 90%)])
 
-])
+  ],
+)
 
-===  Qt
+=== Qt
 
-#table(columns: (70%, 30%), stroke: none, [
+#table(
+  columns: (70%, 30%),
+  stroke: none,
+  [
 
-- Highly popular and well-documented development framework, providing:
+    - Highly popular and well-documented development framework, providing:
 
-  - Core libraries: data structures, event handling, XML, databases,
-    networking, etc.
+      - Core libraries: data structures, event handling, XML, databases,
+        networking, etc.
 
-  - Graphics libraries: widgets and more
+      - Graphics libraries: widgets and more
 
-- Standard API is C++, but bindings to other languages available
+    - Standard API is C++, but bindings to other languages available
 
-- Works as
+    - Works as
 
-  - Single application with DRM with OpenGL, or _fbdev_ with no
-    acceleration
+      - Single application with DRM with OpenGL, or _fbdev_ with no
+        acceleration
 
-  - Multiple applications on top of X11 or Wayland
+      - Multiple applications on top of X11 or Wayland
 
-- Multiplatform: Linux, MacOS, Windows.
+    - Multiplatform: Linux, MacOS, Windows.
 
-- Somewhat complex licensing, with a mix of LGPLv3, GPLv2, GPLv3, and an
-  (expensive) commercial license
+    - Somewhat complex licensing, with a mix of LGPLv3, GPLv2, GPLv3, and an
+      (expensive) commercial license
 
-- #link("https://www.qt.io/")
+    - #link("https://www.qt.io/")
 
-],[
+  ],
+  [
 
-#align(center, [#image("qt-logo.pdf", width: 100%)]) 
-])
+    #align(center, [#image("qt-logo.pdf", width: 100%)])
+  ],
+)
 
-===  Gtk
+=== Gtk
 
-#table(columns: (75%, 25%), stroke: none, [
+#table(
+  columns: (75%, 25%),
+  stroke: none,
+  [
 
-- Toolkit used as the base for the GNOME desktop environment, the most
-  popular desktop environment for Linux desktop distributions, but
-  loosing traction in embedded projects.
+    - Toolkit used as the base for the GNOME desktop environment, the most
+      popular desktop environment for Linux desktop distributions, but
+      loosing traction in embedded projects.
 
-- Composed of _glib_ (core library), _pango_ (text handling),
-  _cairo_ (vector graphics), _gtk_ (widget library)
+    - Composed of _glib_ (core library), _pango_ (text handling),
+      _cairo_ (vector graphics), _gtk_ (widget library)
 
-- Standard API in C, but bindings exist for many languages
+    - Standard API in C, but bindings exist for many languages
 
-- Requires a display server: X11 or Wayland
+    - Requires a display server: X11 or Wayland
 
-- License: LGPLv2
+    - License: LGPLv2
 
-- Version 3.x the most deployed currently, 4.x is a new major release
+    - Version 3.x the most deployed currently, 4.x is a new major release
 
-- Multiplatform: Linux, MacOS, Windows.
+    - Multiplatform: Linux, MacOS, Windows.
 
-- #link("https://www.gtk.org")
+    - #link("https://www.gtk.org")
 
-],[
+  ],
+  [
 
-#align(center, [#image("gtk-logo.png", width: 100%)])
+    #align(center, [#image("gtk-logo.png", width: 100%)])
 
-])
+  ],
+)
 
-===  Flutter
+=== Flutter
 
-#table(columns: (75%, 25%), stroke: none, [
+#table(
+  columns: (75%, 25%),
+  stroke: none,
+  [
 
-- Cross-platform UI application development: Linux, Android, iOS,
-  Windows, MacOS
+    - Cross-platform UI application development: Linux, Android, iOS,
+      Windows, MacOS
 
-- Developed and maintained by Google
+    - Developed and maintained by Google
 
-- Applications must be developed using the _Dart_ programming
-  language
+    - Applications must be developed using the _Dart_ programming
+      language
 
-- Applications can run in the Dart virtual machine, or be natively
-  compiled for better performance.
+    - Applications can run in the Dart virtual machine, or be natively
+      compiled for better performance.
 
-- License: BSD-3-Clause
+    - License: BSD-3-Clause
 
-- #link("https://flutter.dev")
+    - #link("https://flutter.dev")
 
-Read our blog post:
-#link("https://bootlin.com/blog/flutter-nvidia-jetson-openembedded-yocto/")
+    Read our blog post:
+    #link("https://bootlin.com/blog/flutter-nvidia-jetson-openembedded-yocto/")
 
-],[
+  ],
+  [
 
-#align(center, [#image("Google-flutter-logo.pdf", width: 90%)])
-#align(center, [#image("flutter-app.png", width: 70%)]) 
-])
+    #align(center, [#image("Google-flutter-logo.pdf", width: 90%)])
+    #align(center, [#image("flutter-app.png", width: 70%)])
+  ],
+)
 
-===  SDL
+=== SDL
 
-#table(columns: (70%, 20%), stroke: none, [
+#table(
+  columns: (70%, 20%),
+  stroke: none,
+  [
 
-- _Cross-platform development library designed to provide low level
-  access to audio, keyboard, mouse, joystick, and graphics hardware_
+    - _Cross-platform development library designed to provide low level
+      access to audio, keyboard, mouse, joystick, and graphics hardware_
 
-- Implemented in C, lightweight
+    - Implemented in C, lightweight
 
-- Does not provide a widget library
+    - Does not provide a widget library
 
-- Games, media players, custom UIs
+    - Games, media players, custom UIs
 
-- License: zlib license (simple permissive license)
+    - License: zlib license (simple permissive license)
 
-],[
-   
-#align(center, [#image("sdl-logo.png", width: 100%)])
+  ],
+  [
 
-])
+    #align(center, [#image("sdl-logo.png", width: 100%)])
 
-===  Other graphical toolkits
+  ],
+)
+
+=== Other graphical toolkits
 
 - Enlightenment Foundation Libraries (EFL) / Elementary
 
@@ -440,13 +496,15 @@ Read our blog post:
   - #link("https://lvgl.io/")
 
 - See
-  #link("https://en.wikipedia.org/wiki/List_of_widget_toolkits")[https://en.wikipedia.org/wiki/List_of_widget_toolkits]
+  #link(
+    "https://en.wikipedia.org/wiki/List_of_widget_toolkits",
+  )[https://en.wikipedia.org/wiki/List_of_widget_toolkits]
 
-===  Linux multimedia stack overview
+=== Linux multimedia stack overview
 
 #align(center, [#image("multimedia-stack.pdf", height: 90%)])
 
-===  Audio stack
+=== Audio stack
 
 - Kernel-side: the ALSA subsystem, _Advanced Linux Sound
   Architecture_
@@ -474,7 +532,7 @@ Read our blog post:
 
   - #link("https://pipewire.org/")
 
-===  Video stack
+=== Video stack
 
 - Kernel-side: Video4Linux subsystem, or V4L in short
 
@@ -496,7 +554,7 @@ Read our blog post:
 - Supported in lots of multimedia stacks/software: GStreamer, ffmpeg,
   VLC, etc.
 
-===  GStreamer
+=== GStreamer
 
 - _Library for constructing graphs of media-handling components_
 
@@ -512,34 +570,41 @@ Read our blog post:
 
 #align(center, [#image("gstreamer-pipeline.png", width: 60%)])
 
-===  Further details on Linux graphics and multimedia stacks
+=== Further details on Linux graphics and multimedia stacks
 
-#table(columns: (60%, 40%), stroke: none, [
+#table(
+  columns: (60%, 40%),
+  stroke: none,
+  [
 
-- Bootlin's
-  #link("https://bootlin.com/doc/training/graphics")[ _Understanding the Linux graphics stack_]
-  training
+    - Bootlin's
+      #link(
+        "https://bootlin.com/doc/training/graphics",
+      )[ _Understanding the Linux graphics stack_]
+      training
 
-- Bootlin's
-  #link("https://bootlin.com/doc/training/audio")[ _Embedded Linux Audio_]
-  training
+    - Bootlin's
+      #link("https://bootlin.com/doc/training/audio")[ _Embedded Linux Audio_]
+      training
 
-- Complete courses focused exclusively on those topics
+    - Complete courses focused exclusively on those topics
 
-- Freely available training materials
+    - Freely available training materials
 
-],[
+  ],
+  [
 
-#align(center, [#image("linux-graphics-course-slide.jpg", width: 110%)])
-#align(center, [#image("linux-audio-course-slide.jpg", width: 110%)])
+    #align(center, [#image("linux-graphics-course-slide.jpg", width: 110%)])
+    #align(center, [#image("linux-audio-course-slide.jpg", width: 110%)])
 
-])
+  ],
+)
 
-===  Linux networking stack
+=== Linux networking stack
 
 #align(center, [#image("networking-stack.pdf", height: 95%)])
 
-===  Web accessible UI
+=== Web accessible UI
 
 - Very common in embedded systems to use a Web interface for device
   configuration/monitoring
@@ -550,7 +615,7 @@ Read our blog post:
 - Can use PHP, NodeJS or other interpreted languages, or simple CGI
   shell scripts
 
-===  Web browsers: rendering engines
+=== Web browsers: rendering engines
 
 To add HTML rendering capability to your device
 
@@ -575,14 +640,16 @@ To add HTML rendering capability to your device
 
   - Developed by Google, used in Chrome
 
-  - #link("https://en.wikipedia.org/wiki/Blink_(browser_engine)")[https://en.wikipedia.org/wiki/Blink_(browser_engine)]
+  - #link(
+      "https://en.wikipedia.org/wiki/Blink_(browser_engine)",
+    )[https://en.wikipedia.org/wiki/Blink_(browser_engine)]
 
   - Integrated with Qt:
     #link("https://wiki.qt.io/QtWebEngine")[QtWebEngine]
 
   - Used by #link("https://www.electronjs.org/")[Electron]
 
-===  Web-based UIs
+=== Web-based UIs
 
 - An alternative to native GUI applications is to create a GUI based on
   Web technologies
@@ -602,7 +669,7 @@ To add HTML rendering capability to your device
 - Beware of the footprint and performance impact: a web rendering engine
   is a massive and resource-consuming piece of software
 
-===  Programming languages
+=== Programming languages
 
 - Wide range of languages and frameworks available, not just C/C++
 
@@ -630,10 +697,10 @@ To add HTML rendering capability to your device
 
   - Perl, Ruby, PHP
 
-#setuplabframe([Integration of additional software stacks],[
+#setuplabframe([Integration of additional software stacks], [
 
-- Integration of _systemd_ as an init system
+  - Integration of _systemd_ as an init system
 
-- Use _udev_ built in _systemd_ for automatic module loading
+  - Use _udev_ built in _systemd_ for automatic module loading
 
 ])

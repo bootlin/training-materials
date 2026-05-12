@@ -4,11 +4,11 @@
 
 #show: bootlin-theme
 
-#show raw.where(lang:"console", block: true): set text(11.5pt)
+#show raw.where(lang: "console", block: true): set text(11.5pt)
 
 == Kernel configuration
 
-===  Kernel configuration
+=== Kernel configuration
 
 - The kernel contains thousands of device drivers, filesystem drivers,
   network protocols and other configurable items
@@ -28,7 +28,7 @@
     capabilities, filesystems, real-time, etc.). Such generic options
     are available in all architectures.
 
-===  Kernel configuration and build system
+=== Kernel configuration and build system
 
 - The kernel configuration and build system is based on multiple
   Makefiles
@@ -51,7 +51,7 @@
 
   - `make <target>`
 
-===  Specifying the target architecture 
+=== Specifying the target architecture
 
 First, specify the architecture for the kernel to build
 
@@ -69,7 +69,7 @@ First, specify the architecture for the kernel to build
   - Compile the kernel with source code and headers for the target
     architecture.
 
-===  Choosing a compiler 
+=== Choosing a compiler
 
 The compiler invoked by the kernel Makefile is `$(CROSS_COMPILE)gcc`
 
@@ -90,15 +90,17 @@ The compiler invoked by the kernel Makefile is `$(CROSS_COMPILE)gcc`
 
 Set `LLVM` to `1` to compile your kernel with Clang. \
 See our
-#link("https://bootlin.com/pub/conferences/2022/lee/opdenacker-llvm-tools-for-linux-kernel/opdenacker-llvm-tools-for-linux-kernel.pdf")[LLVM tools for the Linux kernel]
+#link(
+  "https://bootlin.com/pub/conferences/2022/lee/opdenacker-llvm-tools-for-linux-kernel/opdenacker-llvm-tools-for-linux-kernel.pdf",
+)[LLVM tools for the Linux kernel]
 presentation.
 
-===  Specifying ARCH and CROSS_COMPILE 
+=== Specifying ARCH and CROSS_COMPILE
 
 There are actually two ways of defining `ARCH` and `CROSS_COMPILE`:
 
 - Pass `ARCH` and `CROSS_COMPILE` on the `make` command line:  \
-  `make ARCH=arm CROSS_COMPILE=arm-linux- ...`  \ 
+  `make ARCH=arm CROSS_COMPILE=arm-linux- ...`  \
   Drawback: it is easy to forget to pass these variables when you run
   any `make` command, causing your build and configuration to be screwed
   up.
@@ -111,7 +113,7 @@ There are actually two ways of defining `ARCH` and `CROSS_COMPILE`:
   start working on the project, see also the
   #link("https://direnv.net/") project.
 
-===  Initial configuration 
+=== Initial configuration
 
 Difficult to find which kernel configuration will work with your hardware and root filesystem. Start
 with one that works!
@@ -138,7 +140,7 @@ with one that works!
     - On ARM 64-bit, there is only one big default configuration to
       customize
 
-===  Create your own default configuration
+=== Create your own default configuration
 
 - Use a tool such as `make menuconfig` to make changes to the
   configuration
@@ -160,10 +162,10 @@ with one that works!
   running `make myown_defconfig`
 
 - When you use an embedded build system (Buildroot, OpenEmbedded) use
-  its specific commands. E.g. `make linux-menuconfig` and 
+  its specific commands. E.g. `make linux-menuconfig` and
   `make linux-update-defconfig` in Buildroot.
 
-===  Built-in or module?
+=== Built-in or module?
 
 - The *kernel image* is a *single file*, resulting from
   the linking of all object files that correspond to features enabled in
@@ -186,7 +188,7 @@ with one that works!
   - This is not possible in the early boot procedure of the kernel,
     because no filesystem is available
 
-===  Kernel option types 
+=== Kernel option types
 
 There are different types of options, defined in `Kconfig` files:
 
@@ -213,45 +215,51 @@ There are different types of options, defined in `Kconfig` files:
   Example: #kconfigval("CONFIG_LOCALVERSION", "-no-network")  \
   Useful to distinguish between two kernels built from different options
 
-===  Kernel option dependencies 
+=== Kernel option dependencies
 
 #[ #set text(size: 17pt)
-Enabling a network driver requires the network stack to be enabled, therefore configuration symbols have two ways to express dependencies:
+  Enabling a network driver requires the network stack to be enabled, therefore configuration symbols have two ways to express dependencies:
 ]
 
-#table(columns: (40%, 60%), stroke: none, gutter: 15pt, [
-- `depends on` dependency:
-  
-  #text(size:14.5pt)[
-  ```
-  config B
-      depends on A
-  ```]
+#table(
+  columns: (40%, 60%),
+  stroke: none,
+  gutter: 15pt,
+  [
+    - `depends on` dependency:
 
-  - B is not visible until A is enabled
+      #text(size: 14.5pt)[
+        ```
+        config B
+            depends on A
+        ```]
 
-  - Works well for dependency chains
+      - B is not visible until A is enabled
 
-],[
+      - Works well for dependency chains
 
-- `select` dependency:
+  ],
+  [
 
-  #text(size:14.5pt)[
-  ```
-  config A
-      select B
-  ```]
+    - `select` dependency:
 
-  - When A is enabled, B is enabled too (and cannot be disabled
-    manually)
+      #text(size: 14.5pt)[
+        ```
+        config A
+            select B
+        ```]
 
-  - Should preferably not select symbols with `depends on` dependencies
+      - When A is enabled, B is enabled too (and cannot be disabled
+        manually)
 
-  - Used to declare hardware features or select libraries
-])
+      - Should preferably not select symbols with `depends on` dependencies
+
+      - Used to declare hardware features or select libraries
+  ],
+)
 #v(-1em)
 #[ #set text(size: 14pt)
-`
+  `
 config SPI_ATH79
         tristate "Atheros AR71XX/AR724X/AR913X SPI controller driver"
         depends on ATH79 || COMPILE_TEST
@@ -262,89 +270,106 @@ config SPI_ATH79
 `
 ]
 
-===  Kernel configuration details
+=== Kernel configuration details
 
-#table(columns: (60%, 42%), stroke: none, gutter:15pt,[
+#table(
+  columns: (60%, 42%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-- The configuration is stored in the `.config` file at the root of
-  kernel sources
+    - The configuration is stored in the `.config` file at the root of
+      kernel sources
 
-  - Simple text file, `CONFIG_PARAM=value`
+      - Simple text file, `CONFIG_PARAM=value`
 
-  - Options are grouped by sections and are prefixed with `CONFIG_`
+      - Options are grouped by sections and are prefixed with `CONFIG_`
 
-  - "No" value is encoded as `# CONFIG_FOO is not set`
+      - "No" value is encoded as `# CONFIG_FOO is not set`
 
-  - Included by the top-level kernel Makefile
+      - Included by the top-level kernel Makefile
 
-  - Typically not edited by hand because of the dependencies
+      - Typically not edited by hand because of the dependencies
 
-],[
-  #text(size: 18pt)[
-`
+  ],
+  [
+    #text(size: 18pt)[
+      `
 #
 # CD-ROM/DVD Filesystems
 #
-CONFIG_ISO9660_FS=m 
-CONFIG_JOLIET=y 
-CONFIG_ZISOFS=y 
+CONFIG_ISO9660_FS=m
+CONFIG_JOLIET=y
+CONFIG_ZISOFS=y
 CONFIG_UDF_FS=y
 # end of CD-ROM/DVD Filesystems
 
 #
 # DOS/FAT/EXFAT/NT Filesystems
 #
-CONFIG_FAT_FS=y 
+CONFIG_FAT_FS=y
 CONFIG_MSDOS_FS=y
-# CONFIG_VFAT_FS is not set 
+# CONFIG_VFAT_FS is not set
 CONFIG_FAT_DEFAULT_CODEPAGE=437
 # CONFIG_EXFAT_FS is not set
 `
-]
+    ]
 
-])
+  ],
+)
 
-===  xconfig
+=== xconfig
 
-#table(columns: (50%, 50%), stroke: none, gutter:15pt,[ 
+#table(
+  columns: (50%, 50%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-`make xconfig`
+    `make xconfig`
 
-- A graphical interface to configure the kernel.
+    - A graphical interface to configure the kernel.
 
-- File browser: easy to load configuration files
+    - File browser: easy to load configuration files
 
-- Search interface to look for parameters (`[Ctrl]` + `[f]`)
+    - Search interface to look for parameters (`[Ctrl]` + `[f]`)
 
-- Required Debian/Ubuntu packages: `qtbase5-dev` on Ubuntu 22.04
+    - Required Debian/Ubuntu packages: `qtbase5-dev` on Ubuntu 22.04
 
-],[
-#align(center, [#image("xconfig-screenshot.png", width: 100%)])
+  ],
+  [
+    #align(center, [#image("xconfig-screenshot.png", width: 100%)])
 
-])
+  ],
+)
 
-===  menuconfig
+=== menuconfig
 
-#table(columns: (50%, 50%), stroke: none, [ 
-  
-`make menuconfig`
+#table(
+  columns: (50%, 50%),
+  stroke: none,
+  [
 
-- Useful when no graphics are available. Very efficient interface.
+    `make menuconfig`
 
-- Same interface found in other tools: BusyBox, Buildroot...
+    - Useful when no graphics are available. Very efficient interface.
 
-- Convenient number shortcuts to jump directly to search results.
+    - Same interface found in other tools: BusyBox, Buildroot...
 
-- Required Debian/Ubuntu packages: `libncurses-dev`
+    - Convenient number shortcuts to jump directly to search results.
 
-- Alternative: `make nconfig`  \
-  (now also has the number shortcuts)
-],[
-#align(center, [#image("menuconfig-screenshot.png", width: 100%)])
+    - Required Debian/Ubuntu packages: `libncurses-dev`
 
-])
+    - Alternative: `make nconfig`  \
+      (now also has the number shortcuts)
+  ],
+  [
+    #align(center, [#image("menuconfig-screenshot.png", width: 100%)])
 
-===  Kernel configuration options 
+  ],
+)
+
+=== Kernel configuration options
 
 You can switch from one tool to another, they all load/save the same `.config` file, and show the same
 set of options
@@ -353,7 +378,7 @@ set of options
 
 #align(center, [#image("iso-example.pdf", width: 100%)])
 
-===  make oldconfig 
+=== make oldconfig
 
 `make oldconfig`
 
@@ -367,7 +392,7 @@ set of options
 If you edit a `.config` file by hand, it's useful to run `make oldconfig` afterwards, to set values to new parameters that could have
 appeared because of dependency changes.
 
-===  Undoing configuration changes 
+=== Undoing configuration changes
 
 A frequent problem:
 
@@ -383,31 +408,36 @@ A frequent problem:
 == Compiling and installing the kernel
 <compiling-and-installing-the-kernel>
 
-===  Kernel compilation
+=== Kernel compilation
 
-#table(columns: (65%, 35%), stroke: none, [ 
+#table(
+  columns: (65%, 35%),
+  stroke: none,
+  [
 
-`make`
+    `make`
 
-- Only works from the top kernel source directory
+    - Only works from the top kernel source directory
 
-- Should not be performed as a privileged user
+    - Should not be performed as a privileged user
 
-- Run several *\j*\obs in parallel. Our advice: `$(nproc)` to
-  fully load the CPU and I/Os at all times.  \
-  Example: `make -j20`
+    - Run several *\j*\obs in parallel. Our advice: `$(nproc)` to
+      fully load the CPU and I/Os at all times.  \
+      Example: `make -j20`
 
-- To *\re*\compile faster (7x according to some benchmarks), 
-  use the `ccache` compiler cache:  \
-  `export CROSS_COMPILE="ccache arm-linux-"`
+    - To *\re*\compile faster (7x according to some benchmarks),
+      use the `ccache` compiler cache:  \
+      `export CROSS_COMPILE="ccache arm-linux-"`
 
-],[
-  
-#align(center, [#image("parallel-make-benefits.pdf", width: 100%)])
+  ],
+  [
 
-])
+    #align(center, [#image("parallel-make-benefits.pdf", width: 100%)])
 
-===  Kernel compilation results
+  ],
+)
+
+=== Kernel compilation results
 
 - `arch/<arch>/boot/Image`, uncompressed kernel image that can be
   booted
@@ -426,7 +456,7 @@ A frequent problem:
 - `vmlinux`, a raw uncompressed kernel image in the ELF format, useful
   for debugging purposes but generally not used for booting purposes
 
-===  Kernel installation: native case
+=== Kernel installation: native case
 
 - `sudo make install`
 
@@ -448,7 +478,7 @@ A frequent problem:
   configuration utility to make the new kernel available at the next
   boot.
 
-===  Kernel installation: embedded case
+=== Kernel installation: embedded case
 
 - `make install` is rarely used in embedded development, as the kernel
   image is a single file, easy to handle.
@@ -462,7 +492,7 @@ A frequent problem:
 - It is however possible to customize the `make install` behavior in \
   `arch/<arch>/boot/install.sh`
 
-===  Module installation: native case
+=== Module installation: native case
 
 - `sudo make modules_install`
 
@@ -476,7 +506,7 @@ A frequent problem:
     as in the sources.
 
   - `modules.alias`, `modules.alias.bin`  \
-    Aliases for module loading utilities#if sys.inputs.training == "linux-kernel" {[, see next slide]}
+    Aliases for module loading utilities#if sys.inputs.training == "linux-kernel" { [, see next slide] }
 
   - `modules.dep`, `modules.dep.bin`  \
     Module dependencies. Kernel modules can depend on other modules,
@@ -493,10 +523,13 @@ A frequent problem:
 #if sys.inputs.training == "linux-kernel" {
   [
     === Module alias: _modules.alias_
-    #align(center, [#image("/slides/kernel-hw-devices/module-alias-usage.pdf", width: 100%)])
+    #align(center, [#image(
+      "/slides/kernel-hw-devices/module-alias-usage.pdf",
+      width: 100%,
+    )])
   ]
 }
-===  Module installation: embedded case
+=== Module installation: embedded case
 
 - In embedded development, you can't directly use `make
   modules_install` as it would install target modules in `/lib/modules`
@@ -507,36 +540,42 @@ A frequent problem:
   instead of your host root filesystem (no need to be root):  \
   `make INSTALL_MOD_PATH=<dir>/ modules_install`
 
-===  Kernel cleanup targets
+=== Kernel cleanup targets
 
-#table(columns: (80%, 20%), stroke: none, gutter: 15pt,[
+#table(
+  columns: (80%, 20%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-- From `make help`:
+    - From `make help`:
 
-```console
-Cleaning targets:
-  clean           - Remove most generated files but keep the config and 
-                    enough build support to build external modules
-  mrproper        - Remove all generated files + config + various backup files
-  distclean       - mrproper + remove editor backup and patch files
-```
-- If you are in a git tree, remove all files not tracked (and ignored)
-  by git:  `git clean -fdx`
+    ```console
+    Cleaning targets:
+      clean           - Remove most generated files but keep the config and
+                        enough build support to build external modules
+      mrproper        - Remove all generated files + config + various backup files
+      distclean       - mrproper + remove editor backup and patch files
+    ```
+    - If you are in a git tree, remove all files not tracked (and ignored)
+      by git:  `git clean -fdx`
 
-],[
+  ],
+  [
 
-#align(center, [#image("kernel-mrproper.png", width: 100%)])
+    #align(center, [#image("kernel-mrproper.png", width: 100%)])
 
-])
+  ],
+)
 
-===  Kernel building overview
+=== Kernel building overview
 
 #align(center, [#image("kernel-building-overview.pdf", height: 90%)])
 
 == Booting the kernel
 <booting-the-kernel>
 
-===  Hardware description
+=== Hardware description
 
 - Many embedded architectures have a lot of non-discoverable hardware
   (serial, Ethernet, I2C, Nand flash, USB controllers...)

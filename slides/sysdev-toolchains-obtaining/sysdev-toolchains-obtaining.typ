@@ -3,50 +3,55 @@
 #import "/typst/local/common.typ": *
 
 #show: bootlin-theme.with(
-  aspect-ratio: "16-9"
+  aspect-ratio: "16-9",
 )
 
 #show raw.where(block: true): set text(size: 13.5pt)
 
 == Obtaining a Toolchain
 
-===  Building a toolchain manually
+=== Building a toolchain manually
 
 #text(size: 19pt)[
-- Building a cross-compiling toolchain manually is a fairly difficult
-  process
+  - Building a cross-compiling toolchain manually is a fairly difficult
+    process
 
-- Lots of details to learn: many components to build with complicated
-  configuration
+  - Lots of details to learn: many components to build with complicated
+    configuration
 
-- Typical process is:
+  - Typical process is:
 
-  - Build dependencies of binutils/gcc (GMP, MPFR, ISL, etc.)
+    - Build dependencies of binutils/gcc (GMP, MPFR, ISL, etc.)
 
-  - Build _binutils_
+    - Build _binutils_
 
-  - Build a baremetal, first stage _GCC_
+    - Build a baremetal, first stage _GCC_
 
-  - Extract kernel headers from the Linux source code
+    - Extract kernel headers from the Linux source code
 
-  - Build the C library using the first stage GCC
+    - Build the C library using the first stage GCC
 
-  - Build the second stage and final _GCC_ supporting the Linux OS
-    and the C library.
+    - Build the second stage and final _GCC_ supporting the Linux OS
+      and the C library.
 
-- Many decisions to make about the components: C library, gcc and
-  binutils versions, ABI, floating point mechanisms, etc. Not trivial to
-  find correct combinations of these possibilities
+  - Many decisions to make about the components: C library, gcc and
+    binutils versions, ABI, floating point mechanisms, etc. Not trivial to
+    find correct combinations of these possibilities
 
-- See the
-  #link("https://crosstool-ng.github.io/docs/toolchain-construction/")[Crosstool-NG documentation]
-  for details on how toolchains are built.
+  - See the
+    #link(
+      "https://crosstool-ng.github.io/docs/toolchain-construction/",
+    )[Crosstool-NG documentation]
+    for details on how toolchains are built.
 
-- Talk: _Anatomy of Cross-Compilation Toolchains_, by Thomas
-  Petazzoni, ELCE 2017, #link("https://youtu.be/Pbt330zuNPc")[video] and
-  #link("https://elinux.org/images/1/15/Anatomy_of_Cross-Compilation_Toolchains.pdf")[slides]]
+  - Talk: _Anatomy of Cross-Compilation Toolchains_, by Thomas
+    Petazzoni, ELCE 2017, #link("https://youtu.be/Pbt330zuNPc")[video] and
+    #link(
+      "https://elinux.org/images/1/15/Anatomy_of_Cross-Compilation_Toolchains.pdf",
+    )[slides]
+]
 
-===  Get a pre-compiled toolchain
+=== Get a pre-compiled toolchain
 
 - Solution that many people choose
 
@@ -61,7 +66,9 @@
 - Some possibilities:
 
   - Toolchains packaged by your distribution, for example Ubuntu package
-    #link("https://packages.ubuntu.com/gcc-arm-linux-gnueabihf")[gcc-arm-linux-gnueabihf]
+    #link(
+      "https://packages.ubuntu.com/gcc-arm-linux-gnueabihf",
+    )[gcc-arm-linux-gnueabihf]
     or Fedora
     #link("https://packages.fedoraproject.org/pkgs/cross-gcc/gcc-arm-linux-gnu/")[gcc-arm-linux-gnu].
     Often limited to ARM/ARM64 with glibc.
@@ -69,22 +76,31 @@
   - Bootlin's GNU toolchains, most CPU architectures, with
     glibc/uClibc/musl, #link("https://toolchains.bootlin.com")
 
-  - #link("https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain/downloads")[ARM and ARM64 toolchains released by ARM]
+  - #link(
+      "https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain/downloads",
+    )[ARM and ARM64 toolchains released by ARM]
 
-===  Example of toolchains from ARM: downloading
+=== Example of toolchains from ARM: downloading
 
-#table(columns: (50%, 50%), stroke: none, [
+#table(
+  columns: (50%, 50%),
+  stroke: none,
+  [
 
-#align(center, [#image("arm-toolchain.png", height: 90%)])
+    #align(center, [#image("arm-toolchain.png", height: 90%)])
 
-],[
+  ],
+  [
 
-From
-#link("https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain/downloads")[Arm GNU Toolchains]
+    From
+    #link(
+      "https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain/downloads",
+    )[Arm GNU Toolchains]
 
-])
+  ],
+)
 
-===  Example of toolchains from ARM: using
+=== Example of toolchains from ARM: using
 
 ```
 $ wget https://developer.arm.com/-/media/Files/downloads/gnu-a/10.3-2021.07/binrel/[...]
@@ -100,7 +116,7 @@ $ file test test: ELF 32-bit LSB executable, ARM, EABI5 version 1 (SYSV), dynami
    for GNU/Linux 3.2.0, with debug_info, not stripped
 ```
 
-===  Toolchain building utilities 
+=== Toolchain building utilities
 
 Another solution is to use utilities that *automate the process of building the toolchain*
 
@@ -120,29 +136,34 @@ Another solution is to use utilities that *automate the process of building the 
   that automatically fetch, extract, configure, compile and install the
   different components
 
-===  Toolchain building utilities (2)
+=== Toolchain building utilities (2)
 
-#table(columns: (50%, 50%), stroke: none, [
-  
-*Crosstool-ng*
+#table(
+  columns: (50%, 50%),
+  stroke: none,
+  [
 
-- Rewrite of the older Crosstool, with a menuconfig-like configuration
-  system
+    *Crosstool-ng*
 
-- Feature-full: supports uClibc, glibc and musl, hard and soft float,
-  many architectures
+    - Rewrite of the older Crosstool, with a menuconfig-like configuration
+      system
 
-- Actively maintained
+    - Feature-full: supports uClibc, glibc and musl, hard and soft float,
+      many architectures
 
-- #link("https://crosstool-ng.github.io/")
+    - Actively maintained
 
-],[
+    - #link("https://crosstool-ng.github.io/")
 
-#align(center, [#image("crosstool-ng.png", width: 100%)])
+  ],
+  [
 
-])
+    #align(center, [#image("crosstool-ng.png", width: 100%)])
 
-===  Toolchain building utilities (3) 
+  ],
+)
+
+=== Toolchain building utilities (3)
 
 Many root filesystem build systems also allow the construction of a cross-compiling toolchain
 
@@ -170,7 +191,7 @@ Many root filesystem build systems also allow the construction of a cross-compil
 
   - #link("https://www.yoctoproject.org/")
 
-===  Crosstool-NG: download
+=== Crosstool-NG: download
 
 - Getting Crosstool-NG
 
@@ -192,7 +213,7 @@ Many root filesystem build systems also allow the construction of a cross-compil
   $ ./bootstrap
   ```
 
-===  Crosstool-NG: installation
+=== Crosstool-NG: installation
 
 - Installation can be done:
 
@@ -218,7 +239,7 @@ Many root filesystem build systems also allow the construction of a cross-compil
 - Note: the `make` invocation doesn't build any toolchain, it builds the
   `ct-ng` executable.
 
-===  Crosstool-NG: toolchain configuration
+=== Crosstool-NG: toolchain configuration
 
 - Once installed, the `ct-ng` tool allows to configure and build an
   arbitrary number of toolchains
@@ -245,13 +266,13 @@ Many root filesystem build systems also allow the construction of a cross-compil
 
   - `./ct-ng nconfig`
 
-===  Crosstool-NG: toolchain configuration
+=== Crosstool-NG: toolchain configuration
 
 #align(center, [#image("ct-ng-menu.png", height: 70%)])
 
 `./ct-ng menuconfig`
 
-===  Crosstool-NG: toolchain building
+=== Crosstool-NG: toolchain building
 
 - To build the toolchain
 
@@ -266,7 +287,7 @@ Many root filesystem build systems also allow the construction of a cross-compil
 - By default the results go in , as defined by the option in _Paths
   and misc options_
 
-===  Important toolchain contents
+=== Important toolchain contents
 
 - `bin/`: cross compilation tool binaries
 

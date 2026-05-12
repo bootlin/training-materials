@@ -6,7 +6,7 @@
 
 == Linux versioning scheme and development process
 
-===  Linux versioning scheme
+=== Linux versioning scheme
 
 - Until 2003, there was a new "stabilized" release branch of Linux every
   2 or 3 years (2.0, 2.2, 2.4). Development branches took 2-3 years to
@@ -34,11 +34,11 @@
 - For each release, there are bugfix and security updates called stable
   releases: 7.0.1, 7.0.2, etc.
 
-===  Linux development model Using merge and bug fixing windows
+=== Linux development model Using merge and bug fixing windows
 
 #align(center, [#image("development-process.pdf", width: 100%)])
 
-===  Need for long term support (1)
+=== Need for long term support (1)
 
 - Issue: bug and security fixes only released for most recent kernel
   versions.
@@ -47,18 +47,26 @@
   Term Support)_ release, and is supposed to be supported (and receive
   bug and security fixes) for at least 2 years.
 
-  
-#table(columns: (50%, 50%), stroke: none, [
-  #align(center, [#image("/common/long-term-support-kernels.png", width: 100%)]) 
-  ], [
-  Captured on #link("https://kernel.org") in Feb. 2026, following the
-  #link("https://www.kernel.org/category/releases.html")[_Releases_]
-  link.   
-])
+
+#table(
+  columns: (50%, 50%),
+  stroke: none,
+  [
+    #align(center, [#image(
+      "/common/long-term-support-kernels.png",
+      width: 100%,
+    )])
+  ],
+  [
+    Captured on #link("https://kernel.org") in Feb. 2026, following the
+    #link("https://www.kernel.org/category/releases.html")[_Releases_]
+    link.
+  ],
+)
 - Example at Google: starting from _Android O (2017)_, all new
   Android devices have to run such an LTS kernel.
 
-===  Need for long term support (2)
+=== Need for long term support (2)
 
 - You could also get long term support from a commercial embedded Linux
   provider.

@@ -2,31 +2,37 @@
 
 #import "/typst/local/common.typ": *
 
-===  Valgrind
+=== Valgrind
 
-#table(columns: (80%, 20%), stroke: none, gutter:15pt, [
+#table(
+  columns: (80%, 20%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-#link("https://valgrind.org/")
+    #link("https://valgrind.org/")
 
-- _instrumentation framework for building dynamic analysis tools_
+    - _instrumentation framework for building dynamic analysis tools_
 
-  - detect many memory management and threading bugs
+      - detect many memory management and threading bugs
 
-  - profile programs
+      - profile programs
 
-- Supported architectures: x86, x86-64, ARMv7, ARMv8, mips32, s390,
-  ppc32 and ppc64
+    - Supported architectures: x86, x86-64, ARMv7, ARMv8, mips32, s390,
+      ppc32 and ppc64
 
-- Very popular tool especially for debugging memory issues
+    - Very popular tool especially for debugging memory issues
 
-- Runs your program on a synthetic CPU → significant performance
-  impact (100 x slower on SAMA5D3!), but very detailed instrumentation
+    - Runs your program on a synthetic CPU → significant performance
+      impact (100 x slower on SAMA5D3!), but very detailed instrumentation
 
-- Runs on the target. Easy to build with Yocto Project or Buildroot.
-],[
-#align(center, [#image("valgrind1.png", width: 100%)]) 
-])
-===  Valgrind tools
+    - Runs on the target. Easy to build with Yocto Project or Buildroot.
+  ],
+  [
+    #align(center, [#image("valgrind1.png", width: 100%)])
+  ],
+)
+=== Valgrind tools
 
 - _Memcheck_: detects memory-management problems
 
@@ -46,7 +52,7 @@
 
 - More at #link("https://valgrind.org/info/tools.html")
 
-===  Valgrind examples
+=== Valgrind examples
 
 - _Memcheck_
   #text(size: 13pt)[
@@ -63,14 +69,14 @@
   ]
 - _Callgrind_
   #text(size: 13pt)[
-  ```
-  $ valgrind --tool=callgrind --dump-instr=yes --simulate-cache=yes --collect-jumps=yes <program>
-  $ ls callgrind.out.*
-  callgrind.out.1234
-  $ callgrind_annotate callgrind.out.1234
-  ```]
+    ```
+    $ valgrind --tool=callgrind --dump-instr=yes --simulate-cache=yes --collect-jumps=yes <program>
+    $ ls callgrind.out.*
+    callgrind.out.1234
+    $ callgrind_annotate callgrind.out.1234
+    ```]
 
-===  Kcachegrind - Visualizing Valgrind profiling data
+=== Kcachegrind - Visualizing Valgrind profiling data
 
 #align(center, [#image("kcachegrind.png", height: 90%)
-#link("https://github.com/KDE/kcachegrind")])
+  #link("https://github.com/KDE/kcachegrind")])

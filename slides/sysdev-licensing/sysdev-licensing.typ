@@ -9,7 +9,7 @@
 == Introduction
 <introduction>
 
-===  Free software vs. open-source
+=== Free software vs. open-source
 
 - *Free software*: term defined by the _Free Software
   Foundation_, grants 4 freedoms
@@ -34,7 +34,7 @@
 
 - From a freedom standpoint, they are similar.
 
-===  Open source licenses
+=== Open source licenses
 
 - All free software/open-source licenses rely on _copyright law_
 
@@ -44,47 +44,52 @@
 
   - The non-copyleft licenses, also called _permissive_ licenses
 
-===  Non-Copyleft VS Copyleft licenses
+=== Non-Copyleft VS Copyleft licenses
 
-#table(columns: (50%, 50%), stroke: none, [
+#table(
+  columns: (50%, 50%),
+  stroke: none,
+  [
 
-*Non-Copyleft*  \
-(BSD, MIT, Apache, X11…) 
+    *Non-Copyleft*  \
+    (BSD, MIT, Apache, X11…)
 
- \
+    \
 
-*You can*  \
-Use  \
-Modify  \
-Redistribute 
+    *You can*  \
+    Use  \
+    Modify  \
+    Redistribute
 
- \
+    \
 
-*You must*  \
-Provide license text  \
-Attribution 
+    *You must*  \
+    Provide license text  \
+    Attribution
 
-],[
-*Copyleft*  \
-(GPL, LGPL, AGPL…) 
+  ],
+  [
+    *Copyleft*  \
+    (GPL, LGPL, AGPL…)
 
- \
+    \
 
-*You can*   \
-Use  \
-Modify  \
-Redistribute 
+    *You can*   \
+    Use  \
+    Modify  \
+    Redistribute
 
- \
- 
-*You must*  \
-Provide license text  \
-Attribution  \
-Make source code available
+    \
 
-])
+    *You must*  \
+    Provide license text  \
+    Attribution  \
+    Make source code available
 
-===  What is _copyleft_
+  ],
+)
+
+=== What is _copyleft_
 
 - The concept of _copyleft_ is to ask for reciprocity in the
   freedoms given to a user.
@@ -107,7 +112,7 @@ Make source code available
 == Non-copyleft licenses
 <non-copyleft-licenses>
 
-===  Most common non-copyleft licenses
+=== Most common non-copyleft licenses
 
 - *#link("https://en.wikipedia.org/wiki/MIT_License")[MIT]*,
   *#link("https://opensource.org/licenses/BSD-2-Clause")[BSD 2 CLAUSE]*
@@ -131,7 +136,7 @@ Make source code available
 == Copyleft licenses
 <copyleft-licenses>
 
-===  GPL: GNU General Public License
+=== GPL: GNU General Public License
 
 - The flagship license of the GNU project
 
@@ -160,9 +165,11 @@ Make source code available
 
 - #link("https://www.gnu.org/licenses/gpl-3.0.en.html")
 
-- #link("https://en.wikipedia.org/wiki/GNU_General_Public_License")[https://en.wikipedia.org/wiki/GNU_General_Public_License]
+- #link(
+    "https://en.wikipedia.org/wiki/GNU_General_Public_License",
+  )[https://en.wikipedia.org/wiki/GNU_General_Public_License]
 
-===  LGPL: GNU Lesser General Public License
+=== LGPL: GNU Lesser General Public License
 
 - Used by _glibc_, _uClibc_, and many libraries
 
@@ -185,9 +192,11 @@ Make source code available
 
 - #link("https://www.gnu.org/licenses/lgpl-3.0.en.html")
 
-- #link("https://en.wikipedia.org/wiki/GNU_Lesser_General_Public_License")[https://en.wikipedia.org/wiki/GNU_Lesser_General_Public_License]
+- #link(
+    "https://en.wikipedia.org/wiki/GNU_Lesser_General_Public_License",
+  )[https://en.wikipedia.org/wiki/GNU_Lesser_General_Public_License]
 
-===  GPL/LGPL: redistribution
+=== GPL/LGPL: redistribution
 
 - No obligation when the software is not distributed
 
@@ -206,7 +215,7 @@ Make source code available
 
 - In all cases, the attribution and the license must be preserved
 
-===  GPL/LGPL: version 2 vs version 3
+=== GPL/LGPL: version 2 vs version 3
 
 - GPLv2/LGPLv2 published in 1991, widely used in the open-source world
   for major projects
@@ -236,7 +245,7 @@ Make source code available
   - On-going debate on how strong this requirement is, and how difficult
     it is to comply with
 
-===  GPL: v2, v3, v2 or later, v3 or later
+=== GPL: v2, v3, v2 or later, v3 or later
 
 - Some projects are released under _GPLv2 only_
 
@@ -258,7 +267,7 @@ Make source code available
 
 - Note: this logic applies similarly to the LGPL license.
 
-===  Dual licensing
+=== Dual licensing
 
 - Some companies use a _dual licensing_ business model, mainly for
   software libraries
@@ -274,7 +283,7 @@ Make source code available
 
 - Examples: Qt (only parts), MySQL, wolfSSL, Asterisk, etc.
 
-===  Is this free software?
+=== Is this free software?
 
 - Most of the free software projects are covered by about 10 well-known
   licenses, so it is fairly easy for the majority of projects to get a
@@ -291,14 +300,14 @@ Make source code available
 
 - Otherwise, read the license text
 
-===  Licensing: examples
+=== Licensing: examples
 
 #align(center, [#image("license-cases.pdf", width: 95%)])
 
 == Best practices
 <best-practices>
 
-===  Respect free software licenses
+=== Respect free software licenses
 
 - Free Software is not public domain software, the distributors have
   obligations due to the licenses
@@ -317,12 +326,14 @@ Make source code available
   - Buildroot: `make legal-info`
 
   - Yocto: see
-    #link("https://docs.yoctoproject.org/dev-manual/licenses.html#maintaining-open-source-license-compliance-during-your-product-s-lifecycle")[the project documentation]
+    #link(
+      "https://docs.yoctoproject.org/dev-manual/licenses.html#maintaining-open-source-license-compliance-during-your-product-s-lifecycle",
+    )[the project documentation]
 
 - Conform to the license requirements before shipping the product to the
   customers.
 
-===  Keeping changes separate
+=== Keeping changes separate
 
 - When integrating existing open-source components in your project, it
   is sometimes needed to make modifications to them

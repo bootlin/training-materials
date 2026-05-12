@@ -9,7 +9,7 @@
 == Block devices
 <block-devices>
 
-===  Block vs. raw flash
+=== Block vs. raw flash
 
 - Storage devices are classified in two main types: *block
   devices* and *raw flash devices*
@@ -31,10 +31,10 @@
 
   - NOR flash, NAND flash
 
-===  Block device list
+=== Block device list
 
 - The list of all block devices available in the system can be found in
-  `/proc/partitions` 
+  `/proc/partitions`
 
   ```
   $ cat /proc/partitions major minor #blocks name
@@ -50,7 +50,7 @@
 - `/sys/block/` also stores information about each block device, for
   example whether it is removable storage or not.
 
-===  Partitioning
+=== Partitioning
 
 - Block devices can be partitioned to store different parts of a system
 
@@ -71,10 +71,10 @@
 - Numerous tools to create and modify the partitions on a block device:
   `fdisk`, `cfdisk`, `sfdisk`, `parted`, etc.
 
-===  Transferring data to a block device
+=== Transferring data to a block device
 
 - It is often necessary to transfer data to or from a block device in a
-  _raw_ way 
+  _raw_ way
 
   - Especially to write a _filesystem image_ to a block device
 
@@ -85,24 +85,24 @@
 
 - `dd` is the tool of choice for such transfers:
 
-  - `dd if=/dev/mmcblk0p1 of=testfile bs=1M count=16` \ 
+  - `dd if=/dev/mmcblk0p1 of=testfile bs=1M count=16` \
     Transfers 16 blocks of 1 MB from `/dev/mmcblk0p1` to `testfile`
 
-  - `dd if=testfile of=/dev/sda2 bs=1M seek=4`  \ 
+  - `dd if=testfile of=/dev/sda2 bs=1M seek=4`  \
     Transfers the complete contents of `testfile` to `/dev/sda2`, by
     blocks of 1 MB, but starting at offset 4 MB in `/dev/sda2`
 
   - *Typical mistake*: copying a file (which is not a filesystem
     image) to a filesystem without mounting it first: \
     `dd if=zImage of=/dev/sde1`
-    Instead, you should use:  \ 
-    `sudo mount /dev/sde1 /boot`  \ 
-    `cp zImage /boot/` 
+    Instead, you should use:  \
+    `sudo mount /dev/sde1 /boot`  \
+    `cp zImage /boot/`
 
 == Available block filesystems
 <available-block-filesystems>
 
-===  Ext2 
+=== Ext2
 
 One of the earliest Linux filesystem, introduced in 1993
 
@@ -127,42 +127,52 @@ One of the earliest Linux filesystem, introduced in 1993
 
 Not recommended for embedded systems today!
 
-===  Journaled filesystems
+=== Journaled filesystems
 
-#table(columns: (60%, 40%), stroke: none, [
+#table(
+  columns: (60%, 40%),
+  stroke: none,
+  [
 
-- Unlike simpler filesystems (`ext2`, `vfat`...), designed to stay in a
-  coherent state even after system crashes or a sudden poweroff.
+    - Unlike simpler filesystems (`ext2`, `vfat`...), designed to stay in a
+      coherent state even after system crashes or a sudden poweroff.
 
-- Writes are first described in the journal before being committed to
-  files (can be all writes, or only metadata writes depending on the
-  configuration)
+    - Writes are first described in the journal before being committed to
+      files (can be all writes, or only metadata writes depending on the
+      configuration)
 
-],[
+  ],
+  [
 
-#align(center, [#image("journal.pdf", width: 80%)])
+    #align(center, [#image("journal.pdf", width: 80%)])
 
-])
+  ],
+)
 
-===  Filesystem recovery after crashes
+=== Filesystem recovery after crashes
 
-#table(columns: (40%, 60%), stroke: none, [
-#align(center, [#image("journal-recovery.pdf", width: 100%)])
+#table(
+  columns: (40%, 60%),
+  stroke: none,
+  [
+    #align(center, [#image("journal-recovery.pdf", width: 100%)])
 
-],[
+  ],
+  [
 
-- Thanks to the journal, the recovery at boot time is quick, since the
-  operations in progress at the moment of the unclean shutdown are
-  clearly identified. There's no need for a full filesystem check.
+    - Thanks to the journal, the recovery at boot time is quick, since the
+      operations in progress at the moment of the unclean shutdown are
+      clearly identified. There's no need for a full filesystem check.
 
-- Does not mean that the latest writes made it to the storage: this
-  depends on syncing the changes to the filesystem.
+    - Does not mean that the latest writes made it to the storage: this
+      depends on syncing the changes to the filesystem.
 
-See #link("https://en.wikipedia.org/wiki/Journaling_file_system")[https://en.wikipedia.org/wiki/Journaling_file_system] for further details. 
+    See #link("https://en.wikipedia.org/wiki/Journaling_file_system")[https://en.wikipedia.org/wiki/Journaling_file_system] for further details.
 
-])
+  ],
+)
 
-===  Ext4 
+=== Ext4
 
 The modern successor of Ext2
 
@@ -187,7 +197,7 @@ The modern successor of Ext2
 #v(0.3em)
 #link("https://en.wikipedia.org/wiki/Ext4")
 
-===  XFS 
+=== XFS
 
 A Journaling filesystem
 
@@ -201,7 +211,7 @@ A Journaling filesystem
 #v(0.3em)
 #link("https://en.wikipedia.org/wiki/XFS")
 
-===  Btrfs 
+=== Btrfs
 
 A copy-on-write filesystem
 
@@ -218,7 +228,7 @@ A copy-on-write filesystem
 #v(0.3em)
 #link("https://en.wikipedia.org/wiki/Btrfs")
 
-===  F2FS — Flash-Friendly File System 
+=== F2FS — Flash-Friendly File System
 
 A log-structured filesystem
 
@@ -239,7 +249,7 @@ A log-structured filesystem
 #v(0.3em)
 #link("https://en.wikipedia.org/wiki/F2FS")
 
-===  SquashFS — A Read-Only and Compressed File System 
+=== SquashFS — A Read-Only and Compressed File System
 
 The most popular choice for this usage
 
@@ -259,7 +269,7 @@ The most popular choice for this usage
 #v(0.3em)
 #link("https://en.wikipedia.org/wiki/SquashFS")
 
-===  EROFS — Enhanced Read-Only File System 
+=== EROFS — Enhanced Read-Only File System
 
 A more recent read-only, compressed solution
 
@@ -282,7 +292,7 @@ A more recent read-only, compressed solution
 #v(0.3em)
 #link("https://en.wikipedia.org/wiki/EROFS")
 
-===  Our advice for choosing the best filesystem
+=== Our advice for choosing the best filesystem
 
 
 - Some filesystems will work better than others depending on how you use
@@ -302,17 +312,19 @@ A more recent read-only, compressed solution
 - If you haven't done benchmarks yet, a good default choice is `ext4`
   for read/write partitions.
 
-===  Filesystem benchmarks
+=== Filesystem benchmarks
 
 #align(center, [#image("rating.pdf", height: 80%)])
 
 #[ #set text(size: 16pt)
-See our presentation for more details and benchmarks (Linux 6.3, ARM32
-BeagleBone Black): \
-#link("https://bootlin.com/pub/conferences/2023/eoss/opdenacker-finding-best-block-filesystem/")
+  See our presentation for more details and benchmarks (Linux 6.3, ARM32
+  BeagleBone Black): \
+  #link(
+    "https://bootlin.com/pub/conferences/2023/eoss/opdenacker-finding-best-block-filesystem/",
+  )
 ]
 
-===  Compatibility filesystems 
+=== Compatibility filesystems
 
 Linux also supports several other filesystem formats, mainly to be interoperable with other operating
 systems:
@@ -337,7 +349,7 @@ systems:
 - `hfs` (#kconfig("CONFIG_HFS_FS")) for compatibility with the
   MacOS HFS filesystem.
 
-===  tmpfs: filesystem in RAM 
+=== tmpfs: filesystem in RAM
 
 #kconfig("CONFIG_TMPFS")
 
@@ -351,16 +363,16 @@ systems:
 
 - How to use: choose a name to distinguish the various tmpfs instances
   you have (unlike in most other filesystems, each tmpfs instance is
-  different). Examples: 
-   \ `mount -t tmpfs run /run` 
-   \ `mount -t tmpfs shm /dev/shm`
+  different). Examples:
+  \ `mount -t tmpfs run /run`
+  \ `mount -t tmpfs shm /dev/shm`
 
 - See #kdochtml("filesystems/tmpfs") in kernel documentation.
 
 == Using block filesystems
 <using-block-filesystems>
 
-===  Creating filesystems
+=== Creating filesystems
 
 - To create an empty ext4 filesystem on a block device or inside an
   already-existing image file
@@ -386,14 +398,14 @@ systems:
 
   - Your image is then ready to be transferred to your block device
 
-===  Mounting filesystem images
+=== Mounting filesystem images
 
 - Once a filesystem image has been created, one can access and modify
   its contents from the development workstation, using the *loop*
   mechanism:
 
-- Example: 
-  `mkdir /mnt/test` 
+- Example:
+  `mkdir /mnt/test`
   `mount -t ext4 -o loop rootfs.img /mnt/test`
 
 - In the `/mnt/test` directory, one can access and modify the contents
@@ -407,7 +419,7 @@ systems:
 
 - Do not forget to run `umount` before using the filesystem image!
 
-===  How to access partitions in a disk image
+=== How to access partitions in a disk image
 
 - You may have dumped a complete block device (with partitions) into a
   disk image.
@@ -432,7 +444,7 @@ systems:
   $ mount /dev/loop2p2 /mnt/rootfs
   ```
 
-===  Creating squashfs filesystems
+=== Creating squashfs filesystems
 
 - Need to install the `squashfs-tools` package
 
@@ -456,30 +468,35 @@ systems:
 
 - Similar commands exist for EROFS
 
-===  Mixing read-only and read-write filesystems
+=== Mixing read-only and read-write filesystems
 
-#table(columns: (70%, 30%), stroke: none, [ 
+#table(
+  columns: (70%, 30%),
+  stroke: none,
+  [
 
-Good idea to split your block storage into:
+    Good idea to split your block storage into:
 
-- A compressed read-only partition (`SquashFS`) 
-  Typically used for the root filesystem (binaries, kernel...). 
-  Compression saves space. Read-only access protects your system from
-  mistakes and data corruption.
+    - A compressed read-only partition (`SquashFS`)
+      Typically used for the root filesystem (binaries, kernel...).
+      Compression saves space. Read-only access protects your system from
+      mistakes and data corruption.
 
-- A read-write partition with a journaled filesystem (like `ext4`) 
-  Used to store user or configuration data. 
-  Journaling guarantees filesystem integrity after power off or crashes.
+    - A read-write partition with a journaled filesystem (like `ext4`)
+      Used to store user or configuration data.
+      Journaling guarantees filesystem integrity after power off or crashes.
 
-- Ram storage for temporary files (`tmpfs`)
+    - Ram storage for temporary files (`tmpfs`)
 
-],[
-  
-#align(center, [#image("mixing-filesystems.pdf", height: 80%)])
+  ],
+  [
 
-])
+    #align(center, [#image("mixing-filesystems.pdf", height: 80%)])
 
-===  Issues with flash-based block storage
+  ],
+)
+
+=== Issues with flash-based block storage
 
 - Flash storage made available only through a block interface.
 
@@ -496,7 +513,9 @@ Good idea to split your block storage into:
   recommended.
 
 See the
-#link("https://lwn.net/Articles/428584/")[_Optimizing Linux with cheap flash drives_]
+#link(
+  "https://lwn.net/Articles/428584/",
+)[_Optimizing Linux with cheap flash drives_]
 article from Arnd Bergmann and try his _flashbench_ tool
 (#link("https://git.linaro.org/plugins/gitiles/people/arnd/flashbench.git/+/refs/heads/master/README"))
 for finding out the erase block and page size for your storage, and
@@ -504,15 +523,15 @@ optimizing your partitions and filesystems for best performance. Note
 that some SD cards report their erase block size, available in
 `/sys/bus/mmc/devices/<dev>/preferred_erase_size`.
 
-#setuplabframe([Block filesystems],[
+#setuplabframe([Block filesystems], [
 
-- Creating further partitions on your SD card
+  - Creating further partitions on your SD card
 
-- Booting a system with a mix of filesystems: _SquashFS_ for the
-  root filesystem, _ext4_ for data, and _tmpfs_ for temporary
-  system files.
+  - Booting a system with a mix of filesystems: _SquashFS_ for the
+    root filesystem, _ext4_ for data, and _tmpfs_ for temporary
+    system files.
 
-- Loading everything from the SD card, including the kernel and device
-  tree.
+  - Loading everything from the SD card, including the kernel and device
+    tree.
 
 ])

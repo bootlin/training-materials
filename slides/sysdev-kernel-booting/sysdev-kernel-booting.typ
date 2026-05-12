@@ -4,7 +4,7 @@
 
 #show: bootlin-theme
 
-===  Booting with U-Boot
+=== Booting with U-Boot
 
 - On ARM32, U-Boot can boot `zImage` (`bootz` command)
 
@@ -22,7 +22,7 @@
   + Start the kernel with `boot[z|i] X - Y`  \
     The `-` in the middle indicates no _initramfs_
 
-===  Kernel command line
+=== Kernel command line
 
 - In addition to the compile time configuration, the kernel behavior can
   be adjusted with no recompilation using the *kernel command line*
@@ -42,45 +42,56 @@
     #kdochtml("admin-guide/kernel-parameters") in kernel
     documentation.
 
-===  Passing the kernel command line
+=== Passing the kernel command line
 
-#table(columns: (65%, 35%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (65%, 35%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-- U-Boot carries the Linux kernel command line string in its `bootargs`
-  environment variable
+    - U-Boot carries the Linux kernel command line string in its `bootargs`
+      environment variable
 
-- Right before starting the kernel, it will store the contents of
-  `bootargs` in the `chosen` section of the Device Tree
+    - Right before starting the kernel, it will store the contents of
+      `bootargs` in the `chosen` section of the Device Tree
 
-- The kernel will behave differently depending on its configuration:
+    - The kernel will behave differently depending on its configuration:
 
-  - If #kconfig("CONFIG_CMDLINE_FROM_BOOTLOADER") is set: \
-    The kernel will use only the string from the bootloader
+      - If #kconfig("CONFIG_CMDLINE_FROM_BOOTLOADER") is set: \
+        The kernel will use only the string from the bootloader
 
-  - If #kconfig("CONFIG_CMDLINE_FORCE") is set: \
-    The kernel will only use the string received at configuration time
-    in #kconfig("CONFIG_CMDLINE")
+      - If #kconfig("CONFIG_CMDLINE_FORCE") is set: \
+        The kernel will only use the string received at configuration time
+        in #kconfig("CONFIG_CMDLINE")
 
-  - If #kconfig("CONFIG_CMDLINE_EXTEND") is set: \
-    The kernel will concatenate both strings
+      - If #kconfig("CONFIG_CMDLINE_EXTEND") is set: \
+        The kernel will concatenate both strings
 
-],[
+  ],
+  [
 
-  #[
-    #set text(size: 16pt)
-See the "Understanding U-Boot Falcon Mode" presentation from Michael
-Opdenacker, for details about how U-Boot boots Linux. ]
-#align(center, [#image("understanding-falcon-mode-presentation.png", width: 100%)])
+    #[
+      #set text(size: 16pt)
+      See the "Understanding U-Boot Falcon Mode" presentation from Michael
+      Opdenacker, for details about how U-Boot boots Linux. ]
+    #align(center, [#image(
+      "understanding-falcon-mode-presentation.png",
+      width: 100%,
+    )])
 
-#[ #set text(size: 15pt)
-Slides: #link("https://bootlin.com/pub/conferences/2021/lee/")  \
-Video:
-#link("https://www.youtube.com/watch?v=LFe3x2QMhSo")[https://www.youtube.com/watch?v=LFe3x2QMhSo]
-]
+    #[ #set text(size: 15pt)
+      Slides: #link("https://bootlin.com/pub/conferences/2021/lee/")  \
+      Video:
+      #link(
+        "https://www.youtube.com/watch?v=LFe3x2QMhSo",
+      )[https://www.youtube.com/watch?v=LFe3x2QMhSo]
+    ]
 
-])
+  ],
+)
 
-===  Kernel log
+=== Kernel log
 
 - The kernel keeps its messages in a circular buffer in memory
 
@@ -101,5 +112,5 @@ Video:
 
   - Example: `console=ttyS0 loglevel=5`
 
-- It is possible to write to the kernel log from user space: \ 
+- It is possible to write to the kernel log from user space: \
 `echo "<n>Debug info" > /dev/kmsg`
