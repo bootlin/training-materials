@@ -6,42 +6,48 @@
 
 == Using kernel modules
 
-===  Advantages of modules
+=== Advantages of modules
 
-#table(columns: (65%, 35%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (65%, 35%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-- Modules make it easy to develop drivers without rebooting: load, test,
-  unload, rebuild, load...
+    - Modules make it easy to develop drivers without rebooting: load, test,
+      unload, rebuild, load...
 
-- Useful to keep the kernel image size to the minimum (essential in
-  GNU/Linux distributions for PCs).
+    - Useful to keep the kernel image size to the minimum (essential in
+      GNU/Linux distributions for PCs).
 
-- Also useful to reduce boot time: you don't spend time initializing
-  devices and kernel features that you only need later.
+    - Also useful to reduce boot time: you don't spend time initializing
+      devices and kernel features that you only need later.
 
-- Caution: once loaded, have full control and privileges in the system.
-  No particular protection. That's why only the `root` user can load and
-  unload modules.
+    - Caution: once loaded, have full control and privileges in the system.
+      No particular protection. That's why only the `root` user can load and
+      unload modules.
 
-- To increase security, possibility to allow only signed modules, or to
-  disable module support entirely.
+    - To increase security, possibility to allow only signed modules, or to
+      disable module support entirely.
 
-],[
+  ],
+  [
 
-#align(center, [#image("modules-to-access-rootfs.pdf", width: 100%)])
+    #align(center, [#image("modules-to-access-rootfs.pdf", width: 100%)])
 
-])
+  ],
+)
 
-===  Module utilities: extracting information 
+=== Module utilities: extracting information
 
-`<module_name>`: name of the module file without the trailing `.ko` 
+`<module_name>`: name of the module file without the trailing `.ko`
 
 - `modinfo <module_name>` (for modules in `/lib/modules`) \
   `modinfo <module_path>.ko` \
   Gets information about a module without loading it: parameters,
-  license, description and dependencies. 
+  license, description and dependencies.
 
-===  Module utilities: loading
+=== Module utilities: loading
 
 - `sudo insmod <module_path>.ko` \
   Tries to load the given module. The full path to the module object
@@ -58,23 +64,23 @@
   Displays the list of loaded modules \
   Compare its output with the contents of `/proc/modules`!
 
-===  Understanding module loading issues
+=== Understanding module loading issues
 
 - When loading a module fails, `insmod` often doesn't give you enough
   details!
 
 - Details are often available in the kernel log.
 
-- Example: 
+- Example:
 
   ```
-  $ sudo insmod ./intr_monitor.ko 
+  $ sudo insmod ./intr_monitor.ko
   insmod: error inserting './intr_monitor.ko': -1 Device or resource busy
   $ dmesg
   [17549774.552000] Failed to register handler for irq channel 2
   ```
 
-===  Module utilities: removals
+=== Module utilities: removals
 
 - `sudo rmmod <module_name>` \
   Tries to remove the given module. \
@@ -85,7 +91,7 @@
   Tries to remove the given top module and all its no longer needed
   dependencies
 
-===  Passing parameters to modules
+=== Passing parameters to modules
 
 - Find available parameters: \
   `modinfo usb-storage`
@@ -110,7 +116,7 @@
 
   - `0` is the #emph[module parameter value]
 
-===  Check module parameter values 
+=== Check module parameter values
 
 How to find/edit the current values for the parameters of a loaded module?
 
@@ -121,5 +127,5 @@ How to find/edit the current values for the parameters of a loaded module?
 - Also possible to change parameter values if these files have write
   permissions (depends on the module code).
 
-- Example: 
+- Example:
   `echo 0 > /sys/module/usb_storage/parameters/delay_use`

@@ -6,7 +6,7 @@
 
 = The misc subsystem
 
-===  Why a _misc_ subsystem?
+=== Why a _misc_ subsystem?
 
 - The kernel offers a large number of *frameworks* covering a
   wide range of device types: input, network, video, audio, etc.
@@ -34,11 +34,11 @@
     (device files appearing in _devtmpfs_, which you don't have
     with raw character devices).
 
-===  Misc subsystem diagram
+=== Misc subsystem diagram
 
 #align(center, [#image("misc-subsystem-diagram.pdf", width: 100%)])
 
-===  Misc subsystem API (1/2)
+=== Misc subsystem API (1/2)
 
 - The misc subsystem API mainly provides two functions, to register and
   unregister *a single* _misc device_:
@@ -65,7 +65,7 @@
   };
   ```]
 
-===  Misc subsystem API (2/2) 
+=== Misc subsystem API (2/2)
 
 The main fields to be filled in #kstruct("miscdevice") are:
 
@@ -84,7 +84,7 @@ The main fields to be filled in #kstruct("miscdevice") are:
 - `parent`, pointer to the `struct device` of the underlying "physical"
   device (platform device, I2C device, etc.)
 
-===  User space API for misc devices
+=== User space API for misc devices
 
 - _misc devices_ are regular character devices
 
@@ -98,14 +98,14 @@ The main fields to be filled in #kstruct("miscdevice") are:
 
   - The `ioctl()` system call to call some driver-specific operations.
 
-#setuplabframe([Output-only serial port driver],[
+#setuplabframe([Output-only serial port driver], [
 
-- Extend the driver started in the previous lab by registering it into
-  the _misc_ subsystem.
+  - Extend the driver started in the previous lab by registering it into
+    the _misc_ subsystem.
 
-- Implement serial output functionality through the _misc_
-  subsystem.
+  - Implement serial output functionality through the _misc_
+    subsystem.
 
-- Test serial output using user space applications.
+  - Test serial output using user space applications.
 
 ])

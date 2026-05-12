@@ -6,13 +6,16 @@
 
 == Sleeping
 
-===  Sleeping
+=== Sleeping
 
 #align(center, [#image("sleeping.pdf", width: 100%)])
 
-#align(center, [Sleeping is needed when a userspace or kernelspace thread is waiting for data.])
+#align(
+  center,
+  [Sleeping is needed when a userspace or kernelspace thread is waiting for data.],
+)
 
-===  How to sleep with a wait queue 1/3
+=== How to sleep with a wait queue 1/3
 
 - Must declare a wait queue, which will be used to store the list of
   threads waiting for an event
@@ -26,15 +29,15 @@
 
   - Example from #kfile("drivers/net/ethernet/marvell/mvmdio.c"):
     #[ #show raw.where(lang: "c", block: true): set text(size: 16pt)
-    ```c
-    struct orion_mdio_dev {
-            ...
-            wait_queue_head_t smi_busy_wait;
-    };
-    struct orion_mdio_dev *dev;
-    ...
-    init_waitqueue_head(&dev->smi_busy_wait);
-    ```]
+      ```c
+      struct orion_mdio_dev {
+              ...
+              wait_queue_head_t smi_busy_wait;
+      };
+      struct orion_mdio_dev *dev;
+      ...
+      init_waitqueue_head(&dev->smi_busy_wait);
+      ```]
 
 - Static queue declaration:
 
@@ -42,7 +45,7 @@
 
   - ```c DECLARE_WAIT_QUEUE_HEAD(module_queue); ```
 
-===  How to sleep with a wait queue 2/3 
+=== How to sleep with a wait queue 2/3
 
 Several ways to make a thread sleep
 
@@ -65,7 +68,7 @@ Several ways to make a thread sleep
   - Can be interrupted by any signal. Returns `-`#ksym("ERESTARTSYS")
     if interrupted.
 
-===  How to sleep with a wait queue 3/3
+=== How to sleep with a wait queue 3/3
 
 - ```c int wait_event_timeout(queue, condition, timeout); ```
 
@@ -82,19 +85,19 @@ Several ways to make a thread sleep
   - Returns `0` if the timeout elapsed, `-`#ksym("ERESTARTSYS") if
     interrupted, positive value if the condition was met.
 
-===  How to sleep with a wait queue - Example
+=== How to sleep with a wait queue - Example
 
 #[ #show raw.where(lang: "c", block: true): set text(size: 16pt)
-```c
-sig = wait_event_interruptible(ibmvtpm->wq,
-                               !ibmvtpm->tpm_processing_cmd);
-if (sig)
-        return -EINTR;
-```]
+  ```c
+  sig = wait_event_interruptible(ibmvtpm->wq,
+                                 !ibmvtpm->tpm_processing_cmd);
+  if (sig)
+          return -EINTR;
+  ```]
 
 From #kfile("drivers/char/tpm/tpm_ibmvtpm.c")
 
-===  Waking up!
+=== Waking up!
 
 Typically done by interrupt handlers when data sleeping threads are waiting for become available.
 
@@ -107,7 +110,7 @@ Typically done by interrupt handlers when data sleeping threads are waiting for 
   - Wakes up all threads waiting in an interruptible sleep on the given
     queue
 
-===  Exclusive vs. non-exclusive
+=== Exclusive vs. non-exclusive
 
 - #kfunc("wait_event_interruptible") puts a thread in a
   non-exclusive wait.
@@ -131,28 +134,34 @@ Typically done by interrupt handlers when data sleeping threads are waiting for 
 - Non-exclusive sleeps are useful when the event can _benefit_ to
   multiple threads.
 
-===  Sleeping and waking up - Implementation
+=== Sleeping and waking up - Implementation
 
-#table(columns: (45%, 55%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (45%, 55%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-#align(center, [#image("wait-event.pdf", height: 90%)])
+    #align(center, [#image("wait-event.pdf", height: 90%)])
 
-],[
+  ],
+  [
 
-The scheduler doesn't keep evaluating the sleeping condition!
+    The scheduler doesn't keep evaluating the sleeping condition!
 
-- ```c wait_event(queue, cond); ``` \ The thread is put in the \
-  #ksym("TASK_UNINTERRUPTIBLE") state.
+    - ```c wait_event(queue, cond); ``` \ The thread is put in the \
+      #ksym("TASK_UNINTERRUPTIBLE") state.
 
-- ```c wake_up(&queue); ``` \  All threads waiting in `queue` are woken up,
-  so they get scheduled later and have the opportunity to evaluate the
-  condition again and go back to sleep if it is not met.
+    - ```c wake_up(&queue); ``` \  All threads waiting in `queue` are woken up,
+      so they get scheduled later and have the opportunity to evaluate the
+      condition again and go back to sleep if it is not met.
 
-See #kfile("include/linux/wait.h") for implementation details.
+    See #kfile("include/linux/wait.h") for implementation details.
 
-])
+  ],
+)
 
-===  How to sleep with completions 1/2
+=== How to sleep with completions 1/2
 
 - Use #kfunc("wait_for_completion") when no particular condition
   must be enforced at the time of the wake-up
@@ -188,7 +197,7 @@ See #kfile("include/linux/wait.h") for implementation details.
     #kfunc("wait_for_completion_timeout"), \
     #kfunc("wait_for_completion_interruptible") /
     #link("https://elixir.bootlin.com/linux/latest/ident/wait_for_completion_interruptible_timeout")[\_timeout()], \
-    
+
     #kfunc("wait_for_completion_killable") /
     #link("https://elixir.bootlin.com/linux/latest/ident/wait_for_completion_killable_timeout")[\_timeout()],
     etc.
@@ -208,7 +217,7 @@ See #kfile("include/linux/wait.h") for implementation details.
   - Mind not to call #kfunc("init_completion") twice, which could
     confuse the enqueued threads
 
-===  Blocking
+=== Blocking
 
 - Use helpers which implement software loops or use hardware timers
 
@@ -222,7 +231,7 @@ See #kfile("include/linux/wait.h") for implementation details.
   - If in doubt, use #kfunc("fsleep"), which will use the more
     suitable internal function depending on the period you've asked!
 
-===  Waiting when hardware is involved
+=== Waiting when hardware is involved
 
 - When hardware is involved in the waiting process
 
@@ -234,10 +243,10 @@ See #kfile("include/linux/wait.h") for implementation details.
 
   - Exhaustive list in #kfile("include/linux/iopoll.h")
     #[ #show raw.where(lang: "c", block: true): set text(size: 15pt)
-    ```c
-    int read[bwlq]_poll_timeout_[atomic](addr, val, cond,
-                                         delay_us, timeout_us)
-    ```]
+      ```c
+      int read[bwlq]_poll_timeout_[atomic](addr, val, cond,
+                                           delay_us, timeout_us)
+      ```]
 
     - `addr`: I/O memory location
 

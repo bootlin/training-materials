@@ -6,35 +6,35 @@
 
 = Developing kernel modules
 
-===  Hello module 1/2
+=== Hello module 1/2
 
 #[ #show raw.where(lang: "c", block: true): set text(size: 13.5pt)
-```c
-// SPDX-License-Identifier: GPL-2.0
-/* hello.c */
-#include <linux/init.h>
-#include <linux/module.h>
-#include <linux/kernel.h>
+  ```c
+  // SPDX-License-Identifier: GPL-2.0
+  /* hello.c */
+  #include <linux/init.h>
+  #include <linux/module.h>
+  #include <linux/kernel.h>
 
-static int __init hello_init(void)
-{
-  pr_alert("Good morrow to this fair assembly.n");
-  return 0;
-}
+  static int __init hello_init(void)
+  {
+    pr_alert("Good morrow to this fair assembly.n");
+    return 0;
+  }
 
-static void __exit hello_exit(void)
-{
-  pr_alert("Alas, poor world, what treasure hast thou lost!n");
-}
+  static void __exit hello_exit(void)
+  {
+    pr_alert("Alas, poor world, what treasure hast thou lost!n");
+  }
 
-module_init(hello_init); 
-module_exit(hello_exit); 
-MODULE_LICENSE("GPL"); 
-MODULE_DESCRIPTION("Greeting module"); 
-MODULE_AUTHOR("William Shakespeare");
-```]
+  module_init(hello_init);
+  module_exit(hello_exit);
+  MODULE_LICENSE("GPL");
+  MODULE_DESCRIPTION("Greeting module");
+  MODULE_AUTHOR("William Shakespeare");
+  ```]
 
-===  Hello module 2/2
+=== Hello module 2/2
 
 - Code marked as #ksym("__init"):
 
@@ -55,9 +55,11 @@ MODULE_AUTHOR("William Shakespeare");
     module unloading support is not enabled.
 
 - Code of this example module available on \
-  #link("https://raw.githubusercontent.com/bootlin/training-materials/master/code/hello/hello.c")
+  #link(
+    "https://raw.githubusercontent.com/bootlin/training-materials/master/code/hello/hello.c",
+  )
 
-===  Hello module explanations
+=== Hello module explanations
 
 - Headers specific to the Linux kernel: `linux/xxx.h`
 
@@ -81,7 +83,7 @@ MODULE_AUTHOR("William Shakespeare");
 - Metadata information declared using #kfunc("MODULE_LICENSE"),
   #kfunc("MODULE_DESCRIPTION") and #kfunc("MODULE_AUTHOR")
 
-===  Symbols exported to modules 1/2
+=== Symbols exported to modules 1/2
 
 - From a kernel module, only a limited number of kernel functions can be
   called
@@ -103,11 +105,11 @@ MODULE_AUTHOR("William Shakespeare");
 
 - A normal driver should not need any non-exported function.
 
-===  Symbols exported to modules 2/2
+=== Symbols exported to modules 2/2
 
 #align(center, [#image("exported-symbols.pdf", width: 100%)])
 
-===  Module license
+=== Module license
 
 - Several usages
 
@@ -137,7 +139,7 @@ MODULE_AUTHOR("William Shakespeare");
 
   - `Proprietary`
 
-===  Compiling a module 
+=== Compiling a module
 
 Two solutions
 
@@ -156,7 +158,7 @@ Two solutions
 
   - The driver can be built statically or as a module
 
-===  Compiling an out-of-tree module 1/2
+=== Compiling an out-of-tree module 1/2
 
 - The below `Makefile` should be reusable for any single-file
   out-of-tree Linux module
@@ -168,8 +170,8 @@ Two solutions
 #v(0.5em)
 ```make
 ifneq ($(KERNELRELEASE),)
-obj-m := hello.o 
-else 
+obj-m := hello.o
+else
 KDIR := /path/to/kernel/sources
 
 all:
@@ -180,7 +182,7 @@ endif
 
 - `KDIR`: kernel source or headers directory (see next slides)
 
-===  Compiling an out-of-tree module 2/2
+=== Compiling an out-of-tree module 2/2
 
 #align(center, [#image("out-of-tree.pdf", height: 50%)])
 #v(0.5em)
@@ -193,7 +195,7 @@ endif
   module `Makefile` is then interpreted with `KERNELRELEASE` defined, so
   the kernel sees the `obj-m` definition.
 
-===  Modules and kernel version
+=== Modules and kernel version
 
 - To be compiled, a kernel module needs access to #emph[kernel headers],
   containing the definitions of functions, types and constants.
@@ -217,7 +219,7 @@ endif
 
   - `modprobe` / `insmod` will say `Invalid module format`
 
-===  New driver in kernel sources 1/2
+=== New driver in kernel sources 1/2
 
 - To add a new driver to the kernel sources:
 
@@ -231,16 +233,16 @@ endif
   - Describe the configuration interface for your new driver by adding
     the following lines to the `Kconfig` file in this directory:
 #v(0.5em)
-  ```
-  config USB_SERIAL_NAVMAN
-          tristate "USB Navman GPS device"
-          depends on USB_SERIAL
-          help
-            To compile this driver as a module, choose M
-            here: the module will be called navman.
-  ```
+```
+config USB_SERIAL_NAVMAN
+        tristate "USB Navman GPS device"
+        depends on USB_SERIAL
+        help
+          To compile this driver as a module, choose M
+          here: the module will be called navman.
+```
 
-===  New driver in kernel sources 2/2
+=== New driver in kernel sources 2/2
 
 - Add a line in the `Makefile` file based on the `Kconfig` setting: \
   `obj-$(CONFIG_USB_SERIAL_NAVMAN) += navman.o`
@@ -257,84 +259,86 @@ endif
     examples like drivers with several source files, or drivers in their
     own subdirectory, etc.
 
-===  Hello module with parameters 1/2
+=== Hello module with parameters 1/2
 
 #[ #show raw.where(lang: "c", block: true): set text(size: 16pt)
-```c
-// SPDX-License-Identifier: GPL-2.0
-/* hello_param.c */
-#include <linux/init.h>
-#include <linux/module.h>
+  ```c
+  // SPDX-License-Identifier: GPL-2.0
+  /* hello_param.c */
+  #include <linux/init.h>
+  #include <linux/module.h>
 
-MODULE_LICENSE("GPL");
+  MODULE_LICENSE("GPL");
 
-static char *whom = "world"; 
-module_param(whom, charp, 0644); 
-MODULE_PARM_DESC(whom, "Recipient of the hello message");
+  static char *whom = "world";
+  module_param(whom, charp, 0644);
+  MODULE_PARM_DESC(whom, "Recipient of the hello message");
 
-static int howmany = 1; 
-module_param(howmany, int, 0644); 
-MODULE_PARM_DESC(howmany, "Number of greetings");
-```]
+  static int howmany = 1;
+  module_param(howmany, int, 0644);
+  MODULE_PARM_DESC(howmany, "Number of greetings");
+  ```]
 
-===  Hello module with parameters 2/2
+=== Hello module with parameters 2/2
 
 #[ #show raw.where(lang: "c", block: true): set text(size: 15pt)
-```c
-static int __init hello_init(void)
-{
-    int i;
+  ```c
+  static int __init hello_init(void)
+  {
+      int i;
 
-    for (i = 0; i < howmany; i++)
-        pr_alert("(%d) Hello, %sn", i, whom);
-    return 0;
-}
+      for (i = 0; i < howmany; i++)
+          pr_alert("(%d) Hello, %sn", i, whom);
+      return 0;
+  }
 
-static void __exit hello_exit(void)
-{
-    pr_alert("Goodbye, cruel %sn", whom);
-}
+  static void __exit hello_exit(void)
+  {
+      pr_alert("Goodbye, cruel %sn", whom);
+  }
 
-module_init(hello_init); 
-module_exit(hello_exit);
-```]
+  module_init(hello_init);
+  module_exit(hello_exit);
+  ```]
 
 #v(0.5em)
 
 Thanks to Jonathan Corbet for the examples \
 #text(size: 14pt)[Source code available on:
-#link("https://github.com/bootlin/training-materials/blob/master/code/hello-param/hello_param.c")[https://github.com/bootlin/training-materials/blob/master/code/hello-param/hello_param.c]]
+  #link(
+    "https://github.com/bootlin/training-materials/blob/master/code/hello-param/hello_param.c",
+  )[https://github.com/bootlin/training-materials/blob/master/code/hello-param/hello_param.c]]
 
-===  Declaring a module parameter
+=== Declaring a module parameter
 
 #[ #show raw.where(lang: "c", block: true): set text(size: 17pt)
-```c
-module_param(
-    name, /* name of an already defined variable */
-    type, /* standard types (different from C types) are:
-           * byte, short, ushort, int, uint, long, ulong
-           * charp: a character pointer
-           * bool: a bool, values 0/1, y/n, Y/N.
-           * invbool: the above, only sense-reversed (N = true). */
-    perm  /* for /sys/module/<module_name>/parameters/<param>,
-           *  0: no such module parameter value file */
-);
+  ```c
+  module_param(
+      name, /* name of an already defined variable */
+      type, /* standard types (different from C types) are:
+             * byte, short, ushort, int, uint, long, ulong
+             * charp: a character pointer
+             * bool: a bool, values 0/1, y/n, Y/N.
+             * invbool: the above, only sense-reversed (N = true). */
+      perm  /* for /sys/module/<module_name>/parameters/<param>,
+             *  0: no such module parameter value file */
+  );
 
-/* Example: drivers/block/loop.c */
-static int max_loop; 
-module_param(max_loop, int, 0444); 
-MODULE_PARM_DESC(max_loop, "Maximum number of loop devices");
-```]
+  /* Example: drivers/block/loop.c */
+  static int max_loop;
+  module_param(max_loop, int, 0444);
+  MODULE_PARM_DESC(max_loop, "Maximum number of loop devices");
+  ```]
 
 Modules parameter arrays are also possible with
 #kfunc("module_param_array").
 
-#setuplabframe([Writing modules],[
+#setuplabframe([Writing modules], [
 
-- Create, compile and load your first module
+  - Create, compile and load your first module
 
-- Add module parameters
+  - Add module parameters
 
-- Access kernel internals from your module
+  - Access kernel internals from your module
 
 ])

@@ -9,7 +9,7 @@
 
 #include "/common/printk.typ"
 
-===  DebugFS 
+=== DebugFS
 
 A virtual filesystem to export debugging information to user space.
 
@@ -28,75 +28,77 @@ A virtual filesystem to export debugging information to user space.
 - API documented in the Linux Kernel Filesystem API:
   #kdochtml("filesystems/debugfs") The debugfs filesystem
 
-===  DebugFS API
+=== DebugFS API
 
 - Create a sub-directory for your driver:
 
-  #[ #show raw.where(lang: "c", block: true): set text(size: 15pt)
-  ```c
-  struct dentry *debugfs_create_dir(const char *name,
-                                    struct dentry *parent);
-  ```
+  #[
+    #show raw.where(lang: "c", block: true): set text(size: 15pt)
+    ```c
+    struct dentry *debugfs_create_dir(const char *name,
+                                      struct dentry *parent);
+    ```
 
-- Expose an integer as a file in DebugFS. Example:
+    - Expose an integer as a file in DebugFS. Example:
 
-  ```c
-  struct dentry *debugfs_create_u8(const char *name, mode_t mode,
-                  struct dentry *parent, u8 *value);
-  ```
+      ```c
+      struct dentry *debugfs_create_u8(const char *name, mode_t mode,
+                      struct dentry *parent, u8 *value);
+      ```
 
-  - `u8`, `u16`, `u32`, `u64` for decimal representation
+      - `u8`, `u16`, `u32`, `u64` for decimal representation
 
-  - `x8`, `x16`, `x32`, `x64` for hexadecimal representation
+      - `x8`, `x16`, `x32`, `x64` for hexadecimal representation
 
-- Expose a binary blob as a file in DebugFS:
+    - Expose a binary blob as a file in DebugFS:
 
-  ```c
-  struct dentry *debugfs_create_blob(const char *name,
-                  mode_t mode, struct dentry *parent,
-                  struct debugfs_blob_wrapper *blob);
-  ```]
+      ```c
+      struct dentry *debugfs_create_blob(const char *name,
+                      mode_t mode, struct dentry *parent,
+                      struct debugfs_blob_wrapper *blob);
+      ```
+  ]
 
 - Also possible to support writable DebugFS files or customize the
   output using the more generic #kfunc("debugfs_create_file")
   function.
 
-===  Using Magic SysRq 
+=== Using Magic SysRq
 
 Functionnality provided by serial drivers
 #[ #set text(size: 18pt)
-- Allows to run multiple debug / rescue commands even when the kernel
-  seems to be in deep trouble
+  - Allows to run multiple debug / rescue commands even when the kernel
+    seems to be in deep trouble
 
-  - On PC: press `[Alt]` + `[Prnt Scrn]` + `<character>`
-    simultaneously 
-    (`[SysRq]` = `[Alt]` + `[Prnt Scrn]`)
+    - On PC: press `[Alt]` + `[Prnt Scrn]` + `<character>`
+      simultaneously
+      (`[SysRq]` = `[Alt]` + `[Prnt Scrn]`)
 
-  - On embedded: in the console, send a break character \
-    (Picocom: press `[Ctrl]` + `a` followed by `[Ctrl]` + `\`), then
-    press `<character>`
+    - On embedded: in the console, send a break character \
+      (Picocom: press `[Ctrl]` + `a` followed by `[Ctrl]` + `\`), then
+      press `<character>`
 
-- Example commands:
+  - Example commands:
 
-  - `h`: show available commands
+    - `h`: show available commands
 
-  - `s`: sync all mounted filesystems
+    - `s`: sync all mounted filesystems
 
-  - `b`: reboot the system
+    - `b`: reboot the system
 
-  - `n`: makes RT processes nice-able.
+    - `n`: makes RT processes nice-able.
 
-  - `w`: shows the kernel stack of all sleeping processes
+    - `w`: shows the kernel stack of all sleeping processes
 
-  - `t`: shows the kernel stack of all running processes
+    - `t`: shows the kernel stack of all running processes
 
-  - You can even register your own!
+    - You can even register your own!
 
-- Detailed in #kdochtml("admin-guide/sysrq")
+  - Detailed in #kdochtml("admin-guide/sysrq")
 ]
 #include "/common/kgdb.typ"
 
-===  Debugging with a JTAG interface 
+=== Debugging with a JTAG interface
 
 Two types of JTAG dongles
 
@@ -118,7 +120,7 @@ Two types of JTAG dongles
 
 #align(center, [#image("jtag.pdf", width: 90%)])
 
-===  Early traces
+=== Early traces
 
 - If something breaks before the `tty` layer, serial driver and serial
   console are properly registered, you might just have nothing else
@@ -142,7 +144,7 @@ Two types of JTAG dongles
   - The kernel will try to hook an appropriate `earlycon` UART driver
     using the `stdout-path` of the device-tree.
 
-===  More kernel debugging tips 1/2
+=== More kernel debugging tips 1/2
 
 - Make sure #kconfig("CONFIG_KALLSYMS_ALL") is enabled
 
@@ -162,7 +164,7 @@ Two types of JTAG dongles
 
   - Will enable all the debug logs in the device-driver core section
 
-===  More kernel debugging tips 2/2 
+=== More kernel debugging tips 2/2
 
 Device Tree output can be better understood with the in-tree `dtx_diff` script
 
@@ -186,7 +188,7 @@ Device Tree output can be better understood with the in-tree `dtx_diff` script
 
 - Can also be used to diff DTS
 
-===  Getting help and reporting bugs
+=== Getting help and reporting bugs
 
 - If you are using a custom kernel from a hardware vendor, contact that
   company. The community will have less interest supporting a custom
@@ -209,39 +211,49 @@ Device Tree output can be better understood with the in-tree `dtx_diff` script
   #kfile("MAINTAINERS") file). Always give as many useful details as
   possible.
 
-===  Debugging resources
+=== Debugging resources
 
-#table(columns: (70%, 30%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (70%, 30%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-Checkout Bootlin's debugging training!
+    Checkout Bootlin's debugging training!
 
-- Linux debugging, profiling, tracing and performance analysis training
+    - Linux debugging, profiling, tracing and performance analysis training
 
-- #link("https://bootlin.com/doc/training/debugging/")
+    - #link("https://bootlin.com/doc/training/debugging/")
 
-- #link("https://bootlin.com/doc/training/debugging/debugging-slides.pdf")[Slides]
-  and
-  #link("https://bootlin.com/doc/training/debugging/debugging-stm32mp1-labs.pdf")[labs]
-  are available for free
+    - #link(
+        "https://bootlin.com/doc/training/debugging/debugging-slides.pdf",
+      )[Slides]
+      and
+      #link(
+        "https://bootlin.com/doc/training/debugging/debugging-stm32mp1-labs.pdf",
+      )[labs]
+      are available for free
 
-],[
+  ],
+  [
 
-#align(center, [#image("debugging-screenshot.png", width: 100%)])
+    #align(center, [#image("debugging-screenshot.png", width: 100%)])
 
-])
+  ],
+)
 
 
-#setuplabframe([Kernel debugging],[
+#setuplabframe([Kernel debugging], [
 
-- Use the dynamic debug feature.
+  - Use the dynamic debug feature.
 
-- Add debugfs entries
+  - Add debugfs entries
 
-- Load a broken driver and see it crash
+  - Load a broken driver and see it crash
 
-- Analyze the error information dumped by the kernel.
+  - Analyze the error information dumped by the kernel.
 
-- Disassemble the code and locate the exact C instruction which caused
-  the failure.
+  - Disassemble the code and locate the exact C instruction which caused
+    the failure.
 
 ])

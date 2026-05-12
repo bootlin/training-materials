@@ -9,7 +9,7 @@
 == Processes and scheduling
 <processes-and-scheduling>
 
-===  Process, thread?
+=== Process, thread?
 
 - Confusion about the terms #emph[process], #emph[thread] and
   #emph[task]
@@ -30,7 +30,7 @@
   - They start executing a function passed as argument to
     `pthread_create()`
 
-===  Process, thread: kernel point of view
+=== Process, thread: kernel point of view
 
 - In kernel space, each thread running in the system is represented by a
   structure of type #kstruct("task_struct")
@@ -43,7 +43,7 @@
 
 #align(center, [#image("address-space.pdf", height: 60%)])
 
-===  Relation between execution mode, address space and context
+=== Relation between execution mode, address space and context
 
 - When speaking about #emph[process] and #emph[thread], these concepts
   need to be clarified:
@@ -63,7 +63,7 @@
     #emph[user space]
 
     - #emph[Kernel space] is reserved for code running in #emph[Kernel
-      Mode].
+        Mode].
 
     - #emph[User space] is the place were applications execute
       (accessible from #emph[Kernel Mode]).
@@ -77,11 +77,11 @@
     - The #emph[interrupt context] replaces the #emph[process context]
       when the interrupt handler is executed.
 
-===  A thread life
+=== A thread life
 
 #align(center, [#image("threads-life.pdf", height: 90%)])
 
-===  Execution of system calls
+=== Execution of system calls
 
 #align(center, [#image("syscalls.pdf", width: 100%)])
 

@@ -6,7 +6,7 @@
 
 = Introduction to the I2C subsystem
 
-===  What is I2C?
+=== What is I2C?
 
 - A very commonly used low-speed bus to connect on-board and external
   devices to the processor.
@@ -25,11 +25,11 @@
   relevant slave to recognize that it should reply to this particular
   transaction.
 
-===  An I2C bus example
+=== An I2C bus example
 
 #align(center, [#image("i2c-bus.pdf", width: 100%)])
 
-===  The I2C bus driver
+=== The I2C bus driver
 
 - Like all bus subsystems, the I2C bus driver is responsible for:
 
@@ -48,7 +48,7 @@
   depending on the framework used to expose the devices (e.g.
   #kdir("drivers/input") for input devices).
 
-===  Registering an I2C device driver
+=== Registering an I2C device driver
 
 - Like all bus subsystems, the I2C subsystem defines a
   #kstruct("i2c_driver") that inherits from
@@ -68,42 +68,42 @@
   functions, it is advised to use the #kfunc("module_i2c_driver")
   macro instead.
 
-===  Registering an I2C device driver: example
+=== Registering an I2C device driver: example
 
-#[ #show raw.where(lang: "c", block:true): set text(size: 10pt)
-```c
-static const struct i2c_device_id adxl345_i2c_id[] = {
-        { "adxl345", ADXL345 },
-        { "adxl375", ADXL375 },
-        { }
-};
+#[ #show raw.where(lang: "c", block: true): set text(size: 10pt)
+  ```c
+  static const struct i2c_device_id adxl345_i2c_id[] = {
+          { "adxl345", ADXL345 },
+          { "adxl375", ADXL375 },
+          { }
+  };
 
-MODULE_DEVICE_TABLE(i2c, adxl345_i2c_id);
+  MODULE_DEVICE_TABLE(i2c, adxl345_i2c_id);
 
-static const struct of_device_id adxl345_of_match[] = {
-        { .compatible = "adi,adxl345" },
-        { .compatible = "adi,adxl375" },
-        { },
-};
+  static const struct of_device_id adxl345_of_match[] = {
+          { .compatible = "adi,adxl345" },
+          { .compatible = "adi,adxl375" },
+          { },
+  };
 
-MODULE_DEVICE_TABLE(of, adxl345_of_match);
+  MODULE_DEVICE_TABLE(of, adxl345_of_match);
 
-static struct i2c_driver adxl345_i2c_driver = {
-        .driver = {
-                .name   = "adxl345_i2c",
-                .of_match_table = adxl345_of_match,
-        },
-        .probe          = adxl345_i2c_probe,
-        .remove         = adxl345_i2c_remove,
-        .id_table       = adxl345_i2c_id,
-};
+  static struct i2c_driver adxl345_i2c_driver = {
+          .driver = {
+                  .name   = "adxl345_i2c",
+                  .of_match_table = adxl345_of_match,
+          },
+          .probe          = adxl345_i2c_probe,
+          .remove         = adxl345_i2c_remove,
+          .id_table       = adxl345_i2c_id,
+  };
 
-module_i2c_driver(adxl345_i2c_driver);
-```]
+  module_i2c_driver(adxl345_i2c_driver);
+  ```]
 
 From #kfile("drivers/iio/accel/adxl345_i2c.c")
 
-===  Registering an I2C device: non-DT
+=== Registering an I2C device: non-DT
 
 - On non-DT platforms, the #kstruct("i2c_board_info") structure
   allows to describe how an I2C device is connected to a board.
@@ -118,32 +118,32 @@ From #kfile("drivers/iio/accel/adxl345_i2c.c")
   #kfunc("i2c_register_board_info"), when the platform is
   initialized.
 
-===  Registering an I2C device, non-DT example
+=== Registering an I2C device, non-DT example
 
 #text(size: 16pt)[#kfileversion("arch/arm/mach-iop32x/em7210.c", "6.2.16")]
 
-#[ #show raw.where(lang: "c", block:true): set text(size: 16pt)
-```c
-static struct i2c_board_info __initdata em7210_i2c_devices[] = {
-        { I2C_BOARD_INFO("rs5c372a", 0x32) },
-};
+#[ #show raw.where(lang: "c", block: true): set text(size: 16pt)
+  ```c
+  static struct i2c_board_info __initdata em7210_i2c_devices[] = {
+          { I2C_BOARD_INFO("rs5c372a", 0x32) },
+  };
 
-static void __init em7210_init_machine(void)
-{
-        register_iop32x_gpio();
-        platform_device_register(&em7210_serial_device);
-        platform_device_register(&iop3xx_i2c0_device);
-        platform_device_register(&iop3xx_i2c1_device);
-        platform_device_register(&em7210_flash_device);
-        platform_device_register(&iop3xx_dma_0_channel);
-        platform_device_register(&iop3xx_dma_1_channel);
+  static void __init em7210_init_machine(void)
+  {
+          register_iop32x_gpio();
+          platform_device_register(&em7210_serial_device);
+          platform_device_register(&iop3xx_i2c0_device);
+          platform_device_register(&iop3xx_i2c1_device);
+          platform_device_register(&em7210_flash_device);
+          platform_device_register(&iop3xx_dma_0_channel);
+          platform_device_register(&iop3xx_dma_1_channel);
 
-        i2c_register_board_info(0, em7210_i2c_devices,
-                ARRAY_SIZE(em7210_i2c_devices));
-}
-```]
+          i2c_register_board_info(0, em7210_i2c_devices,
+                  ARRAY_SIZE(em7210_i2c_devices));
+  }
+  ```]
 
-===  Registering an I2C device, in the DT
+=== Registering an I2C device, in the DT
 
 - In the Device Tree, the I2C controller device is typically defined in
   the `.dtsi` file that describes the processor.
@@ -165,7 +165,7 @@ static void __init em7210_init_machine(void)
   the expected DT properties. Example:
   #kfile("Documentation/devicetree/bindings/i2c/ti,omap4-i2c.yaml")
 
-===  Registering an I2C device, DT example (1/2)
+=== Registering an I2C device, DT example (1/2)
 
 #text(size: 16pt)[Definition of the I2C controller]
 
@@ -182,15 +182,17 @@ i2c0: i2c@01c2ac00 {
 };
 ```
 
-From #kfile("arch/arm/boot/dts/allwinner/sun7i-a20.dtsi") 
+From #kfile("arch/arm/boot/dts/allwinner/sun7i-a20.dtsi")
 `#address-cells`: number of 32-bit values needed to encode the address
-fields 
+fields
 `#size-cells`: number of 32-bit values needed to encode the size fields
 
 See details in
-#link("https://elinux.org/Device_Tree_Usage")[https://elinux.org/Device_Tree_Usage]
+#link(
+  "https://elinux.org/Device_Tree_Usage",
+)[https://elinux.org/Device_Tree_Usage]
 
-===  Registering an I2C device, DT example (2/2)
+=== Registering an I2C device, DT example (2/2)
 
 #text(size: 16pt)[Definition of the I2C device]
 
@@ -215,7 +217,7 @@ See details in
 From
 #kfile("arch/arm/boot/dts/allwinner/sun7i-a20-olinuxino-micro.dts")
 
-===  `probe()` and `remove()`
+=== `probe()` and `remove()`
 
 - The `->probe()` function is responsible for initializing the device
   and registering it in the appropriate kernel framework. It receives as
@@ -232,61 +234,62 @@ From
 - The `->remove()` function is responsible for unregistering the device
   from the kernel framework and shut it down. It receives as argument:
 
-===  Probe example
+=== Probe example
 
-#[ #show raw.where(lang:"c", block: true): set text(size: 15pt)
-```c
-static int da311_probe(struct i2c_client *client)
-{
-        struct iio_dev *indio_dev;         // framework structure
-        da311_data *data;                  // per device structure
-        ...
-        // Allocate framework structure with per device struct inside
-        indio_dev = devm_iio_device_alloc(&client->dev, sizeof(*data));
-        data = iio_priv(indio_dev);
-        data->client = client;
-        i2c_set_clientdata(client, indio_dev);
-        // Prepare device and initialize indio_dev
-        ...
-        // Register device to framework
-        ret = iio_device_register(indio_dev);
-        ...
-        return ret;
-}
-```]
-
-From #kfile("drivers/iio/accel/da311.c")
-
-===  Remove example
-
-#[ #show raw.where(lang:"c", block: true): set text(size: 15pt)
-```c
-static int da311_remove(struct i2c_client *client)
-{
-        struct iio_dev *indio_dev = i2c_get_clientdata(client);
-        // Unregister device from framework
-        iio_device_unregister(indio_dev);
-        return da311_enable(client, false);
-}
-```]
+#[ #show raw.where(lang: "c", block: true): set text(size: 15pt)
+  ```c
+  static int da311_probe(struct i2c_client *client)
+  {
+          struct iio_dev *indio_dev;         // framework structure
+          da311_data *data;                  // per device structure
+          ...
+          // Allocate framework structure with per device struct inside
+          indio_dev = devm_iio_device_alloc(&client->dev, sizeof(*data));
+          data = iio_priv(indio_dev);
+          data->client = client;
+          i2c_set_clientdata(client, indio_dev);
+          // Prepare device and initialize indio_dev
+          ...
+          // Register device to framework
+          ret = iio_device_register(indio_dev);
+          ...
+          return ret;
+  }
+  ```]
 
 From #kfile("drivers/iio/accel/da311.c")
 
-===  Communicating with the I2C device: raw API 
+=== Remove example
+
+#[ #show raw.where(lang: "c", block: true): set text(size: 15pt)
+  ```c
+  static int da311_remove(struct i2c_client *client)
+  {
+          struct iio_dev *indio_dev = i2c_get_clientdata(client);
+          // Unregister device from framework
+          iio_device_unregister(indio_dev);
+          return da311_enable(client, false);
+  }
+  ```]
+
+From #kfile("drivers/iio/accel/da311.c")
+
+=== Communicating with the I2C device: raw API
 
 The most *basic API* to communicate with the I2C device provides functions
 to either send or receive data:
 
 - Send a `buf` to the I2C device with:
 #v(0.5em)
-#[ #show raw.where(lang:"c", block: true): set text(size: 14pt)
+#[
+  #show raw.where(lang: "c", block: true): set text(size: 14pt)
   ```c
   int i2c_master_send(const struct i2c_client *client, const char *buf, int count);
   ```
-#v(0.5em)
-- Receive a `count` bytes from the I2C device and save them in `buf`
-  with:
-#v(0.5em)
+  #v(0.5em)
+  - Receive a `count` bytes from the I2C device and save them in `buf`
+    with:
+  #v(0.5em)
   ```c
   int i2c_master_recv(const struct i2c_client *client, char *buf, int count);
   ```
@@ -294,16 +297,16 @@ to either send or receive data:
 Both functions return a negative error number in case of failure,
 otherwise the number of transmitted bytes.
 
-===  Communicating with the I2C device: message transfer
+=== Communicating with the I2C device: message transfer
 
 The message transfer API allows to describe *transfers* that
 consists of several *messages*, with each message being a
 transaction in one direction:
 #v(0.5em)
-#[ #show raw.where(lang:"c", block: true): set text(size: 14pt)
-```c
-int i2c_transfer(struct i2c_adapter *adap, struct i2c_msg *msgs, int num);
-```]
+#[ #show raw.where(lang: "c", block: true): set text(size: 14pt)
+  ```c
+  int i2c_transfer(struct i2c_adapter *adap, struct i2c_msg *msgs, int num);
+  ```]
 #v(0.5em)
 - The #kstruct("i2c_adapter") pointer can be found by using
   `client->adapter`
@@ -311,7 +314,7 @@ int i2c_transfer(struct i2c_adapter *adap, struct i2c_msg *msgs, int num);
 - The #kstruct("i2c_msg") structure defines the length, location,
   and direction of the message.
 
-===  I2C: message transfer example
+=== I2C: message transfer example
 
 ```c
 static int st1232_ts_read_data(struct st1232_ts_data *ts)
@@ -342,7 +345,7 @@ static int st1232_ts_read_data(struct st1232_ts_data *ts)
 
 From #kfile("drivers/input/touchscreen/st1232.c")
 
-===  I2C functionality
+=== I2C functionality
 
 - Not all I2C controllers support all functionalities.
 
@@ -363,7 +366,7 @@ From #kfile("drivers/input/touchscreen/st1232.c")
 - See #kfile("include/uapi/linux/i2c.h") for the full list of
   existing functionalities.
 
-===  References
+=== References
 
 - #link("https://en.wikipedia.org/wiki/I2C"), general presentation of
   the I2C protocol
@@ -389,13 +392,13 @@ From #kfile("drivers/input/touchscreen/st1232.c")
   (#link("https://bootlin.com/pub/conferences/2022/elce/ceresoli-basics-of-i2c-on-linux/ceresoli-basics-of-i2c-on-linux.pdf")[slides],
   #link("https://www.youtube.com/watch?v=g9-wgdesvwA")[video]).
 
-#setuplabframe([Communicate with the Nunchuk],[
+#setuplabframe([Communicate with the Nunchuk], [
 
-- Explore the content of `/dev` and `/sys` and the devices available on
-  the embedded hardware platform.
+  - Explore the content of `/dev` and `/sys` and the devices available on
+    the embedded hardware platform.
 
-- Implement a driver that registers as an I2C driver.
+  - Implement a driver that registers as an I2C driver.
 
-- Communicate with the Nunchuk and extract data from it.
+  - Communicate with the Nunchuk and extract data from it.
 
 ])
