@@ -8,70 +8,70 @@
 
 == ASoC component callbacks
 
-===  `snd_soc_dai_ops`
+=== `snd_soc_dai_ops`
 
 #text(size: 14pt)[#kfile("include/sound/soc-dai.h")]
 #v(-0.3em)
 #[
-        #show raw.where(lang: "c", block: true): set text(size: 13pt)
-```c
-struct snd_soc_dai_ops {
-        /*
-         * DAI clocking configuration, all optional.
-         * Called by soc_card drivers, normally in their hw_params.
-         */
-        int (*set_sysclk)(struct snd_soc_dai *dai,s
-                int clk_id, unsigned int freq, int dir);
-        int (*set_pll)(struct snd_soc_dai *dai, int pll_id, int source,
-                unsigned int freq_in, unsigned int freq_out);
-        int (*set_clkdiv)(struct snd_soc_dai *dai, int div_id, int div);
-        int (*set_bclk_ratio)(struct snd_soc_dai *dai, unsigned int ratio);
+  #show raw.where(lang: "c", block: true): set text(size: 13pt)
+  ```c
+  struct snd_soc_dai_ops {
+          /*
+           * DAI clocking configuration, all optional.
+           * Called by soc_card drivers, normally in their hw_params.
+           */
+          int (*set_sysclk)(struct snd_soc_dai *dai,s
+                  int clk_id, unsigned int freq, int dir);
+          int (*set_pll)(struct snd_soc_dai *dai, int pll_id, int source,
+                  unsigned int freq_in, unsigned int freq_out);
+          int (*set_clkdiv)(struct snd_soc_dai *dai, int div_id, int div);
+          int (*set_bclk_ratio)(struct snd_soc_dai *dai, unsigned int ratio);
 
-        /*
-         * DAI format configuration
-         * Called by soc_card drivers, normally in their hw_params.
-         */
-        int (*set_fmt)(struct snd_soc_dai *dai, unsigned int fmt);
-        int (*xlate_tdm_slot_mask)(unsigned int slots,
-                unsigned int *tx_mask, unsigned int *rx_mask);
-        int (*set_tdm_slot)(struct snd_soc_dai *dai,
-                unsigned int tx_mask, unsigned int rx_mask,
-                int slots, int slot_width);
-```
+          /*
+           * DAI format configuration
+           * Called by soc_card drivers, normally in their hw_params.
+           */
+          int (*set_fmt)(struct snd_soc_dai *dai, unsigned int fmt);
+          int (*xlate_tdm_slot_mask)(unsigned int slots,
+                  unsigned int *tx_mask, unsigned int *rx_mask);
+          int (*set_tdm_slot)(struct snd_soc_dai *dai,
+                  unsigned int tx_mask, unsigned int rx_mask,
+                  int slots, int slot_width);
+  ```
 ]
 
-===  `snd_soc_dai_ops`
+=== `snd_soc_dai_ops`
 
 #text(size: 14pt)[#kfile("include/sound/soc-dai.h")]
 #v(-0.3em)
 #[
-        #show raw.where(lang: "c", block: true): set text(size: 13pt)
-```c
-        /*
-         * DAI digital mute - optional.
-         * Called by soc-core to minimise any pops.
-         */
-        int (*mute_stream)(struct snd_soc_dai *dai, int mute, int stream);
+  #show raw.where(lang: "c", block: true): set text(size: 13pt)
+  ```c
+          /*
+           * DAI digital mute - optional.
+           * Called by soc-core to minimise any pops.
+           */
+          int (*mute_stream)(struct snd_soc_dai *dai, int mute, int stream);
 
-        /*
-         * ALSA PCM audio operations - all optional.
-         * Called by soc-core during audio PCM operations.
-         */
-        int (*startup)(struct snd_pcm_substream *,
-                struct snd_soc_dai *);
-        void (*shutdown)(struct snd_pcm_substream *,
-                struct snd_soc_dai *);
-        int (*hw_params)(struct snd_pcm_substream *,
-                struct snd_pcm_hw_params *, struct snd_soc_dai *);
-        int (*hw_free)(struct snd_pcm_substream *,
-                struct snd_soc_dai *);
-        int (*prepare)(struct snd_pcm_substream *,
-                struct snd_soc_dai *);
-[...]
-};
-```]
+          /*
+           * ALSA PCM audio operations - all optional.
+           * Called by soc-core during audio PCM operations.
+           */
+          int (*startup)(struct snd_pcm_substream *,
+                  struct snd_soc_dai *);
+          void (*shutdown)(struct snd_pcm_substream *,
+                  struct snd_soc_dai *);
+          int (*hw_params)(struct snd_pcm_substream *,
+                  struct snd_pcm_hw_params *, struct snd_soc_dai *);
+          int (*hw_free)(struct snd_pcm_substream *,
+                  struct snd_soc_dai *);
+          int (*prepare)(struct snd_pcm_substream *,
+                  struct snd_soc_dai *);
+  [...]
+  };
+  ```]
 
-===  `hw_params`
+=== `hw_params`
 
 - The most useful callback
 
@@ -86,7 +86,7 @@ struct snd_soc_dai_ops {
   stream cannot be opened. Otherwise, the callback returns successfully,
   and the audio stream can be started.
 
-===  `snd_pcm_hw_params`
+=== `snd_pcm_hw_params`
 
 - Holds the stream parameters
 
@@ -98,7 +98,7 @@ struct snd_soc_dai_ops {
 
   - `params_width`: the number of bits per sample
 
-===  `hw_params` example
+=== `hw_params` example
 
 #text(size: 14pt)[#kfile("sound/soc/codecs/tlv320aic31xx.c")]
 #v(-0.3em)
@@ -134,7 +134,7 @@ static int aic31xx_hw_params(struct snd_pcm_substream *substream,
         }
 ```
 
-===  `hw_params` example
+=== `hw_params` example
 
 #text(size: 14pt)[#kfile("sound/soc/codecs/tlv320aic31xx.c")]
 #v(-0.3em)
@@ -163,7 +163,7 @@ CODEC PLLs and clocks properly. The usual ways to achieve that are to
 either do the calculations or prepare an array matching parameters to
 register values.
 
-===  `set_sysclk`
+=== `set_sysclk`
 
 - This sets the system clock parameters of the component, in particular
   which one is selected, its frequency and the direction.
@@ -179,7 +179,7 @@ register values.
 - A component wide version exists, called using
   #kfunc("snd_soc_component_set_sysclk"), very rarely used.
 
-===  `set_sysclk` example
+=== `set_sysclk` example
 
 ```c
 static int aic31xx_set_dai_sysclk(struct snd_soc_dai *codec_dai,
@@ -219,41 +219,49 @@ static int aic31xx_set_dai_sysclk(struct snd_soc_dai *codec_dai,
 }
 ```
 
-===  `set_fmt`
+=== `set_fmt`
 
 #text(size: 16.5pt)[
-- This sets the format of the PCM bus
+  - This sets the format of the PCM bus
 
-- This is called from the machine driver, using
-  #kfunc("snd_soc_dai_set_fmt")
+  - This is called from the machine driver, using
+    #kfunc("snd_soc_dai_set_fmt")
 
-- Available formats are:
-        - #text(size: 14pt)[#ksym("SND_SOC_DAIFMT_I2S")]
+  - Available formats are:
+    - #text(size: 14pt)[#ksym("SND_SOC_DAIFMT_I2S")]
 
-        - #text(size: 14pt)[#ksym("SND_SOC_DAIFMT_RIGHT_J")]
+    - #text(size: 14pt)[#ksym("SND_SOC_DAIFMT_RIGHT_J")]
 
-        - #text(size: 14pt)[#ksym("SND_SOC_DAIFMT_LEFT_J")]
+    - #text(size: 14pt)[#ksym("SND_SOC_DAIFMT_LEFT_J")]
 
-        - #text(size: 14pt)[#ksym("SND_SOC_DAIFMT_DSP_A")]
+    - #text(size: 14pt)[#ksym("SND_SOC_DAIFMT_DSP_A")]
 
-        - #text(size: 14pt)[#ksym("SND_SOC_DAIFMT_DSP_B")]
+    - #text(size: 14pt)[#ksym("SND_SOC_DAIFMT_DSP_B")]
 
-        - #text(size: 14pt)[#ksym("SND_SOC_DAIFMT_AC97")]
+    - #text(size: 14pt)[#ksym("SND_SOC_DAIFMT_AC97")]
 
-        - #text(size: 14pt)[#ksym("SND_SOC_DAIFMT_PDM")]
+    - #text(size: 14pt)[#ksym("SND_SOC_DAIFMT_PDM")]
 
-- Also the polarity can be changed:
+  - Also the polarity can be changed:
 
-        - #text(size: 14pt)[#ksym("SND_SOC_DAIFMT_NB_NF"): normal bit clock + normal frame]
+    - #text(
+        size: 14pt,
+      )[#ksym("SND_SOC_DAIFMT_NB_NF"): normal bit clock + normal frame]
 
-        - #text(size: 14pt)[#ksym("SND_SOC_DAIFMT_NB_IF"): normal bit clock + invert frame]
+    - #text(
+        size: 14pt,
+      )[#ksym("SND_SOC_DAIFMT_NB_IF"): normal bit clock + invert frame]
 
-        - #text(size: 14pt)[#ksym("SND_SOC_DAIFMT_IB_NF"): invert bit clock + normal frame]
+    - #text(
+        size: 14pt,
+      )[#ksym("SND_SOC_DAIFMT_IB_NF"): invert bit clock + normal frame]
 
-        - #text(size: 14pt)[#ksym("SND_SOC_DAIFMT_IB_IF"): invert bit clock + invert frame]
+    - #text(
+        size: 14pt,
+      )[#ksym("SND_SOC_DAIFMT_IB_IF"): invert bit clock + invert frame]
 ]
 
-===  `set_fmt`
+=== `set_fmt`
 
 - The clock directions can also be set:
 
@@ -271,10 +279,10 @@ static int aic31xx_set_dai_sysclk(struct snd_soc_dai *codec_dai,
 
 - These used to have another name:
 #v(0.5em)
-  #text(size: 15pt)[#kfile("include/sound/soc-dai.h")]
+#text(size: 15pt)[#kfile("include/sound/soc-dai.h")]
 #v(-0.3em)
 #[
-        #show raw.where(lang: "c", block: true): set text(size: 13pt)
+  #show raw.where(lang: "c", block: true): set text(size: 13pt)
   ```c
   /* previous definitions kept for backwards-compatibility, do not use in new contributions */
   #define SND_SOC_DAIFMT_CBM_CFM                SND_SOC_DAIFMT_CBP_CFP
@@ -283,7 +291,7 @@ static int aic31xx_set_dai_sysclk(struct snd_soc_dai *codec_dai,
   #define SND_SOC_DAIFMT_CBS_CFS                SND_SOC_DAIFMT_CBC_CFC
   ```]
 
-===  `set_fmt` example
+=== `set_fmt` example
 
 ```c
 static int aic31xx_set_dai_fmt(struct snd_soc_dai *codec_dai,
@@ -320,7 +328,7 @@ static int aic31xx_set_dai_fmt(struct snd_soc_dai *codec_dai,
 ```
 
 
-===  `set_tdm_slot`
+=== `set_tdm_slot`
 
 - This callback configures the DAI for TDM operation.
 
@@ -339,7 +347,7 @@ static int aic31xx_set_dai_fmt(struct snd_soc_dai *codec_dai,
 
 - TDM mode must be disabled when `slots` is 0.
 
-===  `trigger`
+=== `trigger`
 
 - This callback is called when the stream status is updated.
 
@@ -366,7 +374,7 @@ static int aic31xx_set_dai_fmt(struct snd_soc_dai *codec_dai,
 
   - #ksym("SNDRV_PCM_TRIGGER_DRAIN")
 
-===  `trigger` example
+=== `trigger` example
 
 - The #link("https://www.ti.com/lit/gpn/pcm1789")[PCM1789] needs the
   system clock, bit clock and frame clock to be synchronized as soon as
@@ -377,60 +385,60 @@ static int aic31xx_set_dai_fmt(struct snd_soc_dai *codec_dai,
 
 - A solution is to reset the device when a stream is played.
 
-===  `trigger` example
+=== `trigger` example
 
 #text(size: 15pt)[#kfile("sound/soc/codecs/pcm1789.c")]
 #v(-0.3em)
 #[
-        #show raw.where(lang: "c", block: true): set text(size: 13pt)
-```c
-static int pcm1789_trigger(struct snd_pcm_substream *substream, int cmd,
-                           struct snd_soc_dai *dai)
-{
-        struct snd_soc_component *component = dai->component;
-        struct pcm1789_private *priv = snd_soc_component_get_drvdata(component);
-        int ret = 0;
+  #show raw.where(lang: "c", block: true): set text(size: 13pt)
+  ```c
+  static int pcm1789_trigger(struct snd_pcm_substream *substream, int cmd,
+                             struct snd_soc_dai *dai)
+  {
+          struct snd_soc_component *component = dai->component;
+          struct pcm1789_private *priv = snd_soc_component_get_drvdata(component);
+          int ret = 0;
 
-        switch (cmd) {
-        case SNDRV_PCM_TRIGGER_START:
-        case SNDRV_PCM_TRIGGER_RESUME:
-        case SNDRV_PCM_TRIGGER_PAUSE_RELEASE:
-                schedule_work(&priv->work);
-                break;
-        case SNDRV_PCM_TRIGGER_STOP:
-        case SNDRV_PCM_TRIGGER_SUSPEND:
-        case SNDRV_PCM_TRIGGER_PAUSE_PUSH:
-                break;
-        default:
-                ret = -EINVAL;
-        }
+          switch (cmd) {
+          case SNDRV_PCM_TRIGGER_START:
+          case SNDRV_PCM_TRIGGER_RESUME:
+          case SNDRV_PCM_TRIGGER_PAUSE_RELEASE:
+                  schedule_work(&priv->work);
+                  break;
+          case SNDRV_PCM_TRIGGER_STOP:
+          case SNDRV_PCM_TRIGGER_SUSPEND:
+          case SNDRV_PCM_TRIGGER_PAUSE_PUSH:
+                  break;
+          default:
+                  ret = -EINVAL;
+          }
 
-        return ret;
-}
-```]
+          return ret;
+  }
+  ```]
 
-===  `trigger` example
+=== `trigger` example
 
 #text(size: 15pt)[#kfile("sound/soc/codecs/pcm1789.c")]
 #v(-0.3em)
 #[
-        #show raw.where(lang: "c", block: true): set text(size: 13pt)
-```c
-static void pcm1789_work_queue(struct work_struct *work)
-{
-        struct pcm1789_private *priv = container_of(work,
-                                                    struct pcm1789_private,
-                                                    work);
+  #show raw.where(lang: "c", block: true): set text(size: 13pt)
+  ```c
+  static void pcm1789_work_queue(struct work_struct *work)
+  {
+          struct pcm1789_private *priv = container_of(work,
+                                                      struct pcm1789_private,
+                                                      work);
 
-        /* Perform a software reset to remove codec from desynchronized state */
-        if (regmap_update_bits(priv->regmap, PCM1789_MUTE_CONTROL,
-                               0x3 << PCM1789_MUTE_SRET, 0) < 0)
-                dev_err(priv->dev, "Error while setting SRET");
-}
-```
+          /* Perform a software reset to remove codec from desynchronized state */
+          if (regmap_update_bits(priv->regmap, PCM1789_MUTE_CONTROL,
+                                 0x3 << PCM1789_MUTE_SRET, 0) < 0)
+                  dev_err(priv->dev, "Error while setting SRET");
+  }
+  ```
 ]
 
-===  `set_bias_level`
+=== `set_bias_level`
 
 - This callback is called by DAPM through
   #kfunc("snd_soc_dapm_set_bias_level") and
@@ -455,7 +463,7 @@ static void pcm1789_work_queue(struct work_struct *work)
   - `SND_SOC_BIAS_OFF`: Power Off. No restrictions on transition
     times.
 
-===  `set_bias_level` example
+=== `set_bias_level` example
 
 - There are CODECs that won’t even listen on the control bus until there
   are clocks on the PCM bus or that will stay powered off as much as
@@ -463,68 +471,68 @@ static void pcm1789_work_queue(struct work_struct *work)
 
 - A solution is to use regcache.
 
-===  `set_bias_level` example
+=== `set_bias_level` example
 
 #text(size: 15pt)[#kfile("sound/soc/codecs/ssm2518.c")]
 #v(-0.3em)
 #[
-        #show raw.where(lang: "c", block: true): set text(size: 13pt)
-```c
-static int ssm2518_set_bias_level(struct snd_soc_component *component,
-        enum snd_soc_bias_level level)
-{
-        struct ssm2518 *ssm2518 = snd_soc_component_get_drvdata(component);
-        int ret = 0;
+  #show raw.where(lang: "c", block: true): set text(size: 13pt)
+  ```c
+  static int ssm2518_set_bias_level(struct snd_soc_component *component,
+          enum snd_soc_bias_level level)
+  {
+          struct ssm2518 *ssm2518 = snd_soc_component_get_drvdata(component);
+          int ret = 0;
 
-        switch (level) {
-        case SND_SOC_BIAS_ON:
-                break;
-        case SND_SOC_BIAS_PREPARE:
-                break;
-        case SND_SOC_BIAS_STANDBY:
-                if (snd_soc_component_get_bias_level(component) == SND_SOC_BIAS_OFF)
-                        ret = ssm2518_set_power(ssm2518, true);
-                break;
-        case SND_SOC_BIAS_OFF:
-                ret = ssm2518_set_power(ssm2518, false);
-                break;
-        }
+          switch (level) {
+          case SND_SOC_BIAS_ON:
+                  break;
+          case SND_SOC_BIAS_PREPARE:
+                  break;
+          case SND_SOC_BIAS_STANDBY:
+                  if (snd_soc_component_get_bias_level(component) == SND_SOC_BIAS_OFF)
+                          ret = ssm2518_set_power(ssm2518, true);
+                  break;
+          case SND_SOC_BIAS_OFF:
+                  ret = ssm2518_set_power(ssm2518, false);
+                  break;
+          }
 
-        return ret;
-}
-```
+          return ret;
+  }
+  ```
 ]
 
-===  `set_bias_level` example
+=== `set_bias_level` example
 
 #text(size: 15pt)[#kfile("sound/soc/codecs/ssm2518.c")]
 #v(-0.3em)
 
 #[
-        #show raw.where(lang: "c", block: true): set text(size: 13pt)
-```c
-static int ssm2518_set_power(struct ssm2518 *ssm2518, bool enable)
-{
-        int ret = 0;
+  #show raw.where(lang: "c", block: true): set text(size: 13pt)
+  ```c
+  static int ssm2518_set_power(struct ssm2518 *ssm2518, bool enable)
+  {
+          int ret = 0;
 
-        if (!enable) {
-                ret = regmap_update_bits(ssm2518->regmap, SSM2518_REG_POWER1,
-                        SSM2518_POWER1_SPWDN, SSM2518_POWER1_SPWDN);
-                regcache_mark_dirty(ssm2518->regmap);
-        }
+          if (!enable) {
+                  ret = regmap_update_bits(ssm2518->regmap, SSM2518_REG_POWER1,
+                          SSM2518_POWER1_SPWDN, SSM2518_POWER1_SPWDN);
+                  regcache_mark_dirty(ssm2518->regmap);
+          }
 
-        if (ssm2518->enable_gpio)
-                gpiod_set_value_cansleep(ssm2518->enable_gpio, enable);
+          if (ssm2518->enable_gpio)
+                  gpiod_set_value_cansleep(ssm2518->enable_gpio, enable);
 
-        regcache_cache_only(ssm2518->regmap, !enable);
+          regcache_cache_only(ssm2518->regmap, !enable);
 
-        if (enable) {
-                ret = regmap_update_bits(ssm2518->regmap, SSM2518_REG_POWER1,
-                        SSM2518_POWER1_SPWDN | SSM2518_POWER1_RESET, 0x00);
-                regcache_sync(ssm2518->regmap);
-        }
+          if (enable) {
+                  ret = regmap_update_bits(ssm2518->regmap, SSM2518_REG_POWER1,
+                          SSM2518_POWER1_SPWDN | SSM2518_POWER1_RESET, 0x00);
+                  regcache_sync(ssm2518->regmap);
+          }
 
-        return ret;
-}
-```
+          return ret;
+  }
+  ```
 ]

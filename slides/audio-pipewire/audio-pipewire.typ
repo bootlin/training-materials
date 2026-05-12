@@ -11,7 +11,7 @@
 == Introduction
 <introduction>
 
-===  Introduction
+=== Introduction
 
 - A realtime multimedia data graph
 
@@ -37,7 +37,7 @@
 
 - Technical stack: C (`gnu11`), Meson & Ninja
 
-===  Concepts — objects
+=== Concepts — objects
 
 - The graph state representation is a list of objects.
 
@@ -46,43 +46,48 @@
 
 - Each connected process is represented by a `Client` object.
 
-#table(columns: (50%, 50%), stroke: none, [
+#table(
+  columns: (50%, 50%),
+  stroke: none,
+  [
 
-Example with `pw-play audio.wav` and 
-`pw-record –target pw-play rec.wav`:
+    Example with `pw-play audio.wav` and
+    `pw-record –target pw-play rec.wav`:
 
-```text
-$ pw-cli ls Core
-    id 0, type PipeWire:Interface:Core/4
-        object.serial = "0"
-        core.name = "pipewire-0"
-```
+    ```text
+    $ pw-cli ls Core
+        id 0, type PipeWire:Interface:Core/4
+            object.serial = "0"
+            core.name = "pipewire-0"
+    ```
 
-], [
+  ],
+  [
 
-```text
-$ pw-cli ls Client
-    id 35, type PipeWire:Interface:Client/3
-        object.serial = "35"
-        pipewire.sec.pid = "2718"
-        application.name = "pipewire"
-    id 129, type PipeWire:Interface:Client/3
-        object.serial = "11608"
-        pipewire.sec.pid = "466490"
-        application.name = "pw-cli"
-    id 145, type PipeWire:Interface:Client/3
-        object.serial = "11572"
-        pipewire.sec.pid = "465686"
-        application.name = "pw-cat"
-    id 168, type PipeWire:Interface:Client/3
-        object.serial = "11593"
-        pipewire.sec.pid = "466186"
-        application.name = "pw-cat"
-    ...
-```
-])
+    ```text
+    $ pw-cli ls Client
+        id 35, type PipeWire:Interface:Client/3
+            object.serial = "35"
+            pipewire.sec.pid = "2718"
+            application.name = "pipewire"
+        id 129, type PipeWire:Interface:Client/3
+            object.serial = "11608"
+            pipewire.sec.pid = "466490"
+            application.name = "pw-cli"
+        id 145, type PipeWire:Interface:Client/3
+            object.serial = "11572"
+            pipewire.sec.pid = "465686"
+            application.name = "pw-cat"
+        id 168, type PipeWire:Interface:Client/3
+            object.serial = "11593"
+            pipewire.sec.pid = "466186"
+            application.name = "pw-cat"
+        ...
+    ```
+  ],
+)
 
-===  Concepts — nodes, ports & links (1)
+=== Concepts — nodes, ports & links (1)
 
 - The graph itself is represented by the following object types:
 
@@ -94,115 +99,126 @@ $ pw-cli ls Client
 
 #v(0.5em)
 
-#align(center, [#image("two-nodes.pdf", height: 50%)]) 
+#align(center, [#image("two-nodes.pdf", height: 50%)])
 
-===  Concepts — nodes, ports & links (2)
+=== Concepts — nodes, ports & links (2)
 
-#table(columns: (50%, 50%), stroke: none, [
+#table(
+  columns: (50%, 50%),
+  stroke: none,
+  [
 
-```text
-$ pw-cli ls Node
-    id 137, type PipeWire:Interface:Node/3
-        client.id = "145"
-        node.name = "pw-play"
-        media.class = "Stream/Output/Audio"
-    id 111, type PipeWire:Interface:Node/3
-        client.id = "168"
-        node.name = "pw-record"
-        media.class = "Stream/Input/Audio"
-    ...
+    ```text
+    $ pw-cli ls Node
+        id 137, type PipeWire:Interface:Node/3
+            client.id = "145"
+            node.name = "pw-play"
+            media.class = "Stream/Output/Audio"
+        id 111, type PipeWire:Interface:Node/3
+            client.id = "168"
+            node.name = "pw-record"
+            media.class = "Stream/Input/Audio"
+        ...
 
-$ pw-cli ls Link
-    id 119, type PipeWire:Interface:Link/3
-        client.id = "33"
-        link.output.port = "116"
-        link.input.port = "139"
-        link.output.node = "137"
-        link.input.node = "111"
-    id 97, type PipeWire:Interface:Link/3
-        client.id = "33"
-        link.output.port = "115"
-        link.input.port = "117"
-        link.output.node = "137"
-        link.input.node = "111"
-    ...
-```
+    $ pw-cli ls Link
+        id 119, type PipeWire:Interface:Link/3
+            client.id = "33"
+            link.output.port = "116"
+            link.input.port = "139"
+            link.output.node = "137"
+            link.input.node = "111"
+        id 97, type PipeWire:Interface:Link/3
+            client.id = "33"
+            link.output.port = "115"
+            link.input.port = "117"
+            link.output.node = "137"
+            link.input.node = "111"
+        ...
+    ```
 
-],[
+  ],
+  [
 
-```text
-$ pw-cli ls Port
-    id 116, type PipeWire:Interface:Port/3
-        format.dsp = "32 bit float mono audio"
-        node.id = "137"
-        audio.channel = "FL"
-        port.alias = "pw-play:output_FL"
-    id 115, type PipeWire:Interface:Port/3
-        format.dsp = "32 bit float mono audio"
-        node.id = "137"
-        audio.channel = "FR"
-        port.alias = "pw-play:output_FR"
-    id 139, type PipeWire:Interface:Port/3
-        format.dsp = "32 bit float mono audio"
-        node.id = "111"
-        audio.channel = "FL"
-        port.alias = "pw-record:input_FL"
-    id 117, type PipeWire:Interface:Port/3
-        format.dsp = "32 bit float mono audio"
-        node.id = "111"
-        audio.channel = "FR"
-        port.alias = "pw-record:input_FR"
-    ...
-```
-])
+    ```text
+    $ pw-cli ls Port
+        id 116, type PipeWire:Interface:Port/3
+            format.dsp = "32 bit float mono audio"
+            node.id = "137"
+            audio.channel = "FL"
+            port.alias = "pw-play:output_FL"
+        id 115, type PipeWire:Interface:Port/3
+            format.dsp = "32 bit float mono audio"
+            node.id = "137"
+            audio.channel = "FR"
+            port.alias = "pw-play:output_FR"
+        id 139, type PipeWire:Interface:Port/3
+            format.dsp = "32 bit float mono audio"
+            node.id = "111"
+            audio.channel = "FL"
+            port.alias = "pw-record:input_FL"
+        id 117, type PipeWire:Interface:Port/3
+            format.dsp = "32 bit float mono audio"
+            node.id = "111"
+            audio.channel = "FR"
+            port.alias = "pw-record:input_FR"
+        ...
+    ```
+  ],
+)
 
-===  Concepts — object properties and params
+=== Concepts — object properties and params
 
-#table(columns: (40%, 60%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (40%, 60%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-- Objects are defined by their ID and type.
+    - Objects are defined by their ID and type.
 
-- Objects also contain *properties*: a list of string key-value
-  pairs. Those can only be modified by the client hosting the node.
+    - Objects also contain *properties*: a list of string key-value
+      pairs. Those can only be modified by the client hosting the node.
 
-- Some object types also contain *params*. Those might be
-  configurable by other clients.
+    - Some object types also contain *params*. Those might be
+      configurable by other clients.
 
-  - They get used for format negociation & conversion, volume control,
-    etc.
+      - They get used for format negociation & conversion, volume control,
+        etc.
 
-],[
+  ],
+  [
 
-```text
-$ pw-cli info 94
-  type: PipeWire:Interface:Node/3
-* properties:
-*   application.name = "pw-play"
-*   node.name = "pw-play"
-*   media.type = "Audio"
-*   media.category = "Playback"
-*   media.role = "Music"
-*   node.rate = "1/44100"
-*   node.latency = "4410/44100"
-*   node.autoconnect = "true"
-*   node.want-driver = "true"
-*   media.class = "Stream/Output/Audio"
-*   factory.id = "8"
-*   clock.quantum-limit = "8192"
-*   library.name = "audioconvert/libspa-audioconvert"
-*   client.id = "151"
-*   object.id = "94"
-*   object.serial = "2005"
-*   ...
-* params: (8)
-*   3 (Spa:Enum:ParamId:EnumFormat) r-
-*   2 (Spa:Enum:ParamId:Props) rw
-*   4 (Spa:Enum:ParamId:Format) rw
-*   ...
-```
-])
+    ```text
+    $ pw-cli info 94
+      type: PipeWire:Interface:Node/3
+    * properties:
+    *   application.name = "pw-play"
+    *   node.name = "pw-play"
+    *   media.type = "Audio"
+    *   media.category = "Playback"
+    *   media.role = "Music"
+    *   node.rate = "1/44100"
+    *   node.latency = "4410/44100"
+    *   node.autoconnect = "true"
+    *   node.want-driver = "true"
+    *   media.class = "Stream/Output/Audio"
+    *   factory.id = "8"
+    *   clock.quantum-limit = "8192"
+    *   library.name = "audioconvert/libspa-audioconvert"
+    *   client.id = "151"
+    *   object.id = "94"
+    *   object.serial = "2005"
+    *   ...
+    * params: (8)
+    *   3 (Spa:Enum:ParamId:EnumFormat) r-
+    *   2 (Spa:Enum:ParamId:Props) rw
+    *   4 (Spa:Enum:ParamId:Format) rw
+    *   ...
+    ```
+  ],
+)
 
-===  Concepts — devices
+=== Concepts — devices
 
 - Another object type is `Device`. Those map to physical devices, to
   which are assigned one or more nodes. Device configuration is done via
@@ -212,7 +228,7 @@ $ pw-cli info 94
   #link("https://libcamera.org/")[libcamera],
   #link("https://en.wikipedia.org/wiki/Video4Linux")[V4L], etc.
 
-===  Concepts — graph execution logic (1)
+=== Concepts — graph execution logic (1)
 
 - PipeWire structures itself as multiple subgraphs. In each one of
   those, there is exactly one *driver* node, and zero or more
@@ -237,7 +253,7 @@ $ pw-cli info 94
   for more details. The graph evaluation is implemented by
   `pw_context_recalc_graph()`.
 
-===  Concepts — graph execution logic (2)
+=== Concepts — graph execution logic (2)
 
 - The driver node is picked based on the `priority.driver` property.
 
@@ -247,7 +263,7 @@ $ pw-cli info 94
 
 #align(center, [#image("graph-execution.pdf", height: 60%)])
 
-===  Concepts — graph execution logic (3)
+=== Concepts — graph execution logic (3)
 
 - PipeWire clients and modules can create independent nodes rather than
   a single one with input and output ports. That allows having multiple
@@ -261,7 +277,7 @@ $ pw-cli info 94
 
 #align(center, [#image("graph-execution2.pdf", height: 60%)])
 
-===  Concepts — graph execution logic (4)
+=== Concepts — graph execution logic (4)
 
 - The number of samples to be generated during a cycle is called
   *the quantum*.
@@ -277,7 +293,7 @@ $ pw-cli info 94
 - The *rate* is similar: it can be different for each subgraph.
   The PipeWire config has a list of allowed rates.
 
-===  Concepts — modules
+=== Concepts — modules
 
 - Modules are libraries loaded by PipeWire clients to implement various
   features.
@@ -297,19 +313,19 @@ $ pw-cli info 94
 
   - etc.
 
-===  PipeWire communication protocols — IPC
+=== PipeWire communication protocols — IPC
 
 - `socket(AF_UNIX, SOCK_STREAM, 0)` for communication with the daemon process. The socket is named `pipewire-0` by default or `$PIPEWIRE_REMOTE`. \
   Directory look-up order:
-    + `$PIPEWIRE_RUNTIME_DIR`
-    + `$XDG_RUNTIME_DIR`
-    + `$USERPROFILE`
+  + `$PIPEWIRE_RUNTIME_DIR`
+  + `$XDG_RUNTIME_DIR`
+  + `$USERPROFILE`
 
 - `eventfd(2)` is the wakeup method
 - `memfd_create(2)` is used for sharing multimedia data across related clients (without data going through the daemon).
 - PipeWire provides an event-loop implementation that relies upon `epoll(7)`. All clients use it. They also use `signalfd(2)` to handle signals.
 
-===  PipeWire communication protocols — D-Bus optional dependency
+=== PipeWire communication protocols — D-Bus optional dependency
 
 - Happens on the session bus
 
@@ -327,7 +343,7 @@ $ pw-cli info 94
 == Configuration
 <configuration>
 
-===  Configuration — location (1)
+=== Configuration — location (1)
 
 - Each client locates and reads its configuration at startup.
 
@@ -344,7 +360,7 @@ $ pw-cli info 94
   + `$datadir/pipewire/` \
     compile-time variable, often `/usr/share/pipewire/`
 
-===  Configuration — location (2)
+=== Configuration — location (2)
 
 - A client that loads a config file named `client-rt.conf` will load the
   first file named as such in the above folders, but will also load all
@@ -356,7 +372,7 @@ $ pw-cli info 94
 
   + `$XDG_CONFIG_HOME/pipewire/client-rt.conf.d/`
 
-===  Configuration — sections (1)
+=== Configuration — sections (1)
 
 - `context.properties` configures the PipeWire instance.
 
@@ -383,7 +399,7 @@ context.properties = {
 }
 ```
 
-===  Configuration — sections (2)
+=== Configuration — sections (2)
 
 - `context.spa-libs` maps plugin features with globs to a SPA library.
 
@@ -410,7 +426,7 @@ context.spa-libs = {
 }
 ```
 
-===  Configuration — sections (3)
+=== Configuration — sections (3)
 
 - `context.modules` is an array of dictionaries. It lists modules to
   instantiate, with optional arguments (`args`), `flags` and a
@@ -437,7 +453,7 @@ context.modules = [
 ])
 ```
 
-===  Configuration — sections (4)
+=== Configuration — sections (4)
 
 - `context.modules` example:
 
@@ -465,7 +481,7 @@ context.modules = [
 ])
 ```
 
-===  Configuration — sections (5)
+=== Configuration — sections (5)
 
 - `context.objects` is an array of dictionaries. It lists objects that
   should be statically created by this client. This requires a `factory`
@@ -488,29 +504,29 @@ context.objects = [
 ])
 ```
 
-===  Configuration — sections (6)
+=== Configuration — sections (6)
 
 - `context.objects` example:
 
-      ```text
-      context.objects = [
-          # Create a fake source node. It will be stereo
-          # because of its audio.position property.
-          { factory = adapter
-              args = {
-                  factory.name     = support.null-audio-sink
-                  node.name        = "my-mic"
-                  node.description = "Microphone"
-                  media.class      = "Audio/Source/Virtual"
-                  audio.position   = "FL,FR"
-              }
+  ```text
+  context.objects = [
+      # Create a fake source node. It will be stereo
+      # because of its audio.position property.
+      { factory = adapter
+          args = {
+              factory.name     = support.null-audio-sink
+              node.name        = "my-mic"
+              node.description = "Microphone"
+              media.class      = "Audio/Source/Virtual"
+              audio.position   = "FL,FR"
           }
+      }
 
-          # ...
-      ])
-      ```
+      # ...
+  ])
+  ```
 
-===  Configuration — sections (7)
+=== Configuration — sections (7)
 
 - `context.exec` is an array of dictionaries. Each entry is an
   executable that will be run on startup of the client as a child
@@ -523,21 +539,21 @@ context.objects = [
 - Using this section is therefore *deprecated*, except for simple
   development environments.
 
-        ```text
-        context.exec = [
-            { path = "/usr/bin/pipewire-media-session"
-                args = ""
-                condition = [
-                    { exec.session-manager = null }
-                    { exec.session-manager = true }
-                ] }
-        ])
-        ```
+  ```text
+  context.exec = [
+      { path = "/usr/bin/pipewire-media-session"
+          args = ""
+          condition = [
+              { exec.session-manager = null }
+              { exec.session-manager = true }
+          ] }
+  ])
+  ```
 
 == Tools rundown
 <tools-rundown>
 
-===  Tools rundown — the `PIPEWIRE_DEBUG` variable
+=== Tools rundown — the `PIPEWIRE_DEBUG` variable
 
 - Every client listens to the `PIPEWIRE_DEBUG` environment variable
   which allows overwriting the `log.level` from the configuration file.
@@ -561,7 +577,7 @@ context.objects = [
   issues. Careful with `PIPEWIRE_DEBUG=5` which most likely will cause
   underruns issues. Level 3 is often good enough for debugging.
 
-===  Tools rundown — `pw-config`
+=== Tools rundown — `pw-config`
 
 - `pw-config` is a small utility that allows dumping a given config
   file, taking into account its overrides. It is best used to ensure
@@ -580,7 +596,7 @@ $ pw-config --name custom.conf paths
 }
 ```
 
-===  Tools rundown — `pw-dump`
+=== Tools rundown — `pw-dump`
 
 - `pw-dump` prints the graph as a JSON array of all exported objects
   known to `Core`.
@@ -595,7 +611,7 @@ $ pw-config --name custom.conf paths
 - Its output is rather verbose and for more interactive debugging
   sessions, `pw-cli` is more adapted.
 
-===  Tools rundown — `pw-cli` (1)
+=== Tools rundown — `pw-cli` (1)
 
 - `pw-cli` is the main command-line interface tool to interact with
   PipeWire. It connects to PipeWire as a new client.
@@ -608,7 +624,7 @@ $ pw-config --name custom.conf paths
 - `pw-cli help` lists all existing commands. It includes arguments
   (inbetween square brackets when optional) and command aliases.
 
-===  Tools rundown — `pw-cli` (2)
+=== Tools rundown — `pw-cli` (2)
 
 - It can expose many information about the graph:
 
@@ -634,7 +650,7 @@ $ pw-config --name custom.conf paths
   `pw-cli` client: `load-module`, `create-device`, `create-node`,
   `create-link`.
 
-===  Tools rundown — `pw-top`
+=== Tools rundown — `pw-top`
 
 - `top` for PipeWire.
 
@@ -645,9 +661,9 @@ $ pw-config --name custom.conf paths
 
 #v(0.5em)
 
-#align(center, [#image("pw-top.png", height: 60%)]) 
+#align(center, [#image("pw-top.png", height: 60%)])
 
-===  Tools rundown — `pw-profiler`
+=== Tools rundown — `pw-profiler`
 
 - Allows profiling of all running nodes: it records many time durations
   while running then generates graphs once the command is stopped.
@@ -656,16 +672,21 @@ $ pw-config --name custom.conf paths
   `PIPEWIRE_CONFIG_NAME` equal to `client.conf` then with
   `client-rt.conf` on a loaded system.
 
-#table(columns: (50%, 50%), stroke: none, [
+#table(
+  columns: (50%, 50%),
+  stroke: none,
+  [
 
-#align(center, [#image("pw-profiler-scheduling.pdf", height: 60%)])
+    #align(center, [#image("pw-profiler-scheduling.pdf", height: 60%)])
 
-],[
+  ],
+  [
 
-#align(center, [#image("pw-profiler-exectime.pdf", height: 60%)])
+    #align(center, [#image("pw-profiler-exectime.pdf", height: 60%)])
 
-])
-===  Tools rundown — `pw-dot`
+  ],
+)
+=== Tools rundown — `pw-dot`
 
 - `pw-dot` creates a file named `pw.dot` which is a
   #link("https://graphviz.org/")[Graphviz] textual graph description
@@ -677,10 +698,10 @@ $ pw-config --name custom.conf paths
   of `pw-dump` using the `–json` flag.
 
 - That file can be turned into a graphical representation and viewed on
-  a host using: 
+  a host using:
   `dot -Tsvg pw.dot > pw.svg && xdg-open pw.svg`
 
-===  Tools rundown — `pw-cat`
+=== Tools rundown — `pw-cat`
 
 - Aliased to `pw-play`, `pw-record` and others, it is a simple tool to
   play or record media files.
@@ -701,7 +722,7 @@ $ pw-config --name custom.conf paths
 
   - etc.
 
-===  Tools rundown — and a few others
+=== Tools rundown — and a few others
 
 - `pw-link`: it allows listing, creating and deleting links.
 
@@ -715,7 +736,7 @@ $ pw-config --name custom.conf paths
   settings stored by the daemon. The allowed rates and quantum can be
   controlled at runtime using that method.
 
-===  Tools rundown — `helvum` (1)
+=== Tools rundown — `helvum` (1)
 
 - #link("https://gitlab.freedesktop.org/pipewire/helvum")[Helvum] is a
   real-time 2D patchbay.
@@ -728,7 +749,7 @@ $ pw-config --name custom.conf paths
 
 #align(center, [#image("helvum.jpg", height: 60%)])
 
-===  Tools rundown — `helvum` (2)
+=== Tools rundown — `helvum` (2)
 
 - Helvum is a GUI software. We can however run it on our host and
   monitor our target if we have networking on the target.
@@ -742,7 +763,7 @@ $ pw-config --name custom.conf paths
 
 #align(center, [#image("helvum-target.pdf", height: 35%)])
 
-===  Tools rundown — `helvum` (3)
+=== Tools rundown — `helvum` (3)
 
 ```text
 # We run socat on the target, creating a redirection from the Unix
@@ -761,7 +782,7 @@ PIPEWIRE_RUNTIME_DIR=/tmp helvum
 == Demo 1 — running PipeWire
 <demo-1-running-pipewire>
 
-===  Demo 1 — introduction
+=== Demo 1 — introduction
 
 - Demo time!
 
@@ -781,7 +802,7 @@ PIPEWIRE_RUNTIME_DIR=/tmp helvum
   + Study the graph status using various tools (`pw-dot`, `pw-top`,
     `pw-cli`, etc).
 
-===  Demo 1 — pointers
+=== Demo 1 — pointers
 
 + Start a PipeWire daemon.
 
@@ -810,7 +831,7 @@ PIPEWIRE_RUNTIME_DIR=/tmp helvum
 == Demo 2 — PipeWire filter-chains
 <demo-2-pipewire-filter-chains>
 
-===  Demo 2 — introduction
+=== Demo 2 — introduction
 
 - We will keep our previous setup, but add a client that does
   equalization on the samples.
@@ -825,7 +846,7 @@ PIPEWIRE_RUNTIME_DIR=/tmp helvum
   + Update links manually to make `pw-play` be routed to the effect,
     then to the ALSA sink node.
 
-===  Demo 2 — pointers
+=== Demo 2 — pointers
 
 + To create a new configuration file, for the client hosting the effect.
 
@@ -852,7 +873,7 @@ PIPEWIRE_RUNTIME_DIR=/tmp helvum
 == WirePlumber
 <wireplumber>
 
-===  WirePlumber — session manager concept
+=== WirePlumber — session manager concept
 
 - *PipeWire* handles the processing of the media graph.
 
@@ -876,7 +897,7 @@ PIPEWIRE_RUNTIME_DIR=/tmp helvum
 
 - #link("https://pipewire.pages.freedesktop.org/wireplumber/")[Documentation].
 
-===  WirePlumber — default behavior
+=== WirePlumber — default behavior
 
 - *WirePlumber* has a default behavior that tries to replicate
   the PulseAudio behavior, i.e. a desktop setup.
@@ -905,7 +926,7 @@ PIPEWIRE_RUNTIME_DIR=/tmp helvum
   + a target node using `target.object` inside `default` metadata (at
     runtime).
 
-===  WirePlumber — configuration (1)
+=== WirePlumber — configuration (1)
 
 - The config lookup logic is the same as PipeWire's.
 
@@ -922,22 +943,22 @@ PIPEWIRE_RUNTIME_DIR=/tmp helvum
   `/usr/share/wireplumber/wireplumber.conf`. Default scripts are located
   alongside, in `scripts/`.
 
-===  WirePlumber — configuration (2)
+=== WirePlumber — configuration (2)
 
 - Let's look at the configuration of the ALSA monitor in
   `scripts/monitors/alsa.lua`:
 
 #text(size: 19pt)[
-```lua
--- /usr/share/wireplumber/scripts/monitors/alsa.lua 
-config = {}
-config.reserve_device = Core.test_feature ("monitor.alsa.reserve-device")
-config.properties = Conf.get_section_as_properties ("monitor.alsa.properties")
-config.rules = Conf.get_section_as_json ("monitor.alsa.rules", Json.Array {})
-```
+  ```lua
+  -- /usr/share/wireplumber/scripts/monitors/alsa.lua
+  config = {}
+  config.reserve_device = Core.test_feature ("monitor.alsa.reserve-device")
+  config.properties = Conf.get_section_as_properties ("monitor.alsa.properties")
+  config.rules = Conf.get_section_as_json ("monitor.alsa.rules", Json.Array {})
+  ```
 ]
 
-===  WirePlumber — configuration (3)
+=== WirePlumber — configuration (3)
 
 - To configure ALSA monitor, using a custom configuration fragments:
 
@@ -961,7 +982,7 @@ monitor.alsa.rules = [
 }
 ```
 
-===  WirePlumber — configuration (4)
+=== WirePlumber — configuration (4)
 
 - Example of disabling D-Bus support:
 
@@ -979,7 +1000,7 @@ monitor.alsa.rules = [
 }
 ```
 
-===  WirePlumber — permission handling
+=== WirePlumber — permission handling
 
 - Another task of the session & policy manager is *permission
   management*.
@@ -997,18 +1018,20 @@ monitor.alsa.rules = [
 - Permissions can be granted on a per-object-basis for each client. Else
   each client has a default permission assigned to it.
 
-===  WirePlumber — DSP filtering on sinks and sources (1)
+=== WirePlumber — DSP filtering on sinks and sources (1)
 
 - WirePlumber now features a way to attach a filter-chain to a sink or
   source. This allows pre-processing before outputs for example.
 
 - This is called "Automatic Software DSP", see
-  #link("https://pipewire.pages.freedesktop.org/wireplumber/policies/software_dsp.html")[documentation]
+  #link(
+    "https://pipewire.pages.freedesktop.org/wireplumber/policies/software_dsp.html",
+  )[documentation]
   about the topic.
 
 - Script implementing this behavior is `scripts/node/software-dsp.lua`.
 
-===  WirePlumber — DSP filtering on sinks and sources (2)
+=== WirePlumber — DSP filtering on sinks and sources (2)
 
 - Example configuration:
 
@@ -1035,7 +1058,7 @@ node.software-dsp.rules = [
 == Demo 3 — interacting with WirePlumber
 <demo-3-interacting-with-wireplumber>
 
-===  WirePlumber — demo time! (1)
+=== WirePlumber — demo time! (1)
 
 - We'll use our previous setup, focusing on WirePlumber abilities.
 
@@ -1049,7 +1072,7 @@ node.software-dsp.rules = [
 
   + Have a look at device profiles.
 
-===  WirePlumber — demo time! (2)
+=== WirePlumber — demo time! (2)
 
 + Start PipeWire and WirePlumber.
 
@@ -1082,7 +1105,7 @@ node.software-dsp.rules = [
 == C API
 <c-api>
 
-===  C API — introduction
+=== C API — introduction
 
 - `libpipewire`: reference implementation, and currently the only one.
 
@@ -1093,19 +1116,21 @@ node.software-dsp.rules = [
 
 - See `pkg-config` for CFLAGS and LDFLAGS:
 #v(0.3em)
-  ```text $ pkg-config --cflags --libs libpipewire-0.3 ```
+```text $ pkg-config --cflags --libs libpipewire-0.3 ```
 
 - To initialise the library (logging, randomness, etc.), call:
 #v(0.3em)
-  ```c void pw_init(int *argc, char **argv[]); ```
+```c void pw_init(int *argc, char **argv[]); ```
 
-===  C API — SPA
+=== C API — SPA
 
 - A building block is worth mentioning, *Simple Plugin API*
   (SPA). It contains the following:
 
   - A
-    #link("https://docs.pipewire.org/page_spa.html#autotoc_md225")[plugin format]
+    #link(
+      "https://docs.pipewire.org/page_spa.html#autotoc_md225",
+    )[plugin format]
     encapsulating shared objects, allowing runtime introspection of the
     plugin content.
 
@@ -1118,14 +1143,16 @@ node.software-dsp.rules = [
     as header-only: string handling utilities, relaxed JSON parsing
     (used for config files), a ringbuffer implementation, etc.
 
-  - #link("https://docs.pipewire.org/group__spa__support.html")[Support interfaces]
+  - #link(
+      "https://docs.pipewire.org/group__spa__support.html",
+    )[Support interfaces]
     provided by the system, with multiple possible implementations:
     logging, file-descriptor polling, etc.
 
 - Platform resources (ALSA, bluez5, vulkan, etc.) are exposed as SPA
   plugins and used internally by PipeWire or WirePlumber.
 
-===  C API — event-loop
+=== C API — event-loop
 
 - At the core of each client: an `epoll(2)`-based event-loop is running.
 
@@ -1134,26 +1161,26 @@ node.software-dsp.rules = [
 
 #[
   #show raw.where(lang: "c", block: true): set text(size: 16pt)
-```c
-/** Create a new main loop. */
-struct pw_main_loop *
-pw_main_loop_new(const struct spa_dict *props);
+  ```c
+  /** Create a new main loop. */
+  struct pw_main_loop *
+  pw_main_loop_new(const struct spa_dict *props);
 
-/** Get the loop implementation */
-struct pw_loop * pw_main_loop_get_loop(struct pw_main_loop *loop);
+  /** Get the loop implementation */
+  struct pw_loop * pw_main_loop_get_loop(struct pw_main_loop *loop);
 
-/** Destroy a loop */
-void pw_main_loop_destroy(struct pw_main_loop *loop);
+  /** Destroy a loop */
+  void pw_main_loop_destroy(struct pw_main_loop *loop);
 
-/** Run a main loop. This blocks until ref pw_main_loop_quit is called */
-int pw_main_loop_run(struct pw_main_loop *loop);
+  /** Run a main loop. This blocks until ref pw_main_loop_quit is called */
+  int pw_main_loop_run(struct pw_main_loop *loop);
 
-/** Quit a main loop */
-int pw_main_loop_quit(struct pw_main_loop *loop);
-```
+  /** Quit a main loop */
+  int pw_main_loop_quit(struct pw_main_loop *loop);
+  ```
 ]
 
-===  C API — context
+=== C API — context
 
 - A `pw_context` instance is at the heart of the C API. It allows
   connection to the daemon and it manages locally available resources.
@@ -1177,7 +1204,7 @@ struct pw_core * pw_context_connect(struct pw_context *context,
                 struct pw_properties *properties, size_t user_data_size);
 ```
 
-===  C API — proxies
+=== C API — proxies
 
 - Think as *proxies* as file descriptors for PipeWire objects.
   They are local references to global PipeWire objects.
@@ -1190,7 +1217,7 @@ struct pw_core * pw_context_connect(struct pw_context *context,
 
   + Another one to the global `Client` object that represents itself.
 
-===  C API — registry
+=== C API — registry
 
 - The PipeWire daemon handles a list of objects. Those are known as
   *global* objects and are represented by `pw_global`
@@ -1218,7 +1245,7 @@ void pw_registry_add_listener(struct pw_registry *registry,
         void *data);
 ```
 
-===  C API — example 1, monitoring global objects
+=== C API — example 1, monitoring global objects
 
 ```c
 /* We will run indefinitely, getting events for each added and removed global
@@ -1245,7 +1272,7 @@ static const struct pw_registry_events registry_events = {
 };
 ```
 
-===  C API — example 1, monitoring global objects
+=== C API — example 1, monitoring global objects
 
 ```c
 int main(int argc, char **argv) {
@@ -1271,7 +1298,7 @@ int main(int argc, char **argv) {
 }
 ```
 
-===  C API — node implementations
+=== C API — node implementations
 
 - Implementing a raw node is not straight-forward, requiring to
   implement many book-keeping methods (see `struct spa_node_methods`).
@@ -1299,7 +1326,7 @@ int main(int argc, char **argv) {
 
   - Stream: `src/examples/audio-src.c`
 
-===  C API — `pw_filter` process event
+=== C API — `pw_filter` process event
 
 ```c
 static void on_process(void *userdata, struct spa_io_position *position) {
@@ -1327,64 +1354,69 @@ static const struct pw_filter_events filter_events = {
 };
 ```
 
-===  C API — `pw_stream` process event
-#table(columns: (50%, 50%), stroke: none, [
-```c
-static void on_process(void *userdata) {
-  struct data *data = userdata;
+=== C API — `pw_stream` process event
+#table(
+  columns: (50%, 50%),
+  stroke: none,
+  [
+    ```c
+    static void on_process(void *userdata) {
+      struct data *data = userdata;
 
-  struct pw_buffer *b = pw_stream_dequeue_buffer(
-      data->stream);
-  assert(b != NULL);
+      struct pw_buffer *b = pw_stream_dequeue_buffer(
+          data->stream);
+      assert(b != NULL);
 
-  struct spa_buffer *buf = b->buffer;
-  uint8_t *p = buf->datas[0].data;
-  assert(p != NULL);
+      struct spa_buffer *buf = b->buffer;
+      uint8_t *p = buf->datas[0].data;
+      assert(p != NULL);
 
-  int stride = sizeof(float) * CHANNELS;
-  int n_frames = SPA_MIN(b->requested,
-      buf->datas[0].maxsize / stride);
+      int stride = sizeof(float) * CHANNELS;
+      int n_frames = SPA_MIN(b->requested,
+          buf->datas[0].maxsize / stride);
 
-  fill_f32(&data->accumulator, p, n_frames);
+      fill_f32(&data->accumulator, p, n_frames);
 
-  buf->datas[0].chunk->offset = 0;
-  buf->datas[0].chunk->stride = stride;
-  buf->datas[0].chunk->size = n_frames * stride;
+      buf->datas[0].chunk->offset = 0;
+      buf->datas[0].chunk->stride = stride;
+      buf->datas[0].chunk->size = n_frames * stride;
 
-  pw_stream_queue_buffer(data->stream, b);
-}
-```
+      pw_stream_queue_buffer(data->stream, b);
+    }
+    ```
 
-],[
+  ],
+  [
 
-```c
-#define CHANNELS 2
-#define FREQ     440
-#define RATE     44100
+    ```c
+    #define CHANNELS 2
+    #define FREQ     440
+    #define RATE     44100
 
-static void fill_f32(float *acc, float *dest,
-    int n_frames) {
-  for (int i = 0; i < n_frames; i++) {
-    *acc += M_PI_M2 * FREQ / RATE;
-    *acc = remainder(*acc, 2 * M_PI);
+    static void fill_f32(float *acc, float *dest,
+        int n_frames) {
+      for (int i = 0; i < n_frames; i++) {
+        *acc += M_PI_M2 * FREQ / RATE;
+        *acc = remainder(*acc, 2 * M_PI);
 
-    float val = sin(*acc) * 0.7;
-    for (int c = 0; c < CHANNELS; c++)
-      *dst++ = val;
-  }
-}
+        float val = sin(*acc) * 0.7;
+        for (int c = 0; c < CHANNELS; c++)
+          *dst++ = val;
+      }
+    }
 
-static const struct pw_stream_events stream_events = {
-  PW_VERSION_STREAM_EVENTS,
-  .process = on_process,
-};
-```
-])
+    static const struct pw_stream_events stream_events = {
+      PW_VERSION_STREAM_EVENTS,
+      .process = on_process,
+    };
+    ```
+  ],
+)
 
 == Going further
 <going-further>
 
-===  Going further
+=== Going further
 
 A dump of useful links:
 
@@ -1392,7 +1424,9 @@ A dump of useful links:
   #link("https://docs.pipewire.org/page_midi.html")[the documentation].
 
 - For the PulseAudio compatibility layer, see
-  #link("https://docs.pipewire.org/page_module_protocol_pulse.html")[module-protocol-pulse]
+  #link(
+    "https://docs.pipewire.org/page_module_protocol_pulse.html",
+  )[module-protocol-pulse]
   and
   #link("https://docs.pipewire.org/page_pulseaudio.html")[this documentation page].
 

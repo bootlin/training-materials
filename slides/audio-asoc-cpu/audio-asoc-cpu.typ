@@ -6,7 +6,7 @@
 
 == CPU DAI driver
 
-===  CPU DAI driver
+=== CPU DAI driver
 
 - The CPU DAI driver is now a component driver, like the codec ones.
 
@@ -15,7 +15,7 @@
 
 - Also, the list of supported format and rates is usually very large.
 
-===  DMA handling
+=== DMA handling
 
 - When a DMA controller is available, handling DMA in ALSA is done
   almost completely in the core, through `dmaengine_pcm`.
@@ -28,7 +28,7 @@
   using #kfunc("snd_soc_dai_init_dma_data") which takes the DMA
   configuration for playback and capture.
 
-===  DMA handling example
+=== DMA handling example
 
 #text(size: 14pt)[#kfile("sound/soc/atmel/atmel-i2s.c")]
 #v(-0.3em)
@@ -56,7 +56,7 @@ static int atmel_i2s_dai_probe(struct snd_soc_dai *dai)
 }
 ```
 
-===  DMA handling example
+=== DMA handling example
 
 #text(size: 14pt)[#kfile("sound/soc/atmel/atmel-i2s.c")]
 #v(-0.3em)
@@ -82,7 +82,7 @@ static int atmel_i2s_probe(struct platform_device *pdev)
 }
 ```
 
-===  DMA handling
+=== DMA handling
 
 - When a peripheral DMA controller is used, this is more complex.
 

@@ -6,7 +6,7 @@
 
 = GStreamer
 
-===  Introduction
+=== Introduction
 
 - `Gstreamer` is an open-source multimedia framework that provides a
   pipeline-based architecture for handling multimedia data such as audio
@@ -22,7 +22,7 @@
 - Its modular architecture supports plugins and allows the addition of
   new elements, codecs, and functionality.
 
-===  Architecture
+=== Architecture
 
 - `GStreamer` is object oriented, it adheres to the `GObject` model of
   `GLib 2.0`.
@@ -44,12 +44,12 @@
 - A `pipeline` is a top level bin. Allowing to control and synchronize
   all its children.
 
-===  Example
+=== Example
 
-#align(center, [#image("simple-player.png", width: 100%)]) 
+#align(center, [#image("simple-player.png", width: 100%)])
 #align(center, [#emph[E]xample of a GStreamer pipeline])
 
-===  Plugins
+=== Plugins
 
 - Plugins are selfcontained libraries loaded at runtime.
 
@@ -72,58 +72,44 @@
 
   - playbin: Automatically plays audio and video from a location
 
-===  Useful Plugins
+=== Useful Plugins
 
 #text(size: 15pt)[
-#align(center)[
-#table(
-  columns: 3,
-  align: (col, row) => (left,left,left,).at(col),
-  inset: 6pt,
-  [alsasink],
-  [Sink Audio],
-  [Output to a sound card via ALSA],
-  [alsasrc],
-  [Source Audio],
-  [Read from a sound card via ALSA],
-  [audioconvert],
-  [Filter Converter Audio],
-  [Convert audio to different formats],
-  [audiodynamic],
-  [Filter Effect Audio],
-  [Compressor and Expander],
-  [audiolatency],
-  [Audio Util],
-  [Measures the audio latency between the source and the sink],
-  [audioloudnorm],
-  [Filter Effect Audio],
-  [Normalizes perceived loudness of an audio stream],
-  [audiomixmatrix],
-  [Filter Audio],
-  [Mixes a number of input channels into a number of output channels
-  according to a transformation matrix],
-  [audioresample],
-  [Filter Converter Audio],
-  [Resamples audio],
-  [clocksync],
-  [Generic],
-  [Synchronise buffers to the clock],
-  [dtmfdetect],
-  [Filter Analyzer Audio],
-  [This element detects DTMF tones],
-  [dtmfsrc],
-  [Source Audio],
-  [Generates DTMF tones],
-  [jackaudiosink],
-  [Sink Audio],
-  [Output audio to a JACK server],
-  [jackaudiosrc],
-  [Source Audio],
-  [Captures audio from a JACK server],
-)
-]]
+  #align(center)[
+    #table(
+      columns: 3,
+      align: (col, row) => (left, left, left).at(col),
+      inset: 6pt,
+      [alsasink], [Sink Audio], [Output to a sound card via ALSA],
+      [alsasrc], [Source Audio], [Read from a sound card via ALSA],
+      [audioconvert],
+      [Filter Converter Audio],
+      [Convert audio to different formats],
 
-===  Command line tools
+      [audiodynamic], [Filter Effect Audio], [Compressor and Expander],
+      [audiolatency],
+      [Audio Util],
+      [Measures the audio latency between the source and the sink],
+
+      [audioloudnorm],
+      [Filter Effect Audio],
+      [Normalizes perceived loudness of an audio stream],
+
+      [audiomixmatrix],
+      [Filter Audio],
+      [Mixes a number of input channels into a number of output channels
+        according to a transformation matrix],
+
+      [audioresample], [Filter Converter Audio], [Resamples audio],
+      [clocksync], [Generic], [Synchronise buffers to the clock],
+      [dtmfdetect], [Filter Analyzer Audio], [This element detects DTMF tones],
+      [dtmfsrc], [Source Audio], [Generates DTMF tones],
+      [jackaudiosink], [Sink Audio], [Output audio to a JACK server],
+      [jackaudiosrc], [Source Audio], [Captures audio from a JACK server],
+    )
+  ]]
+
+=== Command line tools
 
 - `gst-inspect-1.0` is a tool that prints out information on GStreamer
   plugins and elements.
@@ -145,7 +131,7 @@
   `gst-launch-1.0 filesrc location=music.ogg ! oggdemux ! vorbisdec !
   audioconvert ! audioresample ! alsasink`
 
-===  Debugging
+=== Debugging
 
 - `gst-launch-1.0` has a `-v` option to make it verbose
 
@@ -163,23 +149,25 @@
 
   - `dot -Kfdp -Tpng -o pipeline.png 0.00.00.021721659-gst-launch.PAUSED_PLAYING.dot`
 
-===  Debugging - graph
+=== Debugging - graph
 
-#align(center, [#image("pipeline.png", height: 90%)]) 
+#align(center, [#image("pipeline.png", height: 90%)])
 
-===  Resources
+=== Resources
 
 - Documentation: \
   #link("https://gstreamer.freedesktop.org/documentation/"). This
   includes documentation of the API to write application and plugins.
 
 - Plugin list: \
-  #link("https://gstreamer.freedesktop.org/documentation/plugins_doc.html")[https://gstreamer.freedesktop.org/documentation/plugins_doc.html]
+  #link(
+    "https://gstreamer.freedesktop.org/documentation/plugins_doc.html",
+  )[https://gstreamer.freedesktop.org/documentation/plugins_doc.html]
 
-#setupdemoframe([Gstreamer],[
+#setupdemoframe([Gstreamer], [
 
-- Inspect plugins and elements using `gst-inspect`
+  - Inspect plugins and elements using `gst-inspect`
 
-- Prepare multiple pipelines with `gst-launch`
+  - Prepare multiple pipelines with `gst-launch`
 
 ])

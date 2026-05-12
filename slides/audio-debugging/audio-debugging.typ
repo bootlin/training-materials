@@ -8,7 +8,7 @@
 
 = Troubleshooting
 
-===  Troubleshooting: no sound 
+=== Troubleshooting: no sound
 
 Audio seems to play for the correct duration but there is no sound:
 
@@ -22,7 +22,7 @@ Audio seems to play for the correct duration but there is no sound:
 
 - Check the routing
 
-===  Troubleshooting: no sound 
+=== Troubleshooting: no sound
 
 When trying to play sound but it seems stuck:
 
@@ -38,10 +38,10 @@ When trying to play sound but it seems stuck:
 
 - Some SoCs also have more muxing (NXP i.Mx AUDMUX, TI McASP)
 
-===  Troubleshooting: write error
+=== Troubleshooting: write error
 
 ```console
-# aplay test.wav 
+# aplay test.wav
 Playing WAVE 'test.wav' : Signed 16 bit Little Endian, Rate 44100 Hz, Stereo aplay: pcm_write:1737: write error: Input/output error
 ```
 
@@ -51,10 +51,10 @@ Playing WAVE 'test.wav' : Signed 16 bit Little Endian, Rate 44100 Hz, Stereo apl
 
 - Use `vizdapm`: #link("https://github.com/mihais/asoc-tools")
 
-===  Troubleshooting: over/underruns
+=== Troubleshooting: over/underruns
 
 ```console
-# aplay test.wav 
+# aplay test.wav
 Playing WAVE 'test.wav' : Signed 16 bit Little Endian, Rate 44100 Hz, Stereo underrun!!! (at least 1.899 ms long)
 underrun!!! (at least 0.818 ms long)
 underrun!!! (at least 2.912 ms long)
@@ -65,7 +65,7 @@ underrun!!! (at least 8.558 ms long)
 
 - Try to find a better PLL and dividers combination
 
-===  Troubleshooting: going further
+=== Troubleshooting: going further
 
 - Use `speaker-test` to generate audio and play tones.
 
@@ -75,7 +75,7 @@ underrun!!! (at least 8.558 ms long)
 - Generate tone with fade in and fade out as this allows to catch DMA
   transfer issues more easily.
 
-===  Troubleshooting: going further
+=== Troubleshooting: going further
 
 - Have a look at the CPU DAI driver and its callback. In particular:
   `.set_clkdiv` and `.set_sysclk` to understand how the various clock
@@ -90,12 +90,12 @@ underrun!!! (at least 8.558 ms long)
 
 - When in doubt, use `devmem` or `i2cget`
 
-#setupdemoframe([Troubleshooting],[
+#setupdemoframe([Troubleshooting], [
 
-- Using debugfs to find issues
+  - Using debugfs to find issues
 
-- Using vizdapm
+  - Using vizdapm
 
-- Using ftrace to trace register writes and DAPM states
+  - Using ftrace to trace register writes and DAPM states
 
 ])

@@ -6,7 +6,7 @@
 
 = Sound and its representation
 
-===  What is sound?
+=== What is sound?
 
 - Sound is caused by vibrations
 
@@ -23,7 +23,7 @@
 
 #align(center, [#image("CPT-sound-physical-manifestation.pdf", width: 60%)])
 
-===  Sound characteristics
+=== Sound characteristics
 
 - Sound waves have a frequency, measured in Hertz (Hz), this is the
   pitch of the sound.
@@ -38,7 +38,7 @@
 
 #align(center, [#image("sound-compose.png", width: 80%)])
 
-===  Sound digitization - samples
+=== Sound digitization - samples
 
 - Sound waves are continuous curves composed of a infinite number of
   points.
@@ -53,7 +53,7 @@
 
 #align(center, [#image("sound-samples.png", width: 80%)])
 
-===  Sound digitization - sample rate
+=== Sound digitization - sample rate
 
 - The sample rate, or sampling frequency is the number of samples taken
   per seconds.
@@ -68,10 +68,10 @@
 - The Human ear can hear sound frequencies between approximately 20 Hz
   and 20 kHz.
 
-#align(center, [#image("aliasing-1d.pdf", width: 60%)]) 
+#align(center, [#image("aliasing-1d.pdf", width: 60%)])
 #align(center, [_Aliasing example, the sampled signal is in blue_])
 
-===  Sound digitization - sample size
+=== Sound digitization - sample size
 
 - The sample value varies from 0 to the maximum amplitude value.
 
@@ -84,7 +84,7 @@
 - 8 bits is getting very rare due to the poor audio quality and 32 bits
   samples can be used when specific alignment is required.
 
-===  Sound digitization - sample format 
+=== Sound digitization - sample format
 
 There are multiple ways to store samples in memory or on disk:
 
@@ -99,7 +99,7 @@ samples, packing can also differ: either they are packed on 3 bytes or
 they can be packed in a 32bit integer with the most significant byte
 being ignored.
 
-===  Sound digitization - conclusions
+=== Sound digitization - conclusions
 
 - We can then store sound as a sequence of samples and the specific
   sample rate that was used.
@@ -108,59 +108,36 @@ being ignored.
 
 - A sampling rate of about 40kHz is needed.
 
-===  Sound digitization - example WAV 
+=== Sound digitization - example WAV
 
 WAV is a format based on RIFF and has the following header:
 #v(0.5em)
 #text(size: 15pt)[
-#align(center)[
-#table(
-  columns: 3,
-  align: (col, row) => (center,center,left,).at(col),
-  inset: 6pt,
-  [Position], [Value], [Description],
-  [1 - 4],
-  ["RIFF"],
-  [RIFF FOURCC code],
-  [5 - 8],
-  [],
-  [File size in bytes, minus 8 (32-bit integer).],
-  [9 -12],
-  ["WAVE"],
-  [WAVE FOURCC code],
-  [13-16],
-  [“fmt "],
-  [Format chunk marker (includes trailing space)],
-  [17-20],
-  [16],
-  [Length of format data, 16 for PCM],
-  [21-22],
-  [1],
-  [Audio format, 1 for PCM],
-  [23-24],
-  [2],
-  [Number of channels],
-  [25-28],
-  [48000],
-  [Sample rate],
-  [29-32],
-  [176400],
-  [Byte rate = (Sample rate*BitsPerSample*channels) / 8.],
-  [33-34],
-  [4],
-  [BlockAlign = (BitsPerSample*Channels) / 8],
-  [35-36],
-  [16],
-  [Bits per sample],
-  [37-40],
-  ["data"],
-  [Data chunk header],
-  [41-44],
-  [],
-  [Size of the data section in bytes],
-)
-]]
+  #align(center)[
+    #table(
+      columns: 3,
+      align: (col, row) => (center, center, left).at(col),
+      inset: 6pt,
+      [Position], [Value], [Description],
+      [1 - 4], ["RIFF"], [RIFF FOURCC code],
+      [5 - 8], [], [File size in bytes, minus 8 (32-bit integer).],
+      [9 -12], ["WAVE"], [WAVE FOURCC code],
+      [13-16], [“fmt "], [Format chunk marker (includes trailing space)],
+      [17-20], [16], [Length of format data, 16 for PCM],
+      [21-22], [1], [Audio format, 1 for PCM],
+      [23-24], [2], [Number of channels],
+      [25-28], [48000], [Sample rate],
+      [29-32],
+      [176400],
+      [Byte rate = (Sample rate*BitsPerSample*channels) / 8.],
 
-===  Sound digitization - example WAV
+      [33-34], [4], [BlockAlign = (BitsPerSample*Channels) / 8],
+      [35-36], [16], [Bits per sample],
+      [37-40], ["data"], [Data chunk header],
+      [41-44], [], [Size of the data section in bytes],
+    )
+  ]]
+
+=== Sound digitization - example WAV
 
 #align(center, [#image("RIFF_WAVE.png", width: 100%)])

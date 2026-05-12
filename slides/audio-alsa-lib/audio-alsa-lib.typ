@@ -11,7 +11,7 @@
 == alsa-lib
 <alsa-lib>
 
-===  alsa-lib
+=== alsa-lib
 
 - The main way to interact with ALSA devices is to use alsa-lib.
 
@@ -24,11 +24,11 @@
 
 - The include file is `alsa/asoundlib.h`
 
-===  alsa-lib API
+=== alsa-lib API
 
 - ```c
-int snd_pcm_open(snd_pcm_t ** pcmp, const char * name, snd_pcm_stream_t stream, int mode)
-```
+  int snd_pcm_open(snd_pcm_t ** pcmp, const char * name, snd_pcm_stream_t stream, int mode)
+  ```
 
 - `name` is the name of the PCM to be opened.
 
@@ -37,12 +37,12 @@ int snd_pcm_open(snd_pcm_t ** pcmp, const char * name, snd_pcm_stream_t stream, 
 - `mode` can be a combination of `SND_PCM_NONBLOCK` and `SND_PCM_ASYNC`
 
 - ```c
-int snd_pcm_close(snd_pcm_t *pcm)
+  int snd_pcm_close(snd_pcm_t *pcm)
   ```
 
 - Closes the PCM.
 
-===  PCM name
+=== PCM name
 
 - This can be specified as a hardware device. The three arguments (in
   order: CARD,DEV,SUBDEV) specify card number or identifier, device
@@ -54,35 +54,35 @@ int snd_pcm_close(snd_pcm_t *pcm)
 - The list of available names can be generated using `snd_card_next` to iterate over all the physical cards. See `device_list` in
   `aplay`.
 
-===  alsa-lib API - PCM
+=== alsa-lib API - PCM
 
 - The next step is to handle the PCM stream parameters
 
 - ```c
-snd_pcm_hw_params_t *hw_params; 
-  int snd_pcm_hw_params_malloc(snd_pcm_hw_params_t ** ptr)
-  int snd_pcm_hw_params_any(snd_pcm_t * pcm, snd_pcm_hw_params_t * params)
+  snd_pcm_hw_params_t *hw_params;
+    int snd_pcm_hw_params_malloc(snd_pcm_hw_params_t ** ptr)
+    int snd_pcm_hw_params_any(snd_pcm_t * pcm, snd_pcm_hw_params_t * params)
   ```
 
 - This will allocate a `snd_pcm_hw_params_t` and fill it with
   the range of parameters supported by `pcm`.
 
 - ```c
-int snd_pcm_hw_params_set_access(snd_pcm_t *pcm, snd_pcm_hw_params_t *params,
-                                   snd_pcm_access_t _access)
+  int snd_pcm_hw_params_set_access(snd_pcm_t *pcm, snd_pcm_hw_params_t *params,
+                                     snd_pcm_access_t _access)
   ```
 
 - This set the proper access type: interleaved or non-interleaved, mmap
   or not.
 
 - ```c
-int snd_pcm_hw_params_set_format(snd_pcm_t *pcm, snd_pcm_hw_params_t *params,
-                                   snd_pcm_format_t val)
+  int snd_pcm_hw_params_set_format(snd_pcm_t *pcm, snd_pcm_hw_params_t *params,
+                                     snd_pcm_format_t val)
   ```
 
 - This set the format, using a `SND_PCM_FORMAT_` macro.
 
-===  alsa-lib API - PCM
+=== alsa-lib API - PCM
 
 - ```c
   int snd_pcm_hw_params_set_channels(snd_pcm_t *pcm, snd_pcm_hw_params_t *params,
@@ -111,7 +111,7 @@ int snd_pcm_hw_params_set_format(snd_pcm_t *pcm, snd_pcm_hw_params_t *params,
 - Sets the number of periods and the period size in the buffer or the
   buffer size.
 
-===  alsa-lib API - PCM
+=== alsa-lib API - PCM
 
 - ```c
   int snd_pcm_hw_params(snd_pcm_t * pcm, snd_pcm_hw_params_t * params)
@@ -138,7 +138,7 @@ int snd_pcm_hw_params_set_format(snd_pcm_t *pcm, snd_pcm_hw_params_t *params,
 
 - Waits for the PCM to be ready.
 
-===  alsa-lib API - PCM
+=== alsa-lib API - PCM
 
 - ```c
   snd_pcm_sframes_t snd_pcm_writei(snd_pcm_t *pcm, const void *buffer, snd_pcm_uframes_t size)
@@ -163,7 +163,7 @@ int snd_pcm_hw_params_set_format(snd_pcm_t *pcm, snd_pcm_hw_params_t *params,
 
 - Write or read from an interleaved or non-interleaved mmap buffer.
 
-===  alsa-lib API - controls
+=== alsa-lib API - controls
 
 - It is possible to set controls programatically.
 
@@ -191,7 +191,7 @@ int snd_pcm_hw_params_set_format(snd_pcm_t *pcm, snd_pcm_hw_params_t *params,
 
 - Set the interface and name of the control to be set.
 
-===  alsa-lib API - controls
+=== alsa-lib API - controls
 
 - A lookup is needed to fill the `snd_ctl_elem_id_t` completely
 
@@ -212,7 +212,7 @@ int lookup_id(snd_ctl_elem_id_t *id, snd_ctl_t *handle)
 }
 ```
 
-===  alsa-lib API - controls
+=== alsa-lib API - controls
 
 - ```c
   void snd_ctl_elem_value_set_id(snd_ctl_elem_value_t *obj, const snd_ctl_elem_id_t *ptr)
@@ -240,25 +240,30 @@ int lookup_id(snd_ctl_elem_id_t *id, snd_ctl_t *handle)
 
 - Actually set the control.
 
-===  Going further
+=== Going further
 
 - UCM: The ALSA Use Case Configuration: \
-  #link("https://www.alsa-project.org/alsa-doc/alsa-lib/group__ucm__conf.html")[https://www.alsa-project.org/alsa-doc/alsa-lib/group__ucm__conf.html]
+  #link(
+    "https://www.alsa-project.org/alsa-doc/alsa-lib/group__ucm__conf.html",
+  )[https://www.alsa-project.org/alsa-doc/alsa-lib/group__ucm__conf.html]
 
 - ALSA topology: \
-  #link("https://www.alsa-project.org/wiki/ALSA_topology")[https://www.alsa-project.org/wiki/ALSA_topology]
+  #link(
+    "https://www.alsa-project.org/wiki/ALSA_topology",
+  )[https://www.alsa-project.org/wiki/ALSA_topology]
 
-#setupdemoframe([Card configuration examples],[ Using `alsa-lib`
-tools to:
+#setupdemoframe([Card configuration examples], [
+  Using `alsa-lib`
+  tools to:
 
-- Reorder channels
+  - Reorder channels
 
-- Split channels
+  - Split channels
 
-- Resample
+  - Resample
 
-- Mix samples
+  - Mix samples
 
-- Apply effects
+  - Apply effects
 
 ])

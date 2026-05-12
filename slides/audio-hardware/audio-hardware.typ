@@ -7,15 +7,15 @@
 = Embedded audio Hardware
 <embedded-audio-hardware>
 
-===  Anatomy
+=== Anatomy
 
-#align(center, [#image("anatomy.pdf", width: 100%)]) 
+#align(center, [#image("anatomy.pdf", width: 100%)])
 #align(center, [#emph[Example of an embedded system sound card]])
 
 == CODECs
 <codecs>
 
-===  CODECs
+=== CODECs
 
 - A CODEC is a device that COdes and DECodes audio samples.
 
@@ -31,13 +31,13 @@
 
 - Usually an extra digital bus is used for configuration
 
-===  Digital audio interface - signals 
+=== Digital audio interface - signals
 
 The CODEC DAI is a synchronous serial bus. A common PCM interface is represented here:
 
-#align(center, [#image("i2s.pdf", height: 50%)]) 
+#align(center, [#image("i2s.pdf", height: 50%)])
 
-===  Digital audio interface - signals
+=== Digital audio interface - signals
 
 - The PCM DAI uses two clocks: the bit clock and the frame clock.
 
@@ -52,7 +52,7 @@ The CODEC DAI is a synchronous serial bus. A common PCM interface is represented
 
 - It also has one or multiple data lines.
 
-===  Digital audio interface - Data
+=== Digital audio interface - Data
 
 - Codecs may have multiple data in or data out lines, one line per
   channel pair.
@@ -60,27 +60,33 @@ The CODEC DAI is a synchronous serial bus. A common PCM interface is represented
 - Codecs may also have multiple DAI, one full interface for data in and
   one for data out.
 
-#table(columns: (49.5%, 50.5%), stroke: none, gutter: 15pt, [
-e.g. #link("https://www.analog.com/media/en/technical-documentation/data-sheets/AD1937.pdf")[AD1937]
-has:
+#table(
+  columns: (49.5%, 50.5%),
+  stroke: none,
+  gutter: 15pt,
+  [
+    e.g. #link("https://www.analog.com/media/en/technical-documentation/data-sheets/AD1937.pdf")[AD1937]
+    has:
 
-- 8 DACs in 4 pairs, 4 ADCs in 2 pairs
+    - 8 DACs in 4 pairs, 4 ADCs in 2 pairs
 
-- clocks for data-in: DBCLK, DLRCLK
+    - clocks for data-in: DBCLK, DLRCLK
 
-- 4 data-in lines (DSDATA[1-4])
+    - 4 data-in lines (DSDATA[1-4])
 
-- clocks for data-out: ABCLK, ALRCLK
+    - clocks for data-out: ABCLK, ALRCLK
 
-- 2 data-out lines (ASDATA[1-2])
+    - 2 data-out lines (ASDATA[1-2])
 
-],[
-  
-#align(center, [#image("ad1937.pdf", width: 90%)]) 
+  ],
+  [
 
-])
+    #align(center, [#image("ad1937.pdf", width: 90%)])
 
-===  MCLK
+  ],
+)
+
+=== MCLK
 
 - MCLK is the codec clock. It is sometimes referred as the system clock.
   The IC needs it to be working.
@@ -99,7 +105,7 @@ has:
 == SoC Digital Audio Interface
 <soc-digital-audio-interface>
 
-===  SoC
+=== SoC
 
 - The SoC also has a dedicated synchronous serial interface.
 
@@ -122,66 +128,66 @@ has:
 == Digital formats
 <digital-formats>
 
-===  Digital formats - Left Justified
+=== Digital formats - Left Justified
 
-#align(center, [#image("LJ.png", width: 100%)]) 
+#align(center, [#image("LJ.png", width: 100%)])
 
-===  Digital formats - Right Justified
+=== Digital formats - Right Justified
 
-#align(center, [#image("RJ.png", width: 100%)]) 
+#align(center, [#image("RJ.png", width: 100%)])
 
-===  Digital formats - I2S
+=== Digital formats - I2S
 
-#align(center, [#image("I2S.png", width: 100%)]) 
+#align(center, [#image("I2S.png", width: 100%)])
 
-===  Digital formats - DSP A
+=== Digital formats - DSP A
 
-#align(center, [#image("DSP_A.png", width: 100%)]) 
+#align(center, [#image("DSP_A.png", width: 100%)])
 
-===  Digital formats - DSP B
+=== Digital formats - DSP B
 
-#align(center, [#image("DSP_B.png", width: 100%)]) 
+#align(center, [#image("DSP_B.png", width: 100%)])
 
-===  Digital formats - TDM
+=== Digital formats - TDM
 
-#align(center, [#image("TDM.png", width: 100%)]) 
+#align(center, [#image("TDM.png", width: 100%)])
 
-===  Digital formats - AC-link 
+=== Digital formats - AC-link
 
 AC97 uses TDM slots. Slot 0 is 16bit wide and is the tag. Then twelve 20bit wide slots are used to transmit
 data.
 
 #v(0.5em)
 
-#align(center, [#image("ac97.pdf", height: 35%)]) 
+#align(center, [#image("ac97.pdf", height: 35%)])
 
 #align(center, [#image("ac97_phases.pdf", height: 35%)])
 
-===  Digital formats - PDM 
+=== Digital formats - PDM
 
 There is another, less common interface,
 using Pulse Density Modulation. It has two signals per channels, clock
-and data. Data has only one bit. 
+and data. Data has only one bit.
 
-#align(center, [#image("PDM.pdf", height: 85%)]) 
+#align(center, [#image("PDM.pdf", height: 85%)])
 
-===  Digital formats - S/PDIF or IEC 60958
+=== Digital formats - S/PDIF or IEC 60958
 
 S/PDIF uses only one wire. Data is encoded using BMC (Biphase Mark Code), also known as
 differential Manchester encoding. Its clock is then twice the bitrate.
 
-#align(center, [#image("BMC.pdf", height: 25%)]) 
+#align(center, [#image("BMC.pdf", height: 25%)])
 
 Blocks of 192 frames are transmitted, each frame consisting of two
 subframes (32bit words). There are three different preambles, one for
 start of block and channel 0, one for channel 0 and one for channel 1.
 
-#align(center, [#image("SPDIF.pdf", height: 30%)]) 
+#align(center, [#image("SPDIF.pdf", height: 30%)])
 
 == Auxiliary devices
 <auxiliary-devices>
 
-===  Auxiliary devices
+=== Auxiliary devices
 
 - Some devices may be on the analog path of the audio signal.
 
@@ -193,7 +199,7 @@ start of block and channel 0, one for channel 0 and one for channel 1.
 == Clocks
 <clocks>
 
-===  Clocks: producer/consumer
+=== Clocks: producer/consumer
 
 - One of the DAI is responsible to generate the bit clock, it is the bit
   clock producer (previously: master).
