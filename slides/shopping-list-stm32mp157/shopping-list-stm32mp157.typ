@@ -12,6 +12,8 @@
 
 #show: bootlin-theme
 
+#set list(spacing: 0.8em)
+
 === STM32MP157 shopping list
 
 #table(columns: (80%, 20%), stroke: none, gutter: 20pt,
@@ -20,7 +22,7 @@
   - Discovery Kits from STMicroelectronics:
     STM32MP157A-DK1, STM32MP157D-DK1,
     STM32MP157C-DK2 or STM32MP157F-DK2
-    #footnote[#text(size: 16pt)[Boards documentation:
+    #footnote[#text(size: 11pt)[Boards documentation:
       #link("https://www.st.com/en/evaluation-tools/stm32mp157a-dk1.html")[A-DK1],
       #link("https://www.st.com/en/evaluation-tools/stm32mp157d-dk1.html")[D-DK1],
       #link("https://www.st.com/en/evaluation-tools/stm32mp157c-dk2.html")[C-DK2],
@@ -29,18 +31,16 @@
 
     - #text(size: 18pt)[STM32MP157 (Dual Cortex-A7 + Cortex-M4) CPU]
     - #text(size: 18pt)[512 MB DDR3L RAM]
-    - #text(size: 18pt)[Plenty of peripherals: GPIOs, SPI, Serial, USB, Ethernet]
+    - #text(size: 18pt)[Plenty of peripherals: GPIOs, SPI, Serial, USB, Ethernet...]
 
-  
-
-  - MicroUSB cable (serial console)
-  - USB-C to USB-A cable (power supply)
+  - MicroUSB cable (to access serial console)
+  - USB-C to USB-A cable (to power the board)
 
   #if stm32mp157-nunchuk [
   - Nintendo Nunchuk with UEXT connector
-    #footnote[#text(size: 16pt)[#link("https://www.olimex.com/Products/Modules/Sensors/MOD-WII/MOD-Wii-UEXT-NUNCHUCK/")]]
-  - Breadboard jumper wires - Male ends
-    #footnote[#text(size: 16pt)[#link("https://www.olimex.com/Products/Breadboarding/JUMPER-WIRES/JW-110x10/")]]
+    #footnote[#text(size: 11pt)[#link("https://www.olimex.com/Products/Modules/Sensors/MOD-WII/MOD-Wii-UEXT-NUNCHUCK/")]]
+  - Breadboard jumper wires - Male ends (to connect the Nunchuk)
+    #footnote[#text(size: 11pt)[#link("https://www.olimex.com/Products/Breadboarding/JUMPER-WIRES/JW-110x10/")]]
   ]
 
   - MicroSD card
