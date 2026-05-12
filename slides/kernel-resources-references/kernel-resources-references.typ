@@ -35,31 +35,29 @@ Linux Weekly News
 
 ===  Useful Online Resources
 
-#[ #set list(spacing: 0.3em)
-   #text(size: 19pt)[
+#[ #set list(spacing: 0.3em) 
+  #set text(size: 18pt)
 - Kernel documentation
-
   - #link("https://kernel.org/doc/")
-
 - Linux kernel mailing list FAQ
-
+  #[ #set list(spacing: 0.3em) 
   - #link("https://subspace.kernel.org/etiquette.html")
 
   - Complete Linux kernel FAQ
 
   - Read this before asking a question to the mailing list
-
+  ]
 - Linux kernel mailing lists
-
+  #[ #set list(spacing: 0.3em) 
   - #link("https://lore.kernel.org/")
 
   - Easy browsing and referencing of all e-mail threads
 
   - Easy access to an mbox in order to answer to e-mails you were not
     Cc'ed to
-
+  ]
 - Kernel Newbies
-
+  #[ #set list(spacing: 0.3em) 
   - #link("https://kernelnewbies.org/")
 
   - Articles, presentations, HOWTOs, recommended reading, useful tools
@@ -69,9 +67,9 @@ Linux Weekly News
 
   - In depth coverage of the new features in each kernel release:
     #link("https://kernelnewbies.org/LinuxChanges")
-
+  ]
 - The #link("https://elinux.org") wiki
-]]
+]
 
 ===  International Conferences (1)
 

@@ -64,8 +64,7 @@ A virtual filesystem to export debugging information to user space.
 ===  Using Magic SysRq 
 
 Functionnality provided by serial drivers
-
-#[ #set list(spacing: 0.4em)
+#[ #set text(size: 18pt)
 - Allows to run multiple debug / rescue commands even when the kernel
   seems to be in deep trouble
 

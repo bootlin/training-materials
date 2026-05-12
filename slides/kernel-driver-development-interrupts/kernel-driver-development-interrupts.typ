@@ -244,6 +244,8 @@ int devm_request_threaded_irq(struct device *dev, unsigned int irq,
 
 ===  Workqueues
 
+#[ #set text(size: 18pt)
+
 - Workqueues are a general mechanism for deferring work. It is not
   limited in usage to handling interrupts.
 
@@ -275,6 +277,7 @@ int devm_request_threaded_irq(struct device *dev, unsigned int irq,
   INIT_WORK(&work_data->work, atmel_i2c_work_handler);
   schedule_work(&work_data->work);
   ```]
+]
 
 ===  Interrupt and deferred mechanisms execution constraints summary
 
