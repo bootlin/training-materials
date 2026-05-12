@@ -525,7 +525,7 @@ b.attach_kprobe(event=b.get_syscall_fnname("clone"), fn_name="hello")
   thanks to clang:
 
   ```console
-          $ clang -target bpf -O2 -g -c my_prog.bpf.c -o my_prog.bpf.o
+    $ clang -target bpf -O2 -g -c my_prog.bpf.c -o my_prog.bpf.o
   ```
 
   - The `-g` option allows to add debug information as well as BTF

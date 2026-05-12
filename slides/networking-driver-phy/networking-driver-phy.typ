@@ -535,47 +535,33 @@ mdio: mdio@32004 {
 
 ===  MDI - Media Dependent Interface
 
+#place(right, dy: 7em, image("mdi.pdf", width: 15%))
 - A huge number of physical protocols are defined by the 802.3 standard
 
-- As of v6.15,
-  #link("https://elixir.bootlin.com/linux/v6.15.1/source/include/uapi/linux/ethtool.h#L1950")[120]
-  linkmodes are supported
+- As of v6.15, #link("https://elixir.bootlin.com/linux/v6.15.1/source/include/uapi/linux/ethtool.h#L1950")[120] linkmodes are supported
 
 - They follow a specific naming convention from IEEE 802.3
 
-- #text(fill: blue)[speed]`Band-`#text(fill: purple)[Medium]#text(fill: red)[Encoding]#text(fill:  rgb("#dbab0dc7"))[Lanes]#text(fill: blue)[: 1000]Base-#text(fill: purple)[T], #text(fill: blue)[10G]Base-#text(fill: purple)[K]#text(fill: red)[R], #text(fill: blue)[10]Base-#text(fill: purple)[T]#text(fill: rgb("#dbab0dc7"))[1]…
+- #text(fill: blue)[speed]`Band-`#text(fill: purple)[Medium]#text(fill: red)[Encoding]#text(fill:  rgb("#c26700c7"))[Lanes]#text(fill: blue)[: 1000]Base-#text(fill: purple)[T], #text(fill: blue)[10G]Base-#text(fill: purple)[K]#text(fill: red)[R], #text(fill: blue)[10]Base-#text(fill: purple)[T]#text(fill: rgb("#c26700c7"))[1]…
 
 - Band: `BASE`band, `BROAD`band or `PASS`band.
 
-#table(columns: (80%, 20%), stroke: none, gutter: 15pt, [
-
 - #text(fill: purple)[Medium]
 
-  - Base-*T*: Link over twisted-pair copper cables (Classic
-    RJ45).
-
+  - Base-*T*: Link over twisted-pair copper cables (Classic RJ45).
   - Base-*K*: Backplanes (PCB traces) links.
-
   - Base-*C*: Copper links.
-
   - Base-*L*, Base-*S*, Base-*F*: Fiber links.
-
   - Base-*H*: Plastic Fiber.
 
-],[
-
-  #align(center, [#image("mdi.pdf", width: 80%)])
-
-])
 #v(-0.5em)
+
 - #text(fill: red)[Encoding]: Describe the block encoding used by the `PCS`
 
   - Base-*X*: 10b/8b encoding.
-
   - Base-*R*: 66b/64b encoding.
 
-- #text(fill:  rgb("#dbab0dc7"))[Lanes]: Number of lanes per link (for Base-*T*, number of
-  twisted pairs used).
+- #text(fill:  rgb("#c26700c7"))[Lanes]: Number of lanes per link (for Base-*T*, number of twisted pairs used).
 
 ===  linkmodes
 
