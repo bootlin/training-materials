@@ -5,32 +5,38 @@
 #show: bootlin-theme
 
 #if sys.inputs.training == "linux-kernel" {
-[
-=== Origin
+  [
+    === Origin
 
-#table(columns: (78%, 22%), stroke:none, gutter: 15pt, [
+    #table(
+      columns: (78%, 22%),
+      stroke: none,
+      gutter: 15pt,
+      [
 
-- The Linux kernel was created as a hobby in 1991 by a Finnish student, Linus Torvalds.
-  - Linux quickly started to be used as the kernel for free software operating systems
+        - The Linux kernel was created as a hobby in 1991 by a Finnish student, Linus Torvalds.
+          - Linux quickly started to be used as the kernel for free software operating systems
 
-- Linux Torvalds has been able to create a large and dynamic developer and user community around Linux.
-- As of today, about 2000+ people contribute to each kernel release, individuals or companies big and small.
+        - Linux Torvalds has been able to create a large and dynamic developer and user community around Linux.
+        - As of today, about 2000+ people contribute to each kernel release, individuals or companies big and small.
 
-],[
-#[ #set par(leading: 0.4em)
-  #align(center, [#image("linus-torvalds.jpg", width: 100%)])
-  #text(size: 16.5pt)[Linus Torvalds in 2014] \
-  #text(size: 13pt)[Image credits (Wikipedia):] \
-  #text(size: 13pt)[#link("https://bit.ly/2UIa1TD")]
-]
-])
-]
+      ],
+      [
+        #[ #set par(leading: 0.4em)
+          #align(center, [#image("linus-torvalds.jpg", width: 100%)])
+          #text(size: 16.5pt)[Linus Torvalds in 2014] \
+          #text(size: 13pt)[Image credits (Wikipedia):] \
+          #text(size: 13pt)[#link("https://bit.ly/2UIa1TD")]
+        ]
+      ],
+    )
+  ]
 }
-===  Linux kernel in the system
+=== Linux kernel in the system
 
 #align(center, [#image("linux-kernel-in-system.pdf", height: 90%)])
 
-===  Linux kernel main roles
+=== Linux kernel main roles
 
 - *Manage all the hardware resources*: CPU, memory, I/O.
 
@@ -45,32 +51,37 @@
     applications through various network connections. The kernel is
     responsible for "multiplexing" the hardware resource.
 
-===  System calls
+=== System calls
 
-#table(columns: (70%, 30%), stroke: none, [
+#table(
+  columns: (70%, 30%),
+  stroke: none,
+  [
 
-- The main interface between the kernel and user space is the set of
-  system calls
+    - The main interface between the kernel and user space is the set of
+      system calls
 
-- About 400 system calls that provide the main kernel services
+    - About 400 system calls that provide the main kernel services
 
-  - File and device operations, networking operations, inter-process
-    communication, process management, memory mapping, timers, threads,
-    synchronization primitives, etc.
+      - File and device operations, networking operations, inter-process
+        communication, process management, memory mapping, timers, threads,
+        synchronization primitives, etc.
 
-- This system call interface is wrapped by the C library, and user space
-  applications usually never make a system call directly but rather use
-  the corresponding C library function
-  
-],[
+    - This system call interface is wrapped by the C library, and user space
+      applications usually never make a system call directly but rather use
+      the corresponding C library function
 
-#align(center, [#image("system-calls.pdf", width: 100%)])
-#text(size: 18pt)[
-Image credits (Wikipedia):]  \
-#text(size: 17pt)[#link("https://bit.ly/2U2rdGB")] 
-])
+  ],
+  [
 
-===  Pseudo filesystems
+    #align(center, [#image("system-calls.pdf", width: 100%)])
+    #text(size: 18pt)[
+      Image credits (Wikipedia):]  \
+    #text(size: 17pt)[#link("https://bit.ly/2U2rdGB")]
+  ],
+)
+
+=== Pseudo filesystems
 
 - Linux makes system and kernel information available in user space
   through *pseudo filesystems*, sometimes also called

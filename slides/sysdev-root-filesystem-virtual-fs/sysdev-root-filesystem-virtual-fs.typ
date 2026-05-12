@@ -4,9 +4,9 @@
 
 #show: bootlin-theme
 
-== Pseudo Filesystems 
+== Pseudo Filesystems
 
-===  proc virtual filesystem
+=== proc virtual filesystem
 
 - The `proc` virtual filesystem exists since the beginning of Linux
 
@@ -29,7 +29,7 @@
 
 - See #kdochtml("filesystems/proc") in kernel documentation or `man proc`
 
-===  proc contents
+=== proc contents
 
 - One directory for each running process in the system
 
@@ -51,10 +51,10 @@
   - They are called _sysctl_. See
     #kdochtmldir("admin-guide/sysctl") in kernel documentation.
 
-  - Example (free the page cache and slab objects):  \ 
+  - Example (free the page cache and slab objects):  \
     `echo 3 > /proc/sys/vm/drop_caches`
 
-===  sysfs filesystem
+=== sysfs filesystem
 
 - It allows to represent in user space the vision that the kernel has of
   the buses, devices and drivers in the system
@@ -65,11 +65,11 @@
 - All applications using sysfs expect it to be mounted in the `/sys`
   directory
 
-- Command to mount `/sys`: 
+- Command to mount `/sys`:
   `mount -t sysfs nodev /sys`
 
 - #text(size: 19pt)[
-  ```
-  $ ls /sys/
-  block bus class dev devices firmware fs kernel module power
-  ```]
+    ```
+    $ ls /sys/
+    block bus class dev devices firmware fs kernel module power
+    ```]

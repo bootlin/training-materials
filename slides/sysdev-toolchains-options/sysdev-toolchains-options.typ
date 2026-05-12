@@ -4,9 +4,9 @@
 
 #show: bootlin-theme
 
-== Toolchain Options 
+== Toolchain Options
 
-===  ABI
+=== ABI
 
 - When building a toolchain, the ABI used to generate binaries needs to
   be defined
@@ -27,9 +27,11 @@
 - On RISC-V, several ABIs: _ilp32_, _ilp32f_, _ilp32d_,
   _lp64_, _lp64f_, and _lp64d_
 
-- #link("https://en.wikipedia.org/wiki/Application_Binary_Interface")[https://en.wikipedia.org/wiki/Application_Binary_Interface]
+- #link(
+    "https://en.wikipedia.org/wiki/Application_Binary_Interface",
+  )[https://en.wikipedia.org/wiki/Application_Binary_Interface]
 
-===  Floating point support
+=== Floating point support
 
 - All ARMv7-A (32-bit) and ARMv8-A (64-bit) processors have a floating
   point unit
@@ -54,7 +56,7 @@
 - For processors with a floating point unit, sometimes different FPU are
   possible. For example on ARM: VFPv3, VFPv3-D16, VFPv4, VFPv4-D16, etc.
 
-===  CPU optimization flags
+=== CPU optimization flags
 
 - GNU tools (gcc, binutils) can only be compiled for a specific target
   architecture at a time (ARM, x86, RISC-V...)

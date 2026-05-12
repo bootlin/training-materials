@@ -6,6 +6,6 @@
 
 = Extra slides
 
-===  Linux connectivity stack
+=== Linux connectivity stack
 
 #align(center, [#image("connectivity-stack.pdf", height: 80%)])

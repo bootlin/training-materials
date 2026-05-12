@@ -12,4 +12,6 @@
     developers. Many kernel and embedded project maintainers are present.
 
   - Presentation slides and videos freely available on
-    #link("https://elinux.org/ELC_Presentations")[https://elinux.org/ELC_Presentations]
+    #link(
+      "https://elinux.org/ELC_Presentations",
+    )[https://elinux.org/ELC_Presentations]

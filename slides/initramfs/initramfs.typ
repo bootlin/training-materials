@@ -4,7 +4,7 @@
 
 #show: bootlin-theme
 
-===  Root filesystem in memory: initramfs
+=== Root filesystem in memory: initramfs
 
 It is also possible to boot the system with a filesystem in memory: _initramfs_
 
@@ -25,10 +25,10 @@ It is also possible to boot the system with a filesystem in memory: _initramfs_
     is always used on the kernel of desktop/server distributions to keep
     the kernel image size reasonable.
 
-- Details (in kernel documentation): 
-  #kdochtml("filesystems/ramfs-rootfs-initramfs") 
+- Details (in kernel documentation):
+  #kdochtml("filesystems/ramfs-rootfs-initramfs")
 
-===  External initramfs
+=== External initramfs
 
 - To create one, first create a compressed CPIO archive:
 
@@ -42,7 +42,7 @@ It is also possible to boot the system with a filesystem in memory: _initramfs_
   U-Boot container:
 
   ```
-  mkimage -n 'Ramdisk Image' -A arm -O linux -T ramdisk -C gzip 
+  mkimage -n 'Ramdisk Image' -A arm -O linux -T ramdisk -C gzip
           -d initramfs.cpio.gz uInitramfs
   ```
 
@@ -53,22 +53,28 @@ It is also possible to boot the system with a filesystem in memory: _initramfs_
   bootz kernel-addr initramfs-addr dtb-addr
   ```
 
-===  Built-in initramfs
+=== Built-in initramfs
 
-#table(columns: (80%, 20%), stroke: none, [ To have the kernel
-Makefile include an initramfs archive in the kernel image: use the
-#kconfig("CONFIG_INITRAMFS_SOURCE") option.
+#table(
+  columns: (80%, 20%),
+  stroke: none,
+  [
+    To have the kernel
+    Makefile include an initramfs archive in the kernel image: use the
+    #kconfig("CONFIG_INITRAMFS_SOURCE") option.
 
-- It can be the path to a directory containing the root filesystem
-  contents
+    - It can be the path to a directory containing the root filesystem
+      contents
 
-- It can be the path to a ready made cpio archive
+    - It can be the path to a ready made cpio archive
 
-- It can be a text file describing the contents of the initramfs
+    - It can be a text file describing the contents of the initramfs
 
-See the kernel documentation for details:
-#kdochtml("driver-api/early-userspace/early_userspace_support") 
-*WARNING*: only binaries from GPLv2 compatible code are allowed
-to be included in the kernel binary using this technique. Otherwise, use
-an external initramfs. ],[
-#align(center, [#image("initramfs.pdf", width: 90%)]) ])
+    See the kernel documentation for details:
+    #kdochtml("driver-api/early-userspace/early_userspace_support")
+    *WARNING*: only binaries from GPLv2 compatible code are allowed
+    to be included in the kernel binary using this technique. Otherwise, use
+    an external initramfs. ],
+  [
+    #align(center, [#image("initramfs.pdf", width: 90%)]) ],
+)

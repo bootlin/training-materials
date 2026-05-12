@@ -6,7 +6,7 @@
 
 == Definition and Components
 
-===  Toolchain definition (1)
+=== Toolchain definition (1)
 
 - The usual development tools available on a GNU/Linux workstation is a
   *native toolchain*
@@ -26,11 +26,11 @@
 - Therefore, *cross-compiling toolchains* are generally used.
   They run on your workstation but generate code for your target.
 
-===  Toolchain definition (2)
+=== Toolchain definition (2)
 
 #align(center, [#image("cross-toolchain.pdf", width: 80%)])
 
-===  Architecture tuple and toolchain prefix
+=== Architecture tuple and toolchain prefix
 
 - Many UNIX/Linux build mechanisms rely on _architecture tuple_
   names to identify machines.
@@ -60,11 +60,11 @@
 
     - `arm-linux-gnueabihf-gcc` → cross-compiler
 
-===  Components of gcc toolchains
+=== Components of gcc toolchains
 
 #align(center, [#image("components.pdf", width: 75%)])
 
-===  Binutils
+=== Binutils
 
 - *Binutils* is a set of tools to generate and manipulate
   binaries (usually with the ELF format) for a given CPU architecture
@@ -87,57 +87,67 @@
 - GNU Binutils: #link("https://www.gnu.org/software/binutils/"), GPL
   license
 
-===  C/C++ compiler
+=== C/C++ compiler
 
-#table(columns: (75%, 25%), stroke: none, [
+#table(
+  columns: (75%, 25%),
+  stroke: none,
+  [
 
-- GCC: GNU Compiler Collection, the famous free software compiler
+    - GCC: GNU Compiler Collection, the famous free software compiler
 
-- #link("https://gcc.gnu.org/")
+    - #link("https://gcc.gnu.org/")
 
-- Can compile C, C++, Ada, Fortran, Java, Objective-C, Objective-C++,
-  Go, etc. Can generate code for a large number of CPU architectures,
-  including x86, ARM, RISC-V, and many others.
+    - Can compile C, C++, Ada, Fortran, Java, Objective-C, Objective-C++,
+      Go, etc. Can generate code for a large number of CPU architectures,
+      including x86, ARM, RISC-V, and many others.
 
-- Available under the GPL license, libraries under the GPL with linking
-  exception.
+    - Available under the GPL license, libraries under the GPL with linking
+      exception.
 
-],[
-  
-#align(center, [#image("gcc.png", width: 70%)]) 
-])
+  ],
+  [
 
-===  Kernel headers (1)
+    #align(center, [#image("gcc.png", width: 70%)])
+  ],
+)
 
-#table(columns: (70%, 30%), stroke: none, [
+=== Kernel headers (1)
 
-- The C standard library and compiled programs need to interact with the
-  kernel
+#table(
+  columns: (70%, 30%),
+  stroke: none,
+  [
 
-  - Available system calls and their numbers
+    - The C standard library and compiled programs need to interact with the
+      kernel
 
-  - Constant definitions
+      - Available system calls and their numbers
 
-  - Data structures, etc.
+      - Constant definitions
 
-- Therefore, compiling the C standard library requires kernel headers,
-  and many applications also require them.
+      - Data structures, etc.
 
-- Available in `<linux/...>` and `<asm/...>` and a few other
-  directories corresponding to the ones visible in
-  #kdir("include/uapi") and in `arch/<arch>/include/uapi` in the
-  kernel sources
+    - Therefore, compiling the C standard library requires kernel headers,
+      and many applications also require them.
 
-- The kernel headers are extracted from the kernel sources using the
-  `headers_install` kernel Makefile target.
+    - Available in `<linux/...>` and `<asm/...>` and a few other
+      directories corresponding to the ones visible in
+      #kdir("include/uapi") and in `arch/<arch>/include/uapi` in the
+      kernel sources
 
-],[
-  
-#align(center, [#image("kernel-headers.pdf", width: 100%)])
+    - The kernel headers are extracted from the kernel sources using the
+      `headers_install` kernel Makefile target.
 
-])
+  ],
+  [
 
-===  Kernel headers (2)
+    #align(center, [#image("kernel-headers.pdf", width: 100%)])
+
+  ],
+)
+
+=== Kernel headers (2)
 
 - System call numbers, in `<asm/unistd.h>`
 
@@ -163,7 +173,7 @@
   };
   ```
 
-===  Kernel headers (3) 
+=== Kernel headers (3)
 
 The kernel to user space interface is *backward compatible*
 
@@ -183,60 +193,77 @@ What to remember: updating your kernel shouldn't break your programs;
 it's usually fine to keep an old toolchain as long as it works fine for
 your project.
 
-===  C standard library
+=== C standard library
 
-#table(columns: (60%, 40%), stroke: none, gutter: 15pt,[
+#table(
+  columns: (60%, 40%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-- The C standard library is an essential component of a Linux system.
+    - The C standard library is an essential component of a Linux system.
 
-  - Interface between the applications and the kernel
+      - Interface between the applications and the kernel
 
-  - Provides the well-known standard C API to ease application
-    development
+      - Provides the well-known standard C API to ease application
+        development
 
-- Several C standard libraries are available: _glibc_,
-  _uClibc_, _musl_, _klibc_, _newlib_...
+    - Several C standard libraries are available: _glibc_,
+      _uClibc_, _musl_, _klibc_, _newlib_...
 
-- The choice of the C standard library must be made at cross-compiling
-  toolchain generation time, as the GCC compiler is compiled against a
-  specific C standard library.
+    - The choice of the C standard library must be made at cross-compiling
+      toolchain generation time, as the GCC compiler is compiled against a
+      specific C standard library.
 
-],[
+  ],
+  [
 
-#align(center, [#image("Linux_kernel_System_Call_Interface_and_uClibc.pdf", width: 100%)])
-#text(size: 14pt)[
-Source: Wikipedia (#link("https://bit.ly/2zrGve2"))] 
-])
+    #align(center, [#image(
+      "Linux_kernel_System_Call_Interface_and_uClibc.pdf",
+      width: 100%,
+    )])
+    #text(size: 14pt)[
+      Source: Wikipedia (#link("https://bit.ly/2zrGve2"))]
+  ],
+)
 
-===  glibc
+=== glibc
 
-#table(columns: (70%, 30%), stroke: none, gutter: 15pt,[
+#table(
+  columns: (70%, 30%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-- License: LGPL
+    - License: LGPL
 
-- C standard library from the GNU project
+    - C standard library from the GNU project
 
-- Designed for performance, standards compliance and portability
+    - Designed for performance, standards compliance and portability
 
-- Found on all GNU / Linux host systems
+    - Found on all GNU / Linux host systems
 
-- Of course, actively maintained
+    - Of course, actively maintained
 
-- By default, quite big for small embedded systems. On armv7hf, version
-  2.31: `libc`: 1.5 MB, `libm`: 432 KB, source:  \
-  #link("https://toolchains.bootlin.com")
+    - By default, quite big for small embedded systems. On armv7hf, version
+      2.31: `libc`: 1.5 MB, `libm`: 432 KB, source:  \
+      #link("https://toolchains.bootlin.com")
 
-- #link("https://www.gnu.org/software/libc/")
+    - #link("https://www.gnu.org/software/libc/")
 
-],[
-  
-#align(center, [#image("heckert_gnu_white.pdf", width: 100%)])
-#text(size: 14pt)[
-#link("https://en.wikipedia.org/wiki/File:Heckert_GNU_white.svg")[Image source]]
+  ],
+  [
 
-])
+    #align(center, [#image("heckert_gnu_white.pdf", width: 100%)])
+    #text(size: 14pt)[
+      #link(
+        "https://en.wikipedia.org/wiki/File:Heckert_GNU_white.svg",
+      )[Image source]]
 
-===  uClibc-ng
+  ],
+)
+
+=== uClibc-ng
 
 - #link("https://uclibc-ng.org/")
 
@@ -264,37 +291,43 @@ Source: Wikipedia (#link("https://bit.ly/2zrGve2"))]
 
 - Actively supported, supported by Buildroot but not by Yocto Project.
 
-===  musl C standard library
+=== musl C standard library
 
-#table(columns: (85%, 15%), stroke: none, gutter:15pt, [
-#link("https://www.musl-libc.org/")
+#table(
+  columns: (85%, 15%),
+  stroke: none,
+  gutter: 15pt,
+  [
+    #link("https://www.musl-libc.org/")
 
-- A lightweight, fast and simple standard library for embedded systems
+    - A lightweight, fast and simple standard library for embedded systems
 
-- Created while uClibc's development was stalled
+    - Created while uClibc's development was stalled
 
-- In particular, great at making small static executables, which can run
-  anywhere, even on a system built from another C standard library.
+    - In particular, great at making small static executables, which can run
+      anywhere, even on a system built from another C standard library.
 
-- More permissive license (MIT), making it easier to release static
-  executables. We will talk about the requirements of the LGPL license
-  (glibc, uClibc) later.
+    - More permissive license (MIT), making it easier to release static
+      executables. We will talk about the requirements of the LGPL license
+      (glibc, uClibc) later.
 
-- Supported by build systems such as Buildroot and Yocto Project.
+    - Supported by build systems such as Buildroot and Yocto Project.
 
-- Used by the Alpine Linux lightweight distribution  \
-  (#link("https://www.alpinelinux.org/"))
+    - Used by the Alpine Linux lightweight distribution  \
+      (#link("https://www.alpinelinux.org/"))
 
-- Size on armv7hf, version 1.2.0: `libc`: 748 KB, source:  \
-  #link("https://toolchains.bootlin.com")
+    - Size on armv7hf, version 1.2.0: `libc`: 748 KB, source:  \
+      #link("https://toolchains.bootlin.com")
 
-],[
+  ],
+  [
 
-#align(center, [#image("musl.png", width: 100%)])
+    #align(center, [#image("musl.png", width: 100%)])
 
-])
+  ],
+)
 
-===  Other smaller C libraries
+=== Other smaller C libraries
 
 - Several other smaller C libraries exist, but they do not implement the
   full POSIX interface required by most Linux applications
@@ -313,7 +346,7 @@ Source: Wikipedia (#link("https://bit.ly/2zrGve2"))]
     community, designed to implement small executables for use in an
     _initramfs_ at boot time.
 
-===  Advice for choosing the C standard library
+=== Advice for choosing the C standard library
 
 - Advice to start developing and debugging your applications with
   _glibc_, which is the most standard solution
@@ -336,7 +369,7 @@ Source: Wikipedia (#link("https://bit.ly/2zrGve2"))]
 - In case you wish to make static executables, _musl_ will be an
   easier choice in terms of licensing constraints.
 
-===  Linux vs. bare-metal toolchain
+=== Linux vs. bare-metal toolchain
 
 - A *Linux toolchain*
 
@@ -361,7 +394,7 @@ Source: Wikipedia (#link("https://bit.ly/2zrGve2"))]
     `arm-none-eabi`, `arm-none-none-eabi` (vendor is `none`, OS is
     `none`)
 
-===  An alternate compiler suite: LLVM
+=== An alternate compiler suite: LLVM
 
 - Most Embedded Linux projects use toolchains based on the GNU project:
   GCC compiler, binutils, GDB debugger

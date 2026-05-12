@@ -4,15 +4,15 @@
 
 #show: bootlin-theme
 
-#setuplabframe([Kernel cross-compiling],[
+#setuplabframe([Kernel cross-compiling], [
 
-- Configuring the Linux kernel and cross-compiling it for the embedded
-  hardware platform.
+  - Configuring the Linux kernel and cross-compiling it for the embedded
+    hardware platform.
 
-- Downloading your kernel on the board through U-boot's TFTP client.
+  - Downloading your kernel on the board through U-boot's TFTP client.
 
-- Booting your kernel.
+  - Booting your kernel.
 
-- Automating the kernel boot process with U-Boot scripts.
+  - Automating the kernel boot process with U-Boot scripts.
 
 ])

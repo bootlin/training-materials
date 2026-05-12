@@ -4,9 +4,9 @@
 
 #show: bootlin-theme
 
-#setuplabframe([Fetching Linux kernel sources],[
+#setuplabframe([Fetching Linux kernel sources], [
 
-- Clone the mainline Linux tree
-- Accessing stable releases
+  - Clone the mainline Linux tree
+  - Accessing stable releases
 
 ])

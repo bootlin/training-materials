@@ -6,7 +6,7 @@
 
 = Embedded Linux development environment
 
-===  Embedded Linux solutions
+=== Embedded Linux solutions
 
 - Two ways to switch to embedded Linux
 
@@ -24,53 +24,59 @@
   - However, knowing the concepts, switching to vendor solutions will be
     easy
 
-===  OS for Linux development 
+=== OS for Linux development
 
 #[ #set text(size: 18.5pt)
-We strongly recommend to use GNU/Linux as the desktop operating system to embedded Linux developers, for
-multiple reasons.
+  We strongly recommend to use GNU/Linux as the desktop operating system to embedded Linux developers, for
+  multiple reasons.
 
-- All community tools are developed and designed to run on Linux. Trying
-  to use them on other operating systems (Windows, macOS) will lead to
-  trouble.
+  - All community tools are developed and designed to run on Linux. Trying
+    to use them on other operating systems (Windows, macOS) will lead to
+    trouble.
 
-- As Linux also runs on the embedded device, all the knowledge gained
-  from using Linux on the desktop will apply similarly to the embedded
-  device.
+  - As Linux also runs on the embedded device, all the knowledge gained
+    from using Linux on the desktop will apply similarly to the embedded
+    device.
 
-- If you are stuck with a Windows desktop, at least you should use
-  GNU/Linux in a virtual machine (such as VirtualBox which is open
-  source), though there could be a small performance penalty. With
-  Windows 10/11, you can also run your favorite native Linux distro
-  through Windows Subsystem for Linux (WSL2)
+  - If you are stuck with a Windows desktop, at least you should use
+    GNU/Linux in a virtual machine (such as VirtualBox which is open
+    source), though there could be a small performance penalty. With
+    Windows 10/11, you can also run your favorite native Linux distro
+    through Windows Subsystem for Linux (WSL2)
 ]
 
 #align(center, [#image("linux-as-development-os.pdf", width: 50%)])
 
-===  Desktop Linux distribution
+=== Desktop Linux distribution
 
-#table(columns: (75%, 25%), stroke: none, gutter: 15pt, [
-- *Any good and sufficiently recent Linux desktop distribution*
-  can be used for the development workstation
+#table(
+  columns: (75%, 25%),
+  stroke: none,
+  gutter: 15pt,
+  [
+    - *Any good and sufficiently recent Linux desktop distribution*
+      can be used for the development workstation
 
-  - Ubuntu, Debian, Fedora, openSUSE, Arch Linux, etc.
+      - Ubuntu, Debian, Fedora, openSUSE, Arch Linux, etc.
 
-- We have chosen Ubuntu, derived from Debian, as it is a *widely
-  used and easy to use* desktop Linux distribution.
+    - We have chosen Ubuntu, derived from Debian, as it is a *widely
+      used and easy to use* desktop Linux distribution.
 
-- The Ubuntu setup on the training laptops has intentionally been left
-  untouched after the normal installation process. Learning embedded
-  Linux is also about learning the tools needed on the development
-  workstation!
+    - The Ubuntu setup on the training laptops has intentionally been left
+      untouched after the normal installation process. Learning embedded
+      Linux is also about learning the tools needed on the development
+      workstation!
 
-  ],[
+  ],
+  [
 
-#align(center, [#image("/common/ubuntu.pdf", width: 100%)]) 
+    #align(center, [#image("/common/ubuntu.pdf", width: 100%)])
 
-#[ #set text(size: 11pt)
-Image credits:  \  #link("https://tinyurl.com/f4zxj5kw")]  ])
+    #[ #set text(size: 11pt)
+      Image credits:  \  #link("https://tinyurl.com/f4zxj5kw")]  ],
+)
 
-===  Host vs. target
+=== Host vs. target
 
 - When doing embedded development, there is always a split between
 
@@ -81,10 +87,10 @@ Image credits:  \  #link("https://tinyurl.com/f4zxj5kw")]  ])
 - They are connected by various means: almost always a serial line for
   debugging purposes, frequently a networking connection, sometimes a
   JTAG interface for low-level debugging
-  
+
 #align(center, [#image("host-vs-target.pdf", width: 70%)])
 
-===  Serial line communication program
+=== Serial line communication program
 
 - An essential tool for embedded development is a serial line
   communication program, like _HyperTerminal_ in Windows.

@@ -4,6 +4,6 @@
 
 #show: bootlin-theme
 
-===  Overall booting process with initramfs
+=== Overall booting process with initramfs
 
 #align(center, [#image("initramfs-boot-sequence.pdf", height: 80%)])

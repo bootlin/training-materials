@@ -10,30 +10,36 @@
 == Kernel drivers
 <kernel-drivers>
 
-===  Typical software stack for hardware access
+=== Typical software stack for hardware access
 
-#table(columns: (60%, 40%), stroke: none, gutter: 15pt,[
-From the bottom to the top:
-- A _bus controller driver_ in the kernel drives an I2C, SPI, USB,
-  PCI controller
-- A _bus subsystem_ provides an API for drivers to access a
-  particular type of bus: I2C, SPI, PCI, USB, etc.
-- A _device driver_ in the kernel drives a particular device
-  connected to a given bus
-- A _driver subsystem_ exposes features of certain class of
-  devices, through a standard _kernel/user-space interface_
-- An application can access the device through this standard
-  _kernel/user-space interface_ either directly or through a
-  library.
-],[
-#align(center, [#image("kernel-driver-stack.pdf", height: 80%)])
-])
+#table(
+  columns: (60%, 40%),
+  stroke: none,
+  gutter: 15pt,
+  [
+    From the bottom to the top:
+    - A _bus controller driver_ in the kernel drives an I2C, SPI, USB,
+      PCI controller
+    - A _bus subsystem_ provides an API for drivers to access a
+      particular type of bus: I2C, SPI, PCI, USB, etc.
+    - A _device driver_ in the kernel drives a particular device
+      connected to a given bus
+    - A _driver subsystem_ exposes features of certain class of
+      devices, through a standard _kernel/user-space interface_
+    - An application can access the device through this standard
+      _kernel/user-space interface_ either directly or through a
+      library.
+  ],
+  [
+    #align(center, [#image("kernel-driver-stack.pdf", height: 80%)])
+  ],
+)
 
-===  Stack illustrated with a GPIO expander
+=== Stack illustrated with a GPIO expander
 
 #align(center, [#image("kernel-driver-stack-gpio-i2c.pdf", height: 90%)])
 
-===  Standardized user-space interface
+=== Standardized user-space interface
 
 - Strong advantage of kernel drivers: they expose a standard
   _kernel to user-space interface_
@@ -52,45 +58,50 @@ From the bottom to the top:
   example if one driver needs to control a GPIO directly (reset signal,
   interrupt signal, etc.)
 
-===  Numerous kernel subsystems for device classes
+=== Numerous kernel subsystems for device classes
 
-#table(columns: (50%, 50%), stroke: none, [
+#table(
+  columns: (50%, 50%),
+  stroke: none,
+  [
 
-- Networking stack for Ethernet, WiFi, CAN, 802.15.4, etc.
+    - Networking stack for Ethernet, WiFi, CAN, 802.15.4, etc.
 
-- GPIO
+    - GPIO
 
-- Video4Linux for camera, video encoders/decoders
+    - Video4Linux for camera, video encoders/decoders
 
-- DRM for display controllers, GPU
+    - DRM for display controllers, GPU
 
-- ALSA for audio
+    - ALSA for audio
 
-- IIO for ADC, DAC, gyroscopes, sensors, and more
+    - IIO for ADC, DAC, gyroscopes, sensors, and more
 
-- MTD for flash memory
+    - MTD for flash memory
 
-- PWM
-],[
-- Input for keyboard, mouse, touchscreen, joystick
+    - PWM
+  ],
+  [
+    - Input for keyboard, mouse, touchscreen, joystick
 
-- Watchdog
+    - Watchdog
 
-- RTC for real-time clocks
+    - RTC for real-time clocks
 
-- remoteproc for auxiliary processors
+    - remoteproc for auxiliary processors
 
-- crypto for cryptographic accelerators
+    - crypto for cryptographic accelerators
 
-- hwmon for hardware monitoring sensors
+    - hwmon for hardware monitoring sensors
 
-- block layer for block storage
+    - block layer for block storage
 
-])
+  ],
+)
 
 #align(center, "and many more")
 
-===  Accessing devices directly from user-space
+=== Accessing devices directly from user-space
 
 - Even though device drivers in the kernel are preferred, it is also
   possible to access devices directly from user-space
@@ -113,17 +124,25 @@ From the bottom to the top:
   - PCI:
     #link("https://docs.kernel.org/PCI/sysfs-pci.html")[sysfs entries for PCI]
 
-===  Accessing devices directly from user-space: GPIO example
+=== Accessing devices directly from user-space: GPIO example
 
-#table(columns: (28%, 72%), stroke: none, [
-This diagram shows what's not recommended to do → for a GPIO controller, a kernel driver
-is preferred
-],[
-#align(center, [#image("kernel-driver-stack-gpio-i2c-direct-userspace.pdf", height: 90%)])
+#table(
+  columns: (28%, 72%),
+  stroke: none,
+  [
+    This diagram shows what's not recommended to do → for a GPIO controller, a kernel driver
+    is preferred
+  ],
+  [
+    #align(center, [#image(
+      "kernel-driver-stack-gpio-i2c-direct-userspace.pdf",
+      height: 90%,
+    )])
 
-])
+  ],
+)
 
-===  What can go wrong with a user-space driver?
+=== What can go wrong with a user-space driver?
 
 - You write your GPIO driver in user-space: other kernel drivers cannot
   use GPIOs from this GPIO controller
@@ -147,7 +166,7 @@ is preferred
   - And none of the Linux networking applications can use your network
     device
 
-===  Upstream drivers vs. out-of-tree drivers
+=== Upstream drivers vs. out-of-tree drivers
 
 - The _upstream_ Linux kernel contains thousands of drivers
 
@@ -174,10 +193,10 @@ is preferred
 
   - Avoid them when possible!
 
-===  Finding Linux kernel drivers
+=== Finding Linux kernel drivers
 
 - `grep` in the Linux kernel tree is your _best friend_
- 
+
   - For I2C, SPI and memory-mapped devices, matching of the driver is
     done based on the device name → _grep_ for variants of
     the device name and vendor
@@ -190,30 +209,34 @@ is preferred
 
   - Example: #kfile("drivers/gpio/gpio-pca953x.c") supports much more
     than just PCA953x. See the
-    #link("https://elixir.bootlin.com/linux/v5.19/source/drivers/gpio/gpio-pca953x.c#L1221")[full list of devices]
+    #link(
+      "https://elixir.bootlin.com/linux/v5.19/source/drivers/gpio/gpio-pca953x.c#L1221",
+    )[full list of devices]
     supported by this driver
 
-===  Finding Linux kernel drivers: an example
+=== Finding Linux kernel drivers: an example
 
 - You have a
-  #link("https://www.maximintegrated.com/en/products/interface/controllers-expanders/MAX7313.html")[Maxim Integrated MAX7313]
+  #link(
+    "https://www.maximintegrated.com/en/products/interface/controllers-expanders/MAX7313.html",
+  )[Maxim Integrated MAX7313]
   GPIO expander on I2C
 
 - Search in the Linux kernel
-#[ #set text(size:13pt)
-    git grep -i max7313
+#[ #set text(size: 13pt)
+  git grep -i max7313
   ```
   drivers/gpio/gpio-pca953x.c:    { "max7313", 16 | PCA953X_TYPE | PCA_INT, }, drivers/gpio/gpio-pca953x.c:    { .compatible = "maxim,max7313", .data = OF_953X(16, PCA_INT), },
   ```
-  ]
+]
 - #text(size: 20pt)[#kfile("drivers/gpio/gpio-pca953x.c")] seems to support it
 
 - Read #kfile("drivers/gpio/Makefile") to learn which kernel
   configuration option enables this driver
-#[ #set text(size:13pt)
+#[ #set text(size: 13pt)
   #kfile("drivers/gpio/Makefile")
 ]
-#[ #set text(size:14pt)
+#[ #set text(size: 14pt)
   ```
   obj-$(CONFIG_GPIO_PCA953X)              += gpio-pca953x.o
   ```
@@ -225,7 +248,7 @@ is preferred
 == User-space interfaces to drivers
 <user-space-interfaces-to-drivers>
 
-===  User-space interfaces for hardware devices
+=== User-space interfaces for hardware devices
 
 For a high-level perspective: three main interfaces to access hardware
 devices exposed by the Linux kernel
@@ -236,7 +259,7 @@ devices exposed by the Linux kernel
 
 - Network sockets and related APIs
 
-===  Devices in _/dev/_
+=== Devices in _/dev/_
 
 - One of the kernel important roles is to *allow applications to
   access hardware devices*
@@ -260,7 +283,7 @@ devices exposed by the Linux kernel
 - See #kfile("Documentation/admin-guide/devices.txt") for the
   official list of reserved type/major/minor numbers.
 
-===  Block vs. character devices
+=== Block vs. character devices
 
 - Block devices
 
@@ -280,7 +303,7 @@ devices exposed by the Linux kernel
   - Most of the devices that are not block devices are represented as
     character devices by the Linux kernel
 
-===  Devices: everything is a file
+=== Devices: everything is a file
 
 - A very important UNIX design decision was to represent most
   _system objects_ as files
@@ -299,35 +322,35 @@ devices exposed by the Linux kernel
 - All _device files_ are by convention stored in the `/dev`
   directory
 
-===  Device files examples
+=== Device files examples
 
 Example of device files in a Linux system
 #[ #set text(size: 17pt)
-```
-$ ls -l /dev/ttyS0 /dev/tty1 /dev/sda /dev/sda1 /dev/sda2 /dev/sdc1 /dev/zero 
-brw-rw---- 1 root disk    8,  0 2011-05-27 08:56 /dev/sda 
-brw-rw---- 1 root disk    8,  1 2011-05-27 08:56 /dev/sda1
-brw-rw---- 1 root disk    8,  2 2011-05-27 08:56 /dev/sda2
-brw-rw---- 1 root disk    8, 32 2011-05-27 08:56 /dev/sdc 
-crw------- 1 root root    4,  1 2011-05-27 08:57 /dev/tty1
-crw-rw---- 1 root dialout 4, 64 2011-05-27 08:56 /dev/ttyS0
-crw-rw-rw- 1 root root    1,  5 2011-05-27 08:56 /dev/zero
-```
+  ```
+  $ ls -l /dev/ttyS0 /dev/tty1 /dev/sda /dev/sda1 /dev/sda2 /dev/sdc1 /dev/zero
+  brw-rw---- 1 root disk    8,  0 2011-05-27 08:56 /dev/sda
+  brw-rw---- 1 root disk    8,  1 2011-05-27 08:56 /dev/sda1
+  brw-rw---- 1 root disk    8,  2 2011-05-27 08:56 /dev/sda2
+  brw-rw---- 1 root disk    8, 32 2011-05-27 08:56 /dev/sdc
+  crw------- 1 root root    4,  1 2011-05-27 08:57 /dev/tty1
+  crw-rw---- 1 root dialout 4, 64 2011-05-27 08:56 /dev/ttyS0
+  crw-rw-rw- 1 root root    1,  5 2011-05-27 08:56 /dev/zero
+  ```
 ]
 
 #v(0.5em)
 
 Example C code that uses the usual file API to write data to a serial port
 #[ #set text(size: 17pt)
-```c
-int fd; 
-fd = open("/dev/ttyS0", O_RDWR); 
-write(fd, "Hello", 5); 
-close(fd);
-```
+  ```c
+  int fd;
+  fd = open("/dev/ttyS0", O_RDWR);
+  write(fd, "Hello", 5);
+  close(fd);
+  ```
 ]
 
-===  Creating device files
+=== Creating device files
 
 - Before Linux 2.6.32, on basic Linux systems, the device files had to
   be created manually using the `mknod` command
@@ -345,7 +368,7 @@ close(fd);
     mount _devtmpfs_ automatically at boot time (except when
     booting on an initramfs).
 
-===  Better handling of device files: _udev_ and _mdev_
+=== Better handling of device files: _udev_ and _mdev_
 
 - _devtmpfs_ is great, but its capabilities are limited, so
   complementary solutions exist
@@ -372,7 +395,7 @@ close(fd);
 
   - #link("https://wiki.gentoo.org/wiki/Mdev")
 
-===  Examples of user-space interfaces in `/dev`
+=== Examples of user-space interfaces in `/dev`
 
 - Serial-ports: `/dev/ttyS*`, `/dev/ttyUSB*`, `/dev/ttyACM*`, etc.
 
@@ -381,7 +404,7 @@ close(fd);
 - Block storage devices: `/dev/sd*`, `/dev/mmcblk*`, `/dev/nvme*`
 
 - Flash storage devices: `/dev/mtd*`
- 
+
 - Display controllers and GPUs: `/dev/dri/*`
 
 - Audio devices: `/dev/snd/*`
@@ -394,7 +417,7 @@ close(fd);
 
 - and many more...
 
-===  _sysfs_ filesystem
+=== _sysfs_ filesystem
 
 - `block/`, symlinks to all block devices, in `/sys/devices`
 
@@ -420,17 +443,17 @@ close(fd);
 - `fs/`, properties related to filesystem drivers
 
 - `kernel/`, properties related to various kernel subsystems
- 
+
 - `module/`, properties about kernel modules
 
 - `power/`, power-management related properties
 
-===  _sysfs_ filesystem example
+=== _sysfs_ filesystem example
 
 - `/sys/bus/i2c/drivers`: all device drivers for devices connected on
   I2C busses
 #[ #set text(size: 13pt)
-```
+  ```
   [...]
   edt_ft5x06
   stpmic1
@@ -452,33 +475,33 @@ close(fd);
   ```
 ]
 
-===  _sysfs_ filesystem example
+=== _sysfs_ filesystem example
 
 #[ #set text(size: 15pt)
-/sys/bus/i2c/devices/0-002a/]
+  /sys/bus/i2c/devices/0-002a/]
 #[ #set text(size: 13pt)
-```
-lrwxrwxrwx    driver -> ../../../../../../bus/i2c/drivers/edt_ft5x06
--rw-r--r--    gain 
-drwxr-xr-x    input
--r--r--r--    modalias
--r--r--r--    name 
-lrwxrwxrwx    of_node -> ../../../../../../firmware/devicetree/base/soc/i2c@40012000/touchscreen@2a
--rw-r--r--    offset
--rw-r--r--    offset_x
--rw-r--r--    offset_y 
-drwxr-xr-x    power
--rw-r--r--    report_rate 
-lrwxrwxrwx    subsystem -> ../../../../../../bus/i2c
--rw-r--r--    threshold
--rw-r--r--    uevent
-```
+  ```
+  lrwxrwxrwx    driver -> ../../../../../../bus/i2c/drivers/edt_ft5x06
+  -rw-r--r--    gain
+  drwxr-xr-x    input
+  -r--r--r--    modalias
+  -r--r--r--    name
+  lrwxrwxrwx    of_node -> ../../../../../../firmware/devicetree/base/soc/i2c@40012000/touchscreen@2a
+  -rw-r--r--    offset
+  -rw-r--r--    offset_x
+  -rw-r--r--    offset_y
+  drwxr-xr-x    power
+  -rw-r--r--    report_rate
+  lrwxrwxrwx    subsystem -> ../../../../../../bus/i2c
+  -rw-r--r--    threshold
+  -rw-r--r--    uevent
+  ```
 ]
 - `driver`, symlink to the driver directory in `/sys/bus/i2c/drivers`
 - `of_node`, symlink to the directory for the Device Tree node
   describing this device
 
-===  Example of driver interfaces in _sysfs_
+=== Example of driver interfaces in _sysfs_
 
 - All devices are visible in _sysfs_, whether they have an
   interface in `/dev` or not
@@ -493,14 +516,16 @@ lrwxrwxrwx    subsystem -> ../../../../../../bus/i2c
     #link("https://docs.kernel.org/leds/leds-class.html")[documentation]
 
   - PWM: `/sys/class/pwm`, see
-    #link("https://docs.kernel.org/driver-api/pwm.html#using-pwms-with-the-sysfs-interface")[documentation]
+    #link(
+      "https://docs.kernel.org/driver-api/pwm.html#using-pwms-with-the-sysfs-interface",
+    )[documentation]
 
   - IIO: `/sys/bus/iio`, see
     #link("https://docs.kernel.org/driver-api/iio/index.html")[documentation]
 
   - etc.
 
-===  Accessing GPIOs 
+=== Accessing GPIOs
 
 A class of devices worth mentioning is GPIOs (_General Purpose Input Output_)
 
@@ -532,7 +557,7 @@ A class of devices worth mentioning is GPIOs (_General Purpose Input Output_)
   - The only constraint is to cross-compile them for your target (the
     legacy interface could be used without any additional software).
 
-===  Other virtual filesystems
+=== Other virtual filesystems
 
 - _debugfs_
 
@@ -560,33 +585,38 @@ A class of devices worth mentioning is GPIOs (_General Purpose Input Output_)
 == Using kernel modules
 <using-kernel-modules>
 
-===  Why kernel modules?
+=== Why kernel modules?
 
-#table(columns: (70%, 30%), stroke: none, [
+#table(
+  columns: (70%, 30%),
+  stroke: none,
+  [
 
-- Primary reason: keep the kernel image minimal, and load drivers
-  on-demand depending on the hardware detected
+    - Primary reason: keep the kernel image minimal, and load drivers
+      on-demand depending on the hardware detected
 
-  - Needed to create a generic kernel configuration that works on many
-    platforms
+      - Needed to create a generic kernel configuration that works on many
+        platforms
 
-  - Used by all desktop/server Linux distributions
+      - Used by all desktop/server Linux distributions
 
-- But also useful for
+    - But also useful for
 
-  - Driver development: allows to modify, build and test a driver
-    without rebooting
+      - Driver development: allows to modify, build and test a driver
+        without rebooting
 
-  - Boot time reduction: allows to defer the initialization of a driver
-    after user-space has started critical applications
+      - Boot time reduction: allows to defer the initialization of a driver
+        after user-space has started critical applications
 
-],[
+  ],
+  [
 
-#align(center, [#image("modules-to-access-rootfs.pdf", width: 100%)])
+    #align(center, [#image("modules-to-access-rootfs.pdf", width: 100%)])
 
-])
+  ],
+)
 
-===  Module installation and metadata
+=== Module installation and metadata
 
 - As discussed earlier, modules are installed in
   `/lib/modules/<kernel-version>/`
@@ -607,7 +637,7 @@ A class of devices worth mentioning is GPIOs (_General Purpose Input Output_)
 - Each file has a corresponding `.bin` version, which is an optimized
   version of the corresponding text file
 
-===  Module dependencies: _modules.dep_
+=== Module dependencies: _modules.dep_
 
 - Some kernel modules can depend on other modules, based on the symbols
   (functions and data structures) that they use.
@@ -622,39 +652,39 @@ A class of devices worth mentioning is GPIOs (_General Purpose Input Output_)
 
 - Will be used by module loading tools.
 
-===  Module alias: _modules.alias_
+=== Module alias: _modules.alias_
 
 #align(center, [#image("module-alias-usage.pdf", width: 100%)])
 
-===  Module utilities: _modinfo_
+=== Module utilities: _modinfo_
 
 - `modinfo <module_name>`, for modules in `/lib/modules`
 
 - `modinfo /path/to/module.ko`
 
 #[ #set text(size: 15pt)
-```
-# modinfo usb_storage filename:       /lib/modules/5.18.13-200.fc36.x86_64/kernel/drivers/usb/storage/usb-storage.ko.xz license:        GPL
-description:    USB Mass Storage driver for Linux author:         Matthew Dharm <mdharm-usb@one-eyed-alien.net>
-alias:          usb:v*p*d*dc*dsc*dp*ic08isc06ip50in*
-alias:          usb:v*p*d*dc*dsc*dp*ic08isc05ip50in*
-alias:          usb:v*p*d*dc*dsc*dp*ic08isc04ip50in*
-[...]
-intree:         Y
-name:           usb_storage
-[...]
-parm:           option_zero_cd:ZeroCD mode (1=Force Modem (default), 2=Allow CD-Rom (uint)
-parm:           swi_tru_install:TRU-Install mode (1=Full Logic (def), 2=Force CD-Rom, 3=Force Modem) (uint)
-parm:           delay_use:seconds to delay before using a new device (uint)
-parm:           quirks:supplemental list of device IDs and their quirks (string)
-```
+  ```
+  # modinfo usb_storage filename:       /lib/modules/5.18.13-200.fc36.x86_64/kernel/drivers/usb/storage/usb-storage.ko.xz license:        GPL
+  description:    USB Mass Storage driver for Linux author:         Matthew Dharm <mdharm-usb@one-eyed-alien.net>
+  alias:          usb:v*p*d*dc*dsc*dp*ic08isc06ip50in*
+  alias:          usb:v*p*d*dc*dsc*dp*ic08isc05ip50in*
+  alias:          usb:v*p*d*dc*dsc*dp*ic08isc04ip50in*
+  [...]
+  intree:         Y
+  name:           usb_storage
+  [...]
+  parm:           option_zero_cd:ZeroCD mode (1=Force Modem (default), 2=Allow CD-Rom (uint)
+  parm:           swi_tru_install:TRU-Install mode (1=Full Logic (def), 2=Force CD-Rom, 3=Force Modem) (uint)
+  parm:           delay_use:seconds to delay before using a new device (uint)
+  parm:           quirks:supplemental list of device IDs and their quirks (string)
+  ```
 ]
 
-===  Module utilities: _lsmod_
+=== Module utilities: _lsmod_
 
 - Lists currently loaded kernel modules
 
-- Includes 
+- Includes
 
   - The reference count: incremented when the module is used by another
     module or by a user-space process, prevents from unloading modules
@@ -664,21 +694,21 @@ parm:           quirks:supplemental list of device IDs and their quirks (string)
 
 - Information retrieved through `/proc/modules`
 #[ #set text(size: 15pt)
-```
-$ lsmod 
-Module                  Size  Used by 
-tun                    61440  2
-tls                   118784  0
-rfcomm                 90112  4
-snd_seq_dummy          16384  0
-snd_hrtimer            16384  1
-wireguard              94208  0
-curve25519_x86_64      36864  1 wireguard 
-libcurve25519_generic  49152  2 curve25519_x86_64,wireguard 
-ip6_udp_tunnel         16384  1 wireguard
-```]
+  ```
+  $ lsmod
+  Module                  Size  Used by
+  tun                    61440  2
+  tls                   118784  0
+  rfcomm                 90112  4
+  snd_seq_dummy          16384  0
+  snd_hrtimer            16384  1
+  wireguard              94208  0
+  curve25519_x86_64      36864  1 wireguard
+  libcurve25519_generic  49152  2 curve25519_x86_64,wireguard
+  ip6_udp_tunnel         16384  1 wireguard
+  ```]
 
-===  Module utilities: _insmod_ and _rmmod_
+=== Module utilities: _insmod_ and _rmmod_
 
 - Basic tools to:
 
@@ -697,7 +727,7 @@ ip6_udp_tunnel         16384  1 wireguard
 # rmmod cuse
 ```
 
-===  Module utilities: _modprobe_
+=== Module utilities: _modprobe_
 
 - _modprobe_ is the more advanced tool for loading/unloading
   modules
@@ -710,39 +740,39 @@ ip6_udp_tunnel         16384  1 wireguard
   used dependencies
 
 #[ #set text(size: 15pt)
-```
-# modinfo fat_test | grep depends 
-depends:        kunit,fat
-# lsmod | grep -E "^(kunit|fat|fat_test)"
-fat                    86016  1 vfat
-# modprobe fat_test
-# lsmod | grep -E "^(kunit|fat|fat_test)"
-fat_test               24576  0
-kunit                  36864  1 fat_test 
-fat                    86016  2 fat_test,vfat
-# sudo modprobe -r fat_test
-# lsmod | grep -E "^(kunit|fat|fat_test)"
-fat                    86016  1 vfat
-```
+  ```
+  # modinfo fat_test | grep depends
+  depends:        kunit,fat
+  # lsmod | grep -E "^(kunit|fat|fat_test)"
+  fat                    86016  1 vfat
+  # modprobe fat_test
+  # lsmod | grep -E "^(kunit|fat|fat_test)"
+  fat_test               24576  0
+  kunit                  36864  1 fat_test
+  fat                    86016  2 fat_test,vfat
+  # sudo modprobe -r fat_test
+  # lsmod | grep -E "^(kunit|fat|fat_test)"
+  fat                    86016  1 vfat
+  ```
 ]
 
-===  Passing parameters to modules
+=== Passing parameters to modules
 
 - Some modules have parameters to adjust their behavior
 
 - Mostly for debugging/tweaking, as parameters are global to the module,
   not per-device managed by the module
 
-- Through `insmod` or `modprobe`: 
-  `insmod ./usb-storage.ko delay_use=0` 
+- Through `insmod` or `modprobe`:
+  `insmod ./usb-storage.ko delay_use=0`
   `modprobe usb-storage delay_use=0`
 
 - `modprobe` supports configuration files: `/etc/modprobe.conf` or in
-  any file in `/etc/modprobe.d/`: 
+  any file in `/etc/modprobe.d/`:
   `options usb-storage delay_use=0`
 
 - Through the kernel command line, when the module is built statically
-  into the kernel: 
+  into the kernel:
   `usb-storage.delay_use=0`
 
   - `usb-storage` is the _module name_
@@ -753,7 +783,7 @@ fat                    86016  1 vfat
 
   - `0` is the _module parameter value_
 
-===  Modules in _sysfs_
+=== Modules in _sysfs_
 
 - All modules are visible in _sysfs_, under `/sys/module/<name>`
 
@@ -767,13 +797,13 @@ fat                    86016  1 vfat
 - Some of them can even be changed at runtime (determined by the module
   code)
 
-- Example: 
+- Example:
   `echo 0 > /sys/module/usb_storage/parameters/delay_use`
 
 == Describing non-discoverable hardware: Device Tree
 <describing-non-discoverable-hardware-device-tree>
 
-===  Describing non-discoverable hardware
+=== Describing non-discoverable hardware
 
 #let items = (
   (
@@ -795,7 +825,8 @@ fat                    86016  1 vfat
     title: [Using a *Device Tree*],
     details: (
       [Originates from *OpenFirmware*, defined by Sun, used on SPARC and PowerPC
-        - that's why many Linux/U-Boot functions related to DT have a `of_` prefix],
+        - that's why many Linux/U-Boot functions related to DT have a `of_` prefix
+      ],
       [Now used by most embedded-oriented CPU architectures that run Linux: ARC, ARM64, RISC-V, ARM32, PowerPC, Xtensa, MIPS, etc.],
       [Writing/tweaking a DT is necessary when porting Linux to a new board, or when connecting additional peripherals],
     ),
@@ -824,150 +855,173 @@ fat                    86016  1 vfat
   )
 ]
 
-===  Device Tree: from source to blob
+=== Device Tree: from source to blob
 
-#table(columns: (70%, 30%), stroke: none, [
+#table(
+  columns: (70%, 30%),
+  stroke: none,
+  [
 
-- A tree data structure describing the hardware is written by a
-  developer in a *Device Tree Source* file, `.dts`
+    - A tree data structure describing the hardware is written by a
+      developer in a *Device Tree Source* file, `.dts`
 
-- Processed by the *Device Tree Compiler*, `dtc`
+    - Processed by the *Device Tree Compiler*, `dtc`
 
-- Produces a more efficient representation: *Device Tree Blob*,
-  `.dtb`
+    - Produces a more efficient representation: *Device Tree Blob*,
+      `.dtb`
 
-- Additional C preprocessor pass
+    - Additional C preprocessor pass
 
-- `.dtb` → accurately describes the hardware platform in an
-  *OS-agnostic* way.
+    - `.dtb` → accurately describes the hardware platform in an
+      *OS-agnostic* way.
 
-- `.dtb` ≈ few dozens of kilobytes
+    - `.dtb` ≈ few dozens of kilobytes
 
-- DTB also called *FDT*, _Flattened Device Tree_, once
-  loaded into memory.
+    - DTB also called *FDT*, _Flattened Device Tree_, once
+      loaded into memory.
 
-  - `fdt` command in U-Boot
+      - `fdt` command in U-Boot
 
-  - `fdt_` APIs
-],[
-  #align(center, [#image("dts-to-dtb.pdf", height: 70%)])
+      - `fdt_` APIs
+  ],
+  [
+    #align(center, [#image("dts-to-dtb.pdf", height: 70%)])
 
-])
+  ],
+)
 
-===  dtc example
+=== dtc example
 
-#table(columns: (50%, 50%), stroke: none, [
-#[ #set text(size: 18pt)
-```
-$ cat foo.dts
-/dts-v1/;
+#table(
+  columns: (50%, 50%),
+  stroke: none,
+  [
+    #[ #set text(size: 18pt)
+      ```
+      $ cat foo.dts
+      /dts-v1/;
 
-/ {
-        welcome = <0xBADCAFE>;
-        bootlin {
-                webinar = "great";
-                demo = <1>, <2>, <3>;
-        };
-};
-```]
-])
-
-#pagebreak()
-
-#table(columns: (50%, 50%), stroke: none, [
-#[ #set text(size: 18pt)
-  ```
-$ cat foo.dts
-/dts-v1/;
-
-/ {
-        welcome = <0xBADCAFE>;
-        bootlin {
-                webinar = "great";
-                demo = <1>, <2>, <3>;
-        };
-};
-```
-
-```
-$ dtc -I dts -O dtb -o foo.dtb foo.dts
-$ ls -l foo.dt*
--rw-r--r-- 1 thomas thomas 169 ... foo.dtb
--rw-r--r-- 1 thomas thomas 102 ... foo.dts
-```
-]
-])
+      / {
+              welcome = <0xBADCAFE>;
+              bootlin {
+                      webinar = "great";
+                      demo = <1>, <2>, <3>;
+              };
+      };
+      ```]
+  ],
+)
 
 #pagebreak()
 
-#table(columns: (50%, 50%), stroke: none, [
-#[ #set text(size: 18pt)
-```
-$ cat foo.dts
-/dts-v1/;
+#table(
+  columns: (50%, 50%),
+  stroke: none,
+  [
+    #[ #set text(size: 18pt)
+      ```
+      $ cat foo.dts
+      /dts-v1/;
 
-/ {
-        welcome = <0xBADCAFE>;
-        bootlin {
-                webinar = "great";
-                demo = <1>, <2>, <3>;
-        };
-};
-```
+      / {
+              welcome = <0xBADCAFE>;
+              bootlin {
+                      webinar = "great";
+                      demo = <1>, <2>, <3>;
+              };
+      };
+      ```
 
-```
-$ dtc -I dts -O dtb -o foo.dtb foo.dts
-$ ls -l foo.dt*
--rw-r--r-- 1 thomas thomas 169 ... foo.dtb
--rw-r--r-- 1 thomas thomas 102 ... foo.dts
-```
-]
-],[
-  
-```
-$ dtc -I dtb -O dts foo.dtb
-/dts-v1/;
+      ```
+      $ dtc -I dts -O dtb -o foo.dtb foo.dts
+      $ ls -l foo.dt*
+      -rw-r--r-- 1 thomas thomas 169 ... foo.dtb
+      -rw-r--r-- 1 thomas thomas 102 ... foo.dts
+      ```
+    ]
+  ],
+)
 
-/ {
-        welcome = <0xbadcafe>;
+#pagebreak()
 
-        bootlin {
-                webinar = "great";
-                demo = <0x01 0x02 0x03>;
-        };
-};
-```
+#table(
+  columns: (50%, 50%),
+  stroke: none,
+  [
+    #[ #set text(size: 18pt)
+      ```
+      $ cat foo.dts
+      /dts-v1/;
 
-])
+      / {
+              welcome = <0xBADCAFE>;
+              bootlin {
+                      webinar = "great";
+                      demo = <1>, <2>, <3>;
+              };
+      };
+      ```
 
-===  Device Tree: using the blob
+      ```
+      $ dtc -I dts -O dtb -o foo.dtb foo.dts
+      $ ls -l foo.dt*
+      -rw-r--r-- 1 thomas thomas 169 ... foo.dtb
+      -rw-r--r-- 1 thomas thomas 102 ... foo.dts
+      ```
+    ]
+  ],
+  [
 
-#table(columns: (60%, 40%), stroke: none, [
+    ```
+    $ dtc -I dtb -O dts foo.dtb
+    /dts-v1/;
 
-- Can be *linked directly* inside a bootloader binary
+    / {
+            welcome = <0xbadcafe>;
 
-  - For example: U-Boot, Barebox
+            bootlin {
+                    webinar = "great";
+                    demo = <0x01 0x02 0x03>;
+            };
+    };
+    ```
 
-- Can be *passed* to the operating system by the bootloader
+  ],
+)
 
-  - Most common mechanism for the Linux kernel
+=== Device Tree: using the blob
 
-  - U-Boot: `boot[z,i,m] <kernel-addr> - <dtb-addr>`
+#table(
+  columns: (60%, 40%),
+  stroke: none,
+  [
 
-  - The bootloader can adjust the DTB before passing it to the kernel
+    - Can be *linked directly* inside a bootloader binary
 
-- The DTB parsing can be done using `libfdt`, or ad-hoc code
+      - For example: U-Boot, Barebox
 
-],[ 
-  
-#align(center, [#image("ram.pdf", height: 80%)])
+    - Can be *passed* to the operating system by the bootloader
 
-])
+      - Most common mechanism for the Linux kernel
 
-===  Where are Device Tree Sources located?
+      - U-Boot: `boot[z,i,m] <kernel-addr> - <dtb-addr>`
+
+      - The bootloader can adjust the DTB before passing it to the kernel
+
+    - The DTB parsing can be done using `libfdt`, or ad-hoc code
+
+  ],
+  [
+
+    #align(center, [#image("ram.pdf", height: 80%)])
+
+  ],
+)
+
+=== Where are Device Tree Sources located?
 
 - Even though they are OS-agnostic, *no central and OS-neutral*
-  place to host Device Tree sources and share them between projects 
+  place to host Device Tree sources and share them between projects
 
   - Often discussed, never done
 
@@ -985,243 +1039,285 @@ $ dtc -I dtb -O dts foo.dtb
 
   - U-Boot, Barebox, TF-A
 
-===  Device Tree base syntax
+=== Device Tree base syntax
 
-#table(columns: (50%, 50%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (50%, 50%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-- Tree of *nodes*
+    - Tree of *nodes*
 
-- Nodes with *properties*
+    - Nodes with *properties*
 
-- Node ≈ a device or IP block
+    - Node ≈ a device or IP block
 
-- Properties ≈ device characteristics
+    - Properties ≈ device characteristics
 
-- Notion of *cells* in property values
+    - Notion of *cells* in property values
 
-- Notion of *phandle* to point to other nodes
+    - Notion of *phandle* to point to other nodes
 
-- `dtc` only does syntax checking, no semantic validation
+    - `dtc` only does syntax checking, no semantic validation
 
-],[
+  ],
+  [
 
-#align(center, [#image("dt-basic-syntax.pdf", height: 60%)])
+    #align(center, [#image("dt-basic-syntax.pdf", height: 60%)])
 
-])
+  ],
+)
 
-===  DT overall structure: simplified example
+=== DT overall structure: simplified example
 
-#table(columns: (60%, 40%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (60%, 40%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-#[ #set text(size: 18pt)
-```perl
-/ {
-  #address-cells = <1>;
-  #size-cells = <1>;
-  model = "STMicroelectronics STM32MP157C-DK2 Discovery Board";
-  compatible = "st,stm32mp157c-dk2", "st,stm32mp157";
+    #[ #set text(size: 18pt)
+      ```perl
+      / {
+        #address-cells = <1>;
+        #size-cells = <1>;
+        model = "STMicroelectronics STM32MP157C-DK2 Discovery Board";
+        compatible = "st,stm32mp157c-dk2", "st,stm32mp157";
 
-  cpus { ... };
-  memory@0 { ... };
-  chosen { ... };
-  intc: interrupt-controller@a0021000 { ... };
-  soc {
-    i2c1: i2c@40012000 { ... };
-    ethernet0: ethernet@5800a000 { ... };
-  };
-};
-```]
+        cpus { ... };
+        memory@0 { ... };
+        chosen { ... };
+        intc: interrupt-controller@a0021000 { ... };
+        soc {
+          i2c1: i2c@40012000 { ... };
+          ethernet0: ethernet@5800a000 { ... };
+        };
+      };
+      ```]
 
-],[
+  ],
+  [
 
-#align(center, [#image("simple-hardware.pdf", width: 100%)])
+    #align(center, [#image("simple-hardware.pdf", width: 100%)])
 
-])
+  ],
+)
 
 #pagebreak()
 
-#table(columns: (60%, 40%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (60%, 40%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-#[ #set text(size: 12pt)
+    #[ #set text(size: 12pt)
 
-```perl
-/ {
-  cpus {
-    #address-cells = <1>;
-    #size-cells = <0>;
-    cpu0: cpu@0 {
-      compatible = "arm,cortex-a7";
-      clock-frequency = <650000000>;
-      device_type = "cpu";
-      reg = <0>;
-    };
+      ```perl
+      / {
+        cpus {
+          #address-cells = <1>;
+          #size-cells = <0>;
+          cpu0: cpu@0 {
+            compatible = "arm,cortex-a7";
+            clock-frequency = <650000000>;
+            device_type = "cpu";
+            reg = <0>;
+          };
 
-    cpu1: cpu@1 {
-      compatible = "arm,cortex-a7";
-      clock-frequency = <650000000>;
-      device_type = "cpu";
-      reg = <1>;
-    };
-  };
-
-  memory@0 { ... };
-  chosen { ... };
-  intc: interrupt-controller@a0021000 { ... };
-  soc {
-    i2c1: i2c@40012000 { ... };
-    ethernet0: ethernet@5800a000 { ... };
-  };
-};
-```]
-
-],[
-
-#align(center, [#image("simple-hardware.pdf", width: 100%)])
-
-])
-
-#table(columns: (60%, 40%), stroke: none, gutter: 15pt, [
-
-#[ #set text(size: 18pt)
-```perl
-/ {
-  cpus { ... };
-  memory@0 {
-    device_type = "memory";
-    reg = <0x0 0x20000000>;
-  };
-
-  chosen {
-    bootargs = "";
-    stdout-path = "serial0:115200n8";
-  };
-  intc: interrupt-controller@a0021000 { ... };
-  soc {
-    i2c1: i2c@40012000 { ... };
-    ethernet0: ethernet@5800a000 { ... };
-  };
-};
-```
-]
-
-],[
-
-#align(center, [#image("simple-hardware.pdf", width: 100%)])
-
-])
-
-#table(columns: (60%, 40%), stroke: none, gutter: 15pt, [
-
-#[ #set text(size: 13pt)
-```perl
-/ {
-  cpus { ... };
-  memory@0 { ... };
-  chosen { ... };
-
-  intc: interrupt-controller@a0021000 {
-    compatible = "arm,cortex-a7-gic";
-    #interrupt-cells = <3>;
-    interrupt-controller;
-    reg = <0xa0021000 0x1000>,
-          <0xa0022000 0x2000>;
-  };
-
-  soc {
-    compatible = "simple-bus";
-    #address-cells = <1>;
-    #size-cells = <1>;
-    interrupt-parent = <&intc>;
-
-    i2c1: i2c@40012000 { ... };
-    ethernet0: ethernet@5800a000 { ... };
-  };
-};
-```
-]
-
-],[
-
-#align(center, [#image("simple-hardware.pdf", width: 100%)])
-
-])
-
-#table(columns: (60%, 40%), stroke: none, gutter: 15pt, [
-
-#[ #set text(size: 13pt)
-```perl
-/ {
-  cpus { ... };
-  memory@0 { ... };
-  chosen { ... };
-  intc: interrupt-controller@a0021000 { ... };
-  soc {
-    i2c1: i2c@40012000 {
-      compatible = "st,stm32mp15-i2c";
-      reg = <0x40012000 0x400>;
-      interrupts = <GIC_SPI 31 IRQ_TYPE_LEVEL_HIGH>,
-                   <GIC_SPI 32 IRQ_TYPE_LEVEL_HIGH>;
-      #address-cells = <1>;
-      #size-cells = <0>;
-      status = "okay";
-
-      cs42l51: cs42l51@4a {
-        compatible = "cirrus,cs42l51";
-        reg = <0x4a>;
-        reset-gpios = <&gpiog 9 GPIO_ACTIVE_LOW>;
-        status = "okay";
-      };
-    };
-    ethernet0: ethernet@5800a000 { ... };
-  };
-};
-```
-]
-
-],[
-
-  #align(center, [#image("simple-hardware.pdf", width: 100%)])
-
-])
-
-#table(columns: (60%, 40%), stroke: none, gutter: 15pt, [
-
-#[ #set text(size: 13pt)
-```perl
-/ {
-  cpus { ... };
-  memory@0 { ... };
-  chosen { ... };
-  intc: interrupt-controller@a0021000 { ... };
-  soc {
-    compatible = "simple-bus";
-    ...
-    interrupt-parent = <&intc>;
-    i2c1: i2c@40012000 { ... };
-
-    ethernet0: ethernet@5800a000 {
-      compatible = "st,stm32mp1-dwmac", "snps,dwmac-4.20a";
-      reg = <0x5800a000 0x2000>;
-      interrupts-extended = <&intc GIC_SPI 61 IRQ_TYPE_LEVEL_HIGH>;
-      status = "okay";
-
-      mdio0 {
-        #address-cells = <1>;
-        #size-cells = <0>;
-        compatible = "snps,dwmac-mdio";
-        phy0: ethernet-phy@0 {
-          reg = <0>;
+          cpu1: cpu@1 {
+            compatible = "arm,cortex-a7";
+            clock-frequency = <650000000>;
+            device_type = "cpu";
+            reg = <1>;
+          };
         };
-      }; }; }; };
-```]
 
-],[
+        memory@0 { ... };
+        chosen { ... };
+        intc: interrupt-controller@a0021000 { ... };
+        soc {
+          i2c1: i2c@40012000 { ... };
+          ethernet0: ethernet@5800a000 { ... };
+        };
+      };
+      ```]
 
-#align(center, [#image("simple-hardware.pdf", width: 100%)])
+  ],
+  [
 
-])
+    #align(center, [#image("simple-hardware.pdf", width: 100%)])
 
-===  Device Tree inheritance
+  ],
+)
+
+#table(
+  columns: (60%, 40%),
+  stroke: none,
+  gutter: 15pt,
+  [
+
+    #[ #set text(size: 18pt)
+      ```perl
+      / {
+        cpus { ... };
+        memory@0 {
+          device_type = "memory";
+          reg = <0x0 0x20000000>;
+        };
+
+        chosen {
+          bootargs = "";
+          stdout-path = "serial0:115200n8";
+        };
+        intc: interrupt-controller@a0021000 { ... };
+        soc {
+          i2c1: i2c@40012000 { ... };
+          ethernet0: ethernet@5800a000 { ... };
+        };
+      };
+      ```
+    ]
+
+  ],
+  [
+
+    #align(center, [#image("simple-hardware.pdf", width: 100%)])
+
+  ],
+)
+
+#table(
+  columns: (60%, 40%),
+  stroke: none,
+  gutter: 15pt,
+  [
+
+    #[ #set text(size: 13pt)
+      ```perl
+      / {
+        cpus { ... };
+        memory@0 { ... };
+        chosen { ... };
+
+        intc: interrupt-controller@a0021000 {
+          compatible = "arm,cortex-a7-gic";
+          #interrupt-cells = <3>;
+          interrupt-controller;
+          reg = <0xa0021000 0x1000>,
+                <0xa0022000 0x2000>;
+        };
+
+        soc {
+          compatible = "simple-bus";
+          #address-cells = <1>;
+          #size-cells = <1>;
+          interrupt-parent = <&intc>;
+
+          i2c1: i2c@40012000 { ... };
+          ethernet0: ethernet@5800a000 { ... };
+        };
+      };
+      ```
+    ]
+
+  ],
+  [
+
+    #align(center, [#image("simple-hardware.pdf", width: 100%)])
+
+  ],
+)
+
+#table(
+  columns: (60%, 40%),
+  stroke: none,
+  gutter: 15pt,
+  [
+
+    #[ #set text(size: 13pt)
+      ```perl
+      / {
+        cpus { ... };
+        memory@0 { ... };
+        chosen { ... };
+        intc: interrupt-controller@a0021000 { ... };
+        soc {
+          i2c1: i2c@40012000 {
+            compatible = "st,stm32mp15-i2c";
+            reg = <0x40012000 0x400>;
+            interrupts = <GIC_SPI 31 IRQ_TYPE_LEVEL_HIGH>,
+                         <GIC_SPI 32 IRQ_TYPE_LEVEL_HIGH>;
+            #address-cells = <1>;
+            #size-cells = <0>;
+            status = "okay";
+
+            cs42l51: cs42l51@4a {
+              compatible = "cirrus,cs42l51";
+              reg = <0x4a>;
+              reset-gpios = <&gpiog 9 GPIO_ACTIVE_LOW>;
+              status = "okay";
+            };
+          };
+          ethernet0: ethernet@5800a000 { ... };
+        };
+      };
+      ```
+    ]
+
+  ],
+  [
+
+    #align(center, [#image("simple-hardware.pdf", width: 100%)])
+
+  ],
+)
+
+#table(
+  columns: (60%, 40%),
+  stroke: none,
+  gutter: 15pt,
+  [
+
+    #[ #set text(size: 13pt)
+      ```perl
+      / {
+        cpus { ... };
+        memory@0 { ... };
+        chosen { ... };
+        intc: interrupt-controller@a0021000 { ... };
+        soc {
+          compatible = "simple-bus";
+          ...
+          interrupt-parent = <&intc>;
+          i2c1: i2c@40012000 { ... };
+
+          ethernet0: ethernet@5800a000 {
+            compatible = "st,stm32mp1-dwmac", "snps,dwmac-4.20a";
+            reg = <0x5800a000 0x2000>;
+            interrupts-extended = <&intc GIC_SPI 61 IRQ_TYPE_LEVEL_HIGH>;
+            status = "okay";
+
+            mdio0 {
+              #address-cells = <1>;
+              #size-cells = <0>;
+              compatible = "snps,dwmac-mdio";
+              phy0: ethernet-phy@0 {
+                reg = <0>;
+              };
+            }; }; }; };
+      ```]
+
+  ],
+  [
+
+    #align(center, [#image("simple-hardware.pdf", width: 100%)])
+
+  ],
+)
+
+=== Device Tree inheritance
 
 - Device Tree files are not monolithic, they can be split in several
   files, including each other.
@@ -1248,135 +1344,146 @@ $ dtc -I dtb -O dts foo.dtb
 
 - Uses the C pre-processor `#include` directive
 
-===  Device Tree inheritance example
+=== Device Tree inheritance example
 
 #align(center, [#image("dt-inheritance.pdf", width: 100%)])
 
-===  Inheritance and labels
+=== Inheritance and labels
 
-#table(columns: (50%, 50%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (50%, 50%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-Doing:  \ 
-#[ #set text(size: 14pt)
-soc.dtsi
-]
+    Doing:  \
+    #[ #set text(size: 14pt)
+      soc.dtsi
+    ]
 
-#[ #set text(size: 12pt)
-```perl
-/ {
-  soc {
-    usart1: serial@5c000000 {
-      compatible = "st,stm32h7-uart";
-      reg = <0x5c000000 0x400>;
-      status = "disabled";
-    };
-  };
-};
-```
-]
-#[ #set text(size: 14pt)
-board.dts
-]
-#[ #set text(size: 12pt)
-```perl
-#include "soc.dtsi"
+    #[ #set text(size: 12pt)
+      ```perl
+      / {
+        soc {
+          usart1: serial@5c000000 {
+            compatible = "st,stm32h7-uart";
+            reg = <0x5c000000 0x400>;
+            status = "disabled";
+          };
+        };
+      };
+      ```
+    ]
+    #[ #set text(size: 14pt)
+      board.dts
+    ]
+    #[ #set text(size: 12pt)
+      ```perl
+      #include "soc.dtsi"
 
-/ {
-  soc {
-    serial@5c000000 {
-      status = "okay";
-    };
-  };
-};
-```
-]
-])
+      / {
+        soc {
+          serial@5c000000 {
+            status = "okay";
+          };
+        };
+      };
+      ```
+    ]
+  ],
+)
 
 #pagebreak()
 
-#table(columns: (50%, 50%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (50%, 50%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-Doing:  \ 
-#[ #set text(size: 14pt)
-soc.dtsi
-]
+    Doing:  \
+    #[ #set text(size: 14pt)
+      soc.dtsi
+    ]
 
-#[ #set text(size: 12pt)
-```perl
-/ {
-  soc {
-    usart1: serial@5c000000 {
-      compatible = "st,stm32h7-uart";
-      reg = <0x5c000000 0x400>;
-      status = "disabled";
-    };
-  };
-};
-```
-]
-#[ #set text(size: 14pt)
-board.dts
-]
-#[ #set text(size: 12pt)
-```perl
-#include "soc.dtsi"
+    #[ #set text(size: 12pt)
+      ```perl
+      / {
+        soc {
+          usart1: serial@5c000000 {
+            compatible = "st,stm32h7-uart";
+            reg = <0x5c000000 0x400>;
+            status = "disabled";
+          };
+        };
+      };
+      ```
+    ]
+    #[ #set text(size: 14pt)
+      board.dts
+    ]
+    #[ #set text(size: 12pt)
+      ```perl
+      #include "soc.dtsi"
 
-/ {
-  soc {
-    serial@5c000000 {
-      status = "okay";
-    };
-  };
-};
-```
-]
+      / {
+        soc {
+          serial@5c000000 {
+            status = "okay";
+          };
+        };
+      };
+      ```
+    ]
 
-],[
+  ],
+  [
 
-Is exactly equivalent to:  \ 
-#[ #set text(size: 14pt)
-soc.dtsi
-]
-#[ #set text(size: 12pt)
-```perl
-/ {
-  soc {
-    usart1: serial@5c000000 {
-      compatible = "st,stm32h7-uart";
-      reg = <0x5c000000 0x400>;
-      status = "disabled";
-    };
-  };
-};
-```
-]
+    Is exactly equivalent to:  \
+    #[ #set text(size: 14pt)
+      soc.dtsi
+    ]
+    #[ #set text(size: 12pt)
+      ```perl
+      / {
+        soc {
+          usart1: serial@5c000000 {
+            compatible = "st,stm32h7-uart";
+            reg = <0x5c000000 0x400>;
+            status = "disabled";
+          };
+        };
+      };
+      ```
+    ]
 
-#[ #set text(size: 14pt)
-board.dts
-]
-#[ #set text(size: 12pt)
-```perl
-#include "soc.dtsi"
+    #[ #set text(size: 14pt)
+      board.dts
+    ]
+    #[ #set text(size: 12pt)
+      ```perl
+      #include "soc.dtsi"
 
-&usart1 {
-  status = "okay";
-};
-```
-]
-→ this solution is now often preferred
+      &usart1 {
+        status = "okay";
+      };
+      ```
+    ]
+    → this solution is now often preferred
 
-])
+  ],
+)
 
-===  DT inheritance in STM32MP1 support
+=== DT inheritance in STM32MP1 support
 
 #align(center, [#image("dt-inheritance-stm32.pdf", height: 90%)])
 
-===  Device Tree design principles
+=== Device Tree design principles
 
 - *Describe hardware* (how the hardware is), not configuration
   (how I choose to use the hardware)
 
-- *OS-agnostic* 
+- *OS-agnostic*
 
   - For a given piece of HW, Device Tree should be the same for U-Boot,
     FreeBSD or Linux
@@ -1397,187 +1504,203 @@ board.dts
 - Like all beautiful design principles, these principles are sometimes
   violated.
 
-===  Device Tree specifications
+=== Device Tree specifications
 
-#table(columns: (65%, 35%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (65%, 35%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-- How to write the correct nodes/properties to describe a given hardware
-  platform ?
+    - How to write the correct nodes/properties to describe a given hardware
+      platform ?
 
-- *Device Tree Specifications* → base Device Tree syntax + number of standard properties.
+    - *Device Tree Specifications* → base Device Tree syntax + number of standard properties.
 
-  - #link("https://www.devicetree.org/specifications/")
+      - #link("https://www.devicetree.org/specifications/")
 
-  - Not sufficient to describe the wide variety of hardware.
+      - Not sufficient to describe the wide variety of hardware.
 
-- *Device Tree Bindings* → documents that each specify
-  how a piece of HW should be described
+    - *Device Tree Bindings* → documents that each specify
+      how a piece of HW should be described
 
-  - #kdir("Documentation/devicetree/bindings") in Linux kernel
-    sources
+      - #kdir("Documentation/devicetree/bindings") in Linux kernel
+        sources
 
-  - Reviewed by DT bindings maintainer team
+      - Reviewed by DT bindings maintainer team
 
-  - Legacy: human readable documents
+      - Legacy: human readable documents
 
-  - New norm: YAML-written specifications
+      - New norm: YAML-written specifications
 
-],[
+  ],
+  [
 
- #align(center, [#image("dt-spec.png", width: 90%)])
+    #align(center, [#image("dt-spec.png", width: 90%)])
 
-])
-
-===  Device Tree binding: old style
-
-#align(center, 
-[#kfile("Documentation/devicetree/bindings/mtd/spear_smi.txt") 
- \ 
-This IP is _not_ used on STM32MP1.]
+  ],
 )
 
-#table(columns: (50%, 50%), stroke: none, gutter: 15pt, [
+=== Device Tree binding: old style
 
-#[ #set text(size: 11pt)
-```
-* SPEAr SMI
+#align(center, [#kfile("Documentation/devicetree/bindings/mtd/spear_smi.txt")
+  \
+  This IP is _not_ used on STM32MP1.])
 
-Required properties:
-- compatible : "st,spear600-smi"
-- reg : Address range of the mtd chip
-- #address-cells, #size-cells : Must be present if the device has sub-nodes
-  representing partitions.
-- interrupts: Should contain the STMMAC interrupts
-- clock-rate : Functional clock rate of SMI in Hz
+#table(
+  columns: (50%, 50%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-Optional properties:
-- st,smi-fast-mode : Flash supports read in fast mode
-```
-]
+    #[ #set text(size: 11pt)
+      ```
+      * SPEAr SMI
 
-],[
+      Required properties:
+      - compatible : "st,spear600-smi"
+      - reg : Address range of the mtd chip
+      - #address-cells, #size-cells : Must be present if the device has sub-nodes
+        representing partitions.
+      - interrupts: Should contain the STMMAC interrupts
+      - clock-rate : Functional clock rate of SMI in Hz
 
-#[ #set text(size: 11pt)
-```
-Example:
+      Optional properties:
+      - st,smi-fast-mode : Flash supports read in fast mode
+      ```
+    ]
 
-        smi: flash@fc000000 {
-                compatible = "st,spear600-smi";
-                #address-cells = <1>;
-                #size-cells = <1>;
-                reg = <0xfc000000 0x1000>;
-                interrupt-parent = <&vic1>;
-                interrupts = <12>;
-                clock-rate = <50000000>;        /* 50MHz */
+  ],
+  [
 
-                flash@f8000000 {
-                        st,smi-fast-mode;
-                        ...
-                };
-        };
-```
-]
+    #[ #set text(size: 11pt)
+      ```
+      Example:
 
-])
+              smi: flash@fc000000 {
+                      compatible = "st,spear600-smi";
+                      #address-cells = <1>;
+                      #size-cells = <1>;
+                      reg = <0xfc000000 0x1000>;
+                      interrupt-parent = <&vic1>;
+                      interrupts = <12>;
+                      clock-rate = <50000000>;        /* 50MHz */
 
-===  Device Tree binding: YAML style
+                      flash@f8000000 {
+                              st,smi-fast-mode;
+                              ...
+                      };
+              };
+      ```
+    ]
+
+  ],
+)
+
+=== Device Tree binding: YAML style
 
 #kfile("Documentation/devicetree/bindings/i2c/st,stm32-i2c.yaml")
 
-#table(columns: (50%, 50%), stroke: none, gutter: 15pt, [
-#[ #set text(size: 10pt)
-```yaml
-# SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
-%YAML 1.2
----
-$ id: http://devicetree.org/schemas/i2c/st,stm32-i2c.yaml#
-$ schema: http://devicetree.org/meta-schemas/core.yaml#
+#table(
+  columns: (50%, 50%),
+  stroke: none,
+  gutter: 15pt,
+  [
+    #[ #set text(size: 10pt)
+      ```yaml
+      # SPDX-License-Identifier: (GPL-2.0-only OR BSD-2-Clause)
+      %YAML 1.2
+      ---
+      $ id: http://devicetree.org/schemas/i2c/st,stm32-i2c.yaml#
+      $ schema: http://devicetree.org/meta-schemas/core.yaml#
 
-title: I2C controller embedded in STMicroelectronics STM32 I2C platform
+      title: I2C controller embedded in STMicroelectronics STM32 I2C platform
 
-maintainers:
-  - Pierre-Yves MORDRET <pierre-yves.mordret@st.com>
+      maintainers:
+        - Pierre-Yves MORDRET <pierre-yves.mordret@st.com>
 
-properties:
-  compatible:
-    enum:
-      - st,stm32f4-i2c
-      - st,stm32f7-i2c
-      - st,stm32mp15-i2c
+      properties:
+        compatible:
+          enum:
+            - st,stm32f4-i2c
+            - st,stm32f7-i2c
+            - st,stm32mp15-i2c
 
-  reg:
-    maxItems: 1
+        reg:
+          maxItems: 1
 
-  interrupts:
-    items:
-      - description: interrupt ID for I2C event
-      - description: interrupt ID for I2C error
+        interrupts:
+          items:
+            - description: interrupt ID for I2C event
+            - description: interrupt ID for I2C error
 
-  resets:
-    maxItems: 1
-```
-]
+        resets:
+          maxItems: 1
+      ```
+    ]
 
-],[
-  #[ #set text(size: 10pt)
-```yaml
-  clocks:
-    maxItems: 1
+  ],
+  [
+    #[ #set text(size: 10pt)
+      ```yaml
+        clocks:
+          maxItems: 1
 
-  dmas:
-    items:
-      - description: RX DMA Channel phandle
-      - description: TX DMA Channel phandle
+        dmas:
+          items:
+            - description: RX DMA Channel phandle
+            - description: TX DMA Channel phandle
 
-  ...
+        ...
 
-  clock-frequency:
-    description: Desired I2C bus clock frequency in Hz. If not specified,
-                 the default 100 kHz frequency will be used.
-                 For STM32F7, STM32H7 and STM32MP1 SoCs, if timing
-                 parameters match, the bus clock frequency can be from
-                 1Hz to 1MHz.
-    default: 100000
-    minimum: 1
-    maximum: 1000000
+        clock-frequency:
+          description: Desired I2C bus clock frequency in Hz. If not specified,
+                       the default 100 kHz frequency will be used.
+                       For STM32F7, STM32H7 and STM32MP1 SoCs, if timing
+                       parameters match, the bus clock frequency can be from
+                       1Hz to 1MHz.
+          default: 100000
+          minimum: 1
+          maximum: 1000000
 
-required:
-  - compatible
-  - reg
-  - interrupts
-  - resets
-  - clocks
-```
-  ]
-])
+      required:
+        - compatible
+        - reg
+        - interrupts
+        - resets
+        - clocks
+      ```
+    ]
+  ],
+)
 
-===  Device Tree binding: YAML style example
+=== Device Tree binding: YAML style example
 
 #[ #set text(size: 14pt)
-```yaml
-examples:
-  - |
-    //Example 3 (with st,stm32mp15-i2c compatible on stm32mp)
-    #include <dt-bindings/interrupt-controller/arm-gic.h>
-    #include <dt-bindings/clock/stm32mp1-clks.h>
-    #include <dt-bindings/reset/stm32mp1-resets.h>
-      i2c@40013000 {
-          compatible = "st,stm32mp15-i2c";
-          #address-cells = <1>;
-          #size-cells = <0>;
-          reg = <0x40013000 0x400>;
-          interrupts = <GIC_SPI 33 IRQ_TYPE_LEVEL_HIGH>,
-                       <GIC_SPI 34 IRQ_TYPE_LEVEL_HIGH>;
-          clocks = <&rcc I2C2_K>;
-          resets = <&rcc I2C2_R>;
-          i2c-scl-rising-time-ns = <185>;
-          i2c-scl-falling-time-ns = <20>;
-          st,syscfg-fmp = <&syscfg 0x4 0x2>;
-      };
-```
+  ```yaml
+  examples:
+    - |
+      //Example 3 (with st,stm32mp15-i2c compatible on stm32mp)
+      #include <dt-bindings/interrupt-controller/arm-gic.h>
+      #include <dt-bindings/clock/stm32mp1-clks.h>
+      #include <dt-bindings/reset/stm32mp1-resets.h>
+        i2c@40013000 {
+            compatible = "st,stm32mp15-i2c";
+            #address-cells = <1>;
+            #size-cells = <0>;
+            reg = <0x40013000 0x400>;
+            interrupts = <GIC_SPI 33 IRQ_TYPE_LEVEL_HIGH>,
+                         <GIC_SPI 34 IRQ_TYPE_LEVEL_HIGH>;
+            clocks = <&rcc I2C2_K>;
+            resets = <&rcc I2C2_R>;
+            i2c-scl-rising-time-ns = <185>;
+            i2c-scl-falling-time-ns = <20>;
+            st,syscfg-fmp = <&syscfg 0x4 0x2>;
+        };
+  ```
 ]
 
-===  Validating Device Tree in Linux
+=== Validating Device Tree in Linux
 
 - `dtc` only does syntactic validation
 
@@ -1585,18 +1708,18 @@ examples:
 
 - Linux kernel `make` rules:
 
-  - `make dt_binding_check` 
+  - `make dt_binding_check`
     verify that YAML bindings are valid
 
-  - `make dtbs_check` 
+  - `make dtbs_check`
     validate DTs currently enabled against YAML bindings
 
   - `make
     DT_SCHEMA_FILES=Documentation/devicetree/bindings/trivial-devices.yaml
-    dtbs_check` 
+    dtbs_check`
     validate DTs against a specific YAML binding
 
-===  The `compatible` property
+=== The `compatible` property
 
 - Is a list of strings
 
@@ -1624,39 +1747,45 @@ examples:
 - Special value: `simple-bus` → bus where all sub-nodes are
   memory-mapped devices
 
-===  `compatible` property and Linux kernel drivers
+=== `compatible` property and Linux kernel drivers
 
-#table(columns: (60%, 40%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (60%, 40%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-- Linux identifies as *platform devices*:
+    - Linux identifies as *platform devices*:
 
-  - Top-level DT nodes with a `compatible` string
+      - Top-level DT nodes with a `compatible` string
 
-  - Sub-nodes of `simple-bus`
+      - Sub-nodes of `simple-bus`
 
-    - Instantiated automatically at boot time
+        - Instantiated automatically at boot time
 
-- Sub-nodes of I2C controllers → _I2C devices_
+    - Sub-nodes of I2C controllers → _I2C devices_
 
-- Sub-nodes of SPI controllers → _SPI devices_
+    - Sub-nodes of SPI controllers → _SPI devices_
 
-- Each Linux driver has a table of compatible strings it supports
+    - Each Linux driver has a table of compatible strings it supports
 
-  - #kstruct("of_device_id")`[]`
+      - #kstruct("of_device_id")`[]`
 
-- When a DT node compatible string matches a given driver, the device is
-  _bound_ to that driver.
+    - When a DT node compatible string matches a given driver, the device is
+      _bound_ to that driver.
 
-],[
+  ],
+  [
 
-#align(center, [#image("dt-to-devices.pdf", width: 100%)])
+    #align(center, [#image("dt-to-devices.pdf", width: 100%)])
 
-])
+  ],
+)
 
-===  Matching with drivers in Linux: platform driver
+=== Matching with drivers in Linux: platform driver
 
 #[ #set text(size: 14pt)
-#kfile("drivers/tty/serial/stm32-usart.c")
+  #kfile("drivers/tty/serial/stm32-usart.c")
 ]
 ```c
 static const struct of_device_id stm32_match[] = {
@@ -1679,10 +1808,10 @@ static struct platform_driver stm32_serial_driver = {
 };
 ```
 
-===  Matching with drivers in Linux: I2C driver
+=== Matching with drivers in Linux: I2C driver
 
 #[ #set text(size: 14pt)
-#kfile("sound/soc/codecs/cs42l51.c")
+  #kfile("sound/soc/codecs/cs42l51.c")
 ]
 ```c
 const struct of_device_id cs42l51_of_match[] = {
@@ -1691,7 +1820,7 @@ const struct of_device_id cs42l51_of_match[] = {
 }; MODULE_DEVICE_TABLE(of, cs42l51_of_match);
 ```
 #[ #set text(size: 14pt)
-#kfile("sound/soc/codecs/cs42l51-i2c.c")
+  #kfile("sound/soc/codecs/cs42l51-i2c.c")
 ]
 ```c
 static struct i2c_driver cs42l51_i2c_driver = {
@@ -1706,7 +1835,7 @@ static struct i2c_driver cs42l51_i2c_driver = {
 };
 ```
 
-===  `reg` property
+=== `reg` property
 
 - Most important property after `compatible`
 
@@ -1778,7 +1907,7 @@ static struct i2c_driver cs42l51_i2c_driver = {
   };
   ```
 
-===  Status property
+=== Status property
 
 - The `status` property indicates if the device is really in use or not
 
@@ -1794,174 +1923,186 @@ static struct i2c_driver cs42l51_i2c_driver = {
 
 - Enabled on a per-device basis in the board `.dts`
 
-===  Resources: interrupts, clocks, DMA, reset lines, ...
+=== Resources: interrupts, clocks, DMA, reset lines, ...
 
-#table(columns: (50%, 50%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (50%, 50%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-- Common pattern for resources shared by multiple hardware blocks
+    - Common pattern for resources shared by multiple hardware blocks
 
-  - Interrupt lines
+      - Interrupt lines
 
-  - Clock controllers
+      - Clock controllers
 
-  - DMA controllers
+      - DMA controllers
 
-  - Reset controllers
+      - Reset controllers
 
-  - ...
+      - ...
 
-- A Device Tree node describing the _controller_ as a device
+    - A Device Tree node describing the _controller_ as a device
 
-- References from other nodes that use resources provided by this
-  _controller_
+    - References from other nodes that use resources provided by this
+      _controller_
 
-],[
+  ],
+  [
 
-#[ #set text(size: 10pt)
-```perl
-intc: interrupt-controller@a0021000 {
-   compatible = "arm,cortex-a7-gic";
-   #interrupt-cells = <3>;
-   interrupt-controller;
-   reg = <0xa0021000 0x1000>, <0xa0022000 0x2000>;
-};
+    #[ #set text(size: 10pt)
+      ```perl
+      intc: interrupt-controller@a0021000 {
+         compatible = "arm,cortex-a7-gic";
+         #interrupt-cells = <3>;
+         interrupt-controller;
+         reg = <0xa0021000 0x1000>, <0xa0022000 0x2000>;
+      };
 
-rcc: rcc@50000000 {
-   compatible = "st,stm32mp1-rcc", "syscon";
-   reg = <0x50000000 0x1000>;
-   #clock-cells = <1>;
-   #reset-cells = <1>;
-};
+      rcc: rcc@50000000 {
+         compatible = "st,stm32mp1-rcc", "syscon";
+         reg = <0x50000000 0x1000>;
+         #clock-cells = <1>;
+         #reset-cells = <1>;
+      };
 
-dmamux1: dma-router@48002000 {
-   compatible = "st,stm32h7-dmamux";
-   reg = <0x48002000 0x1c>;
-   #dma-cells = <3>;
-   clocks = <&rcc DMAMUX>;
-   resets = <&rcc DMAMUX_R>;
-};
+      dmamux1: dma-router@48002000 {
+         compatible = "st,stm32h7-dmamux";
+         reg = <0x48002000 0x1c>;
+         #dma-cells = <3>;
+         clocks = <&rcc DMAMUX>;
+         resets = <&rcc DMAMUX_R>;
+      };
 
-spi3: spi@4000c000 {
-   interrupts = <GIC_SPI 51 IRQ_TYPE_LEVEL_HIGH>;
-   clocks = <&rcc SPI3_K>;
-   resets = <&rcc SPI3_R>;
-   dmas = <&dmamux1 61 0x400 0x05>,  <&dmamux1 62 0x400 0x05>;
-};
-```]
+      spi3: spi@4000c000 {
+         interrupts = <GIC_SPI 51 IRQ_TYPE_LEVEL_HIGH>;
+         clocks = <&rcc SPI3_K>;
+         resets = <&rcc SPI3_R>;
+         dmas = <&dmamux1 61 0x400 0x05>,  <&dmamux1 62 0x400 0x05>;
+      };
+      ```]
 
-])
+  ],
+)
 
-===  Pin-muxing description
+=== Pin-muxing description
 
-#table(columns: (50%, 50%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (50%, 50%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-- Most modern SoCs, including the STM32MP1, have more features than they
-  have pins to expose those features to the outside world.
+    - Most modern SoCs, including the STM32MP1, have more features than they
+      have pins to expose those features to the outside world.
 
-- Pins are muxed: a given pin can be used for one function *or*
-  another
+    - Pins are muxed: a given pin can be used for one function *or*
+      another
 
-- A specific IP block in the SoC controls the muxing of pins: the
-  *pinmux controller*
+    - A specific IP block in the SoC controls the muxing of pins: the
+      *pinmux controller*
 
-- The Device Tree describes which pin configurations are possible, and
-  which configurations are used by the different devices. 
+    - The Device Tree describes which pin configurations are possible, and
+      which configurations are used by the different devices.
 
-],[
+  ],
+  [
 
-#align(center, [#image("pin-muxing-principle.pdf", width: 100%)])
+    #align(center, [#image("pin-muxing-principle.pdf", width: 100%)])
 
-])
+  ],
+)
 
-===  Pin-muxing controllers on STM32MP1
+=== Pin-muxing controllers on STM32MP1
 
 #[ #set text(size: 14pt)
-#kfileversion("arch/arm/boot/dts/st/stm32mp151.dtsi", "6.1")
+  #kfileversion("arch/arm/boot/dts/st/stm32mp151.dtsi", "6.1")
 ]
 #[ #set text(size: 12pt)
-```perl
-pinctrl: pin-controller@50002000 {
-        #address-cells = <1>;
-        #size-cells = <1>;
-        compatible = "st,stm32mp157-pinctrl";
-        ...
-        gpioa: gpio@50002000 { ... };
-        gpiob: gpio@50003000 { ... };
-        gpioc: gpio@50004000 { ... };
-        gpiod: gpio@50005000 { ... };
-        gpioe: gpio@50006000 { ... };
-        gpiof: gpio@50007000 { ... };
-        ...
-};
+  ```perl
+  pinctrl: pin-controller@50002000 {
+          #address-cells = <1>;
+          #size-cells = <1>;
+          compatible = "st,stm32mp157-pinctrl";
+          ...
+          gpioa: gpio@50002000 { ... };
+          gpiob: gpio@50003000 { ... };
+          gpioc: gpio@50004000 { ... };
+          gpiod: gpio@50005000 { ... };
+          gpioe: gpio@50006000 { ... };
+          gpiof: gpio@50007000 { ... };
+          ...
+  };
 
-pinctrl_z: pin-controller-z@54004000 {
-        #address-cells = <1>;
-        #size-cells = <1>;
-        compatible = "st,stm32mp157-z-pinctrl";
-        ranges = <0 0x54004000 0x400>;
-        ...
-        gpioz: gpio@54004000 { .... };
-        ...
-};
-```
+  pinctrl_z: pin-controller-z@54004000 {
+          #address-cells = <1>;
+          #size-cells = <1>;
+          compatible = "st,stm32mp157-z-pinctrl";
+          ranges = <0 0x54004000 0x400>;
+          ...
+          gpioz: gpio@54004000 { .... };
+          ...
+  };
+  ```
 ]
 
-===  Pin-muxing configuration
+=== Pin-muxing configuration
 
 #[ #set text(size: 14pt)
-#kfileversion("arch/arm/boot/dts/st/stm32mp15-pinctrl.dtsi", "6.1")
+  #kfileversion("arch/arm/boot/dts/st/stm32mp15-pinctrl.dtsi", "6.1")
 ]
 #[ #set text(size: 11.5pt)
-```perl
-&pinctrl {
-        ...
-        i2c1_pins_a: i2c1-0 {
-                pins {
-                        pinmux = <STM32_PINMUX('D', 12, AF5)>, /* I2C1_SCL */
-                                 <STM32_PINMUX('F', 15, AF5)>; /* I2C1_SDA */
-                        bias-disable;
-                        drive-open-drain;
-                        slew-rate = <0>;
-                };
-        };
-        ...
-        m_can1_pins_a: m-can1-0 {
-                pins1 {
-                        pinmux = <STM32_PINMUX('H', 13, AF9)>; /* CAN1_TX */
-                        slew-rate = <1>;
-                        drive-push-pull;
-                        bias-disable;
-                };
-                pins2 {
-                        pinmux = <STM32_PINMUX('I', 9, AF9)>; /* CAN1_RX */
-                        bias-disable;
-                };
-        };
-        ...
-};
-```
+  ```perl
+  &pinctrl {
+          ...
+          i2c1_pins_a: i2c1-0 {
+                  pins {
+                          pinmux = <STM32_PINMUX('D', 12, AF5)>, /* I2C1_SCL */
+                                   <STM32_PINMUX('F', 15, AF5)>; /* I2C1_SDA */
+                          bias-disable;
+                          drive-open-drain;
+                          slew-rate = <0>;
+                  };
+          };
+          ...
+          m_can1_pins_a: m-can1-0 {
+                  pins1 {
+                          pinmux = <STM32_PINMUX('H', 13, AF9)>; /* CAN1_TX */
+                          slew-rate = <1>;
+                          drive-push-pull;
+                          bias-disable;
+                  };
+                  pins2 {
+                          pinmux = <STM32_PINMUX('I', 9, AF9)>; /* CAN1_RX */
+                          bias-disable;
+                  };
+          };
+          ...
+  };
+  ```
 ]
 
 #pagebreak()
 
 #align(center, [#image("stm32mp157-i2c-pin-mux.png", height: 90%)])
 #[ #set text(size: 12pt)
-Source:
-#link("https://www.st.com/resource/en/datasheet/stm32mp157c.pdf")[STM32MP157C datasheet].
-Note that `I2C1_SDA` is also available on pin `PF15` (not shown here).
+  Source:
+  #link("https://www.st.com/resource/en/datasheet/stm32mp157c.pdf")[STM32MP157C datasheet].
+  Note that `I2C1_SDA` is also available on pin `PF15` (not shown here).
 ]
 
-===  Pin-muxing consumer
+=== Pin-muxing consumer
 
 #[ #set text(size: 15pt)
-```perl
-&i2c1 {
-        pinctrl-names = "default", "sleep";
-        pinctrl-0 = <&i2c1_pins_a>;
-        pinctrl-1 = <&i2c1_sleep_pins_a>;
-        ...
-};
-```
+  ```perl
+  &i2c1 {
+          pinctrl-names = "default", "sleep";
+          pinctrl-0 = <&i2c1_pins_a>;
+          pinctrl-1 = <&i2c1_sleep_pins_a>;
+          ...
+  };
+  ```
 ]
 - Typically board-specific, in `.dts`
 
@@ -1978,124 +2119,139 @@ Note that `I2C1_SDA` is also available on pin `PF15` (not shown here).
 - `default` state is automatically set up when the device is
   _probed_
 
-===  Example: LED and I2C device
+=== Example: LED and I2C device
 
-#[ #show raw.where(block: true): set text(size: 14pt)
-- Let's see how to describe an LED and an I2C device connected to the
-  DK1 platform.
+#[
+  #show raw.where(block: true): set text(size: 14pt)
+  - Let's see how to describe an LED and an I2C device connected to the
+    DK1 platform.
 
-- Create `arch/arm/boot/dts/st/stm32mp157a-dk1-custom.dts` which
-  includes `stm32mp157a-dk1.dts`
+  - Create `arch/arm/boot/dts/st/stm32mp157a-dk1-custom.dts` which
+    includes `stm32mp157a-dk1.dts`
 
-  ```
-  #include "stm32mp157a-dk1.dts"
-  ```
+    ```
+    #include "stm32mp157a-dk1.dts"
+    ```
 
-- Make sure `stm32mp157a-dk1-custom.dts` gets compiled to a DTB by
-  changing #kfile("arch/arm/boot/dts/Makefile")
+  - Make sure `stm32mp157a-dk1-custom.dts` gets compiled to a DTB by
+    changing #kfile("arch/arm/boot/dts/Makefile")
 
-  ```
-  dtb-$(CONFIG_ARCH_STM32) += 
-          ...
-          stm32mp157a-dk1.dtb 
-          stm32mp157a-dk1-custom.dtb 
-  ```
+    ```
+    dtb-$(CONFIG_ARCH_STM32) +=
+            ...
+            stm32mp157a-dk1.dtb
+            stm32mp157a-dk1-custom.dtb
+    ```
 
-- `make dtbs`
-  ```
-    DTC     arch/arm/boot/dts/st/stm32mp157a-dk1-custom.dtb
-  ```
+  - `make dtbs`
+    ```
+      DTC     arch/arm/boot/dts/st/stm32mp157a-dk1-custom.dtb
+    ```
 ]
 
-===  Example: describe an LED
+=== Example: describe an LED
 
-#table(columns: (50%, 50%), stroke: none, gutter: 15pt, [
-  #[ #set text(size: 16pt)
-stm32mp157a-dk1-custom.dts 
-  ]
-  #[ #set text(size: 12pt)
-```perl
-#include "stm32mp157a-dk1.dts"
+#table(
+  columns: (50%, 50%),
+  stroke: none,
+  gutter: 15pt,
+  [
+    #[ #set text(size: 16pt)
+      stm32mp157a-dk1-custom.dts
+    ]
+    #[ #set text(size: 12pt)
+      ```perl
+      #include "stm32mp157a-dk1.dts"
 
-/ {
-        leds {
-                compatible = "gpio-leds";
-                webinar {
-                        label = "webinar";
-                        gpios = <&gpioe 1 GPIO_ACTIVE_HIGH>;
-                };
-        };
-};
-```
-  ]
-#[ #set text(size: 16pt)
-shell
-]
-#[ #set text(size: 12.5pt)
-```
-# echo 255 > /sys/class/leds/webinar/brightness
-```
-]
-],[
-#align(center, [#image("cn14-pinout.png", height: 40%)])
-#align(center, [#image("led-on.jpg", height: 40%)])
+      / {
+              leds {
+                      compatible = "gpio-leds";
+                      webinar {
+                              label = "webinar";
+                              gpios = <&gpioe 1 GPIO_ACTIVE_HIGH>;
+                      };
+              };
+      };
+      ```
+    ]
+    #[ #set text(size: 16pt)
+      shell
+    ]
+    #[ #set text(size: 12.5pt)
+      ```
+      # echo 255 > /sys/class/leds/webinar/brightness
+      ```
+    ]
+  ],
+  [
+    #align(center, [#image("cn14-pinout.png", height: 40%)])
+    #align(center, [#image("led-on.jpg", height: 40%)])
 
-])
+  ],
+)
 
-===  Example: connect I2C temperature, humidity and pressure sensor
+=== Example: connect I2C temperature, humidity and pressure sensor
 
-#table(columns: (50%, 50%), stroke: none, gutter: 15pt, [
-  #[ #set text(size: 15pt)
-stm32mp157a-dk1-custom.dts
-  ]
-  #[ #set text(size: 12pt)
-```perl
-&i2c5 {
-        status = "okay";
-        clock-frequency = <100000>;
-        pinctrl-names = "default", "sleep";
-        pinctrl-0 = <&i2c5_pins_a>;
-        pinctrl-1 = <&i2c5_pins_sleep_a>;
+#table(
+  columns: (50%, 50%),
+  stroke: none,
+  gutter: 15pt,
+  [
+    #[ #set text(size: 15pt)
+      stm32mp157a-dk1-custom.dts
+    ]
+    #[ #set text(size: 12pt)
+      ```perl
+      &i2c5 {
+              status = "okay";
+              clock-frequency = <100000>;
+              pinctrl-names = "default", "sleep";
+              pinctrl-0 = <&i2c5_pins_a>;
+              pinctrl-1 = <&i2c5_pins_sleep_a>;
 
-        pressure@76 {
-                compatible = "bosch,bme280";
-                reg = <0x76>;
-        };
-};
-```
-  ]
-  #[ #set text(size: 15pt)
-  shell
-  ]
-  #[ #set text(size: 12pt)
-```
-# cat /sys/bus/iio/devices/iio:device2/in_humidityrelative_input
-49147
-# cat /sys/bus/iio/devices/iio:device2/in_pressure_input
-101.567167968
-# cat /sys/bus/iio/devices/iio:device2/in_temp_input
-24380
-```
-  ]
-],[
-#align(center, [#image("cn13-pinout.png", width: 100%)])
-#align(center, [#image("bme.jpg", width: 40%)])
+              pressure@76 {
+                      compatible = "bosch,bme280";
+                      reg = <0x76>;
+              };
+      };
+      ```
+    ]
+    #[ #set text(size: 15pt)
+      shell
+    ]
+    #[ #set text(size: 12pt)
+      ```
+      # cat /sys/bus/iio/devices/iio:device2/in_humidityrelative_input
+      49147
+      # cat /sys/bus/iio/devices/iio:device2/in_pressure_input
+      101.567167968
+      # cat /sys/bus/iio/devices/iio:device2/in_temp_input
+      24380
+      ```
+    ]
+  ],
+  [
+    #align(center, [#image("cn13-pinout.png", width: 100%)])
+    #align(center, [#image("bme.jpg", width: 40%)])
 
-])
+  ],
+)
 
 #[ #set text(size: 17pt)
-#align(center,[
-Details at
-#link("https://bootlin.com/blog/building-a-linux-system-for-the-stm32mp1-connecting-an-i2c-sensor/")])
+  #align(center, [
+    Details at
+    #link(
+      "https://bootlin.com/blog/building-a-linux-system-for-the-stm32mp1-connecting-an-i2c-sensor/",
+    )])
 ]
 
-===  Further details about the Device Tree 
+=== Further details about the Device Tree
 
 Check out our _DeviceTree 101 webinar_, by Thomas Petazzoni (2021)
 
 - Slides:
   #link("https://bootlin.com/blog/device-tree-101-webinar-slides-and-videos/")
-  
+
 
 - Video: #link("https://youtu.be/a9CZ1Uk3OYQ")
 
@@ -2103,7 +2259,7 @@ Check out our _DeviceTree 101 webinar_, by Thomas Petazzoni (2021)
 
 == Discoverable hardware: USB and PCI
 
-===  Discoverable hardware
+=== Discoverable hardware
 
 - Some busses have built-in hardware discoverability mechanisms
 
@@ -2125,20 +2281,21 @@ Check out our _DeviceTree 101 webinar_, by Thomas Petazzoni (2021)
   some other characteristics of the device: device class, device
   sub-class, etc.
 
-#setuplabframe([Accessing hardware devices],[ Time to start the
-practical lab!
+#setuplabframe([Accessing hardware devices], [
+  Time to start the
+  practical lab!
 
-- Exploring the contents of `/dev` and `/sys` and the devices available
-  on the embedded hardware platform.
+  - Exploring the contents of `/dev` and `/sys` and the devices available
+    on the embedded hardware platform.
 
-- Using GPIOs and LEDs.
+  - Using GPIOs and LEDs.
 
-- Modifying the Device Tree to control pin multiplexing and declare an
-  I2C-connected joystick.
+  - Modifying the Device Tree to control pin multiplexing and declare an
+    I2C-connected joystick.
 
-- Adding support for a USB audio card using Linux kernel modules
+  - Adding support for a USB audio card using Linux kernel modules
 
-- Adding support for the I2C-connected joystick through an out-of-tree
-  module.
+  - Adding support for the I2C-connected joystick through an out-of-tree
+    module.
 
 ])

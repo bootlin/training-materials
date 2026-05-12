@@ -6,7 +6,7 @@
 
 == TF-A: Trusted Firmware
 
-===  Concept of FIP
+=== Concept of FIP
 
 - FIP = _Firmware Image Package_
 
@@ -18,11 +18,15 @@
 - Typically used to bundle the BL33, i.e. the U-Boot bootloader that
   will be loaded by TF-A.
 
-- #text(size: 18pt)[#link("https://trustedfirmware-a.readthedocs.io/en/latest/getting_started/tools-build.html")[https://trustedfirmware-a.readthedocs.io/en/latest/getting_started/tools-build.html]]
+- #text(size: 18pt)[#link(
+    "https://trustedfirmware-a.readthedocs.io/en/latest/getting_started/tools-build.html",
+  )[https://trustedfirmware-a.readthedocs.io/en/latest/getting_started/tools-build.html]]
 
-- #link("https://wiki.st.com/stm32mpu/wiki/How_to_configure_TF-A_FIP")[https://wiki.st.com/stm32mpu/wiki/How_to_configure_TF-A_FIP]
+- #link(
+    "https://wiki.st.com/stm32mpu/wiki/How_to_configure_TF-A_FIP",
+  )[https://wiki.st.com/stm32mpu/wiki/How_to_configure_TF-A_FIP]
 
-===  Configuring TF-A
+=== Configuring TF-A
 
 - TF-A does not use _Kconfig_ for configuration
 
@@ -30,9 +34,11 @@
   command line
 
 - Most variables are documented at:
-  #link("https://trustedfirmware-a.readthedocs.io/en/latest/getting_started/build-options.html")[https://trustedfirmware-a.readthedocs.io/en/latest/getting_started/build-options.html]
+  #link(
+    "https://trustedfirmware-a.readthedocs.io/en/latest/getting_started/build-options.html",
+  )[https://trustedfirmware-a.readthedocs.io/en/latest/getting_started/build-options.html]
 
-===  Configure TF-A: important variables
+=== Configure TF-A: important variables
 
 - `CROSS_COMPILE`, cross-compiler prefix
 
@@ -57,18 +63,18 @@
 
   - `STM32MP_SDMMC=1`, enable support for SD card/eMMC in TF-A
 
-===  Building TF-A for STM32MP1
+=== Building TF-A for STM32MP1
 
 ```
-$ make CROSS_COMPILE=arm-linux- 
-        ARM_ARCH_MAJOR=7 
-        ARCH=aarch32 
-        PLAT=stm32mp1 
-        AARCH32_SP=sp_min 
-        DTB_FILE_NAME=stm32mp157a-dk1.dtb 
-        BL33=/path/to/u-boot/u-boot-nodtb.bin 
-        BL33_CFG=/path/to/u-boot/u-boot.dtb 
-        STM32MP_SDMMC=1 
+$ make CROSS_COMPILE=arm-linux-
+        ARM_ARCH_MAJOR=7
+        ARCH=aarch32
+        PLAT=stm32mp1
+        AARCH32_SP=sp_min
+        DTB_FILE_NAME=stm32mp157a-dk1.dtb
+        BL33=/path/to/u-boot/u-boot-nodtb.bin
+        BL33_CFG=/path/to/u-boot/u-boot.dtb
+        STM32MP_SDMMC=1
         fip all
 ```
 Build results in `build/stm32mp1/release`. Important files:
@@ -77,7 +83,7 @@ Build results in `build/stm32mp1/release`. Important files:
 
 - `fip.bin`, the FIP image, containing U-Boot and other elements
 
-===  FIP image contents
+=== FIP image contents
 
 fiptool info
 
@@ -89,38 +95,51 @@ HW_CONFIG: offset=0xF5C7E, size=0x16A98, cmdline="--hw-config"
 TOS_FW_CONFIG: offset=0x10C716, size=0x3CF6, cmdline="--tos-fw-config"
 ```
 
-===  STM32MP1 partition layout
+=== STM32MP1 partition layout
 
-#table(columns: (50%, 50%), stroke: none, [
+#table(
+  columns: (50%, 50%),
+  stroke: none,
+  [
 
-#align(center, [#image("stm32mp1-tfa.pdf", width: 90%)])
+    #align(center, [#image("stm32mp1-tfa.pdf", width: 90%)])
 
-#[ #set text(size: 18pt)
+    #[ #set text(size: 18pt)
 
-#align(center, "Reminder: boot sequence with TF-A on STM32MP1")
+      #align(center, "Reminder: boot sequence with TF-A on STM32MP1")
 
-]
+    ]
 
-],[
+  ],
+  [
 
-#align(center, [#image("/common/sequence-stm32mp1.pdf", width: 90%)])
+    #align(center, [#image("/common/sequence-stm32mp1.pdf", width: 90%)])
 
-])
+  ],
+)
 
-===  AM62x (BeaglePlay) partition layout
+=== AM62x (BeaglePlay) partition layout
 
-#table(columns: (50%, 50%), stroke: none, [
+#table(
+  columns: (50%, 50%),
+  stroke: none,
+  [
 
-#align(center, [#image("am62x-tfa.pdf", width: 90%)])
+    #align(center, [#image("am62x-tfa.pdf", width: 90%)])
 
-#[ #set text(size: 18pt)
+    #[ #set text(size: 18pt)
 
-#align(center, "Reminder: boot sequence with TF-A on AM62x")
+      #align(center, "Reminder: boot sequence with TF-A on AM62x")
 
-]
+    ]
 
-],[
+  ],
+  [
 
-#align(center, [#image("../sysdev-bootloaders-sequence/sequence-am62x.pdf", width: 90%)])
+    #align(center, [#image(
+      "../sysdev-bootloaders-sequence/sequence-am62x.pdf",
+      width: 90%,
+    )])
 
-])
+  ],
+)

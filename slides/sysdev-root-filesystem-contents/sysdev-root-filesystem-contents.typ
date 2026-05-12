@@ -6,7 +6,7 @@
 
 == Contents
 
-===  Root filesystem organization
+=== Root filesystem organization
 
 - The organization of a Linux root filesystem in terms of directories is
   well-defined by the *Filesystem Hierarchy Standard*
@@ -20,27 +20,27 @@
   - It makes it easier for developers and users as the filesystem
     organization is similar in all systems
 
-===  Important directories (1)
+=== Important directories (1)
 
-      / /bin: Basic programs
+/ /bin: Basic programs
 
-      / /boot: Kernel images, configurations and initramfs (only when the kernel is loaded from a filesystem, not common on non-x86 architectures)
+/ /boot: Kernel images, configurations and initramfs (only when the kernel is loaded from a filesystem, not common on non-x86 architectures)
 
-      / /dev: Device files (covered later)
+/ /dev: Device files (covered later)
 
-      / /etc: System-wide configuration
+/ /etc: System-wide configuration
 
-      / /home: Directory for the users home directories
+/ /home: Directory for the users home directories
 
-      / /lib: Basic libraries
+/ /lib: Basic libraries
 
-      / /media: Mount points for removable media
+/ /media: Mount points for removable media
 
-      / /mnt: Mount point for a temporarily mounted filesystem
+/ /mnt: Mount point for a temporarily mounted filesystem
 
-      / /proc: Mount point for the proc virtual filesystem
+/ /proc: Mount point for the proc virtual filesystem
 
-===  Important directories (2)
+=== Important directories (2)
 
 / /root: Home directory of the `root` user
 
@@ -54,13 +54,13 @@
 
 / /usr: / /usr/bin: Non-basic programs
 
-        / /usr/lib: Non-basic libraries
+  / /usr/lib: Non-basic libraries
 
-        / /usr/sbin: Non-basic system programs
+  / /usr/sbin: Non-basic system programs
 
 / /var: Variable data files, for system services. This includes spool directories and files, administrative and logging data, and transient and temporary files
 
-===  Separation of programs and libraries
+=== Separation of programs and libraries
 
 - Basic programs are installed in `/bin` and `/sbin` and basic libraries
   in `/lib`
