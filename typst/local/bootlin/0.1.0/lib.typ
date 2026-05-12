@@ -46,7 +46,6 @@
 #let boldtext   = rgb("#000000")
 #let blcode     = rgb("#595959")
 #let blcodebg   = rgb("#E6E6E6")
-#let bldarkblue = rgb("#4040BF")
 
 // ── Fonctions utilitaires ──────────────────────────────────────────
 #let link(dest, ..body) = {
@@ -508,11 +507,11 @@
   )
   set par(spacing: 0.5em)
   set par(leading: 0.5em)
-  set list(spacing: 0.6em)
+
   show: touying-slides.with(
     config-page(
       paper: "presentation-" + aspect-ratio,
-      margin: (x: 2em, top: 20mm, bottom: 6mm),
+      margin: (x: 1.5em, top: 20mm, bottom: 6mm),
       footer-descent: 0.5mm,
       header-ascent: 1mm,
     ),
@@ -524,7 +523,7 @@
     ),
     config-methods(
       init: (self: none, body) => {
-        set text(font: "Latin Modern Sans", size: 20pt)
+        set text(font: "Latin Modern Sans", size: 19pt)
         set align(horizon)
         let list-counter = counter("list")
         set enum(numbering: n => text(fill: bootlin-orange, numbering("1.", n)))
@@ -537,13 +536,11 @@
         show list: it => {
           list-counter.step()
           context {
-            set text(18pt) if list-counter.get().first() == 2
-            set text(16pt) if list-counter.get().first() >= 3
-            set list(spacing: 0.3em) if list-counter.get().first() >= 1
-            set par(leading: 0.3em) if list-counter.get().first() >= 1
-            set list(spacing: 0.4em) if list-counter.get().first() >= 2
-            set par(leading: 0.3em) if list-counter.get().first() >= 2
-            it
+            set list(spacing: 0.4em) if list-counter.get().first() >= 1
+            set par(leading: 0.5em) if list-counter.get().first() >= 1
+            set list(spacing: 0.5em) if list-counter.get().first() >= 2
+            set par(leading: 0.4em, spacing: 0.4em) if list-counter.get().first() >= 2
+            block(above: if list-counter.get().first() == 2 { 0.7em } else { 1em }, it)
           }
           list-counter.update(i => i - 1)
         }
