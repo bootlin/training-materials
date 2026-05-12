@@ -4,22 +4,22 @@
 
 #show: bootlin-theme
 
-#setuplabframe([Create a custom layer],[
+#setuplabframe([Create a custom layer], [
 
-- Create a layer from scratch
+  - Create a layer from scratch
 
-- Add recipes to the new layer
+  - Add recipes to the new layer
 
-- Integrate it to the build
+  - Integrate it to the build
 
 ])
 
-#setuplabframe([Extend a recipe],[
+#setuplabframe([Extend a recipe], [
 
-- Apply patches to an existing recipe
+  - Apply patches to an existing recipe
 
-- Use a custom configuration file for an existing recipe
+  - Use a custom configuration file for an existing recipe
 
-- Extend a recipe to fit your needs
+  - Extend a recipe to fit your needs
 
 ])

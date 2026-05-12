@@ -9,7 +9,7 @@
 == Introduction to images
 <introduction-to-images>
 
-===  Overview 1/3
+=== Overview 1/3
 
 - An `image` is the top level recipe and is used alongside the `machine`
   definition.
@@ -22,30 +22,30 @@
 
   - `meta*/recipes*/images/*.bb`
 
-===  Overview 2/3
+=== Overview 2/3
 
-- Here are a few common images: 
+- Here are a few common images:
 #v(0.5em)
-  / core-image-base: Console-only image, with full support of the hardware.
+/ core-image-base: Console-only image, with full support of the hardware.
 
-  / core-image-minimal: Small image, capable of booting a device.
+/ core-image-minimal: Small image, capable of booting a device.
 
-  / core-image-minimal-dev: Small image with extra tools, suitable for development.
+/ core-image-minimal-dev: Small image with extra tools, suitable for development.
 
-  / core-image-x11: Image with basic X11 support.
+/ core-image-x11: Image with basic X11 support.
 
-  / core-image-weston: Image with basic Wayland support.
+/ core-image-weston: Image with basic Wayland support.
 
-  / core-image-rt: Like `core-image-minimal` with real time tools and test suite.
+/ core-image-rt: Like `core-image-minimal` with real time tools and test suite.
 
-===  Overview 3/3
+=== Overview 3/3
 
 - An `image` is no more than a recipe.
 
 - It has a description, a license (optional) and inherits the
   `core-image` class.
 
-===  Organization of an image recipe 
+=== Organization of an image recipe
 
 Some special configuration variables are used to describe an image:
 #v(0.5em)
@@ -78,7 +78,7 @@ Some special configuration variables are used to describe an image:
   image, but which do not install anything in the root filesystem (e.g.
   the bootloader).
 
-===  Example of an image
+=== Example of an image
 
 ```sh
 SUMMARY = "Example image"
@@ -91,7 +91,7 @@ inherit core-image
 Note: unlike other recipes, image recipes don't need to set
 #yoctovar("LICENSE").
 
-===  Root filesystem generation
+=== Root filesystem generation
 
 - Image generation overview:
 
@@ -114,7 +114,7 @@ Note: unlike other recipes, image recipes don't need to set
 == Image types
 <image-types>
 
-===  `IMAGE_FSTYPES`
+=== `IMAGE_FSTYPES`
 
 - Configures the resulting root filesystem image format.
 
@@ -127,7 +127,7 @@ Note: unlike other recipes, image recipes don't need to set
 - Common image formats are: `ext2`, `ext3`, `ext4`, `squashfs`,
   `squashfs-xz`, `cpio`, `jffs2`, `ubifs`, `tar.bz2`, `tar.gz`…
 
-===  Creating an image type
+=== Creating an image type
 
 - If you have a particular layout on your storage (for example
   bootloader location on an SD card), you may want to create your own
@@ -139,7 +139,7 @@ Note: unlike other recipes, image recipes don't need to set
 
 - Append it to #yoctovar("IMAGE_TYPES")
 
-===  Creating an image conversion type
+=== Creating an image conversion type
 
 - Common conversion types are: `gz`, `bz2`, `sha256sum`, `bmap`…
 
@@ -152,7 +152,7 @@ Note: unlike other recipes, image recipes don't need to set
 
 - Append valid combinations to #yoctovar("IMAGE_TYPES")
 
-===  wic
+=== wic
 
 - `wic` is a tool that can create a flashable image from the compiled
   packages and artifacts.
@@ -179,18 +179,18 @@ Note: unlike other recipes, image recipes don't need to set
   is an alternative to `dd`, skipping uninitialized contents in
   partitions.
 
-===  imx-uboot-custom.wks.in
+=== imx-uboot-custom.wks.in
 
 #text(size: 13pt)[
-```sh
-part u-boot --source rawcopy --sourceparams="file=imx-boot" --no-table --align ${IMX_BOOT_SEEK}
-part /boot --source bootimg-partition --use-uuid --fstype=vfat --label boot --active --align 8192 --size 64
-part / --source rootfs --use-uuid --fstype=ext4 --label root --exclude-path=home/ --exclude-path=opt/ --align 8192
-part /home --source rootfs --rootfs-dir=${IMAGE_ROOTFS}/home --use-uuid --fstype=ext4 --label home --align 8192
-part /opt --source rootfs --rootfs-dir=${IMAGE_ROOTFS}/opt --use-uuid --fstype=ext4 --label opt --align 8192
+  ```sh
+  part u-boot --source rawcopy --sourceparams="file=imx-boot" --no-table --align ${IMX_BOOT_SEEK}
+  part /boot --source bootimg-partition --use-uuid --fstype=vfat --label boot --active --align 8192 --size 64
+  part / --source rootfs --use-uuid --fstype=ext4 --label root --exclude-path=home/ --exclude-path=opt/ --align 8192
+  part /home --source rootfs --rootfs-dir=${IMAGE_ROOTFS}/home --use-uuid --fstype=ext4 --label home --align 8192
+  part /opt --source rootfs --rootfs-dir=${IMAGE_ROOTFS}/opt --use-uuid --fstype=ext4 --label opt --align 8192
 
-bootloader --ptable msdos
-```]
+  bootloader --ptable msdos
+  ```]
 
 #v(0.5em)
 
@@ -209,7 +209,7 @@ bootloader --ptable msdos
 == Package groups
 <package-groups>
 
-===  Overview
+=== Overview
 
 - Package groups are a way to group packages by functionality or common
   purpose.
@@ -231,7 +231,7 @@ bootloader --ptable msdos
   - Must be explicitly set to `${MACHINE_ARCH}` when there is a machine
     dependency.
 
-===  Common package groups
+=== Common package groups
 
 - `packagegroup-base`
 
@@ -251,7 +251,7 @@ bootloader --ptable msdos
 
 - `packagegroup-core-tools-profile`
 
-===  Example
+=== Example
 
 `./meta/recipes-core/packagegroups/packagegroup-core-tools-debug.bb`:
 

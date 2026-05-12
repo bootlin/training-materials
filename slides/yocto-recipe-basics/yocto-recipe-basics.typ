@@ -9,11 +9,11 @@
 == Recipes: overview
 <recipes-overview>
 
-===  Recipes
+=== Recipes
 
 #align(center, [#image("yocto-recipe-basics-overview.pdf", width: 85%)])
 
-===  Basics
+=== Basics
 
 - A recipe describes how to handle a given software component
   (application, library, …).
@@ -31,7 +31,7 @@
   or ipk): typically `<recipename>`, `<recipename>-doc`,
   `<recipename>-dbg` etc.
 
-===  Content of a recipe
+=== Content of a recipe
 
 - A recipe contains configuration variables: name, license,
   dependencies, path to retrieve the source code…
@@ -43,7 +43,7 @@
 
 - Remember the `bitbake -c <task> <target>` command?
 
-===  Common variables
+=== Common variables
 
 - To make it easier to write a recipe, some variables are automatically
   available:
@@ -70,11 +70,11 @@
 == Organization of a recipe
 <organization-of-a-recipe>
 
-===  Organization of a recipe
+=== Organization of a recipe
 
 #align(center, [#image("yocto-recipe-basics-organisation.pdf", width: 85%)])
 
-===  Organization of a recipe
+=== Organization of a recipe
 
 - Many applications have more than one recipe, to support different
   versions. In that case the common metadata is included in each version
@@ -98,7 +98,7 @@
 
   - The tasks: how
 
-===  The header 
+=== The header
 
 Configuration variables to describe the application:
 
@@ -113,7 +113,7 @@ Configuration variables to describe the application:
 - #yoctovar("LICENSE"): the application's license, using SPDX
   identifiers \ (#link("https://spdx.org/licenses/"))
 
-===  The source locations: overview
+=== The source locations: overview
 
 - We need to retrieve both the raw sources from an official location and
   the resources needed to configure, patch or install the application.
@@ -130,7 +130,7 @@ Configuration variables to describe the application:
 - By default, sources are fetched in `$BUILDDIR/downloads`. Change it
   with the #yoctovar("DL_DIR") variable in `conf/local.conf`
 
-===  The source locations: remote files 1/2
+=== The source locations: remote files 1/2
 
 - The `http`, `https` and `ftp` schemes:
 
@@ -154,7 +154,7 @@ Configuration variables to describe the application:
     `branch` parameter is mandatory as a safety check that
     #yoctovar("SRCREV") is on the expected branch.
 
-===  The source locations: remote files 2/2
+=== The source locations: remote files 2/2
 
 - A checksum must be provided when the protocol used to retrieve the
   file(s) does not guarantee their integrity. This is the case for
@@ -174,14 +174,14 @@ SRC_URI[sha256sum] = "5891b5b522d..."
 #v(0.5em)
 
 ```sh
-SRC_URI = "http://example.com/src.tar.bz2;name=tarball 
+SRC_URI = "http://example.com/src.tar.bz2;name=tarball
            http://example.com/fixes.patch;name=patch"
 
 SRC_URI[tarball.sha256sum] = "97b2c3fb082241ab5c56..."
 SRC_URI[patch.sha256sum] = "b184acf9eb39df794ffd..."
 ```
 
-===  The source locations: local files
+=== The source locations: local files
 
 - #yoctovar("SRC_URI") items using the `file://` scheme are
   _local files_
@@ -197,7 +197,7 @@ SRC_URI[patch.sha256sum] = "b184acf9eb39df794ffd..."
 
 - The order matters: when a file is found in a path, the search ends
 
-===  `FILESPATH 1/3`
+=== `FILESPATH 1/3`
 
 - #yoctovar("FILESPATH") is generated with all combinations of:
 
@@ -221,30 +221,31 @@ SRC_URI[patch.sha256sum] = "b184acf9eb39df794ffd..."
 
   - Applied right to left
 
-===  `FILESPATH 2/3`
+=== `FILESPATH 2/3`
 
 - This results in a long list, including:
-  #[ #set list(spacing: 0.2em)
-  - `/.../meta/recipes-core/dropbear/dropbear-2020.81/poky`
-  - `/.../meta/recipes-core/dropbear/dropbear/poky`
-  - `/.../meta/recipes-core/dropbear/files/poky`
-  - `/.../meta/recipes-core/dropbear/files/poky`
-  - `/.../meta/recipes-core/dropbear/dropbear/beaglebone`
-  - `/.../meta/recipes-core/dropbear/files/beaglebone`
-  - `/.../meta/recipes-core/dropbear/dropbear-2020.81/ti33x`
-  - `/.../meta/recipes-core/dropbear/dropbear/ti33x`
-  - `/.../meta/recipes-core/dropbear/files/ti33x`
-  - ...
-  - `/.../meta/recipes-core/dropbear/dropbear-2020.81/armv7a`
-  - `/.../meta/recipes-core/dropbear/dropbear/armv7a`
-  - `/.../meta/recipes-core/dropbear/files/armv7a`
-  - ...
-  - `/.../meta/recipes-core/dropbear/dropbear-2020.81/`
-  - `/.../meta/recipes-core/dropbear/dropbear/`
-  - `/.../meta/recipes-core/dropbear/files/`
+  #[
+    #set list(spacing: 0.2em)
+    - `/.../meta/recipes-core/dropbear/dropbear-2020.81/poky`
+    - `/.../meta/recipes-core/dropbear/dropbear/poky`
+    - `/.../meta/recipes-core/dropbear/files/poky`
+    - `/.../meta/recipes-core/dropbear/files/poky`
+    - `/.../meta/recipes-core/dropbear/dropbear/beaglebone`
+    - `/.../meta/recipes-core/dropbear/files/beaglebone`
+    - `/.../meta/recipes-core/dropbear/dropbear-2020.81/ti33x`
+    - `/.../meta/recipes-core/dropbear/dropbear/ti33x`
+    - `/.../meta/recipes-core/dropbear/files/ti33x`
+    - ...
+    - `/.../meta/recipes-core/dropbear/dropbear-2020.81/armv7a`
+    - `/.../meta/recipes-core/dropbear/dropbear/armv7a`
+    - `/.../meta/recipes-core/dropbear/files/armv7a`
+    - ...
+    - `/.../meta/recipes-core/dropbear/dropbear-2020.81/`
+    - `/.../meta/recipes-core/dropbear/dropbear/`
+    - `/.../meta/recipes-core/dropbear/files/`
   ]
 
-===  `FILESPATH 3/3`
+=== `FILESPATH 3/3`
 
 - This complex logic allows to use different files without conditional
   code
@@ -253,32 +254,32 @@ SRC_URI[patch.sha256sum] = "b184acf9eb39df794ffd..."
 
 #v(0.5em)
 
-  ```sh
+```sh
 SRC_URI += "file://defconfig"
-  ```
+```
 
 #v(0.5em)
 
-  a different `defconfig` can be used for different
-  #yoctovar("MACHINE") values:
+a different `defconfig` can be used for different
+#yoctovar("MACHINE") values:
 
 #v(0.5em)
 
 #text(size: 16pt)[
-```text
-recipes-kernel/
-└── linux/
-    ├── my-linux/
-    │   ├── mymachine1/
-    │   │   └── defconfig <-- used when MACHINE="mymachine1"
-    │   ├── mymachine2/
-    │   │   └── defconfig <-- used when MACHINE="mymachine2"
-    │   └── defconfig     <-- used for any other MACHINE value
-    └── my-linux_6.4.bb
-```
+  ```text
+  recipes-kernel/
+  └── linux/
+      ├── my-linux/
+      │   ├── mymachine1/
+      │   │   └── defconfig <-- used when MACHINE="mymachine1"
+      │   ├── mymachine2/
+      │   │   └── defconfig <-- used when MACHINE="mymachine2"
+      │   └── defconfig     <-- used for any other MACHINE value
+      └── my-linux_6.4.bb
+  ```
 ]
 
-===  The source locations: tarballs
+=== The source locations: tarballs
 
 - When extracting a tarball, `bitbake` expects to find the extracted
   files in a directory named `<application>-<version>`. This is
@@ -288,7 +289,7 @@ recipes-kernel/
 - If the scheme is `git`, #yoctovar("S") must be set to
   `${WORKDIR}`/git
 
-===  The source locations: license files
+=== The source locations: license files
 
 - License files must have their own checksum.
 
@@ -299,9 +300,9 @@ recipes-kernel/
 
 ```sh
 LIC_FILES_CHKSUM = "file://gpl.txt;md5=393a5ca..."
-LIC_FILES_CHKSUM =  
+LIC_FILES_CHKSUM =
     "file://main.c;beginline=3;endline=21;md5=58e..."
-LIC_FILES_CHKSUM =  
+LIC_FILES_CHKSUM =
     "file://${COMMON_LICENSE_DIR}/MIT;md5=083..."
 ```
 
@@ -310,7 +311,7 @@ LIC_FILES_CHKSUM =
 - This allows to track any license update: if the license changes, the
   build will trigger a failure as the checksum won't be valid anymore.
 
-===  Dependencies 1/2
+=== Dependencies 1/2
 
 - A recipe can have dependencies during the build or at runtime. To
   reflect these requirements in the recipe, two variables are used:
@@ -326,7 +327,7 @@ LIC_FILES_CHKSUM =
 - `RDEPENDS:${PN} = "package-b"`: the local `do_build` task depends
   on the `do_package_write_<archive-format>` task of recipe b.
 
-===  Dependencies 2/2
+=== Dependencies 2/2
 
 - Sometimes a recipe has dependencies on specific versions of another
   recipe.
@@ -344,7 +345,7 @@ LIC_FILES_CHKSUM =
 
   - `bitbake -g -u taskexp core-image-minimal`
 
-===  Tasks 
+=== Tasks
 
 Default tasks already exist, they are defined in classes:
 
@@ -369,11 +370,11 @@ Default tasks already exist, they are defined in classes:
 You can get a list of existing tasks for a recipe with: \
 `bitbake <recipe> -c listtasks`
 
-===  The main tasks
+=== The main tasks
 
 #align(center, [#image("tasks-basics.pdf", width: 100%)])
 
-===  Writing tasks 1/2
+=== Writing tasks 1/2
 
 - Syntax of a task:
 
@@ -398,7 +399,7 @@ do_task() {
   - #yoctovar("D"): The destination directory (root directory of
     where the files are installed, before creating the image).
 
-===  Writing tasks 2/2
+=== Writing tasks 2/2
 
 - Example:
 
@@ -413,7 +414,7 @@ do_install() {
 }
 ```
 
-===  Adding new tasks
+=== Adding new tasks
 
 - Tasks can be added with `addtask`
 
@@ -430,7 +431,7 @@ do_install() {
 == Applying patches
 <applying-patches>
 
-===  Patch use cases 
+=== Patch use cases
 
 Patches can be applied to resolve build-system problematics:
 
@@ -452,7 +453,7 @@ However, there are cases when patching a `Makefile` is unnecessary:
 EXTRA_OEMAKE = "-e"
 ```
 
-===  The source locations: patches
+=== The source locations: patches
 
 - Files ending in `.patch`, `.diff` or having the `apply=yes` parameter
   will be applied after the sources are retrieved and extracted, during
@@ -463,8 +464,8 @@ EXTRA_OEMAKE = "-e"
 
 
 ```sh
-SRC_URI += "file://joystick-support.patch 
-            file://smp-fixes.diff 
+SRC_URI += "file://joystick-support.patch
+            file://smp-fixes.diff
            "
 ```
 
@@ -481,7 +482,7 @@ SRC_URI += "file://joystick-support.patch
 
 - Possible values: `git`, `patch` and `quilt`.
 
-===  Resolving conflicts
+=== Resolving conflicts
 
 - The #yoctovar("PATCHRESOLVE") variable defines how to handle
   conflicts when applying patches.
@@ -497,35 +498,35 @@ SRC_URI += "file://joystick-support.patch
 == Example of a recipe
 <example-of-a-recipe>
 
-===  Hello world recipe
+=== Hello world recipe
 
 #text(size: 17pt)[
-```sh
-SUMMARY = "Hello world program"
-DESCRIPTION = "Hello world program"
-HOMEPAGE = "http://example.net/hello/"
-SECTION = "examples"
-LICENSE = "GPL-2.0-or-later"
+  ```sh
+  SUMMARY = "Hello world program"
+  DESCRIPTION = "Hello world program"
+  HOMEPAGE = "http://example.net/hello/"
+  SECTION = "examples"
+  LICENSE = "GPL-2.0-or-later"
 
-SRC_URI = "git://git.example.com/hello;protocol=https;branch=master"
-SRCREV = "2d47b4eb66e705458a17622c2e09367300a7b118"
-S = "${WORKDIR}/git"
-LIC_FILES_CHKSUM = "file://hello.c;beginline=3;endline=21;md5=58e..."
+  SRC_URI = "git://git.example.com/hello;protocol=https;branch=master"
+  SRCREV = "2d47b4eb66e705458a17622c2e09367300a7b118"
+  S = "${WORKDIR}/git"
+  LIC_FILES_CHKSUM = "file://hello.c;beginline=3;endline=21;md5=58e..."
 
-do_compile() {
-    oe_runmake
-}
-do_install() {
-    install -d ${D}${bindir}
-    install -m 0755 hello ${D}${bindir}
-}
-```
+  do_compile() {
+      oe_runmake
+  }
+  do_install() {
+      install -d ${D}${bindir}
+      install -m 0755 hello ${D}${bindir}
+  }
+  ```
 ]
 
 == Example of a recipe with a version agnostic part
 <example-of-a-recipe-with-a-version-agnostic-part>
 
-===  tar.inc
+=== tar.inc
 
 ```sh
 SUMMARY = "GNU file archiving program"
@@ -541,13 +542,13 @@ do_compile() { ... }
 do_install() { ... }
 ```
 
-===  tar_1.17.bb
+=== tar_1.17.bb
 
 ```sh
 require tar.inc
 
 LICENSE = "GPL-2.0-only"
-LIC_FILES_CHKSUM =  
+LIC_FILES_CHKSUM =
   "file://COPYING;md5=59530bdf33659b29e73d4adb9f9f6552"
 
 SRC_URI += "file://avoid_heap_overflow.patch"
@@ -555,7 +556,7 @@ SRC_URI += "file://avoid_heap_overflow.patch"
 SRC_URI[sha256sum] = "cec18d7f18fe5..."
 ```
 
-===  tar_1.26.bb
+=== tar_1.26.bb
 
 ```sh
 require tar.inc
@@ -570,7 +571,7 @@ SRC_URI[sha256sum] = "731140004fdb6..."
 == Debugging recipes
 <debugging-recipes>
 
-===  Log and run files
+=== Log and run files
 
 - For each task, these files are generated in the `temp` directory under
   the recipe work directory
@@ -586,7 +587,7 @@ SRC_URI[sha256sum] = "731140004fdb6..."
 
 - These can be inspected to understand what is being done by the tasks
 
-===  Debugging variable assignment
+=== Debugging variable assignment
 
 - `bitbake-getvar` can dump the per-recipe variable value using the `-r`
   option

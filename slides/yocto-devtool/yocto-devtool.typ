@@ -6,7 +6,7 @@
 
 = Devtool
 
-===  Overview
+=== Overview
 
 - `Devtool` is a set of utilities to ease the integration and the
   development of OpenEmbedded recipes.
@@ -30,7 +30,7 @@
 
   - All modifications made locally should be committed.
 
-===  `devtool usage 1/3` 
+=== `devtool usage 1/3`
 There are three ways of creating a new
 `devtool` project:
 
@@ -46,7 +46,7 @@ There are three ways of creating a new
 
   - Where `version` is the new version of the upstream application.
 
-===  `devtool usage 2/3` 
+=== `devtool usage 2/3`
 
 Once a `devtool` project is started, commands
 can be issued:
@@ -59,7 +59,7 @@ can be issued:
 - `devtool build-image <image>`: build `image` with the additional
   `devtool` recipes' packages.
 
-===  `devtool usage 3/3`
+=== `devtool usage 3/3`
 
 - `devtool deploy-target <recipe> <target>`: upload the `recipe`'s
   packages on `target`, which is a live running target with an SSH

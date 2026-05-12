@@ -9,11 +9,11 @@
 == Introduction to BSP layers in the Yocto Project
 <introduction-to-bsp-layers-in-the-yocto-project>
 
-===  BSP layers
+=== BSP layers
 
 #align(center, [#image("yocto-bsp-overview.pdf", height: 90%)])
 
-===  BSP layers overview
+=== BSP layers overview
 
 - BSP layers are a subset of the layers.
 
@@ -40,7 +40,7 @@
 == Hardware configuration files
 <hardware-configuration-files>
 
-===  Overview 1/2
+=== Overview 1/2
 
 - A layer provides one machine file (hardware configuration file) per
   machine it supports.
@@ -57,7 +57,7 @@
 
 - Each machine should be described in the `README` file of the BSP.
 
-===  Overview 2/2
+=== Overview 2/2
 
 - The hardware configuration file contains configuration variables
   related to the architecture and to the machine features.
@@ -65,7 +65,7 @@
 - Some other variables help customize the kernel image or the
   filesystems used.
 
-===  Machine configuration
+=== Machine configuration
 
 - #yoctovar("TARGET_ARCH"): The architecture of the device being
   built.
@@ -82,7 +82,7 @@
 - #yoctovar("KERNEL_IMAGETYPE"): The type of kernel image to build,
   e.g. `zImage`
 
-===  `MACHINE_FEATURES`
+=== `MACHINE_FEATURES`
 
 - Lists the hardware features provided by the machine.
 
@@ -94,33 +94,33 @@
 
   - The machine feature `keyboard` adds the `keymaps` to the image.
 
-===  `conf/machine/include/cfa10036.inc`
+=== `conf/machine/include/cfa10036.inc`
 
 #text(size: 17pt)[
-```sh
-# Common definitions for cfa-10036 boards 
-include conf/machine/include/imx-base.inc 
-include conf/machine/include/tune-arm926ejs.inc
+  ```sh
+  # Common definitions for cfa-10036 boards
+  include conf/machine/include/imx-base.inc
+  include conf/machine/include/tune-arm926ejs.inc
 
-SOC_FAMILY = "mxs:mx28:cfa10036"
+  SOC_FAMILY = "mxs:mx28:cfa10036"
 
-PREFERRED_PROVIDER_virtual/kernel ?= "linux-cfa"
-PREFERRED_PROVIDER_virtual/bootloader ?= "barebox"
-IMAGE_BOOTLOADER = "barebox"
-BAREBOX_BINARY = "barebox"
-IMAGE_FSTYPES:mxs = "tar.bz2 barebox.mxsboot-sdcard sdcard.gz"
-IMXBOOTLETS_MACHINE = "cfa10036"
+  PREFERRED_PROVIDER_virtual/kernel ?= "linux-cfa"
+  PREFERRED_PROVIDER_virtual/bootloader ?= "barebox"
+  IMAGE_BOOTLOADER = "barebox"
+  BAREBOX_BINARY = "barebox"
+  IMAGE_FSTYPES:mxs = "tar.bz2 barebox.mxsboot-sdcard sdcard.gz"
+  IMXBOOTLETS_MACHINE = "cfa10036"
 
-KERNEL_IMAGETYPE = "zImage"
-KERNEL_DEVICETREE = "imx28-cfa10036.dtb"
-# we need the kernel to be installed in the final image 
-IMAGE_INSTALL:append = " kernel-image kernel-devicetree"
-SDCARD_ROOTFS ?= "${DEPLOY_DIR_IMAGE}/${IMAGE_NAME}.rootfs.ext3"
-SERIAL_CONSOLES = "115200;ttyAMA0"
-MACHINE_FEATURES = "usbgadget usbhost vfat"
-```]
+  KERNEL_IMAGETYPE = "zImage"
+  KERNEL_DEVICETREE = "imx28-cfa10036.dtb"
+  # we need the kernel to be installed in the final image
+  IMAGE_INSTALL:append = " kernel-image kernel-devicetree"
+  SDCARD_ROOTFS ?= "${DEPLOY_DIR_IMAGE}/${IMAGE_NAME}.rootfs.ext3"
+  SERIAL_CONSOLES = "115200;ttyAMA0"
+  MACHINE_FEATURES = "usbgadget usbhost vfat"
+  ```]
 
-===  `conf/machine/cfa10057.conf`
+=== `conf/machine/cfa10057.conf`
 
 ```sh
 #@TYPE: Machine
@@ -139,7 +139,7 @@ MACHINE_FEATURES += "touchscreen"
 == Bootloader
 <bootloader>
 
-===  Default bootloader 1/2
+=== Default bootloader 1/2
 
 - By default (on ARM) the bootloader used is the mainline version of
   `U-Boot`, with a fixed version (per Poky release).
@@ -149,7 +149,7 @@ MACHINE_FEATURES += "touchscreen"
 - Some configuration variables used by the U-Boot recipe can be
   customized, in the machine file.
 
-===  Default bootloader 2/2
+=== Default bootloader 2/2
 
 - #yoctovar("SPL_BINARY"): If an SPL is built, describes the name of
   the output binary. Defaults to an empty string.
@@ -166,7 +166,7 @@ MACHINE_FEATURES += "touchscreen"
 - #yoctovar("UBOOT_MAKE_TARGET"): Make target when building the
   bootloader. Defaults to `all`.
 
-===  Customize the bootloader
+=== Customize the bootloader
 
 - It is possible to support a custom U-Boot by creating an extended
   recipe and to append extra metadata to the original one.
@@ -180,7 +180,7 @@ MACHINE_FEATURES += "touchscreen"
 == Kernel
 <kernel>
 
-===  Linux kernel recipes in Yocto
+=== Linux kernel recipes in Yocto
 
 - There are mainly two ways of compiling a kernel:
 
@@ -195,26 +195,26 @@ MACHINE_FEATURES += "touchscreen"
 - Its version is defined with:
   #yoctovar("PREFERRED_VERSION")`_<kernel_provider>`
 
-===  Linux Yocto 1/3
+=== Linux Yocto 1/3
 
 - `linux-yocto` is a set of recipes with advanced features to build a mainline kernel
 - `PREFERRED_PROVIDER_virtual/kernel = "linux-yocto"`
 - `PREFERRED_VERSION_linux-yocto = "5.14%"`
 
-===  Linux Yocto 2/3
+=== Linux Yocto 2/3
 
 - Automatically applies configuration fragments listed in
   #yoctovar("SRC_URI") with a `.cfg` extension
 
 #v(0.5em)
 
-  ```sh
-  SRC_URI += "file://defconfig \
-              file://nand-support.cfg \
-              file://ethernet-support.cfg"
-  ```
+```sh
+SRC_URI += "file://defconfig \
+            file://nand-support.cfg \
+            file://ethernet-support.cfg"
+```
 
-===  Linux Yocto 3/3
+=== Linux Yocto 3/3
 
 - Another way of configuring `linux-yocto` is by using _Advanced
   Metadata_.
@@ -226,9 +226,11 @@ MACHINE_FEATURES += "touchscreen"
   higher complexity.
 
 - The full documentation can be found at \
-  #link("https://docs.yoctoproject.org/kernel-dev/advanced.html#working-with-advanced-metadata-yocto-kernel-cache")[https://docs.yoctoproject.org/kernel-dev/advanced.html#working-with-advanced-metadata-yocto-kernel-cache]
+  #link(
+    "https://docs.yoctoproject.org/kernel-dev/advanced.html#working-with-advanced-metadata-yocto-kernel-cache",
+  )[https://docs.yoctoproject.org/kernel-dev/advanced.html#working-with-advanced-metadata-yocto-kernel-cache]
 
-===  Linux Yocto: Kernel Metadata 1/2
+=== Linux Yocto: Kernel Metadata 1/2
 
 - Kernel Metadata is a way to organize and to split the kernel
   configuration and patches in little pieces each providing support for
@@ -248,7 +250,7 @@ MACHINE_FEATURES += "touchscreen"
   - #yoctovar("KERNEL_FEATURES"): List of features to enable.
     Features are sets of patches and configuration fragments.
 
-===  Linux Yocto: Kernel Metadata 2/2
+=== Linux Yocto: Kernel Metadata 2/2
 
 - Kernel Metadata description files have their own syntax to describe an
   optional kernel feature
@@ -260,12 +262,12 @@ MACHINE_FEATURES += "touchscreen"
 
 #v(0.5em)
 
-  ```sh
-  define KFEATURE_DESCRIPTION "Enable Nunchuk driver"
+```sh
+define KFEATURE_DESCRIPTION "Enable Nunchuk driver"
 
-  kconf hardware enable-nunchuk-driver.cfg patch 
-  Add-nunchuk-driver.patch
-  ```
+kconf hardware enable-nunchuk-driver.cfg patch
+Add-nunchuk-driver.patch
+```
 #v(0.5em)
 
 - To integrate the feature into the kernel image: \

@@ -4,10 +4,10 @@
 
 #show: bootlin-theme
 
-#setuplabframe([Create and use a Poky SDK],[
+#setuplabframe([Create and use a Poky SDK], [
 
-- Generate an SDK
+  - Generate an SDK
 
-- Compile an application for the target in the SDK
+  - Compile an application for the target in the SDK
 
 ])

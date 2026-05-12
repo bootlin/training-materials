@@ -4,10 +4,10 @@
 
 #show: bootlin-theme
 
-#setuplabframe([Add a custom application],[
+#setuplabframe([Add a custom application], [
 
-- Write a recipe for a custom application
+  - Write a recipe for a custom application
 
-- Integrate it in the image
+  - Integrate it in the image
 
 ])

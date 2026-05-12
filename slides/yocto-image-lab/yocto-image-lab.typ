@@ -4,10 +4,10 @@
 
 #show: bootlin-theme
 
-#setuplabframe([Create a custom image],[
+#setuplabframe([Create a custom image], [
 
-- Write an image recipe
+  - Write an image recipe
 
-- Choose the packages to install
+  - Choose the packages to install
 
 ])

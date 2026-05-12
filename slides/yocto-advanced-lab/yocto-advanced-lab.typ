@@ -4,14 +4,14 @@
 
 #show: bootlin-theme
 
-#setuplabframe([Advanced Yocto configuration],[
+#setuplabframe([Advanced Yocto configuration], [
 
-- Modify the build configuration
+  - Modify the build configuration
 
-- Customize the package selection
+  - Customize the package selection
 
-- Experiment with BitBake
+  - Experiment with BitBake
 
-- Mount the root file system over NFS
+  - Mount the root file system over NFS
 
 ])

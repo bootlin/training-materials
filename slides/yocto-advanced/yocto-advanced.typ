@@ -6,7 +6,7 @@
 
 = Using Yocto Project - advanced usage
 
-===  Advanced build usage and configuration
+=== Advanced build usage and configuration
 
 - Variable operators and overrides.
 
@@ -16,7 +16,7 @@
 
 - Run specific tasks with BitBake.
 
-===  A little reminder
+=== A little reminder
 
 - A _Recipe_ describes how to fetch, configure, compile and install
   a software component (application, library, …).
@@ -32,7 +32,7 @@
 == Variables
 <variables>
 
-===  Overview
+=== Overview
 
 - The OpenEmbedded build system uses configuration _variables_ to
   hold information.
@@ -56,7 +56,7 @@
 
 - Recipes can also access the global scope
 
-===  Operators: basic assignment
+=== Operators: basic assignment
 
 - `VAR = "value"` simply assigns a value
 
@@ -72,7 +72,7 @@
 - Newlines need to be escaped (this does not apply to functions)
 
   ```sh
-  LIST = "this 
+  LIST = "this
           and that"
   ```
 
@@ -83,44 +83,50 @@
   SKY = "the sky is ${COLOUR}"
   ```
 
-===  Operators: immediate expansion
+=== Operators: immediate expansion
 
 - With `=`, expansion happens when the variable is used
 
-- Use `:=` for immediate expansion 
+- Use `:=` for immediate expansion
 
 #v(0.5em)
 
-  #table(columns: (50%, 50%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (50%, 50%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-  ```sh
-  COLOUR = "blue"
-  SKY = "the sky is ${COLOUR}"
-  COLOUR = "grey"
-  PHRASE = "Look, ${SKY}"
-  ```
+    ```sh
+    COLOUR = "blue"
+    SKY = "the sky is ${COLOUR}"
+    COLOUR = "grey"
+    PHRASE = "Look, ${SKY}"
+    ```
 
-  Result: \ `PHRASE = "Look, the sky is grey"` 
+    Result: \ `PHRASE = "Look, the sky is grey"`
 
-  ],[
+  ],
+  [
 
-  ```sh
-  COLOUR  = "blue"
-  SKY := "the sky is ${COLOUR}"
-  COLOUR  = "grey"
-  PHRASE = "Look, ${SKY}"
-  ```
+    ```sh
+    COLOUR  = "blue"
+    SKY := "the sky is ${COLOUR}"
+    COLOUR  = "grey"
+    PHRASE = "Look, ${SKY}"
+    ```
 
-  Result: \ `PHRASE = "Look, the sky is blue"`
+    Result: \ `PHRASE = "Look, the sky is blue"`
 
-])
+  ],
+)
 
 #v(1em)
 
 - Normal expansion is correct in most cases. Only use `:=` when really
   needed.
 
-===  Operators: appending and prepending
+=== Operators: appending and prepending
 
 - Variable values can be modified by composition: #v(0.5em)
 
@@ -132,31 +138,37 @@
 
   / =.: prepend (without space)
 
-===  Operators: default and weak default values
+=== Operators: default and weak default values
 
 - The `?=` operator assigns a value only if the variable has not been
   assigned when the statement is parsed
 
   #v(0.5em)
 
-  #table(columns: (50%, 50%), stroke: none, gutter: 15pt, [
+  #table(
+    columns: (50%, 50%),
+    stroke: none,
+    gutter: 15pt,
+    [
 
-  ```sh
-  COLOUR = "blue"
-  COLOUR ?= "unknown"
-  ```
+      ```sh
+      COLOUR = "blue"
+      COLOUR ?= "unknown"
+      ```
 
-  Result: `COLOUR = "blue"` 
-  
-  ],[
+      Result: `COLOUR = "blue"`
 
-  ```sh
-  COLOUR ?= "unknown"
-  ```
+    ],
+    [
 
-  Result: `COLOUR = "unknown"`
+      ```sh
+      COLOUR ?= "unknown"
+      ```
 
-])
+      Result: `COLOUR = "unknown"`
+
+    ],
+  )
 
 #v(1em)
 
@@ -164,10 +176,12 @@
   assigned when the statement is parsed, not even using a `?=` operator
 
 - The
-  #link("https://docs.yoctoproject.org/bitbake/bitbake-user-manual/bitbake-user-manual-metadata.html#setting-a-default-value")[BitBake documentation]
+  #link(
+    "https://docs.yoctoproject.org/bitbake/bitbake-user-manual/bitbake-user-manual-metadata.html#setting-a-default-value",
+  )[BitBake documentation]
   explains the differences in details.
 
-===  Operators caveats
+=== Operators caveats
 
 - The operators apply their effect during parsing
 
@@ -175,25 +189,31 @@
 
   #v(0.5em)
 
-  #table(columns: (50%, 50%), stroke: none, gutter: 15pt, [
+  #table(
+    columns: (50%, 50%),
+    stroke: none,
+    gutter: 15pt,
+    [
 
-```text
-VAR ?= "a"
-VAR += "b"
-```
+      ```text
+      VAR ?= "a"
+      VAR += "b"
+      ```
 
-Result: `VAR = "a b"` 
+      Result: `VAR = "a b"`
 
-  ],[
+    ],
+    [
 
-```text
-VAR += "b"
-VAR ?= "a"
-```
+      ```text
+      VAR += "b"
+      VAR ?= "a"
+      ```
 
-Result: `VAR = " b"` 
+      Result: `VAR = " b"`
 
-  ])
+    ],
+  )
 
   #v(0.5em)
 
@@ -201,7 +221,7 @@ Result: `VAR = " b"`
 
 - To avoid the problem, avoid using `+=`, `=+`, `.=` and `=.` in `$BUILDDIR/conf/local.conf`. Always use overrides (see following slides).
 
-===  `bitbake-getvar`
+=== `bitbake-getvar`
 
 - `bitbake-getvar` can be used to understand and debug how variables are
   assigned
@@ -228,7 +248,7 @@ DEPLOY_DIR="/home/user/yocto-labs/build/tmp/deploy"
 $
 ```
 
-===  Overrides
+=== Overrides
 
 - Bitbake *overrides* allow appending, prepending or modifying a
   variable at expansion time, when the variable's value is read
@@ -238,7 +258,7 @@ $
 - A different syntax was used before *Honister* (3.4), with no
   retrocompatibility: `<VARIABLE>_<override> = "some_value"`
 
-===  Overrides to modify variable values
+=== Overrides to modify variable values
 
 - The `append` override adds *at the end* of the variable
   (without space).
@@ -255,26 +275,32 @@ $
 
   - `IMAGE_INSTALL:remove = "i2c-tools"`
 
-===  Order of variable assignment
+=== Order of variable assignment
 
-#table(columns: (55%, 45%), stroke:none, gutter:15pt, [
+#table(
+  columns: (55%, 45%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-#align(center, [#image("yocto-operators-order.pdf", width: 100%)])
+    #align(center, [#image("yocto-operators-order.pdf", width: 100%)])
 
-],[
+  ],
+  [
 
-+ All the operators are applied, 
-  in parsing order
+    + All the operators are applied,
+      in parsing order
 
-+ `:append` overrides are applied
+    + `:append` overrides are applied
 
-+ `:prepend` overrides are applied
+    + `:prepend` overrides are applied
 
-+ `:remove` overrides are applied
+    + `:remove` overrides are applied
 
-])
+  ],
+)
 
-===  Overrides for conditional assignment
+=== Overrides for conditional assignment
 
 - Append the machine name to only define a configuration variable for a
   given machine.
@@ -295,7 +321,7 @@ KERNEL_DEVICETREE:beaglebone = "am335x-bone.dtb" # This is applied
 KERNEL_DEVICETREE:dra7xx-evm = "dra7-evm.dtb"    # This is ignored
 ```
 
-===  Overrides for conditional assignment: precedence
+=== Overrides for conditional assignment: precedence
 
 - The most specific assignment takes precedence.
 
@@ -314,7 +340,7 @@ KERNEL_DEVICETREE:dra7xx-evm = "dra7-evm.dtb"    # This is ignored
 
   - `IMAGE_INSTALL = "busybox mtd-utils"`
 
-===  Combining overrides
+=== Combining overrides
 
 - The previous methods can be combined.
 
@@ -336,7 +362,7 @@ KERNEL_DEVICETREE:dra7xx-evm = "dra7-evm.dtb"    # This is ignored
 == Virtual providers
 <virtual-providers>
 
-===  Introduction to virtual providers
+=== Introduction to virtual providers
 
 - Some recipes have the same purpose, and only one can be used at a
   time.
@@ -346,7 +372,7 @@ KERNEL_DEVICETREE:dra7xx-evm = "dra7-evm.dtb"    # This is ignored
 - Only one of the recipes that provides the functionality will be
   compiled and integrated into the resulting image.
 
-===  Variant examples
+=== Variant examples
 
 - The virtual provider names are often in the form `virtual/<name>`
 
@@ -361,7 +387,7 @@ KERNEL_DEVICETREE:dra7xx-evm = "dra7-evm.dtb"    # This is ignored
 
   - `virtual/xserver`: xserver-xorg
 
-===  Provider selection
+=== Provider selection
 
 - Providers are selected thanks to the
   #yoctovar("PREFERRED_PROVIDER") configuration variable.
@@ -374,7 +400,7 @@ KERNEL_DEVICETREE:dra7xx-evm = "dra7-evm.dtb"    # This is ignored
 
   - `PREFERRED_PROVIDER_virtual/libgl = "mesa"`
 
-===  Version selection
+=== Version selection
 
 - By default, Bitbake will try to build the recipe with the highest
   version number, from the highest priority layer, unless the recipe
@@ -394,7 +420,7 @@ KERNEL_DEVICETREE:dra7xx-evm = "dra7-evm.dtb"    # This is ignored
 == Selection of packages to install
 <selection-of-packages-to-install>
 
-===  Selection of packages to install
+=== Selection of packages to install
 
 - Building recipes will result in binary packages being generated.
 
@@ -413,7 +439,7 @@ KERNEL_DEVICETREE:dra7xx-evm = "dra7-evm.dtb"    # This is ignored
 == The power of BitBake
 <the-power-of-bitbake>
 
-===  Common BitBake options
+=== Common BitBake options
 
 - BitBake can be used to run a full build for a given target with
   `bitbake [target]`
@@ -427,22 +453,22 @@ KERNEL_DEVICETREE:dra7xx-evm = "dra7-evm.dtb"    # This is ignored
 - But it can be more precise, with additional options:
 
   / `-c <task>`: #block[
-  execute the given task
-  ]
+      execute the given task
+    ]
 
   / `-s`: #block[
-  list all available recipes and their versions
-  ]
+      list all available recipes and their versions
+    ]
 
   / `-f`: #block[
-  force the given task to be run by removing its stamp file
-  ]
+      force the given task to be run by removing its stamp file
+    ]
 
   / `world`: #block[
-  keyword for all recipes
-  ]
+      keyword for all recipes
+    ]
 
-===  BitBake examples
+=== BitBake examples
 
 - `bitbake -c listtasks virtual/kernel`
 
@@ -464,7 +490,7 @@ KERNEL_DEVICETREE:dra7xx-evm = "dra7-evm.dtb"    # This is ignored
 
 - For a full description: `bitbake –help`
 
-===  shared state cache
+=== shared state cache
 
 - BitBake stores the output of each task in a directory, the shared
   state cache.
@@ -482,5 +508,5 @@ KERNEL_DEVICETREE:dra7xx-evm = "dra7-evm.dtb"    # This is ignored
   $ find sstate-cache/ -type f -atime +30 -delete
   ```
 ] #v(0.5em)
-  This removes all files that have last been accessed more than 30 days
-  ago (for example).
+This removes all files that have last been accessed more than 30 days
+ago (for example).

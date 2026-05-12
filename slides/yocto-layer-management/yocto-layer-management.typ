@@ -6,7 +6,7 @@
 
 = Automating layer management
 
-===  Release management 
+=== Release management
 
 There are multiple tasks that OE/bitbake based projects let you do on your own to ensure build reproducibility:
 
@@ -18,14 +18,14 @@ There are multiple tasks that OE/bitbake based projects let you do on your own t
 
 A separate tool is needed for that, usual solutions are:
 
-- git submodules + setup script. Great example in YOE: \ 
+- git submodules + setup script. Great example in YOE: \
   #link("https://github.com/YoeDistro/yoe-distro")
 
 - repo and `templateconf` or setup script
 
 - kas
 
-===  Google repo
+=== Google repo
 
 - A good way to distribute a distribution (Poky, custom layers, BSP,
   `.templateconf`…) is to use Google's `repo`.
@@ -44,28 +44,28 @@ A separate tool is needed for that, usual solutions are:
 - It only handles fetching code, handling `local.conf` and
   `bblayers.conf` is done separately
 
-===  Manifest example
+=== Manifest example
 
 #text(size: 17pt)[
-```xml
-<?xml version="1.0" encoding="UTF-8"?>
-<manifest>
-  <remote name="yocto-project" fetch="git.yoctoproject.org" />
-  <remote name="private" fetch="git.example.net" />
+  ```xml
+  <?xml version="1.0" encoding="UTF-8"?>
+  <manifest>
+    <remote name="yocto-project" fetch="git.yoctoproject.org" />
+    <remote name="private" fetch="git.example.net" />
 
-  <default revision="scarthgap" remote="private" />
+    <default revision="scarthgap" remote="private" />
 
-  <project name="poky" remote="yocto-project" />
-  <project name="meta-ti" remote="yocto-project" />
-  <project name="meta-custom" />
-  <project name="meta-custom-bsp" />
-  <project path="meta-custom-distro" name="distro">
-    <copyfile src="templateconf" dest="poky/.templateconf" />
-  </project>
-</manifest>
-```]
+    <project name="poky" remote="yocto-project" />
+    <project name="meta-ti" remote="yocto-project" />
+    <project name="meta-custom" />
+    <project name="meta-custom-bsp" />
+    <project path="meta-custom-distro" name="distro">
+      <copyfile src="templateconf" dest="poky/.templateconf" />
+    </project>
+  </manifest>
+  ```]
 
-===  Retrieve the project using `repo`
+=== Retrieve the project using `repo`
 
 `
 $ mkdir my-project; cd my-project
@@ -79,7 +79,7 @@ $ repo sync -j4
 - You can see the full `repo` documentation at \
   #link("https://source.android.com/source/using-repo.html").
 
-===  repo: release 
+=== repo: release
 
 To tag a release, a few steps have to be taken:
 
@@ -90,7 +90,7 @@ To tag a release, a few steps have to be taken:
 
 - Commit and tag this version of the manifest.
 
-===  kas
+=== kas
 
 - Specific tool developed by Siemens for OpenEmbedded: \
   #link("https://github.com/siemens/kas")
@@ -103,50 +103,50 @@ To tag a release, a few steps have to be taken:
 
 - Can setup `local.conf` and `bblayers.conf`
 
-===  kas configuration
+=== kas configuration
 
 #text(size: 16.5pt)[
-```yaml
-header:
-  version: 8
-machine: mymachine 
-distro: mydistro 
-target:
-  - myimage
+  ```yaml
+  header:
+    version: 8
+  machine: mymachine
+  distro: mydistro
+  target:
+    - myimage
 
-repos:
-  meta-custom:
+  repos:
+    meta-custom:
 
-  bitbake:
-    url: "https://git.openembedded.org/bitbake"
-    # tag 2.0
-    commit: c212b0f3b542efa19f15782421196b7f4b64b0b9
-    layers:
-      .: excluded
+    bitbake:
+      url: "https://git.openembedded.org/bitbake"
+      # tag 2.0
+      commit: c212b0f3b542efa19f15782421196b7f4b64b0b9
+      layers:
+        .: excluded
 
-  openembedded-core:
-    url: "https://git.openembedded.org/openembedded-core"
-    branch: scarthgap
-    layers:
-      meta:
-```]
+    openembedded-core:
+      url: "https://git.openembedded.org/openembedded-core"
+      branch: scarthgap
+      layers:
+        meta:
+  ```]
 
-===  kas configuration
+=== kas configuration
 
 #text(size: 16.5pt)[
-```yaml
-  meta-freescale:
-    url: "https://github.com/Freescale/meta-freescale"
-    branch: scarthgap
+  ```yaml
+    meta-freescale:
+      url: "https://github.com/Freescale/meta-freescale"
+      branch: scarthgap
 
-  meta-openembedded:
-   url: https://git.openembedded.org/meta-openembedded
-   branch: scarthgap
-   layers:
-     meta-oe:
-     meta-python:
-     meta-networking:
-```]
+    meta-openembedded:
+     url: https://git.openembedded.org/meta-openembedded
+     branch: scarthgap
+     layers:
+       meta-oe:
+       meta-python:
+       meta-networking:
+  ```]
 
 - Then a single command will build all the listed targets for the
   machine:

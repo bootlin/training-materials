@@ -4,10 +4,10 @@
 
 #show: bootlin-theme
 
-#setuplabframe([Create a custom machine configuration],[
+#setuplabframe([Create a custom machine configuration], [
 
-- Write a machine configuration
+  - Write a machine configuration
 
-- Understand how the target architecture is chosen
+  - Understand how the target architecture is chosen
 
 ])

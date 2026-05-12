@@ -9,7 +9,7 @@
 == Extending a recipe
 <extending-a-recipe>
 
-===  Introduction to recipe extensions
+=== Introduction to recipe extensions
 
 - It is a good practice to avoid modifying recipes available in third
   party layers so it is easy to update.
@@ -22,7 +22,7 @@
 
 - Multiple extensions can be applied to a recipe.
 
-===  Introduction to recipe extensions
+=== Introduction to recipe extensions
 
 - Variable values can be modified
 
@@ -36,11 +36,11 @@
 
   - Adding new tasks
 
-===  Extend a recipe
+=== Extend a recipe
 
 #align(center, [#image("yocto-recipe-advanced-extend.pdf", width: 85%)])
 
-===  Extend a recipe
+=== Extend a recipe
 
 - The recipe extensions end in `.bbappend`
 
@@ -62,15 +62,15 @@
   - Prepending a path makes sure it has priority over the recipe's one.
     This allows to override recipes' files.
 
-===  Append file example
+=== Append file example
 
 `linux-yocto_6.12.bbappend`:
 
 ```sh
 FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
-SRC_URI += "file://defconfig 
-            file://fix-memory-leak.patch 
+SRC_URI += "file://defconfig
+            file://fix-memory-leak.patch
             "
 ```
 
@@ -81,17 +81,17 @@ File organization:
 #v(0.5em)
 
 #[ #show raw.where(lang: "console", block: true): set text(size: 17pt)
-```console
-meta-custom/
-`-- recipes-kernel/ 
-  `-- linux/
-        |-- files/
-        |   |-- defconfig
-        |   `-- fix-memory-leak.patch 
-        `-- linux-yocto_6.12.bbappend
-```]
+  ```console
+  meta-custom/
+  `-- recipes-kernel/
+    `-- linux/
+          |-- files/
+          |   |-- defconfig
+          |   `-- fix-memory-leak.patch
+          `-- linux-yocto_6.12.bbappend
+  ```]
 
-===  Modifying existing tasks
+=== Modifying existing tasks
 
 Tasks can be extended with `:prepend` or `:append`
 
@@ -118,7 +118,7 @@ do_install:append:beaglebone() {
 == Virtual providers (cont.)
 <virtual-providers-cont.>
 
-===  Virtual providers (cont.)
+=== Virtual providers (cont.)
 
 - `bitbake` allows to use virtual names instead of the actual recipe
   name. We saw a use case with _virtual providers_.
@@ -134,7 +134,7 @@ do_install:append:beaglebone() {
 == Classes
 <classes>
 
-===  Introduction to classes
+=== Introduction to classes
 
 - Classes provide an abstraction to common code, which can be re-used in
   multiple recipes.
@@ -149,7 +149,7 @@ do_install:append:beaglebone() {
 - Classes must be located in the `classes-recipe`, `classes-global`, or
   `classes` folders of a layer.
 
-===  Using classes
+=== Using classes
 
 - Recipes can use the classes located in the `classes-recipe` folder:
 
@@ -167,31 +167,51 @@ do_install:append:beaglebone() {
 - Classes in the `classes` folder can be used with `inherit` or
   #yoctovar("INHERIT"), as their usage is not clearly defined.
 
-===  Common classes
+=== Common classes
 
-- #link("https://docs.yoctoproject.org/ref-manual/classes.html#base")[classes-global/base.bbclass]
+- #link(
+    "https://docs.yoctoproject.org/ref-manual/classes.html#base",
+  )[classes-global/base.bbclass]
 
-- #link("https://docs.yoctoproject.org/ref-manual/classes.html#kernel")[classes-recipe/kernel.bbclass]
+- #link(
+    "https://docs.yoctoproject.org/ref-manual/classes.html#kernel",
+  )[classes-recipe/kernel.bbclass]
 
-- #link("https://docs.yoctoproject.org/ref-manual/classes.html#autotools")[classes-recipe/autotools.bbclass]
+- #link(
+    "https://docs.yoctoproject.org/ref-manual/classes.html#autotools",
+  )[classes-recipe/autotools.bbclass]
 
-- #link("https://docs.yoctoproject.org/ref-manual/classes.html#autotools")[classes-recipe/autotools-brokensep.bbclass]
+- #link(
+    "https://docs.yoctoproject.org/ref-manual/classes.html#autotools",
+  )[classes-recipe/autotools-brokensep.bbclass]
 
-- #link("https://docs.yoctoproject.org/ref-manual/classes.html#cmake")[classes-recipe/cmake.bbclass]
+- #link(
+    "https://docs.yoctoproject.org/ref-manual/classes.html#cmake",
+  )[classes-recipe/cmake.bbclass]
 
-- #link("https://docs.yoctoproject.org/ref-manual/classes.html#meson")[classes-recipe/meson.bbclass]
+- #link(
+    "https://docs.yoctoproject.org/ref-manual/classes.html#meson",
+  )[classes-recipe/meson.bbclass]
 
-- #link("https://docs.yoctoproject.org/ref-manual/classes.html#native")[classes-recipe/native.bbclass]
+- #link(
+    "https://docs.yoctoproject.org/ref-manual/classes.html#native",
+  )[classes-recipe/native.bbclass]
 
-- #link("https://docs.yoctoproject.org/ref-manual/classes.html#systemd")[classes-recipe/systemd.bbclass]
+- #link(
+    "https://docs.yoctoproject.org/ref-manual/classes.html#systemd",
+  )[classes-recipe/systemd.bbclass]
 
-- #link("https://docs.yoctoproject.org/ref-manual/classes.html#update-rc-d")[classes-recipe/update-rc.d.bbclass]
+- #link(
+    "https://docs.yoctoproject.org/ref-manual/classes.html#update-rc-d",
+  )[classes-recipe/update-rc.d.bbclass]
 
-- #link("https://docs.yoctoproject.org/ref-manual/classes.html#useradd")[classes/useradd.bbclass]
+- #link(
+    "https://docs.yoctoproject.org/ref-manual/classes.html#useradd",
+  )[classes/useradd.bbclass]
 
 - …
 
-===  The base class
+=== The base class
 
 - Every recipe inherits the `base` class automatically.
 
@@ -211,7 +231,7 @@ do_install:append:beaglebone() {
 - Defines `oe_runmake`, using #yoctovar("EXTRA_OEMAKE") to use
   custom arguments.
 
-===  The kernel class
+=== The kernel class
 
 - Used to build Linux kernels.
 
@@ -237,7 +257,7 @@ SRC_URI += "file://defconfig"
 
   - #yoctovar("INITRAMFS_IMAGE")
 
-===  The autotools class
+=== The autotools class
 
 - Defines tasks and metadata to handle applications using the autotools
   build system (autoconf, automake and libtool):
@@ -255,23 +275,23 @@ SRC_URI += "file://defconfig"
 - Compilation flags can be added thanks to the
   #yoctovar("EXTRA_OEMAKE") variable.
 
-===  Example: use the autotools class
+=== Example: use the autotools class
 
 #text(size: 17pt)[
-```sh
-DESCRIPTION = "Print a friendly, customizable greeting"
-HOMEPAGE = "https://www.gnu.org/software/hello/"
-SECTION = "examples"
-LICENSE = "GPL-3.0-or-later"
+  ```sh
+  DESCRIPTION = "Print a friendly, customizable greeting"
+  HOMEPAGE = "https://www.gnu.org/software/hello/"
+  SECTION = "examples"
+  LICENSE = "GPL-3.0-or-later"
 
-SRC_URI = "${GNU_MIRROR}/hello/hello-${PV}.tar.gz"
-SRC_URI[sha256sum] = "ecbb7a2214196c57ff9340aa71458e1559abd38f6d8d169666846935df191ea7"
-LIC_FILES_CHKSUM = "file://COPYING;md5=d32239bcb673463ab874e80d47fae504"
+  SRC_URI = "${GNU_MIRROR}/hello/hello-${PV}.tar.gz"
+  SRC_URI[sha256sum] = "ecbb7a2214196c57ff9340aa71458e1559abd38f6d8d169666846935df191ea7"
+  LIC_FILES_CHKSUM = "file://COPYING;md5=d32239bcb673463ab874e80d47fae504"
 
-inherit autotools
-```]
+  inherit autotools
+  ```]
 
-===  The useradd class
+=== The useradd class
 
 - This class helps to add users to the resulting image.
 
@@ -291,32 +311,32 @@ inherit autotools
 
   - #yoctovar("GROUPADD_PARAM"): parameters to pass to `groupadd`.
 
-===  Example: use the useradd class
+=== Example: use the useradd class
 
 #text(size: 16.5pt)[
-```sh
-DESCRIPTION = "useradd class usage example"
-SECTION = "examples"
-LICENSE = "MIT"
+  ```sh
+  DESCRIPTION = "useradd class usage example"
+  SECTION = "examples"
+  LICENSE = "MIT"
 
-SRC_URI = "file://file0"
-LIC_FILES_CHKSUM = "file://${COREBASE}/meta/files/common-licenses/MIT;md5=0835ade698e0bc..."
+  SRC_URI = "file://file0"
+  LIC_FILES_CHKSUM = "file://${COREBASE}/meta/files/common-licenses/MIT;md5=0835ade698e0bc..."
 
-inherit useradd
+  inherit useradd
 
-USERADD_PACKAGES = "${PN}"
-USERADD_PARAM:${PN} = "-u 1000 -d /home/user0 -s /bin/bash user0"
+  USERADD_PACKAGES = "${PN}"
+  USERADD_PARAM:${PN} = "-u 1000 -d /home/user0 -s /bin/bash user0"
 
-FILES:${PN} = "/home/user0/file0"
+  FILES:${PN} = "/home/user0/file0"
 
-do_install() {
-    install -d ${D}/home/user0/
-    install -m 644 file0 ${D}/home/user0/
-    chown user0:user0 ${D}/home/user0/file0
-}
-```]
+  do_install() {
+      install -d ${D}/home/user0/
+      install -m 644 file0 ${D}/home/user0/
+      chown user0:user0 ${D}/home/user0/file0
+  }
+  ```]
 
-===  The bin_package class
+=== The bin_package class
 
 - In some cases you only need to install pre-built files into the
   generated root filesystem
@@ -339,7 +359,7 @@ do_install() {
 == BitBake file inclusions
 <bitbake-file-inclusions>
 
-===  Locate files in the build system
+=== Locate files in the build system
 
 - Metadata can be shared using included files.
 
@@ -355,7 +375,7 @@ do_install() {
 
   - `require`
 
-===  The `inherit keyword`
+=== The `inherit keyword`
 
 - `inherit` can be used in recipes or classes, to inherit the
   functionalities of a class.
@@ -376,7 +396,7 @@ do_install() {
 
   - This inherits the class globally (i.e. for all recipes)
 
-===  The `include` and `require` keywords 
+=== The `include` and `require` keywords
 
 - `include` and `require` can be used in all files, to insert the
   content of another file at that location.
@@ -396,7 +416,7 @@ do_install() {
 == More recipe debugging tools
 <more-recipe-debugging-tools>
 
-===  More recipe debugging tools
+=== More recipe debugging tools
 
 - A development shell, exporting the full environment can be used to
   debug build failures:
@@ -404,9 +424,9 @@ do_install() {
 #v(0.5em)
 
 #[#show raw.where(lang: "console", block: true): set text(size: 18pt)
-```console
-$ bitbake -c devshell <recipe>
-```]
+  ```console
+  $ bitbake -c devshell <recipe>
+  ```]
 
 #v(0.5em)
 
@@ -422,15 +442,15 @@ BUILDHISTORY_COMMIT = "1"
 
 #v(0.5em)
 
-  Then use the `buildhistory-diff` tool to examine differences between
-  two builds.
+Then use the `buildhistory-diff` tool to examine differences between
+two builds.
 
-  - `buildhistory-diff`
+- `buildhistory-diff`
 
 == Network usage
 <network-usage>
 
-===  Source fetching
+=== Source fetching
 
 - `bitbake` will look for files to retrieve at the following locations,
   in order:
@@ -445,24 +465,24 @@ BUILDHISTORY_COMMIT = "1"
 
 - If all the mirrors fail, the build will fail.
 
-===  Mirror configuration in OpenEmbedded-Core
+=== Mirror configuration in OpenEmbedded-Core
 `meta/classes-global/mirrors.bbclass`
 
 #text(size: 14pt)[
-```sh
-PREMIRRORS += "git://sourceware.org/git/glibc.git        https://downloads.yoctoproject.org/mirror/sources/ \
-               git://sourceware.org/git/binutils-gdb.git https://downloads.yoctoproject.org/mirror/sources/"
+  ```sh
+  PREMIRRORS += "git://sourceware.org/git/glibc.git        https://downloads.yoctoproject.org/mirror/sources/ \
+                 git://sourceware.org/git/binutils-gdb.git https://downloads.yoctoproject.org/mirror/sources/"
 
-MIRRORS += "
-svn://.*/.*     http://downloads.yoctoproject.org/mirror/sources/ \
-git://.*/.*     http://downloads.yoctoproject.org/mirror/sources/ \
-https?://.*/.*  http://downloads.yoctoproject.org/mirror/sources/ \
-ftp://.*/.*     http://downloads.yoctoproject.org/mirror/sources/ \
-...
-"
-```]
+  MIRRORS += "
+  svn://.*/.*     http://downloads.yoctoproject.org/mirror/sources/ \
+  git://.*/.*     http://downloads.yoctoproject.org/mirror/sources/ \
+  https?://.*/.*  http://downloads.yoctoproject.org/mirror/sources/ \
+  ftp://.*/.*     http://downloads.yoctoproject.org/mirror/sources/ \
+  ...
+  "
+  ```]
 
-===  Configuring the premirrors
+=== Configuring the premirrors
 
 - It is easy to add a custom mirror to the #yoctovar("PREMIRRORS") by
   using the `own-mirrors` class (only one URL supported):
@@ -489,7 +509,7 @@ PREMIRRORS:prepend = "\
  https://.*/.* http://www.yoctoproject.org/sources/  "
 ```
 
-===  Creating a local mirror
+=== Creating a local mirror
 
 - The download directory can be exposed on the network to create a local
   mirror
@@ -501,7 +521,7 @@ PREMIRRORS:prepend = "\
     to generate tarballs of the git repositories in
     #yoctovar("DL_DIR")
 
-===  Forbidding network access
+=== Forbidding network access
 
 - Since Kirkstone (4.0), network access is only enabled in the
   `do_fetch` task, to make sure no untraced sources are fetched.

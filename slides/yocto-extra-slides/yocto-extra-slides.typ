@@ -11,7 +11,7 @@
 == Quilt
 <quilt>
 
-===  Overview
+=== Overview
 
 - Quilt is a utility to manage patches which can be used without having
   a clean source tree.
@@ -22,7 +22,7 @@
 - Be careful when using this workflow: the modifications won't persist
   across builds!
 
-===  Using Quilt
+=== Using Quilt
 
 + Find the recipe working directory in `$BUILDDIR/tmp/work/`.
 + Create a new `Quilt` patch: `$ quilt new topic.patch`
