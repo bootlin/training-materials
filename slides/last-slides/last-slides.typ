@@ -10,7 +10,7 @@
 
 = Last slides
 
-#if trainer == none{}else{[
+#if trainer !=none {[
 
 ===  Evaluation and final quiz
 
