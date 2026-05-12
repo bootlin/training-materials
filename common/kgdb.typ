@@ -2,7 +2,7 @@
 
 #import "/typst/local/common.typ": *
 
-===  kgdb - A kernel debugger
+=== kgdb - A kernel debugger
 
 - #kconfig("CONFIG_KGDB") in #emph[Kernel hacking].
 
@@ -19,65 +19,66 @@
 
   - See #kdochtml("process/debugging/kgdb") for more information
 
-#if sys.inputs.training == "debugging"{
-[===  kgdb kernel config
+#if sys.inputs.training == "debugging" {
+  [=== kgdb kernel config
 
-- #kconfigval("CONFIG_DEBUG_KERNEL", "y") to make KGDB support
-  visible
+    - #kconfigval("CONFIG_DEBUG_KERNEL", "y") to make KGDB support
+      visible
 
-- #kconfigval("CONFIG_KGDB", "y") to enable KGDB support
+    - #kconfigval("CONFIG_KGDB", "y") to enable KGDB support
 
-- #kconfigval("CONFIG_DEBUG_INFO", "y") to compile the kernel
-  with debug info (`-g`)
+    - #kconfigval("CONFIG_DEBUG_INFO", "y") to compile the kernel
+      with debug info (`-g`)
 
-- #kconfigval("CONFIG_FRAME_POINTER", "y") to have more reliable
-  stacktraces
+    - #kconfigval("CONFIG_FRAME_POINTER", "y") to have more reliable
+      stacktraces
 
-- #kconfigval("CONFIG_KGDB_SERIAL_CONSOLE", "y") to enable KGDB
-  support over serial
+    - #kconfigval("CONFIG_KGDB_SERIAL_CONSOLE", "y") to enable KGDB
+      support over serial
 
-- #kconfigval("CONFIG_GDB_SCRIPTS", "y") to enable kernel GDB
-  python scripts
+    - #kconfigval("CONFIG_GDB_SCRIPTS", "y") to enable kernel GDB
+      python scripts
 
-- #kconfigval("CONFIG_RANDOMIZE_BASE", "n") to disable KASLR
+    - #kconfigval("CONFIG_RANDOMIZE_BASE", "n") to disable KASLR
 
-- #kconfigval("CONFIG_WATCHDOG", "n") to disable watchdog
+    - #kconfigval("CONFIG_WATCHDOG", "n") to disable watchdog
 
-- #kconfigval("CONFIG_MAGIC_SYSRQ", "y") to enable Magic SysReq
-  support
+    - #kconfigval("CONFIG_MAGIC_SYSRQ", "y") to enable Magic SysReq
+      support
 
-- #kconfigval("CONFIG_STRICT_KERNEL_RWX", "n") to disable memory
-  protection on code section, thus allowing to put breakpoints
+    - #kconfigval("CONFIG_STRICT_KERNEL_RWX", "n") to disable memory
+      protection on code section, thus allowing to put breakpoints
 
-===  kgdb pitfalls
+    === kgdb pitfalls
 
-- KASLR should be disabled to avoid confusing gdb with randomized kernel
-  addresses
+    - KASLR should be disabled to avoid confusing gdb with randomized kernel
+      addresses
 
-  - Disable #emph[kaslr mode using `nokaslr` command line parameter if
-    enabled in your kernel.]
+      - Disable #emph[kaslr mode using `nokaslr` command line parameter if
+          enabled in your kernel.]
 
-- Disable the platform watchdog to avoid rebooting while debugging.
+    - Disable the platform watchdog to avoid rebooting while debugging.
 
-  - When interrupted by KGDB, all interrupts are disabled thus, the
-    watchdog is not serviced.
+      - When interrupted by KGDB, all interrupts are disabled thus, the
+        watchdog is not serviced.
 
-  - Sometimes, watchdog is enabled by upper boot levels. Make sure to
-    disable the watchdog there too.
+      - Sometimes, watchdog is enabled by upper boot levels. Make sure to
+        disable the watchdog there too.
 
-- Can not interrupt kernel execution from gdb using `interrupt` command
-  or `Ctrl + C`.
+    - Can not interrupt kernel execution from gdb using `interrupt` command
+      or `Ctrl + C`.
 
-- Not possible to break everywhere (see
-  #kconfig("CONFIG_KGDB_HONOUR_BLOCKLIST")).
+    - Not possible to break everywhere (see
+      #kconfig("CONFIG_KGDB_HONOUR_BLOCKLIST")).
 
-- Need a console driver with polling support.
+    - Need a console driver with polling support.
 
-- Some architecture lacks functionalities (No watchpoints on arm32 for
-  instance) and some instabilities might happen!]
+    - Some architecture lacks functionalities (No watchpoints on arm32 for
+      instance) and some instabilities might happen!
+  ]
 }
 
-===  Using kgdb (1/2)
+=== Using kgdb (1/2)
 
 - Details available in the kernel documentation:
   #kdochtml("process/debugging/kgdb")
@@ -99,7 +100,7 @@
   - If the console does not have polling support, this command will
     yield an error.
 
-===  Using kgdb (2/2)
+=== Using kgdb (2/2)
 
 - Then also pass `kgdbwait` to the kernel: it makes `kgdb` wait for a
   debugger connection.

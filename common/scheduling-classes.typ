@@ -2,7 +2,7 @@
 
 #import "/typst/local/common.typ": *
 
-===  The Linux Kernel Scheduler
+=== The Linux Kernel Scheduler
 
 - The Linux Kernel Scheduler is a key piece in having a real-time
   behaviour
@@ -20,11 +20,11 @@
 
 - Tasks with different scheduling classes can coexist on the system
 
-===  Non-Realtime Scheduling Classes 
+=== Non-Realtime Scheduling Classes
 
 There are 3 *Non-RealTime* classes
 
-- `SCHED_OTHER`: The default policy, using a time-sharing algorithm 
+- `SCHED_OTHER`: The default policy, using a time-sharing algorithm
 
   - This policy is actually called #ksym("SCHED_NORMAL") by the
     kernel
@@ -41,7 +41,7 @@ There are 3 *Non-RealTime* classes
   - A higher nice value means that the tasks gets scheduled
     *less* often
 
-===  Realtime Scheduling Classes 
+=== Realtime Scheduling Classes
 
 There are 3 *Realtime* classes
 
@@ -69,7 +69,7 @@ There are 3 *Realtime* classes
 - Using one of these classes is necessary but not sufficient to get
   real-time behavior
 
-===  Changing the Scheduling Class
+=== Changing the Scheduling Class
 
 - The Scheduling Class is set per-task, and defaults to `SCHED_OTHER`
 

@@ -6,26 +6,32 @@
 
 = Debugging, Tracing, Profiling
 
-===  Debugging, Tracing, Profiling
+=== Debugging, Tracing, Profiling
 
-#table(columns: (60%, 40%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (60%, 40%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-- Debugging, tracing and profiling are often used for development
-  purposes
+    - Debugging, tracing and profiling are often used for development
+      purposes
 
-- All of these methods have different goals which aim at perfecting the
-  software that is being developed
+    - All of these methods have different goals which aim at perfecting the
+      software that is being developed
 
-- Requires some knowledge about underlying mechanisms to correctly
-  identify and fix bugs
+    - Requires some knowledge about underlying mechanisms to correctly
+      identify and fix bugs
 
-], [
+  ],
+  [
 
-#align(center, [#image("/common/cloud_word.png", height: 70%)])
+    #align(center, [#image("/common/cloud_word.png", height: 70%)])
 
-])
+  ],
+)
 
-===  Debugging
+=== Debugging
 
 - Finding and fixing bugs that might exist in your software/system
 
@@ -51,7 +57,7 @@ you write it, how will you ever debug it?"_
 
 \- Brian Kernighan
 
-===  Tracing
+=== Tracing
 
 - Following the execution flow of an application to understand the
   bottlenecks and problems.
@@ -77,7 +83,7 @@ you write it, how will you ever debug it?"_
 - Can also be used for debugging purpose since data can be extracted
   with tracepoints.
 
-===  Profiling
+=== Profiling
 
 - Analysis at program runtime to assist performance optimizations
 
@@ -95,7 +101,7 @@ you write it, how will you ever debug it?"_
 - Then extracting meaningful information from these data and modify the
   program to optimize it
 
-===  Event sources
+=== Event sources
 
 - Some activities like tracing or profiling involve some preliminary
   data collection
