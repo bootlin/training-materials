@@ -6,7 +6,7 @@
 
 == Traffic Filtering
 
-===  current solutions
+=== current solutions
 
 - The Networking stack can filter *egress* and *ingress*
   traffic
@@ -31,7 +31,7 @@
 - Alternative solutions exist :*eBPF*, *P4* and
   *TC*
 
-===  Legacy filtering solutions
+=== Legacy filtering solutions
 
 - There used to be multiple traffic filtering, each for a different
   layer
@@ -47,7 +47,7 @@
 
   - ARP filtering
 
-===  nftables
+=== nftables
 
 - Originates from the
   #link("https://www.netfilter.org/")[Netfilter project]
@@ -62,31 +62,39 @@
 - Chains are stored within *tables* created by users
 
 - See the
-  #link("https://wiki.nftables.org/wiki-nftables/index.php/Simple_ruleset_for_a_server")[project provided examples]
+  #link(
+    "https://wiki.nftables.org/wiki-nftables/index.php/Simple_ruleset_for_a_server",
+  )[project provided examples]
 
-===  Netfilter hooks
+=== Netfilter hooks
 
-#table(columns: (45%, 55%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (45%, 55%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-#align(center, [#image("routing_nf.pdf", width: 90%)])
+    #align(center, [#image("routing_nf.pdf", width: 90%)])
 
-],[
+  ],
+  [
 
-- *ingress* : Filter as soon as the packet is received
+    - *ingress* : Filter as soon as the packet is received
 
-- *pre-routing* : Filter before taking a routing decision
+    - *pre-routing* : Filter before taking a routing decision
 
-- *input* : Filter packets going to sockets
+    - *input* : Filter packets going to sockets
 
-- *forward* : Filter packets forwarded to the outside
+    - *forward* : Filter packets forwarded to the outside
 
-- *output* : Filter local outgoing packets
+    - *output* : Filter local outgoing packets
 
-- *post-routing* : Filter all outgoing packets
+    - *post-routing* : Filter all outgoing packets
 
-])
+  ],
+)
 
-===  netfilter in userspace
+=== netfilter in userspace
 
 - Netfilter was integrated as another backed for existing tools like
   *iptables*

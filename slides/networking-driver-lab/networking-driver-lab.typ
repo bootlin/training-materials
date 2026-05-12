@@ -4,12 +4,12 @@
 
 #show: bootlin-theme
 
-#setuplabframe([Writing a simple network driver],[
+#setuplabframe([Writing a simple network driver], [
 
-- Implement transmit and receive
+  - Implement transmit and receive
 
-- Implement timestamping
+  - Implement timestamping
 
-- Report stats and link state through ethtool
+  - Report stats and link state through ethtool
 
 ])

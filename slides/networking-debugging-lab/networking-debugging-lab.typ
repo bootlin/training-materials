@@ -4,12 +4,12 @@
 
 #show: bootlin-theme
 
-#setuplabframe([Debugging performance issues],[
+#setuplabframe([Debugging performance issues], [
 
-- Troubleshoot a performance issue
+  - Troubleshoot a performance issue
 
-- Analyze traffic with tcpdump and wireshark
+  - Analyze traffic with tcpdump and wireshark
 
-- Troubleshoot a link issue
+  - Troubleshoot a link issue
 
 ])

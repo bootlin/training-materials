@@ -6,7 +6,7 @@
 
 = Debugging and tracing the Network Stack
 
-===  Challenges
+=== Challenges
 
 - Latency issues : Can come from different locations
 
@@ -29,7 +29,7 @@
 
   - The kernel can't only tell you what it knows
 
-===  Monitoring traffic and drops
+=== Monitoring traffic and drops
 
 - In case of large number of repeats or local drops
 
@@ -47,7 +47,7 @@
 
   ```bash retis collect -c skb-drop --stack ```
 
-===  Monitoring traffic with a capture
+=== Monitoring traffic with a capture
 
 - Tools such as wireshark and tcpdump use `AF_PACKET` sockets for
   monitoring
@@ -64,7 +64,7 @@
 
   - frames can be replayed, or analyzed on another host
 
-===  Offloading
+=== Offloading
 
 - Offloading issues are hard to troubleshoot, as the host doesn't see
   them
@@ -89,7 +89,7 @@
 
 - `cat /proc/softirq` indicate the softirq counters
 
-===  Traffic generation
+=== Traffic generation
 
 - iperf3 : Throughput testing, fairly simple to use
 
@@ -106,7 +106,7 @@
 
   - Useful for testing multi-flow setups, or HW offloading
 
-===  iperf3
+=== iperf3
 
 - Widely used traffic generator
 
@@ -120,7 +120,7 @@
 
 - `iperf3 -c 192.168.1.1 -P 16` : Multi-flow mode
 
-===  scapy
+=== scapy
 
 - Traffic generator written in python. See the
   #link("https://scapy.net/")[official website]
@@ -135,15 +135,15 @@
 # IPv4 with ToS field varying between 1 and 4
 sendp(Ether()/IP(dst="1.2.3.4",tos=(1,4)), iface="eth0")
 
-# Raw ethernet frame 
-sendp(Ether(dst="00:51:82:11:22:02"), iface="eth0") 
+# Raw ethernet frame
+sendp(Ether(dst="00:51:82:11:22:02"), iface="eth0")
 
-# Send and wait for reply, simple ping implementation 
+# Send and wait for reply, simple ping implementation
 packet = IP(dst="192.168.42.1", ttl=20)/ICMP()
-reply = sr1(packet)     
+reply = sr1(packet)
 ```
 
-===  Counters
+=== Counters
 
 - Layer 4 counters : Maintained by the kernel.
 
@@ -160,7 +160,7 @@ reply = sr1(packet)
 - `xdp-monitor -s` tracks XDP statistics such as the number of drops and
   redirects
 
-===  profiling
+=== profiling
 
 - Allows identifying the bottlenecks in software
 

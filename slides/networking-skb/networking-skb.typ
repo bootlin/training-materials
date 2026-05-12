@@ -6,7 +6,7 @@
 
 == Socket Buffers
 
-===  #kstruct("sk_buff") (1)
+=== #kstruct("sk_buff") (1)
 
 - Object that represents a packet through the stack :
   *\s*\oc*\k*\et *\buff*\er
@@ -36,229 +36,285 @@
 
   - `redirected` : Was the skb redirected ?
 
-===  skb payload
+=== skb payload
 
-#table(columns: (30%, 70%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (30%, 70%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-#align(center, [#image("skb.pdf", width: 100%)])
+    #align(center, [#image("skb.pdf", width: 100%)])
 
-],[
+  ],
+  [
 
-- `skb` maintains positions to the data buffer
+    - `skb` maintains positions to the data buffer
 
-- The *data* section is the current *payload*
+    - The *data* section is the current *payload*
 
-- The payload boundaries (`data` and `tail`) depend on the current Layer
+    - The payload boundaries (`data` and `tail`) depend on the current Layer
 
-- `skb->len` identifies the current length of data
+    - `skb->len` identifies the current length of data
 
-- `skb->head` : Start of the allocated buffer
+    - `skb->head` : Start of the allocated buffer
 
-- `skb->data` : Start of the *payload section* of the
-  *current layer*
+    - `skb->data` : Start of the *payload section* of the
+      *current layer*
 
-- `skb->tail` : End of the payload section
+    - `skb->tail` : End of the payload section
 
-- `skb->end` : End of the buffer
+    - `skb->end` : End of the buffer
 
-- These pointers are *moved* when the skb traverses the stack
+    - These pointers are *moved* when the skb traverses the stack
 
-])
+  ],
+)
 
-===  skb geometry : Paged skb
+=== skb geometry : Paged skb
 
-#table(columns: (30%, 70%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (30%, 70%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-#align(center, [#image("skb_nonlinear.pdf", width: 130%)])
+    #align(center, [#image("skb_nonlinear.pdf", width: 130%)])
 
-],[
-  
-- The data section of an `skb` may be non-contiguous
+  ],
+  [
 
-- We talk about *non-linear* or *paged* skb.
+    - The data section of an `skb` may be non-contiguous
 
-- Sections of the payload are stored in the `skb_shared_info`
+    - We talk about *non-linear* or *paged* skb.
 
-- Each part of the buffer is stored in an array of `skb_frag_t`
+    - Sections of the payload are stored in the `skb_shared_info`
 
-- This happens when transmitting *scatter-gather* (SG) buffers
+    - Each part of the buffer is stored in an array of `skb_frag_t`
 
-- #kfunc("skb_linearize") will convert it to a single-buffer skb.
+    - This happens when transmitting *scatter-gather* (SG) buffers
 
-  - Useful for drivers that don't support SG.
+    - #kfunc("skb_linearize") will convert it to a single-buffer skb.
 
-])
+      - Useful for drivers that don't support SG.
 
-===  skb geometry : Fragmented skb
+  ],
+)
 
-#table(columns: (30%, 70%), stroke: none, gutter: 15pt, [
+=== skb geometry : Fragmented skb
 
-#align(center, [#image("fragmented_skb.pdf", width: 100%)])
+#table(
+  columns: (30%, 70%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-],[
+    #align(center, [#image("fragmented_skb.pdf", width: 100%)])
 
-- Buffer bigger than the *MTU* needs to be fragmented
+  ],
+  [
 
-- The original `skb` gets split into multiple parts
+    - Buffer bigger than the *MTU* needs to be fragmented
 
-- Each fragment is its *own skb*
+    - The original `skb` gets split into multiple parts
 
-- Fragments are chained together through :
+    - Each fragment is its *own skb*
 
-  - `skb_shared_info->frag_list` for the *first skb*
+    - Fragments are chained together through :
 
-  - `skb->next` for the other fragments
+      - `skb_shared_info->frag_list` for the *first skb*
 
-])
+      - `skb->next` for the other fragments
 
-===  skb cloning and duplication
+  ],
+)
 
-#table(columns: (30%, 70%), stroke: none, gutter: 15pt, [
+=== skb cloning and duplication
 
-#align(center, [#image("skb_clone.pdf", width: 100%)])
+#table(
+  columns: (30%, 70%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-],[
+    #align(center, [#image("skb_clone.pdf", width: 100%)])
 
-- #kfunc("skb_clone") allocates a new #kstruct("sk_buff")
-  pointing to an existing buffer
+  ],
+  [
 
-- Useful when the `skb` needs to be delivered multiple times
+    - #kfunc("skb_clone") allocates a new #kstruct("sk_buff")
+      pointing to an existing buffer
 
-  - For Multicast, `AF_PACKET`, capturing, etc.
+    - Useful when the `skb` needs to be delivered multiple times
 
-- The fragments are also cloned
+      - For Multicast, `AF_PACKET`, capturing, etc.
 
-- The buffer memory is *refcounted*
+    - The fragments are also cloned
 
-- Destroy the clone with #kfunc("consume_skb") or
-  #kfunc("kfree_skb")
+    - The buffer memory is *refcounted*
 
-- #kfunc("skb_copy") duplicates the `skb` and all its associated
-  memory
+    - Destroy the clone with #kfunc("consume_skb") or
+      #kfunc("kfree_skb")
 
-- #kfunc("pskb_copy") duplicates the `skb` and the *header*
-  but clones the payload
+    - #kfunc("skb_copy") duplicates the `skb` and all its associated
+      memory
 
-- `skb` can also be shared, tracked with `skb->shared`
+    - #kfunc("pskb_copy") duplicates the `skb` and the *header*
+      but clones the payload
 
-])
+    - `skb` can also be shared, tracked with `skb->shared`
 
-===  skb layer offsets
+  ],
+)
 
-#table(columns: (30%, 70%), stroke: none, gutter: 15pt, [
+=== skb layer offsets
 
-#align(center, [#image("skb_layers_offsets.pdf", width: 100%)])
+#table(
+  columns: (30%, 70%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-],[
+    #align(center, [#image("skb_layers_offsets.pdf", width: 100%)])
 
-- #kstruct("sk_buff") maintains *layer offsets* starting from
-  `skb->head`
+  ],
+  [
 
-- Set and modified by each encapsulation or decapsulation step
+    - #kstruct("sk_buff") maintains *layer offsets* starting from
+      `skb->head`
 
-- When processing a packet, each layer moves `skb->data`
+    - Set and modified by each encapsulation or decapsulation step
 
-- `skb_reset_xxx_header()` sets the given header *where
-  `skb->data` currently is*
+    - When processing a packet, each layer moves `skb->data`
 
-  - #kfunc("skb_reset_mac_header") : Called by *drivers*
+    - `skb_reset_xxx_header()` sets the given header *where
+      `skb->data` currently is*
 
-  - #kfunc("skb_reset_network_header") : Called after MAC
-    processing
+      - #kfunc("skb_reset_mac_header") : Called by *drivers*
 
-  - #kfunc("skb_reset_transport_header") : Called in L3 (IP)
-    processing
+      - #kfunc("skb_reset_network_header") : Called after MAC
+        processing
 
-])
+      - #kfunc("skb_reset_transport_header") : Called in L3 (IP)
+        processing
 
-===  #kfunc("skb_pull")
+  ],
+)
 
-#table(columns: (40%, 60%), stroke: none, gutter: 15pt, [
+=== #kfunc("skb_pull")
 
-#align(center, [#image("skb_pull.pdf", width: 100%)])
+#table(
+  columns: (40%, 60%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-],[
+    #align(center, [#image("skb_pull.pdf", width: 100%)])
 
-- Pulls header data, used during *decapsulation*
+  ],
+  [
 
-- Decreases `skb->len`
+    - Pulls header data, used during *decapsulation*
 
-- Usually followed by a layer offset readjustment
+    - Decreases `skb->len`
 
-- Returns the new `skb->data` pointer
+    - Usually followed by a layer offset readjustment
 
-- May fail if `skb->len` is too short
+    - Returns the new `skb->data` pointer
 
-- May require a *checksum recompute*
+    - May fail if `skb->len` is too short
 
-  - #kfunc("skb_pull_rcsum") will update checksums
+    - May require a *checksum recompute*
 
-])
+      - #kfunc("skb_pull_rcsum") will update checksums
 
-===  #kfunc("skb_push")
+  ],
+)
 
-#table(columns: (40%, 60%), stroke: none, gutter: 15pt,  [
-  
-#align(center, [#image("skb_push.pdf", width: 100%)])
+=== #kfunc("skb_push")
 
-],[
+#table(
+  columns: (40%, 60%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-- Pushes the `skb->data` into the headroom
+    #align(center, [#image("skb_push.pdf", width: 100%)])
 
-- Increases `skb->len`
+  ],
+  [
 
-- Used during *encapsulation*, when creating the headers
+    - Pushes the `skb->data` into the headroom
 
-- May fail if the headroom is too short
+    - Increases `skb->len`
 
-- May require a *checksum recompute*
+    - Used during *encapsulation*, when creating the headers
 
-  - #kfunc("skb_push_rcsum") will update checksums
+    - May fail if the headroom is too short
 
-])
+    - May require a *checksum recompute*
 
-===  #kfunc("skb_put")
+      - #kfunc("skb_push_rcsum") will update checksums
 
-#table(columns: (40%, 60%), stroke: none, gutter: 15pt,  [
+  ],
+)
 
-#align(center, [#image("skb_put.pdf", width: 100%)])
+=== #kfunc("skb_put")
 
-],[
+#table(
+  columns: (40%, 60%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-- Expands the payload section into the tailroom
+    #align(center, [#image("skb_put.pdf", width: 100%)])
 
-- Increases `skb->len`
+  ],
+  [
 
-- Used in drivers to set the *full packet size*
+    - Expands the payload section into the tailroom
 
-- Also used by some *DSA taggers*
+    - Increases `skb->len`
 
-])
+    - Used in drivers to set the *full packet size*
 
-===  #kfunc("skb_trim")
+    - Also used by some *DSA taggers*
 
-#table(columns: (40%, 60%), stroke: none, gutter: 15pt,  [
+  ],
+)
 
-#align(center, [#image("skb_trim.pdf", width: 100%)])
+=== #kfunc("skb_trim")
 
-],[
+#table(
+  columns: (40%, 60%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-- Shrinks down the payload from its end
+    #align(center, [#image("skb_trim.pdf", width: 100%)])
 
-- Decreases `skb->len`
+  ],
+  [
 
-- Only works on *linear skb*
+    - Shrinks down the payload from its end
 
-- Used to remove padding
+    - Decreases `skb->len`
 
-- Also useful to decapsulate protocols that insert a trailer
+    - Only works on *linear skb*
 
-  - e.g.
-    #link("https://elixir.bootlin.com/linux/v6.15.1/source/net/hsr/hsr_forward.c#L196")[PRP]
+    - Used to remove padding
 
-])
+    - Also useful to decapsulate protocols that insert a trailer
 
-===  pskb helpers
+      - e.g.
+        #link(
+          "https://elixir.bootlin.com/linux/v6.15.1/source/net/hsr/hsr_forward.c#L196",
+        )[PRP]
+
+  ],
+)
+
+=== pskb helpers
 
 - *\p*\otentially fragmented *skb* helpers manipulate
   non-linear `skb`
@@ -279,7 +335,7 @@
   - #kfunc("pskb_may_pull_reason") returns a *drop reason*
     if it will fail
 
-===  skb allocation
+=== skb allocation
 
 - #kfunc("build_skb") allocates a new `skb` around an existing
   buffer
@@ -300,17 +356,17 @@
 
 #align(center, [#image("newskb.pdf", width: 100%)])
 
-===  Dropping packets
+=== Dropping packets
 
 - At any point, we may decide to *discard* an `skb`, it is
   *dropped*
 
-- an `skb` is dropped with : 
+- an `skb` is dropped with :
 
   #[ #show raw.where(lang: "c", block: true): set text(size: 15pt)
-  ```c
-  void kfree_skb_reason(struct sk_buff *skb, enum skb_drop_reason reason);
-  ```]
+    ```c
+    void kfree_skb_reason(struct sk_buff *skb, enum skb_drop_reason reason);
+    ```]
 
 - The `reason` allows reporting to users the cause of the drop
 
@@ -331,37 +387,43 @@
   - *retis* : `eBPF`-based, uses the `BTF` information to display
     reasons
 
-===  SKB decapsulation
+=== SKB decapsulation
 
-#table(columns: (30%, 70%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (30%, 70%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-#align(center, [#image("skb_decapsulation.pdf", width: 120%)])
+    #align(center, [#image("skb_decapsulation.pdf", width: 120%)])
 
-],[
+  ],
+  [
 
-- When *ingress* packets traverse the stack, they are
-  decapsulated
+    - When *ingress* packets traverse the stack, they are
+      decapsulated
 
-- Each header usually has a field indicating the nature of the upper
-  layer
+    - Each header usually has a field indicating the nature of the upper
+      layer
 
-  - Ethernet header : `Ethertype` (2 bytes)
+      - Ethernet header : `Ethertype` (2 bytes)
 
-  - IPv4 header : `Protocol` (1 byte)
+      - IPv4 header : `Protocol` (1 byte)
 
-  - IPv6 header : `Next Header` (1 byte)
+      - IPv6 header : `Next Header` (1 byte)
 
-- The `ptype` list maps `Ethertypes` to `packet handlers`
+    - The `ptype` list maps `Ethertypes` to `packet handlers`
 
-- The `proto` list maps `Protocols` to `Transport handlers`
+    - The `proto` list maps `Protocols` to `Transport handlers`
 
-- Each stage *parses* its header, and *moves `skb->data`*
+    - Each stage *parses* its header, and *moves `skb->data`*
 
-- In the last stage, `skb->data` points to the final payload
+    - In the last stage, `skb->data` points to the final payload
 
-])
+  ],
+)
 
-===  #kstruct("packet_type")
+=== #kstruct("packet_type")
 
 - L2 protocols such as `802.3` and `802.11` usually include an
   *Ethertype*
@@ -374,22 +436,22 @@
 
   - See #kfile("include/uapi/linux/if_ether.h")
 
-- We can associate #kstruct("packet_type") with Ethertypes : 
-  
-  #[ #show raw.where(lang: "c", block: true): set text(size: 17pt)
-  ```c
-  struct packet_type {
-      __be16 type;
-      struct net_device *dev;
-      int (*func) (struct sk_buff *skb,
-                   struct net_device *dev,
-                   struct packet_type *ptype,
-                   struct net_device *orig_dev);
-      /* ... truncated */
-  };
-  ```]
+- We can associate #kstruct("packet_type") with Ethertypes :
 
-===  #kfunc("dev_add_pack")
+  #[ #show raw.where(lang: "c", block: true): set text(size: 17pt)
+    ```c
+    struct packet_type {
+        __be16 type;
+        struct net_device *dev;
+        int (*func) (struct sk_buff *skb,
+                     struct net_device *dev,
+                     struct packet_type *ptype,
+                     struct net_device *orig_dev);
+        /* ... truncated */
+    };
+    ```]
+
+=== #kfunc("dev_add_pack")
 
 - #kfunc("dev_add_pack") registers a #kstruct("packet_type")
   (`ptype`)
@@ -406,41 +468,45 @@
 
 - `ptype->list_func` can be implemented to handle multiple `skb`
 
-===  IPv4 example
+=== IPv4 example
 
 #[ #show raw.where(lang: "c", block: true): set text(size: 17pt)
 
-```c
-static struct packet_type ip_packet_type __read_mostly = {
-        .type = cpu_to_be16(ETH_P_IP),
-        .func = ip_rcv,
-        .list_func = ip_list_rcv,
-};
+  ```c
+  static struct packet_type ip_packet_type __read_mostly = {
+          .type = cpu_to_be16(ETH_P_IP),
+          .func = ip_rcv,
+          .list_func = ip_list_rcv,
+  };
 
-static int __init inet_init(void) /* truncated */
-{
-        /* For TX : Used by the socket's sendmsg */
-        proto_register(&tcp_prot, 1);
-        proto_register(&udp_prot, 1);
-        proto_register(&ping_prot, 1);
+  static int __init inet_init(void) /* truncated */
+  {
+          /* For TX : Used by the socket's sendmsg */
+          proto_register(&tcp_prot, 1);
+          proto_register(&udp_prot, 1);
+          proto_register(&ping_prot, 1);
 
-        /* For RX : Handle the IP Ethertype */
-        dev_add_pack(&ip_packet_type);
-}
-```]
+          /* For RX : Handle the IP Ethertype */
+          dev_add_pack(&ip_packet_type);
+  }
+  ```]
 
-===  Exception : Vlan
+=== Exception : Vlan
 
 - VLANs (802.1Q and 802.1AD) have a dedicated Ethertype, but no \
   #kstruct("packet_type")
 
 - VLANS are handled
-  #link("https://elixir.bootlin.com/linux/v6.15.1/source/net/core/dev.c#L5756")[directly in the receive path]
+  #link(
+    "https://elixir.bootlin.com/linux/v6.15.1/source/net/core/dev.c#L5756",
+  )[directly in the receive path]
 
 - Some hardware can strip the VLAN tag themselves
 
   - The tag is reported out-of-band, such as
-    #link("https://elixir.bootlin.com/linux/v6.15.1/source/drivers/net/ethernet/freescale/enetc/enetc.c#L1363")[in the DMA descriptors]
+    #link(
+      "https://elixir.bootlin.com/linux/v6.15.1/source/drivers/net/ethernet/freescale/enetc/enetc.c#L1363",
+    )[in the DMA descriptors]
 
   - The VLAN information is set in `skb->vlan_proto` and
     `skb->vlan_tci`
@@ -448,9 +514,11 @@ static int __init inet_init(void) /* truncated */
 - This also allows optimizing speed by avoiding indirect branches
 
 - Some hardware may also perform
-  #link("https://elixir.bootlin.com/linux/v6.15.1/source/drivers/net/ethernet/marvell/mvpp2/mvpp2_main.c#L5295")[Vlan filtering]
+  #link(
+    "https://elixir.bootlin.com/linux/v6.15.1/source/drivers/net/ethernet/marvell/mvpp2/mvpp2_main.c#L5295",
+  )[Vlan filtering]
 
-===  RX handlers
+=== RX handlers
 
 - Protocol information alone may not always be sufficient for custom
   processing
@@ -458,12 +526,12 @@ static int __init inet_init(void) /* truncated */
 - e.g. *MACVlan* has no dedicated Ethertype
 
 - We can attach a callback function to a netdev, executed before
-  protocol handling 
+  protocol handling
 
   #[ #show raw.where(lang: "c", block: true): set text(size: 17pt)
-  ```c
-  rx_handler_result_t rx_handler_func_t(struct sk_buff **pskb);
-  ```]
+    ```c
+    rx_handler_result_t rx_handler_func_t(struct sk_buff **pskb);
+    ```]
 
 - Attached with #kfunc("netdev_rx_handler_register") (One handler
   per netdev)
@@ -479,7 +547,7 @@ static int __init inet_init(void) /* truncated */
   - `RX_HANDLER_ANOTHER` : Re-process the `skb` as if it came from
     `skb->dev`
 
-===  #kstruct("net_protocol")
+=== #kstruct("net_protocol")
 
 - Layer 3 protocols include an 8-bit identifier describing the L4 layer
 
@@ -495,66 +563,68 @@ static int __init inet_init(void) /* truncated */
   - For IPv6, it is represented by #kstruct("inet6_protocol")
 
 #[ #show raw.where(lang: "c", block: true): set text(size: 17pt)
-```c
-struct net_protocol {
-        int (*handler)(struct sk_buff *skb);
-        int (*err_handler)(struct sk_buff *skb, u32 info);
-        ...
-};
-```]
+  ```c
+  struct net_protocol {
+          int (*handler)(struct sk_buff *skb);
+          int (*err_handler)(struct sk_buff *skb, u32 info);
+          ...
+  };
+  ```]
 
-===  #kfunc("inet_add_protocol") and #kfunc("inet6_add_protocol")
+=== #kfunc("inet_add_protocol") and #kfunc("inet6_add_protocol")
 
-#[ #show raw.where(lang: "c", block: true): set text(size: 17pt)
+#[
+  #show raw.where(lang: "c", block: true): set text(size: 17pt)
 
-- Transport protocols are registered in each L3 stack
-
-- ```c
-  int inet_add_protocol(struct net_protocol *prot, u8 num);
-  ```
-
-- ```c
-  int inet6_add_protocol(struct inet6_protocol *prot, u8 num);
-  ```
-
-- Associate protocols with their respective identifiers
-
-- Upon matching the `num` identifier, `prot->handler()` is called
-
-]
-
-===  #kstruct("net_offload")
-
-#[ #show raw.where(lang: "c", block: true): set text(size: 13.5pt)
-
-- Some Layer 4 protocols may be associated with a
-  #kstruct("net_offload")
-
-- Used to offload *segmentation* : Let the hardware or driver do
-  it
-
-  - Segmentation and re-assembly is protocol-specific
-
-  - Each protocol can register a #kstruct("net_offload")
+  - Transport protocols are registered in each L3 stack
 
   - ```c
-    int inet_add_offload(const struct net_offload *prot, unsigned char num); 
-    int inet6_add_offload(const struct net_offload *prot, unsigned char num);
+    int inet_add_protocol(struct net_protocol *prot, u8 num);
     ```
 
-- `skb`s bigger than the *MTU* are passed to the driver
+  - ```c
+    int inet6_add_protocol(struct inet6_protocol *prot, u8 num);
+    ```
 
-- The driver or the hardware handles splitting the packet
+  - Associate protocols with their respective identifiers
 
-  - L2 and L3 headers are added with fragment identifiers
-
-- On the receive side, the hardware or driver re-assembles the packets
-
-  - Intermediate headers are stripped and the packet is re-assembled
+  - Upon matching the `num` identifier, `prot->handler()` is called
 
 ]
 
-===  Generic Receive Offload
+=== #kstruct("net_offload")
+
+#[
+  #show raw.where(lang: "c", block: true): set text(size: 13.5pt)
+
+  - Some Layer 4 protocols may be associated with a
+    #kstruct("net_offload")
+
+  - Used to offload *segmentation* : Let the hardware or driver do
+    it
+
+    - Segmentation and re-assembly is protocol-specific
+
+    - Each protocol can register a #kstruct("net_offload")
+
+    - ```c
+      int inet_add_offload(const struct net_offload *prot, unsigned char num);
+      int inet6_add_offload(const struct net_offload *prot, unsigned char num);
+      ```
+
+  - `skb`s bigger than the *MTU* are passed to the driver
+
+  - The driver or the hardware handles splitting the packet
+
+    - L2 and L3 headers are added with fragment identifiers
+
+  - On the receive side, the hardware or driver re-assembles the packets
+
+    - Intermediate headers are stripped and the packet is re-assembled
+
+]
+
+=== Generic Receive Offload
 
 - GRO may be used if the driver or the hardware doesn't handle
   re-assembly
@@ -582,7 +652,7 @@ struct net_protocol {
 
 - Can be problematic for latency or throughput in *router* mode
 
-===  Generic Segmentation Offload
+=== Generic Segmentation Offload
 
 - Perform the segmentation either in hardware, or just before passing to
   the driver
@@ -600,26 +670,32 @@ struct net_protocol {
 
   - Support for partial checksum offload is required
 
-===  routing
+=== routing
 
-#table(columns: (45%, 55%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (45%, 55%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-#align(center, [#image("routing.pdf", width: 90%)]) 
+    #align(center, [#image("routing.pdf", width: 90%)])
 
-],[
+  ],
+  [
 
-- Routing happens on *ingress* and *egress*
+    - Routing happens on *ingress* and *egress*
 
-- Done by looking-up the *\F*\orwarding *\I*\nformation
-  *\B*\ase
+    - Done by looking-up the *\F*\orwarding *\I*\nformation
+      *\B*\ase
 
-- Decision taken in #kfunc("fib_lookup")
+    - Decision taken in #kfunc("fib_lookup")
 
-- The table can be shown with *ip route*
+    - The table can be shown with *ip route*
 
-])
+  ],
+)
 
-===  Flow tables
+=== Flow tables
 
 - Allows a slow-path and fast-path for routing and bridging
 

@@ -6,7 +6,7 @@
 
 = eBPF
 
-===  The ancestor: Berkeley Packet filter
+=== The ancestor: Berkeley Packet filter
 
 - BPF stands for Berkeley Packet Filter and was initially used for
   network packet filtering
@@ -17,47 +17,59 @@
 - tcpdump and Wireshark heavily rely on BPF (through libpcap) for packet
   capture
 
-===  BPF in libpcap: setup
+=== BPF in libpcap: setup
 
-#table(columns: (70%, 30%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (70%, 30%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-- tcpdump passes the capture filter string from the user to libpcap
+    - tcpdump passes the capture filter string from the user to libpcap
 
-- libpcap translates the capture filter into a binary program
+    - libpcap translates the capture filter into a binary program
 
-  - This program uses the instruction set of an abstract machine (the
-    "BPF instruction set")
+      - This program uses the instruction set of an abstract machine (the
+        "BPF instruction set")
 
-- libpcap sends the binary program to the kernel via the `setsockopt()`
-  syscall
+    - libpcap sends the binary program to the kernel via the `setsockopt()`
+      syscall
 
-],[
+  ],
+  [
 
-#align(center, [#image("bpf-setup.pdf", height: 90%)])
+    #align(center, [#image("bpf-setup.pdf", height: 90%)])
 
-])
+  ],
+)
 
-===  BPF in libpcap: capture
+=== BPF in libpcap: capture
 
-#table(columns: (60%, 40%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (60%, 40%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-- The kernel implements the BPF "virtual machine"
+    - The kernel implements the BPF "virtual machine"
 
-- The BPF virtual machine executes the program for every packet
+    - The BPF virtual machine executes the program for every packet
 
-- The program inspects the packet data and returns a non-zero value if
-  the packet must be captured
+    - The program inspects the packet data and returns a non-zero value if
+      the packet must be captured
 
-- If the return value is non-zero, the packet is captured in addition to
-  regular packet processing
+    - If the return value is non-zero, the packet is captured in addition to
+      regular packet processing
 
-],[
+  ],
+  [
 
-#align(center, [#image("bpf-capture.pdf", height: 90%)])
+    #align(center, [#image("bpf-capture.pdf", height: 90%)])
 
-])
+  ],
+)
 
-===  eBPF (1/2)
+=== eBPF (1/2)
 
 - #link("https://ebpf.io/")[eBPF] is a new framework allowing to run
   small user programs directly in the kernel, in a safe and efficient
@@ -77,10 +89,10 @@
 
   - faster development cycles to get a new feature ready
 
-#align(center, [#image("logo_ebpf.png", height: 20%)]) 
+#align(center, [#image("logo_ebpf.png", height: 20%)])
 #text(size: 13pt)[#align(center, [Image credits: #link("https://ebpf.io/")])]
 
-===  eBPF (2/2)
+=== eBPF (2/2)
 
 - The most notable eBPF features are:
 
@@ -96,11 +108,11 @@
 
   - plenty of (kernel) helper functions accessible from eBPF programs.
 
-===  eBPF program lifecycle
+=== eBPF program lifecycle
 
 #align(center, [#image("bpf_lifecycle.pdf", height: 90%)])
 
-===  Kernel configuration for eBPF
+=== Kernel configuration for eBPF
 
 - #kconfig("CONFIG_NET") to enable eBPF subsystem
 
@@ -127,7 +139,7 @@
   - #kconfig("CONFIG_CGROUP_BPF") to attach programs on cgroups
     hooks
 
-===  eBPF ISA
+=== eBPF ISA
 
 - eBPF is a "virtual" ISA, defining its own set of instructions: load
   and store instruction, arithmetic instructions, jump instructions,etc
@@ -146,18 +158,18 @@
 #v(0.5em)
 
 #[ #show raw.where(lang: "console", block: true): set text(size: 14pt)
-```console
-; bpf_printk("Hello %sn", "World");
-      0:  r1 = 0x0 ll
-      2:  r2 = 0xa
-      3:  r3 = 0x0 ll
-      5:  call 0x6
-; return 0;
-      6:  r0 = 0x0
-      7:  exit
-```]
+  ```console
+  ; bpf_printk("Hello %sn", "World");
+        0:  r1 = 0x0 ll
+        2:  r2 = 0xa
+        3:  r3 = 0x0 ll
+        5:  call 0x6
+  ; return 0;
+        6:  r0 = 0x0
+        7:  exit
+  ```]
 
-===  The eBPF verifier
+=== The eBPF verifier
 
 - When loaded into the kernel, a program must first be validated by the
   eBPF verifier.
@@ -185,7 +197,7 @@
   - There are mechanisms and helpers to avoid those issues, like per-CPU
     maps types.
 
-===  Program types and attach points
+=== Program types and attach points
 
 - There are different categories of hooks to which a program can be
   attached:
@@ -218,7 +230,7 @@
   - You can learn about the context passed to any program type by
     checking \ #kfile("include/linux/bpf_types.h")
 
-===  eBPF maps
+=== eBPF maps
 
 - eBPF programs exchange data with userspace or other programs through
   maps of different nature:
@@ -241,7 +253,7 @@
 - For basic data, it is easier and more efficient to directly use eBPF
   global variables (no syscalls involved, contrary to maps)
 
-===  The `bpf() syscall`
+=== The `bpf() syscall`
 
 - The kernel exposes a `bpf()` syscall to allow interacting with the
   eBPF subsystem
@@ -267,7 +279,7 @@
 
 - For more details, see #manpage("bpf", "2")
 
-===  Writing eBPF programs
+=== Writing eBPF programs
 
 - eBPF programs can either be written directly in raw eBPF assembly or
   in higher level languages (e.g: C or rust), and are compiled using the
@@ -294,14 +306,13 @@
   - `bpf_get_current_task` Returns the current
     #kstruct("task_struct")
 
-  - Many other helpers are available, see #manpage("bpf-helpers",
-    "7")
+  - Many other helpers are available, see #manpage("bpf-helpers", "7")
 
 - Kernel also exposes kfuncs (see #kdochtml("bpf/kfuncs")), but
   contrary to bpf-helpers, those do not belong to the kernel stable
   interface.
 
-===  Manipulating eBPF program
+=== Manipulating eBPF program
 
 - There are different ways to build, load and manipulate eBPF programs:
 
@@ -319,78 +330,88 @@
   - We can also use specialized frameworks like BCC or bpftrace to
     really get all operations (bpf program build included) handled
 
-===  BCC
+=== BCC
 
-#table(columns: (70%, 30%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (70%, 30%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-- BPF Compiler Collection (BCC) is (as its name suggests) a collection
-  of BPF based tools.
+    - BPF Compiler Collection (BCC) is (as its name suggests) a collection
+      of BPF based tools.
 
-- BCC provides a large number of ready-to-use tools written in BPF.
+    - BCC provides a large number of ready-to-use tools written in BPF.
 
-- Also provides an interface to write, load and hook BPF programs more
-  easily than using "raw" BPF language.
+    - Also provides an interface to write, load and hook BPF programs more
+      easily than using "raw" BPF language.
 
-- Available on a large number of architecture (Unfortunately, not
-  ARM32).
+    - Available on a large number of architecture (Unfortunately, not
+      ARM32).
 
-  - On debian, when installed, all tools are named \ `<tool>-bpfcc`.
+      - On debian, when installed, all tools are named \ `<tool>-bpfcc`.
 
-- BCC requires a kernel version >= 4.1.
+    - BCC requires a kernel version >= 4.1.
 
-- BCC evolves quickly, many distributions have old versions: you may
-  need to compile from the latest sources
+    - BCC evolves quickly, many distributions have old versions: you may
+      need to compile from the latest sources
 
-],[
+  ],
+  [
 
-#image("logo_bcc.png", height: 25%)
-#v(0.5em)
-#text(size: 12pt)[Image credits: \ #link("https://github.com/iovisor/bcc")]
+    #image("logo_bcc.png", height: 25%)
+    #v(0.5em)
+    #text(size: 12pt)[Image credits: \ #link("https://github.com/iovisor/bcc")]
 
-])
+  ],
+)
 
-===  BCC tools
+=== BCC tools
 
 #align(center, [#image("bcc_tracing_tools_2019.png", height: 90%)])
 
-#text(size: 12pt)[#align(center, [Image credits: #link("https://www.brendangregg.com/ebpf.html")])]
+#text(size: 12pt)[#align(
+  center,
+  [Image credits: #link("https://www.brendangregg.com/ebpf.html")],
+)]
 
-===  BCC Tools example
+=== BCC Tools example
 
-#[ #show raw.where(lang: "console", block: true): set text(size: 14pt)
+#[
+  #show raw.where(lang: "console", block: true): set text(size: 14pt)
 
-- `profile.py` is a CPU profiler allowing to capture stack traces of
-  current execution. Its output can be used for flamegraph generation:
+  - `profile.py` is a CPU profiler allowing to capture stack traces of
+    current execution. Its output can be used for flamegraph generation:
 
-#v(0.5em)
+  #v(0.5em)
 
-```console
-$ git clone https://github.com/brendangregg/FlameGraph.git
-$ profile.py -df -F 99 10 | ./FlameGraph/flamegraph.pl > flamegraph.svg
-```
+  ```console
+  $ git clone https://github.com/brendangregg/FlameGraph.git
+  $ profile.py -df -F 99 10 | ./FlameGraph/flamegraph.pl > flamegraph.svg
+  ```
 
-#v(0.5em)
+  #v(0.5em)
 
-- `tcpconnect.py` script displays all new TCP connection live
+  - `tcpconnect.py` script displays all new TCP connection live
 
-#v(0.5em)
+  #v(0.5em)
 
-```console
-$ tcpconnect 
-PID    COMM         IP SADDR            DADDR            DPORT
-220321 ssh          6  ::1              ::1              22   
-220321 ssh          4  127.0.0.1        127.0.0.1        22   
-17676  Chrome_Child 6  2a01:cb15:81e4:8100:37cf:d45b:d87d:d97d 2606:50c0:8003::154 443  
-[...]
-```
+  ```console
+  $ tcpconnect
+  PID    COMM         IP SADDR            DADDR            DPORT
+  220321 ssh          6  ::1              ::1              22
+  220321 ssh          4  127.0.0.1        127.0.0.1        22
+  17676  Chrome_Child 6  2a01:cb15:81e4:8100:37cf:d45b:d87d:d97d 2606:50c0:8003::154 443
+  [...]
+  ```
 
-#v(0.5em)
+  #v(0.5em)
 
-- And much more to discover at #link("https://github.com/iovisor/bcc")
+  - And much more to discover at #link("https://github.com/iovisor/bcc")
 
 ]
 
-===  Using BCC with python
+=== Using BCC with python
 
 - BCC exposes a `bcc` module, and especially a `BPF` class
 
@@ -409,7 +430,7 @@ PID    COMM         IP SADDR            DADDR            DPORT
   - By explicitly calling the relevant attach method on the `BPF`
     instance created earlier
 
-===  Using BCC with python
+=== Using BCC with python
 
 - Hook with a _kprobe_ on the `clone()` system call and display
   `"Hello, World!"` each time it is called
@@ -421,7 +442,7 @@ PID    COMM         IP SADDR            DADDR            DPORT
 
 from bcc import BPF
 
-# define BPF program 
+# define BPF program
 prog = """
 int hello(void *ctx) {
     bpf_trace_printk("Hello, World!n");
@@ -433,7 +454,7 @@ b = BPF(text=prog)
 b.attach_kprobe(event=b.get_syscall_fnname("clone"), fn_name="hello")
 ```
 
-===  libbpf
+=== libbpf
 
 - Instead of using a high level framework like BCC, one can use libbpf
   to build custom tools with a finer control on every aspect of the
@@ -452,247 +473,251 @@ b.attach_kprobe(event=b.get_syscall_fnname("clone"), fn_name="hello")
 
 - Learn more at #link("https://libbpf.readthedocs.io/en/latest/")
 
-===  eBPF programming with libbpf (1/2)
+=== eBPF programming with libbpf (1/2)
 
 #text(size: 15pt)[`my_prog.bpf.c`]
 #v(-0.1em)
 #[ #show raw.where(lang: "c", block: true): set text(size: 10pt)
 
-```c
-      #include <linux/bpf.h>
-      #include <bpf/bpf_helpers.h>
-      #include <bpf/bpf_tracing.h>
+  ```c
+        #include <linux/bpf.h>
+        #include <bpf/bpf_helpers.h>
+        #include <bpf/bpf_tracing.h>
 
-      #define TASK_COMM_LEN 16
-      struct {
-        __uint(type, BPF_MAP_TYPE_ARRAY);
-        __type(key, __u32);
-        __type(value, __u64);
-        __uint(max_entries, 1);
-      } counter_map SEC(".maps");
+        #define TASK_COMM_LEN 16
+        struct {
+          __uint(type, BPF_MAP_TYPE_ARRAY);
+          __type(key, __u32);
+          __type(value, __u64);
+          __uint(max_entries, 1);
+        } counter_map SEC(".maps");
 
-      struct sched_switch_args {
-        unsigned long long pad;
-        char prev_comm[TASK_COMM_LEN];
-        int prev_pid;
-        int prev_prio;
-        long long prev_state;
-        char next_comm[TASK_COMM_LEN];
-        int next_pid;
-        int next_prio;
-      };
-```
+        struct sched_switch_args {
+          unsigned long long pad;
+          char prev_comm[TASK_COMM_LEN];
+          int prev_pid;
+          int prev_prio;
+          long long prev_state;
+          char next_comm[TASK_COMM_LEN];
+          int next_pid;
+          int next_prio;
+        };
+  ```
 ]
 
 - The fields to define in the `*_args` structure are obtained from the
   event description in `/sys/kernel/tracing/events` (see
   #link("https://elixir.bootlin.com/linux/v6.12/source/tools/testing/selftests/bpf/progs/test_stacktrace_map.c#L41")[this example])
 
-===  eBPF programming with libbpf (2/2)
+=== eBPF programming with libbpf (2/2)
 
 #text(size: 15pt)[`my_prog.bpf.c`]
 #v(-0.1em)
 #[ #show raw.where(lang: "c", block: true): set text(size: 10pt)
-```c
-      SEC("tracepoint/sched/sched_switch")
-      int sched_tracer(struct sched_switch_args *ctx)
-      {
-        __u32 key = 0;
-        __u64 *counter;
-        char *file;
+  ```c
+        SEC("tracepoint/sched/sched_switch")
+        int sched_tracer(struct sched_switch_args *ctx)
+        {
+          __u32 key = 0;
+          __u64 *counter;
+          char *file;
 
-        char fmt[] = "Old task was %s, new task is %sn";
-        bpf_trace_printk(fmt, sizeof(fmt), ctx->prev_comm, ctx->next_comm);
+          char fmt[] = "Old task was %s, new task is %sn";
+          bpf_trace_printk(fmt, sizeof(fmt), ctx->prev_comm, ctx->next_comm);
 
-        counter = bpf_map_lookup_elem(&counter_map, &key);
-        if(counter) {
-                *counter += 1;
-                bpf_map_update_elem(&counter_map, &key, counter, 0);
+          counter = bpf_map_lookup_elem(&counter_map, &key);
+          if(counter) {
+                  *counter += 1;
+                  bpf_map_update_elem(&counter_map, &key, counter, 0);
+          }
+
+          return 0;
         }
 
-        return 0;
-      }
-
-      char LICENSE[] SEC("license") = "Dual BSD/GPL";
-```
-]
-
-===  Building eBPF programs
-
-#[ #show raw.where(lang: "console", block: true): set text(size: 16pt)
-
-- An eBPF program written in C can be built into a loadable object
-  thanks to clang:
-
-  ```console
-    $ clang -target bpf -O2 -g -c my_prog.bpf.c -o my_prog.bpf.o
+        char LICENSE[] SEC("license") = "Dual BSD/GPL";
   ```
+]
 
-  - The `-g` option allows to add debug information as well as BTF
-    information
+=== Building eBPF programs
 
-- GCC can be used too with recent versions
+#[
+  #show raw.where(lang: "console", block: true): set text(size: 16pt)
 
-  - the toolchain can be installed with the `gcc-bpf` package in
-    Debian/Ubuntu
+  - An eBPF program written in C can be built into a loadable object
+    thanks to clang:
 
-  - it exposes the `bpf-unknown-none` target
+    ```console
+      $ clang -target bpf -O2 -g -c my_prog.bpf.c -o my_prog.bpf.o
+    ```
 
-- To easily manipulate this program with a userspace program based on
-  libbpf, we need "skeleton" APIs, which can be generated with to
-  `bpftool`
+    - The `-g` option allows to add debug information as well as BTF
+      information
+
+  - GCC can be used too with recent versions
+
+    - the toolchain can be installed with the `gcc-bpf` package in
+      Debian/Ubuntu
+
+    - it exposes the `bpf-unknown-none` target
+
+  - To easily manipulate this program with a userspace program based on
+    libbpf, we need "skeleton" APIs, which can be generated with to
+    `bpftool`
 
 ]
 
-===  bpftool
+=== bpftool
 
-#[ #show raw.where(lang: "console", block: true): set text(size: 16pt)
+#[
+  #show raw.where(lang: "console", block: true): set text(size: 16pt)
 
-- `bpftool` is a command line tool allowing to interact with bpf object
-  files and the kernel to manipulate bpf programs:
+  - `bpftool` is a command line tool allowing to interact with bpf object
+    files and the kernel to manipulate bpf programs:
 
-  - Load programs into the kernel
+    - Load programs into the kernel
 
-  - List loaded programs
+    - List loaded programs
 
-  - Dump program instructions, either as BPF code or JIT code
+    - Dump program instructions, either as BPF code or JIT code
 
-  - List loaded maps
+    - List loaded maps
 
-  - Dump map content
+    - Dump map content
 
-  - Attach programs to hooks (so they can run)
+    - Attach programs to hooks (so they can run)
 
-  - etc
+    - etc
 
-- You may need to mount the bpf filesystem to be able to pin a program
-  (needed to keep a program loaded after bpftool has finished running):
+  - You may need to mount the bpf filesystem to be able to pin a program
+    (needed to keep a program loaded after bpftool has finished running):
 
-#v(0.5em)
- 
+  #v(0.5em)
+
   ```console
           $ mount -t bpf none /sys/fs/bpf
   ```
 
 ]
 
-===  bpftool
+=== bpftool
 
-#[ #show raw.where(lang: "console", block: true): set text(size: 15pt)
+#[
+  #show raw.where(lang: "console", block: true): set text(size: 15pt)
 
-- List loaded programs
+  - List loaded programs
 
-#v(0.5em)
+  #v(0.5em)
 
-```console
-$ bpftool prog
-348: tracepoint  name sched_tracer  tag 3051de4551f07909  gpl 
-loaded_at 2024-08-06T15:43:11+0200  uid 0
-xlated 376B  jited 215B  memlock 4096B  map_ids 146,148
-btf_id 545
-```
+  ```console
+  $ bpftool prog
+  348: tracepoint  name sched_tracer  tag 3051de4551f07909  gpl
+  loaded_at 2024-08-06T15:43:11+0200  uid 0
+  xlated 376B  jited 215B  memlock 4096B  map_ids 146,148
+  btf_id 545
+  ```
 
-#v(0.5em)
+  #v(0.5em)
 
-- Load and attach a program
+  - Load and attach a program
 
-#v(0.5em)
+  #v(0.5em)
 
-```console
-$ mkdir /sys/fs/bpf/myprog
-$ bpftool prog loadall trace_execve.bpf.o /sys/fs/bpf/myprog autoattach
-```
+  ```console
+  $ mkdir /sys/fs/bpf/myprog
+  $ bpftool prog loadall trace_execve.bpf.o /sys/fs/bpf/myprog autoattach
+  ```
 
-#v(0.5em)
+  #v(0.5em)
 
-- Unload a program
+  - Unload a program
 
-#v(0.5em)
+  #v(0.5em)
 
-```console
-$ rm -rf /sys/fs/bpf/myprog
-```
+  ```console
+  $ rm -rf /sys/fs/bpf/myprog
+  ```
 
 ]
 
-===  bpftool
+=== bpftool
 
-#[ #show raw.where(lang: "console", block: true): set text(size: 12pt)
+#[
+  #show raw.where(lang: "console", block: true): set text(size: 12pt)
 
-- Dump a loaded program
-#v(0.5em)
-```console
-$ bpftool prog dump xlated id 348
-int sched_tracer(struct sched_switch_args * ctx):
-; int sched_tracer(struct sched_switch_args *ctx)
-  0: (bf) r4 = r1
-  1: (b7) r1 = 0
-; __u32 key = 0;
-  2: (63) *(u32 *)(r10 -4) = r1
-; char fmt[] = "Old task was %s, new task is %s\n";
-  3: (73) *(u8 *)(r10 -8) = r1
-  4: (18) r1 = 0xa7325207369206b
-  6: (7b) *(u64 *)(r10 -16) = r1
-  7: (18) r1 = 0x7361742077656e20
-[...]
-```]
+  - Dump a loaded program
+  #v(0.5em)
+  ```console
+  $ bpftool prog dump xlated id 348
+  int sched_tracer(struct sched_switch_args * ctx):
+  ; int sched_tracer(struct sched_switch_args *ctx)
+    0: (bf) r4 = r1
+    1: (b7) r1 = 0
+  ; __u32 key = 0;
+    2: (63) *(u32 *)(r10 -4) = r1
+  ; char fmt[] = "Old task was %s, new task is %s\n";
+    3: (73) *(u8 *)(r10 -8) = r1
+    4: (18) r1 = 0xa7325207369206b
+    6: (7b) *(u64 *)(r10 -16) = r1
+    7: (18) r1 = 0x7361742077656e20
+  [...]
+  ```]
 
 - Dump eBPF program logs
 #v(0.5em)
 #[ #show raw.where(lang: "console", block: true): set text(size: 10pt)
 
-```console
-$ bpftool prog tracelog 
-kworker/u80:0-11  [013] d..41  1796.003605: bpf_trace_printk: Old task was kworker/u80:0, new task is swapper/13
-<idle>-0          [013] d..41  1796.003609: bpf_trace_printk: Old task was swapper/13, new task is kworker/u80:0
-sudo-18640        [010] d..41  1796.003613: bpf_trace_printk: Old task was sudo, new task is swapper/10
-<idle>-0          [010] d..41  1796.003617: bpf_trace_printk: Old task was swapper/10, new task is sudo
-[...]
-```
+  ```console
+  $ bpftool prog tracelog
+  kworker/u80:0-11  [013] d..41  1796.003605: bpf_trace_printk: Old task was kworker/u80:0, new task is swapper/13
+  <idle>-0          [013] d..41  1796.003609: bpf_trace_printk: Old task was swapper/13, new task is kworker/u80:0
+  sudo-18640        [010] d..41  1796.003613: bpf_trace_printk: Old task was sudo, new task is swapper/10
+  <idle>-0          [010] d..41  1796.003617: bpf_trace_printk: Old task was swapper/10, new task is sudo
+  [...]
+  ```
 ]
 
-===  bpftool
+=== bpftool
 
 - List created maps
 #[ #show raw.where(lang: "console", block: true): set text(size: 12pt)
-#v(0.5em)
-```console
-$ bpftool map
-80: array  name counter_map  flags 0x0
-    key 4B  value 8B  max_entries 1  memlock 256B
-    btf_id 421
-82: array  name .rodata.str1.1  flags 0x80
-    key 4B  value 33B  max_entries 1  memlock 288B
-    frozen
-96: array  name libbpf_global  flags 0x0
-    key 4B  value 32B  max_entries 1  memlock 280B
-[...]
-```]
+  #v(0.5em)
+  ```console
+  $ bpftool map
+  80: array  name counter_map  flags 0x0
+      key 4B  value 8B  max_entries 1  memlock 256B
+      btf_id 421
+  82: array  name .rodata.str1.1  flags 0x80
+      key 4B  value 33B  max_entries 1  memlock 288B
+      frozen
+  96: array  name libbpf_global  flags 0x0
+      key 4B  value 32B  max_entries 1  memlock 280B
+  [...]
+  ```]
 #v(0.5em)
 - Show a map content
 #v(0.5em)
 #[ #show raw.where(lang: "console", block: true): set text(size: 12pt)
 
-```console
-$ sudo bpftool map dump id 80
-[{
-  "key": 0,
-  "value": 4877514
-  }
-])
-```
+  ```console
+  $ sudo bpftool map dump id 80
+  [{
+    "key": 0,
+    "value": 4877514
+    }
+  ])
+  ```
 ]
 
-===  bpftool
+=== bpftool
 
 - Generate libbpf APIs to manipulate a program
 
 #v(0.5em)
 #[ #show raw.where(lang: "console", block: true): set text(size: 14pt)
 
-```console
-$ bpftool gen skeleton trace_execve.bpf.o name trace_execve > trace_execve.skel.h
-```]
+  ```console
+  $ bpftool gen skeleton trace_execve.bpf.o name trace_execve > trace_execve.skel.h
+  ```]
 #v(0.5em)
 
 - We can then write our userspace program and benefit from high level
@@ -706,41 +731,41 @@ $ bpftool gen skeleton trace_execve.bpf.o name trace_execve > trace_execve.skel.
   - eBPF program directly embedded in the generated header as a byte
     array
 
-===  Userspace code with libbpf
+=== Userspace code with libbpf
 
 #[ #show raw.where(lang: "c", block: true): set text(size: 10pt)
 
-```c
-      #include <stdlib.h>
-      #include <stdio.h>
-      #include <unistd.h>
-      #include "trace_sched_switch.skel.h"
+  ```c
+        #include <stdlib.h>
+        #include <stdio.h>
+        #include <unistd.h>
+        #include "trace_sched_switch.skel.h"
 
-      int main(int argc, char *argv[])
-      {
-          struct trace_sched_switch *skel;
-          int key = 0;
-          long counter = 0;
+        int main(int argc, char *argv[])
+        {
+            struct trace_sched_switch *skel;
+            int key = 0;
+            long counter = 0;
 
-          skel = trace_sched_switch__open_and_load();
-          if(!skel)
-              exit(EXIT_FAILURE);
-          if (trace_sched_switch__attach(skel)) {
-              trace_sched_switch__destroy(skel);
-              exit(EXIT_FAILURE);
-          }
+            skel = trace_sched_switch__open_and_load();
+            if(!skel)
+                exit(EXIT_FAILURE);
+            if (trace_sched_switch__attach(skel)) {
+                trace_sched_switch__destroy(skel);
+                exit(EXIT_FAILURE);
+            }
 
-          while(true) {
-              bpf_map__lookup_elem(skel->maps.counter_map, &key, sizeof(key), &counter, sizeof(counter), 0);
-              fprintf(stderr, "Scheduling switch count: %dn", counter);
-              sleep(1);
-          }
+            while(true) {
+                bpf_map__lookup_elem(skel->maps.counter_map, &key, sizeof(key), &counter, sizeof(counter), 0);
+                fprintf(stderr, "Scheduling switch count: %dn", counter);
+                sleep(1);
+            }
 
-          return 0;
-      }
-```]
+            return 0;
+        }
+  ```]
 
-===  eBPF programs portability (1/2)
+=== eBPF programs portability (1/2)
 
 - Kernel internals, contrary to userspace APIs, do not expose stable
   APIs. This means that an eBPF program manipulating some kernel data
@@ -767,9 +792,11 @@ $ bpftool gen skeleton trace_execve.bpf.o name trace_execve > trace_execve.skel.
     variables. libbpf provides such helpers, like `bpf_core_read`
 
 - To learn more, take a look at
-  #link("https://nakryiko.com/posts/bpf-core-reference-guide/")[Andrii Nakryiko'sCO-RE guide]
+  #link(
+    "https://nakryiko.com/posts/bpf-core-reference-guide/",
+  )[Andrii Nakryiko'sCO-RE guide]
 
-===  eBPF programs portability (2/2)
+=== eBPF programs portability (2/2)
 
 - Despite CO-RE, you may still face different constraints on different
   kernel versions, because of major features introduction or change,
@@ -792,7 +819,7 @@ $ bpftool gen skeleton trace_execve.bpf.o name trace_execve > trace_execve.skel.
   - `CAP_BPF` capability, allowing a process to perform eBPF tasks, has
     been added in version 5.8
 
-===  eBPF for tracing/profiling
+=== eBPF for tracing/profiling
 
 - eBPF is a very powerful framework to spy on kernel internals: thanks
   to the wide variety of attach point, you can expose almost any kernel
@@ -824,17 +851,21 @@ $ bpftool gen skeleton trace_execve.bpf.o name trace_execve > trace_execve.skel.
   - And many more, check #link("https://ebpf.io/applications/")[ebpf.io]
     for more examples
 
-===  eBPF: resources
+=== eBPF: resources
 
 - BCC tutorial:
-  #link("https://github.com/iovisor/bcc/blob/master/docs/tutorial_bcc_python_developer.md")[https://github.com/iovisor/bcc/blob/master/docs/tutorial_bcc_python_developer.md]
+  #link(
+    "https://github.com/iovisor/bcc/blob/master/docs/tutorial_bcc_python_developer.md",
+  )[https://github.com/iovisor/bcc/blob/master/docs/tutorial_bcc_python_developer.md]
 
 - libbpf-bootstrap: #link("https://github.com/libbpf/libbpf-bootstrap")
 
 - A Beginner'sGuide to eBPF Programming - Liz Rice, 2020
 
   - Video:
-    #link("https://www.youtube.com/watch?v=lrSExTfS-iQ")[https://www.youtube.com/watch?v=lrSExTfS-iQ]
+    #link(
+      "https://www.youtube.com/watch?v=lrSExTfS-iQ",
+    )[https://www.youtube.com/watch?v=lrSExTfS-iQ]
 
   - Resources: #link("https://github.com/lizrice/ebpf-beginners")
 

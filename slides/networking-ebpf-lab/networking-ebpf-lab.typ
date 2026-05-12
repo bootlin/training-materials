@@ -4,8 +4,8 @@
 
 #show: bootlin-theme
 
-#setuplabframe([Using eBPF, XDP example],[
+#setuplabframe([Using eBPF, XDP example], [
 
-- Write a simple XDP program
+  - Write a simple XDP program
 
 ])

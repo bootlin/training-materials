@@ -6,7 +6,7 @@
 
 == Switch drivers
 
-===  Ethernet switches in Linux
+=== Ethernet switches in Linux
 
 - The *switchdev* framework allows configuring the
   *switching fabric*
@@ -15,7 +15,7 @@
 #v(0.5em)
 #align(center, [#image("switches.pdf", width: 60%)])
 
-===  Ethernet switches in Linux
+=== Ethernet switches in Linux
 
 - By default, without any further configuration, each port is
   *independent*
@@ -27,30 +27,38 @@
   for switchdev
 
 - DSA switches have their ports handled by the
-  #link("https://elixir.bootlin.com/linux/v6.15.2/source/net/dsa/port.c")[DSA port]
+  #link(
+    "https://elixir.bootlin.com/linux/v6.15.2/source/net/dsa/port.c",
+  )[DSA port]
   infrastructure
 
   - Implements the `.ndo_start_xmit`
 
-===  Switchdev
+=== Switchdev
 
-#table(columns: (40%, 60%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (40%, 60%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-#align(center, [#image("switchdev.pdf", width: 100%)])
+    #align(center, [#image("switchdev.pdf", width: 100%)])
 
-],[
+  ],
+  [
 
-- *switchdev* is a framework allowing drivers to implement
-  switching configuration ops
+    - *switchdev* is a framework allowing drivers to implement
+      switching configuration ops
 
-- Bridging, VLANs, filtering, queueing, redirection, snooping, etc.
+    - Bridging, VLANs, filtering, queueing, redirection, snooping, etc.
 
-- The hardware *must* be able to report internal reconfiguration
-  events
+    - The hardware *must* be able to report internal reconfiguration
+      events
 
-])
+  ],
+)
 
-===  Notifiers
+=== Notifiers
 
 - Drivers don't implement any kind of `switchdev_ops`
 
@@ -71,7 +79,7 @@
 
   - #kfunc("call_switchdev_notifiers")
 
-===  Switchdev notifiers - example
+=== Switchdev notifiers - example
 
 #text(size: 15pt)[switchdev example]
 #v(-0.2em)
@@ -101,7 +109,7 @@ static int adin1110_setup_notifiers(void)
 }
 ```
 
-===  Switchdev notifications
+=== Switchdev notifications
 
 - `NETDEV_CHANGEUPPER` : A `netdev` was added to or removed from a
   bridge
@@ -119,136 +127,160 @@ static int adin1110_setup_notifiers(void)
 
   - _e.g._ `call_switchdev_notifiers(SWITCHDEV_FDB_OFFLOADED, ndev, &info.info, NULL);`
 
-===  DSA
+=== DSA
 
 #align(center, [*\D*\istributed *\S*\witch *\A*\rchitecture])
-#table(columns: (20%, 80%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (20%, 80%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-#align(center, [#image("DSA.pdf", width: 100%)])
+    #align(center, [#image("DSA.pdf", width: 100%)])
 
-],[
+  ],
+  [
 
-- Mainly used by dedicated switch chips
+    - Mainly used by dedicated switch chips
 
-- One or more ports are connected to SoC interfaces
+    - One or more ports are connected to SoC interfaces
 
-- DSA switches may be chained together
+    - DSA switches may be chained together
 
-- The CPU to Switch link is called the *cpu conduit* or
-  *cpu port*
+    - The CPU to Switch link is called the *cpu conduit* or
+      *cpu port*
 
-- Switch to Switch links are called *dsa conduits*
+    - Switch to Switch links are called *dsa conduits*
 
-- Other interfaces are called *user* ports
+    - Other interfaces are called *user* ports
 
-- Frames on *conduits* are often *tagged* to identify the
-  destination port
+    - Frames on *conduits* are often *tagged* to identify the
+      destination port
 
-- DSA *uses* switchdev, and does not replace it
+    - DSA *uses* switchdev, and does not replace it
 
-])
+  ],
+)
 
-===  DSA tagging
+=== DSA tagging
 
-#table(columns: (50%, 50%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (50%, 50%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-#align(center, [#image("dsa_tagging.pdf", width: 100%)])
+    #align(center, [#image("dsa_tagging.pdf", width: 100%)])
 
-],[
+  ],
+  [
 
-- A vendor-specific TAG is added to the frame
+    - A vendor-specific TAG is added to the frame
 
-- It contains the identifier of the egress port
+    - It contains the identifier of the egress port
 
-- The frame is sent from the CPU to the switch
+    - The frame is sent from the CPU to the switch
 
-- The switch strips the tag and sends it to the port
+    - The switch strips the tag and sends it to the port
 
-- The opposite happens on receive
+    - The opposite happens on receive
 
-])
+  ],
+)
 
-===  DSA in devicetree
+=== DSA in devicetree
 
-#table(columns: (60%, 40%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (60%, 40%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-```
-&mdio {
-  switch0: ethernet-switch@1 {
-    compatible = "marvell,mv88e6085";
-    reg = <1>;
-  
-    dsa,member = <0 0>;
-  
-    ethernet-ports {
-      #address-cells = <1>;
-      #size-cells = <0>;
-      [...]
-    };
-  };
-};
-```
+    ```
+    &mdio {
+      switch0: ethernet-switch@1 {
+        compatible = "marvell,mv88e6085";
+        reg = <1>;
 
-],[
-  
-- *reg* : Address on the MDIO bus
+        dsa,member = <0 0>;
 
-- *dsa,member* : Position in the *cluster*, if applicable
-
-- *ethernet-ports* : Contains the list of ports
-
-])
-
-===  DSA Ports in devicetree
-
-#table(columns: (50%, 50%), stroke: none, gutter: 15pt, [
-
-#text(size: 13pt)[
-```
-    ...
-    ethernet-ports {
-      switch0port0: ethernet-port@0 {
-        reg = <0>;
-        label = "cpu";
-        ethernet = <&eth0>;
-        phy-mode = "rgmii-id";
-        fixed-link {
-          speed = <1000>;
-          full-duplex;
+        ethernet-ports {
+          #address-cells = <1>;
+          #size-cells = <0>;
+          [...]
         };
       };
-      
-      switch0port1: ethernet-port@1 {
-        reg = <1>;
-        label = "wan";
-        phy-handle = <&switch0phy0>;
-      };
-
-      switch0port2: ethernet-port@2 {
-        reg = <2>;
-^^Ilink = <&switch1port0>;
-      };
-
-      ...      
     };
-    ...
-```]
+    ```
 
-],[
+  ],
+  [
 
-- *reg* : Port number
+    - *reg* : Address on the MDIO bus
 
-- *label* : Port name, will become the interface name
+    - *dsa,member* : Position in the *cluster*, if applicable
 
-- *ethernet* : phandle to the CPU-side MAC interface
+    - *ethernet-ports* : Contains the list of ports
 
-- *link* : phandle to another DSA switch's port, for cascading
+  ],
+)
 
-- PHY mode and phandle
+=== DSA Ports in devicetree
 
-])
+#table(
+  columns: (50%, 50%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-===  Tagging
+    #text(size: 13pt)[
+      ```
+          ...
+          ethernet-ports {
+            switch0port0: ethernet-port@0 {
+              reg = <0>;
+              label = "cpu";
+              ethernet = <&eth0>;
+              phy-mode = "rgmii-id";
+              fixed-link {
+                speed = <1000>;
+                full-duplex;
+              };
+            };
+
+            switch0port1: ethernet-port@1 {
+              reg = <1>;
+              label = "wan";
+              phy-handle = <&switch0phy0>;
+            };
+
+            switch0port2: ethernet-port@2 {
+              reg = <2>;
+      ^^Ilink = <&switch1port0>;
+            };
+
+            ...
+          };
+          ...
+      ```]
+
+  ],
+  [
+
+    - *reg* : Port number
+
+    - *label* : Port name, will become the interface name
+
+    - *ethernet* : phandle to the CPU-side MAC interface
+
+    - *link* : phandle to another DSA switch's port, for cascading
+
+    - PHY mode and phandle
+
+  ],
+)
+
+=== Tagging
 
 - Tagging happens outside of the switch driver, in a dedicated tagger : \
   `net/dsa/tag_*.c`
@@ -262,18 +294,18 @@ static int adin1110_setup_notifiers(void)
 #text(size: 15pt)[DSA tagger]
 #v(-0.2em)
 #[ #show raw.where(lang: "c", block: true): set text(size: 16pt)
-```c
-static const struct dsa_device_ops foo_ops = {
-    .name = "foo",
-    .proto = DSA_TAG_PROTO_FOO,
-    .xmit = foo_tag_xmit,
-    .rcv = foo_tag_rcv,
-    .needed_headroom = FOO_HDR_LEN,
-    .promisc_on_conduit = true,
-};
-```]
+  ```c
+  static const struct dsa_device_ops foo_ops = {
+      .name = "foo",
+      .proto = DSA_TAG_PROTO_FOO,
+      .xmit = foo_tag_xmit,
+      .rcv = foo_tag_rcv,
+      .needed_headroom = FOO_HDR_LEN,
+      .promisc_on_conduit = true,
+  };
+  ```]
 
-===  Chaining
+=== Chaining
 
 - Some DSA switches can be daisy-chained
 

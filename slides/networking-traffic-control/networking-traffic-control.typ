@@ -6,7 +6,7 @@
 
 == Traffic Control
 
-===  Packet Scheduling
+=== Packet Scheduling
 
 - On complex systems, thousands of applications may use the same
   interface
@@ -19,24 +19,30 @@
 
 - *tc* is the main component that deals with traffic scheduling
 
-===  Packet Scheduling in the stack
+=== Packet Scheduling in the stack
 
-#table(columns: (45%, 55%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (45%, 55%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-#align(center, [#image("routing_tc.pdf", width: 90%)])
+    #align(center, [#image("routing_tc.pdf", width: 90%)])
 
-],[
+  ],
+  [
 
-- The scheduling decision occurs between *routing* and the
-  *driver*
+    - The scheduling decision occurs between *routing* and the
+      *driver*
 
-- On *egress*, decides which packet to enqueue
+    - On *egress*, decides which packet to enqueue
 
-- On *ingress*, may decide to drop or redirect
+    - On *ingress*, may decide to drop or redirect
 
-])
+  ],
+)
 
-===  TC : Traffic Control
+=== TC : Traffic Control
 
 - `tc` is a subsystem in charge of traffic control operations, namely :
 
@@ -55,7 +61,7 @@
   - *Classification* : Identify packets of interest for further
     actions
 
-===  TC use-cases
+=== TC use-cases
 
 - `tc mqprio` - Assign priorities to the Network Controller's queues
 
@@ -65,7 +71,7 @@
 
 - `tc ingress` - Attach TC actions to ingress traffic
 
-===  TC QDisc : Queueing Disciplines
+=== TC QDisc : Queueing Disciplines
 
 - Controls how traffic is enqueued, in the *tx* direction
 
@@ -74,7 +80,7 @@
 - *Flows* can be assigned to different *Qdisc* to define
   how to schedule transmission
 
-===  Queues
+=== Queues
 
 - Queue management is crucial for Latency and Throughput
 
@@ -87,7 +93,7 @@
 - *qdisc* algorithms select which queue is used for a given
   *flow*
 
-===  Traffic flows
+=== Traffic flows
 
 - Packets with same *addressing parameters* are part of the same
   *flow*
@@ -119,26 +125,32 @@
 - The hash is used for the subsequent lookup operations, and may be
   computed in hardware.
 
-===  TC example : QDisc
+=== TC example : QDisc
 
-#table(columns: (40%, 60%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (40%, 60%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-#align(center, [#image("tc-qdisc.pdf", width: 100%)])
+    #align(center, [#image("tc-qdisc.pdf", width: 100%)])
 
-],[
+  ],
+  [
 
-- Queueing Disciplines, or *qdisc*, allow configuring the queue
-  policy
+    - Queueing Disciplines, or *qdisc*, allow configuring the queue
+      policy
 
-- Multiple qdisc can co-exist, separated into different *classes*
+    - Multiple qdisc can co-exist, separated into different *classes*
 
-- *classes* are used to split traffic, and enforce policing
+    - *classes* are used to split traffic, and enforce policing
 
-- Traffic is assigned to classes through *classification*
+    - Traffic is assigned to classes through *classification*
 
-])
+  ],
+)
 
-===  TC example : Classification
+=== TC example : Classification
 
 - Match traffic with priority 0 or 4, and assign it to class "1:20"
 
@@ -153,7 +165,7 @@
 - It can also be used for early filtering :
 
   ```bash
-  tc qdisc add dev eth0 ingress 
+  tc qdisc add dev eth0 ingress
   tc filter add dev eth0 protocol ip parent ffff: flower \
   ip_proto tcp dst_port 80 \
   action drop
@@ -162,7 +174,7 @@
 - `tc-flower` can also be offloaded to hardware, see
   #manpage("tc-flower", "8")
 
-===  TC example : shaping
+=== TC example : shaping
 
 - Traffic Shaping, consists in limiting the egress rate of a flow
 
@@ -175,13 +187,13 @@
 - This can be combined with classification :
 
   ```bash
-  tc qdisc add dev eth0 root handle 1: prio 
-  tc qdisc add dev eth0 parent 1:3 handle 30: tbf rate 250kbit 
+  tc qdisc add dev eth0 root handle 1: prio
+  tc qdisc add dev eth0 parent 1:3 handle 30: tbf rate 250kbit
   tc filter add dev eth0 protocol ip parent 1:0 prio 3 u32 match ip \
   dst 192.168.42.2/32 flowid 1:3
   ```
 
-===  TC example : editing
+=== TC example : editing
 
 - TC also allows editing traffic or metadata on-the-fly
 
@@ -197,33 +209,39 @@ match ip dst 192.168.0.3 \
 action skbedit priority 6
 ```
 
-===  TC mqprio
+=== TC mqprio
 
-#table(columns: (30%, 70%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (30%, 70%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-#align(center, [#image("txq_mq.pdf", width: 80%)])
+    #align(center, [#image("txq_mq.pdf", width: 80%)])
 
-],[
+  ],
+  [
 
-- Most Network Controllers today have multiple queues in `tx` and `rx`
+    - Most Network Controllers today have multiple queues in `tx` and `rx`
 
-- They implement in hardware a *policing* algorithm to select the
-  next `tx` queue to use
+    - They implement in hardware a *policing* algorithm to select the
+      next `tx` queue to use
 
-  - It can be a simple *weighted round robin* algorithm
+      - It can be a simple *weighted round robin* algorithm
 
-  - Alternatively a *strict priority* selection
+      - Alternatively a *strict priority* selection
 
-  - Some controllers also implement Time-aware scheduling for queue
-    selection
+      - Some controllers also implement Time-aware scheduling for queue
+        selection
 
-])
+  ],
+)
 
-===  TC mqprio
+=== TC mqprio
 
 #align(center, [#image("TX_path_tc_mqprio.pdf", width: 70%)])
 
-===  TC offloads
+=== TC offloads
 
 - Some TC operations can be offloaded to the Ethernet Controler, if
   supported

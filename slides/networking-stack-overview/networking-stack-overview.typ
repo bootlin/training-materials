@@ -6,60 +6,72 @@
 
 = Introduction - Networking Technologies
 
-===  OSI Model
+=== OSI Model
 
-#table(columns: (20%, 80%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (20%, 80%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-#align(center, [#image("osi.pdf", width: 90%)])
+    #align(center, [#image("osi.pdf", width: 90%)])
 
-],[
+  ],
+  [
 
-- *\O*\pen *\S*\ystems *\I*\nterconnection
+    - *\O*\pen *\S*\ystems *\I*\nterconnection
 
-- Reference model to design network protocols, created in the late 1970s
+    - Reference model to design network protocols, created in the late 1970s
 
-- Defines 7 *layers*, with specific functions and semantics
+    - Defines 7 *layers*, with specific functions and semantics
 
-- Each layer relies on the layer below, and provides features to the
-  layer above
+    - Each layer relies on the layer below, and provides features to the
+      layer above
 
-  - In practice, this is done through *encapsulation*
+      - In practice, this is done through *encapsulation*
 
-  - Each layer adds its required data to the front of the data array
+      - Each layer adds its required data to the front of the data array
 
-    - This is the layer's *header*
+        - This is the layer's *header*
 
-  - A Layer N's header is part of Layer N-1's payload
+      - A Layer N's header is part of Layer N-1's payload
 
-])
-===  OSI layer communication
+  ],
+)
+=== OSI layer communication
 
-#table(columns: (20%, 80%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (20%, 80%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-#align(center, [#image("osi_encap.pdf", width: 120%)])
+    #align(center, [#image("osi_encap.pdf", width: 120%)])
 
-],[
+  ],
+  [
 
-- The payload sent by a layer targets the same layer on the receiving
-  end
+    - The payload sent by a layer targets the same layer on the receiving
+      end
 
-- Each layer only cares about its specific header and treats the payload
-  as a *black box*
+    - Each layer only cares about its specific header and treats the payload
+      as a *black box*
 
-- When the *peer* receives it, it *decapsulates* the
-  received data
+    - When the *peer* receives it, it *decapsulates* the
+      received data
 
-- Every layer has its own semantics about the data it manipulates
+    - Every layer has its own semantics about the data it manipulates
 
-- Every layer's unit is called *\P*\rotocol *\D*\ata
-  *\U*\nit
+    - Every layer's unit is called *\P*\rotocol *\D*\ata
+      *\U*\nit
 
-- Every layer has a *\M*\aximum *\T*\ransmit *\U*\nit per
-  PDU
+    - Every layer has a *\M*\aximum *\T*\ransmit *\U*\nit per
+      PDU
 
-])
+  ],
+)
 
-===  Layer 1 - PHY Layer
+=== Layer 1 - PHY Layer
 
 - Defines how data is sent to a peer trough a *physical medium*
 
@@ -87,7 +99,7 @@
 
 - Usually handled by a dedicated hardware component : a *PHY*
 
-===  Layer 2 - Data Link Layer
+=== Layer 2 - Data Link Layer
 
 - Sometimes called *MAC* layer
 
@@ -105,45 +117,46 @@
 
   - Receiver, Transmitter, Source and Destination
 
-===  Ethernet - Layer 2
+=== Ethernet - Layer 2
 
-#[ #set list(spacing: 0.4em)
+#[
+  #set list(spacing: 0.4em)
 
-#align(center, [#image("ethernet_frame.pdf", width: 70%)])
+  #align(center, [#image("ethernet_frame.pdf", width: 70%)])
 
-- Point-to-point *frames* are sent on the medium, separated by a
-  *gap*
+  - Point-to-point *frames* are sent on the medium, separated by a
+    *gap*
 
-- Regardless of the speed and medium, frames have the same structure :
+  - Regardless of the speed and medium, frames have the same structure :
 
-  - 7 bytes *Preamble*: Used to synchronize both equipment
+    - 7 bytes *Preamble*: Used to synchronize both equipment
 
-  - 1 byte *SFD* (Start Frame Delimiter): Ends the preamble
+    - 1 byte *SFD* (Start Frame Delimiter): Ends the preamble
 
-  - 6 bytes *Destination address*, identifying the destination
-    equipment
+    - 6 bytes *Destination address*, identifying the destination
+      equipment
 
-  - 6 bytes *Source address*, identifying the source equipment
+    - 6 bytes *Source address*, identifying the source equipment
 
-  - 2 bytes *ethertype*, identifying the encapsulated protocol
+    - 2 bytes *ethertype*, identifying the encapsulated protocol
 
-  - A *payload*
+    - A *payload*
 
-  - 4 trailing bytes *FCS* (Frame Check Sequence): Checksum of
-    the frame
+    - 4 trailing bytes *FCS* (Frame Check Sequence): Checksum of
+      the frame
 
-- Each frame must be separated by at least 12 bytes, named the
-  *\I*\nter *\P*\acket *\G*\ap
+  - Each frame must be separated by at least 12 bytes, named the
+    *\I*\nter *\P*\acket *\G*\ap
 
-- _header_ + _payload_ + _fcs_ ≤ 1522 bytes, the
-  payload's size is at most *1504 bytes*
+  - _header_ + _payload_ + _fcs_ ≤ 1522 bytes, the
+    payload's size is at most *1504 bytes*
 
-- _header_ + _payload_ + _fcs_ ≥ 64 bytes, the
-  payload must be _zero-padded_ otherwise
+  - _header_ + _payload_ + _fcs_ ≥ 64 bytes, the
+    payload must be _zero-padded_ otherwise
 
 ]
 
-===  Network Bridging
+=== Network Bridging
 
 - A *Network bridge* is a Layer 2 device interconnecting multiple
   network segments
@@ -164,61 +177,73 @@
 
 - Some switches can be highly configurable, and support s
 
-===  Transparent bridge
+=== Transparent bridge
 
-#table(columns: (30%, 70%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (30%, 70%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-#align(center, [#image("transparent_bridge.pdf", width: 110%)])
+    #align(center, [#image("transparent_bridge.pdf", width: 110%)])
 
-],[
+  ],
+  [
 
-- Ports are monitored, the *source address* saved
+    - Ports are monitored, the *source address* saved
 
-- The *destination address* is looked-up
+    - The *destination address* is looked-up
 
-- If no match is found, the frame is *flooded* on all ports
+    - If no match is found, the frame is *flooded* on all ports
 
-- Advanced switches can do *port mirroring*
+    - Advanced switches can do *port mirroring*
 
-  - Duplicate traffic going forwarded a port to another port
+      - Duplicate traffic going forwarded a port to another port
 
-  - Used for administration and troubleshooting
+      - Used for administration and troubleshooting
 
-])
+  ],
+)
 
-===  VLANs
+=== VLANs
 
-#table(columns: (30%, 70%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (30%, 70%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-#align(center, [#image("vlan_topo.pdf", width: 110%)])
+    #align(center, [#image("vlan_topo.pdf", width: 110%)])
 
-],[
+  ],
+  [
 
-- *\V*\irtual *\L*\ocal *\A*\rea *\N*\etwork
+    - *\V*\irtual *\L*\ocal *\A*\rea *\N*\etwork
 
-- Multiple VLAN technologies exist:
+    - Multiple VLAN technologies exist:
 
-  - 802.1Q (_dot1q_): Layer 2
+      - 802.1Q (_dot1q_): Layer 2
 
-  - 802.1AD (_QinQ_): Layer 2
+      - 802.1AD (_QinQ_): Layer 2
 
-  - VxLan : Layer 4 (UDP)
+      - VxLan : Layer 4 (UDP)
 
-  - MACVlan : Based only on MAC addresses
+      - MACVlan : Based only on MAC addresses
 
-- Logical segmentation of the network
+    - Logical segmentation of the network
 
-- Used for isolation, prioritization and bandwidth optimization
+    - Used for isolation, prioritization and bandwidth optimization
 
-- The same conduit can be used to convey multiple VLANs
+    - The same conduit can be used to convey multiple VLANs
 
-  - We talk about a *trunk* interface
+      - We talk about a *trunk* interface
 
-  - Frames are *tagged* to indicate the VLAN it belongs to
+      - Frames are *tagged* to indicate the VLAN it belongs to
 
-])
+  ],
+)
 
-===  VLAN - 802.1Q
+=== VLAN - 802.1Q
 #align(center, [#image("ethernet_frame_vlan.pdf", width: 80%)])
 
 - A 802.1Q frame has included an extra *4 bytes* tag in the
@@ -242,7 +267,7 @@
 
     - ID *4095* is reserved.
 
-===  Layer 3 - Network Layer
+=== Layer 3 - Network Layer
 
 - PDU is *packet* or *Segment*
 
@@ -270,7 +295,7 @@
 
   - Re-assembly is done by the peer
 
-===  Transport Layer
+=== Transport Layer
 
 - Communication between endpoints over a routed network
 
@@ -293,29 +318,35 @@
 
   - Can batch Acknowledgments, supports encryption
 
-===  Tunneling
+=== Tunneling
 
-#table(columns: (30%, 70%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (30%, 70%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-#align(center, [#image("wireguard.pdf", width: 80%)])
+    #align(center, [#image("wireguard.pdf", width: 80%)])
 
-],[
+  ],
+  [
 
-- Encapsulate a Lower-level layer into a higher one
+    - Encapsulate a Lower-level layer into a higher one
 
-- Used to virtualize networks (e.g. VXLAN is Ethernet over UDP)
+    - Used to virtualize networks (e.g. VXLAN is Ethernet over UDP)
 
-- Also used for encryption (IPSec, Wireguard, OpenVPN)
+    - Also used for encryption (IPSec, Wireguard, OpenVPN)
 
-  - _e.g._ Wireguard Encrypts and encapsulates IP packets into UDP
-    packets
+      - _e.g._ Wireguard Encrypts and encapsulates IP packets into UDP
+        packets
 
-- There may therefore be more headers to decapsulate than there are OSI
-  layers
+    - There may therefore be more headers to decapsulate than there are OSI
+      layers
 
-])
+  ],
+)
 
-===  Layers 5, 6 and 7
+=== Layers 5, 6 and 7
 
 - Session : Handles the connection, authentication and lifetime of data
   exchanges
@@ -340,29 +371,35 @@
 = The Linux Kernel Networking Stack
 <the-linux-kernel-networking-stack>
 
-===  The Linux Kernel Networking Stack
+=== The Linux Kernel Networking Stack
 
-#table(columns: (65%, 35%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (65%, 35%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-#align(center, [#image("stackmap.pdf", width: 100%)])
+    #align(center, [#image("stackmap.pdf", width: 100%)])
 
-],[ 
+  ],
+  [
 
-As of v6.16-rc1 :
+    As of v6.16-rc1 :
 
-- over 209000 commits
+    - over 209000 commits
 
-- over 7750 files
+    - over 7750 files
 
-- over 993000 LoC
+    - over 993000 LoC
 
-- around 100 maintainers
+    - around 100 maintainers
 
-- Around 880 drivers (Layer 2)
+    - Around 880 drivers (Layer 2)
 
-])
+  ],
+)
 
-===  Some history
+=== Some history
 
 - First support was introduced in v0.96 (may 1992) !
 
@@ -386,35 +423,41 @@ As of v6.16-rc1 :
 
 - phylink : v4.13 - September 2017
 
-===  Networking in the Linux Kernel
+=== Networking in the Linux Kernel
 
-#table(columns: (45%, 55%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (45%, 55%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-#align(center, [#image("osi-kernel.pdf", width: 100%)])
+    #align(center, [#image("osi-kernel.pdf", width: 100%)])
 
-],[
+  ],
+  [
 
-- Abstracts the Network Devices
+    - Abstracts the Network Devices
 
-- Implements some OSI Layers :
+    - Implements some OSI Layers :
 
-  - Layer 1 (PHY) : Ethernet, WiFi, CAN, etc.
+      - Layer 1 (PHY) : Ethernet, WiFi, CAN, etc.
 
-  - Layer 2 (MAC) : Bridging, VLANs, etc.
+      - Layer 2 (MAC) : Bridging, VLANs, etc.
 
-  - Layer 3 (Network) : IPv4, IPv6, etc.
+      - Layer 3 (Network) : IPv4, IPv6, etc.
 
-  - Layer 4 (Transport) : TCP, UDP, etc.
+      - Layer 4 (Transport) : TCP, UDP, etc.
 
-- Provides a set of APIs to userspace :
+    - Provides a set of APIs to userspace :
 
-  - Socket API and `io_uring`
+      - Socket API and `io_uring`
 
-  - Control through ioctl and Netlink
+      - Control through ioctl and Netlink
 
-])
+  ],
+)
 
-===  Physical and MAC support
+=== Physical and MAC support
 
 - The Networking stack provides a framework for Layer 2 drivers :
   #kstruct("net_device")
@@ -442,7 +485,7 @@ As of v6.16-rc1 :
 
   - CAN Bus
 
-===  Ethernet
+=== Ethernet
 
 - Ethernet MAC controllers are supported through regular
   #kstruct("net_device") as well as `ethtool`
@@ -475,7 +518,7 @@ As of v6.16-rc1 :
 - Raw Ethernet frames can be sent and received in userspace API with
   `AF_PACKET`
 
-===  Wireless subsystem
+=== Wireless subsystem
 
 - Wifi (802.11) Stack :
 
@@ -506,7 +549,7 @@ As of v6.16-rc1 :
 
     - 6lowpan can also be used with Bluetooth Low Energy
 
-===  Other Technologies
+=== Other Technologies
 
 - X25 / AX25 : Amateur radio protocols. Long-standing support in Linux.
 
@@ -530,7 +573,7 @@ As of v6.16-rc1 :
 
   - Support implemented using the Network Stack, socket-based
 
-===  Userspace Networking
+=== Userspace Networking
 
 - Userspace applications can also access traffic at various points in
   the stack through sockets :
@@ -554,35 +597,41 @@ As of v6.16-rc1 :
     - Recent kernel-side implementation submitted for inclusion in the
       kernel
 
-===  Kernel Bypass
+=== Kernel Bypass
 
-#table(columns: (30%, 70%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (30%, 70%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-#align(center, [#image("kernel_bypass.pdf", width: 100%)])
+    #align(center, [#image("kernel_bypass.pdf", width: 100%)])
 
-],[
+  ],
+  [
 
-- Contrary to `AF_PACKET`, Kernel Bypass techniques circumvent the
-  networking stack
+    - Contrary to `AF_PACKET`, Kernel Bypass techniques circumvent the
+      networking stack
 
-- Allows using an alternative implementation of the network stack,
-  entirely running in userspace
+    - Allows using an alternative implementation of the network stack,
+      entirely running in userspace
 
-  - For use-case optimized scenarios
+      - For use-case optimized scenarios
 
-- DPDK : Data Plane Development Kit
+    - DPDK : Data Plane Development Kit
 
-  - Re-implement the drivers in userspace as well as a custom stack
+      - Re-implement the drivers in userspace as well as a custom stack
 
-- Not supported by the linux kernel community
+    - Not supported by the linux kernel community
 
-- Implies re-writing a full driver in userspace
+    - Implies re-writing a full driver in userspace
 
-- With `XDP` + `AF_XDP`, we now have a fully upstream solution
+    - With `XDP` + `AF_XDP`, we now have a fully upstream solution
 
-])
+  ],
+)
 
-===  Netdev community
+=== Netdev community
 
 - The networking stack is made up of around 1M lines, 7000 distinct
   files
@@ -598,7 +647,7 @@ As of v6.16-rc1 :
 
 - Very active subsystem with lots of contributions and reviews.
 
-===  Contributing
+=== Contributing
 
 - Development occurs on the `netdev@vger.kernel.org` mailing list,
   #link("https://lore.kernel.org/netdev/")[see archives]
@@ -608,7 +657,9 @@ As of v6.16-rc1 :
 
 - 2 git repositories are used as a development basis:
 
-  - #link("https://git.kernel.org/pub/scm/linux/kernel/git/netdev/net-next.git/")[net-next]
+  - #link(
+      "https://git.kernel.org/pub/scm/linux/kernel/git/netdev/net-next.git/",
+    )[net-next]
     : For *new features*, development stops during the Merge
     Window
 
@@ -616,7 +667,9 @@ As of v6.16-rc1 :
       #link("https://patchwork.hopto.org/net-next.html")[status page]
       before sending patches !
 
-  - #link("https://git.kernel.org/pub/scm/linux/kernel/git/netdev/net.git/")[net]
+  - #link(
+      "https://git.kernel.org/pub/scm/linux/kernel/git/netdev/net.git/",
+    )[net]
     : For *fixes*, always open to patches.
 
 - Very fast-paced development, replies arrive quickly, for quick
@@ -628,7 +681,7 @@ As of v6.16-rc1 :
 - Automated build-test and runtime tests are run with NIPA, results are
   published #link("https://netdev.bots.linux.dev/status.html")[here]
 
-===  Conferences
+=== Conferences
 
 - The #link("https://lpc.events/")[*Linux Plumbers Conference*]
   hosts a Networking Track

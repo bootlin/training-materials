@@ -4,14 +4,14 @@
 
 #show: bootlin-theme
 
-#setuplabframe([Interacting with the Networking stack],[
+#setuplabframe([Interacting with the Networking stack], [
 
-- Use `iproute2` and `ethtool`
+  - Use `iproute2` and `ethtool`
 
-- Experiment with namespaces
+  - Experiment with namespaces
 
-- Create stacked interfaces
+  - Create stacked interfaces
 
-- Use the netlink interface
+  - Use the netlink interface
 
 ])

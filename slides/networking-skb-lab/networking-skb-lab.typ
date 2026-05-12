@@ -4,10 +4,10 @@
 
 #show: bootlin-theme
 
-#setuplabframe([Manipulating socket buffers],[
+#setuplabframe([Manipulating socket buffers], [
 
-- Implement a simple custom Layer 2 protocol
+  - Implement a simple custom Layer 2 protocol
 
-- Manipulate SKBs for encapsulation and decapsulation
+  - Manipulate SKBs for encapsulation and decapsulation
 
 ])
