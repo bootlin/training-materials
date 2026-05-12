@@ -112,30 +112,28 @@ performance issues in the kernel.
 
 ===  trace-cmd
 
-#[ #set list(spacing: 0.5em)
-
 - Wrapper around the `ftrace` interface
 
 - Trace only during a program execution:
-
+  #[ #set list(spacing: 0.3em)
   - `trace-cmd record <opts> <cmd>`
 
   - `trace-cmd report`
-
+  ]
 - Start, stop and show the trace buffer:
-
+  #[ #set list(spacing: 0.3em)
   - `trace-cmd start <opts>`
 
   - `trace-cmd stop`
 
   - `trace-cmd show`
-
+  ]
 - Save the content of the trace buffer for further analysis:
 
   - `trace-cmd extract`
 
 - Options
-
+  #[ #set list(spacing: 0.3em)
   - Events: `-e sched`, `-e sched:sched_switch`
 
   - Plugins: `-p function`
@@ -143,9 +141,8 @@ performance issues in the kernel.
   - Tracers: `-t osnoise`
 
   - Functions: `-f netif_tx_wake_queue`
-
-]
-
+  ]
+  
 ===  rtla 
 
 *\R*\eal*\T*\ime *\L*\inux *\A*\nalysis tool
