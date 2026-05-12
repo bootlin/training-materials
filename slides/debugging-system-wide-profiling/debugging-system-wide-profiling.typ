@@ -5,291 +5,291 @@
 #show: bootlin-theme
 
 #[
-#show raw.where(lang: "console", block :true): set text(size: 14pt)
+  #show raw.where(lang: "console", block: true): set text(size: 14pt)
 
-= System-wide Profiling & Tracing
+  = System-wide Profiling & Tracing
 
-===  System-wide Profiling & Tracing
+  === System-wide Profiling & Tracing
 
-- Sometimes, the problems are not tied to an application but rather due
-  to the usage of multiple layers (drivers, application, kernel).
+  - Sometimes, the problems are not tied to an application but rather due
+    to the usage of multiple layers (drivers, application, kernel).
 
-- In that case, it might be useful to analyze the whole stack.
+  - In that case, it might be useful to analyze the whole stack.
 
-- The kernel already includes a large number of tracepoints that can be
-  recorded using specific tools.
+  - The kernel already includes a large number of tracepoints that can be
+    recorded using specific tools.
 
-- New tracepoints can also be created statically or dynamically using
-  various mechanisms (kprobes for instance).
+  - New tracepoints can also be created statically or dynamically using
+    various mechanisms (kprobes for instance).
 
-== kprobes
-<kprobes>
+  == kprobes
+  <kprobes>
 
-===  Kprobes
+  === Kprobes
 
-- Allows to insert breaks at almost any kernel address dynamically and
-  to extract debugging and performance information
+  - Allows to insert breaks at almost any kernel address dynamically and
+    to extract debugging and performance information
 
-- Uses code patching to modify text code to insert calls to specific
-  handlers
+  - Uses code patching to modify text code to insert calls to specific
+    handlers
 
-  - `kprobes` allows to execute specific handlers when the hooked
-    instruction is executed
+    - `kprobes` allows to execute specific handlers when the hooked
+      instruction is executed
 
-  - `kretprobes` will trigger when returning from a function allowing to
-    extract the return value of functions but also display the
-    parameters that were used for the function call
+    - `kretprobes` will trigger when returning from a function allowing to
+      extract the return value of functions but also display the
+      parameters that were used for the function call
 
-- Needs some basic kernel configuration:
+  - Needs some basic kernel configuration:
 
-  - #kconfigval("CONFIG_KPROBES", "y") to enable general kprobe
-    support
+    - #kconfigval("CONFIG_KPROBES", "y") to enable general kprobe
+      support
 
-  - #kconfigval("CONFIG_KALLSYMS_ALL", "y") to allow hooking
-    probes using `<symbol_name>` instead of raw function address
+    - #kconfigval("CONFIG_KALLSYMS_ALL", "y") to allow hooking
+      probes using `<symbol_name>` instead of raw function address
 
-  - #kconfigval("CONFIG_KPROBE_EVENTS", "y") to enable kprobes
-    usage as tracing events in `tracefs`
+    - #kconfigval("CONFIG_KPROBE_EVENTS", "y") to enable kprobes
+      usage as tracing events in `tracefs`
 
-- At the lowest level, k(ret)probes are manipulated with dedicated
-  kernel APIs, allowing to write our own kprobe tools (eg as kernel
-  modules)
+  - At the lowest level, k(ret)probes are manipulated with dedicated
+    kernel APIs, allowing to write our own kprobe tools (eg as kernel
+    modules)
 
-- Can also be used from userspace with
-  `/sys/kernel/tracing/kprobe_events`
+  - Can also be used from userspace with
+    `/sys/kernel/tracing/kprobe_events`
 
-- See #kdochtml("trace/kprobes") for more information
+  - See #kdochtml("trace/kprobes") for more information
 
-===  Basic kprobe tracing (1/2)
+  === Basic kprobe tracing (1/2)
 
-- Add a kprobe on `do_sys_openat2`:
-#v(0.5em)
-```console
-$ echo "p:my_probe do_sys_openat2" > /sys/kernel/tracing/kprobe_events
-```
-#v(0.5em)
+  - Add a kprobe on `do_sys_openat2`:
+  #v(0.5em)
+  ```console
+  $ echo "p:my_probe do_sys_openat2" > /sys/kernel/tracing/kprobe_events
+  ```
+  #v(0.5em)
 
-- Add a kprobe in the same function but at a specific offset, and
-  capture some arguments
-#v(0.5em)
+  - Add a kprobe in the same function but at a specific offset, and
+    capture some arguments
+  #v(0.5em)
 
-```console
-$ echo "p:my_probe_2 do_sys_openat2+0x7c file=%r2" > /sys/kernel/tracing/kprobe_events
-```
-#v(0.5em)
+  ```console
+  $ echo "p:my_probe_2 do_sys_openat2+0x7c file=%r2" > /sys/kernel/tracing/kprobe_events
+  ```
+  #v(0.5em)
 
-- Insert a kretprobe
-#v(0.5em)
+  - Insert a kretprobe
+  #v(0.5em)
 
-```console
-$ echo 'r:my_retprobe do_sys_openat2 $retval' > /sys/kernel/tracing/kprobe_events
-```
-#v(0.5em)
+  ```console
+  $ echo 'r:my_retprobe do_sys_openat2 $retval' > /sys/kernel/tracing/kprobe_events
+  ```
+  #v(0.5em)
 
-===  Basic kprobe tracing (2/2)
+  === Basic kprobe tracing (2/2)
 
-- Show existing kprobes
-#v(0.5em)
+  - Show existing kprobes
+  #v(0.5em)
 
-```console
-$ cat /sys/kernel/tracing/kprobe_events
-```
-#v(0.5em)
+  ```console
+  $ cat /sys/kernel/tracing/kprobe_events
+  ```
+  #v(0.5em)
 
-- Enable a kprobe (ie: start capturing the corresponding event)
-#v(0.5em)
+  - Enable a kprobe (ie: start capturing the corresponding event)
+  #v(0.5em)
 
-```console
-$ echo 1 > /sys/kernel/tracing/events/kprobes/my_probe/enable
-```
-#v(0.5em)
+  ```console
+  $ echo 1 > /sys/kernel/tracing/events/kprobes/my_probe/enable
+  ```
+  #v(0.5em)
 
-- Get data emitted by kprobes
-#v(0.5em)
+  - Get data emitted by kprobes
+  #v(0.5em)
 
-```console
-$ cat /sys/kernel/tracing/trace
-```
-#v(0.5em)
+  ```console
+  $ cat /sys/kernel/tracing/trace
+  ```
+  #v(0.5em)
 
-- Delete a kprobe
-#v(0.5em)
+  - Delete a kprobe
+  #v(0.5em)
 
-```console
-$ echo "-:my_probe" >> /sys/kernel/tracing/kprobe_events
-```
-#v(0.5em)
+  ```console
+  $ echo "-:my_probe" >> /sys/kernel/tracing/kprobe_events
+  ```
+  #v(0.5em)
 
-== perf
-<perf>
+  == perf
+  <perf>
 
-===  perf
+  === perf
 
-- _perf_ allows to do a wide range of tracing and recording
-  operations.
+  - _perf_ allows to do a wide range of tracing and recording
+    operations.
 
-- The kernel already contains events and tracepoints that can be used.
-  The list is given using `perf list`.
+  - The kernel already contains events and tracepoints that can be used.
+    The list is given using `perf list`.
 
-- Syscall tracepoints should be enabled in kernel configuration using
-  #kconfig("CONFIG_FTRACE_SYSCALLS").
+  - Syscall tracepoints should be enabled in kernel configuration using
+    #kconfig("CONFIG_FTRACE_SYSCALLS").
 
-- New tracepoint can be created dynamically on all symbols and registers
-  when debug info are not present.
+  - New tracepoint can be created dynamically on all symbols and registers
+    when debug info are not present.
 
-- Tracing functions, recording variables and parameters content using
-  their names will require a kernel compiled with
-  #kconfig("CONFIG_DEBUG_INFO").
+  - Tracing functions, recording variables and parameters content using
+    their names will require a kernel compiled with
+    #kconfig("CONFIG_DEBUG_INFO").
 
-- If perf does not find `vmlinux` you have to provide it using `-k
+  - If perf does not find `vmlinux` you have to provide it using `-k
   <vmlinux>`.
 
-===  perf example
+  === perf example
 
-- List all events that matches `syscalls:*`
-#v(0.5em)
+  - List all events that matches `syscalls:*`
+  #v(0.5em)
 
-```console
-$ perf list syscalls:*
-List of pre-defined events (to be used in -e):
+  ```console
+  $ perf list syscalls:*
+  List of pre-defined events (to be used in -e):
 
-  syscalls:sys_enter_accept                          [Tracepoint event]
-  syscalls:sys_enter_accept4                         [Tracepoint event]
-  syscalls:sys_enter_access                          [Tracepoint event]
-  syscalls:sys_enter_adjtimex_time32                 [Tracepoint event]
-  syscalls:sys_enter_bind                            [Tracepoint event]
-...
-```
-#v(0.5em)
+    syscalls:sys_enter_accept                          [Tracepoint event]
+    syscalls:sys_enter_accept4                         [Tracepoint event]
+    syscalls:sys_enter_access                          [Tracepoint event]
+    syscalls:sys_enter_adjtimex_time32                 [Tracepoint event]
+    syscalls:sys_enter_bind                            [Tracepoint event]
+  ...
+  ```
+  #v(0.5em)
 
-- Record all `syscalls:sys_enter_read` events for `sha256sum` command
-  into `perf.data` file.
-#v(0.5em)
+  - Record all `syscalls:sys_enter_read` events for `sha256sum` command
+    into `perf.data` file.
+  #v(0.5em)
 
-```console
-$ perf record -e syscalls:sys_enter_read sha256sum /bin/busybox
-[ perf record: Woken up 1 times to write data ]
-[ perf record: Captured and wrote 0.018 MB perf.data (215 samples) ]
-```
+  ```console
+  $ perf record -e syscalls:sys_enter_read sha256sum /bin/busybox
+  [ perf record: Woken up 1 times to write data ]
+  [ perf record: Captured and wrote 0.018 MB perf.data (215 samples) ]
+  ```
 
-===  perf report example
+  === perf report example
 
-- Display the collected samples ordered by time spent.
-#v(0.5em)
+  - Display the collected samples ordered by time spent.
+  #v(0.5em)
 
-```console
-$ perf report Samples: 591  of event 'cycles', Event count (approx.): 393877062
-Overhead  Command      Shared Object                   Symbol
-  22,88%  firefox-esr  [nvidia]                        [k] _nv031568rm
-   3,21%  firefox-esr  ld-linux-x86-64.so.2            [.] __minimal_realloc
-   2,00%  firefox-esr  libc.so.6                       [.] __stpncpy_ssse3
-   1,86%  firefox-esr  libglib-2.0.so.0.7400.0         [.] g_hash_table_lookup
-   1,62%  firefox-esr  ld-linux-x86-64.so.2            [.] _dl_strtoul
-   1,56%  firefox-esr  [kernel.kallsyms]               [k] clear_page_rep
-   1,52%  firefox-esr  libc.so.6                       [.] __strncpy_sse2_unaligned
-   1,37%  firefox-esr  ld-linux-x86-64.so.2            [.] strncmp
-   1,30%  firefox-esr  firefox-esr                     [.] malloc
-   1,27%  firefox-esr  libc.so.6                       [.] __GI___strcasecmp_l_ssse3
-   1,23%  firefox-esr  [nvidia]                        [k] _nv013165rm
-   1,09%  firefox-esr  [nvidia]                        [k] _nv007298rm
-   1,03%  firefox-esr  [kernel.kallsyms]               [k] unmap_page_range
-   0,91%  firefox-esr  ld-linux-x86-64.so.2            [.] __minimal_free
-```
+  ```console
+  $ perf report Samples: 591  of event 'cycles', Event count (approx.): 393877062
+  Overhead  Command      Shared Object                   Symbol
+    22,88%  firefox-esr  [nvidia]                        [k] _nv031568rm
+     3,21%  firefox-esr  ld-linux-x86-64.so.2            [.] __minimal_realloc
+     2,00%  firefox-esr  libc.so.6                       [.] __stpncpy_ssse3
+     1,86%  firefox-esr  libglib-2.0.so.0.7400.0         [.] g_hash_table_lookup
+     1,62%  firefox-esr  ld-linux-x86-64.so.2            [.] _dl_strtoul
+     1,56%  firefox-esr  [kernel.kallsyms]               [k] clear_page_rep
+     1,52%  firefox-esr  libc.so.6                       [.] __strncpy_sse2_unaligned
+     1,37%  firefox-esr  ld-linux-x86-64.so.2            [.] strncmp
+     1,30%  firefox-esr  firefox-esr                     [.] malloc
+     1,27%  firefox-esr  libc.so.6                       [.] __GI___strcasecmp_l_ssse3
+     1,23%  firefox-esr  [nvidia]                        [k] _nv013165rm
+     1,09%  firefox-esr  [nvidia]                        [k] _nv007298rm
+     1,03%  firefox-esr  [kernel.kallsyms]               [k] unmap_page_range
+     0,91%  firefox-esr  ld-linux-x86-64.so.2            [.] __minimal_free
+  ```
 
-===  perf probe
+  === perf probe
 
-- _perf_ allows to create dynamic tracepoints on both kernel
-  functions and user-space functions.
+  - _perf_ allows to create dynamic tracepoints on both kernel
+    functions and user-space functions.
 
-- In order to be able to insert probes, #kconfig("CONFIG_KPROBES")
-  must be enabled in the kernel.
+  - In order to be able to insert probes, #kconfig("CONFIG_KPROBES")
+    must be enabled in the kernel.
 
-  - Note: _libelf_ is required to compile _perf_ with
-    _probe_ command support.
+    - Note: _libelf_ is required to compile _perf_ with
+      _probe_ command support.
 
-- New dynamic probes can be created and then used using _perf
-  record_.
+  - New dynamic probes can be created and then used using _perf
+    record_.
 
-- Often on embedded platforms, `vmlinux` is not present on the target
-  and thus only symbols and registers can be used.
+  - Often on embedded platforms, `vmlinux` is not present on the target
+    and thus only symbols and registers can be used.
 
-===  perf probe examples (1/3)
+  === perf probe examples (1/3)
 
-- List all the kernel symbols that can be probed (no debug info needed):
-#v(0.5em)
+  - List all the kernel symbols that can be probed (no debug info needed):
+  #v(0.5em)
 
-```console
-$ perf probe --funcs
-```
-#v(0.5em)
+  ```console
+  $ perf probe --funcs
+  ```
+  #v(0.5em)
 
-- Create a new probe on `do_sys_openat2` with _filename_ named
-  parameter (debug info required).
-#v(0.5em)
+  - Create a new probe on `do_sys_openat2` with _filename_ named
+    parameter (debug info required).
+  #v(0.5em)
 
-```console
-$ perf probe --vmlinux=vmlinux_file do_sys_openat2 filename:string Added new event:
-  probe:do_sys_openat2 (on do_sys_openat2 with filename:string)
-```
-#v(0.5em)
+  ```console
+  $ perf probe --vmlinux=vmlinux_file do_sys_openat2 filename:string Added new event:
+    probe:do_sys_openat2 (on do_sys_openat2 with filename:string)
+  ```
+  #v(0.5em)
 
-- Execute `tail` and capture previously created probe event:
-#v(0.5em)
+  - Execute `tail` and capture previously created probe event:
+  #v(0.5em)
 
-```console
-$ perf record -e probe:do_sys_openat2 tail /var/log/messages
-...
-[ perf record: Woken up 1 times to write data ]
-[ perf record: Captured and wrote 0.003 MB perf.data (19 samples) ]
-```
+  ```console
+  $ perf record -e probe:do_sys_openat2 tail /var/log/messages
+  ...
+  [ perf record: Woken up 1 times to write data ]
+  [ perf record: Captured and wrote 0.003 MB perf.data (19 samples) ]
+  ```
 
-===  perf probe examples (2/3)
+  === perf probe examples (2/3)
 
-- Display the recorded tracepoints with _perf script_:
-#v(0.5em)
+  - Display the recorded tracepoints with _perf script_:
+  #v(0.5em)
 
-```console
-$ perf script tail   164 [000]  3552.956573: probe:do_sys_openat2: (c02c3750) filename_string="/etc/ld.so.cache"
-tail   164 [000]  3552.956642: probe:do_sys_openat2: (c02c3750) filename_string="/lib/tls/v7l/neon/vfp/libresolv.so.2"
-...
-```
-#v(0.5em)
+  ```console
+  $ perf script tail   164 [000]  3552.956573: probe:do_sys_openat2: (c02c3750) filename_string="/etc/ld.so.cache"
+  tail   164 [000]  3552.956642: probe:do_sys_openat2: (c02c3750) filename_string="/lib/tls/v7l/neon/vfp/libresolv.so.2"
+  ...
+  ```
+  #v(0.5em)
 
-- Create a new probe to capture the return value from `ksys_read`
-#v(0.5em)
+  - Create a new probe to capture the return value from `ksys_read`
+  #v(0.5em)
 
-```console
-$ perf probe ksys_read%return \$retval
-```
-#v(0.5em)
+  ```console
+  $ perf probe ksys_read%return \$retval
+  ```
+  #v(0.5em)
 
-- Execute `sha256sum` and capture previously created probe events:
-#v(0.5em)
+  - Execute `sha256sum` and capture previously created probe events:
+  #v(0.5em)
 
-```console
-$ perf record -e probe:ksys_read__return sha256sum /etc/fstab
-```
+  ```console
+  $ perf record -e probe:ksys_read__return sha256sum /etc/fstab
+  ```
 
-===  perf probe examples (3/3)
+  === perf probe examples (3/3)
 
-- List all probes that have been created:
-#v(0.5em)
+  - List all probes that have been created:
+  #v(0.5em)
 
-```console
-$ perf probe -l
-  probe:ksys_read__return (on ksys_read%return with ret)
-```
-#v(0.5em)
+  ```console
+  $ perf probe -l
+    probe:ksys_read__return (on ksys_read%return with ret)
+  ```
+  #v(0.5em)
 
-- Remove an existing tracepoint:
-#v(0.5em)
+  - Remove an existing tracepoint:
+  #v(0.5em)
 
-```console
-$ perf probe -d probe:ksys_read__return
-```
+  ```console
+  $ perf probe -d probe:ksys_read__return
+  ```
 ]
 
-===  perf record example
+=== perf record example
 
 - Record all events for all cpus (system-wide mode):
 
@@ -316,7 +316,7 @@ kworker/0:2-mm_    44 [000]   208.620653:     133104   cycles:          c0a44c84
 ...
 ```
 
-===  Using perf trace
+=== Using perf trace
 
 - `perf trace` captures and displays all tracepoints/events that have
   been triggered when executing a command
@@ -334,7 +334,7 @@ PING 192.168.1.1 (192.168.1.1) 56(84) bytes of data.
 64 bytes from 192.168.1.1: icmp_seq=1 ttl=64 time=0.867 ms
 ```
 
-===  Using perf top
+=== Using perf top
 
 - `perf top` allows to do a live analysis of the running kernel
 
@@ -360,7 +360,7 @@ Overhead  Shared Object                         Symbol
    0,53%  [kernel]                              [k] copy_user_generic_string
 ```
 
-===  Using a GUI to display perf data
+=== Using a GUI to display perf data
 
 - `perf report` is the default way to display perf data, directly in the
   console
@@ -385,7 +385,7 @@ Overhead  Shared Object                         Symbol
 
     - Can also perform the actual perf recording
 
-===  Visualizing data with flamegraphs
+=== Visualizing data with flamegraphs
 
 - Get the flamegraph scripts:
 
@@ -418,7 +418,7 @@ Overhead  Shared Object                         Symbol
 
 - The flamegraph can then be opened in a web browser
 
-===  Flamegraph example: CPU flamegraph
+=== Flamegraph example: CPU flamegraph
 
 #align(center, [#image("flamegraph.png", width: 90%)])
 
@@ -437,7 +437,7 @@ Overhead  Shared Object                         Symbol
 - Colors can be tuned at flamegraph generation (eg: to get a clear split
   between kernel and userspace)
 
-===  Visualizing data with hotspot (1/2)
+=== Visualizing data with hotspot (1/2)
 
 - Designed to provide a frontend to perf data files
 
@@ -452,7 +452,7 @@ Overhead  Shared Object                         Symbol
 - Configurable (eg: allows to set paths to find all needed debug
   informations)
 
-===  Visualizing data with hotspot (2/2)
+=== Visualizing data with hotspot (2/2)
 
 #align(center, [#image("hotspot.png", width: 90%)])
 
@@ -460,7 +460,7 @@ Overhead  Shared Object                         Symbol
 == ftrace and trace-cmd
 <ftrace-and-trace-cmd>
 
-===  ftrace
+=== ftrace
 
 - _ftrace_ is a tracing framework within the kernel which stands
   for "Function Tracer".
@@ -487,7 +487,7 @@ Overhead  Shared Object                         Symbol
 - #kconfig("CONFIG_DYNAMIC_FTRACE") allows to have a zero overhead
   tracing support.
 
-===  ftrace files
+=== ftrace files
 
 - _ftrace_ controls are exposed through some specific files located
   under `/sys/kernel/tracing`.
@@ -517,7 +517,7 @@ Overhead  Shared Object                         Symbol
 - _trace-cmd_ CLI and _Kernelshark_ GUI tools allow to record
   and visualize tracing data more easily.
 
-===  ftrace tracers
+=== ftrace tracers
 
 - ftrace provides several "tracers" which allow to trace different
   things.
@@ -544,12 +544,12 @@ Overhead  Shared Object                         Symbol
 #v(1em)
 #[
   #show raw.where(lang: "console", block: true): set text(size: 16pt)
-```console
-# echo "function" > /sys/kernel/tracing/current_tracer
-```
+  ```console
+  # echo "function" > /sys/kernel/tracing/current_tracer
+  ```
 ]
 
-===  function_graph tracer report example
+=== function_graph tracer report example
 
 - The _function_graph_ traces all the function that executed and
   their associated callgraphs
@@ -573,7 +573,7 @@ dd-113   [000]   304.526702: funcgraph_entry:                   |      __fdget_p
 dd-113   [000]   304.526708: funcgraph_entry:        6.167 us   |        __fget_light(); dd-113   [000]   304.526719: funcgraph_exit:       + 18.083 us  |      }
 ```
 
-===  irqsoff tracer
+=== irqsoff tracer
 
 - ftrace _irqsoff_ tracer allows to trace the irqs latency due to
   interrupts being disabled for too long.
@@ -593,7 +593,7 @@ dd-113   [000]   304.526708: funcgraph_entry:        6.167 us   |        __fget_
 
 #align(center, [#image("kernel_irqsoff.pdf", height: 40%)])
 
-===  irqsoff: report example
+=== irqsoff: report example
 
 ```console
 # latency: 276 us, #104/104, CPU#0 | (M:preempt VP:0, KP:0, SP:0 HP:0 #P:2)
@@ -604,25 +604,25 @@ dd-113   [000]   304.526708: funcgraph_entry:        6.167 us   |        __fget_
 #  => ended at:   irq_exit
 #
 #
-#                    _------=> CPU#            
-#                   / _-----=> irqs-off        
-#                  | / _----=> need-resched    
-#                  || / _---=> hardirq/softirq 
-#                  ||| / _--=> preempt-depth   
-#                  |||| /     delay            
-#  cmd     pid     ||||| time  |   caller      
-#        /        |||||      |   /         
-stress-n-114       0d...    2us : __irq_usr 
-stress-n-114       0d...    7us : gic_handle_irq <-__irq_usr 
+#                    _------=> CPU#
+#                   / _-----=> irqs-off
+#                  | / _----=> need-resched
+#                  || / _---=> hardirq/softirq
+#                  ||| / _--=> preempt-depth
+#                  |||| /     delay
+#  cmd     pid     ||||| time  |   caller
+#        /        |||||      |   /
+stress-n-114       0d...    2us : __irq_usr
+stress-n-114       0d...    7us : gic_handle_irq <-__irq_usr
 stress-n-114       0d...   10us : __handle_domain_irq <-gic_handle_irq
 ...
-stress-n-114       0d...  270us : __local_bh_disable_ip <-__do_softirq 
-stress-n-114       0d.s.  275us : __do_softirq <-irq_exit 
-stress-n-114       0d.s.  279us+: tracer_hardirqs_on <-irq_exit 
+stress-n-114       0d...  270us : __local_bh_disable_ip <-__do_softirq
+stress-n-114       0d.s.  275us : __do_softirq <-irq_exit
+stress-n-114       0d.s.  279us+: tracer_hardirqs_on <-irq_exit
 stress-n-114       0d.s.  290us : <stack trace>
 ```
 
-===  Hardware latency detector
+=== Hardware latency detector
 
 - ftrace _hwlat_ tracer will help to find if the hardware generates
   latency.
@@ -647,7 +647,7 @@ stress-n-114       0d.s.  290us : <stack trace>
 
 #align(center, [#image("kernel_hwlat.pdf", height: 30%)])
 
-===  trace-cmd
+=== trace-cmd
 
 - _trace-cmd_ is a tool written by Steven Rostedt which allows
   interacting with _ftrace_ (#manpage("trace-cmd", "1")).
@@ -662,12 +662,12 @@ stress-n-114       0d.s.  290us : <stack trace>
 
   - _report_: Display `trace.dat` acquisition results.
 
-===  trace-cmd examples (1/3)
+=== trace-cmd examples (1/3)
 
 - List available tracers
 #v(0.5em)
 ```console
-$ trace-cmd list -t 
+$ trace-cmd list -t
 blk mmiotrace function_graph function nop
 ```
 #v(0.5em)
@@ -677,8 +677,8 @@ blk mmiotrace function_graph function nop
 $ trace-cmd list -e
 ...
 migrate:mm_migrate_pages_start
-migrate:mm_migrate_pages 
-tlb:tlb_flush 
+migrate:mm_migrate_pages
+tlb:tlb_flush
 syscalls:sys_exit_process_vm_writev
 ...
 ```
@@ -691,12 +691,12 @@ $ trace-cmd list -f
 ...
 wait_for_initramfs
 __ftrace_invalid_address___64
-calibration_delay_done 
+calibration_delay_done
 calibrate_delay
 ...
 ```
 
-===  trace-cmd examples (2/3)
+=== trace-cmd examples (2/3)
 
 - Start the function tracer and record data globally on the system
 #v(0.5em)
@@ -723,7 +723,7 @@ $ trace-cmd record -p irqsoff
 $ trace-cmd record -e irq:irq_handler_exit -e irq:irq_handler_entry
 ```
 
-===  trace-cmd examples (3/3)
+=== trace-cmd examples (3/3)
 
 - Visualize the data that have been acquired in `trace.dat`:
 #v(0.5em)
@@ -737,7 +737,7 @@ $ trace-cmd report
 $ trace-cmd reset
 ```
 
-===  Remote tracing with trace-cmd
+=== Remote tracing with trace-cmd
 
 - _trace-cmd_ output can be quite big and thus difficult to store
   on an embedded platform with limited storage.
@@ -755,7 +755,7 @@ $ trace-cmd reset
 
 #align(center, [#image("ftrace-remote.pdf", height: 20%)])
 
-===  #kfunc("trace_printk")
+=== #kfunc("trace_printk")
 
 - #kfunc("trace_printk") allows to emit strings in the trace buffer
 
@@ -780,7 +780,7 @@ void read_hw()
 1)   2.657 us    |             }
 ```
 
-===  Adding ftrace tracepoints (1/2)
+=== Adding ftrace tracepoints (1/2)
 
 - For some custom needs, it might be needed to add custom tracepoints
 
@@ -805,7 +805,7 @@ DECLARE_TRACE(subsys_eventname,
 #include <trace/define_trace.h>
 ```
 
-===  Adding ftrace tracepoints (2/2)
+=== Adding ftrace tracepoints (2/2)
 
 - Then, emit tracepoint in a `.c` file using that header file
 #v(0.5em)
@@ -825,70 +825,82 @@ void any_func(void)
 #v(0.5em)
 - See #kdochtml("trace/tracepoints") for more information
 
-===  Kernelshark
+=== Kernelshark
 
-#table(columns: (70%, 30%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (70%, 30%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-- Kernelshark is a Qt-based graphical interface for processing
-  _trace-cmd_ trace.dat reports.
+    - Kernelshark is a Qt-based graphical interface for processing
+      _trace-cmd_ trace.dat reports.
 
-- Can also setup and acquire data using _trace-cmd_.
+    - Can also setup and acquire data using _trace-cmd_.
 
-- Displays CPU and tasks as different colors along with the recorded
-  events.
+    - Displays CPU and tasks as different colors along with the recorded
+      events.
 
-- Useful when a deep analysis is required for a specific bug.
+    - Useful when a deep analysis is required for a specific bug.
 
-],[
+  ],
+  [
 
-#align(center, [#image("kernelshark-logo.png", height: 70%)])
+    #align(center, [#image("kernelshark-logo.png", height: 70%)])
 
-])
+  ],
+)
 
-===  kernelshark
+=== kernelshark
 
 #align(center, [#image("kernelshark.png", height: 90%)])
 
-#setuplabframe([System wide profiling],[
+#setuplabframe([System wide profiling], [
 
-Profiling a system from userspace to kernel space 
+  Profiling a system from userspace to kernel space
 
-- Profiling with ftrace, uprobes and kernelshark
+  - Profiling with ftrace, uprobes and kernelshark
 
-- Profiling with perf
+  - Profiling with perf
 
 ])
 
 == LTTng
 <lttng>
 
-===  LTTng
+=== LTTng
 
-#table(columns: (65%, 35%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (65%, 35%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-- LTTng is an open source tracing framework for Linux maintained by the
-  #link("https://www.efficios.com/")[EfficiOS] company.
+    - LTTng is an open source tracing framework for Linux maintained by the
+      #link("https://www.efficios.com/")[EfficiOS] company.
 
-- LTTng allows understanding the interactions between the kernel and
-  applications (C, C++, Java, Python).
+    - LTTng allows understanding the interactions between the kernel and
+      applications (C, C++, Java, Python).
 
-  - Also expose a `/dev/lttng-logger` that can be used from any
-    application.
+      - Also expose a `/dev/lttng-logger` that can be used from any
+        application.
 
-- Tracepoints are associated with a payload (data).
+    - Tracepoints are associated with a payload (data).
 
-- LTTng is focused on low-overhead tracing.
+    - LTTng is focused on low-overhead tracing.
 
-- Uses the Common Trace Format (so traces are readable with other
-  software like babeltrace or trace-compass)
+    - Uses the Common Trace Format (so traces are readable with other
+      software like babeltrace or trace-compass)
 
-],[
+  ],
+  [
 
-#align(center, [#image("lttng-logo.jpg", height: 35%)])
+    #align(center, [#image("lttng-logo.jpg", height: 35%)])
 
-])
+  ],
+)
 
-===  Tracepoints with LTTng
+=== Tracepoints with LTTng
 
 - LTTng works with a session daemon that receive all events from kernel
   and userspace LTTng tracing components.
@@ -905,7 +917,7 @@ Profiling a system from userspace to kernel space
 
   - kprobes and kretprobes
 
-===  Creating userspace tracepoints with LTTng
+=== Creating userspace tracepoints with LTTng
 
 - New userspace tracepoints can be defined using LTTng.
 
@@ -932,12 +944,12 @@ Profiling a system from userspace to kernel space
   only write a template (.tp) file.
 
 
-===  Defining a LTTng tracepoint (1/2)
+=== Defining a LTTng tracepoint (1/2)
 
 - Tracepoint template (`hello_world-tp.tp`):
 
 #[
-#set text(size: 14pt)
+  #set text(size: 14pt)
   ```C
       LTTNG_UST_TRACEPOINT_EVENT(
         // Tracepoint provider name
@@ -962,16 +974,16 @@ Profiling a system from userspace to kernel space
 - `lttng-gen-tp` will take this template file and generate/build all
   needed files (.h, .c and .o files)
 
-===  Defining a LTTng tracepoint (2/2)
+=== Defining a LTTng tracepoint (2/2)
 
 - Build tracepoint provider:
 #v(0.5em)
 
 #[
-#show raw.where(lang: "console", block: true): set text(size: 15pt)
-```console
-$ lttng-gen-tp hello_world-tp.tp
-```
+  #show raw.where(lang: "console", block: true): set text(size: 15pt)
+  ```console
+  $ lttng-gen-tp hello_world-tp.tp
+  ```
 ]
 #v(0.5em)
 
@@ -992,34 +1004,34 @@ int main(int argc, char *argv[])
 - Compilation:
 #v(0.5em)
 #[
-#show raw.where(lang: "console", block: true): set text(size: 15pt)
-```console
-$ gcc hello_world.c hello_world-tp.o -llttng-ust -o hello_world
-```
+  #show raw.where(lang: "console", block: true): set text(size: 15pt)
+  ```console
+  $ gcc hello_world.c hello_world-tp.o -llttng-ust -o hello_world
+  ```
 ]
 
-===  Using LTTng
+=== Using LTTng
 
 #[
-#show raw.where(lang: "console", block: true): set text(size: 15pt)
-```console
-$ lttng create my-tracing-session --output=./my_traces
-$ lttng list --kernel
-$ lttng list --userspace
-$ lttng enable-event --userspace hello_world:my_first_tracepoint
-$ lttng enable-event --kernel --syscall open,close,write
-$ lttng start
-$ /* Run your application or do something */
-$ lttng destroy
-$ babeltrace2 ./my_traces
-```
+  #show raw.where(lang: "console", block: true): set text(size: 15pt)
+  ```console
+  $ lttng create my-tracing-session --output=./my_traces
+  $ lttng list --kernel
+  $ lttng list --userspace
+  $ lttng enable-event --userspace hello_world:my_first_tracepoint
+  $ lttng enable-event --kernel --syscall open,close,write
+  $ lttng start
+  $ /* Run your application or do something */
+  $ lttng destroy
+  $ babeltrace2 ./my_traces
+  ```
 ]
 #v(0.5em)
 - You can also use
   #link("https://eclipse.dev/tracecompass/trace-compass")[trace-compass]
   to display the traces in a GUI
 
-===  Remote tracing with LTTng
+=== Remote tracing with LTTng
 
 - LTTng allows to record traces over the network.
 
@@ -1028,19 +1040,19 @@ $ babeltrace2 ./my_traces
 - On the remote computer, run `lttng-relayd` command
 #v(0.5em)
 #[
-#show raw.where(lang: "console", block: true): set text(size: 15pt)
-```console
-$ lttng-relayd --output=${PWD}/traces
-```
+  #show raw.where(lang: "console", block: true): set text(size: 15pt)
+  ```console
+  $ lttng-relayd --output=${PWD}/traces
+  ```
 ]
 #v(0.5em)
 - Then on the target, at session creation, use the `–set-url`
 #v(0.5em)
 #[
-#show raw.where(lang: "console", block: true): set text(size: 15pt)
-```console
-$ lttng create my-session --set-url=net://remote-system
-```
+  #show raw.where(lang: "console", block: true): set text(size: 15pt)
+  ```console
+  $ lttng create my-session --set-url=net://remote-system
+  ```
 ]
 #v(0.5em)
 - Traces will then be recorded directly on the remote computer.
@@ -1048,7 +1060,7 @@ $ lttng create my-session --set-url=net://remote-system
 == eBPF
 <ebpf>
 
-===  The ancestor: Berkeley Packet filter
+=== The ancestor: Berkeley Packet filter
 
 - BPF stands for Berkeley Packet Filter and was initially used for
   network packet filtering
@@ -1059,47 +1071,59 @@ $ lttng create my-session --set-url=net://remote-system
 - tcpdump and Wireshark heavily rely on BPF (through libpcap) for packet
   capture
 
-===  BPF in libpcap: setup
+=== BPF in libpcap: setup
 
-#table(columns: (70%, 30%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (70%, 30%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-- tcpdump passes the capture filter string from the user to libpcap
+    - tcpdump passes the capture filter string from the user to libpcap
 
-- libpcap translates the capture filter into a binary program
+    - libpcap translates the capture filter into a binary program
 
-  - This program uses the instruction set of an abstract machine (the
-    "BPF instruction set")
+      - This program uses the instruction set of an abstract machine (the
+        "BPF instruction set")
 
-- libpcap sends the binary program to the kernel via the `setsockopt()`
-  syscall
+    - libpcap sends the binary program to the kernel via the `setsockopt()`
+      syscall
 
-],[
+  ],
+  [
 
-#align(center, [#image("bpf-setup.pdf", height: 90%)])
+    #align(center, [#image("bpf-setup.pdf", height: 90%)])
 
-])
+  ],
+)
 
-===  BPF in libpcap: capture
+=== BPF in libpcap: capture
 
-#table(columns: (55%, 45%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (55%, 45%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-- The kernel implements the BPF "virtual machine"
+    - The kernel implements the BPF "virtual machine"
 
-- The BPF virtual machine executes the program for every packet
+    - The BPF virtual machine executes the program for every packet
 
-- The program inspects the packet data and returns a non-zero value if
-  the packet must be captured
+    - The program inspects the packet data and returns a non-zero value if
+      the packet must be captured
 
-- If the return value is non-zero, the packet is captured in addition to
-  regular packet processing
+    - If the return value is non-zero, the packet is captured in addition to
+      regular packet processing
 
-],[
-  
-#align(center, [#image("bpf-capture.pdf", height: 80%)])
+  ],
+  [
 
-])
+    #align(center, [#image("bpf-capture.pdf", height: 80%)])
 
-===  eBPF (1/2)
+  ],
+)
+
+=== eBPF (1/2)
 
 - #link("https://ebpf.io/")[eBPF] is a new framework allowing to run
   small user programs directly in the kernel, in a safe and efficient
@@ -1121,11 +1145,14 @@ $ lttng create my-session --set-url=net://remote-system
 
 #v(0.5em)
 
-#align(center, [#image("/slides/debugging-linux-application-stack/logo_ebpf.png", height: 20%)])
+#align(center, [#image(
+  "/slides/debugging-linux-application-stack/logo_ebpf.png",
+  height: 20%,
+)])
 
 #text(size: 11pt)[#align(center, [Image credits: #link("https://ebpf.io/")])]
 
-===  eBPF (2/2)
+=== eBPF (2/2)
 
 - The most notable eBPF features are:
 
@@ -1141,11 +1168,11 @@ $ lttng create my-session --set-url=net://remote-system
 
   - plenty of (kernel) helper functions accessible from eBPF programs.
 
-===  eBPF program lifecycle
+=== eBPF program lifecycle
 
 #align(center, [#image("bpf_lifecycle.pdf", height: 90%)])
 
-===  Kernel configuration for eBPF
+=== Kernel configuration for eBPF
 
 - #kconfig("CONFIG_NET") to enable eBPF subsystem
 
@@ -1172,7 +1199,7 @@ $ lttng create my-session --set-url=net://remote-system
   - #kconfig("CONFIG_CGROUP_BPF") to attach programs on cgroups
     hooks
 
-===  eBPF ISA
+=== eBPF ISA
 
 - eBPF is a "virtual" ISA, defining its own set of instructions: load
   and store instructions, arithmetic instructions, jump instructions,etc
@@ -1191,20 +1218,20 @@ $ lttng create my-session --set-url=net://remote-system
 #v(0.5em)
 
 #[
-#show raw.where(lang: "console", block: true): set text(size: 15pt)
-```console
-; bpf_printk("Hello %sn", "World");
-      0:  r1 = 0x0 ll
-      2:  r2 = 0xa
-      3:  r3 = 0x0 ll
-      5:  call 0x6
-; return 0;
-      6:  r0 = 0x0
-      7:  exit
-```
+  #show raw.where(lang: "console", block: true): set text(size: 15pt)
+  ```console
+  ; bpf_printk("Hello %sn", "World");
+        0:  r1 = 0x0 ll
+        2:  r2 = 0xa
+        3:  r3 = 0x0 ll
+        5:  call 0x6
+  ; return 0;
+        6:  r0 = 0x0
+        7:  exit
+  ```
 ]
 
-===  The eBPF verifier
+=== The eBPF verifier
 
 - When loaded into the kernel, a program must first be validated by the
   eBPF verifier.
@@ -1232,22 +1259,22 @@ $ lttng create my-session --set-url=net://remote-system
   - There are mechanisms and helpers to avoid those issues, like per-CPU
     maps types.
 
-===  Program types and attach points
+=== Program types and attach points
 
 - There are different categories of hooks to which a program can be
   attached:
   #[ #set list(spacing: 0.2em)
-  - an arbitrary kprobe
+    - an arbitrary kprobe
 
-  - a kernel-defined static tracepoint
+    - a kernel-defined static tracepoint
 
-  - a specific perf event
+    - a specific perf event
 
-  - throughout the network stack
+    - throughout the network stack
 
-  - an arbitrary uprobe
+    - an arbitrary uprobe
 
-  - and a lot more, see #ksym("bpf_attach_type")
+    - and a lot more, see #ksym("bpf_attach_type")
   ]
 - A specific attach-point type can only be hooked with a set of specific
   program types, see #ksym("bpf_prog_type") and
@@ -1267,7 +1294,7 @@ $ lttng create my-session --set-url=net://remote-system
   - You can learn about the context passed to any program type by
     checking #kfile("include/linux/bpf_types.h")
 
-===  eBPF maps
+=== eBPF maps
 
 - eBPF programs exchange data with userspace or other programs through
   maps of different natures:
@@ -1290,7 +1317,7 @@ $ lttng create my-session --set-url=net://remote-system
 - For basic data, it is easier and more efficient to directly use eBPF
   global variables (no syscalls involved, contrary to maps)
 
-===  The `bpf() syscall`
+=== The `bpf() syscall`
 
 - The kernel exposes a `bpf()` syscall to allow interacting with the
   eBPF subsystem
@@ -1316,7 +1343,7 @@ $ lttng create my-session --set-url=net://remote-system
 
 - For more details, see #manpage("bpf", "2")
 
-===  Writing eBPF programs
+=== Writing eBPF programs
 
 - eBPF programs can either be written directly in raw eBPF assembly or
   in higher level languages (e.g: C or rust), and are compiled using the
@@ -1343,14 +1370,13 @@ $ lttng create my-session --set-url=net://remote-system
   - `bpf_get_current_task` Returns the current
     #kstruct("task_struct")
 
-  - Many other helpers are available, see #manpage("bpf-helpers",
-    "7")
+  - Many other helpers are available, see #manpage("bpf-helpers", "7")
 
 - Kernel also exposes kfuncs (see #kdochtml("bpf/kfuncs")), but
   contrary to bpf-helpers, those do not belong to the kernel stable
   interface.
 
-===  Manipulating eBPF program
+=== Manipulating eBPF program
 
 - There are different ways to build, load and manipulate eBPF programs:
 
@@ -1368,71 +1394,85 @@ $ lttng create my-session --set-url=net://remote-system
   - We can also use specialized frameworks like BCC or bpftrace to
     really get all operations (bpf program build included) handled
 
-===  BCC
+=== BCC
 
-#table(columns: (70%, 30%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (70%, 30%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-- BPF Compiler Collection (BCC) is (as its name suggests) a collection
-  of BPF based tools.
+    - BPF Compiler Collection (BCC) is (as its name suggests) a collection
+      of BPF based tools.
 
-- BCC provides a large number of ready-to-use tools written in BPF.
+    - BCC provides a large number of ready-to-use tools written in BPF.
 
-- Also provides an interface to write, load and hook BPF programs more
-  easily than using "raw" BPF language.
+    - Also provides an interface to write, load and hook BPF programs more
+      easily than using "raw" BPF language.
 
-- Available on a large number of architectures and distributions (but
-  not packaged in Buildroot)
+    - Available on a large number of architectures and distributions (but
+      not packaged in Buildroot)
 
-  - On debian, when installed, all tools are named `<tool>-bpfcc`.
+      - On debian, when installed, all tools are named `<tool>-bpfcc`.
 
-- BCC requires a kernel version >= 4.1.
+    - BCC requires a kernel version >= 4.1.
 
-- BCC evolves quickly, many distributions have old versions: you may
-  need to compile from the latest sources
+    - BCC evolves quickly, many distributions have old versions: you may
+      need to compile from the latest sources
 
-],[
+  ],
+  [
 
-#align(center, [#image("/slides/debugging-linux-application-stack/logo_bcc.png", height: 30%)])
+    #align(center, [#image(
+      "/slides/debugging-linux-application-stack/logo_bcc.png",
+      height: 30%,
+    )])
 
-#v(0.5em)
+    #v(0.5em)
 
-#text(size: 11.5pt)[Image credits: \ #link("https://github.com/iovisor/bcc")]
+    #text(
+      size: 11.5pt,
+    )[Image credits: \ #link("https://github.com/iovisor/bcc")]
 
-])
+  ],
+)
 
-===  BCC tools
+=== BCC tools
 
 #align(center, [#image("bcc_tracing_tools_2019.png", height: 90%)])
 
-#text(size: 11.5pt)[#align(center, [Image credits: #link("https://www.brendangregg.com/ebpf.html")])]
+#text(size: 11.5pt)[#align(
+  center,
+  [Image credits: #link("https://www.brendangregg.com/ebpf.html")],
+)]
 
-===  BCC Tools example
+=== BCC Tools example
 
 - `profile.py` is a CPU profiler allowing to capture stack traces of
   current execution. Its output can be used for flamegraph generation:
 #v(0.5em)
 #[
-#show raw.where(lang: "console", block: true): set text(size: 15pt)
-```console
-$ git clone https://github.com/brendangregg/FlameGraph.git
-$ profile.py -df -F 99 10 | ./FlameGraph/flamegraph.pl > flamegraph.svg
-```
-#v(0.5em)
-- `tcpconnect.py` script displays all new TCP connections live
-#v(0.5em)
-```console
-$ tcpconnect 
-PID    COMM         IP SADDR            DADDR            DPORT
-220321 ssh          6  ::1              ::1              22   
-220321 ssh          4  127.0.0.1        127.0.0.1        22   
-17676  Chrome_Child 6  2a01:cb15:81e4:8100:37cf:d45b:d87d:d97d 2606:50c0:8003::154 443  
-[...]
-```
+  #show raw.where(lang: "console", block: true): set text(size: 15pt)
+  ```console
+  $ git clone https://github.com/brendangregg/FlameGraph.git
+  $ profile.py -df -F 99 10 | ./FlameGraph/flamegraph.pl > flamegraph.svg
+  ```
+  #v(0.5em)
+  - `tcpconnect.py` script displays all new TCP connections live
+  #v(0.5em)
+  ```console
+  $ tcpconnect
+  PID    COMM         IP SADDR            DADDR            DPORT
+  220321 ssh          6  ::1              ::1              22
+  220321 ssh          4  127.0.0.1        127.0.0.1        22
+  17676  Chrome_Child 6  2a01:cb15:81e4:8100:37cf:d45b:d87d:d97d 2606:50c0:8003::154 443
+  [...]
+  ```
 ]
 #v(0.5em)
 - And much more to discover at #link("https://github.com/iovisor/bcc")
 
-===  Using BCC with python
+=== Using BCC with python
 
 - BCC exposes a `bcc` module, and especially a `BPF` class
 
@@ -1451,7 +1491,7 @@ PID    COMM         IP SADDR            DADDR            DPORT
   - By explicitly calling the relevant attach method on the `BPF`
     instance created earlier
 
-===  Using BCC with python
+=== Using BCC with python
 
 - Hook with a _kprobe_ on the `clone()` system call and display
   `"Hello, World!"` each time it is called
@@ -1469,18 +1509,18 @@ int hello(void *ctx) {
     return 0;
 }
 '''
-# load BPF program 
+# load BPF program
 b = BPF(text=prog)
 b.attach_kprobe(event=b.get_syscall_fnname("clone"), fn_name="hello")
 ```
 
-#setuplabframe([Custom eBPF tool with BCC ],[
+#setuplabframe([Custom eBPF tool with BCC ], [
 
-- Creating custom tracing tools with BCC framework
+  - Creating custom tracing tools with BCC framework
 
 ])
 
-===  libbpf
+=== libbpf
 
 - Instead of using a high level framework like BCC, one can use libbpf
   to build custom tools with finer control over every aspect of the
@@ -1499,69 +1539,69 @@ b.attach_kprobe(event=b.get_syscall_fnname("clone"), fn_name="hello")
 
 - Learn more at #link("https://libbpf.readthedocs.io/en/latest/")
 
-===  eBPF programming with libbpf (1/2)
+=== eBPF programming with libbpf (1/2)
 
 #text(size: 14pt)[`my_prog.bpf.c`]
 #[ #set text(size: 12pt)
-```C
-      #include <linux/bpf.h>
-      #include <bpf/bpf_helpers.h>
-      #include <bpf/bpf_tracing.h>
+  ```C
+        #include <linux/bpf.h>
+        #include <bpf/bpf_helpers.h>
+        #include <bpf/bpf_tracing.h>
 
-      #define TASK_COMM_LEN 16
-      struct {
-        __uint(type, BPF_MAP_TYPE_ARRAY);
-        __type(key, __u32);
-        __type(value, __u64);
-        __uint(max_entries, 1);
-      } counter_map SEC(".maps");
+        #define TASK_COMM_LEN 16
+        struct {
+          __uint(type, BPF_MAP_TYPE_ARRAY);
+          __type(key, __u32);
+          __type(value, __u64);
+          __uint(max_entries, 1);
+        } counter_map SEC(".maps");
 
-      struct sched_switch_args {
-        unsigned long long pad;
-        char prev_comm[TASK_COMM_LEN];
-        int prev_pid;
-        int prev_prio;
-        long long prev_state;
-        char next_comm[TASK_COMM_LEN];
-        int next_pid;
-        int next_prio;
-      };
-```
+        struct sched_switch_args {
+          unsigned long long pad;
+          char prev_comm[TASK_COMM_LEN];
+          int prev_pid;
+          int prev_prio;
+          long long prev_state;
+          char next_comm[TASK_COMM_LEN];
+          int next_pid;
+          int next_prio;
+        };
+  ```
 ]
 
 - The fields to define in the `*_args` structure are obtained from the
   event description in `/sys/kernel/tracing/events` (see
   #link("https://elixir.bootlin.com/linux/v6.12/source/tools/testing/selftests/bpf/progs/test_stacktrace_map.c#L41")[this example])
 
-===  eBPF programming with libbpf (2/2)
+=== eBPF programming with libbpf (2/2)
 
 #text(size: 14pt)[`my_prog.bpf.c`]
 #[ #set text(size: 12pt)
-```C
-      SEC("tracepoint/sched/sched_switch")
-      int sched_tracer(struct sched_switch_args *ctx)
-      {
-        __u32 key = 0;
-        __u64 *counter;
-        char *file;
+  ```C
+        SEC("tracepoint/sched/sched_switch")
+        int sched_tracer(struct sched_switch_args *ctx)
+        {
+          __u32 key = 0;
+          __u64 *counter;
+          char *file;
 
-        char fmt[] = "Old task was %s, new task is %sn";
-        bpf_trace_printk(fmt, sizeof(fmt), ctx->prev_comm, ctx->next_comm);
+          char fmt[] = "Old task was %s, new task is %sn";
+          bpf_trace_printk(fmt, sizeof(fmt), ctx->prev_comm, ctx->next_comm);
 
-        counter = bpf_map_lookup_elem(&counter_map, &key);
-        if(counter) {
-                *counter += 1;
-                bpf_map_update_elem(&counter_map, &key, counter, 0);
+          counter = bpf_map_lookup_elem(&counter_map, &key);
+          if(counter) {
+                  *counter += 1;
+                  bpf_map_update_elem(&counter_map, &key, counter, 0);
+          }
+
+          return 0;
         }
 
-        return 0;
-      }
-
-      char LICENSE[] SEC("license") = "Dual BSD/GPL";
-```
+        char LICENSE[] SEC("license") = "Dual BSD/GPL";
+  ```
 ]
 
-===  Building eBPF programs
+=== Building eBPF programs
 
 - An eBPF program written in C can be built into a loadable object
   thanks to clang:
@@ -1569,13 +1609,13 @@ b.attach_kprobe(event=b.get_syscall_fnname("clone"), fn_name="hello")
 #v(0.5em)
 
 #[
-#show raw.where(lang: "console", block: true): set text(size: 15pt)
+  #show raw.where(lang: "console", block: true): set text(size: 15pt)
   ```console
     $ clang -target bpf -O2 -g -c my_prog.bpf.c -o my_prog.bpf.o
   ```
 ]
-  - The `-g` option allows to add debug information as well as BTF
-    information
+- The `-g` option allows to add debug information as well as BTF
+  information
 
 - GCC can be used too with recent versions
 
@@ -1588,7 +1628,7 @@ b.attach_kprobe(event=b.get_syscall_fnname("clone"), fn_name="hello")
   libbpf, we need "skeleton" APIs, which can be generated with to
   `bpftool`
 
-===  bpftool
+=== bpftool
 
 - `bpftool` is a command line tool allowing to interact with bpf object
   files and the kernel to manipulate bpf programs:
@@ -1613,40 +1653,40 @@ b.attach_kprobe(event=b.get_syscall_fnname("clone"), fn_name="hello")
 #v(0.5em)
 
 #[
-#show raw.where(lang: "console", block: true): set text(size: 15pt)
+  #show raw.where(lang: "console", block: true): set text(size: 15pt)
   ```console
           $ mount -t bpf none /sys/fs/bpf
   ```
 ]
 
-===  bpftool
+=== bpftool
 
 - List loaded programs
 #v(0.5em)
 #[
-#show raw.where(lang: "console", block: true): set text(size: 15pt)
-```console
-$ bpftool prog
-348: tracepoint  name sched_tracer  tag 3051de4551f07909  gpl loaded_at 2024-08-06T15:43:11+0200  uid 0
-xlated 376B  jited 215B  memlock 4096B  map_ids 146,148
-btf_id 545
-```
-#v(0.5em)
-- Load and attach a program
-#v(0.5em)
-```console
-$ mkdir /sys/fs/bpf/myprog
-$ bpftool prog loadall trace_execve.bpf.o /sys/fs/bpf/myprog autoattach
-```
-#v(0.5em)
-- Unload a program
-#v(0.5em)
-```console
-$ rm -rf /sys/fs/bpf/myprog
-```
+  #show raw.where(lang: "console", block: true): set text(size: 15pt)
+  ```console
+  $ bpftool prog
+  348: tracepoint  name sched_tracer  tag 3051de4551f07909  gpl loaded_at 2024-08-06T15:43:11+0200  uid 0
+  xlated 376B  jited 215B  memlock 4096B  map_ids 146,148
+  btf_id 545
+  ```
+  #v(0.5em)
+  - Load and attach a program
+  #v(0.5em)
+  ```console
+  $ mkdir /sys/fs/bpf/myprog
+  $ bpftool prog loadall trace_execve.bpf.o /sys/fs/bpf/myprog autoattach
+  ```
+  #v(0.5em)
+  - Unload a program
+  #v(0.5em)
+  ```console
+  $ rm -rf /sys/fs/bpf/myprog
+  ```
 ]
 
-===  bpftool
+=== bpftool
 
 - Dump a loaded program
 #v(0.5em)
@@ -1676,7 +1716,7 @@ sudo-18640        [010] d..41  1796.003613: bpf_trace_printk: Old task was sudo,
 [...]
 ```
 
-===  bpftool
+=== bpftool
 
 - List created maps
 #v(0.5em)
@@ -1704,12 +1744,12 @@ $ sudo bpftool map dump id 80
 ])
 ```
 
-===  bpftool
+=== bpftool
 
 - Generate libbpf APIs to manipulate a program
 #v(0.5em)
 ```console
-$ bpftool gen skeleton trace_sched_switch.bpf.o name trace_sched_switch 
+$ bpftool gen skeleton trace_sched_switch.bpf.o name trace_sched_switch
   > trace_sched_switch.skel.h
 ```
 #v(0.5em)
@@ -1724,41 +1764,41 @@ $ bpftool gen skeleton trace_sched_switch.bpf.o name trace_sched_switch
   - eBPF program directly embedded in the generated header as a byte
     array
 
-===  Userspace code with libbpf
+=== Userspace code with libbpf
 
 #[ #set text(size: 13pt)
-```C
-      #include <stdlib.h>
-      #include <stdio.h>
-      #include <unistd.h>
-      #include "trace_sched_switch.skel.h"
+  ```C
+        #include <stdlib.h>
+        #include <stdio.h>
+        #include <unistd.h>
+        #include "trace_sched_switch.skel.h"
 
-      int main(int argc, char *argv[])
-      {
-          struct trace_sched_switch *skel;
-          int key = 0;
-          long counter = 0;
+        int main(int argc, char *argv[])
+        {
+            struct trace_sched_switch *skel;
+            int key = 0;
+            long counter = 0;
 
-          skel = trace_sched_switch__open_and_load();
-          if(!skel)
-              exit(EXIT_FAILURE);
-          if (trace_sched_switch__attach(skel)) {
-              trace_sched_switch__destroy(skel);
-              exit(EXIT_FAILURE);
-          }
+            skel = trace_sched_switch__open_and_load();
+            if(!skel)
+                exit(EXIT_FAILURE);
+            if (trace_sched_switch__attach(skel)) {
+                trace_sched_switch__destroy(skel);
+                exit(EXIT_FAILURE);
+            }
 
-          while(true) {
-              bpf_map__lookup_elem(skel->maps.counter_map, &key, sizeof(key), &counter, sizeof(counter), 0);
-              fprintf(stderr, "Scheduling switch count: %dn", counter);
-              sleep(1);
-          }
+            while(true) {
+                bpf_map__lookup_elem(skel->maps.counter_map, &key, sizeof(key), &counter, sizeof(counter), 0);
+                fprintf(stderr, "Scheduling switch count: %dn", counter);
+                sleep(1);
+            }
 
-          return 0;
-      }
-```
+            return 0;
+        }
+  ```
 ]
 
-===  eBPF programs portability (1/2)
+=== eBPF programs portability (1/2)
 
 - Kernel internals, contrary to userspace APIs, do not expose stable
   APIs. This means that an eBPF program manipulating some kernel data
@@ -1785,9 +1825,11 @@ $ bpftool gen skeleton trace_sched_switch.bpf.o name trace_sched_switch
     variables. libbpf provides such helpers, like `bpf_core_read`
 
 - To learn more, take a look at
-  #link("https://nakryiko.com/posts/bpf-core-reference-guide/")[Andrii Nakryiko's CO-RE guide]
+  #link(
+    "https://nakryiko.com/posts/bpf-core-reference-guide/",
+  )[Andrii Nakryiko's CO-RE guide]
 
-===  eBPF programs portability (2/2)
+=== eBPF programs portability (2/2)
 
 - Despite CO-RE, you may still face different constraints on different
   kernel versions, because of major features introduction or change,
@@ -1810,7 +1852,7 @@ $ bpftool gen skeleton trace_sched_switch.bpf.o name trace_sched_switch
   - `CAP_BPF` capability, allowing a process to perform eBPF tasks, has
     been added in version 5.8
 
-===  eBPF for tracing/profiling
+=== eBPF for tracing/profiling
 
 - eBPF is a very powerful framework to spy on kernel internals: thanks
   to the wide variety of attach point, you can expose almost any kernel
@@ -1842,14 +1884,16 @@ $ bpftool gen skeleton trace_sched_switch.bpf.o name trace_sched_switch
   - And many more, check #link("https://ebpf.io/applications/")[ebpf.io]
     for more examples
 
-===  eBPF: resources
+=== eBPF: resources
 
 - libbpf-bootstrap: #link("https://github.com/libbpf/libbpf-bootstrap")
 
 - A Beginner's Guide to eBPF Programming - Liz Rice, 2020
 
   - Video:
-    #link("https://www.youtube.com/watch?v=lrSExTfS-iQ")[https://www.youtube.com/watch?v=lrSExTfS-iQ]
+    #link(
+      "https://www.youtube.com/watch?v=lrSExTfS-iQ",
+    )[https://www.youtube.com/watch?v=lrSExTfS-iQ]
 
   - Resources: #link("https://github.com/lizrice/ebpf-beginners")
 
@@ -1857,20 +1901,20 @@ $ bpftool gen skeleton trace_sched_switch.bpf.o name trace_sched_switch
 
 #align(center, [#image("ebpf_liz_rice_2020.png", height: 50%)])
 
-#setuplabframe([Advanced eBPF development ],[
+#setuplabframe([Advanced eBPF development ], [
 
-Porting our custom tracing tool for embedded use case 
+  Porting our custom tracing tool for embedded use case
 
-- Converting a BCC script to libbpf
+  - Converting a BCC script to libbpf
 
-- Bringing advanced features to the tool
+  - Bringing advanced features to the tool
 
 ])
 
 == Choosing the right tool
 <choosing-the-right-tool>
 
-===  Choosing the right tool
+=== Choosing the right tool
 
 - Before starting to profile or trace, one should know which type of
   tool to use.

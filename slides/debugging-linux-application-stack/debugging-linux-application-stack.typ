@@ -10,7 +10,7 @@
 == User/Kernel mode
 <userkernel-mode>
 
-===  User/Kernel mode
+=== User/Kernel mode
 
 - User mode vs Kernel mode are often used to refer to the privilege
   level of execution.
@@ -28,7 +28,7 @@
 == Introduction to Processes and Threads
 <introduction-to-processes-and-threads>
 
-===  Processes and Threads (1/2)
+=== Processes and Threads (1/2)
 
 - A process is a group of resources that are allocated by the kernel to
   allow the execution of a program.
@@ -49,7 +49,7 @@
   - A process is represented in the kernel by a thread associated to
     multiple resources.
 
-===  Processes and Threads (2/2)
+=== Processes and Threads (2/2)
 
 - Threads are independent execution units that are sharing common
   resources inside a process.
@@ -72,27 +72,33 @@
 == MMU and memory management
 <mmu-and-memory-management>
 
-===  The MMU
+=== The MMU
 
-#table(columns: (60%, 40%), stroke: none, gutter:15pt, [
+#table(
+  columns: (60%, 40%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-- Addresses accessed by the CPU are _virtual_
+    - Addresses accessed by the CPU are _virtual_
 
-- The _Memory Management Unit_ (MMU) translates them to
-  _physical_ addresses
+    - The _Memory Management Unit_ (MMU) translates them to
+      _physical_ addresses
 
-- The kernel decides the translation and fills the _page table_
+    - The kernel decides the translation and fills the _page table_
 
-- The MMU reads the page table and caches recent entries in the
-  _Translation lookaside buffers_ (TLB) for zero-delay mapping
+    - The MMU reads the page table and caches recent entries in the
+      _Translation lookaside buffers_ (TLB) for zero-delay mapping
 
-],[
+  ],
+  [
 
-#align(center, [#image("mmu.pdf", width: 100%)])
+    #align(center, [#image("mmu.pdf", width: 100%)])
 
-])
+  ],
+)
 
-===  MMU and memory management
+=== MMU and memory management
 
 - Physical addresses can be either RAM or I/O (to access devices)
 
@@ -110,62 +116,74 @@
 - Linux can work without an MMU (#kconfigval("CONFIG_MMU", "n")),
   useful for old SoCs without an MMU, but with many limitations
 
-===  Userspace/Kernel memory layout
+=== Userspace/Kernel memory layout
 
- #table(columns: (50%, 50%), stroke: none, gutter:15pt, [
+#table(
+  columns: (50%, 50%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-- Each process has its own set of virtual memory areas (`mm` field
-  of #kstruct("task_struct")).
+    - Each process has its own set of virtual memory areas (`mm` field
+      of #kstruct("task_struct")).
 
-- Also have their own page table
+    - Also have their own page table
 
-  - But share the same kernel mappings
+      - But share the same kernel mappings
 
-- By default, all user mapping addresses are randomized to minimize
-  attack surface (base of heap, stack, text, data, etc).
+    - By default, all user mapping addresses are randomized to minimize
+      attack surface (base of heap, stack, text, data, etc).
 
-  - *A*\ddress *S*\pace *L*\ayout
-    *R*\andomization
+      - *A*\ddress *S*\pace *L*\ayout
+        *R*\andomization
 
-  - Can be disabled using `norandmaps` command line parameter
+      - Can be disabled using `norandmaps` command line parameter
 
-],[
+  ],
+  [
 
-#align(center, [#image("memory_layout.pdf", height: 90%)])
+    #align(center, [#image("memory_layout.pdf", height: 90%)])
 
-])
+  ],
+)
 
-===  Userspace/Kernel memory layout 
+=== Userspace/Kernel memory layout
 
-Multiple processes have different user memory spaces 
+Multiple processes have different user memory spaces
 #v(0.5em)
 #align(center, [#image("multiple_process.pdf", height: 80%)])
 
-===  Kernel memory map
+=== Kernel memory map
 
- #table(columns: (55%, 45%), stroke: none, gutter:15pt, [
+#table(
+  columns: (55%, 45%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-- The kernel has it own memory mapping.
+    - The kernel has it own memory mapping.
 
-- Linear mapping is setup at kernel startup by inserting all the entries
-  in the kernel init page table.
+    - Linear mapping is setup at kernel startup by inserting all the entries
+      in the kernel init page table.
 
-- Multiple areas are identified and their location differs between the
-  architectures.
+    - Multiple areas are identified and their location differs between the
+      architectures.
 
-- *K*\ernel *A*\ddress *S*\pace *L*\ayout
-  *R*\andomization also allows to randomize kernel address space
-  layout.
+    - *K*\ernel *A*\ddress *S*\pace *L*\ayout
+      *R*\andomization also allows to randomize kernel address space
+      layout.
 
-  - Can be disabled using ` nokaslr ` command line parameter
+      - Can be disabled using ` nokaslr ` command line parameter
 
-],[
+  ],
+  [
 
-#align(center, [#image("kernel_layout.pdf", height: 80%)])
+    #align(center, [#image("kernel_layout.pdf", height: 80%)])
 
-])
+  ],
+)
 
-===  Userspace memory segments
+=== Userspace memory segments
 
 - When starting a process, the kernel sets up several _Virtual
   Memory Area_\s (VMA), backed by #kstruct("vm_area_struct"), with
@@ -185,7 +203,7 @@ Multiple processes have different user memory spaces
 - New memory zones can be created using `mmap()`
   (#manpage("mmap", "2"))
 
-- Per application mappings are visible in _/proc/<pid>\/maps_ 
+- Per application mappings are visible in _/proc/<pid>\/maps_
 
   `
   7f1855b2a000-7f1855b2c000 rw-p 00030000 103:01 3408650  ld-2.33.so
@@ -194,7 +212,7 @@ Multiple processes have different user memory spaces
   7ffc016e9000-7ffc016eb000 r-xp 00000000 00:00 0         [vdso]
   `
 
-===  Virtual memory VS physical memory
+=== Virtual memory VS physical memory
 
 - Memory segments can be shared among different processes
 
@@ -202,37 +220,43 @@ Multiple processes have different user memory spaces
 #v(0.5em)
 #align(center, [#image("memory_mapping.pdf", height: 80%)])
 
-===  Userspace memory types
+=== Userspace memory types
 
 #align(center, [#image("mem_type.pdf", height: 80%)])
 
-===  On-demand memory mapping (_Lazy allocation_)
+=== On-demand memory mapping (_Lazy allocation_)
 
- #table(columns: (60%, 40%), stroke: none, gutter:15pt, [
+#table(
+  columns: (60%, 40%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-+ Virtual memory is allocated when requested, but not mapped to physical
-  memory
+    + Virtual memory is allocated when requested, but not mapped to physical
+      memory
 
-+ When the CPU accesses a virtual address not yet physically mapped, a
-  _page fault_ happens, and the kernel physically allocates memory
+    + When the CPU accesses a virtual address not yet physically mapped, a
+      _page fault_ happens, and the kernel physically allocates memory
 
-  - For file-backed mappings, implies reading from disk
+      - For file-backed mappings, implies reading from disk
 
-+ The virtual memory is fully mapped to physical memory only if really
-  needed
+    + The virtual memory is fully mapped to physical memory only if really
+      needed
 
-- Allows faster program startup, avoids using memory for unused data
+    - Allows faster program startup, avoids using memory for unused data
 
-- Execution time not deterministic: for real-time needs, memory can be
-  _pre-faulted_
+    - Execution time not deterministic: for real-time needs, memory can be
+      _pre-faulted_
 
-],[
+  ],
+  [
 
-#align(center, [#image("lazy_mapping.pdf", height: 85%)])
+    #align(center, [#image("lazy_mapping.pdf", height: 85%)])
 
-])
+  ],
+)
 
-===  On-demand memory mapping: page faults
+=== On-demand memory mapping: page faults
 
 - Lazy allocation is implemented based on _Page faults_
 
@@ -255,7 +279,7 @@ Multiple processes have different user memory spaces
 
   + The MMU now finds a mapping and continues
 
-===  Terms for memory in Linux tools
+=== Terms for memory in Linux tools
 
 - When using Linux tools, four terms are used to describe memory:
 
@@ -276,7 +300,7 @@ Multiple processes have different user memory spaces
 == The process context
 <the-process-context>
 
-===  Process context
+=== Process context
 
 - The _process context_ can be seen as the content of the CPU
   registers associated to a process: execution register, stack
@@ -296,7 +320,7 @@ Multiple processes have different user memory spaces
 == Scheduling
 <scheduling>
 
-===  Scheduling
+=== Scheduling
 
 - The scheduler can be invoked for various reasons
 
@@ -323,7 +347,7 @@ Multiple processes have different user memory spaces
 == Execution mode switching
 <execution-mode-switching>
 
-===  Execution mode switching
+=== Execution mode switching
 
 - Execution mode switching is the action of changing the execution mode
   of the processor (Kernel ↔ User).
@@ -344,7 +368,7 @@ Multiple processes have different user memory spaces
   - Does not use the user stack but a specific kernel fixed size stack
     for security purposes.
 
-===  Exceptions
+=== Exceptions
 
 - Exceptions designate the kind of events that will trigger a CPU
   execution mode change to handle the exception.
@@ -362,7 +386,7 @@ Multiple processes have different user memory spaces
   exception vector and execute the code that was setup for this
   exception.
 
-===  Interrupts
+=== Interrupts
 
 - Interrupts are asynchronous signals that are generated by the hardware
   peripherals.
@@ -384,7 +408,7 @@ Multiple processes have different user memory spaces
   - See #kdochtml("core-api/irq/irq-affinity") and
     #link("https://linux.die.net/man/1/irqbalance")[man irqbalance(1)]
 
-===  Interrupt context
+=== Interrupt context
 
 - While handling the interrupts, the kernel is executing in a specific
   context named _interrupt context_.
@@ -399,7 +423,7 @@ Multiple processes have different user memory spaces
 #v(1em)
 #align(center, [#image("interrupt_context.pdf", height: 24%)])
 
-===  System Calls (1/2)
+=== System Calls (1/2)
 
 - A system call allows the user space to request services from the
   kernel by executing a special instruction that will switch to the
@@ -421,7 +445,7 @@ Multiple processes have different user memory spaces
 #define __NR_write 64
 ```
 
-===  System Calls (2/2)
+=== System Calls (2/2)
 
 - The kernel holds a table of function pointers which matches these
   identifiers and will invoke the correct handler after checking the
@@ -446,14 +470,14 @@ Multiple processes have different user memory spaces
 == Kernel execution contexts
 <kernel-execution-contexts>
 
-===  Kernel execution contexts
+=== Kernel execution contexts
 
 - The kernel runs code in various contexts depending on the event it is
   handling.
 
 - Might have interrupts disabled, specific stack, etc.
 
-===  Kernel threads
+=== Kernel threads
 
 - Kernel threads (kthreads) are a special kind of
   #kstruct("task_struct") that do not have any user resources
@@ -481,7 +505,7 @@ root          10       2 [mm_percpu_wq]               TS
 root          11       2 [rcu_tasks_kthread]          TS
 ```
 
-===  Workqueues
+=== Workqueues
 
 - Workqueues allows to schedule some work to be executed at some point
   in the future
@@ -495,7 +519,7 @@ root          11       2 [rcu_tasks_kthread]          TS
 - Work can be executed either in dedicated work queues or in the default
   workqueue that is shared by multiple users.
 
-===  softirq
+=== softirq
 
 - SoftIRQs is a specific kernel mecanism that is executed in software
   interrupt context.
@@ -514,11 +538,11 @@ root          11       2 [rcu_tasks_kthread]          TS
   There are for example tasklets, and the BH workqueues (Bottom Half
   workqueues) which aim to replace tasklets since 6.9.
 
-===  Interrupts & Softirqs
+=== Interrupts & Softirqs
 
 #align(center, [#image("softirqs.pdf", width: 100%)])
 
-===  Threaded interrupts
+=== Threaded interrupts
 
 - Threaded interrupts are a mecanism that allows to handle the interrupt
   using a hard IRQ handler and a threaded IRQ handler.
@@ -535,7 +559,7 @@ root          11       2 [rcu_tasks_kthread]          TS
   - _kthread_ is named ` irq/<irq>-<name> ` and can be seen
     using _ps_.
 
-===  Allocations and context
+=== Allocations and context
 
 - Allocating memory in the kernel can be done using multiple functions:
 
@@ -554,15 +578,14 @@ root          11       2 [rcu_tasks_kthread]          TS
   - #ksym("GFP_ATOMIC"): Atomic allocation, won’t sleep while
     allocating data.
 
-#setuplabframe([Preparing the system],
-[
-Prepare the STM32MP157D board
+#setuplabframe([Preparing the system], [
+  Prepare the STM32MP157D board
 
-- Build an image using Buildroot
+  - Build an image using Buildroot
 
-- Connect the board
+  - Connect the board
 
-- Load the kernel from SD card
+  - Load the kernel from SD card
 
-- Mount the root filesystem over NFS
+  - Mount the root filesystem over NFS
 ])

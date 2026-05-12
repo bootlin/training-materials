@@ -23,7 +23,7 @@
 == LD_PRELOAD
 <ld_preload>
 
-===  Shared libraries
+=== Shared libraries
 
 - Shared libraries are provided as _.so_ files that are actually
   ELF files
@@ -46,7 +46,7 @@
 
   - This allows to reduce the memory used by libraries.
 
-===  Hooking Library Calls
+=== Hooking Library Calls
 
 - In order to do some more complex library call hooks, one can use the
   _LD_PRELOAD_ environment variable.
@@ -68,7 +68,7 @@
 
 - Works for C and C++.
 
-===  LD_PRELOAD example 1/2
+=== LD_PRELOAD example 1/2
 
 - Library snippet that we want to preload using _LD_PRELOAD_:
 #v(0.5em)
@@ -94,37 +94,37 @@ $ gcc -shared -fPIC -o my_lib.so my_lib.c
 $ LD_PRELOAD=./my_lib.so ./exe
 ```
 
-===  LD_PRELOAD example 2/2
+=== LD_PRELOAD example 2/2
 
 - Chaining a call to the real symbol to avoid altering the application
   behavior:
 
 #[ #show raw.where(lang: "c", block: true): set text(size: 12pt)
-```c
-#include <stdio.h>
-#include <unistd.h>
-#include <dlfcn.h>
+  ```c
+  #include <stdio.h>
+  #include <unistd.h>
+  #include <dlfcn.h>
 
-ssize_t read(int fd, void *data, size_t size)
-{
-    size_t (*read_func)(int, void *, size_t);
-    char *error;
+  ssize_t read(int fd, void *data, size_t size)
+  {
+      size_t (*read_func)(int, void *, size_t);
+      char *error;
 
-    read_func = dlsym(RTLD_NEXT, "read");
-    if (!read_func) {
-        fprintf(stderr, "Can not find read symbol: %sn", dlerror());
-        return 0;
-    }
-    fprintf(stderr, "Trying to read %lu bytes to %p from file descriptor %dn", size, data, fd);
-    return read_func(fd, data, size);
-}
-```
+      read_func = dlsym(RTLD_NEXT, "read");
+      if (!read_func) {
+          fprintf(stderr, "Can not find read symbol: %sn", dlerror());
+          return 0;
+      }
+      fprintf(stderr, "Trying to read %lu bytes to %p from file descriptor %dn", size, data, fd);
+      return read_func(fd, data, size);
+  }
+  ```
 ]
 
 == uprobes and perf
 <uprobes-and-perf>
 
-===  Probes in linux
+=== Probes in linux
 
 - The linux kernel is able to dynamically add some instrumentation (or
   "*probes*") to almost any code running on a platform, either
@@ -152,7 +152,7 @@ ssize_t read(int fd, void *data, size_t size)
   - *kretprobe*: hook on kernel function exit and capture return
     value
 
-===  uprobes
+=== uprobes
 
 - _uprobe_ is a probe mechanism offered by the kernel allowing to
   trace userspace code.
@@ -177,7 +177,7 @@ echo 'p /bin/bash:0x4245c0' > /sys/kernel/tracing/uprobe_events
 
 - #kdochtml("trace/uprobetracer")
 
-===  The perf tool
+=== The perf tool
 
 - _perf_ tool was started as a tool to profile application under
   Linux using performance counters (#manpage("perf", "1")).
@@ -202,7 +202,7 @@ echo 'p /bin/bash:0x4245c0' > /sys/kernel/tracing/uprobe_events
 - Some of those commands operate on an intermediate `perf.data`,
   containing data from a recording session.
 
-===  Probing userspace functions
+=== Probing userspace functions
 
 - List functions that can be probed in a specific executable:
 
@@ -231,13 +231,14 @@ echo 'p /bin/bash:0x4245c0' > /sys/kernel/tracing/uprobe_events
   $ perf record -e probe_my_app:my_func_L3 -e probe_libc:printf
   ```
 
-#setuplabframe([Application tracing],[ Analyzing of application
-interactions
+#setuplabframe([Application tracing], [
+  Analyzing of application
+  interactions
 
-- Analyze dynamic library calls from an application using _ltrace_.
+  - Analyze dynamic library calls from an application using _ltrace_.
 
-- Overriding a library function with `LD_PRELOAD`.
+  - Overriding a library function with `LD_PRELOAD`.
 
-- Using _strace_ to analyze program syscalls.
+  - Using _strace_ to analyze program syscalls.
 
 ])

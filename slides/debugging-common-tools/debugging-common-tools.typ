@@ -11,7 +11,7 @@
 == Pseudo Filesystems
 <pseudo-filesystems>
 
-===  Pseudo Filesystems
+=== Pseudo Filesystems
 
 - Some virtual filesystems are exposed by the kernel and provide a lot
   of information on the system.
@@ -35,7 +35,7 @@
 
   - `mount -t debugfs none /sys/kernel/debug`
 
-===  procfs
+=== procfs
 
 - _procfs_ exposes information about processes and system
   (#manpage("proc", "5")).
@@ -68,10 +68,9 @@
   - `/proc/self/` will refer to the process used to access the file
 
 - A list of all available _procfs_ file and their content is
-  described at #kdochtml("filesystems/proc") and #manpage("proc",
-  "5")
+  described at #kdochtml("filesystems/proc") and #manpage("proc", "5")
 
-===  sysfs
+=== sysfs
 
 - _sysfs_ filesystem exposes information about various kernel
   subsystems, hardware devices and association with drivers
@@ -96,7 +95,7 @@
 
 - #kdochtml("admin-guide/abi-stable")
 
-===  debugfs
+=== debugfs
 
 - _debugfs_ is a simple RAM-based filesystem which exposes
   debugging information.
@@ -115,38 +114,44 @@
 == ELF file analysis
 <elf-file-analysis>
 
-===  ELF files
-#table(columns: (70%, 30%), stroke: none, gutter: 15pt,[
- *E*\xecutable and *L*\inkable *F*\ormat
+=== ELF files
+#table(
+  columns: (70%, 30%),
+  stroke: none,
+  gutter: 15pt,
+  [
+    *E*\xecutable and *L*\inkable *F*\ormat
 
-- File starting with a header which holds binary structures defining the
-  file
+    - File starting with a header which holds binary structures defining the
+      file
 
-- Collection of segments and sections that contain data
+    - Collection of segments and sections that contain data
 
-  - `.text` section: Code
+      - `.text` section: Code
 
-  - `.data` section: Data
+      - `.data` section: Data
 
-  - `.rodata` section: Read-only Data
+      - `.rodata` section: Read-only Data
 
-  - `.debug_info` section: Contains debugging information
+      - `.debug_info` section: Contains debugging information
 
-- Sections are part of a segment which can be loadable in memory
+    - Sections are part of a segment which can be loadable in memory
 
-- Same format for all architectures supported by the kernel and also
-  `vmlinux` format
+    - Same format for all architectures supported by the kernel and also
+      `vmlinux` format
 
-  - Also used by a lot of other operating systems as the standard
-    executable file format
+      - Also used by a lot of other operating systems as the standard
+        executable file format
 
-],[
+  ],
+  [
 
-#align(center, [#image("elf_layout.pdf", height: 60%)])
+    #align(center, [#image("elf_layout.pdf", height: 60%)])
 
-])
+  ],
+)
 
-===  binutils for ELF analysis
+=== binutils for ELF analysis
 
 - The binutils are used to deal with binary files, either object files
   or executables.
@@ -167,12 +172,12 @@
 - _addr2line_ finds the source code line/file pair from an address
   using an ELF file with debug information
 
-===  binutils example (1/2)
+=== binutils example (1/2)
 
 - Finding the address of `ksys_read()` kernel function using _nm_:
 
   ```console
-  $ nm vmlinux | grep ksys_read 
+  $ nm vmlinux | grep ksys_read
   c02c7040 T ksys_read
   ```
 
@@ -181,21 +186,21 @@
 
   ```console
   $ addr2line -s -f -e vmlinux ffffffff8145a8b0
-  queue_wc_show 
+  queue_wc_show
   blk-sysfs.c:516
   ```
 
-===  binutils example (2/2)
+=== binutils example (2/2)
 
 - Display an ELF header with _readelf_:
 #v(0.5em)
 
 ```console
-$ readelf -h binary 
+$ readelf -h binary
 ELF Header:
 Magic:   7f 45 4c 46 02 01 01 00 00 00 00 00 00 00 00 00
 Class:                             ELF64
-Data:                              2's complement, little endian 
+Data:                              2's complement, little endian
 Version:                           1 (current)
 OS/ABI:                            UNIX - System V
 ABI Version:                       0
@@ -211,7 +216,7 @@ Machine:                           Advanced Micro Devices X86-64
 $ objcopy -O binary file.elf file.bin
 ```
 
-===  ldd
+=== ldd
 
 - In order to display the shared libraries used by an ELF binary, one
   can use _ldd_ (Generally packaged with C library. See
@@ -234,7 +239,7 @@ libncursesw.so.6 => /usr/lib/libncursesw.so.6 (0x00007fa2d288e000)
 == Monitoring tools
 <monitoring-tools>
 
-===  Monitoring Tools
+=== Monitoring Tools
 
 - Lots of monitoring tools on Linux to allow monitoring various part of
   the system.
@@ -257,7 +262,7 @@ libncursesw.so.6 => /usr/lib/libncursesw.so.6 (0x00007fa2d288e000)
 == Process and CPU monitoring tools
 <process-and-cpu-monitoring-tools>
 
-===  Processes with _ps_
+=== Processes with _ps_
 
 - The _ps_ command allows to display a snapshot of active processes
   and their associated information (#manpage("ps", "1"))
@@ -284,12 +289,12 @@ libncursesw.so.6 => /usr/lib/libncursesw.so.6 (0x00007fa2d288e000)
 
 - Useful for scripting and parsing since its output is static.
 
-===  ps example
+=== ps example
 
 - Display all processes in a friendly way:
 #v(0.5em)
 ```console
-$ ps aux 
+$ ps aux
 USER    PID %CPU %MEM    VSZ   RSS TTY STAT START  TIME COMMAND
 root      1  0.0  0.0 168864 12800 ?   Ss   09:08  0:00 /sbin/init
 root      2  0.0  0.0      0     0 ?   S    09:08  0:00 [kthreadd]
@@ -297,15 +302,15 @@ root      3  0.0  0.0      0     0 ?   I<   09:08  0:00 [rcu_gp]
 root      4  0.0  0.0      0     0 ?   I<   09:08  0:00 [rcu_par_gp]
 root      5  0.0  0.0      0     0 ?   I<   09:08  0:00 [netns]
 [...]
-root    914  0.0  0.0 396216 16220 ?   Ssl  09:08  0:04 /usr/libexec/udisks2/udisksd 
-avahi   929  0.0  0.0   8728   412 ?   S    09:08  0:00 avahi-daemon: chroot helper 
+root    914  0.0  0.0 396216 16220 ?   Ssl  09:08  0:04 /usr/libexec/udisks2/udisksd
+avahi   929  0.0  0.0   8728   412 ?   S    09:08  0:00 avahi-daemon: chroot helper
 root    956  0.0  0.1 260304 19024 ?   Ssl  09:08  0:02 /usr/sbin/NetworkManager [...]
 root    960  0.0  0.0  17040  5704 ?   Ss   09:08  0:00 /sbin/wpa_supplicant -u [...]
-root    962  0.0  0.0 317644 11896 ?   Ssl  09:08  0:00 /usr/sbin/ModemManager 
+root    962  0.0  0.0 317644 11896 ?   Ssl  09:08  0:00 /usr/sbin/ModemManager
 vnstat  987  0.0  0.0   5516  3696 ?   Ss   09:08  0:00 /usr/sbin/vnstatd -n
 ```
 
-===  Processes with _top_
+=== Processes with _top_
 
 - _top_ command output information similar to _ps_ but dynamic
   and interactive ().
@@ -314,11 +319,11 @@ vnstat  987  0.0  0.0   5516  3696 ?   Ss   09:08  0:00 /usr/sbin/vnstatd -n
     _Busybox_)
 #v(0.5em)
 ```console
-$ top 
+$ top
 top - 18:38:11 up  9:29,  1 user,  load average: 2.84, 2.74, 2.02
 Tasks: 371 total,   1 running, 370 sleeping,   0 stopped,   0 zombie
-%Cpu(s):  5.8 us,  2.1 sy,  0.0 ni, 77.4 id, 14.7 wa,  0.0 hi,  0.0 si,  0.0 st 
-MiB Mem :  15947.6 total,   1476.9 free,   7685.7 used,   6784.9 buff/cache 
+%Cpu(s):  5.8 us,  2.1 sy,  0.0 ni, 77.4 id, 14.7 wa,  0.0 hi,  0.0 si,  0.0 st
+MiB Mem :  15947.6 total,   1476.9 free,   7685.7 used,   6784.9 buff/cache
 MiB Swap:  15259.0 total,  15238.7 free,     20.2 used.   7742.3 avail Mem
 
     PID USER      PR  NI    VIRT    RES    SHR S  %CPU  %MEM     TIME+ COMMAND
@@ -329,7 +334,7 @@ MiB Swap:  15259.0 total,  15238.7 free,     20.2 used.   7742.3 avail Mem
   91926 cleger    20   0 2514784 145360  95144 S  13.3   0.9   1:29.85 Web Content
 ```
 
-===  mpstat
+=== mpstat
 
 - _mpstat_ displays Multiprocessor statistics
   (#manpage("mpstat", "1")).
@@ -351,7 +356,7 @@ Linux 6.0.0-1-amd64 (fixe)      19/10/2022      _x86_64_        (4 CPU)
 == Memory monitoring tools
 <memory-monitoring-tools>
 
-===  free
+=== free
 
 - _free_ is a simple program that displays the amount of free and
   used memory in the system (#manpage("free", "1")).
@@ -362,8 +367,8 @@ Linux 6.0.0-1-amd64 (fixe)      19/10/2022      _x86_64_        (4 CPU)
 
 ```console
 $ free -h
-               total        used        free      shared  buff/cache   available 
-Mem:            15Gi       7.5Gi       1.4Gi       192Mi       6.6Gi       7.5Gi 
+               total        used        free      shared  buff/cache   available
+Mem:            15Gi       7.5Gi       1.4Gi       192Mi       6.6Gi       7.5Gi
 Swap:           14Gi        20Mi        14Gi
 ```
 
@@ -373,7 +378,7 @@ Swap:           14Gi        20Mi        14Gi
   `drop_caches` from #manpage("proc", "5") to observe
   buffers/cache impact on free/available memory_
 
-===  vmstat
+=== vmstat
 
 - _vmstat_ displays information about system virtual memory usage
 
@@ -392,7 +397,7 @@ r  b   swpd   free   buff  cache     si   so    bi    bo    in   cs  us sy id wa
 
 - _Note: vmstat consider a kernel block to be 1024 bytes_
 
-===  pmap
+=== pmap
 
 - `pmap` displays process mappings more easily than accessing
   `/proc/<pid>/maps`  \ (#manpage("pmap", "1")).
@@ -421,26 +426,26 @@ r  b   swpd   free   buff  cache     si   so    bi    bo    in   cs  us sy id wa
 == I/O monitoring tools
 <io-monitoring-tools>
 
-===  iostat
+=== iostat
 
 - _iostat_ displays information about IOs per device on the system.
 
 - Useful to see if a device is overloaded by IOs.
 
 ```console
-$ iostat 
+$ iostat
 Linux 5.19.0-2-amd64 (fixe)     11/10/2022      _x86_64_        (12 CPU)
 
 avg-cpu:  %user   %nice %system %iowait  %steal   %idle
            8,43    0,00    1,52    8,77    0,00   81,28
 
-Device      tps  kB_read/s  kB_wrtn/s  kB_dscd/s  kB_read  kB_wrtn  kB_dscd 
+Device      tps  kB_read/s  kB_wrtn/s  kB_dscd/s  kB_read  kB_wrtn  kB_dscd
 nvme0n1   55,89    1096,88     149,33       0,00  5117334   696668        0
 sda        0,03       0,92       0,00       0,00     4308        0        0
 sdb      104,42     274,55    2126,64       0,00  1280853  9921488        0
 ```
 
-===  iotop
+=== iotop
 
 - _iotop_ displays information about IOs much like _top_ for
   each process.
@@ -455,8 +460,8 @@ sdb      104,42     274,55    2126,64       0,00  1280853  9921488        0
   - Also needs to be enabled at runtime: `sysctl -w kernel.task_delayacct=1`
 
 ```console
-# iotop 
-Total DISK READ:        20.61 K/s | Total DISK WRITE:        51.52 K/s 
+# iotop
+Total DISK READ:        20.61 K/s | Total DISK WRITE:        51.52 K/s
 Current DISK READ:      20.61 K/s | Current DISK WRITE:      24.04 K/s
     TID  PRIO  USER     DISK READ DISK WRITE>    COMMAND
     2629 be/4 cleger     20.61 K/s   44.65 K/s firefox-esr [Cache2 I/O]
@@ -472,7 +477,7 @@ Current DISK READ:      20.61 K/s | Current DISK WRITE:      24.04 K/s
 == Networking observability tools
 <networking-observability-tools>
 
-===  ss
+=== ss
 
 - _ss_ shows the status of network sockets
 
@@ -482,7 +487,7 @@ Current DISK READ:      20.61 K/s | Current DISK WRITE:      24.04 K/s
 
 - Gets info from `/proc/net`
 
-- Usage: 
+- Usage:
   `ss` by default shows connected sockets \
   `ss -l` shows listening sockets \
   `ss -a` shows both listening and connected sockets \
@@ -496,23 +501,23 @@ Current DISK READ:      20.61 K/s | Current DISK WRITE:      24.04 K/s
   #link("https://www.man7.org/linux/man-pages/man8/ss.8.html")[the ss manpage]
   for all the options
 
-===  ss example output
+=== ss example output
 
 ```console
-# ss 
-Netid State  Recv-Q Send-Q                Local Address:Port            Peer Address:Port  Process 
+# ss
+Netid State  Recv-Q Send-Q                Local Address:Port            Peer Address:Port  Process
 u_dgr ESTAB  0      0                                 * 304840                     * 26673
 u_str ESTAB  0      0       /run/dbus/system_bus_socket 42871                      * 26100
 icmp6 UNCONN 0      0                                 *:ipv6-icmp                  *:*
-udp   ESTAB  0      0          192.168.10.115%wlp0s20f3:bootpc         192.168.10.88:bootps 
-tcp   ESTAB  0      136                      172.16.0.1:41376           172.16.11.42:ssh 
-tcp   ESTAB  0      273                    192.168.1.77:55494          87.98.181.233:https 
+udp   ESTAB  0      0          192.168.10.115%wlp0s20f3:bootpc         192.168.10.88:bootps
+tcp   ESTAB  0      136                      172.16.0.1:41376           172.16.11.42:ssh
+tcp   ESTAB  0      273                    192.168.1.77:55494          87.98.181.233:https
 tcp   ESTAB  0      0                   [2a02:...:dbdc]:38466     [2001:...:9]:imap2
 ...
 #
 ```
 
-===  iftop
+=== iftop
 
 - _iftop_ displays bandwidth usage on an interface by remote host
 
@@ -527,7 +532,7 @@ tcp   ESTAB  0      0                   [2a02:...:dbdc]:38466     [2001:...:9]:i
 - See #link("https://linux.die.net/man/8/iftop")[the iftop manpage] for
   details
 
-===  tcpdump
+=== tcpdump
 
 - #link("https://www.tcpdump.org/")[_tcpdump_] allows to capture
   network traffic and decode many protocols
@@ -548,7 +553,7 @@ tcp   ESTAB  0      0                   [2a02:...:dbdc]:38466     [2001:...:9]:i
 
   - `tcpdump -i eth0 tcp and not port 22`
 
-===  tcpdump example output
+=== tcpdump example output
 
 ```console
 # tcpdump -i eth0
@@ -571,7 +576,7 @@ tcp   ESTAB  0      0                   [2a02:...:dbdc]:38466     [2001:...:9]:i
 #
 ```
 
-===  #link("https://www.wireshark.org/")[Wireshark]
+=== #link("https://www.wireshark.org/")[Wireshark]
 
 - Similar to tcpdump, but with a GUI
 
@@ -598,18 +603,18 @@ tcp   ESTAB  0      0                   [2a02:...:dbdc]:38466     [2001:...:9]:i
 
 - Can also capture and decode Bluetooth, USB, D-Bus and more
 
-===  #link("https://www.wireshark.org/")[Wireshark]
+=== #link("https://www.wireshark.org/")[Wireshark]
 
 #align(center, [#image("wireshark.png", height: 100%)])
 
-#setuplabframe([System Status ],[
+#setuplabframe([System Status ], [
 
-Check what is running on a system and its load 
+  Check what is running on a system and its load
 
-- Observe processes and IOs
+  - Observe processes and IOs
 
-- Display memory mappings
+  - Display memory mappings
 
-- Monitor resources
+  - Monitor resources
 
 ])

@@ -6,7 +6,7 @@
 
 = Application Profiling
 
-===  Profiling
+=== Profiling
 
 - Profiling is the act of gathering data from a program execution in
   order to analyze them and then optimize or fix performance issues.
@@ -25,9 +25,12 @@
 - After profiling, the data set must be analyzed to identify potential
   improvements (and not the reverse!).
 
-===  Performance issues
+=== Performance issues
 
-#align(center, [_"Premature optimization is the root of all evil", Donald Knuth_])
+#align(
+  center,
+  [_"Premature optimization is the root of all evil", Donald Knuth_],
+)
 
 #v(1em)
 
@@ -45,7 +48,7 @@
 - Once the class of problems has been identified, a fine-grained
   profiling analysis can be done.
 
-===  Profiling metrics
+=== Profiling metrics
 
 #align(center, [#image("metrics.png", width: 30%)])
 
@@ -62,7 +65,7 @@
 == Memory profiling
 <memory-profiling>
 
-===  Memory profiling
+=== Memory profiling
 
 - Profiling memory usage (heap/stack) in an application is useful for
   optimization.
@@ -78,30 +81,30 @@
 - Reducing application memory footprint can allow optimizing cache usage
   as well as page miss.
 
-===  Massif usage
+=== Massif usage
 
 - _Massif_ is a tool provided by _valgrind_ which allows to
   profile heap usage during the program execution (user-space only).
 
 - Works by making snapshots of allocations.
 #v(0.5em)
-#[ 
+#[
   #show raw.where(lang: "console", block: true): set text(size: 19pt)
-```console
-$ valgrind --tool=massif --time-unit=B program
-```
-#v(0.5em)
+  ```console
+  $ valgrind --tool=massif --time-unit=B program
+  ```
+  #v(0.5em)
 
-- Once executed, a _massif.out.<pid>_ file will be generated in
-  the current directory
+  - Once executed, a _massif.out.<pid>_ file will be generated in
+    the current directory
 
-- `ms_print` tool can then be used to display a graph of heap
-  allocation
-#v(0.5em)
+  - `ms_print` tool can then be used to display a graph of heap
+    allocation
+  #v(0.5em)
 
-```console
-$ ms_print massif.out.275099
-```]
+  ```console
+  $ ms_print massif.out.275099
+  ```]
 #v(0.5em)
 
 - `#`: Peak allocation
@@ -109,7 +112,7 @@ $ ms_print massif.out.275099
 - `@`: Detailed snapshot (count can be adjusted thanks to
   `–detailed-freq`)
 
-===  Massif report
+=== Massif report
 
 ```console
     KB
@@ -140,11 +143,11 @@ Number of snapshots: 52
  Detailed snapshots: [9, 19, 22 (peak), 32, 42]
 ```
 
-===  `massif-visualizer` - Visualizing massif profiling data
+=== `massif-visualizer` - Visualizing massif profiling data
 
 #align(center, [#image("massif_visualizer.png", height: 90%)])
 
-===  heaptrack usage
+=== heaptrack usage
 
 - _heaptrack_ is a heap memory profiler for Linux.
 
@@ -162,48 +165,54 @@ Number of snapshots: 52
 
 - #link("https://github.com/KDE/heaptrack")
 #v(0.5em)
-#[ 
+#[
   #show raw.where(lang: "console", block: true): set text(size: 19pt)
-```console
-$ heaptrack program
-```
+  ```console
+  $ heaptrack program
+  ```
 ]
 #v(0.5em)
 - This will generate a `heaptrack.<process_name>.<pid>.zst` file
   that can be analyzed using `heaptrack_gui` on another computer.
 
-===  `heaptrack_gui` - Visualizing heaptrack profiling data
+=== `heaptrack_gui` - Visualizing heaptrack profiling data
 
 #align(center, [#image("heaptrack_gui.png", height: 90%)])
 
-===  `heaptrack_gui` - Flamegraph view
+=== `heaptrack_gui` - Flamegraph view
 
 #align(center, [#image("heaptrack_gui_flamegraph.png", height: 90%)])
 
-===  memusage
+=== memusage
 
-#table(columns: (70%, 30%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (70%, 30%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-- memusage is a program that leverages `libmemusage.so` to profile
-  memory usage (#manpage("memusage", "1")) (user-space only).
+    - memusage is a program that leverages `libmemusage.so` to profile
+      memory usage (#manpage("memusage", "1")) (user-space only).
 
-- Can profile heap, stack and also mmap memory usage.
+    - Can profile heap, stack and also mmap memory usage.
 
-- Profiling information can be shown on the console, logged to a file
-  for post-treatment or visualized in a PNG file.
+    - Profiling information can be shown on the console, logged to a file
+      for post-treatment or visualized in a PNG file.
 
-- Lightweight solution compared to valgrind _Massif_ tool since it
-  uses the `LD_PRELOAD` mechanism.
+    - Lightweight solution compared to valgrind _Massif_ tool since it
+      uses the `LD_PRELOAD` mechanism.
 
-], [
+  ],
+  [
 
-#align(center, [#image("memusage.png", width: 100%)])
+    #align(center, [#image("memusage.png", width: 100%)])
 
-])
-===  memusage usage
+  ],
+)
+=== memusage usage
 
 ```console
-$ memusage convert foo.png foo.jpg 
+$ memusage convert foo.png foo.jpg
 Memory usage summary: heap total: 2635857, heap peak: 2250856, stack peak: 83696
          total calls   total memory   failed calls
  malloc|       1496        2623648              0
@@ -218,16 +227,16 @@ Histogram for block sizes:
    64-79             43   2% ======
    80-95            141   9% =====================
   ...
-21424-21439           1  <1% 
-32768-32783           1  <1% 
-32816-32831           1  <1% 
-   large              3  <1% 
+21424-21439           1  <1%
+32768-32783           1  <1%
+32816-32831           1  <1%
+   large              3  <1%
 ```
 
 == Execution profiling
 <execution-profiling>
 
-===  Execution profiling
+=== Execution profiling
 
 - In order to optimize a program, one may have to understand what
   hardware resources are used.
@@ -241,7 +250,7 @@ Histogram for block sizes:
 
   - Alignment faults when doing misaligned accesses.
 
-===  Using _perf stat_
+=== Using _perf stat_
 
 - `perf stat` allows to profile an application by gathering performance
   counters.
@@ -265,21 +274,21 @@ Histogram for block sizes:
   - See #link("https://perfwiki.github.io/main/")[perf wiki] for more
     information.
 
-===  perf stat example (1/2)
+=== perf stat example (1/2)
 
 ```console
 $ perf stat convert foo.png foo.jpg
 
 Performance counter stats for 'convert foo.png foo.jpg':
 
-           45,52 msec task-clock                #    1,333 CPUs utilized          
-               4      context-switches          #   87,874 /sec                   
-               0      cpu-migrations            #    0,000 /sec                   
-           1 672      page-faults               #   36,731 K/sec                  
+           45,52 msec task-clock                #    1,333 CPUs utilized
+               4      context-switches          #   87,874 /sec
+               0      cpu-migrations            #    0,000 /sec
+           1 672      page-faults               #   36,731 K/sec
      146 154 800      cycles                    #    3,211 GHz                      (81,16%)
        6 984 741      stalled-cycles-frontend   #    4,78% frontend cycles idle     (91,21%)
       81 002 469      stalled-cycles-backend    #   55,42% backend cycles idle      (91,36%)
-     222 687 505      instructions              #    1,52  insn per cycle         
+     222 687 505      instructions              #    1,52  insn per cycle
                                                 #    0,36  stalled cycles per insn  (91,21%)
       37 776 174      branches                  #  829,884 M/sec                    (74,51%)
          567 408      branch-misses             #    1,50% of all branches          (70,62%)
@@ -295,7 +304,7 @@ Performance counter stats for 'convert foo.png foo.jpg':
 - _NOTE: the percentage displayed at the end denotes the time
   during which the kernel measured the event due to multiplexing_
 
-===  perf stat example (2/2)
+=== perf stat example (2/2)
 
 - List all events:
 #v(0.5em)
@@ -323,7 +332,7 @@ Performance counter stats for 'cat /etc/fstab':
 ...
 ```
 
-===  Cachegrind
+=== Cachegrind
 
 - _Cachegrind_ is a tool provided by _valgrind_ for profiling
   program interactions with the instruction and data cache hierarchy.
@@ -335,11 +344,11 @@ Performance counter stats for 'cat /etc/fstab':
 
 - Really helpful to detect cache usage problems (too many misses, etc).
 #v(0.5em)
-#[ 
+#[
   #show raw.where(lang: "console", block: true): set text(size: 17pt)
-```console
-$ valgrind --tool=cachegrind --cache-sim=yes ./my_program
-```
+  ```console
+  $ valgrind --tool=cachegrind --cache-sim=yes ./my_program
+  ```
 ]
 #v(0.5em)
 - It generates a `cachegrind.out.<pid>` file containing the measures
@@ -349,11 +358,11 @@ $ valgrind --tool=cachegrind --cache-sim=yes ./my_program
 
 - It also has a `–diff` option to allow comparing two measures files
 
-===  Kcachegrind - Visualizing Cachegrind profiling data
+=== Kcachegrind - Visualizing Cachegrind profiling data
 
 #align(center, [#image("kcachegrind_cachegrind.png", height: 90%)])
 
-===  Callgrind
+=== Callgrind
 
 - Provided by _valgrind_ and allowing to profile an application
   call graph (user-space only).
@@ -363,7 +372,7 @@ $ valgrind --tool=cachegrind --cache-sim=yes ./my_program
 
 - Records the call relationship between functions and their call count.
 #v(0.5em)
-#[ 
+#[
   #show raw.where(lang: "console", block: true): set text(size: 17pt)
   ```console
   $ valgrind --tool=callgrind ./my_program
@@ -379,18 +388,19 @@ $ valgrind --tool=cachegrind --cache-sim=yes ./my_program
   shortcomings (See
   #link("https://valgrind.org/docs/manual/cg-manual.html#cg-manual.annopts.accuracy")[Cachegrind accuracy])
 
-===  Kcachegrind - Visualizing Callgrind profiling data
+=== Kcachegrind - Visualizing Callgrind profiling data
 
 #align(center, [#image("kcachegrind_callgrind.png", height: 90%)])
 
-#setuplabframe([Profiling applications],[ Profiling an application
-using various tools
+#setuplabframe([Profiling applications], [
+  Profiling an application
+  using various tools
 
-- Profiling application heap using _Massif_.
+  - Profiling application heap using _Massif_.
 
-- Profiling an application with _Cachegrind_, _Callgrind_ and
-  _KCachegrind_.
+  - Profiling an application with _Cachegrind_, _Callgrind_ and
+    _KCachegrind_.
 
-- Analyzing application performance with _perf_.
+  - Analyzing application performance with _perf_.
 
 ])

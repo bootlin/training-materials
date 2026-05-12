@@ -2,7 +2,7 @@
 
 #import "/typst/local/common.typ": *
 
-===  Debugging locking
+=== Debugging locking
 
 - Lock debugging: prove locking correctness
 
@@ -28,7 +28,7 @@
 
   - Warning displayed in `dmesg` in case of such violation.
 
-===  Concurrency issues
+=== Concurrency issues
 
 - Kernel Concurrency SANitizer framework
 
