@@ -9,11 +9,11 @@
 == Distro Layers
 <distro-layers>
 
-===  Distro layers
+=== Distro layers
 
 #align(center, [#image("yocto-layer-distro.pdf", height: 90%)])
 
-===  Distro layers
+=== Distro layers
 
 - You can create a new distribution by using a Distro layer.
 
@@ -30,7 +30,7 @@
   for testing. It's not necessarily a good starting point to optimize
   the root filesystem for your own platform.
 
-===  Best practice
+=== Best practice
 
 - A distro layer is used to provide policy configurations for a custom
   distribution.
@@ -47,7 +47,7 @@
   - Distribution specific recipes: initialization scripts, splash
     screen…
 
-===  Creating a Distro configuration file
+=== Creating a Distro configuration file
 
 - The configuration file for the distro layer is
   `conf/distro/<distro>.conf`
@@ -62,15 +62,15 @@
 #v(0.5em)
 
 #text(size: 18.5pt)[
-```sh
-DISTRO_NAME = "My Custom Distro"
-DISTRO_VERSION = "1.0"
-MAINTAINER = "..."
+  ```sh
+  DISTRO_NAME = "My Custom Distro"
+  DISTRO_VERSION = "1.0"
+  MAINTAINER = "..."
 
-DISTRO_FEATURES = "sysvinit ipv4 ipv6 wifi zeroconf usbgadget usbhost pni-names"
-```]
+  DISTRO_FEATURES = "sysvinit ipv4 ipv6 wifi zeroconf usbgadget usbhost pni-names"
+  ```]
 
-===  `DISTRO_FEATURES`
+=== `DISTRO_FEATURES`
 
 - Lists the features the distribution will enable (SSL, WiFi,
   Bluetooth…).
@@ -88,7 +88,7 @@ DISTRO_FEATURES = "sysvinit ipv4 ipv6 wifi zeroconf usbgadget usbhost pni-names"
   are enabled in both #yoctovar("MACHINE_FEATURES") and
   #yoctovar("DISTRO_FEATURES").
 
-===  Toolchain selection
+=== Toolchain selection
 
 - The toolchain selection is controlled by the #yoctovar("TCMODE")
   variable.
@@ -107,7 +107,7 @@ DISTRO_FEATURES = "sysvinit ipv4 ipv6 wifi zeroconf usbgadget usbhost pni-names"
   because toolchains are fast to rebuild thanks to the shared state
   cache).
 
-===  Sample files
+=== Sample files
 
 - A distro layer often contains `sample files`, used as templates to
   build key configurations files.

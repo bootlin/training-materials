@@ -9,7 +9,7 @@
 == The per-recipe sysroot
 <the-per-recipe-sysroot>
 
-===  Sysroot
+=== Sysroot
 
 - The _sysroot_ is the logical root directory for headers and
   libraries
@@ -24,7 +24,7 @@
 
   - Other libraries and their headers
 
-===  Optional dependencies
+=== Optional dependencies
 
 - Most software have a configure script that checks for libraries:
 
@@ -40,23 +40,23 @@
   - `libpcap` built _before_ `bluez5`
 
     #text(size: 16pt)[
-    ```text
-    libpcap$ ./configure
-    ...
-    checking for bluetooth/bluetooth.h... no 
-    configure: Bluetooth sniffing is not supported; install bluez-lib devel to enable it
-    ```]
+      ```text
+      libpcap$ ./configure
+      ...
+      checking for bluetooth/bluetooth.h... no
+      configure: Bluetooth sniffing is not supported; install bluez-lib devel to enable it
+      ```]
 
   - `libpcap` built _after_ `bluez5`
 
     #text(size: 16pt)[
-    ```text
-    libpcap$ ./configure
-    ...
-    checking for bluetooth/bluetooth.h... yes configure: Bluetooth sniffing is supported
-    ```]
+      ```text
+      libpcap$ ./configure
+      ...
+      checking for bluetooth/bluetooth.h... yes configure: Bluetooth sniffing is supported
+      ```]
 
-===  Per-recipe sysroot
+=== Per-recipe sysroot
 
 - Instead of a global sysroot, `bitbake` implements a _per-recipe
   sysroot_
@@ -67,7 +67,7 @@
 
 #align(center, [#image("per-recipe-sysroot.pdf", width: 100%)])
 
-===  Per-recipe sysroot
+=== Per-recipe sysroot
 
 - Before the actual build, each recipe prepares its own sysroot
 
@@ -91,7 +91,7 @@
 
   - `${WORKDIR}/sysroot-destdir`
 
-===  The complete sysroot
+=== The complete sysroot
 
 - A complete sysroot is available:
 
@@ -106,7 +106,7 @@
 == Using Python code in metadata
 <using-python-code-in-metadata>
 
-===  Tasks in Python
+=== Tasks in Python
 
 - Tasks can be written in Python when using the `python` keyword.
 
@@ -123,7 +123,7 @@
 - Short Python code snippets can be written inline with the
   ` ${@<python code>}` syntax.
 
-===  Accessing the datastore with Python
+=== Accessing the datastore with Python
 
 - The `d` variable is accessible within Python tasks.
 
@@ -141,7 +141,7 @@
 
 / `d.expand(expression)`: Expand variables in `expression`.
 
-===  Python code examples
+=== Python code examples
 
 ```python
 # Anonymous function (automatically called at parsing time)
@@ -149,12 +149,12 @@ python __anonymous() {
     if d.getVar("FOO", True) == "example":
         d.setVar("BAR", "Hello, World.")
 }
-# Task 
+# Task
 python do_settime() {
     import time
     d.setVar("TIME", time.strftime('%Y%m%d', time.gmtime()))
 }
-# Inline Python code 
+# Inline Python code
 do_install() {
     echo "Build OS: ${@os.uname()[0].lower()}"
 }
@@ -163,12 +163,14 @@ do_install() {
 #v(0.5em)
 
 Real life example of anonymous function: \
-#text(size: 18pt)[#link("https://github.com/linux4sam/meta-atmel/blob/scarthgap/recipes-kernel/linux/linux.inc")]
+#text(size: 18pt)[#link(
+  "https://github.com/linux4sam/meta-atmel/blob/scarthgap/recipes-kernel/linux/linux.inc",
+)]
 
 == Variable flags
 <variable-flags>
 
-===  Variable flags
+=== Variable flags
 
 - _Variable flags_, or _varflags_, are used to store extra
   information on tasks and variables.
@@ -186,7 +188,7 @@ Real life example of anonymous function: \
 
 - More varflags can be added freely.
 
-===  Variable flags examples
+=== Variable flags examples
 
 - `dirs`: directories that should be created before the task runs. The
   last one becomes the work directory for the task. Example: `do_fetch`
@@ -224,7 +226,7 @@ Real life example of anonymous function: \
 == Packages features
 <packages-features>
 
-===  Benefits
+=== Benefits
 
 - Features can be built depending on the needs.
 
@@ -237,7 +239,7 @@ Real life example of anonymous function: \
 - The #yoctovar("PACKAGECONFIG") variable is used to configure the
   build on a per feature granularity, for packages.
 
-===  `PACKAGECONFIG`
+=== `PACKAGECONFIG`
 
 - #yoctovar("PACKAGECONFIG") takes the list of features to enable.
 
@@ -263,27 +265,27 @@ Real life example of anonymous function: \
 
 - Unused arguments can be omitted or left blank.
 
-===  Example: from `ConnMan`
+=== Example: from `ConnMan`
 
 #text(size: 23pt)[
-```sh
-PACKAGECONFIG ??= "wifi openvpn"
+  ```sh
+  PACKAGECONFIG ??= "wifi openvpn"
 
-PACKAGECONFIG[wifi] = "--enable-wifi,        \                
-                       --disable-wifi,       \               
-                       wpa-supplicant,       \                
-                       wpa-supplicant"
-PACKAGECONFIG[bluez] = "--enable-bluetooth,  \           
-                        --disable-bluetooth, \         
-                        bluez5,              \
-                        bluez5" 
-PACKAGECONFIG[openvpn] = "--enable-openvpn,  \       
-                          --disable-openvpn, \         
-                          ,                  \         
-                          openvpn"
-```]
+  PACKAGECONFIG[wifi] = "--enable-wifi,        \
+                         --disable-wifi,       \
+                         wpa-supplicant,       \
+                         wpa-supplicant"
+  PACKAGECONFIG[bluez] = "--enable-bluetooth,  \
+                          --disable-bluetooth, \
+                          bluez5,              \
+                          bluez5"
+  PACKAGECONFIG[openvpn] = "--enable-openvpn,  \
+                            --disable-openvpn, \
+                            ,                  \
+                            openvpn"
+  ```]
 
-===  Enabling PACKAGECONFIG features
+=== Enabling PACKAGECONFIG features
 
 - In a `.bbappend` of the recipe, just append to
   #yoctovar("PACKAGECONFIG")
@@ -300,39 +302,39 @@ PACKAGECONFIG[openvpn] = "--enable-openvpn,  \
   PACKAGECONFIG:append:pn-gdb = " tui"
   ```
 
-===  Inspecting available `PACKAGECONFIG flags`
+=== Inspecting available `PACKAGECONFIG flags`
 
 - `${POKY_DIR}/scripts/contrib/list-packageconfig-flags.py` shows the
   #yoctovar("PACKAGECONFIG") varflags available for each recipe:
 
   #text(size: 15pt)[
-  ```sh
-  $ ../poky/scripts/contrib/list-packageconfig-flags.py 
-  RECIPE NAME    PACKAGECONFIG FLAGS
-  ==================================
-  alsa-plugins   aaf jack libav maemo-plugin maemo-resource-manager pulseaudio samplerate speexdsp connman        3g bluez client iptables l2tp nfc nftables openvpn pptp systemd tist vpnc wifi ...
-  gdb            babeltrace debuginfod python readline tui xz
-  ...
-  ```]
+    ```sh
+    $ ../poky/scripts/contrib/list-packageconfig-flags.py
+    RECIPE NAME    PACKAGECONFIG FLAGS
+    ==================================
+    alsa-plugins   aaf jack libav maemo-plugin maemo-resource-manager pulseaudio samplerate speexdsp connman        3g bluez client iptables l2tp nfc nftables openvpn pptp systemd tist vpnc wifi ...
+    gdb            babeltrace debuginfod python readline tui xz
+    ...
+    ```]
 
 - The `-a` flag shows all the details:
-  
+
   #text(size: 14pt)[
-  ```sh
-  $ ../poky/scripts/contrib/list-packageconfig-flags.py -a 
-  connman-1.41
-  /home/murray/w/yocto-stm32-labs/poky/meta/recipes-connectivity/connman/connman_1.41.bb 
-  PACKAGECONFIG wispr iptables client                   3g wifi                    bluez 
-  PACKAGECONFIG[wifi] --enable-wifi, --disable-wifi, wpa-supplicant, wpa-supplicant 
-  PACKAGECONFIG[bluez] --enable-bluetooth, --disable-bluetooth, bluez5, bluez5
-  PACKAGECONFIG[openvpn] --enable-openvpn --with-openvpn=${sbindir}/openvpn,--disable-openvpn,,openvpn
-  ...
-  ```]
+    ```sh
+    $ ../poky/scripts/contrib/list-packageconfig-flags.py -a
+    connman-1.41
+    /home/murray/w/yocto-stm32-labs/poky/meta/recipes-connectivity/connman/connman_1.41.bb
+    PACKAGECONFIG wispr iptables client                   3g wifi                    bluez
+    PACKAGECONFIG[wifi] --enable-wifi, --disable-wifi, wpa-supplicant, wpa-supplicant
+    PACKAGECONFIG[bluez] --enable-bluetooth, --disable-bluetooth, bluez5, bluez5
+    PACKAGECONFIG[openvpn] --enable-openvpn --with-openvpn=${sbindir}/openvpn,--disable-openvpn,,openvpn
+    ...
+    ```]
 
 == Conditional features
 <conditional-features>
 
-===  Conditional features
+=== Conditional features
 
 - Some values can be set dynamically, thanks to a set of functions:
 
@@ -346,22 +348,22 @@ PACKAGECONFIG[openvpn] = "--enable-openvpn,  \
 - Example (`meta/recipes-connectivity/connman/connman.inc`):
 
   #text(size: 14pt)[
-  ```sh
-  PACKAGECONFIG ??= "wispr iptables client \
-                     ${@bb.utils.filter('DISTRO_FEATURES', '3g systemd', d)} \
-                     ${@bb.utils.contains('DISTRO_FEATURES', 'bluetooth', 'bluez', '', d)} \
-                     ${@bb.utils.contains('DISTRO_FEATURES', 'wifi', 'wifi ${WIRELESS_DAEMON}', '', d)} \
-  "
-  ```]
+    ```sh
+    PACKAGECONFIG ??= "wispr iptables client \
+                       ${@bb.utils.filter('DISTRO_FEATURES', '3g systemd', d)} \
+                       ${@bb.utils.contains('DISTRO_FEATURES', 'bluetooth', 'bluez', '', d)} \
+                       ${@bb.utils.contains('DISTRO_FEATURES', 'wifi', 'wifi ${WIRELESS_DAEMON}', '', d)} \
+    "
+    ```]
 
 == Package splitting
 <package-splitting>
 
-===  Package splitting
+=== Package splitting
 
 #align(center, [#image("splitting-packages.pdf", width: 95%)])
 
-===  Package splitting
+=== Package splitting
 
 - `do_install` copies _all_ files in the `D` directory
   (`${WORKDIR}/image`).
@@ -374,7 +376,7 @@ PACKAGECONFIG[openvpn] = "--enable-openvpn,  \
 
 - `do_package_write_rpm` generates RPM packages
 
-===  `PACKAGES`
+=== `PACKAGES`
 
 - #yoctovar("PACKAGES") lists the packages to be built:
 
@@ -401,7 +403,7 @@ PACKAGECONFIG[openvpn] = "--enable-openvpn,  \
   Package Management System update process, use
   #yoctovar("CONFFILES").
 
-===  `FILES`
+=== `FILES`
 
 - For each package a #yoctovar("FILES") variable lists the files to
   include.
@@ -412,19 +414,19 @@ PACKAGECONFIG[openvpn] = "--enable-openvpn,  \
 
 #v(0.5em)
 
-  ```sh
-  FILES:${PN}-dev = \
-      "${includedir} ${FILES_SOLIBSDEV} ${libdir}/*.la \
-       ${libdir}/*.o ${libdir}/pkgconfig ${datadir}/pkgconfig \
-       ${datadir}/aclocal ${base_libdir}/*.o \
-       ${libdir}/${BPN}/*.la ${base_libdir}/*.la \
-       ${libdir}/cmake ${datadir}/cmake"
-  FILES:${PN}-dbg = \
-      "/usr/lib/debug /usr/lib/debug-static \
-       /usr/src/debug"
-  ```
+```sh
+FILES:${PN}-dev = \
+    "${includedir} ${FILES_SOLIBSDEV} ${libdir}/*.la \
+     ${libdir}/*.o ${libdir}/pkgconfig ${datadir}/pkgconfig \
+     ${datadir}/aclocal ${base_libdir}/*.o \
+     ${libdir}/${BPN}/*.la ${base_libdir}/*.la \
+     ${libdir}/cmake ${datadir}/cmake"
+FILES:${PN}-dbg = \
+    "/usr/lib/debug /usr/lib/debug-static \
+     /usr/src/debug"
+```
 
-===  `FILES: the main package`
+=== `FILES: the main package`
 
 - The package named just `$PN` is the one that gets installed in the
   root filesystem.
@@ -446,61 +448,61 @@ FILES:${PN} = \
      ${libdir}/bonobo/servers"
 ```
 
-===  Example
+=== Example
 
 - The `kexec tools` provides `kexec` and `kdump`:
 
 #v(0.5em)
 
-  ```sh
-  require kexec-tools.inc 
-  export LDFLAGS = "-L${STAGING_LIBDIR}"
-  EXTRA_OECONF = " --with-zlib=yes"
+```sh
+require kexec-tools.inc
+export LDFLAGS = "-L${STAGING_LIBDIR}"
+EXTRA_OECONF = " --with-zlib=yes"
 
-  SRC_URI[sha256sum] = "467ba3fa52ef..."
+SRC_URI[sha256sum] = "467ba3fa52ef..."
 
-  PACKAGES =+ "kexec kdump"
+PACKAGES =+ "kexec kdump"
 
-  FILES:kexec = "${sbindir}/kexec"
-  FILES:kdump = "${sbindir}/kdump"
-  ```
+FILES:kexec = "${sbindir}/kexec"
+FILES:kdump = "${sbindir}/kdump"
+```
 
-===  Inspecting packages 
+=== Inspecting packages
 
 `oe-pkgdata-util` is a tool that can help inspecting packages:
 
 - Which package is shipping a file:
-  
+
   #text(size: 16pt)[
-  ```sh
-  $ oe-pkgdata-util find-path /bin/busybox 
-  busybox: /bin/busybox
-  ```]
+    ```sh
+    $ oe-pkgdata-util find-path /bin/busybox
+    busybox: /bin/busybox
+    ```]
 
 - Which files are shipped by a package:
   #text(size: 16pt)[
-  ```sh
-  $ oe-pkgdata-util list-pkg-files busybox 
-  busybox:
-      /bin/busybox
-      /bin/busybox.nosuid
-      /bin/busybox.suid
-      /bin/sh
-  ```]
+    ```sh
+    $ oe-pkgdata-util list-pkg-files busybox
+    busybox:
+        /bin/busybox
+        /bin/busybox.nosuid
+        /bin/busybox.suid
+        /bin/sh
+    ```]
 
 - Which recipe is creating a package:
   #text(size: 16pt)[
-  ```sh
-  $ oe-pkgdata-util lookup-recipe kdump 
-  kexec-tools
-  $ oe-pkgdata-util lookup-recipe libtinfo5
-  ncurses
-  ```]
+    ```sh
+    $ oe-pkgdata-util lookup-recipe kdump
+    kexec-tools
+    $ oe-pkgdata-util lookup-recipe libtinfo5
+    ncurses
+    ```]
 
 == Dependencies in detail
 <dependencies-in-detail>
 
-===  `DEPENDS`
+=== `DEPENDS`
 
 - #yoctovar("DEPENDS") describes a build-time dependency
 
@@ -509,15 +511,15 @@ FILES:${PN} = \
 
 - In other words: it needs the library in its _sysroot_
 
-- In `ninvaders.bb`, the line 
-  `DEPENDS = "ncurses"` 
+- In `ninvaders.bb`, the line
+  `DEPENDS = "ncurses"`
   creates a dependency
 
   - Of `ninvaders.do_prepare_recipe_sysroot`
 
   - On `ncurses.do_populate_sysroot`
 
-===  `RDEPENDS`
+=== `RDEPENDS`
 
 - #yoctovar("RDEPENDS") describes a runtime dependency
 
@@ -526,7 +528,7 @@ FILES:${PN} = \
 
 - It does not need it at build time
 
-- In `inetutils_2.4.bb`, the line 
+- In `inetutils_2.4.bb`, the line
   `RDEPENDS:${PN}-ftpd += "xinetd"`
   creates a dependency
 
@@ -537,7 +539,7 @@ FILES:${PN} = \
 - And adds in the `inetutils-ftpd` RPM package a dependency on the
   `xinetd` RPM package
 
-===  `RRECOMMENDS`
+=== `RRECOMMENDS`
 
 - #yoctovar("RRECOMMENDS") is similar to #yoctovar("RDEPENDS")
 
@@ -552,7 +554,7 @@ FILES:${PN} = \
   - Depending on a kernel module that might also be built-in in the
     kernel Image
 
-- In `watchdog_5.16.bb`, the line 
+- In `watchdog_5.16.bb`, the line
   `RRECOMMENDS:${PN} += "kernel-module-softdog"`
   does nothing if the `softdog` kernel module is not built by the kernel
   (could be builtin)

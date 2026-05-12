@@ -4,14 +4,14 @@
 
 #show: bootlin-theme
 
-#setuplabframe([First Yocto build],[
+#setuplabframe([First Yocto build], [
 
-- Download the sources
+  - Download the sources
 
-- Set up the environment
+  - Set up the environment
 
-- Configure the build
+  - Configure the build
 
-- Build an image
+  - Build an image
 
 ])

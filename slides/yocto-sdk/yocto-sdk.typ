@@ -6,7 +6,7 @@
 
 = The Yocto Project SDK
 
-===  Overview
+=== Overview
 
 - An SDK (Software Development Kit) is a set of tools allowing the
   development of applications for a given target (operating system,
@@ -24,7 +24,7 @@
 
   - Custom utilities.
 
-===  The Yocto Project SDK
+=== The Yocto Project SDK
 
 - The Poky reference system is used to generate images, by building many
   applications and doing a lot of configuration work.
@@ -42,7 +42,7 @@
 - This SDK can be installed on any computer and is self-contained. The
   presence of Poky is not required for the SDK to fully work.
 
-===  Available SDKs
+=== Available SDKs
 
 - Two different SDKs can be generated:
 
@@ -68,7 +68,7 @@
 
 - Executing this script extracts the tools and sets up the environment.
 
-===  The generic SDK
+=== The generic SDK
 
 - Mainly used for low-level development, where only the toolchain is
   needed:
@@ -91,7 +91,7 @@
 - The SDK will be configured to be compatible with the specified
   #yoctovar("MACHINE").
 
-===  The image-based SDK
+=== The image-based SDK
 
 - Used to develop applications running on the target.
 
@@ -114,7 +114,7 @@
 - The SDK will be configured to be compatible with the specified
   #yoctovar("MACHINE").
 
-===  Adding packages to the SDK
+=== Adding packages to the SDK
 
 - Two variables control what will be installed in the SDK:
 
@@ -132,11 +132,11 @@
 #v(0.5em)
 
 #text(size: 17pt)[
-```bash
-TOOLCHAIN_HOST_TASK:append = " nativesdk-curl"
-```]
+  ```bash
+  TOOLCHAIN_HOST_TASK:append = " nativesdk-curl"
+  ```]
 
-===  SDK format
+=== SDK format
 
 - Both SDKs are distributed as shell scripts.
 
@@ -153,54 +153,54 @@ TOOLCHAIN_HOST_TASK:append = " nativesdk-curl"
 #v(0.5em)
 
 #[ #show raw.where(lang: "console", block: true): set text(size: 14.5pt)
-```console
-    $ ./poky-glibc-x86_64-meta-toolchain-cortexa8hf-neon-toolchain-5.0.sh 
-    Poky (Yocto Project Reference Distro) SDK installer version 5.0
-    ===============================================================
-    Enter target directory for SDK (default: /opt/poky/5.0):
-    You are about to install the SDK to "/opt/poky/5.0". Proceed[Y/n]?
-    Extracting SDK.................done 
-    Setting it up...done 
-    SDK has been successfully set up and is ready to be used.
-    Each time you wish to use the SDK in a new shell session, you need to source 
-    the environment setup script e.g.
-     $ . /opt/poky/5.0/environment-setup-cortexa8hf-neon-poky-linux-gnueabi
-```]
+  ```console
+      $ ./poky-glibc-x86_64-meta-toolchain-cortexa8hf-neon-toolchain-5.0.sh
+      Poky (Yocto Project Reference Distro) SDK installer version 5.0
+      ===============================================================
+      Enter target directory for SDK (default: /opt/poky/5.0):
+      You are about to install the SDK to "/opt/poky/5.0". Proceed[Y/n]?
+      Extracting SDK.................done
+      Setting it up...done
+      SDK has been successfully set up and is ready to be used.
+      Each time you wish to use the SDK in a new shell session, you need to source
+      the environment setup script e.g.
+       $ . /opt/poky/5.0/environment-setup-cortexa8hf-neon-poky-linux-gnueabi
+  ```]
 
-===  Use the SDK
+=== Use the SDK
 
 - To use the SDK, a script is available to set up the environment:
 #[ #show raw.where(lang: "console", block: true): set text(size: 14.5pt)
-```console
-  $ cd /opt/poky/5.0
-  $ source ./environment-setup-cortexa8hf-neon-poky-linux-gnueabi
-```]
+  ```console
+    $ cd /opt/poky/5.0
+    $ source ./environment-setup-cortexa8hf-neon-poky-linux-gnueabi
+  ```]
 
 - The `PATH` is updated to take into account the binaries installed
   alongside the SDK.
 
 - Environment variables are exported to help using the tools.
 
-===  SDK installation
+=== SDK installation
 
 / environment-setup-cortexa8hf-neon-poky-linux-gnueabi: #block[
-Exports environment variables.
-]
+    Exports environment variables.
+  ]
 
 / site-config-cortexa8hf-neon-poky-linux-gnueabi: #block[
-Variables used during the toolchain creation
-]
+    Variables used during the toolchain creation
+  ]
 
 / sysroots: #block[
-SDK binaries, headers and libraries. Contains one directory for the host
-and one for the target.
-]
+    SDK binaries, headers and libraries. Contains one directory for the host
+    and one for the target.
+  ]
 
 / version-cortexa8hf-neon-poky-linux-gnueabi: #block[
-Version information.
-]
+    Version information.
+  ]
 
-===  SDK environment variables
+=== SDK environment variables
 
 - #yoctovar("CC"): Full path to the C compiler binary.
 
@@ -226,7 +226,7 @@ Version information.
 
 To see the full list, open the environment script.
 
-===  Examples
+=== Examples
 
 - To build an application for the target:
 

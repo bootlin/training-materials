@@ -9,7 +9,7 @@
 == Managing licenses
 <managing-licenses>
 
-===  Tracking license changes
+=== Tracking license changes
 
 - The license of an external project may change at some point.
 
@@ -30,7 +30,7 @@
 - #yoctovar("LIC_FILES_CHKSUM") is mandatory in every recipe,
   unless `LICENSE` is set to `CLOSED`.
 
-===  Package exclusion
+=== Package exclusion
 
 - We may not want some packages due to their licenses.
 
@@ -47,7 +47,7 @@
 - License names are the ones used in the #yoctovar("LICENSE")
   variable.
 
-===  Commercial licenses
+=== Commercial licenses
 
 - By default the build system does not include commercial components.
 
@@ -67,7 +67,7 @@
   LICENSE_FLAGS_ACCEPTED = "commercial_gst-plugins-ugly"
   ```]
 
-===  Listing licenses 
+=== Listing licenses
 
 OpenEmbbedded will generate a manifest of all the licenses of the software present on the target image in
 `$BUILDDIR/tmp/deploy/licenses/<image>/license.manifest`
@@ -75,17 +75,17 @@ OpenEmbbedded will generate a manifest of all the licenses of the software prese
 #v(0.5em)
 
 #[ #show raw.where(lang: "console", block: true): set text(size: 16pt)
-```console
-PACKAGE NAME: busybox 
-PACKAGE VERSION: 1.31.1
-RECIPE NAME: busybox 
-LICENSE: GPL-2.0-only & bzip2-1.0.4
+  ```console
+  PACKAGE NAME: busybox
+  PACKAGE VERSION: 1.31.1
+  RECIPE NAME: busybox
+  LICENSE: GPL-2.0-only & bzip2-1.0.4
 
-PACKAGE NAME: dropbear 
-PACKAGE VERSION: 2019.78
-RECIPE NAME: dropbear 
-LICENSE: MIT & BSD-3-Clause & BSD-2-Clause & PD
-```]
+  PACKAGE NAME: dropbear
+  PACKAGE VERSION: 2019.78
+  RECIPE NAME: dropbear
+  LICENSE: MIT & BSD-3-Clause & BSD-2-Clause & PD
+  ```]
 
 #v(0.5em)
 
@@ -97,7 +97,7 @@ filesystem:
 - Or use `LICENSE_CREATE_PACKAGE = "1"` to generate and install
   packages including the license files.
 
-===  Providing sources 
+=== Providing sources
 
 OpenEmbbedded provides the `archiver` class to
 generate tarballs of the source code, to meet the requirements of some
@@ -116,10 +116,12 @@ licenses:
   whose license does not require to provide the sources
 
   - The documentation provides
-    #link("https://docs.yoctoproject.org/dev-manual/licenses.html#providing-the-source-code")[a sample script]
+    #link(
+      "https://docs.yoctoproject.org/dev-manual/licenses.html#providing-the-source-code",
+    )[a sample script]
     to filter only GPL licenses
 
-===  Generating a Software Bill of Materials (SBoM) 
+=== Generating a Software Bill of Materials (SBoM)
 
 Instead of generating license information and source tarballs separately,
 OpenEmbedded can actually generate an SBoM, describing:
@@ -137,7 +139,7 @@ This SBoM is generated in the standard #link("https://spdx.dev/")[SPDX]
 format, which you can feed to
 #link("https://spdx.dev/resources/tools/")[tools supporting SPDX].
 
-===  Usefulness of SPDX SBoM 
+=== Usefulness of SPDX SBoM
 
 SPDX SBoM can be attached to a software delivery, and used for:
 
@@ -150,7 +152,7 @@ SPDX SBoM can be attached to a software delivery, and used for:
 The US government is pushing for having such information in all software
 it procures and will probably make it mandatory soon.
 
-===  How to create SPDX3 SBoM with OpenEmbedded
+=== How to create SPDX3 SBoM with OpenEmbedded
 
 - SPDX2.2 and SPDX3.0 are available in Yocto Scarthgap (SPDX2.2 enabled
   by default)
@@ -176,44 +178,44 @@ it procures and will probably make it mandatory soon.
     files themselves (when #yoctovar("SPDX_INCLUDE_SOURCES") is
     set).
 
-===  Example IMAGE-MACHINE.spdx.json output
+=== Example IMAGE-MACHINE.spdx.json output
 
 #text(size: 11pt)[
-```json
-{
+  ```json
   {
-    "type": "software_Package",
-    "spdxId": "http://spdx.org/spdxdocs/attr-native-1cdc91e2-e63e-5c7a-a86c-844bc9b432c9/91fe9184958e628a e698fd04f536f49ab3e90b5f9cef4affc5306e9c8883/source/1",
-    "creationInfo": "_:CreationInfo231",
-    "name": "attr-2.5.2.tar.gz",
-    "verifiedUsing": [
-      {
-        "type": "Hash",
-        "algorithm": "sha256",
-        "hashValue": "39bf67452fa41d0948c2197601053f48b3d78a029389734332a6309a680c6c87"
-      }
-    ],
-    "software_primaryPurpose": "source",
-    "software_downloadLocation": "https://download.savannah.gnu.org/releases/attr/attr-2.5.2.tar.gz"
-  },
-  {
-    "type": "software_File",
-    "spdxId": "http://spdx.org/spdxdocs/attr-native-1cdc91e2-e63e-5c7a-a86c-844bc9b432c9/91fe9184958e628a e698fd04f536f49ab3e90b5f9cef4affc5306e9c8883/source/3",
-    "creationInfo": "_:CreationInfo231",
-    "name": "0001-attr.c-Include-libgen.h-for-posix-version-of-basenam.patch",
-    "verifiedUsing": [
-      {
-        "type": "Hash",
-        "algorithm": "sha256",
-        "hashValue": "c41c6435e06c69d9c0338cc573d5f69a58878944b05ceaf9d7a8935c06154b87"
-      }
-    ],
-    "software_primaryPurpose": "patch"
-  },
-}
-```]
+    {
+      "type": "software_Package",
+      "spdxId": "http://spdx.org/spdxdocs/attr-native-1cdc91e2-e63e-5c7a-a86c-844bc9b432c9/91fe9184958e628a e698fd04f536f49ab3e90b5f9cef4affc5306e9c8883/source/1",
+      "creationInfo": "_:CreationInfo231",
+      "name": "attr-2.5.2.tar.gz",
+      "verifiedUsing": [
+        {
+          "type": "Hash",
+          "algorithm": "sha256",
+          "hashValue": "39bf67452fa41d0948c2197601053f48b3d78a029389734332a6309a680c6c87"
+        }
+      ],
+      "software_primaryPurpose": "source",
+      "software_downloadLocation": "https://download.savannah.gnu.org/releases/attr/attr-2.5.2.tar.gz"
+    },
+    {
+      "type": "software_File",
+      "spdxId": "http://spdx.org/spdxdocs/attr-native-1cdc91e2-e63e-5c7a-a86c-844bc9b432c9/91fe9184958e628a e698fd04f536f49ab3e90b5f9cef4affc5306e9c8883/source/3",
+      "creationInfo": "_:CreationInfo231",
+      "name": "0001-attr.c-Include-libgen.h-for-posix-version-of-basenam.patch",
+      "verifiedUsing": [
+        {
+          "type": "Hash",
+          "algorithm": "sha256",
+          "hashValue": "c41c6435e06c69d9c0338cc573d5f69a58878944b05ceaf9d7a8935c06154b87"
+        }
+      ],
+      "software_primaryPurpose": "patch"
+    },
+  }
+  ```]
 
-===  Further resources about SPDX SBoM
+=== Further resources about SPDX SBoM
 
 - Yocto project documentation: \
   #link("https://docs.yoctoproject.org/dev/dev-manual/sbom.html")

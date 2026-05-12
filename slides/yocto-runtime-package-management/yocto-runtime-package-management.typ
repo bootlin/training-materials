@@ -6,7 +6,7 @@
 
 = Runtime Package Management
 
-===  Introduction
+=== Introduction
 
 - BitBake always builds packages selected in
   #yoctovar("IMAGE_INSTALL").
@@ -29,7 +29,7 @@
 - We'll use the IPK package format as an example in the following
   slides.
 
-===  Requirements
+=== Requirements
 
 - First of all, you need a server to serve the packages to a private
   subnet or over the Internet. Packages are typically served over
@@ -48,7 +48,7 @@
 == Build configuration
 <build-configuration>
 
-===  Build configuration 1/2
+=== Build configuration 1/2
 
 - The #yoctovar("PACKAGE_CLASSES") variable controls which package
   format to use. More than one can be used.
@@ -64,7 +64,7 @@
 
   - `PACKAGE_CLASSES = "package_rpm package_deb"`
 
-===  Build configuration 2/2 
+=== Build configuration 2/2
 
 To install the required tools on the target, there are two possible solutions:
 
@@ -79,7 +79,7 @@ To install the required tools on the target, there are two possible solutions:
   #yoctovar("IMAGE_INSTALL"). For example, to use the IPK format we
   need `opkg`.
 
-===  Build considerations
+=== Build considerations
 
 - The Runtime Package Management uses package databases to store
   information about available packages and their version.
@@ -99,7 +99,7 @@ To install the required tools on the target, there are two possible solutions:
 == Package server configuration
 <package-server-configuration>
 
-===  Apache2 example setup 
+=== Apache2 example setup
 
 Apache2 HTTP setup for IPK packages. This
 should go in `/etc/apache2/sites-enabled/package-server.conf`.
@@ -125,7 +125,7 @@ should go in `/etc/apache2/sites-enabled/package-server.conf`.
 == Target configuration
 <target-configuration>
 
-===  The IPK runtime management software
+=== The IPK runtime management software
 
 - The IPK runtime management software is `opkg`.
 
@@ -138,8 +138,8 @@ should go in `/etc/apache2/sites-enabled/package-server.conf`.
 - For example, with our previously configured package server:
 
   ```sh
-  src/gz all http://packages.example.net/all 
-  src/gz armv7a http://packages.example.net/armv7a 
+  src/gz all http://packages.example.net/all
+  src/gz armv7a http://packages.example.net/armv7a
   src/gz beaglebone http://packages.example.net/beaglebone
   ```
 
@@ -148,7 +148,7 @@ should go in `/etc/apache2/sites-enabled/package-server.conf`.
   #yoctovar("PACKAGE_FEED_BASE_PATHS") and
   #yoctovar("PACKAGE_FEED_ARCHS") variables
 
-===  `opkg usage`
+=== `opkg usage`
 
 - `opkg update`: fetch and update the package databases, from the remote
   package servers.
@@ -161,7 +161,7 @@ should go in `/etc/apache2/sites-enabled/package-server.conf`.
 
 - `opkg install <package>`: install a specific package.
 
-===  `opkg` upgrade over an unstable network
+=== `opkg` upgrade over an unstable network
 
 - To avoid upgrade issues when downloading packages from a remote
   package server using an unstable connection, you can first download
@@ -173,8 +173,8 @@ should go in `/etc/apache2/sites-enabled/package-server.conf`.
 #v(0.5em)
 
 #[ #show raw.where(lang: "console", block: true): set text(size: 17pt)
-```console
-# opkg update
-# opkg --download-only upgrade
-# opkg upgrade
-```]
+  ```console
+  # opkg update
+  # opkg --download-only upgrade
+  # opkg upgrade
+  ```]

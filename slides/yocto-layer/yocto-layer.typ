@@ -9,7 +9,7 @@
 == Introduction to layers
 <introduction-to-layers>
 
-===  Layers principles
+=== Layers principles
 
 - The OpenEmbedded _build system_ manipulates _metadata_.
 
@@ -19,11 +19,14 @@
 
 - It is a good practice to begin a layer name with the prefix `meta-`.
 
-===  Layers in Poky
+=== Layers in Poky
 
-#align(center, [#image("/slides/yocto-overview/yocto-overview-poky.pdf", height: 90%)])
+#align(center, [#image(
+  "/slides/yocto-overview/yocto-overview-poky.pdf",
+  height: 90%,
+)])
 
-===  Layers in Poky
+=== Layers in Poky
 
 - The Poky _reference system_ is a set of basic common layers:
 
@@ -43,11 +46,11 @@
   ones, it is a good practice to avoid modifying Poky. Instead you can
   create your own layers!
 
-===  Third party layers
+=== Third party layers
 
 #align(center, [#image("yocto-layer-intro.pdf", height: 90%)])
 
-===  Integrate and use a layer 1/3
+=== Integrate and use a layer 1/3
 
 - A list of existing and maintained layers can be found at \
   #link("https://layers.openembedded.org")
@@ -59,7 +62,7 @@
   and to add an append file if some modifications are needed than to do
   it from scratch.
 
-===  Integrate and use a layer 2/3
+=== Integrate and use a layer 2/3
 
 - The location where a layer is saved on the disk doesn't matter.
 
@@ -77,7 +80,7 @@
   - BitBake parses each layer specified in #yoctovar("BBLAYERS") and
     adds the recipes, configurations files and classes it contains.
 
-===  Integrate and use a layer 3/3
+=== Integrate and use a layer 3/3
 
 - The `bitbake-layers` tool is provided alongside `bitbake`.
 
@@ -90,7 +93,7 @@
 
   - `bitbake-layers remove-layer meta-qt5`
 
-===  Some useful layers
+=== Some useful layers
 
 - Many SoC specific layers are available, providing support for the
   boards using these SoCs. Some examples: `meta-ti-bsp`,
@@ -120,7 +123,7 @@
 == Layer recommendations
 <layer-recommendations>
 
-===  Layer recommendations
+=== Layer recommendations
 
 - Keep your build system simple: use very few layers initially
 
@@ -149,11 +152,11 @@
 == Creating a layer
 <creating-a-layer>
 
-===  Custom layer
+=== Custom layer
 
 #align(center, [#image("yocto-layer-create.pdf", height: 90%)])
 
-===  Create a custom layer 1/2
+=== Create a custom layer 1/2
 
 - A layer is a set of files and directories and can be created by hand.
 
@@ -168,29 +171,29 @@
 - The layer priority takes precedence over the recipe version number
   ordering. This allows to downgrade a recipe in a layer.
 
-===  Create a custom layer 2/2
+=== Create a custom layer 2/2
 
 - The layer created will be pre-filled with the following files:
 
   / conf/layer.conf: #block[
-  The layer's configuration. Holds its priority and generic information.
-  No need to modify it in many cases.
+      The layer's configuration. Holds its priority and generic information.
+      No need to modify it in many cases.
 
-  - Mandatory, this is the entry point for the layer.
-  ]
+      - Mandatory, this is the entry point for the layer.
+    ]
 
   / COPYING.MIT: #block[
-  The license under which a layer is released. By default MIT.
-  ]
+      The license under which a layer is released. By default MIT.
+    ]
 
   / README: #block[
-  A basic description of the layer. Contains a contact e-mail to update.
-  ] #v(0.5em)
+      A basic description of the layer. Contains a contact e-mail to update.
+    ] #v(0.5em)
 
 - By default, all metadata matching `./recipes-*/*/*.bb` will be
   parsed by the BitBake _build engine_.
 
-===  Creating a layer: best practices
+=== Creating a layer: best practices
 
 - Do not copy and modify existing recipes from other layers. Instead use
   append files.

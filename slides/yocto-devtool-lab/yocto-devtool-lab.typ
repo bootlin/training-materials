@@ -4,12 +4,12 @@
 
 #show: bootlin-theme
 
-#setuplabframe([Using devtool],[
+#setuplabframe([Using devtool], [
 
-- Generate a new recipe
+  - Generate a new recipe
 
-- Modify a recipe to add a new patch
+  - Modify a recipe to add a new patch
 
-- Upgrade a recipe to a newer version
+  - Upgrade a recipe to a newer version
 
 ])
