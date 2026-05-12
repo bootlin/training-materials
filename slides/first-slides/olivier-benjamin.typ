@@ -1,4 +1,4 @@
-===  Olivier Benjamin
+=== Olivier Benjamin
 
 - Embedded Linux engineer and trainer at *Bootlin*
 
@@ -13,4 +13,6 @@
 
 - `olivier.benjamin@bootlin.com`
 
-#text(fill: rgb("#4B6FA9"))[#link("https://bootlin.com/company/staff/olivier-benjamin/")]
+#text(fill: rgb("#4B6FA9"))[#link(
+  "https://bootlin.com/company/staff/olivier-benjamin/",
+)]

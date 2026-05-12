@@ -7,56 +7,57 @@
 = About Bootlin
 <about-bootlin>
 
-===  Bootlin introduction
+=== Bootlin introduction
 
 #table(
-columns: (70%, 30%), stroke: none,
-[
+  columns: (70%, 30%),
+  stroke: none,
+  [
 
-- Engineering company
+    - Engineering company
 
-  - In business since 2004
+      - In business since 2004
 
-  - Before 2018: _Free Electrons_ 
+      - Before 2018: _Free Electrons_
 
-- Team based in France and Italy 
+    - Team based in France and Italy
 
-- Serving *customers worldwide* 
+    - Serving *customers worldwide*
 
-- *Highly focused and recognized expertise*
+    - *Highly focused and recognized expertise*
 
-  - Embedded Linux
+      - Embedded Linux
 
-  - Linux kernel
+      - Linux kernel
 
-  - Embedded Linux build systems 
+      - Embedded Linux build systems
 
-- *Strong open-source* contributor 
+    - *Strong open-source* contributor
 
-- Activities
+    - Activities
 
-  - *Engineering* services
+      - *Engineering* services
 
-  - *Training* courses 
+      - *Training* courses
 
-- #link("https://bootlin.com")
-],
-[
+    - #link("https://bootlin.com")
+  ],
+  [
 
-#align(center, [#image("/common/bootlin-logo.pdf", width: 100%)])
+    #align(center, [#image("/common/bootlin-logo.pdf", width: 100%)])
 
-]
+  ],
 )
 
-===  Bootlin engineering services
+=== Bootlin engineering services
 
 #align(center, [#image("engineering-services.pdf", height: 80%)])
 
-===  Bootlin training courses
+=== Bootlin training courses
 
 #align(center, [#image("training-courses.pdf", height: 70%)])
 
-===  Bootlin, an open-source contributor
+=== Bootlin, an open-source contributor
 
 - Strong contributor to the *Linux* kernel
 
@@ -68,49 +69,53 @@ columns: (70%, 30%), stroke: none,
 
   - 9000 patches contributed
 
-  - #link("https://bootlin.com/community/contributions/kernel-contributions/") 
+  - #link("https://bootlin.com/community/contributions/kernel-contributions/")
 
 - Contributor to *Yocto Project*
 
   - Maintainer of the official documentation
 
-  - Core participant to the QA effort 
+  - Core participant to the QA effort
 
 - Contributor to *Buildroot*
 
   - Co-maintainer
 
-  - 6000 patches contributed 
+  - 6000 patches contributed
 
-- Significant contributions to U-Boot, OP-TEE, Barebox, etc. 
+- Significant contributions to U-Boot, OP-TEE, Barebox, etc.
 
 - Fully *open-source training materials*
 
-===  Bootlin on-line resources
+=== Bootlin on-line resources
 
-#table(columns: (70%, 30%), stroke: none, 
+#table(
+  columns: (70%, 30%),
+  stroke: none,
   [
 
-- Website with a technical blog:  \ 
-  #link("https://bootlin.com")
+    - Website with a technical blog:  \
+      #link("https://bootlin.com")
 
-- Engineering services:  \ 
-  #link("https://bootlin.com/engineering")
+    - Engineering services:  \
+      #link("https://bootlin.com/engineering")
 
-- Training services:  \ 
-  #link("https://bootlin.com/training")
+    - Training services:  \
+      #link("https://bootlin.com/training")
 
-- LinkedIn:  \ 
-  #link("https://www.linkedin.com/company/bootlin")
+    - LinkedIn:  \
+      #link("https://www.linkedin.com/company/bootlin")
 
-- Elixir - browse Linux kernel sources on-line:  \ 
-  #link("https://elixir.bootlin.com")
+    - Elixir - browse Linux kernel sources on-line:  \
+      #link("https://elixir.bootlin.com")
 
-],[
+  ],
+  [
 
-#align(center, [#image("www.png", width: 85%)]) 
-#[ #set text(size: 13pt)
-#align(center, [_Icon by Freepik, Flaticon_])
-]
+    #align(center, [#image("www.png", width: 85%)])
+    #[ #set text(size: 13pt)
+      #align(center, [_Icon by Freepik, Flaticon_])
+    ]
 
-])
+  ],
+)

@@ -1,4 +1,4 @@
-===  Mathieu Dubois-Briand
+=== Mathieu Dubois-Briand
 
 - Embedded Linux engineer and trainer at *Bootlin*
 
@@ -20,4 +20,6 @@
 
 - `mathieu.dubois-briand@bootlin.com`
 
-#text(fill: rgb("#4B6FA9"))[#link("https://bootlin.com/company/staff/mathieu-dubois-briand/")]
+#text(fill: rgb("#4B6FA9"))[#link(
+  "https://bootlin.com/company/staff/mathieu-dubois-briand/",
+)]

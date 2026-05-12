@@ -1,4 +1,4 @@
-===  Antonin Godard
+=== Antonin Godard
 
 - Embedded Linux engineer and trainer at *Bootlin*
 
@@ -15,4 +15,6 @@
 
 - `antonin.godard@bootlin.com`
 
-#text(fill: rgb("#4B6FA9"))[#link("https://bootlin.com/company/staff/antonin-godard/")]
+#text(fill: rgb("#4B6FA9"))[#link(
+  "https://bootlin.com/company/staff/antonin-godard/",
+)]
