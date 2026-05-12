@@ -6,7 +6,7 @@
 
 == Network Devices
 
-===  Network devices in Linux
+=== Network devices in Linux
 
 - In UNIX systems, the common saying is that "_everything is a
   file_"
@@ -30,7 +30,7 @@
 
 - The `sysfs` API is only for limited control and device information
 
-===  `struct net_device`
+=== `struct net_device`
 
 - The #kstruct("net_device") structure represents a conduit
 
@@ -55,7 +55,7 @@
   - Unfortunately, this is als the usual name of #kstruct("device")
     objects
 
-===  `struct net_device` (2)
+=== `struct net_device` (2)
 
 - Userspace sees a `netdev` as an *interface*
 
@@ -78,7 +78,7 @@
 
   - State : Link up or down, admin state, Promiscuous, etc.
 
-===  Network driver
+=== Network driver
 
 - Creating a new Network Interface driver is similar to any other driver
   :
@@ -114,25 +114,30 @@
   register_netdev(dev);
   ```
 
-===  Reminder - Device Model and Device Drivers
+=== Reminder - Device Model and Device Drivers
 
-#table(columns: (65%, 38%), stroke: none, [
+#table(
+  columns: (65%, 38%),
+  stroke: none,
+  [
 
-In Linux, a driver is always interfacing with:
+    In Linux, a driver is always interfacing with:
 
-- a *framework* that allows the driver to expose the hardware
-  features in a generic way.
+    - a *framework* that allows the driver to expose the hardware
+      features in a generic way.
 
-- a *bus infrastructure*, part of the device model, to
-  detect/communicate with the hardware.
+    - a *bus infrastructure*, part of the device model, to
+      detect/communicate with the hardware.
 
-],[
+  ],
+  [
 
-#align(center, [#image("driver-architecture.pdf", height: 80%)])
+    #align(center, [#image("driver-architecture.pdf", height: 80%)])
 
-])
+  ],
+)
 
-===  Netdevice allocation
+=== Netdevice allocation
 
 - #kfunc("alloc_netdev_mqs") : Main allocation function :
 
@@ -154,7 +159,7 @@ In Linux, a driver is always interfacing with:
 - *device-managed* variants exist :
   #kfunc("devm_alloc_etherdev_mqs")
 
-===  Netdevice naming
+=== Netdevice naming
 
 - Netdevice names can be changed dynamically, and the name source is
   tracked
@@ -179,9 +184,11 @@ In Linux, a driver is always interfacing with:
   - e.g. `ip link set dev eth0 name new-eth0`
 
   - Used by systemd's
-    #link("https://www.freedesktop.org/wiki/Software/systemd/PredictableNetworkInterfaceNames/")[Predictable Network Interface Names]
+    #link(
+      "https://www.freedesktop.org/wiki/Software/systemd/PredictableNetworkInterfaceNames/",
+    )[Predictable Network Interface Names]
 
-===  Ethernet-specific device allocation
+=== Ethernet-specific device allocation
 
 - #kfunc("alloc_etherdev_mqs") : Allocate a new
   #kstruct("net_device") for Ethernet :
@@ -194,7 +201,7 @@ In Linux, a driver is always interfacing with:
 
   - MTU, Header len, Address len, etc.
 
-===  Netdev ops
+=== Netdev ops
 
 - Before registering, the driver populates a
   #kstruct("net_device_ops")
@@ -224,7 +231,7 @@ In Linux, a driver is always interfacing with:
 
 - `.ndo_start_xmit` must be populated, all other are optional.
 
-===  Common NDOs
+=== Common NDOs
 
 - `.ndo_open` and
 
@@ -243,7 +250,7 @@ In Linux, a driver is always interfacing with:
 
 - `.ndo_eth_ioctl` : Device-level `ioctl` handler, phased-out.
 
-===  Netdev registration
+=== Netdev registration
 
 - #kfunc("register_netdevice") : Registers the
   #kstruct("net_device"), in the `netdev->net` namespace
@@ -264,39 +271,40 @@ In Linux, a driver is always interfacing with:
   - Used mostly in drivers, as the device driver's `.probe()` doesn't
     hold RTNL
 
-===  Stacking Network Devices
+=== Stacking Network Devices
 
-#[ #set list(spacing: 0.3em)
+#[
+  #set list(spacing: 0.3em)
 
-- Netdevices can be independent conduits, or stacked in a hierarchy
+  - Netdevices can be independent conduits, or stacked in a hierarchy
 
-- e.g. a VLAN is represented as a dedicated `netdev`
+  - e.g. a VLAN is represented as a dedicated `netdev`
 
-  - A VLAN netdev's `lower_dev` is the physical device
+    - A VLAN netdev's `lower_dev` is the physical device
 
-  - The physical netdev's `upper_dev` is the VLAN device
+    - The physical netdev's `upper_dev` is the VLAN device
 
-- #kstruct("net_device") has a list of `lower_dev` and `upper_dev`
+  - #kstruct("net_device") has a list of `lower_dev` and `upper_dev`
 
-- Packets may be passed between netdevs, which may modify them, e.g.
+  - Packets may be passed between netdevs, which may modify them, e.g.
 
-  - Encapsulation and Decapsulation (VLANs, tunnels)
+    - Encapsulation and Decapsulation (VLANs, tunnels)
 
-  - Redirection and Routing (bridges)
+    - Redirection and Routing (bridges)
 
-  - Duplication and Redundancy (hsr, bond)
+    - Duplication and Redundancy (hsr, bond)
 
-  - Encryption (macsec, wireguard)
+    - Encryption (macsec, wireguard)
 
-- Can also be virtual interfaces, such as `veth`, `tun` and `tap`
+  - Can also be virtual interfaces, such as `veth`, `tun` and `tap`
 
-#v(0.5em)
+  #v(0.5em)
 
-#align(center, [#image("vlan_uplow.pdf", width: 30%)])
+  #align(center, [#image("vlan_uplow.pdf", width: 30%)])
 
 ]
 
-===  Stacking Network Devices - 2
+=== Stacking Network Devices - 2
 
 - Stacked devices show in userspace as `dev@lower`
 
@@ -306,11 +314,11 @@ In Linux, a driver is always interfacing with:
 
 - The relationship is declared by calling :
   #[ #show raw.where(lang: "c", block: true): set text(size: 15pt)
-  ```c
-  int netdev_upper_dev_link(struct net_device *dev,
-                            struct net_device *upper_dev,
-                            struct netlink_ext_ack *extack)
-  ```]
+    ```c
+    int netdev_upper_dev_link(struct net_device *dev,
+                              struct net_device *upper_dev,
+                              struct netlink_ext_ack *extack)
+    ```]
 
 - A `netdev` can also have a `master` device
 
@@ -321,7 +329,7 @@ In Linux, a driver is always interfacing with:
 
   - `ip link set dev eth0 master br0`
 
-===  Network Namespaces
+=== Network Namespaces
 
 - Netdevs can only view and pass traffic to other netdevs in the same
   *namespace*
@@ -349,7 +357,7 @@ In Linux, a driver is always interfacing with:
 
 - Used by Containers for isolation
 
-===  Network Namespaces - 2
+=== Network Namespaces - 2
 
 - User processes run within a given *netns* and cannot see other
   interfaces
@@ -362,7 +370,7 @@ In Linux, a driver is always interfacing with:
 
 #align(center, [#image("netns.pdf", width: 60%)])
 
-===  `veth` : Virtual Ethernet Pairs
+=== `veth` : Virtual Ethernet Pairs
 
 - `ip link add type veth` : creates `veth0@veth1` and `veth1@veth0`
 
@@ -375,7 +383,7 @@ In Linux, a driver is always interfacing with:
 
 #align(center, [#image("veth.pdf", width: 60%)])
 
-===  Bridges
+=== Bridges
 
 #align(center, [#image("bridge.pdf", width: 40%)])
 
@@ -399,7 +407,7 @@ In Linux, a driver is always interfacing with:
 
 - The bridge interface maintains the `fdb` and handles forwarding
 
-===  Vlan
+=== Vlan
 
 - Multiple types of Vlans are supported in Linux through dedicated
   drivers
@@ -424,23 +432,29 @@ In Linux, a driver is always interfacing with:
 
   - Used a lot by containers
 
-===  tun and tap interfaces
+=== tun and tap interfaces
 
-#table(columns: (45%, 55%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (45%, 55%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-#align(center, [#image("tuntap.pdf", width: 100%)])
+    #align(center, [#image("tuntap.pdf", width: 100%)])
 
-],[
+  ],
+  [
 
-- Create virtual interfaces where a userspace program feeds and receives
-  data from the `netdev`
+    - Create virtual interfaces where a userspace program feeds and receives
+      data from the `netdev`
 
-  - Data is sent and received by accessing `/dev/net/tun`
+      - Data is sent and received by accessing `/dev/net/tun`
 
-- Used for userspace tunnel implementations, such as VPNs
+    - Used for userspace tunnel implementations, such as VPNs
 
-- `ip tuntap add dev tun0 mode tun`
+    - `ip tuntap add dev tun0 mode tun`
 
-- `ip tuntap add dev tap0 mode tap`
+    - `ip tuntap add dev tap0 mode tap`
 
-])
+  ],
+)

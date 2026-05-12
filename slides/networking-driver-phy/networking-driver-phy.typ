@@ -6,64 +6,76 @@
 
 == PHY driver and link management
 
-===  PHY devices
+=== PHY devices
 
-#table(columns: (30%, 70%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (30%, 70%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-#align(center, [#image("phy_easy.pdf", width: 100%)])
+    #align(center, [#image("phy_easy.pdf", width: 100%)])
 
-],[
+  ],
+  [
 
-- Ethernet PHYs handle Layer 1 of the OSI model
+    - Ethernet PHYs handle Layer 1 of the OSI model
 
-- Standardized by IEEE 802.3
+    - Standardized by IEEE 802.3
 
-- *\M*\edia *\I*\ndependent *\I*\nterface
+    - *\M*\edia *\I*\ndependent *\I*\nterface
 
-  - Communication bus between MAC and PHY
+      - Communication bus between MAC and PHY
 
-- *\M*\edia *\D*\ependent *\I*\nterface
+    - *\M*\edia *\D*\ependent *\I*\nterface
 
-  - Communication medium with the *link partner*
+      - Communication medium with the *link partner*
 
-  - Can be Cat6 cable, Fiber, Coax, backplane, etc.
+      - Can be Cat6 cable, Fiber, Coax, backplane, etc.
 
-- *\M*\anagement *\D*\ata *\I*\nput *\O*\utput
+    - *\M*\anagement *\D*\ata *\I*\nput *\O*\utput
 
-  - Control bus for PHY devices
+      - Control bus for PHY devices
 
-  - Can be shared by multiple PHYs
+      - Can be shared by multiple PHYs
 
-  - Allows accessing PHY registers
+      - Allows accessing PHY registers
 
-- Optionally, PHYs can raise interrupts
+    - Optionally, PHYs can raise interrupts
 
-  - _e.g._ to report link status changes
+      - _e.g._ to report link status changes
 
-- Optionally, PHYs can have a reset line
+    - Optionally, PHYs can have a reset line
 
-])
+  ],
+)
 
-===  MDIO Bus
+=== MDIO Bus
 
-#table(columns: (80%, 20%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (80%, 20%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-- Most common bus to access Ethernet PHYs
+    - Most common bus to access Ethernet PHYs
 
-- Addressable, 32 addresses
+    - Addressable, 32 addresses
 
-- Physically very similar to i2c
+    - Physically very similar to i2c
 
-  - An *adapter* initiates all transfers to *devices*
+      - An *adapter* initiates all transfers to *devices*
 
-  - 2 physical signals : *MDC* for the clock, *MDIO* for
-    data
+      - 2 physical signals : *MDC* for the clock, *MDIO* for
+        data
 
-], [
+  ],
+  [
 
-#align(center, [#image("mdio.pdf", width: 80%)])
+    #align(center, [#image("mdio.pdf", width: 80%)])
 
-])
+  ],
+)
 
 #v(-1em)
 - 802.3 defines 2 protocols for MDIO :
@@ -83,10 +95,12 @@
   vendor-specific registers
 
 - a
-  #link("https://elixir.bootlin.com/linux/v6.15.1/source/drivers/net/mdio/mdio-bitbang.c")[gpio bitbang]
+  #link(
+    "https://elixir.bootlin.com/linux/v6.15.1/source/drivers/net/mdio/mdio-bitbang.c",
+  )[gpio bitbang]
   MDIO driver exists
 
-===  MDIO driver
+=== MDIO driver
 
 - MDIO controller drivers are represented by #kstruct("mii_bus")
 
@@ -95,30 +109,30 @@
 #v(0.5em)
 
 #[ #show raw.where(lang: "c", block: true): set text(size: 13pt)
-```c
-struct mii_bus {
-        const char *name;
-        void *priv;
-        int (*read)(struct mii_bus *bus, int addr, int regnum);
-        int (*write)(struct mii_bus *bus, int addr, int regnum, u16 val);
-        int (*read_c45)(struct mii_bus *bus, int addr, int devnum, int regnum);
-        int (*write_c45)(struct mii_bus *bus, int addr, int devnum, int regnum, u16 val);
-        int (*reset)(struct mii_bus *bus);
-/* ... truncated ... */
-};
-```
+  ```c
+  struct mii_bus {
+          const char *name;
+          void *priv;
+          int (*read)(struct mii_bus *bus, int addr, int regnum);
+          int (*write)(struct mii_bus *bus, int addr, int regnum, u16 val);
+          int (*read_c45)(struct mii_bus *bus, int addr, int devnum, int regnum);
+          int (*write_c45)(struct mii_bus *bus, int addr, int devnum, int regnum, u16 val);
+          int (*reset)(struct mii_bus *bus);
+  /* ... truncated ... */
+  };
+  ```
 ]
 
-===  MDIO accessors
+=== MDIO accessors
 
 - Raw read/write operations :
-  #[ #show raw.where(lang: "c", block:false): set text(size: 13.5pt)
+  #[ #show raw.where(lang: "c", block: false): set text(size: 13.5pt)
 
-  ```c int mdiobus_read(struct mii_bus *bus, int addr, u32 regnum);  ``` \
-  ```c int mdiobus_write(struct mii_bus *bus, int addr, u32 regnum, u16 val);  ``` \
-  ```c int mdiobus_c45_read(struct mii_bus *bus, int addr, int devad, u32 regnum);  ``` \
-  ```c int mdiobus_c45_write(struct mii_bus *bus, int addr,  int devad, u32 regnum, u16 val); ```
-]
+    ```c int mdiobus_read(struct mii_bus *bus, int addr, u32 regnum);  ``` \
+    ```c int mdiobus_write(struct mii_bus *bus, int addr, u32 regnum, u16 val);  ``` \
+    ```c int mdiobus_c45_read(struct mii_bus *bus, int addr, int devad, u32 regnum);  ``` \
+    ```c int mdiobus_c45_write(struct mii_bus *bus, int addr,  int devad, u32 regnum, u16 val); ```
+  ]
 
 - Wrapped by phylib for convenience : #kfunc("phy_read"),
   #kfunc("phy_read_mmd"), etc.
@@ -130,7 +144,7 @@ struct mii_bus {
 
   - Useful for large transfers, _e.g._ loading a firmware
 
-===  MDIO access from userspace
+=== MDIO access from userspace
 
 - `ioctl` based API, limited on purpose
 
@@ -151,49 +165,55 @@ struct mii_bus {
 - *mdio-tools* uses an out-of-tree module to access MDIO over
   Netlink
 
-===  MDIO controllers in devicetree
+=== MDIO controllers in devicetree
 
-#table(columns: (50%, 50%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (50%, 50%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-#text(size: 15pt)[#kfile("arch/arm64/boot/dts/marvell/armada-37xx.dtsi")]
+    #text(size: 15pt)[#kfile("arch/arm64/boot/dts/marvell/armada-37xx.dtsi")]
 
-#text(size: 17pt)[
-```perl
-mdio: mdio@32004 {
-    #address-cells = <1>;
-    #size-cells = <0>;
-    compatible = "marvell,orion-mdio";
-    reg = <0x32004 0x4>;
-};
-```]
+    #text(size: 17pt)[
+      ```perl
+      mdio: mdio@32004 {
+          #address-cells = <1>;
+          #size-cells = <0>;
+          compatible = "marvell,orion-mdio";
+          reg = <0x32004 0x4>;
+      };
+      ```]
 
-#v(0.5em)
+    #v(0.5em)
 
-#text(size: 14pt)[#kfile("arch/arm/boot/dts/st/stm32mp15xx-dkx.dtsi")]
+    #text(size: 14pt)[#kfile("arch/arm/boot/dts/st/stm32mp15xx-dkx.dtsi")]
 
-#text(size: 17pt)[
-```perl
-&ethernet0 {
-    mdio {
-        compatible = "snps,dwmac-mdio";
-        /* ... */
-    };
-};
-```]
+    #text(size: 17pt)[
+      ```perl
+      &ethernet0 {
+          mdio {
+              compatible = "snps,dwmac-mdio";
+              /* ... */
+          };
+      };
+      ```]
 
-],[
+  ],
+  [
 
-- SoCs may have dedicated MDIO controllers
+    - SoCs may have dedicated MDIO controllers
 
-  - Dedicated drivers with their own `compatible`
+      - Dedicated drivers with their own `compatible`
 
-- Some MACs and DSA switches have an integrated MDIO controller
+    - Some MACs and DSA switches have an integrated MDIO controller
 
-  - `mdio` child node within the MAC controller's node
+      - `mdio` child node within the MAC controller's node
 
-])
+  ],
+)
 
-===  Ethernet PHYs identification
+=== Ethernet PHYs identification
 
 - 802.3 specifies that registers 0x2 and 0x3 are *identifiers*
 
@@ -217,74 +237,92 @@ mdio: mdio@32004 {
 
     - _e.g._ `ethernet-phy-id2000.a231`
 
-===  Ethernet PHYs in devicetree
+=== Ethernet PHYs in devicetree
 
-#table(columns: (50%, 50%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (50%, 50%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-#text(size: 15pt)[#kfile("arch/arm64/boot/dts/marvell/armada-8040-mcbin.dtsi")]
+    #text(size: 15pt)[#kfile(
+      "arch/arm64/boot/dts/marvell/armada-8040-mcbin.dtsi",
+    )]
 
-#text(size: 17pt)[
-```perl
-&cp0_mdio {
-    status = "okay";
-    
-    ge_phy: ethernet-phy@0 {
-        reg = <0>;
-    };
-};
+    #text(size: 17pt)[
+      ```perl
+      &cp0_mdio {
+          status = "okay";
 
-&eth0 {
-        phy-handle = <&ge_phy>;
-}
-```]
+          ge_phy: ethernet-phy@0 {
+              reg = <0>;
+          };
+      };
 
-],[
+      &eth0 {
+              phy-handle = <&ge_phy>;
+      }
+      ```]
 
-- `reg` - mandatory
+  ],
+  [
 
-  - The PHY's address on the MDIO bus
+    - `reg` - mandatory
 
-  - Usually assigned via PCB straps
+      - The PHY's address on the MDIO bus
 
-- `reset-gpios` : GPIO reset line
+      - Usually assigned via PCB straps
 
-- `rx|tx-internal-delay-ps`
+    - `reset-gpios` : GPIO reset line
 
-  - RGMII delays adjustments
+    - `rx|tx-internal-delay-ps`
 
-- `leds` : LEDs driven by the PHY
+      - RGMII delays adjustments
 
-- `interrupts` :
+    - `leds` : LEDs driven by the PHY
 
-  - Status interrupt, level-triggered
+    - `interrupts` :
 
-- `sfp` : _phandle_ to an SFP cage description
+      - Status interrupt, level-triggered
 
-])
+    - `sfp` : _phandle_ to an SFP cage description
 
-===  PHY devices in the kernel
+  ],
+)
 
-#table(columns: (80%, 20%), stroke: none, gutter: 15pt, [
+=== PHY devices in the kernel
 
-- A PHY driver is represented by #kstruct("phy_driver")
+#table(
+  columns: (80%, 20%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-- PHY instances are represented by #kstruct("phy_device")
+    - A PHY driver is represented by #kstruct("phy_driver")
 
-  - By convention, objects are named `phydev` or `phy`
+    - PHY instances are represented by #kstruct("phy_device")
 
-- *All* Ethernet PHY devices are `mdio` devices
+      - By convention, objects are named `phydev` or `phy`
 
-  - Fixed-PHY uses an
-    #link("https://elixir.bootlin.com/linux/v6.15.1/source/drivers/net/phy/swphy.c")[emulated bus]
+    - *All* Ethernet PHY devices are `mdio` devices
 
-  - Memory-mapped PHYs can use a
-    #link("https://elixir.bootlin.com/linux/v6.15.1/source/drivers/net/mdio/mdio-regmap.c")[regmap conversion layer]
+      - Fixed-PHY uses an
+        #link(
+          "https://elixir.bootlin.com/linux/v6.15.1/source/drivers/net/phy/swphy.c",
+        )[emulated bus]
 
-],[
-  
-  #align(center, [#image("phy.pdf", width: 80%)])
+      - Memory-mapped PHYs can use a
+        #link(
+          "https://elixir.bootlin.com/linux/v6.15.1/source/drivers/net/mdio/mdio-regmap.c",
+        )[regmap conversion layer]
 
-])
+  ],
+  [
+
+    #align(center, [#image("phy.pdf", width: 80%)])
+
+  ],
+)
 #v(-0.5em)
 - Managed by the *phylib* PHY framework
 
@@ -293,12 +331,14 @@ mdio: mdio@32004 {
 - Most of the standardized logic is generic, and implemented in phylib
 
 - A
-  #link("https://elixir.bootlin.com/linux/v6.15.1/source/drivers/net/phy/phy_device.c#L3510")[Generic driver]
+  #link(
+    "https://elixir.bootlin.com/linux/v6.15.1/source/drivers/net/phy/phy_device.c#L3510",
+  )[Generic driver]
   implements only the standard logic
 
   - Used as a fallback when a PHY is detected with no associated driver
 
-===  PHY device role
+=== PHY device role
 
 - The PHY driver reports the *link status* :
 
@@ -326,12 +366,14 @@ mdio: mdio@32004 {
 
   - PHY timestamping is implemented by some devices
 
-===  PHY device role - 2
+=== PHY device role - 2
 
 - *Wake on Lan* can be implemented at the PHY level
 
   - The PHY receives the
-    #link("https://en.wikipedia.org/wiki/Wake-on-LAN#Magic_packet")[magic packet]
+    #link(
+      "https://en.wikipedia.org/wiki/Wake-on-LAN#Magic_packet",
+    )[magic packet]
 
   - It triggers an interrupt to wake the system up
 
@@ -348,10 +390,12 @@ mdio: mdio@32004 {
   - `ethtool –phy-statistics eth0`
 
 - *`BaseT1S`* PHYs can configure the
-  #link("https://docs.kernel.org/networking/ethtool-netlink.html#plca-get-cfg")[plca]
+  #link(
+    "https://docs.kernel.org/networking/ethtool-netlink.html#plca-get-cfg",
+  )[plca]
   parameters
 
-===  Fixed-link
+=== Fixed-link
 
 - The PHY is responsible for reporting the link state, but doesn't
   always exist
@@ -375,21 +419,27 @@ mdio: mdio@32004 {
 };
 ```
 
-===  MII 
+=== MII
 
-#table(columns: (80%, 20%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (80%, 20%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-- *\M*\edia *\I*\ndependent *\I*\nterface
+    - *\M*\edia *\I*\ndependent *\I*\nterface
 
-- Conveys the data stream between MAC and PHY
+    - Conveys the data stream between MAC and PHY
 
-- Specified in devicetree via `phy-mode` or `phy-connection-type`
+    - Specified in devicetree via `phy-mode` or `phy-connection-type`
 
-],[
+  ],
+  [
 
-#align(center, [#image("mii.pdf", width: 75%)])
+    #align(center, [#image("mii.pdf", width: 75%)])
 
-])
+  ],
+)
 
 #v(-2em)
 - In some scenarios, the mode may change dynamically
@@ -399,7 +449,9 @@ mdio: mdio@32004 {
   - Depending on the negotiated link speed, the PHY may change its mode
 
   - example: the
-    #link("https://elixir.bootlin.com/linux/v6.15.1/source/drivers/net/phy/marvell10g.c")[Marvell 88x3310 PHY]
+    #link(
+      "https://elixir.bootlin.com/linux/v6.15.1/source/drivers/net/phy/marvell10g.c",
+    )[Marvell 88x3310 PHY]
 
   - When link speed is negotiated at 1Gbps, uses *SGMII*
 
@@ -410,7 +462,7 @@ mdio: mdio@32004 {
 - On the MAC side, may require specific *PCS* and *Serdes*
   configuration
 
-===  MII flavours - Parallel interfaces
+=== MII flavours - Parallel interfaces
 
 - `MII` : Also describes a 8-bit, 10/100Mbps interface
 
@@ -436,7 +488,7 @@ mdio: mdio@32004 {
   - *XGMII* and *XLGMII* are on-silicon modes, not used on
     PCBs
 
-===  MII flavours - Serial interfaces
+=== MII flavours - Serial interfaces
 
 - `Cisco SGMII` : *\S*\erialized *\G*\igabit *MII*, 1
   lane, 10/100/1000Mbs
@@ -462,7 +514,7 @@ mdio: mdio@32004 {
 - `XAUI` and `RXAUI` : Standard, 10Gbps on 4 or 2 lanes, 10b/8b
   encoding.
 
-===  RGMII delay
+=== RGMII delay
 
 - RGMII is a popular interface on embedded systems
 
@@ -475,37 +527,43 @@ mdio: mdio@32004 {
 
 #align(center, [#image("rgmii_delays.pdf", width: 80%)])
 
-===  RGMII modes
+=== RGMII modes
 
-#table(columns: (40%, 60%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (40%, 60%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-#align(center, [#image("rgmii_modes.pdf", width: 120%)])
+    #align(center, [#image("rgmii_modes.pdf", width: 120%)])
 
-],[
+  ],
+  [
 
-- The delays can be added using different methods :
+    - The delays can be added using different methods :
 
-- Longer PCB lines for the clock
+    - Longer PCB lines for the clock
 
-  - Very rarely done
+      - Very rarely done
 
-- Most PHYs and some MACs can insert delays internally
+    - Most PHYs and some MACs can insert delays internally
 
-  - RGMII-*ID* modes : *\I*\nternal *\D*\elay
+      - RGMII-*ID* modes : *\I*\nternal *\D*\elay
 
-  - Preferred solution, delays are adjustable
+      - Preferred solution, delays are adjustable
 
-- Delays may only need to be added in one direction
+    - Delays may only need to be added in one direction
 
-  - RGMII-TXID : TX delays are internal
+      - RGMII-TXID : TX delays are internal
 
-  - RGMII-RXID : RX delays are internal
+      - RGMII-RXID : RX delays are internal
 
-- Some MAC and PHYs have *hardwired* delays
+    - Some MAC and PHYs have *hardwired* delays
 
-])
+  ],
+)
 
-===  RGMII modes in devicetree
+=== RGMII modes in devicetree
 
 - `phy-mode` in devicetree : Hardware representation
 
@@ -533,7 +591,7 @@ mdio: mdio@32004 {
 
   + MAC passes `PHY_INTERFACE_MODE_RXID` to the PHY
 
-===  MDI - Media Dependent Interface
+=== MDI - Media Dependent Interface
 
 #place(right, dy: 7em, image("mdi.pdf", width: 15%))
 - A huge number of physical protocols are defined by the 802.3 standard
@@ -542,7 +600,7 @@ mdio: mdio@32004 {
 
 - They follow a specific naming convention from IEEE 802.3
 
-- #text(fill: blue)[speed]`Band-`#text(fill: purple)[Medium]#text(fill: red)[Encoding]#text(fill:  rgb("#c26700c7"))[Lanes]#text(fill: blue)[: 1000]Base-#text(fill: purple)[T], #text(fill: blue)[10G]Base-#text(fill: purple)[K]#text(fill: red)[R], #text(fill: blue)[10]Base-#text(fill: purple)[T]#text(fill: rgb("#c26700c7"))[1]…
+- #text(fill: blue)[speed]`Band-`#text(fill: purple)[Medium]#text(fill: red)[Encoding]#text(fill: rgb("#c26700c7"))[Lanes]#text(fill: blue)[: 1000]Base-#text(fill: purple)[T], #text(fill: blue)[10G]Base-#text(fill: purple)[K]#text(fill: red)[R], #text(fill: blue)[10]Base-#text(fill: purple)[T]#text(fill: rgb("#c26700c7"))[1]…
 
 - Band: `BASE`band, `BROAD`band or `PASS`band.
 
@@ -561,9 +619,9 @@ mdio: mdio@32004 {
   - Base-*X*: 10b/8b encoding.
   - Base-*R*: 66b/64b encoding.
 
-- #text(fill:  rgb("#c26700c7"))[Lanes]: Number of lanes per link (for Base-*T*, number of twisted pairs used).
+- #text(fill: rgb("#c26700c7"))[Lanes]: Number of lanes per link (for Base-*T*, number of twisted pairs used).
 
-===  linkmodes
+=== linkmodes
 
 - In 802.3 Clauses 22 and 45, standard registers report the capabilities
 
@@ -586,7 +644,7 @@ mdio: mdio@32004 {
 
 - The *advertised* linkmodes take into account the user settings
 
-===  Interactions between MAC and PHY drivers
+=== Interactions between MAC and PHY drivers
 
 - *phylib* provides a simple API for PHY consumers
 
@@ -606,7 +664,9 @@ mdio: mdio@32004 {
   - It makes it difficult to support other Layer 1 technologies such as
     *SFP*
 
-- #link("https://elixir.bootlin.com/linux/v6.15.1/source/drivers/net/phy/phylink.c")[phylink]
+- #link(
+    "https://elixir.bootlin.com/linux/v6.15.1/source/drivers/net/phy/phylink.c",
+  )[phylink]
   is a framework that sits between MAC drivers and PHY drivers
 
 - It abstracts away the PHY from the MAC, and provides a feature-full
@@ -614,7 +674,7 @@ mdio: mdio@32004 {
 
 - It also handles PCS configuration
 
-===  phylib usage in MAC drivers
+=== phylib usage in MAC drivers
 
 - MAC drivers that use *phylib* directly call
   #kfunc("phy_connect") to link with the PHY
@@ -629,7 +689,7 @@ mdio: mdio@32004 {
 
 #align(center, [#image("phylib_seq.pdf", width: 100%)])
 
-===  phylink
+=== phylink
 
 - The phylink framework abstracts the Layer 1 configuration away
 
@@ -642,7 +702,7 @@ mdio: mdio@32004 {
 
 #align(center, [#image("phylink.pdf", width: 100%)])
 
-===  phylink - MAC ops
+=== phylink - MAC ops
 
 - MAC driver populate a set of callbacks in
   #kstruct("phylink_mac_ops") registered to phylink
@@ -670,7 +730,7 @@ mdio: mdio@32004 {
 - `.mac_enable/disable_tx_lpi` : Configures the *Low Power
   Idle* modes, for *\E*\nergy *\E*\fficient *\E*\thernet
 
-===  phylink - MAC capabilities
+=== phylink - MAC capabilities
 
 - When creating the #kstruct("phylink") instance, the MAC indicates
   its capabilities
@@ -688,17 +748,17 @@ mdio: mdio@32004 {
 #text(size: 15pt)[phylink config example]
 #v(-0.2em)
 #[ #show raw.where(lang: "c", block: true): set text(size: 14pt)
-```c
-phylink_config.mac_capabilities = MAC_ASYM_PAUSE | MAC_SYM_PAUSE | MAC_10 |
-                                  MAC_100 | MAC_1000FD | MAC_2500FD; phy_interface_set_rgmii(phylink_config.supported_interfaces);
-__set_bit(PHY_INTERFACE_MODE_MII, phylink_config.supported_interfaces);
-__set_bit(PHY_INTERFACE_MODE_GMII, phylink_config.supported_interfaces);
-__set_bit(PHY_INTERFACE_MODE_SGMII, phylink_config.supported_interfaces);
-__set_bit(PHY_INTERFACE_MODE_1000BASEX, phylink_config.supported_interfaces);
-__set_bit(PHY_INTERFACE_MODE_2500BASEX, phylink_config.supported_interfaces);
-```]
+  ```c
+  phylink_config.mac_capabilities = MAC_ASYM_PAUSE | MAC_SYM_PAUSE | MAC_10 |
+                                    MAC_100 | MAC_1000FD | MAC_2500FD; phy_interface_set_rgmii(phylink_config.supported_interfaces);
+  __set_bit(PHY_INTERFACE_MODE_MII, phylink_config.supported_interfaces);
+  __set_bit(PHY_INTERFACE_MODE_GMII, phylink_config.supported_interfaces);
+  __set_bit(PHY_INTERFACE_MODE_SGMII, phylink_config.supported_interfaces);
+  __set_bit(PHY_INTERFACE_MODE_1000BASEX, phylink_config.supported_interfaces);
+  __set_bit(PHY_INTERFACE_MODE_2500BASEX, phylink_config.supported_interfaces);
+  ```]
 
-===  SFP
+=== SFP
 
 - *\S*\mall *\F*\ormfactor *\P*\luggable is defined by
   the SFF standards
@@ -722,7 +782,7 @@ __set_bit(PHY_INTERFACE_MODE_2500BASEX, phylink_config.supported_interfaces);
   - Some modules also provide Diagnostics and Montoring over i2c :
     Temperature, Power output, etc.
 
-===  SFP
+=== SFP
 
 - The internals of an SFP module are a black box, but some modules may
   have a PHY within
@@ -736,7 +796,7 @@ __set_bit(PHY_INTERFACE_MODE_2500BASEX, phylink_config.supported_interfaces);
 
 #align(center, [#image("phy_sfp.pdf", width: 60%)])
 
-===  Ethtool reporting
+=== Ethtool reporting
 
 - Userspace can retrieve information reported by the PHY drivers through
   `ethtool`
@@ -758,24 +818,33 @@ __set_bit(PHY_INTERFACE_MODE_2500BASEX, phylink_config.supported_interfaces);
   - See #kfunc("phylink_ethtool_ksettings_set") and
     #kfunc("phy_ethtool_ksettings_set")
 
-===  PHY reporting with Netlink
+=== PHY reporting with Netlink
 
-#table(columns: (20%, 80%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (20%, 80%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-#align(center, [#image("one-media-converter-one-phy-one-mac.pdf", width: 90%)])
+    #align(center, [#image(
+      "one-media-converter-one-phy-one-mac.pdf",
+      width: 90%,
+    )])
 
-],[
+  ],
+  [
 
-- Some hardware topologies may have *more than one PHY* attached
-  to a MAC
+    - Some hardware topologies may have *more than one PHY* attached
+      to a MAC
 
-  - When an SFP module is driven by a PHY, and contains a PHY itself
+      - When an SFP module is driven by a PHY, and contains a PHY itself
 
-  - When a PHY is used as a *media converter*
+      - When a PHY is used as a *media converter*
 
-- Netlink requests targeting PHY devices can now be passed a *phy
-  index*
+    - Netlink requests targeting PHY devices can now be passed a *phy
+      index*
 
-  - Implemented by #kfile("drivers/net/phy/phy_link_topology.c")
+      - Implemented by #kfile("drivers/net/phy/phy_link_topology.c")
 
-])
+  ],
+)

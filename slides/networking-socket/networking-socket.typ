@@ -6,43 +6,49 @@
 
 = Sockets and Data Path
 
-===  Sockets
+=== Sockets
 
-#table(columns: (20%, 80%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (20%, 80%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-#align(center, [#image("socket.pdf", width: 140%)]) 
+    #align(center, [#image("socket.pdf", width: 140%)])
 
-],[
+  ],
+  [
 
-- The Socket programming model stems from *UNIX*
+    - The Socket programming model stems from *UNIX*
 
-- It has been the main way for users to transmit data through the
-  network since then
+    - It has been the main way for users to transmit data through the
+      network since then
 
-- Sockets are about more than networking, their behaviour depends on
-  their attributes.
+    - Sockets are about more than networking, their behaviour depends on
+      their attributes.
 
-- A socket is represented from userspace as a *file descriptor* :
-  
-  #[ #show raw.where(lang: "c", block: true): set text(size: 15pt)
-  ```c
-  int socket(int domain, int type, int protocol);
-  ```]
+    - A socket is represented from userspace as a *file descriptor* :
 
-  - see #manpage("socket", "2")
+      #[ #show raw.where(lang: "c", block: true): set text(size: 15pt)
+        ```c
+        int socket(int domain, int type, int protocol);
+        ```]
 
-- The `domain` or _family_ defines the *underlying protocol*
-  : IPv4, IPv6, Bluetooth, Netlink...
+      - see #manpage("socket", "2")
 
-- The `type` defines the *semantics* : Connection-oriented,
-  re-transmission, message ordering...
+    - The `domain` or _family_ defines the *underlying protocol*
+      : IPv4, IPv6, Bluetooth, Netlink...
 
-- The `protocol` depends on the domain and type, for further
-  configuration.
+    - The `type` defines the *semantics* : Connection-oriented,
+      re-transmission, message ordering...
 
-])
+    - The `protocol` depends on the domain and type, for further
+      configuration.
 
-===  Socket Families
+  ],
+)
+
+=== Socket Families
 
 #align(center, [` int socket(`*int domain*`, int type, int protocol);`])
 #v(1em)
@@ -76,7 +82,7 @@
   - legacy from the early UNIX days, `AF` and `PF` enums are equivalent
     on linux.
 
-===  Socket Types
+=== Socket Types
 
 #align(center, [` int socket(int domain, `*int type*`, int protocol);`])
 #v(1em)
@@ -108,7 +114,7 @@
 - `SOCK_NONBLOCK`, `SOCK_CLOEXEC` : Extra bitwise flags for
   configuration
 
-===  Socket protocol
+=== Socket protocol
 
 #align(center, [` int socket(int domain, int type, `*int protocol*`);`])
 #v(1em)
@@ -130,7 +136,7 @@
   - `socket(AF_PACKET, SOCK_RAW, htons(ETH_P_8021Q))` : All Vlan
     frames
 
-===  binding a socket
+=== binding a socket
 
 - The `bind()` call allows associating a *local address* to a
   socket, see #manpage("bind", "2")
@@ -141,27 +147,28 @@
 - The socket's address format is represented by the generic `struct
   sockaddr`.
 
-#[ #show raw.where(lang: "c", block: true): set text(size: 15pt)
-```c
-struct sockaddr {
-        sa_family_t sa_family;
-        char        sa_data[14];
-}
-```
+#[
+  #show raw.where(lang: "c", block: true): set text(size: 15pt)
+  ```c
+  struct sockaddr {
+          sa_family_t sa_family;
+          char        sa_data[14];
+  }
+  ```
 
-- The sockaddr must be subclassed by *family-specific* addresses
-  :
+  - The sockaddr must be subclassed by *family-specific* addresses
+    :
 
-```c
-struct sockaddr_in {
-        sa_family_t    sin_family; /* address family: AF_INET */
-        in_port_t      sin_port;   /* TCP/UDP port in network byte order */
-        struct in_addr sin_addr;   /* IPv4 address (uint32_t) */
-};
-```
+  ```c
+  struct sockaddr_in {
+          sa_family_t    sin_family; /* address family: AF_INET */
+          in_port_t      sin_port;   /* TCP/UDP port in network byte order */
+          struct in_addr sin_addr;   /* IPv4 address (uint32_t) */
+  };
+  ```
 ]
 
-===  listen(), connect() and accept()
+=== listen(), connect() and accept()
 
 `int listen(int sockfd, int backlog)`
 
@@ -188,7 +195,7 @@ struct sockaddr_in {
 - For connection-less protocols, it simply sets the destination address
   for datagrams
 
-===  socket options
+=== socket options
 
 - The `socket()` syscall doesn't allow fine-tuned configuration
 
@@ -218,7 +225,7 @@ struct sockaddr_in {
   - See #manpage("ip", "7"), #manpage("tcp", "7"),
     #manpage("udp", "7"), etc.
 
-===  Socket queues
+=== Socket queues
 
 - All sockets are created with 2 queues : A *Receive* queue and a
   *Transmit* queue
@@ -226,8 +233,7 @@ struct sockaddr_in {
 - Queue size is the same for every socket at creation time, but can be
   adjusted
 
-  - With the `SO_RCVBUF` socket option, see #manpage("socket",
-    "7")
+  - With the `SO_RCVBUF` socket option, see #manpage("socket", "7")
 
   - Using the `net.core.rmem_default` sysctl
 
@@ -235,7 +241,7 @@ struct sockaddr_in {
 
 - `netstat` shows the current queue usage of every open socket
 
-===  read() and write()
+=== read() and write()
 
 - Generic syscalls, acting on any kind of file descriptors
 
@@ -261,7 +267,7 @@ struct sockaddr_in {
 
 - Not possible to know if the recipient actually received the message
 
-===  send() and recv()
+=== send() and recv()
 
 - Socket-only, very similar to read() and write()
 
@@ -291,7 +297,7 @@ struct sockaddr_in {
 - `MSG_MORE` : More data is yet to be sent, as a single datagram or TCP
   message
 
-===  sendto() and recvfrom()
+=== sendto() and recvfrom()
 
 - Socket-only, specifies the peer address per-message
 
@@ -318,7 +324,7 @@ struct sockaddr_in {
 
 - On Datagram sockets, the address overrides the `connect()` address.
 
-===  sendmsg() and recvmsg()
+=== sendmsg() and recvmsg()
 
 - Allows passing ancillary data alongside the buffers
 
@@ -347,73 +353,75 @@ struct sockaddr_in {
 
 - Also accepts ancillary data
 
-===  Summary - Server
+=== Summary - Server
 
-#[ #show raw.where(lang: "c", block: true): set text(size: 14pt)
+#[
+  #show raw.where(lang: "c", block: true): set text(size: 14pt)
 
-+ Create the socket 
+  + Create the socket
 
-  ```c
-      int sockfd = socket(AF_INET, SOCK_STREAM, 0);
-  ```
+    ```c
+        int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    ```
 
-+ Bind to the local IP address and port 
+  + Bind to the local IP address and port
 
-  ```c
-      struct sockaddr_in addr;
-      addr.sin_family = AF_INET;
-      addr.sin_port = htons(80);
-      inet_aton("87.98.181.233", &addr.in_saddr);
-      bind(sockfd, &addr, sizeof(addr));
-  ```
+    ```c
+        struct sockaddr_in addr;
+        addr.sin_family = AF_INET;
+        addr.sin_port = htons(80);
+        inet_aton("87.98.181.233", &addr.in_saddr);
+        bind(sockfd, &addr, sizeof(addr));
+    ```
 
-+ Listen for new inbound connections 
+  + Listen for new inbound connections
 
-  ```c
-      listen(sockfd, 10);
-  ```
+    ```c
+        listen(sockfd, 10);
+    ```
 
-+ Wait and accept a new connection 
+  + Wait and accept a new connection
 
-  ```c
-      conn_fd = accept(sockfd, &peer_addr, &peer_addr_len);
-  ```
+    ```c
+        conn_fd = accept(sockfd, &peer_addr, &peer_addr_len);
+    ```
 
-+ Receive data from the client 
+  + Receive data from the client
 
-  ```c
-      recv(conn_fd, buf, 128);
-  ```
+    ```c
+        recv(conn_fd, buf, 128);
+    ```
 ]
 
-===  Summary - Client
+=== Summary - Client
 
-#[ #show raw.where(lang: "c", block: true): set text(size: 14pt)
+#[
+  #show raw.where(lang: "c", block: true): set text(size: 14pt)
 
-+ Create the socket 
+  + Create the socket
 
-  ```c
-      int sockfd = socket(AF_INET, SOCK_STREAM, 0);
-  ```
+    ```c
+        int sockfd = socket(AF_INET, SOCK_STREAM, 0);
+    ```
 
-+ Connect to the server 
+  + Connect to the server
 
-  ```c
-      struct sockaddr_in addr;
-      addr.sin_family = AF_INET;
-      addr.sin_port = htons(80);
-      inet_aton("87.98.181.233", &addr.sin_addr);
-      connect(sockfd, (struct sockaddr *)&addr, sizeof(addr));
-  ```
+    ```c
+        struct sockaddr_in addr;
+        addr.sin_family = AF_INET;
+        addr.sin_port = htons(80);
+        inet_aton("87.98.181.233", &addr.sin_addr);
+        connect(sockfd, (struct sockaddr *)&addr, sizeof(addr));
+    ```
 
-+ Send data to the server 
+  + Send data to the server
 
-  ```c
-      send(conn_fd, buf, 128);
-  ```
+    ```c
+        send(conn_fd, buf, 128);
+    ```
 ]
 
-===  Waiting for data
+=== Waiting for data
 
 - The standard file descriptor polling methods also work on sockets
 
@@ -434,7 +442,7 @@ struct sockaddr_in {
 
 - New features such as _IRQ suspension_ rely on epoll
 
-===  Timestamping
+=== Timestamping
 
 - Timestamping traffic is useful for *debugging* and *time
   synchronization* (PTP)
@@ -465,7 +473,7 @@ struct sockaddr_in {
   - Packets are looped-back through the error queue with an associated
     timestamp
 
-===  io_uring
+=== io_uring
 
 - `io_uring` is an alternative to *socket* programming
 
@@ -486,71 +494,85 @@ struct sockaddr_in {
   - A similar mechanism exists for RX
 
 - Still new and gaining features, see
-  #link("https://developers.redhat.com/articles/2023/04/12/why-you-should-use-iouring-network-io")[this introduction post]
+  #link(
+    "https://developers.redhat.com/articles/2023/04/12/why-you-should-use-iouring-network-io",
+  )[this introduction post]
 
-===  Sockets in the kernel
+=== Sockets in the kernel
 
-#table(columns: (30%, 70%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (30%, 70%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-#align(center, [#image("socket_kernel.pdf", width: 100%)])
+    #align(center, [#image("socket_kernel.pdf", width: 100%)])
 
-],[
+  ],
+  [
 
-- Sockets have a *file descriptor*
+    - Sockets have a *file descriptor*
 
-- It is handled internally with a *pseudo file*
+    - It is handled internally with a *pseudo file*
 
-- #kstruct("socket") is the generic representation
+    - #kstruct("socket") is the generic representation
 
-  - stores the SOCK_xxx types
+      - stores the SOCK_xxx types
 
-  - holds the #kstruct("proto_ops") pointer
+      - holds the #kstruct("proto_ops") pointer
 
-  - interfaces with the syscall API
+      - interfaces with the syscall API
 
-- #kstruct("sock") is what the network stack manipulates
+    - #kstruct("sock") is what the network stack manipulates
 
-  - more internal representation
+      - more internal representation
 
-  - for use mostly by the network stack
+      - for use mostly by the network stack
 
-  - maintains the queues, locks, and internal state
+      - maintains the queues, locks, and internal state
 
-])
+  ],
+)
 
-===  #kstruct("proto_ops")
+=== #kstruct("proto_ops")
 
-#table(columns: (50%, 50%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (50%, 50%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-#align(center, [#image("socket_proto_ops.pdf", width: 100%)])
+    #align(center, [#image("socket_proto_ops.pdf", width: 100%)])
 
-],[
+  ],
+  [
 
-- #kstruct("proto_ops") implement the protocol-specific operations
+    - #kstruct("proto_ops") implement the protocol-specific operations
 
-- Selected at socket creation based on the *family*
+    - Selected at socket creation based on the *family*
 
-- Very close to the syscall interface
+    - Very close to the syscall interface
 
-#[ #show raw.where(lang: "c", block: true): set text(size: 15pt)
+    #[ #show raw.where(lang: "c", block: true): set text(size: 15pt)
 
-```c
-struct proto_ops{
-...
-int (*bind) (struct socket *sock,
-             struct sockaddr *myaddr,
-             int sockaddr_len); 
-int (*sendmsg) (struct socket *sock,
-                struct msghdr *m,
-                size_t total_len);
-...
-};
-```
-]
+      ```c
+      struct proto_ops{
+      ...
+      int (*bind) (struct socket *sock,
+                   struct sockaddr *myaddr,
+                   int sockaddr_len);
+      int (*sendmsg) (struct socket *sock,
+                      struct msghdr *m,
+                      size_t total_len);
+      ...
+      };
+      ```
+    ]
 
-])
+  ],
+)
 
-===  sending through a socket
+=== sending through a socket
 
 + Userspace program calls `write()`, `send()`, `sendto()` or `sendmsg()`
 
@@ -578,7 +600,7 @@ int (*sendmsg) (struct socket *sock,
 + #kfunc("dst_output") is eventually called, handing over from L4 to
   L3
 
-===  L3 processing
+=== L3 processing
 
 - In #kfunc("ip_finish_output") or #kfunc("ip6_finish_output")
 

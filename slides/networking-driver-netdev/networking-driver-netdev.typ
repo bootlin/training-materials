@@ -6,7 +6,7 @@
 
 == Ethernet controller driver
 
-===  Ethernet driver endpoints
+=== Ethernet driver endpoints
 
 - Ethernet controllers are represented by #kstruct("net_device")
 
@@ -20,37 +20,43 @@ dev->netdev_ops = &mvneta_netdev_ops;
 dev->ethtool_ops = &mvneta_eth_tool_ops;
 `
 
-===  Queues
+=== Queues
 
-#table(columns: (30%, 70%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (30%, 70%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-#align(center, [#image("queues.pdf", width: 100%)])
-],[
+    #align(center, [#image("queues.pdf", width: 100%)])
+  ],
+  [
 
-- Most Ethernet controllers today have multiple *transmit* and
-  *receive* queues
+    - Most Ethernet controllers today have multiple *transmit* and
+      *receive* queues
 
-- *tx* queues hold *descriptors* for packets that are
-  yet-to-be-sent
+    - *tx* queues hold *descriptors* for packets that are
+      yet-to-be-sent
 
-- The NIC will dequeue one packet at a time during transmission, from
-  one of the tx queues
+    - The NIC will dequeue one packet at a time during transmission, from
+      one of the tx queues
 
-- The TX de-queueing behaviour can sometimes be controlled : Weighted
-  Round-Robin, Per-queue priorities, etc.
+    - The TX de-queueing behaviour can sometimes be controlled : Weighted
+      Round-Robin, Per-queue priorities, etc.
 
-- *rx* queues hold descriptors for packets received that weren't
-  yet handled by the CPU
+    - *rx* queues hold descriptors for packets received that weren't
+      yet handled by the CPU
 
-- the RX buffer size depends on the configured *MTU*
+    - the RX buffer size depends on the configured *MTU*
 
-])
+  ],
+)
 
-===  RX filtering
+=== RX filtering
 
 - The *receive filtering* is adjusted with : \
-  #[ #show raw.where(lang: "c", block:false): set text(size: 16pt)
-  ```c void (*ndo_set_rx_mode)(struct net_device *dev); ```]
+  #[ #show raw.where(lang: "c", block: false): set text(size: 16pt)
+    ```c void (*ndo_set_rx_mode)(struct net_device *dev); ```]
 
 - `dev->flags` contains the new filtering parameters :
 
@@ -77,7 +83,7 @@ dev->ethtool_ops = &mvneta_eth_tool_ops;
   through #kfunc("dev_uc_add"), #kfunc("dev_uc_del"),
   #kfunc("dev_mc_add"), etc.
 
-===  Changing the MTU
+=== Changing the MTU
 
 - *\M*\aximum *\T*\ransmit *\U*\nit, used by the upper
   layers for fragmentation
@@ -96,51 +102,57 @@ dev->ethtool_ops = &mvneta_eth_tool_ops;
 #text(size: 15pt)[`.ndo_change_mtu()` - option 1]
 #v(-0.2em)
 #[ #show raw.where(lang: "c", block: true): set text(size: 13pt)
-```c
-if (netif_running(ndev
-        return -EBUSY; /* Can't change the MTU while the interface is UP */
+  ```c
+  if (netif_running(ndev
+          return -EBUSY; /* Can't change the MTU while the interface is UP */
 
-WRITE_ONCE(ndev->mtu, new_mtu);
-```
+  WRITE_ONCE(ndev->mtu, new_mtu);
+  ```
 
-#v(0.5em)
+  #v(0.5em)
 
-#text(size: 15pt)[`.ndo_change_mtu()` - option 2]
-#v(-0.2em)
-```c
-WRITE_ONCE(ndev->mtu, new_mtu);
+  #text(size: 15pt)[`.ndo_change_mtu()` - option 2]
+  #v(-0.2em)
+  ```c
+  WRITE_ONCE(ndev->mtu, new_mtu);
 
-foo_stop_dev(dev); /* Stop sending and receiving, empty the queues*/
-foo_realloc_queues(dev); /* Re-allocate buffers for the new MTU */
-foo_start_dev(dev); /* Resume */
-```
+  foo_stop_dev(dev); /* Stop sending and receiving, empty the queues*/
+  foo_realloc_queues(dev); /* Re-allocate buffers for the new MTU */
+  foo_start_dev(dev); /* Resume */
+  ```
 ]
 
-===  Channels
+=== Channels
 
-#table(columns: (30%, 70%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (30%, 70%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-#align(center, [#image("channels.pdf", width: 100%)])
+    #align(center, [#image("channels.pdf", width: 100%)])
 
-],[
+  ],
+  [
 
-- `tx` and `rx` queues will notify queueing and dequeueing through
-  `interrupts`
+    - `tx` and `rx` queues will notify queueing and dequeueing through
+      `interrupts`
 
-- Multiple queues may share the same interrupt line
+    - Multiple queues may share the same interrupt line
 
-- A *channel* represents an interrupt line and its associated
-  queues
+    - A *channel* represents an interrupt line and its associated
+      queues
 
-- Channels can be added or removed, depending on hardware support
-#v(0.5em)
-#[ #show raw.where(lang: "c", block:false): set text(size: 12pt)
-```c void (*get_channels)(struct net_device *, struct ethtool_channels *); ``` \
-```c int (*set_channels)(struct net_device *, struct ethtool_channels *); ```
-]
-])
+    - Channels can be added or removed, depending on hardware support
+    #v(0.5em)
+    #[ #show raw.where(lang: "c", block: false): set text(size: 12pt)
+      ```c void (*get_channels)(struct net_device *, struct ethtool_channels *); ``` \
+      ```c int (*set_channels)(struct net_device *, struct ethtool_channels *); ```
+    ]
+  ],
+)
 
-===  Receiving data
+=== Receiving data
 
 - The receive path for a Ethernet Controller Driver must use the
   *NAPI* API
@@ -158,7 +170,7 @@ foo_start_dev(dev); /* Resume */
 - Most of the processing occurs in *softirq* context, on the
   *same CPU* that handled the interrupt
 
-===  NAPI principle
+=== NAPI principle
 
 - NAPI does *not* stand for *\N*\ew *API*
 
@@ -180,7 +192,7 @@ foo_start_dev(dev); /* Resume */
 - NAPI is not a batch processing mechanism, which is achievable through
   *interrupt coalescing*
 
-===  NAPI Loop
+=== NAPI Loop
 
 - Register the NAPI polling function (per-queue) : `netif_napi_add`
 
@@ -206,7 +218,7 @@ foo_start_dev(dev); /* Resume */
 + If the budget isn't exhausted but all packets are processed, call
   `napi_complete_done()` and unmask interrupts
 
-===  NAPI instances
+=== NAPI instances
 
 - NAPI poll handlers are registered with #kfunc("netif_napi_add")
 
@@ -219,21 +231,21 @@ foo_start_dev(dev); /* Resume */
 #text(size: 15pt)[napi .poll()]
 #v(-0.2em)
 #[ #show raw.where(lang: "c", block: true): set text(size: 16pt)
-```c
-static int foo_poll(struct napi_struct *napi, int budget)
-{
-    while(rx_done < budget) {
-        buff = foo_queue_get_next_desc();
-        foo_do_xdp(buff);
-        skb = foo_build_skb(buff);
-        napi_gro_receive(skb);
-        rx_done++;
-    }
-}
-```
+  ```c
+  static int foo_poll(struct napi_struct *napi, int budget)
+  {
+      while(rx_done < budget) {
+          buff = foo_queue_get_next_desc();
+          foo_do_xdp(buff);
+          skb = foo_build_skb(buff);
+          napi_gro_receive(skb);
+          rx_done++;
+      }
+  }
+  ```
 ]
 
-===  Interrupt Coalescing
+=== Interrupt Coalescing
 
 - *Hardware feature* where the MAC waits for multiple packets to
   be received before triggering the interrupt
@@ -254,7 +266,7 @@ static int foo_poll(struct napi_struct *napi, int budget)
 - Software IRQ coalescing also exists, using NAPI and a polling-rearm
   timer
 
-===  Transmit path
+=== Transmit path
 
 - Packets are sent from a network controller through the
   `.ndo_start_xmit` callback
@@ -272,7 +284,7 @@ static int foo_poll(struct napi_struct *napi, int budget)
 
 - The `dev->stats` and driver-specific counters must be updated
 
-===  NAPI TX
+=== NAPI TX
 
 - TX *completions* are handled in the NAPI loop
 
@@ -286,7 +298,7 @@ static int foo_poll(struct napi_struct *napi, int budget)
   - The NAPI poll function can acknowledge as many TX packets as it
     wants
 
-===  Buffer management
+=== Buffer management
 
 - Hardware queues contain pre-populated *dma descriptors*
 
@@ -297,7 +309,7 @@ static int foo_poll(struct napi_struct *napi, int budget)
 
 - This is driver specific, but the buffers can be kept in *pools*
 
-===  Page pool
+=== Page pool
 
 - Page pools allows fast page allocation without locking
 
@@ -310,9 +322,11 @@ static int foo_poll(struct napi_struct *napi, int budget)
 - Using `page_pool` is strongly recommended to support *XDP*
 
 - See the
-  #link("https://docs.kernel.org/networking/page_pool.html")[page pool documentation]
+  #link(
+    "https://docs.kernel.org/networking/page_pool.html",
+  )[page pool documentation]
 
-===  Timestamping
+=== Timestamping
 
 - Packet timestamping can be done in RX and TX
 
@@ -327,7 +341,7 @@ static int foo_poll(struct napi_struct *napi, int budget)
 
   - The clone is sent back to the *socket error queue*
 
-===  Netdev features
+=== Netdev features
 
 - `features` represents hardware offload capabilities
 
@@ -358,7 +372,7 @@ static int foo_poll(struct napi_struct *napi, int budget)
 
 - #link("https://docs.kernel.org/networking/netdev-features.html")
 
-===  Offloading
+=== Offloading
 
 - Most modern controllers can perform themselves some operations on
   packets
@@ -385,7 +399,7 @@ static int foo_poll(struct napi_struct *napi, int budget)
 
   - Most controllers will expose counters, accessible over `ethtool -S <iface>`
 
-===  Checksumming
+=== Checksumming
 
 - Some protocols include a checksum of the header or payload in the
   frame
@@ -406,7 +420,7 @@ static int foo_poll(struct napi_struct *napi, int budget)
 - *caution :* Outgoing traffic will be shown with wrong checksums
   in captures
 
-===  RSS
+=== RSS
 
 #align(center, [*\R*\ecieve *\S*\ide *\S*\teering])
 #v(0.3em)
@@ -430,7 +444,7 @@ static int foo_poll(struct napi_struct *napi, int budget)
 
 - `.get_rxfh` and `.set_rxfh`
 
-===  XPS
+=== XPS
 
 - Associate TX queues with CPU cores
 
@@ -444,7 +458,7 @@ static int foo_poll(struct napi_struct *napi, int budget)
 
 - `netif_set_xps_queue(dev, cpumask_of(queue), queue);`
 
-===  Flow steering
+=== Flow steering
 
 - Advanced controllers have the ability to *parse* packet headers
 
@@ -467,7 +481,7 @@ static int foo_poll(struct napi_struct *napi, int budget)
 
   - Policing (rate limiting)
 
-===  TC and ethtool steering
+=== TC and ethtool steering
 
 - Flow steering can be offloaded via `ethtool` :
 
@@ -486,7 +500,7 @@ static int foo_poll(struct napi_struct *napi, int budget)
 
 - Both APIs use the same representation : #kstruct("flow_rule")
 
-===  Multi-queue and priorisation
+=== Multi-queue and priorisation
 
 - Some Ethernet Controllers have multiple `tx` and`rx` queues
 
@@ -504,7 +518,7 @@ static int foo_poll(struct napi_struct *napi, int budget)
 
 - Example in #kfunc("mvneta_setup_mqprio")
 
-===  Other #kstruct("ethtool_ops")
+=== Other #kstruct("ethtool_ops")
 
 - `.get_ringparam` and `.set_ringparam`
 

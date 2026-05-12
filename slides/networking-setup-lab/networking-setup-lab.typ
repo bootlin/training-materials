@@ -4,10 +4,10 @@
 
 #show: bootlin-theme
 
-#setuplabframe([Setup lab],[
+#setuplabframe([Setup lab], [
 
-- Build the image used for the whole training
+  - Build the image used for the whole training
 
-- Setup the host machine
+  - Setup the host machine
 
 ])

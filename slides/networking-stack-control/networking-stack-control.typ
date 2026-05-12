@@ -6,7 +6,7 @@
 
 == Control interfaces for the Network Stack
 
-===  Networking stack control path
+=== Networking stack control path
 
 - The Networking stack is very highly configurable, at all levels :
 
@@ -23,7 +23,7 @@
 
   - The `setsockopts()` syscall is covered later in this training.
 
-===  ioctl interface
+=== ioctl interface
 
 - The `ioctl` syscall is used to perform device-specific configuration
 
@@ -44,13 +44,13 @@
 #text(size: 15pt)[Example ioctl - Get interface name]
 #v(-0.1em)
 #[ #show raw.where(lang: "c", block: true): set text(size: 15pt)
-```c
-struct ifreq ifr; 
-ifr.ifr_ifindex = ifindex; 
-ioctl (fd, SIOCGIFNAME, &ifr);
-```]
+  ```c
+  struct ifreq ifr;
+  ifr.ifr_ifindex = ifindex;
+  ioctl (fd, SIOCGIFNAME, &ifr);
+  ```]
 
-===  ioctl API
+=== ioctl API
 
 - Network-related `ioctl` have the `SIOC` prefix :
 
@@ -68,7 +68,7 @@ ioctl (fd, SIOCGIFNAME, &ifr);
 
 - Replaced with `Netlink`, which offers more flexibility
 
-===  sysctl interface
+=== sysctl interface
 
 - The *sysctl* parameters are global, kernel-level parameters
   tunable at runtime
@@ -98,14 +98,14 @@ ioctl (fd, SIOCGIFNAME, &ifr);
 
 - `net.ipv6` IPv6 configuration
 
-===  Netlink interface
+=== Netlink interface
 
 - More flexible kernel to userspace communication mechanism, based on
   sockets
   #[ #show raw.where(lang: "c", block: true): set text(size: 16pt)
-  ```c
-  fd = socket(AF_NETLINK, SOCK_RAW, NETLINK_GENERIC);
-  ```]
+    ```c
+    fd = socket(AF_NETLINK, SOCK_RAW, NETLINK_GENERIC);
+    ```]
 
 - Allows easy extension of the userspace API without breaking
   compatibility
@@ -124,7 +124,7 @@ ioctl (fd, SIOCGIFNAME, &ifr);
 - Netlink messages have a well-defined and stable format, but
   extensible.
 
-===  Netlink commands
+=== Netlink commands
 
 - There are multiple types of Netlink requests based on the
   `nlmsg_flags`
@@ -151,7 +151,7 @@ ioctl (fd, SIOCGIFNAME, &ifr);
 
   - Contains `ETHTOOL_A_LINKMODES_SPEED`
 
-===  Netlink monitor
+=== Netlink monitor
 
 - *Netlink Monitoring* can refer to 2 distinct operations :
 
@@ -178,7 +178,7 @@ ioctl (fd, SIOCGIFNAME, &ifr);
 
 - All these mechanisms still go through network namespaces
 
-===  Configuration serialization in the kernel
+=== Configuration serialization in the kernel
 
 - Actions triggered by `ioctl` or `netlink` messages often need
   serialization
@@ -205,7 +205,7 @@ ioctl (fd, SIOCGIFNAME, &ifr);
 - All #kstruct("net_device") instances are reference-counted and
   reference-tracked
 
-===  The RTNL lock
+=== The RTNL lock
 
 - Sometimes the Network Stack's Big Kernel Lock
 
@@ -233,7 +233,7 @@ ioctl (fd, SIOCGIFNAME, &ifr);
   - rtnl cannot be used when sleeping is forbidden (e.g. interrupt and
     softirq context)
 
-===  Using Netlink in the kernel
+=== Using Netlink in the kernel
 
 - A new family can be registered by registering a
   #kstruct("genl_family")
@@ -241,7 +241,9 @@ ioctl (fd, SIOCGIFNAME, &ifr);
 - This allows registering custom messages and associated handlers
 
   - e.g the
-    #link("https://elixir.bootlin.com/linux/v6.15.2/source/drivers/net/macsec.c#L3360")[macsec family]
+    #link(
+      "https://elixir.bootlin.com/linux/v6.15.2/source/drivers/net/macsec.c#L3360",
+    )[macsec family]
 
 - Existing families already provide layers of abstractions :
 
@@ -251,7 +253,7 @@ ioctl (fd, SIOCGIFNAME, &ifr);
     #link("https://elixir.bootlin.com/linux/v6.15.2/source/net/ethtool")[ethnl]
     abstraction is used for ethtool commands
 
-===  #kstruct("netlink_ext_ack")
+=== #kstruct("netlink_ext_ack")
 
 - #kstruct("netlink_ext_ack") allows reporting error messages to
   userspace
@@ -264,19 +266,19 @@ ioctl (fd, SIOCGIFNAME, &ifr);
 #v(0.5em)
 
 #[ #show raw.where(lang: "c", block: true): set text(size: 13pt)
-```c
-int dsa_port_mst_enable(struct dsa_port *dp, bool on, struct netlink_ext_ack *extack)
-{
-        if (on && !dsa_port_supports_mst(dp)) {
-                NL_SET_ERR_MSG_MOD(extack, "Hardware does not support MST");
-                return -EINVAL;
-        }
+  ```c
+  int dsa_port_mst_enable(struct dsa_port *dp, bool on, struct netlink_ext_ack *extack)
+  {
+          if (on && !dsa_port_supports_mst(dp)) {
+                  NL_SET_ERR_MSG_MOD(extack, "Hardware does not support MST");
+                  return -EINVAL;
+          }
 
-        return 0;
-}
-```]
+          return 0;
+  }
+  ```]
 
-===  Userpace libraries
+=== Userpace libraries
 
 - #link("https://www.netfilter.org/projects/libmnl/index.html")[libmnl]:
   Simple and lightweight library to access netlink
@@ -288,7 +290,7 @@ int dsa_port_mst_enable(struct dsa_port *dp, bool on, struct netlink_ext_ack *ex
 
   - Useful for programs that "just work"
 
-===  Userspace tooling
+=== Userspace tooling
 
 - *iproute2*
 
@@ -317,7 +319,7 @@ int dsa_port_mst_enable(struct dsa_port *dp, bool on, struct netlink_ext_ack *ex
 
   - Can be compiled with `ioctl` or `netlink` support.
 
-===  Userspace tooling - 2
+=== Userspace tooling - 2
 
 - *NetworkManager*
 
@@ -346,7 +348,7 @@ int dsa_port_mst_enable(struct dsa_port *dp, bool on, struct netlink_ext_ack *ex
 
   - See #manpage("systemd-networkd", "8")
 
-===  C library
+=== C library
 
 - The "Standard" C library exposes a few helper functions to
   manipulate Network features
