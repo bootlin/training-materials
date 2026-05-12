@@ -6,7 +6,7 @@
 
 = GNU Make 101
 
-===  Introduction
+=== Introduction
 
 - Buildroot being implemented in *GNU Make*, it is quite
   important to know the basics of this language
@@ -27,7 +27,7 @@
 
 - #link("https://www.nostarch.com/gnumake")
 
-===  Basics of _make_ rules
+=== Basics of _make_ rules
 
 - At their core, _Makefiles_ are simply defining *rules* to
   create *targets* from *prerequisites* using
@@ -49,7 +49,7 @@
 - *recipe*: list of shell commands to create the target from the
   prerequisites
 
-===  Rule example
+=== Rule example
 
 #text(size: 15pt)[Makefile]
 #v(-0.1em)
@@ -67,7 +67,7 @@ distclean: clean
 
 - `clean` and `distclean` are phony targets
 
-===  Defining and referencing variables
+=== Defining and referencing variables
 
 - Defining variables is done in different ways:
 
@@ -91,94 +91,97 @@ distclean: clean
 
 - Make variables are referenced using the `$(FOOBAR)` syntax.
 
-===  Conditions
+=== Conditions
 
-#[ #show raw.where(lang: "make", block: true): set text(size: 12pt)
+#[
+  #show raw.where(lang: "make", block: true): set text(size: 12pt)
 
-- With `ifeq` or `ifneq`
+  - With `ifeq` or `ifneq`
 
-  ```make
-  ifeq ($(BR2_CCACHE),y)
-  CCACHE := $(HOST_DIR)/bin/ccache endif
+    ```make
+    ifeq ($(BR2_CCACHE),y)
+    CCACHE := $(HOST_DIR)/bin/ccache endif
 
-  distclean: clean 
-  ifeq ($(DL_DIR),$(TOPDIR)/dl)
-          rm -rf $(DL_DIR)
-  endif
-  ```
+    distclean: clean
+    ifeq ($(DL_DIR),$(TOPDIR)/dl)
+            rm -rf $(DL_DIR)
+    endif
+    ```
 
-- With the `$(if ...)` make function:
+  - With the `$(if ...)` make function:
 
-  ```make
-  HOSTAPD_LIBS += $(if $(BR2_STATIC_LIBS),-lcrypto -lz)
-  ```
+    ```make
+    HOSTAPD_LIBS += $(if $(BR2_STATIC_LIBS),-lcrypto -lz)
+    ```
 ]
 
-===  Defining and using functions
+=== Defining and using functions
 
-#[ #show raw.where(lang: "make", block: true): set text(size: 11pt)
+#[
+  #show raw.where(lang: "make", block: true): set text(size: 11pt)
 
-- Defining a function is exactly like defining a variable:
+  - Defining a function is exactly like defining a variable:
 
-  ```make
-  MESSAGE = echo "$(TERM_BOLD)>>> $($(PKG)_NAME) $($(PKG)_VERSION) $(call qstrip,$(1))$(TERM_RESET)"
+    ```make
+    MESSAGE = echo "$(TERM_BOLD)>>> $($(PKG)_NAME) $($(PKG)_VERSION) $(call qstrip,$(1))$(TERM_RESET)"
 
-  define legal-license-header # pkg, license-file, {HOST|TARGET}
-          printf "$(LEGAL_INFO_SEPARATOR)nt$(1): \
-                  $(2)n$(LEGAL_INFO_SEPARATOR)nnn" >>$(LEGAL_LICENSES_TXT_$(3))
-  endef
-  ```
+    define legal-license-header # pkg, license-file, {HOST|TARGET}
+            printf "$(LEGAL_INFO_SEPARATOR)nt$(1): \
+                    $(2)n$(LEGAL_INFO_SEPARATOR)nnn" >>$(LEGAL_LICENSES_TXT_$(3))
+    endef
+    ```
 
-- Arguments accessible as `$(1)`, `$(2)`, etc.
+  - Arguments accessible as `$(1)`, `$(2)`, etc.
 
-- Called using the `$(call func,arg1,arg2)` construct
+  - Called using the `$(call func,arg1,arg2)` construct
 
-  ```make
-  $(BUILD_DIR)/%/.stamp_extracted:
-          [...]
-          @$(call MESSAGE,"Extracting")
+    ```make
+    $(BUILD_DIR)/%/.stamp_extracted:
+            [...]
+            @$(call MESSAGE,"Extracting")
 
-  define legal-license-nofiles # pkg, {HOST|TARGET}
-          $(call legal-license-header,$(1),unknown license file(s),$(2))
-  endef
-  ```
+    define legal-license-nofiles # pkg, {HOST|TARGET}
+            $(call legal-license-header,$(1),unknown license file(s),$(2))
+    endef
+    ```
 ]
 
-===  Useful _make_ functions
+=== Useful _make_ functions
 
-#[ #show raw.where(lang: "make", block: true): set text(size: 12pt)
+#[
+  #show raw.where(lang: "make", block: true): set text(size: 12pt)
 
-- `subst` and `patsubst` to replace text
+  - `subst` and `patsubst` to replace text
 
-  ```make
-  ICU_SOURCE = icu4c-$(subst .,_,$(ICU_VERSION))-src.tgz
-  ```
+    ```make
+    ICU_SOURCE = icu4c-$(subst .,_,$(ICU_VERSION))-src.tgz
+    ```
 
-- `filter` and `filter-out` to filter entries
+  - `filter` and `filter-out` to filter entries
 
-- `foreach` to implement loops
+  - `foreach` to implement loops
 
-  ```make
-  $(foreach incdir,$(TI_GFX_HDR_DIRS),
-        $(INSTALL) -d $(STAGING_DIR)/usr/include/$(notdir $(incdir)); \
-        $(INSTALL) -D -m 0644 $(@D)/include/$(incdir)/*.h \
-                $(STAGING_DIR)/usr/include/$(notdir $(incdir))/
-  )
-  ```
+    ```make
+    $(foreach incdir,$(TI_GFX_HDR_DIRS),
+          $(INSTALL) -d $(STAGING_DIR)/usr/include/$(notdir $(incdir)); \
+          $(INSTALL) -D -m 0644 $(@D)/include/$(incdir)/*.h \
+                  $(STAGING_DIR)/usr/include/$(notdir $(incdir))/
+    )
+    ```
 
-- `dir`, `notdir`, `addsuffix`, `addprefix` to manipulate file names
+  - `dir`, `notdir`, `addsuffix`, `addprefix` to manipulate file names
 
-  ```make
-  UBOOT_SOURCE = $(notdir $(UBOOT_TARBALL))
+    ```make
+    UBOOT_SOURCE = $(notdir $(UBOOT_TARBALL))
 
-  IMAGEMAGICK_CONFIG_SCRIPTS = \
-          $(addsuffix -config,Magick MagickCore MagickWand Wand)
-  ```
+    IMAGEMAGICK_CONFIG_SCRIPTS = \
+            $(addsuffix -config,Magick MagickCore MagickWand Wand)
+    ```
 
-- And many more, see the _GNU Make_ manual for details.
+  - And many more, see the _GNU Make_ manual for details.
 ]
 
-===  Writing recipes
+=== Writing recipes
 
 - Recipes are just shell commands
 

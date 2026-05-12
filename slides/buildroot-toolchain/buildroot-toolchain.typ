@@ -6,7 +6,7 @@
 
 = Toolchains in Buildroot
 
-===  What is a cross-compilation toolchain?
+=== What is a cross-compilation toolchain?
 
 - A set of tools to build and debug code for a target architecture, from
   a machine running a different architecture.
@@ -17,27 +17,33 @@
 
 #align(center, [#image("components.pdf", height: 70%)])
 
-===  Two possibilities for the toolchain
+=== Two possibilities for the toolchain
 
-#table(columns: (60%, 40%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (60%, 40%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-- Buildroot offers two choices for the toolchain, called
-  *toolchain backends*:
+    - Buildroot offers two choices for the toolchain, called
+      *toolchain backends*:
 
-  - The *internal toolchain* backend, where Buildroot builds the
-    toolchain entirely from source
+      - The *internal toolchain* backend, where Buildroot builds the
+        toolchain entirely from source
 
-  - The *external toolchain* backend, where Buildroot uses a
-    existing pre-built toolchain
+      - The *external toolchain* backend, where Buildroot uses a
+        existing pre-built toolchain
 
-- Selected from `Toolchain` → `Toolchain type`.
+    - Selected from `Toolchain` → `Toolchain type`.
 
-],[
-#align(center, [#image("toolchain-types.png", width: 100%)])
+  ],
+  [
+    #align(center, [#image("toolchain-types.png", width: 100%)])
 
-])
+  ],
+)
 
-===  Internal toolchain backend
+=== Internal toolchain backend
 
 - Makes Buildroot build the entire cross-compilation toolchain from
   source.
@@ -63,7 +69,7 @@
 - Building a toolchain takes quite some time: 15-20 minutes on
   moderately recent machines.
 
-===  Internal toolchain backend: result
+=== Internal toolchain backend: result
 
 - `host/bin/<tuple>-<tool>`, the cross-compilation tools: compiler,
   linker, assembler, and more. The compiler is hidden behind a wrapper
@@ -92,7 +98,7 @@
 
   - no need to pass weird gcc flags!
 
-===  External toolchain backend possibilities
+=== External toolchain backend possibilities
 
 - Allows to re-use existing pre-built toolchains
 
@@ -110,70 +116,82 @@
 
   - Directly use a pre-installed custom external toolchain
 
-===  Existing external toolchain profile
+=== Existing external toolchain profile
 
-#table(columns: (60%, 40%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (60%, 40%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-- Buildroot already knows about a wide selection of publicly available
-  toolchains.
+    - Buildroot already knows about a wide selection of publicly available
+      toolchains.
 
-- Toolchains from
+    - Toolchains from
 
-  - ARM (ARM and AArch64)
+      - ARM (ARM and AArch64)
 
-  - Mentor Graphics (AArch64, ARM, MIPS, NIOS-II)
+      - Mentor Graphics (AArch64, ARM, MIPS, NIOS-II)
 
-  - Imagination Technologies (MIPS)
+      - Imagination Technologies (MIPS)
 
-  - Synopsys (ARC)
+      - Synopsys (ARC)
 
-  - Bootlin
+      - Bootlin
 
-- In such cases, Buildroot is able to download and automatically use the
-  toolchain.
+    - In such cases, Buildroot is able to download and automatically use the
+      toolchain.
 
-- It already knows the toolchain configuration: C library being used,
-  kernel headers version, etc.
+    - It already knows the toolchain configuration: C library being used,
+      kernel headers version, etc.
 
-- Additional profiles can easily be added.
+    - Additional profiles can easily be added.
 
-],[
-#align(center, [#image("external-toolchain-profiles.png", width: 100%)])
+  ],
+  [
+    #align(center, [#image("external-toolchain-profiles.png", width: 100%)])
 
-])
+  ],
+)
 
-===  Existing external toolchains: Bootlin toolchains
+=== Existing external toolchains: Bootlin toolchains
 
-#table(columns: (55%, 45%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (55%, 45%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-- #link("https://toolchains.bootlin.com")
+    - #link("https://toolchains.bootlin.com")
 
-- A set of 218 pre-built toolchains, freely available
+    - A set of 218 pre-built toolchains, freely available
 
-  - 43 different CPU architecture variants
+      - 43 different CPU architecture variants
 
-  - All possible C libraries supported: glibc, uClibc-ng, musl
+      - All possible C libraries supported: glibc, uClibc-ng, musl
 
-  - Toolchains built with Buildroot!
+      - Toolchains built with Buildroot!
 
-- Two versions for each toolchain
+    - Two versions for each toolchain
 
-  - _stable_, which uses the default version of gcc, binutils and
-    gdb in Buildroot
+      - _stable_, which uses the default version of gcc, binutils and
+        gdb in Buildroot
 
-  - _bleeding-edge_, which uses the latest version of gcc, binutils
-    and gdb in Buildroot
+      - _bleeding-edge_, which uses the latest version of gcc, binutils
+        and gdb in Buildroot
 
-- Directly integrated in Buildroot
+    - Directly integrated in Buildroot
 
-],[
+  ],
+  [
 
-#align(center, [#image("bootlin-toolchains-com.png", height: 50%)])
-#align(center, [#image("bootlin-toolchains-menuconfig.png", width: 80%)])
+    #align(center, [#image("bootlin-toolchains-com.png", height: 50%)])
+    #align(center, [#image("bootlin-toolchains-menuconfig.png", width: 80%)])
 
-])
+  ],
+)
 
-===  Custom external toolchains
+=== Custom external toolchains
 
 - If you have a custom external toolchain, for example from your vendor,
   select `Custom toolchain` in `Toolchain`.
@@ -200,11 +218,11 @@
 
   - Buildroot will check those values at the beginning of the build
 
-===  Custom external toolchain example configuration
+=== Custom external toolchain example configuration
 
 #align(center, [#image("external-toolchain-config.png", height: 90%)])
 
-===  External toolchain: result
+=== External toolchain: result
 
 - `host/opt/ext-toolchain`, where the original toolchain tarball is
   extracted. Except when a local pre-installed toolchain is used.
@@ -230,7 +248,7 @@
 
   - Mimics the internal toolchain behavior
 
-===  Kernel headers version
+=== Kernel headers version
 
 - One option in the toolchain menu is particularly important: the kernel
   headers version.
@@ -250,7 +268,7 @@
 - With the external toolchain backend, beware when choosing your
   toolchain.
 
-===  Other toolchain menu options
+=== Other toolchain menu options
 
 - The toolchain menu offers a few other options:
 

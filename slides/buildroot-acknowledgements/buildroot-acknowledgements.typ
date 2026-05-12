@@ -4,7 +4,7 @@
 
 #show: bootlin-theme
 
-===  Acknowledgements
+=== Acknowledgements
 
 - Bootlin would like to thank the following members of the Buildroot
   community for their useful comments and reviews during the development

@@ -92,47 +92,52 @@ make BR2_EXTERNAL=/path/to/external1:/path/to/external2
 
 === `BR2_EXTERNAL`: recommended structure
 
-#table(columns: (50%, 50%), stroke: none, [
-#[ #set text(size: 13pt)
-```
-+-- board/
-|   +-- <company>/
-|       +-- <boardname>/
-|           +-- linux.config
-|           +-- busybox.config
-|           +-- <other configuration files>
-|           +-- post_build.sh
-|           +-- post_image.sh
-|           +-- rootfs_overlay/
-|           |   +-- etc/
-|           |   +-- <some file>
-|           +-- patches/
-|               +-- libbar/
-|                   +-- <some patches>
-|
-+-- configs/
-|   +-- <boardname>_defconfig
-|
-```
-]
-],[
-#[ #set text(size: 13pt)
-```
-+-- package/
-|   +-- <company>/
-|       +-- package1/
-|       |    +-- Config.in
-|       |    +-- package1.mk
-|       +-- package2/
-|           +-- Config.in
-|           +-- package2.mk
-|
-+-- Config.in
-+-- external.mk
-+-- external.desc
-```
-]
-])
+#table(
+  columns: (50%, 50%),
+  stroke: none,
+  [
+    #[ #set text(size: 13pt)
+      ```
+      +-- board/
+      |   +-- <company>/
+      |       +-- <boardname>/
+      |           +-- linux.config
+      |           +-- busybox.config
+      |           +-- <other configuration files>
+      |           +-- post_build.sh
+      |           +-- post_image.sh
+      |           +-- rootfs_overlay/
+      |           |   +-- etc/
+      |           |   +-- <some file>
+      |           +-- patches/
+      |               +-- libbar/
+      |                   +-- <some patches>
+      |
+      +-- configs/
+      |   +-- <boardname>_defconfig
+      |
+      ```
+    ]
+  ],
+  [
+    #[ #set text(size: 13pt)
+      ```
+      +-- package/
+      |   +-- <company>/
+      |       +-- package1/
+      |       |    +-- Config.in
+      |       |    +-- package1.mk
+      |       +-- package2/
+      |           +-- Config.in
+      |           +-- package2.mk
+      |
+      +-- Config.in
+      +-- external.mk
+      +-- external.desc
+      ```
+    ]
+  ],
+)
 
 === `BR2_EXTERNAL`: `external.desc`
 
@@ -164,7 +169,7 @@ desc: Foobar Company
 #v(0.5em)
 
 #[ #set text(size: 15pt)
-Example `Config.in`
+  Example `Config.in`
 ]
 ```
 source "$BR2_EXTERNAL_<NAME>_PATH/package/package1/Config.in"
@@ -178,7 +183,7 @@ source "$BR2_EXTERNAL_<NAME>_PATH/package/package2/Config.in"
 - Generally only used to include the package `.mk` files
 
 #[ #set text(size: 15pt)
-Example `external.mk`
+  Example `external.mk`
 ]
 ```make
 include $(sort $(wildcard $(BR2_EXTERNAL_<NAME>_PATH)/package/*/*.mk))
@@ -197,17 +202,17 @@ include $(sort $(wildcard $(BR2_EXTERNAL_<NAME>_PATH)/package/*/*.mk))
   would look like:
 
 #[ #set text(size: 12pt)
-```
-BR2_GLOBAL_PATCH_DIR="$(BR2_EXTERNAL_<NAME>_PATH)/board/<company>/<boardname>/patches/"
-...
-BR2_ROOTFS_OVERLAY="$(BR2_EXTERNAL_<NAME>_PATH)/board/<company>/<boardname>/rootfs_overlay/"
-...
-BR2_ROOTFS_POST_BUILD_SCRIPT="$(BR2_EXTERNAL_<NAME>_PATH)/board/<company>/<boardname>/post_build.sh"
-BR2_ROOTFS_POST_IMAGE_SCRIPT="$(BR2_EXTERNAL_<NAME>_PATH)/board/<company>/<boardname>/post_image.sh"
-...
-BR2_LINUX_KERNEL_USE_CUSTOM_CONFIG=y
-BR2_LINUX_KERNEL_CUSTOM_CONFIG_FILE="$(BR2_EXTERNAL_<NAME>_PATH)/board/<company>/<boardname>/linux.config"
-```
+  ```
+  BR2_GLOBAL_PATCH_DIR="$(BR2_EXTERNAL_<NAME>_PATH)/board/<company>/<boardname>/patches/"
+  ...
+  BR2_ROOTFS_OVERLAY="$(BR2_EXTERNAL_<NAME>_PATH)/board/<company>/<boardname>/rootfs_overlay/"
+  ...
+  BR2_ROOTFS_POST_BUILD_SCRIPT="$(BR2_EXTERNAL_<NAME>_PATH)/board/<company>/<boardname>/post_build.sh"
+  BR2_ROOTFS_POST_IMAGE_SCRIPT="$(BR2_EXTERNAL_<NAME>_PATH)/board/<company>/<boardname>/post_image.sh"
+  ...
+  BR2_LINUX_KERNEL_USE_CUSTOM_CONFIG=y
+  BR2_LINUX_KERNEL_CUSTOM_CONFIG_FILE="$(BR2_EXTERNAL_<NAME>_PATH)/board/<company>/<boardname>/linux.config"
+  ```
 ]
 
 === Examples of `BR2_EXTERNAL` trees
@@ -261,32 +266,32 @@ BR2_LINUX_KERNEL_CUSTOM_CONFIG_FILE="$(BR2_EXTERNAL_<NAME>_PATH)/board/<company>
 === Package-specific targets: example (1)
 
 #[ #set text(size: 12pt)
-```
-$ make strace
->>> strace 4.10 Extracting
->>> strace 4.10 Patching
->>> strace 4.10 Updating config.sub and config.guess
->>> strace 4.10 Patching libtool
->>> strace 4.10 Configuring
->>> strace 4.10 Building
->>> strace 4.10 Installing to target
-$ make strace-build
-... nothing ...
-$ make ltrace-patch
->>> ltrace 0896ce554f80afdcba81d9754f6104f863dea803 Extracting
->>> ltrace 0896ce554f80afdcba81d9754f6104f863dea803 Patching
-$ make ltrace
->>> argp-standalone 1.3 Extracting
->>> argp-standalone 1.3 Patching
->>> argp-standalone 1.3 Updating config.sub and config.guess
->>> argp-standalone 1.3 Patching libtool
-[...]
->>> ltrace 0896ce554f80afdcba81d9754f6104f863dea803 Configuring
->>> ltrace 0896ce554f80afdcba81d9754f6104f863dea803 Autoreconfiguring
->>> ltrace 0896ce554f80afdcba81d9754f6104f863dea803 Patching libtool
->>> ltrace 0896ce554f80afdcba81d9754f6104f863dea803 Building
->>> ltrace 0896ce554f80afdcba81d9754f6104f863dea803 Installing to target
-```
+  ```
+  $ make strace
+  >>> strace 4.10 Extracting
+  >>> strace 4.10 Patching
+  >>> strace 4.10 Updating config.sub and config.guess
+  >>> strace 4.10 Patching libtool
+  >>> strace 4.10 Configuring
+  >>> strace 4.10 Building
+  >>> strace 4.10 Installing to target
+  $ make strace-build
+  ... nothing ...
+  $ make ltrace-patch
+  >>> ltrace 0896ce554f80afdcba81d9754f6104f863dea803 Extracting
+  >>> ltrace 0896ce554f80afdcba81d9754f6104f863dea803 Patching
+  $ make ltrace
+  >>> argp-standalone 1.3 Extracting
+  >>> argp-standalone 1.3 Patching
+  >>> argp-standalone 1.3 Updating config.sub and config.guess
+  >>> argp-standalone 1.3 Patching libtool
+  [...]
+  >>> ltrace 0896ce554f80afdcba81d9754f6104f863dea803 Configuring
+  >>> ltrace 0896ce554f80afdcba81d9754f6104f863dea803 Autoreconfiguring
+  >>> ltrace 0896ce554f80afdcba81d9754f6104f863dea803 Patching libtool
+  >>> ltrace 0896ce554f80afdcba81d9754f6104f863dea803 Building
+  >>> ltrace 0896ce554f80afdcba81d9754f6104f863dea803 Installing to target
+  ```
 ]
 
 === Package-specific targets: advanced
@@ -313,102 +318,108 @@ $ make ltrace
 === Package-specific targets: example (2)
 
 #[ #set text(size: 12pt)
-```
-$ make strace
->>> strace 4.10 Extracting
->>> strace 4.10 Patching
->>> strace 4.10 Updating config.sub and config.guess
->>> strace 4.10 Patching libtool
->>> strace 4.10 Configuring
->>> strace 4.10 Building
->>> strace 4.10 Installing to target
-$ ls output/build/
-strace-4.10 [...]
-$ make strace-dirclean
-rm -Rf /home/thomas/projets/buildroot/output/build/strace-4.10
-$ ls output/build/
-[... no strace-4.10 directory ...]
-```
+  ```
+  $ make strace
+  >>> strace 4.10 Extracting
+  >>> strace 4.10 Patching
+  >>> strace 4.10 Updating config.sub and config.guess
+  >>> strace 4.10 Patching libtool
+  >>> strace 4.10 Configuring
+  >>> strace 4.10 Building
+  >>> strace 4.10 Installing to target
+  $ ls output/build/
+  strace-4.10 [...]
+  $ make strace-dirclean
+  rm -Rf /home/thomas/projets/buildroot/output/build/strace-4.10
+  $ ls output/build/
+  [... no strace-4.10 directory ...]
+  ```
 ]
 
 === Package-specific targets: example (3)
 
 #[ #set text(size: 12pt)
-```
-$ make strace
->>> strace 4.10 Extracting
->>> strace 4.10 Patching
->>> strace 4.10 Updating config.sub and config.guess
->>> strace 4.10 Patching libtool
->>> strace 4.10 Configuring
->>> strace 4.10 Building
->>> strace 4.10 Installing to target
-$ make strace-rebuild
->>> strace 4.10 Building
->>> strace 4.10 Installing to target
-$ make strace-reconfigure
->>> strace 4.10 Configuring
->>> strace 4.10 Building
->>> strace 4.10 Installing to target
-```
+  ```
+  $ make strace
+  >>> strace 4.10 Extracting
+  >>> strace 4.10 Patching
+  >>> strace 4.10 Updating config.sub and config.guess
+  >>> strace 4.10 Patching libtool
+  >>> strace 4.10 Configuring
+  >>> strace 4.10 Building
+  >>> strace 4.10 Installing to target
+  $ make strace-rebuild
+  >>> strace 4.10 Building
+  >>> strace 4.10 Installing to target
+  $ make strace-reconfigure
+  >>> strace 4.10 Configuring
+  >>> strace 4.10 Building
+  >>> strace 4.10 Installing to target
+  ```
 ]
 
 === `make show-info`
 
-#table(columns: (50%, 50%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (50%, 50%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-- `make show-info` outputs JSON text that describes the current
-  configuration: enabled packages, in which version, their license,
-  tarball, dependencies, etc.
+    - `make show-info` outputs JSON text that describes the current
+      configuration: enabled packages, in which version, their license,
+      tarball, dependencies, etc.
 
-- Can be useful for post-processing, build analysis, license compliance,
-  etc.
+    - Can be useful for post-processing, build analysis, license compliance,
+      etc.
 
-],[
+  ],
+  [
 
-#[ #set text(size: 11pt)
-```json
-$ make show-info | jq .
-{
-  "busybox": {
-    "type": "target",
-    "virtual": false,
-    "version": "1.31.1",
-    "licenses": "GPL-2.0",
-    "dl_dir": "busybox",
-    "install_target": true,
-    "install_staging": false,
-    "install_images": false,
-    "downloads": [
+    #[ #set text(size: 11pt)
+      ```json
+      $ make show-info | jq .
       {
-        "source": "busybox-1.31.1.tar.bz2",
-        "uris": [
-          "http+http://www.busybox.net/downloads",
-          "http|urlencode+http://sources.buildroot.net/busybox",
-        ]
-      }
-    ],
-    "dependencies": [
-      "host-skeleton",
-      "host-tar",
-      "skeleton",
-      "toolchain"
-    ],
-    "reverse_dependencies": []
-  },
-```
-]
+        "busybox": {
+          "type": "target",
+          "virtual": false,
+          "version": "1.31.1",
+          "licenses": "GPL-2.0",
+          "dl_dir": "busybox",
+          "install_target": true,
+          "install_staging": false,
+          "install_images": false,
+          "downloads": [
+            {
+              "source": "busybox-1.31.1.tar.bz2",
+              "uris": [
+                "http+http://www.busybox.net/downloads",
+                "http|urlencode+http://sources.buildroot.net/busybox",
+              ]
+            }
+          ],
+          "dependencies": [
+            "host-skeleton",
+            "host-tar",
+            "skeleton",
+            "toolchain"
+          ],
+          "reverse_dependencies": []
+        },
+      ```
+    ]
 
-])
+  ],
+)
 
 === Understanding rebuilds (1)
 
 - Doing a *full rebuild* is achieved using:
 
   #[ #show raw.where(lang: "console", block: true): set text(size: 18pt)
-  ```console
-  $ make clean all
-  ```]
+    ```console
+    $ make clean all
+    ```]
 
   - It will completely remove all build artefacts and restart the build
     from scratch
@@ -587,13 +598,13 @@ $ make show-info | jq .
 
   - Build location has the same path length
 
-#setuplabframe([Advanced aspects],[
-- Use `legal-info` for legal information extraction
+#setuplabframe([Advanced aspects], [
+  - Use `legal-info` for legal information extraction
 
-- Use `graph-depends` for dependency graphing
+  - Use `graph-depends` for dependency graphing
 
-- Use `graph-build` for build time graphing
+  - Use `graph-build` for build time graphing
 
-- Use `BR2_EXTERNAL` to isolate the project-specific changes (packages,
-  configs, etc.)
+  - Use `BR2_EXTERNAL` to isolate the project-specific changes (packages,
+    configs, etc.)
 ])

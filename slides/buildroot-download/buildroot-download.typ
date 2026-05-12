@@ -6,7 +6,7 @@
 
 = Download infrastructure in Buildroot
 
-===  Introduction
+=== Introduction
 
 - One important aspect of Buildroot is to fetch source code or binary
   files from third party projects.
@@ -17,7 +17,7 @@
 - Being able to do reproducible builds over a long period of time
   requires understanding the download infrastructure.
 
-===  Download location
+=== Download location
 
 - Each Buildroot package indicates in its `.mk` file which files it
   needs to be downloaded.
@@ -36,7 +36,7 @@
   + The *backup Buildroot mirror*, as indicated by
     `BR2_BACKUP_SITE`
 
-===  `DL_DIR`
+=== `DL_DIR`
 
 - Once a file has been downloaded by Buildroot, it is cached in the
   directory pointed by `$(DL_DIR)`, in a sub-directory named after the
@@ -58,7 +58,7 @@
 - No cleanup mechanism: files are only added, never removed, even when
   the package version is updated.
 
-===  Primary site
+=== Primary site
 
 - The `BR2_PRIMARY_SITE` option allows to define the location of a
   HTTP or FTP server.
@@ -78,7 +78,7 @@
 
   - Guarantees that all downloads must be in the primary site
 
-===  Backup Buildroot mirror
+=== Backup Buildroot mirror
 
 - Since sometimes the upstream locations disappear or are temporarily
   unavailable, having a backup server is useful
@@ -96,7 +96,7 @@
     their version as a configuration option. Generally only affects the
     kernel or bootloader, which typically don’t disappear upstream.
 
-===  Special case of VCS download
+=== Special case of VCS download
 
 - When a package uses the source code from Git, Subversion or another
   VCS, Buildroot cannot directly download a tarball.
@@ -121,7 +121,7 @@
   branch name: the code will never be re-downloaded when the branch is
   updated.
 
-===  Vendoring
+=== Vendoring
 
 - Some language-specific package management systems like to download the
   dependencies by themselves: _vendoring_
@@ -138,7 +138,7 @@
   the language-specific vendoring tool, and bundles the dependencies
   inside the tarball
 
-===  File integrity checking
+=== File integrity checking
 
 - Buildroot packages can provide a `.hash` file to provide _hashes_
   for the downloaded files.
@@ -152,19 +152,19 @@
 - If the hash is incorrect, the download infrastructure attempts to
   re-download the file once. If that still fails, the build aborts with
   an error.
-  
+
 #v(0.5em)
 #text(size: 15pt)[Hash checking message]
 #v(-0.1em)
 #[ #show raw.where(block: true): set text(size: 13pt)
-```
-strace-4.10.tar.xz: OK (md5: 107a5be455493861189e9b57a3a51912)
-strace-4.10.tar.xz: OK (sha1: 5c3ec4c5a9eeb440d7ec70514923c2e7e7f9ab6c)
->>> strace 4.10 Extracting
-```
+  ```
+  strace-4.10.tar.xz: OK (md5: 107a5be455493861189e9b57a3a51912)
+  strace-4.10.tar.xz: OK (sha1: 5c3ec4c5a9eeb440d7ec70514923c2e7e7f9ab6c)
+  >>> strace 4.10 Extracting
+  ```
 ]
 
-===  Download-related `make` targets
+=== Download-related `make` targets
 
 - `make source`
 

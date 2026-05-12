@@ -9,7 +9,7 @@
 == Source tree
 <source-tree>
 
-===  Source tree (1/5)
+=== Source tree (1/5)
 
 - `Makefile`
 
@@ -29,7 +29,7 @@
   - `Config.in`, `Config.in.arm`, `Config.in.x86`,
     `Config.in.microblaze`, etc.
 
-===  Source tree (2/5)
+=== Source tree (2/5)
 
 - `toolchain/`
 
@@ -55,7 +55,7 @@
 
   - `linux.mk`, the Linux kernel package
 
-===  Source tree (3/5)
+=== Source tree (3/5)
 
 - `package/`
 
@@ -82,7 +82,7 @@
 
   - `at91bootstrap3/`, `barebox/`, `grub2/`, `syslinux/`, `uboot/`, etc.
 
-===  Source tree (4/5)
+=== Source tree (4/5)
 
 - `configs/`
 
@@ -105,7 +105,7 @@
   - misc utilities (kconfig code, libtool patches, download helpers, and
     more.)
 
-===  Source tree (5/5)
+=== Source tree (5/5)
 
 - `utils/`
 
@@ -139,7 +139,7 @@
 == Build tree
 <build-tree>
 
-===  Build tree: `$(O)`
+=== Build tree: `$(O)`
 
 - `output/`
 
@@ -151,7 +151,7 @@
 
 - Variable: `BASE_DIR` (as an absolute path)
 
-===  Build tree: `$(O)/build`
+=== Build tree: `$(O)/build`
 
 - `output/`
 
@@ -176,12 +176,12 @@
 
   - Variable: `BUILD_DIR`
 
-===  Build tree: `$(O)/host`
+=== Build tree: `$(O)/host`
 
 - `output/`
 
   - `host/`
-    
+
     - `lib`
 
     - `bin`
@@ -195,7 +195,7 @@
     - `<tuple>/sysroot/usr/lib`
 
     - `<tuple>/sysroot/usr/bin`
-    
+
   - Contains both the tools built for the host (cross-compiler, etc.)
     and the _sysroot_ of the toolchain
 
@@ -210,7 +210,7 @@
 
   - Variable for the _sysroot_: `STAGING_DIR`
 
-===  Build tree: `$(O)/staging`
+=== Build tree: `$(O)/staging`
 
 - `output/`
 
@@ -221,29 +221,30 @@
 
   - Available for convenience
 
-===  Build tree: `$(O)/target`
+=== Build tree: `$(O)/target`
 
 - `output/`
 
   - `target/`
-    #[ #set list(spacing: 0.3em)
-    - `bin/`
+    #[
+      #set list(spacing: 0.3em)
+      - `bin/`
 
-    - `etc/`
+      - `etc/`
 
-    - `lib/`
+      - `lib/`
 
-    - `usr/bin/`
+      - `usr/bin/`
 
-    - `usr/lib/`
+      - `usr/lib/`
 
-    - `usr/share/`
+      - `usr/share/`
 
-    - `usr/sbin/`
+      - `usr/sbin/`
 
-    - `THIS_IS_NOT_YOUR_ROOT_FILESYSTEM`
+      - `THIS_IS_NOT_YOUR_ROOT_FILESYSTEM`
 
-    - ...
+      - ...
     ]
   - The target root filesystem
 
@@ -258,7 +259,7 @@
 
   - Variable: `TARGET_DIR`
 
-===  Build tree: `$(O)/images`
+=== Build tree: `$(O)/images`
 
 - `output/`
 
@@ -277,7 +278,7 @@
 
   - Variable: `BINARIES_DIR`
 
-===  Build tree: `$(O)/graphs`
+=== Build tree: `$(O)/graphs`
 
 - `output/`
 
@@ -296,7 +297,7 @@
 
   - See the section _Analyzing the build_ later in this training.
 
-===  Build tree: `$(O)/legal-info`
+=== Build tree: `$(O)/legal-info`
 
 - `output/`
 

@@ -6,7 +6,7 @@
 
 = Buildroot community: support and contribution
 
-===  Documentation
+=== Documentation
 
 - Buildroot comes with its own documentation
 
@@ -28,7 +28,7 @@
   - A number of tools need to be installed on your machine, see the
     manual itself.
 
-===  Getting support
+=== Getting support
 
 - Free support
 
@@ -41,14 +41,16 @@
     60+ people, most available during European daylight hours
 
   - Bug tracker \
-    #link("https://bugs.busybox.net/buglist.cgi?product=buildroot")[https://bugs.busybox.net/buglist.cgi?product=buildroot]
+    #link(
+      "https://bugs.busybox.net/buglist.cgi?product=buildroot",
+    )[https://bugs.busybox.net/buglist.cgi?product=buildroot]
 
 - Commercial support
 
   - A number of embedded Linux services companies, including Bootlin,
     can provide commercial services around Buildroot.
 
-===  Tips to get free support
+=== Tips to get free support
 
 - If you have a build issue to report:
 
@@ -64,7 +66,7 @@
 - The community will be much more likely to help you if you use a recent
   Buildroot version.
 
-===  Release schedule
+=== Release schedule
 
 - The Buildroot community publishes stable releases every three months.
 
@@ -86,7 +88,7 @@
 
 - Long-term maintenance of YYYY.02, with a _LTS initiative_
 
-===  Contribution process
+=== Contribution process
 
 - Contributions are made in the form of patches
 
@@ -106,7 +108,7 @@
 - Some contributions may be rejected if they do not fall within the
   Buildroot principles/ideas, as discussed by the community.
 
-===  Patchwork
+=== Patchwork
 
 - Tool that records all patches sent on the mailing list
 
@@ -121,7 +123,7 @@
 
 #align(center, [#image("patchwork.png", height: 60%)])
 
-===  Automated build testing
+=== Automated build testing
 
 - The enormous number of configuration options in Buildroot make it very
   difficult to test all combinations.
@@ -143,14 +145,14 @@
 
 - Daily e-mails with the build results of the past day
 
-===  autobuild.buildroot.org
+=== autobuild.buildroot.org
 
 #align(center, [#image("autobuild.png", width: 90%)])
 
-===  Autobuild daily reports
+=== Autobuild daily reports
 
 #text(size: 11.2pt)[
-`
+  `
 Subject: [Buildroot] [autobuild.buildroot.net] Build results for 2019-03-19
 
 Build statistics for 2019-03-19
@@ -176,14 +178,14 @@ Classification of failures by reason
 Detail of failures
 ------------------
 
-       sparc | android-tools-4.2.2+git2013... | NOK | http://autobuild.buildroot.net/results/f1648f245d77f85661bc0d2f1e8097c3695206d8 |     
-    mips64el |           angularjs-legal-info | NOK | http://autobuild.buildroot.net/results/fdf6b64648dfa58ec74de31104a1a71248242d80 |     
+       sparc | android-tools-4.2.2+git2013... | NOK | http://autobuild.buildroot.net/results/f1648f245d77f85661bc0d2f1e8097c3695206d8 |
+    mips64el |           angularjs-legal-info | NOK | http://autobuild.buildroot.net/results/fdf6b64648dfa58ec74de31104a1a71248242d80 |
 [...]
-         arm |         glib-networking-2.58.0 | NOK | http://autobuild.buildroot.net/results/fc2e68921bd84d13d2e9bc900a91e46b08d698fe |     
+         arm |         glib-networking-2.58.0 | NOK | http://autobuild.buildroot.net/results/fc2e68921bd84d13d2e9bc900a91e46b08d698fe |
 `
 ]
 
-===  Additional testing effort
+=== Additional testing effort
 
 - Run-time test infrastructure in `support/testing`
 
