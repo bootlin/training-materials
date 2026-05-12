@@ -725,7 +725,7 @@ A.J. Vinck, Public domain: \
 
 ],[
 
-#align(center, [#image("tls_client_hello.pdf", width: 100%)])
+#align(center, [#image("tls_server_finish.pdf", width: 100%)])
 
 ])
 
@@ -755,7 +755,7 @@ A.J. Vinck, Public domain: \
 
 ],[
 
-#align(center, [#image("tls_client_finish.pdf", width: 100%)])
+#align(center, [#image("tls_server_finish.pdf", width: 100%)])
 
 ])
 
@@ -815,7 +815,7 @@ A.J. Vinck, Public domain: \
 
 ],[
 
-#align(center, [#image("tls_server_finish.pdf", width: 100%)])
+#align(center, [#image("tls_client_finish.pdf", width: 100%)])
 
 ])
 
