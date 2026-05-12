@@ -1,4 +1,4 @@
-===  Alexis Lothoré
+=== Alexis Lothoré
 
 - Embedded Linux engineer at *Bootlin* since 2023
 
@@ -14,4 +14,6 @@
 
 - `alexis.lothore@bootlin.com`
 
-#text(fill: rgb("#4B6FA9"))[#link("https://bootlin.com/company/staff/alexis-lothore/")]
+#text(fill: rgb("#4B6FA9"))[#link(
+  "https://bootlin.com/company/staff/alexis-lothore/",
+)]

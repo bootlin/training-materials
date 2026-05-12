@@ -1,4 +1,4 @@
-===  Hervé Codina
+=== Hervé Codina
 
 - Embedded Linux engineer and trainer at *Bootlin*.
 
@@ -17,4 +17,6 @@
 
 - `herve.codina@bootlin.com`
 
-#text(fill: rgb("#4B6FA9"))[#link("https://bootlin.com/company/staff/herve-codina/")]
+#text(fill: rgb("#4B6FA9"))[#link(
+  "https://bootlin.com/company/staff/herve-codina/",
+)]

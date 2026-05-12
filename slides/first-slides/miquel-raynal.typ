@@ -1,4 +1,4 @@
-===  Miquèl Raynal
+=== Miquèl Raynal
 
 - Embedded Linux engineer and trainer at *Bootlin*.
 
@@ -18,4 +18,6 @@
 
 - `miquel@bootlin.com`
 
-#text(fill: rgb("#4B6FA9"))[#link("https://bootlin.com/company/staff/miquel-raynal/")]
+#text(fill: rgb("#4B6FA9"))[#link(
+  "https://bootlin.com/company/staff/miquel-raynal/",
+)]

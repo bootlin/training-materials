@@ -1,4 +1,4 @@
-===  João Marcos Costa
+=== João Marcos Costa
 
 - Embedded Linux engineer and trainer at *Bootlin* since 2023
 
@@ -14,4 +14,6 @@
 
 - `joaomarcos.costa@bootlin.com`
 
-#text(fill: rgb("#4B6FA9"))[#link("https://bootlin.com/company/staff/joao-marcos-costa/")]
+#text(fill: rgb("#4B6FA9"))[#link(
+  "https://bootlin.com/company/staff/joao-marcos-costa/",
+)]

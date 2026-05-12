@@ -4,10 +4,10 @@
 
 #show: bootlin-theme
 
-#setuplabframe([Training Setup],[ 
-  
-  Prepare your lab environment 
+#setuplabframe([Training Setup], [
 
-- Download and extract the lab archive
+  Prepare your lab environment
+
+  - Download and extract the lab archive
 
 ])
