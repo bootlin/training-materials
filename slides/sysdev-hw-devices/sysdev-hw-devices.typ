@@ -200,11 +200,8 @@ is preferred
   GPIO expander on I2C
 
 - Search in the Linux kernel
-#[ #set text(size:13pt)
+#[ #set text(size:13pt)
     git grep -i max7313
-  ]
-  
-  #[ #set text(size:14pt)
   ```
   drivers/gpio/gpio-pca953x.c:    { "max7313", 16 | PCA953X_TYPE | PCA_INT, }, drivers/gpio/gpio-pca953x.c:    { .compatible = "maxim,max7313", .data = OF_953X(16, PCA_INT), },
   ```
@@ -305,7 +302,6 @@ devices exposed by the Linux kernel
 ===  Device files examples
 
 Example of device files in a Linux system
-
 #[ #set text(size: 17pt)
 ```
 $ ls -l /dev/ttyS0 /dev/tty1 /dev/sda /dev/sda1 /dev/sda2 /dev/sdc1 /dev/zero 
@@ -319,17 +315,16 @@ crw-rw-rw- 1 root root    1,  5 2011-05-27 08:56 /dev/zero
 ```
 ]
 
+#v(0.5em)
+
 Example C code that uses the usual file API to write data to a serial port
-
 #[ #set text(size: 17pt)
-
 ```c
 int fd; 
 fd = open("/dev/ttyS0", O_RDWR); 
 write(fd, "Hello", 5); 
 close(fd);
 ```
-
 ]
 
 ===  Creating device files
@@ -434,7 +429,6 @@ close(fd);
 
 - `/sys/bus/i2c/drivers`: all device drivers for devices connected on
   I2C busses
-
 #[ #set text(size: 13pt)
 ```
   [...]
@@ -444,8 +438,7 @@ close(fd);
   ```
 ]
 
-- `/sys/bus/i2c/devices`: all devices in the system connected to I2C
-  busses
+- `/sys/bus/i2c/devices`: all devices in the system connected to I2C busses
 #[ #set text(size: 13pt)
   ```
   0-002a -> ../../../devices/platform/soc/40012000.i2c/i2c-0/0-002a
@@ -462,9 +455,7 @@ close(fd);
 ===  _sysfs_ filesystem example
 
 #[ #set text(size: 15pt)
-/sys/bus/i2c/devices/0-002a/
-]
-
+/sys/bus/i2c/devices/0-002a/]
 #[ #set text(size: 13pt)
 ```
 lrwxrwxrwx    driver -> ../../../../../../bus/i2c/drivers/edt_ft5x06
@@ -786,7 +777,7 @@ fat                    86016  1 vfat
 
 #let items = (
   (
-    title: [Directly in the *OS/bootloader code*],
+    title: [Directly in the \ *OS/bootloader \ code*],
     details: (
       [Using compiled data structures, typically in C],
       [How it was done on most embedded platforms in Linux, U-Boot.],
@@ -803,8 +794,8 @@ fat                    86016  1 vfat
   (
     title: [Using a *Device Tree*],
     details: (
-      [Originates from *OpenFirmware*, defined by Sun, used on SPARC and PowerPC],
-      [that's why many Linux/U-Boot functions related to DT have a `of_` prefix],
+      [Originates from *OpenFirmware*, defined by Sun, used on SPARC and PowerPC
+        - that's why many Linux/U-Boot functions related to DT have a `of_` prefix],
       [Now used by most embedded-oriented CPU architectures that run Linux: ARC, ARM64, RISC-V, ARM32, PowerPC, Xtensa, MIPS, etc.],
       [Writing/tweaking a DT is necessary when porting Linux to a new board, or when connecting additional peripherals],
     ),
@@ -822,11 +813,7 @@ fat                    86016  1 vfat
     gutter: 2cm,
 
     [
-      *(#(i + 1))*
-
-      #v(0.5cm)
-
-      #item.title
+      #text(fill: bootlin-orange, [#(i + 1).]) #item.title
     ],
 
     [
@@ -854,7 +841,7 @@ fat                    86016  1 vfat
 - `.dtb` → accurately describes the hardware platform in an
   *OS-agnostic* way.
 
-- `.dtb` approx few dozens of kilobytes
+- `.dtb` ≈ few dozens of kilobytes
 
 - DTB also called *FDT*, _Flattened Device Tree_, once
   loaded into memory.
@@ -1412,7 +1399,7 @@ board.dts
 
 ===  Device Tree specifications
 
-#table(columns: (70%, 20%), stroke: none, gutter: 15pt, [
+#table(columns: (65%, 35%), stroke: none, gutter: 15pt, [
 
 - How to write the correct nodes/properties to describe a given hardware
   platform ?
@@ -1437,7 +1424,7 @@ board.dts
 
 ],[
 
- #align(center, [#image("dt-spec.png", width: 100%)])
+ #align(center, [#image("dt-spec.png", width: 90%)])
 
 ])
 
@@ -1993,28 +1980,28 @@ Note that `I2C1_SDA` is also available on pin `PF15` (not shown here).
 
 ===  Example: LED and I2C device
 
+#[ #show raw.where(block: true): set text(size: 14pt)
 - Let's see how to describe an LED and an I2C device connected to the
   DK1 platform.
 
 - Create `arch/arm/boot/dts/st/stm32mp157a-dk1-custom.dts` which
   includes `stm32mp157a-dk1.dts`
-#[ #set text(size: 14pt)
+
   ```
   #include "stm32mp157a-dk1.dts"
   ```
-]
+
 - Make sure `stm32mp157a-dk1-custom.dts` gets compiled to a DTB by
   changing #kfile("arch/arm/boot/dts/Makefile")
-#[ #set text(size: 14pt)
+
   ```
   dtb-$(CONFIG_ARCH_STM32) += 
           ...
           stm32mp157a-dk1.dtb 
           stm32mp157a-dk1-custom.dtb 
   ```
-]
+
 - `make dtbs`
-#[ #set text(size: 14pt)
   ```
     DTC     arch/arm/boot/dts/st/stm32mp157a-dk1-custom.dtb
   ```
@@ -2061,7 +2048,7 @@ shell
   #[ #set text(size: 15pt)
 stm32mp157a-dk1-custom.dts
   ]
-  #[ #set text(size: 1pt)
+  #[ #set text(size: 12pt)
 ```perl
 &i2c5 {
         status = "okay";

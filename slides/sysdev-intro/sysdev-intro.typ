@@ -9,7 +9,7 @@
 ===  Birth of Free Software
 
 #table(columns: (70%, 30%), stroke: none, gutter: 15pt,[
-
+#text(size: 20pt)[
 - 1983, Richard Stallman, *GNU project* and the *free
   software* concept. Beginning of the development of _gcc_,
   _gdb_, _glibc_ and other important tools
@@ -18,15 +18,15 @@
   operating system kernel. Together with GNU software and many other
   open-source components: a completely free operating system, GNU/Linux
 
--  1995, Linux is more and more popular on server systems
+- 1995, Linux is more and more popular on server systems
 
--  2000, Linux is more and more popular on *embedded systems*
+- 2000, Linux is more and more popular on *embedded systems*
 
--  2008, Linux is more and more popular on mobile devices and phones
+- 2008, Linux is more and more popular on mobile devices and phones
 
--  2012, Linux is available on cheap, extensible hardware: Raspberry Pi,
+- 2012, Linux is available on cheap, extensible hardware: Raspberry Pi,
   BeagleBone Black
-
+]
 ],[
 
 #align(center, [#image("richard-stallman.jpg", width: 100%)])
@@ -170,15 +170,15 @@ from Tim Canham (JPL, NASA):
 
 ===  Processor and architecture (1) 
 
-The Linux kernel and most other architecture-dependent components support a wide range of 32 and 64 bitarchitectures
+The Linux kernel and most other architecture-dependent components support a wide range of 32 and 64 bit architectures
 
-- x86 and x86-64, as found on PC platforms, but also embedded systems
+- x86 and x86-64, as found on PC platforms, but also embedded systems \
   (multimedia, industrial)
 
-- ARM, with hundreds of different _System on Chips_ 
+- ARM, with hundreds of different _System on Chips_ \
   (_SoC_: CPU + on-chip devices, for all sorts of products)
 
-- RISC-V, the rising architecture with a free instruction set 
+- RISC-V, the rising architecture with a free instruction set \
   (from high-end cloud computing to the smallest embedded systems)
 
 - PowerPC (mainly real-time, industrial applications)

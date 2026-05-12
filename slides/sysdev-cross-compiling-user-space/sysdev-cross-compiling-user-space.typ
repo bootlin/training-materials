@@ -102,9 +102,6 @@
   
 #[ #set text(size: 13pt)
 Download and extract
-]
-
-#[ #set text(size: 12pt)
 ```
 $ wget http://sourceforge.net/projects/uftp-multicast/files/
        source-tar/uftp-5.0.tar.gz
@@ -115,9 +112,6 @@ $ cd uftp-5.0
 
 #[ #set text(size: 13pt)
 Build and install
-]
-
-#[ #set text(size: 12pt)
 ```
 $ make cc  -g -Wall -Wextra [...]  -c server_announce.c
 [...]
@@ -132,9 +126,6 @@ $ make DESTDIR=/tmp/test install
 
 #[ #set text(size: 13pt)
 Look at installed files
-]
-
-#[ #set text(size: 12pt)
 ```
 $ tree /tmp/test
 /tmp/test/
@@ -160,16 +151,12 @@ $ file /tmp/test/usr/bin/uftp
 
 #[ #set text(size: 13pt)
 First attempt
-]
-
-#[ #set text(size: 12pt)
 ```
 $ export PATH=/xtools/gcc-arm-10.3-2021.07-x86_64-arm-none-linux-gnueabihf/bin:$PATH
 $ make CC=arm-none-linux-gnueabihf-gcc
 [...]
 encryption.h:87:10: fatal error: openssl/rsa.h: No such file or directory
-```
-]
+```]
 
 - Build fails because _uftp_ uses _OpenSSL_ 
 
@@ -178,9 +165,6 @@ encryption.h:87:10: fatal error: openssl/rsa.h: No such file or directory
 
 #[ #set text(size: 13pt)
 Second attempt
-]
-
-#[ #set text(size: 12pt)
 ```
 $ make CC=arm-none-linux-gnueabihf-gcc NO_ENCRYPTION=1
 arm-none-linux-gnueabihf-gcc  -g -Wall -Wextra [...]  -c server_announce.c
@@ -190,8 +174,7 @@ arm-none-linux-gnueabihf-gcc  -g -Wall -Wextra -o uftp uftp_common.o
 $ make DESTDIR=/tmp/target NO_ENCRYPTION=1 install
 $ file /tmp/target/usr/bin/uftp
 /tmp/target/usr/bin/uftp: ELF 32-bit LSB executable, ARM
-```
-]
+```]
 
 ===  Example: _OpenSSL_ cross-compilation
 
@@ -201,36 +184,25 @@ OpenSSL has a hand-written `Configure` shell script that needs to be invoked bef
 
 #[ #set text(size: 13pt)
 Download/extract
-]
-
-#[ #set text(size: 12pt)
 ```
 $ wget https://www.openssl.org/source/openssl-1.1.1q.tar.gz
 $ tar xf openssl-1.1.1q.tar.gz
 $ cd openssl-1.1.1q
-```
-]
+```]
 
 #[ #set text(size: 13pt)
 Configuration/build
-]
-
-#[ #set text(size: 12pt)
 ```
 $ CC=arm-none-linux-gnueabihf-gcc ./Configure --prefix=/usr 
     linux-generic32 no-asm
 $ make
 $ make DESTDIR=/tmp/staging install
-```
-]
+```]
 
 ],[
 
 #[ #set text(size: 13pt)
 Installed files
-]
-
-#[ #set text(size: 12pt)
 ```
 $ tree /tmp/staging
 └── usr
@@ -397,9 +369,6 @@ shared library.
 
 #[ #set text(size: 13pt)
 Download
-]
-
-#[ #set text(size: 12pt)
 ```
 $ git clone https://github.com/linux-can/can-utils.git
 $ cd can-utils/
@@ -413,9 +382,6 @@ No `configure` and `GNUmakefile.in`, _autoreconf needed_.
 
 #[ #set text(size: 13pt)
 Autoreconf
-]
-
-#[ #set text(size: 12pt)
 ```
 $ autoreconf -i
 $ ls -1 configure* *makefile*
@@ -427,9 +393,6 @@ configure configure.ac GNUmakefile.am GNUmakefile.in
 
   #[ #set text(size: 13pt)
 Configuration
-  ]
-
-  #[ #set text(size: 12pt)
 ```
 $ ./configure --prefix=/usr
 $ ls -1 *makefile*
@@ -438,11 +401,9 @@ GNUmakefile GNUmakefile.am GNUmakefile.in
   ]
 
 We now have the `GNUmakefile`, we can build and install.
-#[ #set text(size: 13pt)
-Build/install
-]
 
-#[ #set text(size: 12pt)
+#[#set text(size: 13pt)
+Build/install
 ```
 $ make
 $ make DESTDIR=/tmp/test install
@@ -503,9 +464,6 @@ file.
 
 #[ #set text(size: 13pt)
 Download
-]
-
-#[ #set text(size: 12pt)
 ```
 $ git clone https://github.com/DaveGamble/cJSON.git
 $ cd cJSON
@@ -515,9 +473,6 @@ $ git checkout v1.7.15
 
 #[ #set text(size: 13pt)
 Configure, build, install
-]
-
-#[ #set text(size: 12pt)
 ```
 $ cmake -DCMAKE_INSTALL_PREFIX=/usr .
 $ make
@@ -529,9 +484,6 @@ $ make DESTDIR=/tmp/test install
 
 #[ #set text(size: 13pt)
 Installed files
-]
-
-#[ #set text(size: 12pt)
 ```
 $ tree /tmp/test
 /tmp/test/
@@ -625,9 +577,6 @@ $ file /tmp/target/usr/lib/libcjson.so.1.7.15
 
 #[ #set text(size: 13pt)
 Download
-]
-
-#[ #set text(size: 12pt)
 ```
 $ git clone https://gitlab.com/ipcalc/ipcalc.git
 $ cd ipcalc
@@ -637,9 +586,6 @@ $ git checkout 1.0.1
 
 #[ #set text(size: 13pt)
 Configuration, build, installation
-]
-
-#[ #set text(size: 12pt)
 ```
 $ mkdir build
 $ cd build
@@ -653,9 +599,6 @@ $ DESTDIR=/tmp/test ninja install
 
 #[ #set text(size: 13pt)
 Installed files
-]
-
-#[ #set text(size: 12pt)
 ```
 $ tree /tmp/test
 /tmp/test/
@@ -686,9 +629,6 @@ $ tree /tmp/test
 
 #[ #set text(size: 13pt)
 Cross file example
-]
-
-#[ #set text(size: 12pt)
 ```
 [binaries]
 c = 'arm-none-linux-gnueabihf-gcc'
@@ -795,9 +735,6 @@ $ pkg-config --cflags --libs cairo-script
 
 #[ #set text(size: 13pt)
 Use `PKG_CONFIG_LIBDIR`
-]
-
-#[ #set text(size: 12pt)
 ```
 $ export PKG_CONFIG_LIBDIR=/tmp/staging/usr/lib/pkgconfig
 $ pkg-config --list-all openssl                        OpenSSL - Secure Sockets Layer and cryptography 
@@ -811,11 +748,10 @@ $ pkg-config --cflags --libs openssl
 The `-L/usr/lib` is incorrect, we need to use
 `PKG_CONFIG_SYSROOT_DIR`.
 
+#v(0.5em)
+
 #[ #set text(size: 13pt)
 Use `PKG_CONFIG_SYSROOT_DIR`
-]
-
-#[ #set text(size: 12pt)
 ```
 $ export PKG_CONFIG_SYSROOT_DIR=/tmp/staging/
 $ pkg-config --cflags --libs openssl

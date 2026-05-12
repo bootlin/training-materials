@@ -184,7 +184,7 @@ The modern successor of Ext2
 - Minimum partition size to have a journal: 2MiB (256 inodes).
 
 - Minimum partition size without a journal: 64KiB (only 16 inodes!).
-
+#v(0.3em)
 #link("https://en.wikipedia.org/wiki/Ext4")
 
 ===  XFS 
@@ -198,7 +198,7 @@ A Journaling filesystem
 - Features: variable block size, direct I/O, online growth...
 
 - Minimum partition size: 16MiB (9.7MiB of free space)
-
+#v(0.3em)
 #link("https://en.wikipedia.org/wiki/XFS")
 
 ===  Btrfs 
@@ -215,7 +215,7 @@ A copy-on-write filesystem
 
 - However, big module size and long initialization time (bad for boot
   time)
-
+#v(0.3em)
 #link("https://en.wikipedia.org/wiki/Btrfs")
 
 ===  F2FS — Flash-Friendly File System 
@@ -236,7 +236,7 @@ A log-structured filesystem
 - Maximum partition size: 16TB, maximum file size: 3.94TB
 
 - Minimum partition size: 52MiB (8MiB free space)
-
+#v(0.3em)
 #link("https://en.wikipedia.org/wiki/F2FS")
 
 ===  SquashFS — A Read-Only and Compressed File System 
@@ -256,7 +256,7 @@ The most popular choice for this usage
 - Supposed to give priority to compression ratio vs read performance
 
 - Suitable for very small partitions
-
+#v(0.3em)
 #link("https://en.wikipedia.org/wiki/SquashFS")
 
 ===  EROFS — Enhanced Read-Only File System 
@@ -279,7 +279,7 @@ A more recent read-only, compressed solution
 - Development seems more active than on SquashFS.
 
 - Suitable for very small partitions
-
+#v(0.3em)
 #link("https://en.wikipedia.org/wiki/EROFS")
 
 ===  Our advice for choosing the best filesystem
@@ -308,7 +308,7 @@ A more recent read-only, compressed solution
 
 #[ #set text(size: 16pt)
 See our presentation for more details and benchmarks (Linux 6.3, ARM32
-BeagleBone Black):
+BeagleBone Black): \
 #link("https://bootlin.com/pub/conferences/2023/eoss/opdenacker-finding-best-block-filesystem/")
 ]
 
