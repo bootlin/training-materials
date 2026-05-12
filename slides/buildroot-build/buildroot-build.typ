@@ -6,7 +6,7 @@
 
 = Managing the build and the configuration
 
-===  Default build organization
+=== Default build organization
 
 - All the build output goes into a directory called `output/` within the
   top-level Buildroot source directory.
@@ -34,7 +34,7 @@
 
   - ...
 
-===  Out of tree build: introduction
+=== Out of tree build: introduction
 
 - Out of tree build allows to use an output directory different than
   `output/`
@@ -60,7 +60,7 @@
 
     - `.config`
 
-===  Out of tree build: using
+=== Out of tree build: using
 
 - To start an out of tree build, two solutions:
 
@@ -84,46 +84,46 @@
 - This wrapper `Makefile` then avoids the need to pass `O=` and the
   path to the Buildroot source tree.
 
-===  Out of tree build: example
+=== Out of tree build: example
 
 #[
   #show raw.where(block: true): set text(size: 13pt)
-+ You are in your Buildroot source tree: 
+  + You are in your Buildroot source tree:
 
-  ```
-  $ ls arch board boot ... Makefile ... package ...
-  ```
+    ```
+    $ ls arch board boot ... Makefile ... package ...
+    ```
 
-+ Create a new output directory, and move to it: 
+  + Create a new output directory, and move to it:
 
-  ```
-  $ mkdir ../foobar-output
-  $ cd ../foobar-output
-  ```
+    ```
+    $ mkdir ../foobar-output
+    $ cd ../foobar-output
+    ```
 
-+ Start a new Buildroot configuration: 
+  + Start a new Buildroot configuration:
 
-  ```
-  $ make -C ../buildroot O=$(pwd) menuconfig
-  ```
+    ```
+    $ make -C ../buildroot O=$(pwd) menuconfig
+    ```
 
-+ Start the build (passing `O=` and `-C` no longer needed thanks to the
-  wrapper): 
+  + Start the build (passing `O=` and `-C` no longer needed thanks to the
+    wrapper):
 
-  ```
-  $ make
-  ```
+    ```
+    $ make
+    ```
 
-+ Adjust the configuration again, restart the build, clean the build: 
+  + Adjust the configuration again, restart the build, clean the build:
 
-  ```
-  $ make menuconfig
-  $ make
-  $ make clean
-  ```
+    ```
+    $ make menuconfig
+    $ make
+    $ make clean
+    ```
 ]
 
-===  Full config file vs. _defconfig_
+=== Full config file vs. _defconfig_
 
 - The `.config` file is a _full_ config file: it contains the value
   for all options (except those having unmet dependencies)
@@ -142,7 +142,7 @@
 
   - Can be used for automated construction of configurations
 
-===  _defconfig_: example
+=== _defconfig_: example
 
 - For the default Buildroot configuration, the _defconfig_ is
   empty: everything is the default.
@@ -161,7 +161,7 @@
   BR2_arm=y BR2_PACKAGE_STRESS=y
   ```
 
-===  Using and creating a _defconfig_
+=== Using and creating a _defconfig_
 
 - To use a _defconfig_, copying it to `.config` is not sufficient
   as all the missing (default) options need to be expanded.
@@ -184,7 +184,7 @@
   - Move it to `configs/` to make it easily loadable with `make
     <foo>_defconfig`.
 
-===  Existing _defconfigs_
+=== Existing _defconfigs_
 
 - Buildroot comes with a number of existing _defconfigs_ for
   various publicly available hardware platforms:
@@ -209,7 +209,7 @@
 
 - Your own _defconfigs_ can obviously be more featureful
 
-===  Assembling a _defconfig_ (1/2)
+=== Assembling a _defconfig_ (1/2)
 
 - _defconfigs_ are trivial text files, one can use simple
   concatenation to assemble them from fragments.
@@ -220,8 +220,8 @@
 #v(-0.2em)
 
 ```
-BR2_arm=y 
-BR2_TOOLCHAIN_BUILDROOT_WCHAR=y 
+BR2_arm=y
+BR2_TOOLCHAIN_BUILDROOT_WCHAR=y
 BR2_GCC_VERSION_7_X=y
 ```
 
@@ -230,8 +230,8 @@ BR2_GCC_VERSION_7_X=y
 #v(-0.2em)
 
 ```
-BR2_mipsel=y 
-BR2_TOOLCHAIN_EXTERNAL=y 
+BR2_mipsel=y
+BR2_TOOLCHAIN_EXTERNAL=y
 BR2_TOOLCHAIN_EXTERNAL_CODESOURCERY_MIPS=y
 ```
 
@@ -240,18 +240,18 @@ BR2_TOOLCHAIN_EXTERNAL_CODESOURCERY_MIPS=y
 #v(-0.2em)
 
 ```
-BR2_PACKAGE_STRESS=y 
-BR2_PACKAGE_MTD=y 
+BR2_PACKAGE_STRESS=y
+BR2_PACKAGE_MTD=y
 BR2_PACKAGE_LIBCONFIG=y
 ```
 
-===  Assembling a _defconfig_ (2/2)
+=== Assembling a _defconfig_ (2/2)
 
 #text(size: 14pt)[debug.frag]
 #v(-0.2em)
 
 ```
-BR2_ENABLE_DEBUG=y 
+BR2_ENABLE_DEBUG=y
 BR2_PACKAGE_STRACE=y
 ```
 #v(0.5em)
@@ -275,7 +275,7 @@ $ make
 - Saving fragments is not possible; it must be done manually from an
   existing _defconfig_
 
-===  Other building tips
+=== Other building tips
 
 - Cleaning targets
 

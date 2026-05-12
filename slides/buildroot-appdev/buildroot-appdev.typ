@@ -59,7 +59,7 @@
 === Building code for Buildroot: C program
 
 #[ #set text(size: 15pt)
-Building a C program for the host
+  Building a C program for the host
 ]
 ```
 $ gcc -o foobar foobar.c
@@ -68,7 +68,7 @@ foobar: ELF 64-bit LSB executable, x86-64, version 1...
 ```
 #v(0.5em)
 #[ #set text(size: 15pt)
-Building a C program for the target
+  Building a C program for the target
 ]
 ```
 $ export PATH=$(pwd)/output/host/bin:$PATH
@@ -80,30 +80,30 @@ foobar: ELF 32-bit LSB executable, ARM, EABI5 version 1...
 === Building code for Buildroot: pkg-config
 
 #[ #set text(size: 15pt)
-Using the system `pkg-config`
+  Using the system `pkg-config`
 ]
 #text(size: 16pt)[
-```
-$ pkg-config --cflags libpng
--I/usr/include/libpng12
+  ```
+  $ pkg-config --cflags libpng
+  -I/usr/include/libpng12
 
-$ pkg-config --libs libpng
--lpng12
-```]
+  $ pkg-config --libs libpng
+  -lpng12
+  ```]
 #v(0.5em)
 #[ #set text(size: 15pt)
-Using the Buildroot `pkg-config`
+  Using the Buildroot `pkg-config`
 ]
 #text(size: 16pt)[
-```
-$ export PATH=$(pwd)/output/host/bin:$PATH
+  ```
+  $ export PATH=$(pwd)/output/host/bin:$PATH
 
-$ pkg-config --cflags libpng
--I.../output/host/arm-buildroot-linux-uclibcgnueabi/sysroot/usr/include/libpng16
+  $ pkg-config --cflags libpng
+  -I.../output/host/arm-buildroot-linux-uclibcgnueabi/sysroot/usr/include/libpng16
 
-$ pkg-config --libs libpng
--L.../output/host/arm-buildroot-linux-uclibcgnueabi/sysroot/usr/lib -lpng16
-```]
+  $ pkg-config --libs libpng
+  -L.../output/host/arm-buildroot-linux-uclibcgnueabi/sysroot/usr/lib -lpng16
+  ```]
 
 === Building code for Buildroot: autotools
 
@@ -135,12 +135,12 @@ $ ./configure --host=arm-linux
   easy:
 #v(0.5em)
 #text(size: 16pt)[
-```
-$ cmake -DCMAKE_TOOLCHAIN_FILE=.../buildroot/output/host/share/buildroot/toolchainfile.cmake .
-$ make
-$ file app
-app: ELF 32-bit LSB executable, ARM, EABI5 version 1 (SYSV), dynamically linked...
-```]
+  ```
+  $ cmake -DCMAKE_TOOLCHAIN_FILE=.../buildroot/output/host/share/buildroot/toolchainfile.cmake .
+  $ make
+  $ file app
+  app: ELF 32-bit LSB executable, ARM, EABI5 version 1 (SYSV), dynamically linked...
+  ```]
 
 === Building code for Buildroot: Meson
 
@@ -157,13 +157,13 @@ app: ELF 32-bit LSB executable, ARM, EABI5 version 1 (SYSV), dynamically linked.
   easy:
 #v(0.5em)
 #text(size: 16pt)[
-```
-$ mkdir build
-$ meson --cross-file=.../buildroot/output/host/etc/meson/cross-compilation.conf ..
-$ ninja
-$ file app
-app: ELF 32-bit LSB executable, ARM, EABI5 version 1 (SYSV), dynamically linked...
-```]
+  ```
+  $ mkdir build
+  $ meson --cross-file=.../buildroot/output/host/etc/meson/cross-compilation.conf ..
+  $ ninja
+  $ file app
+  app: ELF 32-bit LSB executable, ARM, EABI5 version 1 (SYSV), dynamically linked...
+  ```]
 
 === Building code for Buildroot: `environment-setup`
 
@@ -185,36 +185,36 @@ app: ELF 32-bit LSB executable, ARM, EABI5 version 1 (SYSV), dynamically linked.
 === Building code for Buildroot: `environment-setup`
 
 #[ #set text(size: 12pt)
-```
-$ source output/host/environment-setup
- _           _ _     _                 _
-| |__  _   _(_) | __| |_ __ ___   ___ | |_
-| '_ \| | | | | |/ _` | '__/ _ \ / _ \| __|
-| |_) | |_| | | | (_| | | | (_) | (_) | |_
-|_.__/ \__,_|_|_|\__,_|_|  \___/ \___/ \__|
+  ```
+  $ source output/host/environment-setup
+   _           _ _     _                 _
+  | |__  _   _(_) | __| |_ __ ___   ___ | |_
+  | '_ \| | | | | |/ _` | '__/ _ \ / _ \| __|
+  | |_) | |_| | | | (_| | | | (_) | (_) | |_
+  |_.__/ \__,_|_|_|\__,_|_|  \___/ \___/ \__|
 
-       Making embedded Linux easy!
+         Making embedded Linux easy!
 
-Some tips:
-* PATH now contains the SDK utilities
-* Standard autotools variables (CC, LD, CFLAGS) are exported
-* Kernel compilation variables (ARCH, CROSS_COMPILE, KERNELDIR) are exported
-* To configure do "./configure $CONFIGURE_FLAGS" or use
-  the "configure" alias
-* To build CMake-based projects, use the "cmake" alias
-```
-```
-$ echo $CC
-/home/thomas/projets/buildroot/output/host/bin/arm-linux-gcc
-$ echo $CFLAGS
--D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 -Os -D_FORTIFY_SOURCE=1
-$ echo $CROSS_COMPILE
-/home/thomas/projets/buildroot/output/host/bin/arm-linux-
-$ alias configure
-alias configure='./configure --target=arm-buildroot-linux-gnueabihf --host=arm-buildroot-linux-gnueabihf \
-    --build=x86_64-pc-linux-gnu --prefix=/usr --exec-prefix=/usr --sysconfdir=/etc --localstatedir=/var \
-    --program-prefix='
-```
+  Some tips:
+  * PATH now contains the SDK utilities
+  * Standard autotools variables (CC, LD, CFLAGS) are exported
+  * Kernel compilation variables (ARCH, CROSS_COMPILE, KERNELDIR) are exported
+  * To configure do "./configure $CONFIGURE_FLAGS" or use
+    the "configure" alias
+  * To build CMake-based projects, use the "cmake" alias
+  ```
+  ```
+  $ echo $CC
+  /home/thomas/projets/buildroot/output/host/bin/arm-linux-gcc
+  $ echo $CFLAGS
+  -D_LARGEFILE_SOURCE -D_LARGEFILE64_SOURCE -D_FILE_OFFSET_BITS=64 -Os -D_FORTIFY_SOURCE=1
+  $ echo $CROSS_COMPILE
+  /home/thomas/projets/buildroot/output/host/bin/arm-linux-
+  $ alias configure
+  alias configure='./configure --target=arm-buildroot-linux-gnueabihf --host=arm-buildroot-linux-gnueabihf \
+      --build=x86_64-pc-linux-gnu --prefix=/usr --exec-prefix=/usr --sysconfdir=/etc --localstatedir=/var \
+      --program-prefix='
+  ```
 ]
 
 
@@ -292,7 +292,7 @@ alias configure='./configure --target=arm-buildroot-linux-gnueabihf --host=arm-b
   `$(CONFIG_DIR)/local.mk.`
 #v(0.5em)
 #[ #set text(size: 15pt)
-Example `local.mk`
+  Example `local.mk`
 ]
 ```make
 LIBPNG_OVERRIDE_SRCDIR = $(HOME)/projects/libpng
@@ -435,10 +435,10 @@ LINUX_OVERRIDE_SRCDIR = $(HOME)/projects/linux
   running on the target, otherwise applications built with the SDK may
   not run properly.
 
-#setuplabframe([Application development],[
-- Build and run your own application
+#setuplabframe([Application development], [
+  - Build and run your own application
 
-- Remote debug your application
+  - Remote debug your application
 
-- Use `<pkg>_OVERRIDE_SRCDIR`
+  - Use `<pkg>_OVERRIDE_SRCDIR`
 ])

@@ -6,7 +6,7 @@
 
 = Introduction to Buildroot
 
-===  Buildroot at a glance
+=== Buildroot at a glance
 
 - Can build a toolchain, a rootfs, a kernel, a bootloader
 
@@ -33,7 +33,7 @@
 
 - #link("https://buildroot.org")
 
-===  Buildroot design goals
+=== Buildroot design goals
 
 - Buildroot is designed with a few key goals:
 
@@ -55,7 +55,7 @@
 - There are some more complicated and featureful build systems available
   (Yocto Project, OpenEmbedded)
 
-===  Getting Buildroot
+=== Getting Buildroot
 
 - Stable Buildroot releases are published every three months
 
@@ -89,7 +89,7 @@
   - LTS initiative to fund the maintenance work, sponsoring needed to
     cover the effort
 
-===  Using Buildroot
+=== Using Buildroot
 
 - Implemented in `make`
 
@@ -108,7 +108,7 @@
 
   - Running as root is even strongly discouraged!
 
-===  Configuring Buildroot
+=== Configuring Buildroot
 
 - Like the Linux kernel, uses _Kconfig_
 
@@ -126,11 +126,11 @@
   (_ncurses_ for menuconfig/nconfig, _Qt_ for xconfig,
   _Gtk_ for gconfig)
 
-===  Main `menuconfig` menu
+=== Main `menuconfig` menu
 
 #align(center, [#image("menuconfig.png", height: 80%)])
 
-===  Running the build
+=== Running the build
 
 - As simple as:
 
@@ -151,7 +151,7 @@
   $ ./utils/brmake
   ```
 
-===  Build results
+=== Build results
 
 - The build results are located in `output/images`
 
@@ -171,16 +171,16 @@
     (_genimage_) or directly to flash or boot specific platforms:
     SAM-BA for Microchip, _uuu_ for NXP i.MX, OpenOCD, etc.
 
-#setuplabframe([Basic Buildroot usage],[
+#setuplabframe([Basic Buildroot usage], [
 
-- Get Buildroot
+  - Get Buildroot
 
-- Configure a minimal system with Buildroot for the target hardware
+  - Configure a minimal system with Buildroot for the target hardware
 
-- Do the build
+  - Do the build
 
-- Prepare the target hardware for usage
+  - Prepare the target hardware for usage
 
-- Flash and test the generated system
+  - Flash and test the generated system
 
 ])

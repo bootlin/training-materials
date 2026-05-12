@@ -6,44 +6,45 @@
 
 = Managing the Linux kernel configuration
 
-===  Kernel version
+=== Kernel version
 
-#[ #set list(spacing: 0.3em)
-- Most packages in Buildroot have a version fixed in their corresponding
-  Buildroot package
+#[
+  #set list(spacing: 0.3em)
+  - Most packages in Buildroot have a version fixed in their corresponding
+    Buildroot package
 
-- Some packages are more hardware-related, and there is a need to
-  configure their version in a custom way
+  - Some packages are more hardware-related, and there is a need to
+    configure their version in a custom way
 
-  - Linux kernel, bootloaders, firmware, etc.
+    - Linux kernel, bootloaders, firmware, etc.
 
-- Linux kernel version options:
+  - Linux kernel version options:
 
-  - Latest version
+    - Latest version
 
-  - Latest CIP SLTS
+    - Latest CIP SLTS
 
-  - Latest CIP RT SLTS
+    - Latest CIP RT SLTS
 
-  - Custom version
+    - Custom version
 
-  - Custom Git repository
+    - Custom Git repository
 
-  - Custom Mercurial repository
+    - Custom Mercurial repository
 
-  - Custom Subversion repository
+    - Custom Subversion repository
 
-- Using a custom version is recommended → ensures that upgrading
-  Buildroot doesn't imply a change in the kernel version
+  - Using a custom version is recommended → ensures that upgrading
+    Buildroot doesn't imply a change in the kernel version
 
-- No relationship between Buildroot version and kernel version
+  - No relationship between Buildroot version and kernel version
 ]
 
-===  Kernel version configuration
+=== Kernel version configuration
 
 #align(center, [#image("kernel-version.png", width: 80%)])
 
-===  Kernel configuration vs. Buildroot configuration
+=== Kernel configuration vs. Buildroot configuration
 
 - The Linux kernel itself uses _kconfig_ to define its
   configuration
@@ -58,7 +59,7 @@
   discussion is also valid for other packages using _kconfig_:
   `barebox`, `uclibc`, `busybox` and `uboot`.
 
-===  Defining the configuration
+=== Defining the configuration
 
 - In the `Kernel` menu in `menuconfig`, 3 possibilities to configure the
   kernel:
@@ -94,38 +95,38 @@
   - They can complement or override configuration options specified in a
     _defconfig_ or a full configuration file.
 
-===  Examples of kernel configuration
+=== Examples of kernel configuration
 
 #[ #show raw.where(block: true): set text(size: 13pt)
 
-#text(size: 14pt)[`stm32mp157a_dk1_defconfig`: custom configuration file]
-#v(-0.3em)
-```
-BR2_LINUX_KERNEL_USE_CUSTOM_CONFIG=y 
-BR2_LINUX_KERNEL_CUSTOM_CONFIG_FILE="board/stmicroelectronics/stm32mp157a-dk1/linux.config"
-```
-#v(0.5em)
-#text(size: 14pt)[`ts4900_defconfig`: standard kernel defconfig]
-#v(-0.3em)
-```
-BR2_LINUX_KERNEL_DEFCONFIG="imx_v6_v7"
-```
-#v(0.5em)
-#text(size: 14pt)[`warpboard_defconfig`: standard kernel defconfig + fragment]
-#v(-0.3em)
-```
-BR2_LINUX_KERNEL_DEFCONFIG="imx_v6_v7"
-BR2_LINUX_KERNEL_CONFIG_FRAGMENT_FILES="board/freescale/warpboard/linux.fragment"
-```
-#v(0.5em)
-#text(size: 14pt)[`linux.fragment`: contains extra kernel options]
-#v(-0.3em)
-```
-CONFIG_CFG80211_WEXT=y
-```
+  #text(size: 14pt)[`stm32mp157a_dk1_defconfig`: custom configuration file]
+  #v(-0.3em)
+  ```
+  BR2_LINUX_KERNEL_USE_CUSTOM_CONFIG=y
+  BR2_LINUX_KERNEL_CUSTOM_CONFIG_FILE="board/stmicroelectronics/stm32mp157a-dk1/linux.config"
+  ```
+  #v(0.5em)
+  #text(size: 14pt)[`ts4900_defconfig`: standard kernel defconfig]
+  #v(-0.3em)
+  ```
+  BR2_LINUX_KERNEL_DEFCONFIG="imx_v6_v7"
+  ```
+  #v(0.5em)
+  #text(size: 14pt)[`warpboard_defconfig`: standard kernel defconfig + fragment]
+  #v(-0.3em)
+  ```
+  BR2_LINUX_KERNEL_DEFCONFIG="imx_v6_v7"
+  BR2_LINUX_KERNEL_CONFIG_FRAGMENT_FILES="board/freescale/warpboard/linux.fragment"
+  ```
+  #v(0.5em)
+  #text(size: 14pt)[`linux.fragment`: contains extra kernel options]
+  #v(-0.3em)
+  ```
+  CONFIG_CFG80211_WEXT=y
+  ```
 ]
 
-===  Changing the configuration
+=== Changing the configuration
 
 - Running one of the Linux kernel configuration interfaces:
 
@@ -152,7 +153,7 @@ CONFIG_CFG80211_WEXT=y
 
   - Only works if a _custom configuration file_ is used
 
-===  Typical flow
+=== Typical flow
 
 + `make menuconfig`
 

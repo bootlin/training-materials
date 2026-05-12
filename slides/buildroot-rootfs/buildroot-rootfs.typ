@@ -6,11 +6,11 @@
 
 = Root filesystem in Buildroot
 
-===  Overall rootfs construction steps
+=== Overall rootfs construction steps
 
 #align(center, [#image("overall-steps.pdf", height: 90%)])
 
-===  Root filesystem skeleton
+=== Root filesystem skeleton
 
 - The base of a Linux root filesystem: UNIX directory hierarchy, a few
   configuration files and scripts in `/etc`. No programs or libraries.
@@ -34,11 +34,11 @@
 - `skeleton-init-sysv,systemd,openrc` install additional files specific
   to those _init systems_
 
-===  Skeleton packages dependencies
+=== Skeleton packages dependencies
 
 #align(center, [#image("skeleton.pdf", width: 100%)])
 
-===  Custom root filesystem skeleton
+=== Custom root filesystem skeleton
 
 - A custom _skeleton_ can be used, through the
   `BR2_ROOTFS_SKELETON_CUSTOM` and
@@ -59,7 +59,7 @@
 - Use _rootfs overlays_ or _post-build scripts_ for root
   filesystem customization (covered later)
 
-===  Installation of packages
+=== Installation of packages
 
 - All the selected target packages will be built (can be BusyBox, Qt,
   OpenSSH, lighttpd, and many more)
@@ -73,7 +73,7 @@
 - Covered in more details in the section about creating your own
   Buildroot packages.
 
-===  Cleanup step
+=== Cleanup step
 
 - Once all packages have been installed, a cleanup step is executed to
   reduce the size of the root filesystem.
@@ -91,7 +91,7 @@
     when Python is used, etc. See `TARGET_FINALIZE_HOOKS` in the
     Buildroot code.
 
-===  Root filesystem overlay
+=== Root filesystem overlay
 
 - To customize the contents of your root filesystem, to add
   configuration files, scripts, symbolic links, directories or any other
@@ -106,14 +106,14 @@
   overlay paths.
 
   ```
-  $ grep ^BR2_ROOTFS_OVERLAY .config 
+  $ grep ^BR2_ROOTFS_OVERLAY .config
   BR2_ROOTFS_OVERLAY="board/myproject/rootfs-overlay"
-  $ find -type f board/myproject/rootfs-overlay 
-  board/myproject/rootfs-overlay/etc/ssh/sshd_config 
+  $ find -type f board/myproject/rootfs-overlay
+  board/myproject/rootfs-overlay/etc/ssh/sshd_config
   board/myproject/rootfs-overlay/etc/init.d/S99myapp
   ```
 
-===  Post-build scripts
+=== Post-build scripts
 
 - Sometimes a _root filesystem overlay_ is not sufficient: you can
   use *post-build scripts*.
@@ -138,42 +138,42 @@
   - `HOST_DIR`, `STAGING_DIR`, `TARGET_DIR`, `BUILD_DIR`,
     `BINARIES_DIR`, `BASE_DIR`
 
-===  Post-build script: example
+=== Post-build script: example
 
 #[ #show raw.where(lang: "bash", block: true): set text(size: 14pt)
 
-#text(size: 15pt)[board/myproject/post-build.sh]
-#v(-0.1em)
-```bash
-#!/bin/sh
+  #text(size: 15pt)[board/myproject/post-build.sh]
+  #v(-0.1em)
+  ```bash
+  #!/bin/sh
 
-# Generate a file identifying the build (git commit and build date)
-echo $(git describe) $(date +%Y-%m-%d-%H:%M:%S) > \
-    $TARGET_DIR/etc/build-id
+  # Generate a file identifying the build (git commit and build date)
+  echo $(git describe) $(date +%Y-%m-%d-%H:%M:%S) > \
+      $TARGET_DIR/etc/build-id
 
-# Create /applog mountpoint, and adjust /etc/fstab 
-mkdir -p $TARGET_DIR/applog 
-grep -q "^/dev/mtdblock7" $TARGET_DIR/etc/fstab || \
-    echo "/dev/mtdblock7tt/applogtjffs2tdefaultstt0t0" >> \
-    $TARGET_DIR/etc/fstab
+  # Create /applog mountpoint, and adjust /etc/fstab
+  mkdir -p $TARGET_DIR/applog
+  grep -q "^/dev/mtdblock7" $TARGET_DIR/etc/fstab || \
+      echo "/dev/mtdblock7tt/applogtjffs2tdefaultstt0t0" >> \
+      $TARGET_DIR/etc/fstab
 
-# Remove unneeded files 
-rm -rf $TARGET_DIR/usr/share/icons/bar
-```
+  # Remove unneeded files
+  rm -rf $TARGET_DIR/usr/share/icons/bar
+  ```
 ]
 
 #v(0.5em)
 
 #[ #show raw.where(block: true): set text(size: 14pt)
 
-#text(size: 15pt)[Buildroot configuration]
-#v(-0.1em)
-```
-BR2_ROOTFS_POST_BUILD_SCRIPT="board/myproject/post-build.sh"
-```
+  #text(size: 15pt)[Buildroot configuration]
+  #v(-0.1em)
+  ```
+  BR2_ROOTFS_POST_BUILD_SCRIPT="board/myproject/post-build.sh"
+  ```
 ]
 
-===  Generating the filesystem images
+=== Generating the filesystem images
 
 - In the `Filesystem images` menu, you can select which filesystem image
   formats to generate.
@@ -198,7 +198,7 @@ BR2_ROOTFS_POST_BUILD_SCRIPT="board/myproject/post-build.sh"
   - Advanced: possibility of running a custom script inside
     _fakeroot_, see `BR2_ROOTFS_POST_FAKEROOT_SCRIPT`.
 
-===  Permission table
+=== Permission table
 
 - By default, all files are owned by the `root` user, and the
   permissions with which they are installed in `$(TARGET_DIR)` are
@@ -221,15 +221,15 @@ BR2_ROOTFS_POST_BUILD_SCRIPT="board/myproject/post-build.sh"
 #v(-0.1em)
 #[ #show raw.where(block: true): set text(size: 13pt)
 
-```
-#<name>    <type>  <mode>  <uid>   <gid>   <major> <minor> <start> <inc>   <count>
-/dev       d       755     0       0       -       -       -       -       -
-/tmp       d       1777    0       0       -       -       -       -       -
-/var/www   d       755     33      33      -       -       -       -       -
-```
+  ```
+  #<name>    <type>  <mode>  <uid>   <gid>   <major> <minor> <start> <inc>   <count>
+  /dev       d       755     0       0       -       -       -       -       -
+  /tmp       d       1777    0       0       -       -       -       -       -
+  /var/www   d       755     33      33      -       -       -       -       -
+  ```
 ]
 
-===  Device table
+=== Device table
 
 - When the system is using a static `/dev`, one may need to create
   additional _device nodes_
@@ -249,15 +249,15 @@ BR2_ROOTFS_POST_BUILD_SCRIPT="board/myproject/post-build.sh"
 #v(-0.1em)
 #[ #show raw.where(block: true): set text(size: 13pt)
 
-```
-# <name>        <type>  <mode>  <uid>   <gid>   <major> <minor> <start> <inc>   <count>
-/dev/mem        c       640     0       0       1       1       0       0       -
-/dev/kmem       c       640     0       0       1       2       0       0       -
-/dev/i2c-       c       666     0       0       89      0       0       1       4
-```
+  ```
+  # <name>        <type>  <mode>  <uid>   <gid>   <major> <minor> <start> <inc>   <count>
+  /dev/mem        c       640     0       0       1       1       0       0       -
+  /dev/kmem       c       640     0       0       1       2       0       0       -
+  /dev/i2c-       c       666     0       0       89      0       0       1       4
+  ```
 ]
 
-===  Users table
+=== Users table
 
 - One may need to add specific UNIX users and groups in addition to the
   ones available in the default skeleton.
@@ -272,14 +272,14 @@ BR2_ROOTFS_POST_BUILD_SCRIPT="board/myproject/post-build.sh"
 #v(-0.1em)
 #[ #show raw.where(block: true): set text(size: 13pt)
 
-```
-# <username> <uid> <group> <gid> <password> <home>    <shell> <groups>    <comment>
-foo          -1    bar     -1    !=blabla   /home/foo /bin/sh alpha,bravo Foo user 
-test         8000  wheel   -1    =          -         /bin/sh -           Test user
-```
+  ```
+  # <username> <uid> <group> <gid> <password> <home>    <shell> <groups>    <comment>
+  foo          -1    bar     -1    !=blabla   /home/foo /bin/sh alpha,bravo Foo user
+  test         8000  wheel   -1    =          -         /bin/sh -           Test user
+  ```
 ]
 
-===  Post-image scripts
+=== Post-image scripts
 
 - Once all the filesystem images have been created, at the very end of
   the build, *post-image* scripts are called.
@@ -309,7 +309,7 @@ test         8000  wheel   -1    =          -         /bin/sh -           Test u
     `HOST_DIR`, `STAGING_DIR`, `TARGET_DIR`, `BUILD_DIR`,
     `BINARIES_DIR` and `BASE_DIR`.
 
-===  Init mechanism
+=== Init mechanism
 
 - Buildroot supports multiple _init_ implementations:
 
@@ -331,7 +331,7 @@ test         8000  wheel   -1    =          -         /bin/sh -           Test u
     installed by packages. See _Advanced package aspects_ for
     details.
 
-===  `/dev` management method
+=== `/dev` management method
 
 - Buildroot supports four methods to handle the `/dev` directory:
 
@@ -352,7 +352,7 @@ test         8000  wheel   -1    =          -         /bin/sh -           Test u
 - When _systemd_ is used, the only option is _udev_ from
   _systemd_ itself.
 
-===  Other customization options
+=== Other customization options
 
 - There are various other options to customize the root filesystem:
 
@@ -374,7 +374,7 @@ test         8000  wheel   -1    =          -         /bin/sh -           Test u
   - *locale* files installation and filtering (to install
     translations only for a subset of languages, or none at all)
 
-===  Deploying the images
+=== Deploying the images
 
 - By default, Buildroot simply stores the different images in
   `$(O)/images`
@@ -399,7 +399,7 @@ test         8000  wheel   -1    =          -         /bin/sh -           Test u
 
   - initramfs
 
-===  Deploying the images: genimage
+=== Deploying the images: genimage
 
 - `genimage` allows to create the complete image of a block device (SD
   card, USB key, hard drive), including multiple partitions and
@@ -417,66 +417,72 @@ test         8000  wheel   -1    =          -         /bin/sh -           Test u
 
 - More and more widely used in Buildroot default configurations
 
-===  Deploying the images: genimage example
+=== Deploying the images: genimage example
 
 #[ #show raw.where(block: true): set text(size: 11pt)
 
-#text(size: 15pt)[genimage-raspberrypi.cfg]
-#v(-0.3em)
+  #text(size: 15pt)[genimage-raspberrypi.cfg]
+  #v(-0.3em)
 
-#table(columns: (50%, 50%), stroke: none, gutter: 15pt, [
+  #table(
+    columns: (50%, 50%),
+    stroke: none,
+    gutter: 15pt,
+    [
 
-```
-image boot.vfat {
-        vfat {
-                files = {
-                        "bcm2708-rpi-b.dtb",
-                        "rpi-firmware/bootcode.bin",
-                        "rpi-firmware/cmdline.txt",
-                        "kernel-marked/zImage"
-                        [...]
-                }
-        }
+      ```
+      image boot.vfat {
+              vfat {
+                      files = {
+                              "bcm2708-rpi-b.dtb",
+                              "rpi-firmware/bootcode.bin",
+                              "rpi-firmware/cmdline.txt",
+                              "kernel-marked/zImage"
+                              [...]
+                      }
+              }
 
-        size = 32M
-}
-```
-],[
+              size = 32M
+      }
+      ```
+    ],
+    [
 
-```
-image sdcard.img {
-        hdimage {
-        }
+      ```
+      image sdcard.img {
+              hdimage {
+              }
 
-        partition boot {
-                partition-type = 0xC
-                bootable = "true"
-                image = "boot.vfat"
-        }
+              partition boot {
+                      partition-type = 0xC
+                      bootable = "true"
+                      image = "boot.vfat"
+              }
 
-        partition rootfs {
-                partition-type = 0x83
-                image = "rootfs.ext4"
-        }
-}
-```
-])
+              partition rootfs {
+                      partition-type = 0x83
+                      image = "rootfs.ext4"
+              }
+      }
+      ```
+    ],
+  )
 
-#text(size: 15pt)[defconfig]
-#v(-0.1em)
-```
-BR2_ROOTFS_POST_IMAGE_SCRIPT="support/scripts/genimage.sh"
-BR2_ROOTFS_POST_SCRIPT_ARGS="-c board/raspberrypi/genimage-raspberrypi.cfg"
-```
+  #text(size: 15pt)[defconfig]
+  #v(-0.1em)
+  ```
+  BR2_ROOTFS_POST_IMAGE_SCRIPT="support/scripts/genimage.sh"
+  BR2_ROOTFS_POST_SCRIPT_ARGS="-c board/raspberrypi/genimage-raspberrypi.cfg"
+  ```
 
-#text(size: 15pt)[flash]
-#v(-0.1em)
-```
-dd if=output/images/sdcard.img of=/dev/sdb
-```
+  #text(size: 15pt)[flash]
+  #v(-0.1em)
+  ```
+  dd if=output/images/sdcard.img of=/dev/sdb
+  ```
 ]
 
-===  Deploying the image: NFS booting
+=== Deploying the image: NFS booting
 
 - Many people try to use `$(O)/target` directly for NFS booting
 
@@ -490,7 +496,7 @@ dd if=output/images/sdcard.img of=/dev/sdb
 - Use `sudo tar -C /nfs -xf output/images/rootfs.tar` to prepare your
   NFS share.
 
-===  Deploying the image: initramfs
+=== Deploying the image: initramfs
 
 - Another common use case is to use an _initramfs_, i.e. a root
   filesystem fully in RAM.
@@ -506,18 +512,18 @@ dd if=output/images/sdcard.img of=/dev/sdb
     _initramfs_ inside the kernel image. Only available when the
     kernel is built by Buildroot.
 
-#setuplabframe([Root filesystem construction],[
+#setuplabframe([Root filesystem construction], [
 
-- Explore the build output
+  - Explore the build output
 
-- Customize the root filesystem using a rootfs overlay
+  - Customize the root filesystem using a rootfs overlay
 
-- Use a post-build script
+  - Use a post-build script
 
-- Customize the kernel with patches and additional configuration options
+  - Customize the kernel with patches and additional configuration options
 
-- Add more packages
+  - Add more packages
 
-- Use defconfig files and out of tree build
+  - Use defconfig files and out of tree build
 
 ])

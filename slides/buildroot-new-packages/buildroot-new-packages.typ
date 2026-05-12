@@ -6,7 +6,7 @@
 
 = Integrating new packages in Buildroot
 
-===  Why adding new packages in Buildroot?
+=== Why adding new packages in Buildroot?
 
 - A _package_ in Buildroot-speak is the *set of
   meta-information needed to automate the build process* of a certain
@@ -21,7 +21,7 @@
 - Do not confuse with the notion of _binary package_ in a regular
   Linux distribution.
 
-===  Basic elements of a Buildroot package
+=== Basic elements of a Buildroot package
 
 - A directory, `package/foo`
 
@@ -43,7 +43,7 @@
 == Config.in file
 <config.in-file>
 
-===  `package/<pkg>/Config.in`: basics
+=== `package/<pkg>/Config.in`: basics
 
 - Describes the configuration options for the package.
 
@@ -74,7 +74,7 @@
 - The help text give a quick description, and the homepage of the
   project.
 
-===  `package/<pkg>/Config.in`: inclusion
+=== `package/<pkg>/Config.in`: inclusion
 
 - The hierarchy of configuration options visible in `menuconfig` is
   built by reading the top-level `Config.in` file and the other
@@ -91,23 +91,23 @@
 #v(-0.1em)
 #[ #show raw.where(block: true): set text(size: 12pt)
 
-```
-menu "Target packages"
-menu "Audio and video applications"
-        source "package/alsa-utils/Config.in"
-        ...
-endmenu
-...
-menu "Libraries"
-menu "Audio/Sound"
-        source "package/alsa-lib/Config.in"
-        ...
-endmenu
-...
-```
+  ```
+  menu "Target packages"
+  menu "Audio and video applications"
+          source "package/alsa-utils/Config.in"
+          ...
+  endmenu
+  ...
+  menu "Libraries"
+  menu "Audio/Sound"
+          source "package/alsa-lib/Config.in"
+          ...
+  endmenu
+  ...
+  ```
 ]
 
-===  `package/<pkg>/Config.in`: dependencies
+=== `package/<pkg>/Config.in`: dependencies
 
 - _kconfig_ allows to express dependencies using `select` or
   `depends on` statements
@@ -132,51 +132,57 @@ endmenu
 - Such dependencies only ensure consistency at the configuration level.
   They *do not guarantee build ordering*!
 
-===  `package/<pkg>/Config.in`: dependency example
+=== `package/<pkg>/Config.in`: dependency example
 
-#table(columns: (60%, 40%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (60%, 40%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-#text(size: 15pt)[btrfs-progs package]
-#v(-0.1em)
-#[ #show raw.where(block: true): set text(size: 11pt)
-```
-config BR2_PACKAGE_BTRFS_PROGS
-        bool "btrfs-progs"
-        depends on BR2_USE_MMU # util-linux
-        depends on BR2_TOOLCHAIN_HAS_THREADS
-        select BR2_PACKAGE_LZO
-        select BR2_PACKAGE_UTIL_LINUX
-        select BR2_PACKAGE_UTIL_LINUX_LIBBLKID
-        select BR2_PACKAGE_UTIL_LINUX_LIBUUID
-        select BR2_PACKAGE_ZLIB$$
-        help
-          Btrfs filesystem utilities
+    #text(size: 15pt)[btrfs-progs package]
+    #v(-0.1em)
+    #[ #show raw.where(block: true): set text(size: 11pt)
+      ```
+      config BR2_PACKAGE_BTRFS_PROGS
+              bool "btrfs-progs"
+              depends on BR2_USE_MMU # util-linux
+              depends on BR2_TOOLCHAIN_HAS_THREADS
+              select BR2_PACKAGE_LZO
+              select BR2_PACKAGE_UTIL_LINUX
+              select BR2_PACKAGE_UTIL_LINUX_LIBBLKID
+              select BR2_PACKAGE_UTIL_LINUX_LIBUUID
+              select BR2_PACKAGE_ZLIB$$
+              help
+                Btrfs filesystem utilities
 
-          https://btrfs.wiki.kernel.org/index.php/Main_Page
+                https://btrfs.wiki.kernel.org/index.php/Main_Page
 
-comment "btrfs-progs needs a toolchain w/ threads"
-        depends on BR2_USE_MMU
-        depends on !BR2_TOOLCHAIN_HAS_THREADS
-```
-]
+      comment "btrfs-progs needs a toolchain w/ threads"
+              depends on BR2_USE_MMU
+              depends on !BR2_TOOLCHAIN_HAS_THREADS
+      ```
+    ]
 
-],[
+  ],
+  [
 
-#text(size: 16pt)[
-- `depends on BR2_USE_MMU`, because the package uses `fork()`. Note
-  that there is no comment displayed about this dependency, because it's
-  a limitation of the architecture.
+    #text(size: 16pt)[
+      - `depends on BR2_USE_MMU`, because the package uses `fork()`. Note
+        that there is no comment displayed about this dependency, because it's
+        a limitation of the architecture.
 
-- `depends on BR2_TOOLCHAIN_HAS_THREADS`, because the package
-  requires thread support from the toolchain. There is an associated
-  comment, because such support can be added to the toolchain.
+      - `depends on BR2_TOOLCHAIN_HAS_THREADS`, because the package
+        requires thread support from the toolchain. There is an associated
+        comment, because such support can be added to the toolchain.
 
-- Multiple `select BR2_PACKAGE_*`, because the package needs numerous
-  libraries.
-]
-])
+      - Multiple `select BR2_PACKAGE_*`, because the package needs numerous
+        libraries.
+    ]
+  ],
+)
 
-===  Dependency propagation
+=== Dependency propagation
 
 - A limitation of _kconfig_ is that it doesn't propagate `depends
   on` dependencies accross `select` dependencies.
@@ -187,49 +193,55 @@ comment "btrfs-progs needs a toolchain w/ threads"
 
 #v(0.5em)
 
-#table(columns: (50%, 53%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (50%, 53%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-#text(size: 15pt)[libglib2 package]
-#v(-0.1em)
-#[ #show raw.where(block: true): set text(size: 9pt)
-```
-config BR2_PACKAGE_LIBGLIB2
-        bool "libglib2"
-        depends on BR2_USE_WCHAR # gettext
-        depends on BR2_TOOLCHAIN_HAS_THREADS
-        depends on BR2_USE_MMU # fork()
-        select BR2_PACKAGE_HOST_QEMU if ...
-        select BR2_PACKAGE_HOST_QEMU_LINUX_USER_MODE if ...
-        select BR2_PACKAGE_LIBICONV if !BR2_ENABLE_LOCALE
-        select BR2_PACKAGE_LIBFFI
-        select BR2_PACKAGE_PCRE2
-        select BR2_PACKAGE_ZLIB
-[...]
-```
-]
+    #text(size: 15pt)[libglib2 package]
+    #v(-0.1em)
+    #[ #show raw.where(block: true): set text(size: 9pt)
+      ```
+      config BR2_PACKAGE_LIBGLIB2
+              bool "libglib2"
+              depends on BR2_USE_WCHAR # gettext
+              depends on BR2_TOOLCHAIN_HAS_THREADS
+              depends on BR2_USE_MMU # fork()
+              select BR2_PACKAGE_HOST_QEMU if ...
+              select BR2_PACKAGE_HOST_QEMU_LINUX_USER_MODE if ...
+              select BR2_PACKAGE_LIBICONV if !BR2_ENABLE_LOCALE
+              select BR2_PACKAGE_LIBFFI
+              select BR2_PACKAGE_PCRE2
+              select BR2_PACKAGE_ZLIB
+      [...]
+      ```
+    ]
 
-],[
+  ],
+  [
 
-#text(size: 15pt)[neard package]
-#v(-0.1em)
-#[ #show raw.where(block: true): set text(size: 9pt)
-```
-config BR2_PACKAGE_NEARD
-        bool "neard"
-        depends on BR2_USE_WCHAR # libglib2
-        depends on BR2_TOOLCHAIN_HAS_THREADS # libnl, dbus, libglib2
-        depends on BR2_USE_MMU # dbus, libglib2
-        depends on !BR2_STATIC_LIBS # dlopen
-        depends on BR2_TOOLCHAIN_HAS_SYNC_4
-        select BR2_PACKAGE_DBUS
-        select BR2_PACKAGE_LIBGLIB2
-        select BR2_PACKAGE_LIBNL
-[...]
-```
-]
-])
+    #text(size: 15pt)[neard package]
+    #v(-0.1em)
+    #[ #show raw.where(block: true): set text(size: 9pt)
+      ```
+      config BR2_PACKAGE_NEARD
+              bool "neard"
+              depends on BR2_USE_WCHAR # libglib2
+              depends on BR2_TOOLCHAIN_HAS_THREADS # libnl, dbus, libglib2
+              depends on BR2_USE_MMU # dbus, libglib2
+              depends on !BR2_STATIC_LIBS # dlopen
+              depends on BR2_TOOLCHAIN_HAS_SYNC_4
+              select BR2_PACKAGE_DBUS
+              select BR2_PACKAGE_LIBGLIB2
+              select BR2_PACKAGE_LIBNL
+      [...]
+      ```
+    ]
+  ],
+)
 
-===  `Config.in.host` for host packages?
+=== `Config.in.host` for host packages?
 
 - Most of the packages in Buildroot are _target_ packages, i.e.
   they are cross-compiled for the target architecture, and meant to be
@@ -251,84 +263,90 @@ config BR2_PACKAGE_NEARD
   included from `package/Config.in.host`, and the option must be named
   `BR2_PACKAGE_HOST_<PACKAGE>`.
 
-===  `Config.in.host` example
+=== `Config.in.host` example
 
 #text(size: 15pt)[package/Config.in.host]
 #v(-0.1em)
 #[ #show raw.where(block: true): set text(size: 12pt)
 
-```
-menu "Host utilities"
+  ```
+  menu "Host utilities"
 
-        source "package/genimage/Config.in.host"
-        source "package/lpc3250loader/Config.in.host"
-        source "package/openocd/Config.in.host"
-        source "package/qemu/Config.in.host"
+          source "package/genimage/Config.in.host"
+          source "package/lpc3250loader/Config.in.host"
+          source "package/openocd/Config.in.host"
+          source "package/qemu/Config.in.host"
 
-endmenu
-```
+  endmenu
+  ```
 
-#v(0.5em)
+  #v(0.5em)
 
-#text(size: 15pt)[package/openocd/Config.in.host]
-#v(-0.1em)
+  #text(size: 15pt)[package/openocd/Config.in.host]
+  #v(-0.1em)
 
-```
-config BR2_PACKAGE_HOST_OPENOCD
-        bool "host openocd"
-        depends on BR2_HOST_GCC_AT_LEAST_4_9 # host-libusb
-        help
-          OpenOCD - Open On-Chip Debugger
+  ```
+  config BR2_PACKAGE_HOST_OPENOCD
+          bool "host openocd"
+          depends on BR2_HOST_GCC_AT_LEAST_4_9 # host-libusb
+          help
+            OpenOCD - Open On-Chip Debugger
 
-          http://openocd.org
-```
+            http://openocd.org
+  ```
 ]
 
-===  `Config.in` sub-options
+=== `Config.in` sub-options
 
-#table(columns: (40%, 60%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (40%, 60%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-- Additional sub-options can be defined to further configure the
-  package, to enable or disable extra features.
+    - Additional sub-options can be defined to further configure the
+      package, to enable or disable extra features.
 
-- The value of such options can then be fetched from the package `.mk`
-  file to adjust the build accordingly.
+    - The value of such options can then be fetched from the package `.mk`
+      file to adjust the build accordingly.
 
-- Run-time configuration does not belong to `Config.in`.
+    - Run-time configuration does not belong to `Config.in`.
 
-],[
+  ],
+  [
 
-#text(size: 15pt)[package/pppd/Config.in]
-#v(-0.1em)
-#[ #show raw.where(block: true): set text(size: 12pt)
+    #text(size: 15pt)[package/pppd/Config.in]
+    #v(-0.1em)
+    #[ #show raw.where(block: true): set text(size: 12pt)
 
-```
-config BR2_PACKAGE_PPPD
-        bool "pppd"
-        depends on !BR2_STATIC_LIBS
-        depends on BR2_USE_MMU
-        ...
+      ```
+      config BR2_PACKAGE_PPPD
+              bool "pppd"
+              depends on !BR2_STATIC_LIBS
+              depends on BR2_USE_MMU
+              ...
 
-if BR2_PACKAGE_PPPD
+      if BR2_PACKAGE_PPPD
 
-config BR2_PACKAGE_PPPD_FILTER
-        bool "filtering"
-        select BR2_PACKAGE_LIBPCAP
-        help
-          Packet filtering abilities for pppd. If enabled,
-          the pppd active-filter and pass-filter options
-          are available.
+      config BR2_PACKAGE_PPPD_FILTER
+              bool "filtering"
+              select BR2_PACKAGE_LIBPCAP
+              help
+                Packet filtering abilities for pppd. If enabled,
+                the pppd active-filter and pass-filter options
+                are available.
 
-endif
-```
-]
+      endif
+      ```
+    ]
 
-])
+  ],
+)
 
 == Package infrastructures
 <package-infrastructures>
 
-===  Package infrastructures: what is it?
+=== Package infrastructures: what is it?
 
 - Each software component to be built by Buildroot comes with its own
   _build system_.
@@ -346,11 +364,11 @@ endif
 - And a generic package infrastructure for software components with
   non-standard build systems.
 
-===  Package infrastructures
+=== Package infrastructures
 
 #align(center, [#image("package-infrastructures.pdf", height: 90%)])
 
-===  `generic-package` infrastructure
+=== `generic-package` infrastructure
 
 - To be used for software components having non-standard build systems.
 
@@ -363,11 +381,11 @@ endif
 - Leaves to the package developer the responsibility of describing what
   should be done for the configuration, building and installation steps.
 
-===  `generic-package`: steps
+=== `generic-package`: steps
 
 #align(center, [#image("generic-package.pdf", height: 90%)])
 
-===  Other package infrastructures
+=== Other package infrastructures
 
 - The other package infrastructures are meant to be used when the
   software component uses a well-known build system.
@@ -388,7 +406,7 @@ endif
 == .mk file for generic-package
 <mk-file-for-generic-package>
 
-===  The `<pkg>.mk` file
+=== The `<pkg>.mk` file
 
 - The `.mk` file of a package does not look like a normal Makefile.
 
@@ -414,7 +432,7 @@ endif
 - The variables tell the package infrastructure what to do for this
   specific package.
 
-===  Naming conventions
+=== Naming conventions
 
 - The Buildroot package infrastructures make a number of assumption on
   variables and files naming.
@@ -436,7 +454,7 @@ endif
 - Note: a `-` in the lower-case package name is translated to `_` in
   the upper-case package name.
 
-===  Naming conventions: global namespace
+=== Naming conventions: global namespace
 
 - The package infrastructure expects all variables it uses to be
   prefixed by the uppercase package name.
@@ -450,7 +468,7 @@ endif
   - If two packages created a variable named `BUILD_TYPE`, it will
     silently conflict.
 
-===  Behind the scenes
+=== Behind the scenes
 
 - Behind the scenes, `$(eval $(generic-package))`:
 
@@ -465,7 +483,7 @@ endif
     that describe what should be done for each step of the package build
     process
 
-===  `.mk` file: accessing the configuration
+=== `.mk` file: accessing the configuration
 
 - The Buildroot `.config` file is a succession of lines `name = value`
 
@@ -476,24 +494,25 @@ endif
 
 - From a package `.mk` file, one can directly use such variables:
 
-  #[ #show raw.where(lang: "make", block: true): set text(size: 12pt)
-  ```make
-  ifeq ($(BR2_PACKAGE_LIBCURL),y)
-  ...
-  endif
+  #[
+    #show raw.where(lang: "make", block: true): set text(size: 12pt)
+    ```make
+    ifeq ($(BR2_PACKAGE_LIBCURL),y)
+    ...
+    endif
 
-  FOO_DEPENDENCIES += $(if $(BR2_PACKAGE_TIFF),tiff)
-  ```
+    FOO_DEPENDENCIES += $(if $(BR2_PACKAGE_TIFF),tiff)
+    ```
 
-- Hint: use the _make_ `qstrip` function to remove double quotes on
-  string options:
+    - Hint: use the _make_ `qstrip` function to remove double quotes on
+      string options:
 
-  ```make
-  NODEJS_MODULES_LIST = $(call qstrip,$(BR2_PACKAGE_NODEJS_MODULES_ADDITIONAL))
-  ```
-]
+      ```make
+      NODEJS_MODULES_LIST = $(call qstrip,$(BR2_PACKAGE_NODEJS_MODULES_ADDITIONAL))
+      ```
+  ]
 
-===  Download related variables
+=== Download related variables
 
 - `<pkg>_SITE`, *download location*
 
@@ -523,64 +542,65 @@ endif
 
   - `CAIRO_SOURCE = cairo-$(CAIRO_VERSION).tar.xz`
 
-===  Available download methods
+=== Available download methods
 
-#[ #set list(spacing: 0.3em)
+#[
+  #set list(spacing: 0.3em)
 
-- Buildroot can fetch the source code using different methods:
+  - Buildroot can fetch the source code using different methods:
 
-  - `wget`, for FTP/HTTP downloads
+    - `wget`, for FTP/HTTP downloads
 
-  - `scp`, to fetch the tarball using SSH/SCP
+    - `scp`, to fetch the tarball using SSH/SCP
 
-  - `svn`, for Subversion
+    - `svn`, for Subversion
 
-  - `cvs`, for CVS
+    - `cvs`, for CVS
 
-  - `git`, for Git
+    - `git`, for Git
 
-  - `hg`, for Mercurial
+    - `hg`, for Mercurial
 
-  - `bzr`, for Bazaar
+    - `bzr`, for Bazaar
 
-  - `file`, for a local tarball
+    - `file`, for a local tarball
 
-  - `local`, for a local directory
+    - `local`, for a local directory
 
-- In most cases, the fetching method is guessed by Buildroot using the
-  `<pkg>_SITE` variable.
+  - In most cases, the fetching method is guessed by Buildroot using the
+    `<pkg>_SITE` variable.
 
-- Exceptions:
+  - Exceptions:
 
-  - Git, Subversion or Mercurial repositories accessed over HTTP or SSH.
+    - Git, Subversion or Mercurial repositories accessed over HTTP or SSH.
 
-  - `file` and `local` methods
+    - `file` and `local` methods
 
-- In such cases, use `<pkg>_SITE_METHOD` explicitly.
+  - In such cases, use `<pkg>_SITE_METHOD` explicitly.
 ]
 
-===  Download methods examples
+=== Download methods examples
 
 - Subversion repository accessed over HTTP:
 
   ```make
   LIBXMLRPC_VERSION = r3176
-  LIBXMLRPC_SITE = https://svn.code.sf.net/p/xmlrpc-c/code/advanced 
+  LIBXMLRPC_SITE = https://svn.code.sf.net/p/xmlrpc-c/code/advanced
   LIBXMLRPC_SITE_METHOD = svn
   ```
 
 - Git repository accessed over HTTP:
 
   ```make
-  LIBUCI_VERSION = 4b3db1179747b6a6779029407984bacef851325c 
-  LIBUCI_SITE = https://git.openwrt.org/project/uci.git 
+  LIBUCI_VERSION = 4b3db1179747b6a6779029407984bacef851325c
+  LIBUCI_SITE = https://git.openwrt.org/project/uci.git
   LIBUCI_SITE_METHOD = git
   ```
 
 - Source code available in a local directory:
 
   ```make
-  MYAPP_SITE = $(TOPDIR)/../apps/myapp 
+  MYAPP_SITE = $(TOPDIR)/../apps/myapp
   MYAPP_SITE_METHOD = local
   ```
 
@@ -588,7 +608,7 @@ endif
     the designated directory to the Buildroot per-package build
     directory.
 
-===  Downloading more elements
+=== Downloading more elements
 
 - `<pkg>_PATCH`, a list of patches to download and apply before
   building the package. They are automatically applied by the package
@@ -610,21 +630,21 @@ endif
   #v(-0.1em)
   #[ #show raw.where(block: true): set text(size: 13pt)
 
-  ```make
-  UNZIP_PATCH = unzip_$(UNZIP_VERSION)-27.debian.tar.xz
-  ```
-  #v(1em)
-  
-  #text(size: 15pt)[perl.mk]
-  #v(-0.1em)
-  ```make
-  PERL_CROSS_SITE = http://raw.github.com/arsv/perl-cross/releases 
-  PERL_CROSS_SOURCE = perl-$(PERL_CROSS_BASE_VERSION)-cross-$(PERL_CROSS_VERSION).tar.gz 
-  PERL_EXTRA_DOWNLOADS = $(PERL_CROSS_SITE)/$(PERL_CROSS_SOURCE)
-  ```
+    ```make
+    UNZIP_PATCH = unzip_$(UNZIP_VERSION)-27.debian.tar.xz
+    ```
+    #v(1em)
+
+    #text(size: 15pt)[perl.mk]
+    #v(-0.1em)
+    ```make
+    PERL_CROSS_SITE = http://raw.github.com/arsv/perl-cross/releases
+    PERL_CROSS_SOURCE = perl-$(PERL_CROSS_BASE_VERSION)-cross-$(PERL_CROSS_VERSION).tar.gz
+    PERL_EXTRA_DOWNLOADS = $(PERL_CROSS_SITE)/$(PERL_CROSS_SOURCE)
+    ```
   ]
-  
-===  Hash file
+
+=== Hash file
 
 - In order to validate the integrity of downloaded files and license
   files, and make sure the user uses the version which was tested by the
@@ -642,44 +662,44 @@ endif
 
 - The syntax of the file is:
   #text(size: 15pt)[
-  ```
-  <hashtype>  <hash>  <file>
-  ```]
+    ```
+    <hashtype>  <hash>  <file>
+    ```]
 
   Note: the separator between fields is 2 spaces.
 
-===  Hash file examples
+=== Hash file examples
 
 #text(size: 15pt)[package/perl/perl.hash]
 #v(-0.1em)
 #text(size: 14pt)[
-```
-# Hashes from: https://www.cpan.org/src/5.0/perl-5.40.1.tar.xz.{md5,sha1,sha256}.txt 
-md5  bab3547a5cdf2302ee0396419d74a42e  perl-5.40.1.tar.xz 
-sha1  4ffe5246c791df884363aed05ba81ba41cb02084  perl-5.40.1.tar.xz 
-sha256  dfa20c2eef2b4af133525610bbb65dd13777ecf998c9c5b1ccf0d308e732ee3f  perl-5.40.1.tar.xz
+  ```
+  # Hashes from: https://www.cpan.org/src/5.0/perl-5.40.1.tar.xz.{md5,sha1,sha256}.txt
+  md5  bab3547a5cdf2302ee0396419d74a42e  perl-5.40.1.tar.xz
+  sha1  4ffe5246c791df884363aed05ba81ba41cb02084  perl-5.40.1.tar.xz
+  sha256  dfa20c2eef2b4af133525610bbb65dd13777ecf998c9c5b1ccf0d308e732ee3f  perl-5.40.1.tar.xz
 
-# Hash from: https://github.com/arsv/perl-cross/releases/download/1.6.1/perl-cross-1.6.1.hash 
-sha256  b5f4b4457bbd7be37adac8ee423beedbcdba8963a85f79770f5e701dabc5550f  perl-cross-1.6.1.tar.gz
+  # Hash from: https://github.com/arsv/perl-cross/releases/download/1.6.1/perl-cross-1.6.1.hash
+  sha256  b5f4b4457bbd7be37adac8ee423beedbcdba8963a85f79770f5e701dabc5550f  perl-cross-1.6.1.tar.gz
 
-# Locally calculated sha256  dd90d4f42e4dcadf5a7c09eea0189d93c7b37ae560c91f0f6d5233ed3b9292a2 Artistic 
-sha256  d77d235e41d54594865151f4751e835c5a82322b0e87ace266567c3391a4b912  Copying 
-sha256  af805523b88a8ebb60afc009caaf247a498208502f7b8b3d9d3e329fcfb1dc3b  README
-```]
+  # Locally calculated sha256  dd90d4f42e4dcadf5a7c09eea0189d93c7b37ae560c91f0f6d5233ed3b9292a2 Artistic
+  sha256  d77d235e41d54594865151f4751e835c5a82322b0e87ace266567c3391a4b912  Copying
+  sha256  af805523b88a8ebb60afc009caaf247a498208502f7b8b3d9d3e329fcfb1dc3b  README
+  ```]
 
 #v(1em)
 
 #text(size: 15pt)[package/ipset/ipset.hash]
 #v(-0.1em)
 #text(size: 14pt)[
-```
-# From https://ipset.netfilter.org/ipset-7.16.tar.bz2.sha512sum.txt 
-sha512  e69ddee956f0922c8e08e7e5d358d6b5b24178a9f08151b20957cc3465baaba9ecd6aa938ae157f2cd286ccd7f0b7a279cfd89cec2393a00b43e4d945c275307  ipset-7.16.tar.bz2
-# Locally calculated 
-sha256  231f7edcc7352d7734a96eef0b8030f77982678c516876fcb81e25b32d68564c  COPYING
-```]
+  ```
+  # From https://ipset.netfilter.org/ipset-7.16.tar.bz2.sha512sum.txt
+  sha512  e69ddee956f0922c8e08e7e5d358d6b5b24178a9f08151b20957cc3465baaba9ecd6aa938ae157f2cd286ccd7f0b7a279cfd89cec2393a00b43e4d945c275307  ipset-7.16.tar.bz2
+  # Locally calculated
+  sha256  231f7edcc7352d7734a96eef0b8030f77982678c516876fcb81e25b32d68564c  COPYING
+  ```]
 
-===  Describing dependencies
+=== Describing dependencies
 
 - Dependencies expressed in `Config.in` do not enforce build order.
 
@@ -698,16 +718,16 @@ sha256  231f7edcc7352d7734a96eef0b8030f77982678c516876fcb81e25b32d68564c  COPYIN
 #v(-0.1em)
 #text(size: 15pt)[
 
-```make
-PYTHON_DEPENDENCIES = host-python libffi
+  ```make
+  PYTHON_DEPENDENCIES = host-python libffi
 
-ifeq ($(BR2_PACKAGE_PYTHON_READLINE),y)
-PYTHON_DEPENDENCIES += readline 
-endif
-```
+  ifeq ($(BR2_PACKAGE_PYTHON_READLINE),y)
+  PYTHON_DEPENDENCIES += readline
+  endif
+  ```
 ]
 
-===  Mandatory vs. optional dependencies
+=== Mandatory vs. optional dependencies
 
 - Very often, software components have some *mandatory
   dependencies* and some *optional dependencies*, only needed for
@@ -732,7 +752,7 @@ endif
   number of `Config.in` options, but it makes the possible dependency
   less visible to the user.
 
-===  Dependencies: `ntp` example
+=== Dependencies: `ntp` example
 
 - Mandatory dependency: `libevent`
 
@@ -740,75 +760,75 @@ endif
 
 #v(0.5em)
 #text(size: 15pt)[package/ntp/Config.in
-#v(-0.1em)
+  #v(-0.1em)
 
-```
-config BR2_PACKAGE_NTP
-        bool "ntp"
-        select BR2_PACKAGE_LIBEVENT
-[...]
-```
-#v(0.5em)
+  ```
+  config BR2_PACKAGE_NTP
+          bool "ntp"
+          select BR2_PACKAGE_LIBEVENT
+  [...]
+  ```
+  #v(0.5em)
 
-package/ntp/ntp.mk
+  package/ntp/ntp.mk
 
-```make
-[...]
-NTP_DEPENDENCIES = host-pkgconf libevent
-[...]
-ifeq ($(BR2_PACKAGE_OPENSSL),y)
-NTP_CONF_OPTS += --with-crypto --enable-openssl-random 
-NTP_DEPENDENCIES += openssl 
-else 
-NTP_CONF_OPTS += --without-crypto --disable-openssl-random 
-endif
-[...]
-```]
+  ```make
+  [...]
+  NTP_DEPENDENCIES = host-pkgconf libevent
+  [...]
+  ifeq ($(BR2_PACKAGE_OPENSSL),y)
+  NTP_CONF_OPTS += --with-crypto --enable-openssl-random
+  NTP_DEPENDENCIES += openssl
+  else
+  NTP_CONF_OPTS += --without-crypto --disable-openssl-random
+  endif
+  [...]
+  ```]
 
-===  Dependencies: `mpd` example (1/2)
+=== Dependencies: `mpd` example (1/2)
 
 #v(0.5em)
 #text(size: 15pt)[package/mpd/Config.in
-#v(-0.1em)
+  #v(-0.1em)
 
-```
-menuconfig BR2_PACKAGE_MPD
-        bool "mpd"
-        depends on BR2_INSTALL_LIBSTDCPP
-[...]
-        select BR2_PACKAGE_BOOST
-        select BR2_PACKAGE_LIBGLIB2
-        select BR2_PACKAGE_LIBICONV if !BR2_ENABLE_LOCALE
-[...]
+  ```
+  menuconfig BR2_PACKAGE_MPD
+          bool "mpd"
+          depends on BR2_INSTALL_LIBSTDCPP
+  [...]
+          select BR2_PACKAGE_BOOST
+          select BR2_PACKAGE_LIBGLIB2
+          select BR2_PACKAGE_LIBICONV if !BR2_ENABLE_LOCALE
+  [...]
 
-config BR2_PACKAGE_MPD_FLAC
-        bool "flac"
-        select BR2_PACKAGE_FLAC
-        help
-          Enable flac input/streaming support.
-          Select this if you want to play back FLAC files.
-```]
+  config BR2_PACKAGE_MPD_FLAC
+          bool "flac"
+          select BR2_PACKAGE_FLAC
+          help
+            Enable flac input/streaming support.
+            Select this if you want to play back FLAC files.
+  ```]
 
-===  Dependencies: `mpd` example (2/2)
+=== Dependencies: `mpd` example (2/2)
 
 #v(0.5em)
 #text(size: 15pt)[package/mpd/mpd.mk
-#v(-0.1em)
+  #v(-0.1em)
 
-```make
-MPD_DEPENDENCIES = host-pkgconf boost libglib2
+  ```make
+  MPD_DEPENDENCIES = host-pkgconf boost libglib2
 
-[...]
+  [...]
 
-ifeq ($(BR2_PACKAGE_MPD_FLAC),y)
-MPD_DEPENDENCIES += flac 
-MPD_CONF_OPTS += --enable-flac 
-else 
-MPD_CONF_OPTS += --disable-flac 
-endif
-```]
+  ifeq ($(BR2_PACKAGE_MPD_FLAC),y)
+  MPD_DEPENDENCIES += flac
+  MPD_CONF_OPTS += --enable-flac
+  else
+  MPD_CONF_OPTS += --disable-flac
+  endif
+  ```]
 
-===  Defining where to install (1)
+=== Defining where to install (1)
 
 - Target packages can install files to different locations:
 
@@ -833,7 +853,7 @@ endif
   - `<pkg>_INSTALL_IMAGES`, defaults to `NO`. If `YES`, then
     `<pkg>_INSTALL_IMAGES_CMDS` will be called.
 
-===  Defining where to install (2)
+=== Defining where to install (2)
 
 - A package for an application:
 
@@ -861,34 +881,34 @@ endif
 
   - must set `<pkg>_INSTALL_IMAGES = YES`
 
-===  Defining where to install (3)
+=== Defining where to install (3)
 
 #[ #show raw.where(lang: "make", block: true): set text(size: 15pt)
 
-#v(0.5em)
-#text(size: 15pt)[libyaml.mk]
-#v(-0.1em)
+  #v(0.5em)
+  #text(size: 15pt)[libyaml.mk]
+  #v(-0.1em)
 
-```make
-LIBYAML_INSTALL_STAGING = YES
-```
+  ```make
+  LIBYAML_INSTALL_STAGING = YES
+  ```
 
-#v(0.5em)
-#text(size: 15pt)[eigen.mk]
-#v(-0.1em)
-```make
-EIGEN_INSTALL_STAGING = YES
-EIGEN_INSTALL_TARGET = NO
-```
-#v(0.5em)
-#text(size: 15pt)[linux.mk]
-#v(-0.1em)
-```make
-LINUX_INSTALL_IMAGES = YES
-```
+  #v(0.5em)
+  #text(size: 15pt)[eigen.mk]
+  #v(-0.1em)
+  ```make
+  EIGEN_INSTALL_STAGING = YES
+  EIGEN_INSTALL_TARGET = NO
+  ```
+  #v(0.5em)
+  #text(size: 15pt)[linux.mk]
+  #v(-0.1em)
+  ```make
+  LINUX_INSTALL_IMAGES = YES
+  ```
 ]
 
-===  Describing actions for `generic-package`
+=== Describing actions for `generic-package`
 
 - In a package using `generic-package`, only the download, extract and
   patch steps are implemented by the package infrastructure.
@@ -913,7 +933,7 @@ LINUX_INSTALL_IMAGES = YES
 - Packages are free to not implement any of these variables: they are
   all optional.
 
-===  Describing actions: useful variables 
+=== Describing actions: useful variables
 
 Inside an action block, the following variables are often useful:
 
@@ -932,67 +952,67 @@ Inside an action block, the following variables are often useful:
 - `$(TARGET_DIR)`, `$(STAGING_DIR)`, `$(BINARIES_DIR)` and
   `$(HOST_DIR)`.
 
-===  Describing actions: `iodine.mk` example
+=== Describing actions: `iodine.mk` example
 
 #text(size: 15pt)[
-```make
-IODINE_VERSION = 0.7.0
-IODINE_SITE = http://code.kryo.se/iodine 
-IODINE_DEPENDENCIES = zlib 
-IODINE_LICENSE = MIT
-IODINE_LICENSE_FILES = README
+  ```make
+  IODINE_VERSION = 0.7.0
+  IODINE_SITE = http://code.kryo.se/iodine
+  IODINE_DEPENDENCIES = zlib
+  IODINE_LICENSE = MIT
+  IODINE_LICENSE_FILES = README
 
-IODINE_CFLAGS = $(TARGET_CFLAGS)
-[...]
+  IODINE_CFLAGS = $(TARGET_CFLAGS)
+  [...]
 
-define IODINE_BUILD_CMDS
-        $(TARGET_CONFIGURE_OPTS) CFLAGS="$(IODINE_CFLAGS)" \
-                $(MAKE) ARCH=$(BR2_ARCH) -C $(@D)
-endef
+  define IODINE_BUILD_CMDS
+          $(TARGET_CONFIGURE_OPTS) CFLAGS="$(IODINE_CFLAGS)" \
+                  $(MAKE) ARCH=$(BR2_ARCH) -C $(@D)
+  endef
 
-define IODINE_INSTALL_TARGET_CMDS
-        $(TARGET_CONFIGURE_OPTS) $(MAKE) -C $(@D) install DESTDIR="$(TARGET_DIR)" prefix=/usr 
-endef
+  define IODINE_INSTALL_TARGET_CMDS
+          $(TARGET_CONFIGURE_OPTS) $(MAKE) -C $(@D) install DESTDIR="$(TARGET_DIR)" prefix=/usr
+  endef
 
-$(eval $(generic-package))
-```]
+  $(eval $(generic-package))
+  ```]
 
-===  Describing actions: `libzlib.mk` example
+=== Describing actions: `libzlib.mk` example
 
 #text(size: 13pt)[
-```make
-LIBZLIB_VERSION = 1.2.11
-LIBZLIB_SOURCE = zlib-$(LIBZLIB_VERSION).tar.xz 
-LIBZLIB_SITE = http://www.zlib.net 
-LIBZLIB_INSTALL_STAGING = YES
+  ```make
+  LIBZLIB_VERSION = 1.2.11
+  LIBZLIB_SOURCE = zlib-$(LIBZLIB_VERSION).tar.xz
+  LIBZLIB_SITE = http://www.zlib.net
+  LIBZLIB_INSTALL_STAGING = YES
 
-define LIBZLIB_CONFIGURE_CMDS
-        (cd $(@D); rm -rf config.cache; \
-                $(TARGET_CONFIGURE_ARGS) \
-                $(TARGET_CONFIGURE_OPTS) \
-                CFLAGS="$(TARGET_CFLAGS) $(LIBZLIB_PIC)" \
-                ./configure \
-                $(LIBZLIB_SHARED) \
-                --prefix=/usr \
-        )
-endef
+  define LIBZLIB_CONFIGURE_CMDS
+          (cd $(@D); rm -rf config.cache; \
+                  $(TARGET_CONFIGURE_ARGS) \
+                  $(TARGET_CONFIGURE_OPTS) \
+                  CFLAGS="$(TARGET_CFLAGS) $(LIBZLIB_PIC)" \
+                  ./configure \
+                  $(LIBZLIB_SHARED) \
+                  --prefix=/usr \
+          )
+  endef
 
-define LIBZLIB_BUILD_CMDS
-        $(TARGET_MAKE_ENV) $(MAKE1) -C $(@D)
-endef
+  define LIBZLIB_BUILD_CMDS
+          $(TARGET_MAKE_ENV) $(MAKE1) -C $(@D)
+  endef
 
-define LIBZLIB_INSTALL_STAGING_CMDS
-        $(TARGET_MAKE_ENV) $(MAKE1) -C $(@D) DESTDIR=$(STAGING_DIR) LDCONFIG=true install 
-endef
+  define LIBZLIB_INSTALL_STAGING_CMDS
+          $(TARGET_MAKE_ENV) $(MAKE1) -C $(@D) DESTDIR=$(STAGING_DIR) LDCONFIG=true install
+  endef
 
-define LIBZLIB_INSTALL_TARGET_CMDS
-        $(TARGET_MAKE_ENV) $(MAKE1) -C $(@D) DESTDIR=$(TARGET_DIR) LDCONFIG=true install 
-endef
+  define LIBZLIB_INSTALL_TARGET_CMDS
+          $(TARGET_MAKE_ENV) $(MAKE1) -C $(@D) DESTDIR=$(TARGET_DIR) LDCONFIG=true install
+  endef
 
-$(eval $(generic-package))
-```]
+  $(eval $(generic-package))
+  ```]
 
-===  List of package infrastructures (1/2)
+=== List of package infrastructures (1/2)
 
 - `generic-package`, for packages not using a well-known build system.
   Already covered.
@@ -1013,7 +1033,7 @@ $(eval $(generic-package))
 
 - `qmake-package`, for _QMake_ based packages
 
-===  List of package infrastructures (2/2)
+=== List of package infrastructures (2/2)
 
 - `golang-package`, for packages written in Go
 
@@ -1035,7 +1055,7 @@ $(eval $(generic-package))
 == autotools-package infrastructure
 <autotools-package-infrastructure>
 
-===  The `autotools-package` infrastructure: basics
+=== The `autotools-package` infrastructure: basics
 
 - The `autotools-package` infrastructure inherits from `generic-package`
   and is specialized to handle _autotools_ based packages.
@@ -1054,11 +1074,11 @@ $(eval $(generic-package))
 - A normal _autotools_ based package therefore does not need to
   describe any action: only metadata about the package.
 
-===  The `autotools-package`: steps
+=== The `autotools-package`: steps
 
 #align(center, [#image("autotools-package.pdf", height: 90%)])
 
-===  The `autotools-package` infrastructure: variables
+=== The `autotools-package` infrastructure: variables
 
 - It provides additional variables that can be defined by the package:
 
@@ -1081,93 +1101,99 @@ $(eval $(generic-package))
     _gettextize_ the package. Only makes sense if
     `<pkg>_AUTORECONF = YES`.
 
-===  Canonical `autotools-package` example
+=== Canonical `autotools-package` example
 
 #text(size: 16pt)[libyaml.mk
-#v(-0.1em)
-```make
-################################################################################
-#
-# libyaml
-#
-################################################################################
+  #v(-0.1em)
+  ```make
+  ################################################################################
+  #
+  # libyaml
+  #
+  ################################################################################
 
-LIBYAML_VERSION = 0.2.5
-LIBYAML_SOURCE = yaml-$(LIBYAML_VERSION).tar.gz 
-LIBYAML_SITE = http://pyyaml.org/download/libyaml 
-LIBYAML_INSTALL_STAGING = YES
-LIBYAML_LICENSE = MIT
-LIBYAML_LICENSE_FILES = License 
-LIBYAML_CPE_ID_VENDOR = pyyaml
+  LIBYAML_VERSION = 0.2.5
+  LIBYAML_SOURCE = yaml-$(LIBYAML_VERSION).tar.gz
+  LIBYAML_SITE = http://pyyaml.org/download/libyaml
+  LIBYAML_INSTALL_STAGING = YES
+  LIBYAML_LICENSE = MIT
+  LIBYAML_LICENSE_FILES = License
+  LIBYAML_CPE_ID_VENDOR = pyyaml
 
-$(eval $(autotools-package))
-$(eval $(host-autotools-package))
-```]
+  $(eval $(autotools-package))
+  $(eval $(host-autotools-package))
+  ```]
 
-===  More complicated `autotools-package` example
+=== More complicated `autotools-package` example
 
-#table(columns: (50%, 50%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (50%, 50%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-#[ #show raw.where(lang: "make", block: true): set text(size: 10pt)
+    #[ #show raw.where(lang: "make", block: true): set text(size: 10pt)
 
-```make
-GNUPG2_VERSION = 2.4.7
-GNUPG2_SOURCE = gnupg-$(GNUPG2_VERSION).tar.bz2
-GNUPG2_SITE = https://gnupg.org/ftp/gcrypt/gnupg 
-GNUPG2_LICENSE = GPL-3.0+
-GNUPG2_LICENSE_FILES = COPYING
-GNUPG2_CPE_ID_VENDOR = gnupg 
-GNUPG2_CPE_ID_PRODUCT = gnupg 
-GNUPG2_DEPENDENCIES = zlib libgpg-error libgcrypt libassuan libksba libnpth 
-        $(if $(BR2_PACKAGE_LIBICONV),libiconv) host-pkgconf
+      ```make
+      GNUPG2_VERSION = 2.4.7
+      GNUPG2_SOURCE = gnupg-$(GNUPG2_VERSION).tar.bz2
+      GNUPG2_SITE = https://gnupg.org/ftp/gcrypt/gnupg
+      GNUPG2_LICENSE = GPL-3.0+
+      GNUPG2_LICENSE_FILES = COPYING
+      GNUPG2_CPE_ID_VENDOR = gnupg
+      GNUPG2_CPE_ID_PRODUCT = gnupg
+      GNUPG2_DEPENDENCIES = zlib libgpg-error libgcrypt libassuan libksba libnpth
+              $(if $(BR2_PACKAGE_LIBICONV),libiconv) host-pkgconf
 
-ifeq ($(BR2_PACKAGE_BZIP2),y)
-GNUPG2_CONF_OPTS += --enable-bzip2 --with-bzip2=$(STAGING_DIR)
-GNUPG2_DEPENDENCIES += bzip2
-else 
-GNUPG2_CONF_OPTS += --disable-bzip2
-endif
+      ifeq ($(BR2_PACKAGE_BZIP2),y)
+      GNUPG2_CONF_OPTS += --enable-bzip2 --with-bzip2=$(STAGING_DIR)
+      GNUPG2_DEPENDENCIES += bzip2
+      else
+      GNUPG2_CONF_OPTS += --disable-bzip2
+      endif
 
-ifeq ($(BR2_PACKAGE_GNUTLS),y)
-GNUPG2_CONF_OPTS += --enable-gnutls 
-GNUPG2_DEPENDENCIES += gnutls 
-else 
-GNUPG2_CONF_OPTS += --disable-gnutls 
-endif
-```]
+      ifeq ($(BR2_PACKAGE_GNUTLS),y)
+      GNUPG2_CONF_OPTS += --enable-gnutls
+      GNUPG2_DEPENDENCIES += gnutls
+      else
+      GNUPG2_CONF_OPTS += --disable-gnutls
+      endif
+      ```]
 
-],[
+  ],
+  [
 
-#[ #show raw.where(lang: "make", block: true): set text(size: 10pt)
+    #[ #show raw.where(lang: "make", block: true): set text(size: 10pt)
 
-```make
-[...]
+      ```make
+      [...]
 
-ifeq ($(BR2_PACKAGE_LIBUSB),y)
-GNUPG2_CONF_ENV += CPPFLAGS="$(TARGET_CPPFLAGS)
-                            -I$(STAGING_DIR)/usr/include/libusb-1.0"
-GNUPG2_CONF_OPTS += --enable-ccid-driver 
-GNUPG2_DEPENDENCIES += libusb 
-else 
-GNUPG2_CONF_OPTS += --disable-ccid-driver 
-endif
+      ifeq ($(BR2_PACKAGE_LIBUSB),y)
+      GNUPG2_CONF_ENV += CPPFLAGS="$(TARGET_CPPFLAGS)
+                                  -I$(STAGING_DIR)/usr/include/libusb-1.0"
+      GNUPG2_CONF_OPTS += --enable-ccid-driver
+      GNUPG2_DEPENDENCIES += libusb
+      else
+      GNUPG2_CONF_OPTS += --disable-ccid-driver
+      endif
 
-ifeq ($(BR2_PACKAGE_READLINE),y)
-GNUPG2_CONF_OPTS += --with-readline=$(STAGING_DIR)
-GNUPG2_DEPENDENCIES += readline 
-else 
-GNUPG2_CONF_OPTS += --without-readline 
-endif
+      ifeq ($(BR2_PACKAGE_READLINE),y)
+      GNUPG2_CONF_OPTS += --with-readline=$(STAGING_DIR)
+      GNUPG2_DEPENDENCIES += readline
+      else
+      GNUPG2_CONF_OPTS += --without-readline
+      endif
 
-$(eval $(autotools-package))
-```]
+      $(eval $(autotools-package))
+      ```]
 
-])
+  ],
+)
 
 == Target vs. host packages
 <target-vs.-host-packages>
 
-===  Host packages
+=== Host packages
 
 - As explained earlier, most packages in Buildroot are cross-compiled
   for the target. They are called *target packages*.
@@ -1187,7 +1213,7 @@ $(eval $(autotools-package))
   - Version dependencies: building a Python interpreter for the target
     needs a Python interpreter of the same version on the host.
 
-===  Target vs. host: package name and variable prefixes
+=== Target vs. host: package name and variable prefixes
 
 - Each package infrastructure provides a `<foo>-package` macro and a
   `host-<foo>-package` macro.
@@ -1201,7 +1227,7 @@ $(eval $(autotools-package))
 - `host-<foo>-package` will use the variables prefixed with
   `HOST_BAZ_`
 
-===  Target vs. host: variable inheritance
+=== Target vs. host: variable inheritance
 
 - For many variables, when `HOST_BAZ_<var>` is not defined, the
   package infrastructure _inherits_ from `BAZ_<var>` instead.
@@ -1220,7 +1246,7 @@ $(eval $(autotools-package))
   - E.g. `HOST_<PKG>_BUILD_CMDS` is not inherited from
     `<PKG>_BUILD_CMDS`
 
-===  Example 1: a pure build utility
+=== Example 1: a pure build utility
 
 - _bison_, a general-purpose parser generator.
 
@@ -1233,23 +1259,23 @@ $(eval $(autotools-package))
 #v(0.5em)
 #text(size: 15pt)[package/bison/bison.mk]
 #text(size: 13pt)[
-```make
-BISON_VERSION = 3.8.2
-BISON_SOURCE = bison-$(BISON_VERSION).tar.xz 
-BISON_SITE = $(BR2_GNU_MIRROR)/bison 
-BISON_LICENSE = GPL-3.0+
-BISON_LICENSE_FILES = COPYING
-BISON_CPE_ID_VENDOR = gnu
-# parallel build issue in examples/c/reccalc/
-BISON_MAKE = $(MAKE1)
-HOST_BISON_DEPENDENCIES = host-m4
-HOST_BISON_CONF_OPTS = --enable-relocatable 
-HOST_BISON_CONF_ENV = ac_cv_libtextstyle=no
+  ```make
+  BISON_VERSION = 3.8.2
+  BISON_SOURCE = bison-$(BISON_VERSION).tar.xz
+  BISON_SITE = $(BR2_GNU_MIRROR)/bison
+  BISON_LICENSE = GPL-3.0+
+  BISON_LICENSE_FILES = COPYING
+  BISON_CPE_ID_VENDOR = gnu
+  # parallel build issue in examples/c/reccalc/
+  BISON_MAKE = $(MAKE1)
+  HOST_BISON_DEPENDENCIES = host-m4
+  HOST_BISON_CONF_OPTS = --enable-relocatable
+  HOST_BISON_CONF_ENV = ac_cv_libtextstyle=no
 
-$(eval $(host-autotools-package))
-```]
+  $(eval $(host-autotools-package))
+  ```]
 
-===  Example 2: filesystem manipulation tool
+=== Example 2: filesystem manipulation tool
 
 - `fatcat`, is designed to manipulate FAT filesystems, in order to
   explore, extract, repair, recover and forensic them.
@@ -1260,53 +1286,53 @@ $(eval $(host-autotools-package))
 #v(0.5em)
 #text(size: 15pt)[package/fatcat/Config.in.host]
 #text(size: 13pt)[
-```
-config BR2_PACKAGE_HOST_FATCAT
-        bool "host fatcat"
-        help
-          Fatcat is designed to manipulate FAT filesystems, in order
-          to explore, extract, repair, recover and forensic them. It
-          currently supports FAT12, FAT16 and FAT32.
+  ```
+  config BR2_PACKAGE_HOST_FATCAT
+          bool "host fatcat"
+          help
+            Fatcat is designed to manipulate FAT filesystems, in order
+            to explore, extract, repair, recover and forensic them. It
+            currently supports FAT12, FAT16 and FAT32.
 
-          https://github.com/Gregwar/fatcat
-```]
+            https://github.com/Gregwar/fatcat
+  ```]
 
 #v(0.5em)
 #text(size: 15pt)[package/fatcat/fatcat.mk]
 #text(size: 13pt)[
-```make
-FATCAT_VERSION = 1.1.1
-FATCAT_SITE = $(call github,Gregwar,fatcat,v$(FATCAT_VERSION))
-FATCAT_LICENSE = MIT
-FATCAT_LICENSE_FILES = LICENSE
+  ```make
+  FATCAT_VERSION = 1.1.1
+  FATCAT_SITE = $(call github,Gregwar,fatcat,v$(FATCAT_VERSION))
+  FATCAT_LICENSE = MIT
+  FATCAT_LICENSE_FILES = LICENSE
 
-$(eval $(host-cmake-package))
-```]
+  $(eval $(host-cmake-package))
+  ```]
 
-===  Example 3: target and host of the same package
+=== Example 3: target and host of the same package
 
 #text(size: 15pt)[package/e2tools/e2tools.mk]
 #text(size: 15pt)[
-```make
-E2TOOLS_VERSION = 0.0.16.4
-E2TOOLS_SITE = $(call github,ndim,e2tools,v$(E2TOOLS_VERSION))
+  ```make
+  E2TOOLS_VERSION = 0.0.16.4
+  E2TOOLS_SITE = $(call github,ndim,e2tools,v$(E2TOOLS_VERSION))
 
-# Source coming from GitHub, no configure included.
-E2TOOLS_AUTORECONF = YES
-E2TOOLS_LICENSE = GPL-2.0
-E2TOOLS_LICENSE_FILES = COPYING
-E2TOOLS_DEPENDENCIES = e2fsprogs 
-E2TOOLS_CONF_ENV = LIBS="-lpthread"
-HOST_E2TOOLS_DEPENDENCIES = host-e2fsprogs 
-HOST_E2TOOLS_CONF_ENV = LIBS="-lpthread"
+  # Source coming from GitHub, no configure included.
+  E2TOOLS_AUTORECONF = YES
+  E2TOOLS_LICENSE = GPL-2.0
+  E2TOOLS_LICENSE_FILES = COPYING
+  E2TOOLS_DEPENDENCIES = e2fsprogs
+  E2TOOLS_CONF_ENV = LIBS="-lpthread"
+  HOST_E2TOOLS_DEPENDENCIES = host-e2fsprogs
+  HOST_E2TOOLS_CONF_ENV = LIBS="-lpthread"
 
-$(eval $(autotools-package))
-$(eval $(host-autotools-package))
-```]
+  $(eval $(autotools-package))
+  $(eval $(host-autotools-package))
+  ```]
 
-#setuplabframe([New packages in Buildroot], [
+#setuplabframe([New packages in Buildroot], [
 
-- Practical creation of several new packages in Buildroot, using the
-  different package infrastructures.
+  - Practical creation of several new packages in Buildroot, using the
+    different package infrastructures.
 
 ])
