@@ -6,7 +6,7 @@
 
 = Testing and Benchmarking
 
-===  Benchmarking vs Testing
+=== Benchmarking vs Testing
 
 - *Benchmarking* will give you system-wide metrics for:
 
@@ -23,7 +23,7 @@
 
 - It's important to always consider the *Worst Case Scenario*
 
-===  ftrace - Kernel function tracer
+=== ftrace - Kernel function tracer
 
 Infrastructure that can be used for debugging or analyzing latencies and
 performance issues in the kernel.
@@ -43,7 +43,7 @@ performance issues in the kernel.
 - Can also be used to trace any kernel function with the
   *function tracer*
 
-===  Using ftrace
+=== Using ftrace
 
 - Tracing information available through the `tracefs` virtual fs
 
@@ -73,60 +73,61 @@ performance issues in the kernel.
 
   - `/sys/kernel/tracing/per-cpu/cpuX/trace`: Per-cpu traces
 
-===  Scheduling latency tracer 
+=== Scheduling latency tracer
 
-#[ #show raw.where(block: true): set text(size: 12pt)
+#[
+  #show raw.where(block: true): set text(size: 12pt)
 
-#kconfig("CONFIG_SCHED_TRACER")
-(_Kernel Hacking_ section)
+  #kconfig("CONFIG_SCHED_TRACER")
+  (_Kernel Hacking_ section)
 
-- Maximum recorded time between waking up a top priority task and its
-  scheduling on a CPU, expressed in us.
+  - Maximum recorded time between waking up a top priority task and its
+    scheduling on a CPU, expressed in us.
 
-- Check that `wakeup` is listed in
-  `/sys/kernel/tracing/available_tracers`
+  - Check that `wakeup` is listed in
+    `/sys/kernel/tracing/available_tracers`
 
-- To select, reset and enable this tracer:
+  - To select, reset and enable this tracer:
 
-  ```
-  echo wakeup > /sys/kernel/tracing/current_tracer 
-  echo 0 > /sys/kernel/tracing/tracing_max_latency 
-  echo 1 > /sys/kernel/tracing/tracing_enabled
-  ```
+    ```
+    echo wakeup > /sys/kernel/tracing/current_tracer
+    echo 0 > /sys/kernel/tracing/tracing_max_latency
+    echo 1 > /sys/kernel/tracing/tracing_enabled
+    ```
 
-- Let your system run, in particular real-time tasks. \
-  Dummy example: `chrt -f 5 sleep 1`
+  - Let your system run, in particular real-time tasks. \
+    Dummy example: `chrt -f 5 sleep 1`
 
-- Disable tracing: 
+  - Disable tracing:
 
-  ```
-  echo 0 > /sys/kernel/tracing/tracing_enabled
-  ```
+    ```
+    echo 0 > /sys/kernel/tracing/tracing_enabled
+    ```
 
-- Read the maximum recorded latency and the corresponding trace: 
+  - Read the maximum recorded latency and the corresponding trace:
 
-  ```
-  cat /sys/kernel/tracing/tracing_max_latency
-  ```
+    ```
+    cat /sys/kernel/tracing/tracing_max_latency
+    ```
 ]
 
-===  trace-cmd
+=== trace-cmd
 
 - Wrapper around the `ftrace` interface
 
 - Trace only during a program execution:
   #[ #set list(spacing: 0.3em)
-  - `trace-cmd record <opts> <cmd>`
+    - `trace-cmd record <opts> <cmd>`
 
-  - `trace-cmd report`
+    - `trace-cmd report`
   ]
 - Start, stop and show the trace buffer:
   #[ #set list(spacing: 0.3em)
-  - `trace-cmd start <opts>`
+    - `trace-cmd start <opts>`
 
-  - `trace-cmd stop`
+    - `trace-cmd stop`
 
-  - `trace-cmd show`
+    - `trace-cmd show`
   ]
 - Save the content of the trace buffer for further analysis:
 
@@ -134,16 +135,16 @@ performance issues in the kernel.
 
 - Options
   #[ #set list(spacing: 0.3em)
-  - Events: `-e sched`, `-e sched:sched_switch`
+    - Events: `-e sched`, `-e sched:sched_switch`
 
-  - Plugins: `-p function`
+    - Plugins: `-p function`
 
-  - Tracers: `-t osnoise`
+    - Tracers: `-t osnoise`
 
-  - Functions: `-f netif_tx_wake_queue`
+    - Functions: `-f netif_tx_wake_queue`
   ]
-  
-===  rtla 
+
+=== rtla
 
 *\R*\eal*\T*\ime *\L*\inux *\A*\nalysis tool
 
@@ -156,7 +157,7 @@ performance issues in the kernel.
 
 - Can generate histograms, that can then be visualized
 
-===  rtla - osnoise
+=== rtla - osnoise
 
 - Gives an overview of "noise" sources from the Kernel and the
   Hardware
@@ -182,7 +183,7 @@ performance issues in the kernel.
 - `trace-cmd start -p osnoise -e osnoise`: Start recording noise events
   and trace their cause
 
-===  rtla - timerlat
+=== rtla - timerlat
 
 #align(center, [#image("rtla.pdf", width: 100%)])
 
@@ -195,7 +196,7 @@ performance issues in the kernel.
 - Can also trace *User return* latency, to benchmark custom
   applications
 
-===  rtla autoanalysis
+=== rtla autoanalysis
 
 - Running `timerlat -a <us>` will trigger the auto-analysis mode
 
@@ -214,7 +215,7 @@ performance issues in the kernel.
 
 - Can identify if the *hardware* itself is the culprit
 
-===  rtla - hwnoise
+=== rtla - hwnoise
 
 - Focus on Hardware-induced latencies
 
@@ -228,7 +229,7 @@ performance issues in the kernel.
 - *NMI-based* watchdogs and *Hyperthreading* can cause
   such latencies
 
-===  kernelshark
+=== kernelshark
 
 - Kernelshark is a graphical interface for processing ftrace reports
 
@@ -242,7 +243,7 @@ performance issues in the kernel.
 
 - `kernelshark`
 
-===  hwlatdetect 
+=== hwlatdetect
 
 Tool provided by `rt-tests`, relying on a dedicated `ftrace` tracer.
 
@@ -260,7 +261,7 @@ Tool provided by `rt-tests`, relying on a dedicated `ftrace` tracer.
 - Must *not* be used in production environment, introduces huge
   latencies
 
-===  cyclictest
+=== cyclictest
 
 - Tool that tests the System and Kernel Latencies
 
@@ -278,7 +279,7 @@ Tool provided by `rt-tests`, relying on a dedicated `ftrace` tracer.
 
 - Should be run for long amounts of time
 
-===  hackbench 
+=== hackbench
 
 Stress and benchmark the Linux Kernel Scheduler
 
@@ -291,7 +292,7 @@ Stress and benchmark the Linux Kernel Scheduler
 - Useful to check how a RT program behaves when heavy workloads run in
   parallel
 
-===  stress-ng 
+=== stress-ng
 
 Very feature-full stressing utility, with more than 260 stressors
 
@@ -307,7 +308,7 @@ Very feature-full stressing utility, with more than 260 stressors
 
 - Very useful to accurately simulate known workloads
 
-===  rteval
+=== rteval
 
 - Allows orchestrating stressing tools and testing tools
 
@@ -326,7 +327,7 @@ Very feature-full stressing utility, with more than 260 stressors
 == Benchmarking an application
 <benchmarking-an-application>
 
-===  strace 
+=== strace
 
 strace is a userspace tool that trace system-calls and signals
 
@@ -338,7 +339,7 @@ strace is a userspace tool that trace system-calls and signals
 
 - Helpful for external libraries
 
-===  perf 
+=== perf
 
 perf is a performance analysis tool that gathers kernel and hardware statistics
 
@@ -352,7 +353,7 @@ perf is a performance analysis tool that gathers kernel and hardware statistics
 
 - Perf relies on various *events* reported by the kernel
 
-===  Using perf, examples
+=== Using perf, examples
 
 - Lots of events measurable: hardware events, software events, cache
   misses, power management
@@ -373,7 +374,7 @@ perf is a performance analysis tool that gathers kernel and hardware statistics
 
   - `perf sched latency`
 
-===  Other useful tools
+=== Other useful tools
 
 - `vmstat`: Displays the system state, interrupts, context switches...
 

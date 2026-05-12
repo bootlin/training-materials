@@ -6,7 +6,7 @@
 
 = Preempt RT
 
-===  The PREEMPT_RT preemption level
+=== The PREEMPT_RT preemption level
 
 - One way to implement a multi-task Real-Time Operating System is to
   have a preemptible system
@@ -29,7 +29,7 @@
 
   - The patch is being included as part of the Linux kernel
 
-===  PREEMPT_RT mainlining status
+=== PREEMPT_RT mainlining status
 
 - The project has made steady progress since it got funding from the
   Linux Foundation in 2015 (Linux version 4.1 at that time).
@@ -43,7 +43,7 @@
 
 - Stable versions of the patch are still maintained for older kernels
 
-===  Why use PREEMPT_RT?
+=== Why use PREEMPT_RT?
 
 - Allow using the POSIX/Linux API, which is portable and familiar
 
@@ -54,7 +54,7 @@
 
 - Benefit from the community support and help
 
-===  Why not to use PREEMPT_RT?
+=== Why not to use PREEMPT_RT?
 
 - The hardware Linux typically runs on isn't designed with RT in mind
 
@@ -66,14 +66,14 @@
 
   - Use it when you know your requirements
 
-===  Getting the patch
+=== Getting the patch
 
 - Starting from *v6.12*, applying a patch isn't needed on
   *x86*, *arm64* and *RiscV*
 
 - For other architectures, or older kernels, the patch is still needed.
 
-- It can be downloaded as a set of patches or a single patch: 
+- It can be downloaded as a set of patches or a single patch:
   #link("https://cdn.kernel.org/pub/linux/kernel/projects/rt/")
 
 - Kernel trees with the patch applied are also available:
@@ -85,7 +85,7 @@
 - Most build-systems like Buildroot or Yocto Project support building an
   RT Kernel
 
-===  The legacy of the RT patch 
+=== The legacy of the RT patch
 
 Many current features in the Linux Kernel originated from the RT patch:
 
@@ -107,7 +107,7 @@ Many current features in the Linux Kernel originated from the RT patch:
 
 - Printk
 
-===  Execution contexts
+=== Execution contexts
 
 - Code running in kernel mode can do so in different contexts :
 
@@ -132,7 +132,7 @@ Many current features in the Linux Kernel originated from the RT patch:
 
   - e.g. holding a spinning lock
 
-===  Locking inside the Linux Kernel
+=== Locking inside the Linux Kernel
 
 - Locks are synchronisation primitives that arbitrate concurrent
   accesses to a resource
@@ -147,7 +147,7 @@ Many current features in the Linux Kernel originated from the RT patch:
 
   - Spinning locks
 
-===  Sleeping locks
+=== Sleeping locks
 
 - Sleeping locks will sleep and schedule while waiting
 
@@ -164,7 +164,7 @@ Many current features in the Linux Kernel originated from the RT patch:
 - Can't be used in *NMI*, *hardirq* and *softirq*
   contexts
 
-===  Spinlocks
+=== Spinlocks
 
 - Spinlocks will busy-wait until the lock is freed
 
@@ -183,7 +183,7 @@ Many current features in the Linux Kernel originated from the RT patch:
 - With PREEMPT_RT, #ksym("spinlock_t") and #ksym("rwlock_t")
   will become sleeping locks
 
-===  Critical sections
+=== Critical sections
 
 - Spinning locks can be taken with interrupts constraints
 
@@ -213,7 +213,7 @@ Many current features in the Linux Kernel originated from the RT patch:
 
   - Disable / Enable migration, also to protect per-CPU data
 
-===  High resolution timers
+=== High resolution timers
 
 - The resolution of the timers used to be bound to the resolution of the
   regular system tick
@@ -234,7 +234,7 @@ Many current features in the Linux Kernel originated from the RT patch:
 
   - Usable directly from user space using the usual timer APIs
 
-===  Printk
+=== Printk
 
 - `printk()` is one of the main logging mechanism in the kernel
 
@@ -248,7 +248,7 @@ Many current features in the Linux Kernel originated from the RT patch:
 - A low priority task could block a high priority task by printing lots
   of data
 
-===  Interrupt handlers
+=== Interrupt handlers
 
 - Interrupt handlers run with interrupts disabled
 
@@ -266,40 +266,51 @@ Many current features in the Linux Kernel originated from the RT patch:
 
 - Exceptions: `IRQF_NOTHREAD`, `IRQF_PERCPU`, `IRQS_ONESHOT`
 
-===  Hard interrupts vs. Threaded interrupts
+=== Hard interrupts vs. Threaded interrupts
 
-#table(columns: (50%, 50%), stroke:none, gutter: 15pt, [
+#table(
+  columns: (50%, 50%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-#figure([#align(center, [#image("/slides/realtime-linux-realtime-systems/irq_preemption.pdf", height: 35%)])],
-  caption: [
-    Hardware interrupt processing
-  ]
+    #figure(
+      [#align(center, [#image(
+        "/slides/realtime-linux-realtime-systems/irq_preemption.pdf",
+        height: 35%,
+      )])],
+      caption: [
+        Hardware interrupt processing
+      ],
+    )
+
+    #figure(
+      [#align(center, [#image("softirq_preemption.pdf", height: 35%)])],
+      caption: [
+        Threaded interrupt processing
+      ],
+    )
+
+  ],
+  [
+
+    - Small, well-defined hard irq handlers
+
+    - Irq handlers run in a dedicated task
+
+    - It has a PID, and can be assigned a priority
+
+    - Critical tasks can run regardless of interrupts
+
+    - Use `ps -e` to list tasks
+
+    - Use `chrt -p <prio> <pid>` to change the priority
+
+  ],
 )
 
-#figure([#align(center, [#image("softirq_preemption.pdf", height: 35%)])],
-  caption: [
-    Threaded interrupt processing
-  ]
-)
+=== Uncompatible options
 
-],[
-
-- Small, well-defined hard irq handlers
-
-- Irq handlers run in a dedicated task
-
-- It has a PID, and can be assigned a priority
-
-- Critical tasks can run regardless of interrupts
-
-- Use `ps -e` to list tasks
-
-- Use `chrt -p <prio> <pid>` to change the priority
-
-])
-
-===  Uncompatible options
- 
 - Some configuration options don't play well with realtime
 
 - #kconfig("CONFIG_LOCKUP_DETECTOR") and
@@ -315,7 +326,7 @@ Many current features in the Linux Kernel originated from the RT patch:
 
   - Some options adds security checks and verifiers (lockdep)
 
-===  Preemption models 
+=== Preemption models
 
 The Linux kernel Scheduler has several preemption models available:
 
@@ -330,7 +341,7 @@ The Linux kernel Scheduler has several preemption models available:
 - #kconfig("CONFIG_PREEMPT_RT") - Fully Preemptible Kernel
   (Real-Time)
 
-===  1st option: no forced preemption
+=== 1st option: no forced preemption
 
 #kconfig("CONFIG_PREEMPT_NONE") \
 Kernel code (interrupts, exceptions, system calls) never preempted.
@@ -349,7 +360,7 @@ Default behavior in standard kernels.
 - Can also benefit from a lower timer frequency (several possible values
   between 100 Hz and 1000 Hz).
 
-===  2nd option: voluntary kernel preemption
+=== 2nd option: voluntary kernel preemption
 
 #kconfig("CONFIG_PREEMPT_VOLUNTARY") \
 Kernel code can preempt itself
@@ -364,7 +375,7 @@ Kernel code can preempt itself
 
 - Still used in: Ubuntu Desktop 20.04
 
-===  3rd option: preemptible kernel 
+=== 3rd option: preemptible kernel
 
 #kconfig("CONFIG_PREEMPT") \
 Most kernel code can be involuntarily preempted at any time. When a
@@ -375,14 +386,17 @@ process becomes runnable, no more need to wait for kernel code
 
 #v(0.5em)
 
-  #align(center, [#image("/common/spinlock-deadlock-with-preemption.pdf", width: 90%)])
+#align(center, [#image(
+  "/common/spinlock-deadlock-with-preemption.pdf",
+  width: 90%,
+)])
 
 #v(0.5em)
 
 - Typically for desktop or embedded systems with latency requirements in
   the milliseconds range. Still a relatively minor impact on throughput.
 
-===  4th option: fully preemptible kernel
+=== 4th option: fully preemptible kernel
 
 #kconfig("CONFIG_PREEMPT_RT") \
 Almost all kernel code can be involuntarily preempted at any time.

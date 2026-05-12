@@ -6,7 +6,7 @@
 
 = Configuring the system
 
-===  Configuration
+=== Configuration
 
 - The Linux Kernel has a lot of available configurations
 
@@ -24,7 +24,7 @@
 
 - Some can be useful for Deterministic Behaviour
 
-===  CPU Pinning
+=== CPU Pinning
 
 - The Linux Kernel Scheduler allows setting constraints about the CPU
   cores that are allowed to run each task
@@ -49,7 +49,7 @@
 - Use `taskset -p <mask> <cmd>` to start a new process on the given
   CPUs
 
-===  CPU Isolation
+=== CPU Isolation
 
 - Users can pin processes to CPU cores through the cpu affinity
   mechanism
@@ -66,7 +66,7 @@
 
 `isolcpus=0,2,3`
 
-===  CPU Isolation - cpusets
+=== CPU Isolation - cpusets
 
 - `cpuset` is a mechanism allowing to subdivide the CPU scheduling pool
 
@@ -87,14 +87,14 @@
   - `/bin/echo 0,1 > /dev/cpuset/non-rt-set`
 
 - We can then select which task gets to run in each cpuset
-  
+
   - `while read i; do /bin/echo $i; done < /dev/cpuset/tasks > /dev/cpuset/ nontrt-set/tasks`
-  
+
   - `/bin/echo $$ > /dev/cpuset/rt-set/tasks`
 
 - You can run tasks in a given set with `cgexec -g cpuset:rt-set ...`
 
-===  IRQ affinity
+=== IRQ affinity
 
 - Interrupts are handled by a specific CPU core
 
@@ -116,7 +116,7 @@
 
 - The `irqaffinity` cmdline parameter can also be used
 
-===  RCU Callbacks and Workqueues
+=== RCU Callbacks and Workqueues
 
 #align(center, [*RCU*])
 
@@ -141,7 +141,7 @@
 
 - Can be pinned to CPUs in `/sys/devices/virtual/workqueue/cpumask`
 
-===  tuna
+=== tuna
 
 - Tool to easily setup *cpu isolation* and *irq
   affinities*
@@ -161,31 +161,37 @@
 
 #include "/common/scheduling-classes.typ"
 
-===  Scheduling order
+=== Scheduling order
 
-#table(columns: (30%, 70%), stroke:none, gutter: 15pt, [
+#table(
+  columns: (30%, 70%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-#align(center, [#image("sched_precedence.pdf", width: 100%)])
+    #align(center, [#image("sched_precedence.pdf", width: 100%)])
 
-],[
+  ],
+  [
 
-- When invoked, the scheduler looks for runnable tasks in a specific
-  order
+    - When invoked, the scheduler looks for runnable tasks in a specific
+      order
 
-- `SCHED_FIFO` and `SCHED_RR` share the same *runqueue*
+    - `SCHED_FIFO` and `SCHED_RR` share the same *runqueue*
 
-- However when a `SCHED_RR` task yields, any same prio `SCHED_FIFO`
-  will run until done
+    - However when a `SCHED_RR` task yields, any same prio `SCHED_FIFO`
+      will run until done
 
-- until *v6.6*, `SCHED_OTHER` and `SCHED_BATCH` uses the
-  *\C*\ompletely *\F*\air *\S*\cheduler
+    - until *v6.6*, `SCHED_OTHER` and `SCHED_BATCH` uses the
+      *\C*\ompletely *\F*\air *\S*\cheduler
 
-- It was then replaced by *EEVDF* (Earliest Eligible Virtual
-  Deadline First) Scheduler, improved in *v6.12*.
+    - It was then replaced by *EEVDF* (Earliest Eligible Virtual
+      Deadline First) Scheduler, improved in *v6.12*.
 
-])
+  ],
+)
 
-===  Realtime Throttling
+=== Realtime Throttling
 
 #align(center, [#image("rt_throttling.pdf", width: 90%)])
 
@@ -203,7 +209,7 @@
 
 - Can be used *per-cgroup*
 
-===  Deadline Server
+=== Deadline Server
 
 - RT Throttling can be overkill, as it fires even when no non-RT tasks
   needs to run
@@ -220,7 +226,7 @@
 
 - Replaces the old throttling mechanism, except for *grouping*
 
-===  System timer
+=== System timer
 
 - The Scheduler is invoked on a regular basis to perform time-sharing
   activities
@@ -251,24 +257,30 @@
 
   - Slightly more expensive Kernel to User transitions
 
-===  System timer
+=== System timer
 
 #[ #set list(spacing: 5em)
-#table(columns: (70%, 30%), stroke:none, gutter: 15pt, [
+  #table(
+    columns: (70%, 30%),
+    stroke: none,
+    gutter: 15pt,
+    [
 
-#align(center, [#image("hz.pdf", width: 100%)])
+      #align(center, [#image("hz.pdf", width: 100%)])
 
-],[
+    ],
+    [
 
-- Tick always enabled 
+      - Tick always enabled
 
-- Tick disabled in Idle 
+      - Tick disabled in Idle
 
-- Tick disabled in Idle and when only one runnable task
+      - Tick disabled in Idle and when only one runnable task
 
-])]
+    ],
+  )]
 
-===  Writing a driver 
+=== Writing a driver
 
 A few considerations can be taken when writing a driver
 

@@ -4,14 +4,14 @@
 
 #show: bootlin-theme
 
-#setuplabframe([Build, Analyse and Improve a Realtime Application],[
+#setuplabframe([Build, Analyse and Improve a Realtime Application], [
 
-- Build and run an example application
+  - Build and run an example application
 
-- Investigate possible problems
+  - Investigate possible problems
 
-- Use the best coding practices
+  - Use the best coding practices
 
-- Adapt the system configuration for a specific use-case
+  - Adapt the system configuration for a specific use-case
 
 ])
