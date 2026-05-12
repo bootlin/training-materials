@@ -355,19 +355,19 @@ Flip side of the security properties:
 
 === Block Cipher Modes of Operation Examples (1)
 <block-cipher-modes-of-operation-examples-1>
-  
+#text(size: 18pt)[
 - Modes ensuring data confidentiality:
-
+  #text(size: 16pt)[
   - CBC: Cipher block chaining
-
+    #[ #set list(spacing: 0.5em)
     - Input of each block is XORed with the output of the previous block
 
     - The input of the first block is XORed with either a deterministic
       initialization vector or a random one, which is shared along with
       the encrypted data.
-
+    ]
   - CTR: Counter
-
+    #[ #set list(spacing: 0.5em)
     - An incrementing value is encrypted
 
     - This encrypted value is XORed with the input block to generate
@@ -378,7 +378,7 @@ Flip side of the security properties:
 
     - The initial counter value is derived from a nonce, which should be
       unique for each message encrypted with the same key
-
+    ]]]
 #table(columns: (50%, 50%), stroke: none, gutter: 30pt, [
 
 #text(size: 12pt)[

@@ -156,6 +156,9 @@ drwxr-xr-x  3 root              lp          100 Feb  6 10:26 cups
 
 === Linux capability examples
 <linux-capability-examples>
+
+#[ #set list(spacing: 0.5em)
+
 All capabilities are documented in the
 #link("https://manned.org/capabilities.7")[capabilities(7)] manpage
 
@@ -198,6 +201,8 @@ All capabilities are documented in the
   processes, set real-time scheduling policies, set CPU affinity…
 
 - …
+
+]
 
 === Thread capability sets
 <thread-capability-sets>
@@ -788,16 +793,23 @@ Users: 1
 
 - Each object (files, users, processes) has a context composed by 3 or 4 fields:
   - user
+    #[ #set list(spacing: 0.3em)
     - An identifier, different from POSIX user
     - Determines which roles can be used
+    ]
   - role
+    #[ #set list(spacing: 0.3em)
     - Determines what domains can be accessed
     - Each SELinux user can play a fixed set of roles
+    ]
   - domain or type
+    #[ #set list(spacing: 0.3em)
     - Defines the security context
     - Most SELinux rules will rely on it
     - E.g. `bin_t`, `httpd_t`, `my_application_t`
     - List of types for a given role can be seen with `seinfo`
+    ]
+#[ #show raw.where(lang: "console", block: true): set text(size: 9pt)
 ```console
 # seinfo -rstaff_r -x
 
@@ -809,7 +821,7 @@ Roles: 1
    evolution_server_t evolution_t evolution_webcal_t exim_t games_t gconfd_t gpg_agent_t
     ...
    };
-```
+```]
 
 === SELinux context
 

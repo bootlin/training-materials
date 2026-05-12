@@ -213,7 +213,7 @@
 - Several policies can be combined
 
 - IMA comes with predefined policies:
-
+  #[ #set list(spacing: 0.3em)
   - Controls what is measured
 
   - `tcb`: measures all executed programs, files mmap'd for execution,
@@ -227,15 +227,15 @@
   - `fail_securely` always force file signature verification
 
   - `critical_data` measures kernel integrity critical data
-
+  ]
 - Custom policies can be defined
 
   - Only well-known stable files should be measured
-
+    #v(-0.3em)
     - Binaries, libraries, configuration…
 
   - Files with frequent modifications should not be measured
-
+    #v(-0.3em)
     - Logs, databases…
 
 ===  Extended Verification Module (EVM)
