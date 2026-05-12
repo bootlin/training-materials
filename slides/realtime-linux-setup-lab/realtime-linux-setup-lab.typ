@@ -4,12 +4,12 @@
 
 #show: bootlin-theme
 
-#setuplabframe([Download and Boot a RT Kernel],[
+#setuplabframe([Download and Boot a RT Kernel], [
 
-- Generate a Linux Image with Buildroot
+  - Generate a Linux Image with Buildroot
 
-- Configure the PREEMPT_RT Scheduling Model
+  - Configure the PREEMPT_RT Scheduling Model
 
-- Check that we boot a Realtime Linux Kernel
+  - Check that we boot a Realtime Linux Kernel
 
 ])

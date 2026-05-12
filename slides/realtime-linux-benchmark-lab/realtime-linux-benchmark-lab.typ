@@ -4,12 +4,12 @@
 
 #show: bootlin-theme
 
-#setuplabframe([Benchmark and tweak your system],[
+#setuplabframe([Benchmark and tweak your system], [
 
-- Measure the system latencies
+  - Measure the system latencies
 
-- Stress the system and try to improve the latencies
+  - Stress the system and try to improve the latencies
 
-- Tweak the system to get the best behaviour
+  - Tweak the system to get the best behaviour
 
 ])

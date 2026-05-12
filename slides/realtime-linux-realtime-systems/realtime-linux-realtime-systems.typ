@@ -6,9 +6,9 @@
 
 = Realtime Systems
 
-===  Realtime Operating System 
+=== Realtime Operating System
 
-A real-time system is a time-bound system which has well-defined, fixed time constraints. 
+A real-time system is a time-bound system which has well-defined, fixed time constraints.
 Processing must be done within the defined constraints or the system will fail.
 #v(0.5em)
 #align(center, [Wikipedia])
@@ -17,7 +17,7 @@ Processing must be done within the defined constraints or the system will fail.
 
 - The time taken to perform the computation is equally important
 
-===  Determinism 
+=== Determinism
 
 The same input must always yield the same output
 
@@ -31,7 +31,7 @@ The same input must always yield the same output
 - The influence of CPU sharing and external interrupts must be fully
   predictable
 
-===  Latencies 
+=== Latencies
 
 Time elapsed between an event and the reaction to the event
 
@@ -45,69 +45,87 @@ Time elapsed between an event and the reaction to the event
 
 #align(center, [#image("latency-basic.pdf", width: 90%)])
 
-===  Design constraints - Throughput
+=== Design constraints - Throughput
 
-#table(columns: (40%, 60%), stroke:none, gutter: 15pt, [
+#table(
+  columns: (40%, 60%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-#align(center, [#image("triangle_design_throughput.pdf", width: 100%)])
+    #align(center, [#image("triangle_design_throughput.pdf", width: 100%)])
 
-],[
+  ],
+  [
 
-- Optimize most-likely scenario
+    - Optimize most-likely scenario
 
-- Might have a fast path and a slow path
+    - Might have a fast path and a slow path
 
-- Use Hardware Offloading and caches
+    - Use Hardware Offloading and caches
 
-- Use Branch-Prediction and Speculative execution
+    - Use Branch-Prediction and Speculative execution
 
-- Latencies are acceptable for cold-start
+    - Latencies are acceptable for cold-start
 
-- Most modern hardware implement such features
+    - Most modern hardware implement such features
 
-])
+  ],
+)
 
-===  Design constraints - Low Power
+=== Design constraints - Low Power
 
-#table(columns: (40%, 60%), stroke:none, gutter: 15pt, [
+#table(
+  columns: (40%, 60%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-#align(center, [#image("triangle_design_power.pdf", width: 100%)])
+    #align(center, [#image("triangle_design_power.pdf", width: 100%)])
 
-],[
+  ],
+  [
 
-- Opportunistic sleeping modes
+    - Opportunistic sleeping modes
 
-- Dynamic Frequency Scaling
+    - Dynamic Frequency Scaling
 
-- Only go fast when required
+    - Only go fast when required
 
-- Long wakeup latencies
+    - Long wakeup latencies
 
-- Power-Management firmware can preempt the whole system
+    - Power-Management firmware can preempt the whole system
 
-])
+  ],
+)
 
-===  Design constraints - Determinism
+=== Design constraints - Determinism
 
-#table(columns: (40%, 60%), stroke:none, gutter: 15pt, [
+#table(
+  columns: (40%, 60%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-#align(center, [#image("triangle_design_determinism.pdf", width: 100%)])
+    #align(center, [#image("triangle_design_determinism.pdf", width: 100%)])
 
-],[
+  ],
+  [
 
-- Avoid unpredictable effects
+    - Avoid unpredictable effects
 
-- Caches, Hardware Offload are hard to predict
+    - Caches, Hardware Offload are hard to predict
 
-- Avoid sleeping too deep, to wakeup fast
+    - Avoid sleeping too deep, to wakeup fast
 
-- Make the system fully preemptible
+    - Make the system fully preemptible
 
-- Try to keep control over every aspect of the system
+    - Try to keep control over every aspect of the system
 
-])
+  ],
+)
 
-===  Security Features and Fixes
+=== Security Features and Fixes
 
 - Hardware security flaws are discovered quite often
 
@@ -125,7 +143,7 @@ Time elapsed between an event and the reaction to the event
 - *core scheduling* is also a good example, to deal with
   Hyperthreading issues
 
-===  Multi-tasking
+=== Multi-tasking
 
 - Modern OSes are designed to be multi-task
 
@@ -146,7 +164,7 @@ Time elapsed between an event and the reaction to the event
 
 - Switching between tasks is called *context switching*
 
-===  Preemption
+=== Preemption
 
 - Ability to stop whatever the CPU is running to run another task
 
@@ -156,7 +174,7 @@ Time elapsed between an event and the reaction to the event
 
 - Any task should be preemptible, both in userspace and kernelspace
 
-===  Understanding preemption (1)
+=== Understanding preemption (1)
 
 - Most multi-tasking OSes are preemptive operating systems, including
   Linux
@@ -169,7 +187,7 @@ Time elapsed between an event and the reaction to the event
 
 #align(center, [#image("userspace-preemption.pdf", width: 90%)])
 
-===  Understanding preemption (2)
+=== Understanding preemption (2)
 
 - However, when the interrupt comes while the task is executing a system
   call, this system call has to finish before another task can be
@@ -181,10 +199,10 @@ Time elapsed between an event and the reaction to the event
   schedule another task is unbounded.
 
 #v(0.5em)
- 
+
 #align(center, [#image("kernel-preemption.pdf", width: 100%)])
 
-===  Interrupts and events
+=== Interrupts and events
 
 - Hardware interrupts are a common source of latencies
 
@@ -195,10 +213,10 @@ Time elapsed between an event and the reaction to the event
 - Non-important interrupts can preempt critical tasks
 
 #v(0.5em)
- 
+
 #align(center, [#image("irq_preemption.pdf", height: 60%)])
 
-===  Scheduling and proritizing
+=== Scheduling and proritizing
 
 - The Scheduler is a key component in guaranteeing RT behaviour
 
@@ -209,7 +227,7 @@ Time elapsed between an event and the reaction to the event
 - Tasks with the same priority can be handled in a FIFO or Round-Robin
   manner
 
-===  Locking
+=== Locking
 
 - Multitasking implies concurrent accesses to resources
 
@@ -227,10 +245,10 @@ Time elapsed between an event and the reaction to the event
 - *semaphore*: Shared variable that is incremented by multiple
   users.
 
-===  Lock Families
+=== Lock Families
 
 #align(center, [*Semaphores*])
- 
+
 #v(0.5em)
 
 - Semaphores rely on a *counter* that is positive or null
@@ -259,7 +277,7 @@ Time elapsed between an event and the reaction to the event
 - A Mutex is a semaphore with a counter that can only be incremented
   once
 
-===  Priority inversion
+=== Priority inversion
 
 - Priority inversion arises when strict priority-based scheduling
   interfers with locking
@@ -267,12 +285,12 @@ Time elapsed between an event and the reaction to the event
 - It creates a scenario where a critical task is prevented from running
   by a lower priority task
 
-===  Priority inversion
+=== Priority inversion
 
 #align(center, [#image("priority_inversion.pdf", height: 50%)])
 
 #v(0.5em)
- 
+
 - Task A (high priority) needs to access a lock, hold by task C (low
   priority)
 
@@ -280,7 +298,7 @@ Time elapsed between an event and the reaction to the event
 
 - Task B has a higher priority than C, but lower than A, preempts task C
 
-===  Priority Inheritance
+=== Priority Inheritance
 
 - The solution for the Priority Inversion issue is *priority
   inheritance*
@@ -293,10 +311,10 @@ Time elapsed between an event and the reaction to the event
 - Task B can no longer preempt task C!
 
 #v(0.5em)
- 
+
 #align(center, [#image("priority_inheritance.pdf", height: 50%)])
 
-===  Priority Inheritance (2)
+=== Priority Inheritance (2)
 
 - *\P*\riority *\I*\nheritance (PI) only works with Mutexes
 

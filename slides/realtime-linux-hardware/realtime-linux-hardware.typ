@@ -6,7 +6,7 @@
 
 = Hardware
 
-===  Hardware latencies 
+=== Hardware latencies
 
 The hardware itself can be the source of latencies:
 
@@ -22,7 +22,7 @@ The hardware itself can be the source of latencies:
 - It's important to benchmark the hardware platform early during
   development
 
-===  Non-Maskable Interrupts 
+=== Non-Maskable Interrupts
 
 Non-Maskable Interrupts can't be disabled, and can be transparent to the OS
 
@@ -42,7 +42,7 @@ Non-Maskable Interrupts can't be disabled, and can be transparent to the OS
 
 - `hwlatdetect` can help measure the NMIs on a given system
 
-===  Deep Firmwares 
+=== Deep Firmwares
 
 On modern hardware, several firmware can run outside the control of the Kernel
 
@@ -60,7 +60,7 @@ On modern hardware, several firmware can run outside the control of the Kernel
 - `hwlatdetect` and careful driver analysis can help identify these
   issues
 
-===  Memory access 
+=== Memory access
 
 Accessing a virtual address can trigger a Page Fault if:
 
@@ -74,7 +74,7 @@ pin them with `mlockall()`
 On a smaller scale, caching can also impact memory access time, and be
 affected by processes running on other CPUs
 
-===  Hyperthreading 
+=== Hyperthreading
 
 Some CPU cores have 2 pipelines feeding the same ALU. This is known as *Hyperthreading*
 
@@ -98,7 +98,7 @@ Some CPU cores have 2 pipelines feeding the same ALU. This is known as *Hyperthr
 
 - Non-RT process can still benefit from hyperthreading
 
-===  IO Memory and DMA
+=== IO Memory and DMA
 
 - When writing drivers that are RT-critical, several considerations
   should be taken
@@ -111,7 +111,7 @@ Some CPU cores have 2 pipelines feeding the same ALU. This is known as *Hyperthr
 
 - DMA accesses can also introduce latencies due to bus mastering
 
-===  NUMA
+=== NUMA
 
 - *\N*\on *\U*\niform *\M*\emory *\A*\ccess
 
@@ -129,7 +129,7 @@ Some CPU cores have 2 pipelines feeding the same ALU. This is known as *Hyperthr
 - Use `numactl` to pin nodes to CPU cores, and pin your application on
   the CPU
 
-===  CPU Idle
+=== CPU Idle
 
 - Modern CPUs have several Idle States for better power management
 
@@ -146,32 +146,38 @@ Some CPU cores have 2 pipelines feeding the same ALU. This is known as *Hyperthr
 
 #align(center, [#image("cpuidle_latency.pdf", width: 80%)])
 
-===  Idle States
+=== Idle States
 
-#table(columns: (70%, 30%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (70%, 30%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-C-States are defined by:
+    C-States are defined by:
 
-- `latency`: The time it takes to wake-up
+    - `latency`: The time it takes to wake-up
 
-- `residency`: Expected sleeping time for which the state can be used
+    - `residency`: Expected sleeping time for which the state can be used
 
-- `power`: The power consumption in this C-State
+    - `power`: The power consumption in this C-State
 
-The `POLL` state means that the CPU stays in a busy-loop instead of
-sleeping
+    The `POLL` state means that the CPU stays in a busy-loop instead of
+    sleeping
 
-],[
+  ],
+  [
 
-Idle states, Intel i7-8550U
+    Idle states, Intel i7-8550U
 
-#align(center, [#image("cpu_idle_states_example.pdf", width: 90%)])
+    #align(center, [#image("cpu_idle_states_example.pdf", width: 90%)])
 
-])
+  ],
+)
 
 C-States can be controlled in `/sys/devices/system/cpu/cpuX/cpuidle/`
 
-===  Limiting the Idle states
+=== Limiting the Idle states
 
 - Limiting the idle states can be done at runtime
 
@@ -194,7 +200,7 @@ C-States can be controlled in `/sys/devices/system/cpu/cpuX/cpuidle/`
 - *Be careful*, using the `POLL` idle state can overheat and
   destroy your CPU!
 
-===  CPU Frequency scaling 
+=== CPU Frequency scaling
 
 The CPU frequency can also be dynamically changed through DVFS
 
@@ -220,7 +226,7 @@ The CPU frequency can also be dynamically changed through DVFS
 
 - The governor can also be picked in the Kernel Configuration
 
-===  powertop 
+=== powertop
 
 Powertop is a tool to monitor the CPU idle states and frequency usage
 
