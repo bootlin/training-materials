@@ -223,8 +223,8 @@ SRC_URI[patch.sha256sum] = "b184acf9eb39df794ffd..."
 
 ===  `FILESPATH 2/3`
 
-#[ #set list(spacing: 0.2em)
-- This results in a long list, including: #v(0.1em)
+- This results in a long list, including:
+  #[ #set list(spacing: 0.2em)
   - `/.../meta/recipes-core/dropbear/dropbear-2020.81/poky`
   - `/.../meta/recipes-core/dropbear/dropbear/poky`
   - `/.../meta/recipes-core/dropbear/files/poky`
@@ -242,7 +242,7 @@ SRC_URI[patch.sha256sum] = "b184acf9eb39df794ffd..."
   - `/.../meta/recipes-core/dropbear/dropbear-2020.81/`
   - `/.../meta/recipes-core/dropbear/dropbear/`
   - `/.../meta/recipes-core/dropbear/files/`
-]
+  ]
 
 ===  `FILESPATH 3/3`
 
