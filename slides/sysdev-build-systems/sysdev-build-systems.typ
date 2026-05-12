@@ -735,7 +735,7 @@ BBCLASSEXTEND = "native"
   available training materials
 
 ===  Automotive Grade Linux, Tizen
-#[ #set text(size: 19pt)
+#[ #set text(size: 17pt)
 - Industry groups collaborate around the creation of embedded Linux
   distributions targeting specific markets
 

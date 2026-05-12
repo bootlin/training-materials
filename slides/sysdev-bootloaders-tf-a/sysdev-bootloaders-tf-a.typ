@@ -18,7 +18,7 @@
 - Typically used to bundle the BL33, i.e. the U-Boot bootloader that
   will be loaded by TF-A.
 
-- #link("https://trustedfirmware-a.readthedocs.io/en/latest/getting_started/tools-build.html")[https://trustedfirmware-a.readthedocs.io/en/latest/getting_started/tools-build.html]
+- #text(size: 18pt)[#link("https://trustedfirmware-a.readthedocs.io/en/latest/getting_started/tools-build.html")[https://trustedfirmware-a.readthedocs.io/en/latest/getting_started/tools-build.html]]
 
 - #link("https://wiki.st.com/stm32mpu/wiki/How_to_configure_TF-A_FIP")[https://wiki.st.com/stm32mpu/wiki/How_to_configure_TF-A_FIP]
 
