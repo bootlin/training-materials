@@ -1,11 +1,5 @@
 #import "@preview/touying:0.6.0": *
 
-// ── Destinataire (lettres) ─────────────────────────────────────────
-#let recipient = (
-  name: [],
-  address: [],
-)
-
 // ── Entrées système ────────────────────────────────────────────────
 #let trainingtitle
 #let trainer
@@ -375,116 +369,6 @@
     [#image("lab-penguins.svg", width: 100%)],
     body
   )
-}
-
-// ── Documents (bootlin-doc, letter) ───────────────────────────────
-#let bootlin-doc(
-  title: [],
-  author: (),
-  date: [],
-  doc
-) = {
-  show heading.where(level: 1): it => block(
-    width: 100%,
-    inset: (bottom: 0.5em),
-    stroke: (bottom: 1pt + color-link),
-    text(font: "DejaVu Sans", size: 1.2em, weight: "bold", fill: color-link)[#it]
-  )
-  set page(
-    paper: "a4",
-    margin: (top: 22mm, bottom: 16mm, left: 15mm, right: 15mm),
-    header: context [
-      #set text(8pt, font: "DejaVu Sans")
-      #box(image("bootlin-logo.svg"), width: 38mm) #h(1fr) Embedded Linux and kernel engineering
-      #line(length: 100%, stroke: 2pt + bootlin-orange)
-    ],
-    header-ascent: 2mm,
-    footer: context [
-      #set text(8pt, font: "DejaVu Sans")
-      #line(length: 100%, stroke: 0.5pt)
-      #v(-5pt)
-      Bootlin SAS –
-      #link("https://bootlin.com") – 9 avenue des Saules 69600 Oullins-Pierre-Bénite #if text.lang != "fr" [FRANCE] – +33 484 258 096\
-      RCS Lyon No 483 248 399 – SIRET 48324839900105 – APE 6202A – TVA: FR87483248399 – Capital: 50 000 EUR
-      #h(1fr)
-      #counter(page).display("1/1", both: true)
-    ],
-    footer-descent: 2mm,
-  )
-  set document(title: title, author: author)
-  set list(indent: 1em)
-  set text(font: "DejaVu Sans")
-  v(1cm)
-  align(center)[
-    #text(24pt)[#title]\
-    #context {
-      if text.lang == "fr" { author.join(", ", last: " et ") }
-      else { author.join(", ", last: " and ") }
-    }
-    #text(14pt)[#date]
-  ]
-  v(1cm)
-  set par(leading: 0.55em, justify: true)
-  set text(12pt, font: "DejaVu Serif")
-  doc
-}
-
-#let letter(
-  recipient: recipient,
-  subject: [],
-  date: [],
-  location: [],
-  attachment: none,
-  signature: none,
-  doc,
-) = {
-  set text(12pt, font: "DejaVu Sans")
-  set page(
-    paper: "a4",
-    margin: (top: 22mm, bottom: 16mm, left: 15mm, right: 15mm),
-    header: context [
-      #set text(8pt)
-      #box(image("bootlin-logo.svg"), width: 38mm) #h(1fr) Embedded Linux and kernel engineering
-      #line(length: 100%, stroke: 2pt + bootlin-orange)
-    ],
-    header-ascent: 2mm,
-    footer: context [
-      #set text(8pt)
-      #line(length: 100%, stroke: 0.5pt)
-      #v(-5pt)
-      Bootlin SAS –
-      #link("https://bootlin.com") – 9 avenue des Saules 69600 Oullins-Pierre-Bénite #if text.lang != "fr" [FRANCE] – +33 484 258 096\
-      RCS Lyon No 483 248 399 – SIRET 48324839900105 – APE 6202A – TVA: FR87483248399 – Capital: 50 000 EUR
-      #h(1fr)
-      #counter(page).display("1/1", both: true)
-    ],
-    footer-descent: 2mm,
-  )
-  [
-    Bootlin #h(1fr) #location, #date\
-    9 avenue des Saules \
-    69600 Oullins-Pierre-Bénite \
-  ]
-  context {
-    if text.lang != "fr" [FRANCE]
-  }
-  link("mailto: administration@bootlin.com")[administration\@bootlin.com]
-  place(top+left, dx: 90mm, dy: 26mm,
-    box(width: 9cm, [#recipient.name \ #recipient.address])
-  )
-  place(top+left, dx: -15mm, dy: 78mm, float: true,
-    line(length: 1cm, stroke: 0.5pt),
-  )
-  v(3.5cm)
-  context {
-    if text.lang == "fr" [*Objet : *] else [*Subject: *]
-    [*#subject*]
-  }
-  v(0.7cm)
-  set par(leading: 0.55em, first-line-indent: 1.8em, justify: true)
-  doc
-  if signature != none { v(1cm); h(90mm); box(signature) }
-  if attachment != none { [#v(1cm) P.J. : #attachment] }
 }
 
 // ── Thème Touying principal ────────────────────────────────────────

@@ -12,26 +12,28 @@
 
 #show: bootlin-theme
 
+#set list(spacing: 0.8em)
+
 === BeaglePlay shopping list
 
 #table(columns: (80%, 20%), stroke: none, gutter: 20pt,
 [
   #text(size: 19.5pt)[
   - BeaglePlay, from #link("https://beagleboard.org")[BeagleBoard.org] 
-    - #text(size: 18pt)[Texas Instruments AM625x (4× ARM Cortex-A53)]
+    - #text(size: 18pt)[Texas Instruments AM625x (4×ARM Cortex-A53 CPU)]
     - #text(size: 18pt)[2 GB RAM]
-    - #text(size: 18pt)[16 GB eMMC]
-    - #text(size: 18pt)[Peripherals: SPI, I2C, UART, USB]
-  - USB-C cable (power)
-  - USB-FTDI cable
-  - RJ45 cable
-  - MicroSD card (≥ 2 GB)
+    - #text(size: 18pt)[16 GB of on-board eMMC storage]
+    - #text(size: 18pt)[Peripherals: SPI, I2C, UART, USB...]
+  - USB-C cable for the power supply
+  - A USB-FTDI cable
+  - RJ45 cable for networking
+  - A micro SD card with at least 2G of capacity
 
   #if beagleplay-nunchuk [
   - Nintendo Nunchuk with UEXT connector
-    #footnote[#text(size: 16pt)[#link("https://www.olimex.com/Products/Modules/Sensors/MOD-WII/MOD-Wii-UEXT-NUNCHUCK/")]]
-  - Breadboard jumper wires - Male ends
-    #footnote[#text(size: 16pt)[#link("https://www.olimex.com/Products/Breadboarding/JUMPER-WIRES/JW-110x10/")]]
+    #footnote[#text(size: 11pt)[#link("https://www.olimex.com/Products/Modules/Sensors/MOD-WII/MOD-Wii-UEXT-NUNCHUCK/")]]
+  - Breadboard jumper wires - Male ends (to connect the Nunchuk)
+    #footnote[#text(size: 11pt)[#link("https://www.olimex.com/Products/Breadboarding/JUMPER-WIRES/JW-110x10/")]]
   ]
 
   #if beagleplay-audio [
