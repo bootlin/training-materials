@@ -181,7 +181,7 @@
 - `output/`
 
   - `host/`
-
+    
     - `lib`
 
     - `bin`
@@ -195,7 +195,7 @@
     - `<tuple>/sysroot/usr/lib`
 
     - `<tuple>/sysroot/usr/bin`
-
+    
   - Contains both the tools built for the host (cross-compiler, etc.)
     and the _sysroot_ of the toolchain
 
@@ -226,7 +226,7 @@
 - `output/`
 
   - `target/`
-
+    #[ #set list(spacing: 0.3em)
     - `bin/`
 
     - `etc/`
@@ -244,7 +244,7 @@
     - `THIS_IS_NOT_YOUR_ROOT_FILESYSTEM`
 
     - ...
-
+    ]
   - The target root filesystem
 
   - Usual Linux hierarchy
