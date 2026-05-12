@@ -6,7 +6,7 @@
 
 == CODEC driver
 
-===  CODEC driver 
+=== CODEC driver
 
 The CODEC driver registers a #kstruct("snd_soc_component_driver"). Before v4.17, it was `struct
 snd_soc_codec_driver`. Also registers a
@@ -24,7 +24,7 @@ int snd_soc_register_component(struct device *dev,
                  struct snd_soc_dai_driver *dai_drv, int num_dai);
 ```
 
-===  `snd_soc_component_driver`
+=== `snd_soc_component_driver`
 
 #text(size: 14pt)[#kfile("include/sound/soc-component.h")]
 #v(-0.3em)
@@ -49,7 +49,7 @@ struct snd_soc_component_driver {
     [...]
 ```
 
-===  `snd_soc_component_driver`
+=== `snd_soc_component_driver`
 
 - #kstruct("snd_kcontrol_new")` *controls` is an array of controls
   (volume, mixing, muxing, switches) available on the CODEC.
@@ -61,7 +61,7 @@ struct snd_soc_component_driver {
 - #kstruct("snd_soc_dapm_route")` *dapm_routes` is an array
   describing those routes.
 
-===  `snd_soc_component_driver`
+=== `snd_soc_component_driver`
 
 #text(size: 14pt)[#kfile("include/sound/soc-component.h")]
 #v(-0.3em)
@@ -80,7 +80,7 @@ struct snd_soc_component_driver {
 }
 ```
 
-===  `snd_soc_component_driver`
+=== `snd_soc_component_driver`
 
 - `set_sysclk` allows setting the input clock of the component.
 
@@ -94,7 +94,7 @@ struct snd_soc_component_driver {
 - Those are mostly not used, the DAI specific callbacks are used
   instead.
 
-===  `snd_soc_dai_driver`
+=== `snd_soc_dai_driver`
 
 #text(size: 14pt)[#kfile("include/sound/soc-dai.h")]
 #v(-0.3em)
@@ -126,7 +126,7 @@ struct snd_soc_dai_driver {
 };
 ```
 
-===  `snd_soc_pcm_stream`
+=== `snd_soc_pcm_stream`
 
 #text(size: 14pt)[#kfile("include/sound/soc.h")]
 #v(-0.3em)
@@ -145,11 +145,11 @@ struct snd_soc_pcm_stream {
 };
 ```
 
-===  PCM5102
+=== PCM5102
 
 #align(center, [#image("pcm510x.png", width: 90%)])
 
-===  `pcm5102a.c`
+=== `pcm5102a.c`
 
 #text(size: 14pt)[#kfile("sound/soc/codecs/pcm5102a.c")]
 #v(-0.3em)
@@ -181,17 +181,17 @@ static int pcm5102a_probe(struct platform_device *pdev)
 }
 ```
 
-===  PCM3008
+=== PCM3008
 
 #align(center, [#image("pcm3008.png", width: 70%)])
 
-===  `pcm3008.c`
+=== `pcm3008.c`
 
 #text(size: 14pt)[#kfile("sound/soc/codecs/pcm3008.c")]
 #v(-0.3em)
 
 ```c
-#define PCM3008_RATES (SNDRV_PCM_RATE_32000 | SNDRV_PCM_RATE_44100 |        
+#define PCM3008_RATES (SNDRV_PCM_RATE_32000 | SNDRV_PCM_RATE_44100 |
                        SNDRV_PCM_RATE_48000)
 
 static struct snd_soc_dai_driver pcm3008_dai = {
@@ -213,7 +213,7 @@ static struct snd_soc_dai_driver pcm3008_dai = {
 };
 ```
 
-===  `pcm3008.c`
+=== `pcm3008.c`
 
 #text(size: 14pt)[#kfile("sound/soc/codecs/pcm3008.c")]
 #v(-0.3em)
@@ -238,7 +238,7 @@ static int pcm3008_codec_probe(struct platform_device *pdev)
 }
 ```
 
-===  `pcm3008.c`
+=== `pcm3008.c`
 
 #text(size: 14pt)[#kfile("sound/soc/codecs/pcm3008.c")]
 #v(-0.3em)

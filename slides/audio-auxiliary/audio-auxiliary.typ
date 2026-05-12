@@ -6,7 +6,7 @@
 
 == Auxiliary devices
 
-===  Amplifier 
+=== Amplifier
 
 What about the amplifier?
 
@@ -22,11 +22,13 @@ What about the amplifier?
 - There is a driver for simple amplifiers driven by a single GPIO,
   `simple-amplifier`
 
-  - #kfile("Documentation/devicetree/bindings/sound/simple-audio-amplifier.yaml")
+  - #kfile(
+      "Documentation/devicetree/bindings/sound/simple-audio-amplifier.yaml",
+    )
 
   - #kfile("sound/soc/codecs/simple-amplifier.c")
 
-===  Auxiliary devices
+=== Auxiliary devices
 
 #text(size: 14pt)[#kfile("sound/soc/samsung/neo1973_wm8753.c")]
 #v(-0.3em)
@@ -48,9 +50,11 @@ static struct snd_soc_card neo1973 = {
         .num_aux_devs = ARRAY_SIZE(neo1973_aux_devs),
 ```
 
-===  simple-amplifier - example 1
+=== simple-amplifier - example 1
 
-#text(size: 14pt)[#kfile("arch/arm64/boot/dts/allwinner/sun50i-a64-pinebook.dts")]
+#text(size: 14pt)[#kfile(
+  "arch/arm64/boot/dts/allwinner/sun50i-a64-pinebook.dts",
+)]
 #v(-0.3em)
 
 ```c
@@ -79,7 +83,7 @@ static struct snd_soc_card neo1973 = {
                         "Headphone Jack", "HP",
 ```
 
-===  simple-amplifier - example 2
+=== simple-amplifier - example 2
 
 ```c
         dio2133: analog-amplifier {
@@ -102,7 +106,7 @@ static struct snd_soc_card neo1973 = {
 
 Audio is routed through `AU2`, the amplifier.
 
-===  Input Muxing
+=== Input Muxing
 
 - There may be a muxer on the analog input lines.
 
@@ -117,7 +121,7 @@ Audio is routed through `AU2`, the amplifier.
 
   - #kfile("sound/soc/codecs/simple-mux.c")
 
-===  `simple-mux` example
+=== `simple-mux` example
 
 ```c
         mic_mux: mic-mux {
@@ -135,46 +139,48 @@ Audio is routed through `AU2`, the amplifier.
 
 - A control named `Mic Mux Muxer` will be exposed to userspace.
 
-===  `simple-mux` example
+=== `simple-mux` example
 
-#text(size: 14pt)[#kfile("arch/arm64/boot/dts/freescale/imx8mq-librem5-devkit.dts")]
+#text(size: 14pt)[#kfile(
+  "arch/arm64/boot/dts/freescale/imx8mq-librem5-devkit.dts",
+)]
 #v(-0.3em)
 
 #[
-        #show raw.where(lang: "c", block: true): set text(size: 9pt)
-```c
-        sound {
-                compatible = "simple-audio-card";
-                pinctrl-names = "default";
-                pinctrl-0 = <&pinctrl_hpdet>;
-                simple-audio-card,aux-devs = <&speaker_amp>, <&mic_mux>;
-                simple-audio-card,name = "Librem 5 Devkit";
-                simple-audio-card,format = "i2s";
-                simple-audio-card,widgets =
-                        "Microphone", "Builtin Microphone",
-                        "Microphone", "Headset Microphone",
-                        "Headphone", "Headphones",
-                        "Speaker", "Builtin Speaker";
-                simple-audio-card,routing =
-                        "MIC_IN", "Mic Mux OUT",
-                        "Mic Mux IN1", "Headset Microphone",
-                        "Mic Mux IN2", "Builtin Microphone",
-                        "Mic Mux OUT", "Mic Bias",
-                        "Headphones", "HP_OUT",
-                        "Builtin Speaker", "Speaker Amp OUTR",
-                        "Speaker Amp INR", "LINE_OUT";
-                simple-audio-card,hp-det-gpio = <&gpio3 20 GPIO_ACTIVE_HIGH>;
+  #show raw.where(lang: "c", block: true): set text(size: 9pt)
+  ```c
+          sound {
+                  compatible = "simple-audio-card";
+                  pinctrl-names = "default";
+                  pinctrl-0 = <&pinctrl_hpdet>;
+                  simple-audio-card,aux-devs = <&speaker_amp>, <&mic_mux>;
+                  simple-audio-card,name = "Librem 5 Devkit";
+                  simple-audio-card,format = "i2s";
+                  simple-audio-card,widgets =
+                          "Microphone", "Builtin Microphone",
+                          "Microphone", "Headset Microphone",
+                          "Headphone", "Headphones",
+                          "Speaker", "Builtin Speaker";
+                  simple-audio-card,routing =
+                          "MIC_IN", "Mic Mux OUT",
+                          "Mic Mux IN1", "Headset Microphone",
+                          "Mic Mux IN2", "Builtin Microphone",
+                          "Mic Mux OUT", "Mic Bias",
+                          "Headphones", "HP_OUT",
+                          "Builtin Speaker", "Speaker Amp OUTR",
+                          "Speaker Amp INR", "LINE_OUT";
+                  simple-audio-card,hp-det-gpio = <&gpio3 20 GPIO_ACTIVE_HIGH>;
 
-                simple-audio-card,cpu {
-                        sound-dai = <&sai2>;
-                };
+                  simple-audio-card,cpu {
+                          sound-dai = <&sai2>;
+                  };
 
-                simple-audio-card,codec {
-                        sound-dai = <&sgtl5000>;
-                        clocks = <&clk IMX8MQ_CLK_SAI2_ROOT>;
-                        frame-master;
-                        bitclock-master;
-                };
-        };
-```
+                  simple-audio-card,codec {
+                          sound-dai = <&sgtl5000>;
+                          clocks = <&clk IMX8MQ_CLK_SAI2_ROOT>;
+                          frame-master;
+                          bitclock-master;
+                  };
+          };
+  ```
 ]

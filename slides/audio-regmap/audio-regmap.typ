@@ -8,7 +8,7 @@
 
 == regmap
 
-===  regmap
+=== regmap
 
 - has its roots in ASoC (ALSA)
 
@@ -34,23 +34,23 @@
 
 - implemented in #kfile("drivers/base/regmap/")
 
-===  regmap: creation
+=== regmap: creation
 
 - ```c
-  #define regmap_init(dev, bus, bus_context, config)               
-          __regmap_lockdep_wrapper(__regmap_init, #config,         
+  #define regmap_init(dev, bus, bus_context, config)
+          __regmap_lockdep_wrapper(__regmap_init, #config,
                                   dev, bus, bus_context, config)
   ```
 
 - ```c
-  #define regmap_init_i2c(i2c, config)                             
-          __regmap_lockdep_wrapper(__regmap_init_i2c, #config,     
+  #define regmap_init_i2c(i2c, config)
+          __regmap_lockdep_wrapper(__regmap_init_i2c, #config,
                                   i2c, config)
   ```
 
 - ```c
-  #define regmap_init_spi(dev, config)                             
-          __regmap_lockdep_wrapper(__regmap_init_spi, #config,     
+  #define regmap_init_spi(dev, config)
+          __regmap_lockdep_wrapper(__regmap_init_spi, #config,
                                   dev, config)
   ```
 
@@ -59,7 +59,7 @@
 - and `_clk` versions, preparing, enabling and disabling clocks when
   necessary
 
-===  regmap: config
+=== regmap: config
 
 #text(size: 15pt)[#kfile("include/linux/regmap.h")]
 #v(-0.3em)
@@ -86,7 +86,7 @@ struct regmap_config {
 };
 ```
 
-===  regmap: config
+=== regmap: config
 
 - `reg_bits` Number of bits in a register address, mandatory.
 
@@ -109,7 +109,7 @@ struct regmap_config {
 
 - `num_reg_defaults`: Number of elements in `reg_defaults`.
 
-===  regmap: access
+=== regmap: access
 
 - ```c
   int regmap_read(struct regmap *map, unsigned int reg, unsigned int *val);
@@ -138,7 +138,7 @@ struct regmap_config {
                                              bool *change)
   ```
 
-===  regmap: cache management
+=== regmap: cache management
 
 - ```c
   int regcache_sync(struct regmap *map);
@@ -166,7 +166,7 @@ struct regmap_config {
   void regcache_mark_dirty(struct regmap *map);
   ```
 
-===  regmap: example
+=== regmap: example
 
 #text(size: 15pt)[#kfile("sound/soc/codecs/max9877.c")]
 #v(-0.3em)
@@ -199,7 +199,7 @@ static int max9877_i2c_probe(struct i2c_client *client)
 }
 ```
 
-===  regmap: i2c and spi device example
+=== regmap: i2c and spi device example
 
 #text(size: 15pt)[#kfile("sound/soc/codecs/adau1372.c")]
 #v(-0.3em)
@@ -226,7 +226,7 @@ static int adau1372_i2c_probe(struct i2c_client *client)
 }
 ```
 
-===  regmap: i2c and spi device example
+=== regmap: i2c and spi device example
 
 #text(size: 15pt)[#kfile("sound/soc/codecs/adau1372-spi.c")]
 #v(-0.3em)
@@ -243,7 +243,7 @@ static int adau1372_spi_probe(struct spi_device *spi)
 }
 ```
 
-===  regmap: ASoC components
+=== regmap: ASoC components
 
 - `snd_soc_component` regmap accessors also exist, they are available
   either implicitly as the component core calls

@@ -6,7 +6,7 @@
 
 == ASoC DAPM
 
-===  Power management with ASoC
+=== Power management with ASoC
 
 - Many components allow flexible routing
 
@@ -16,9 +16,12 @@
   complex and not easy to maintain
 
 #align(center, [#image("adau1372.png", height: 40%)])
-#text(size: 13pt)[#align(center, [(#link("https://www.analog.com/media/en/technical-documentation/data-sheets/ADAU1372.pdf"))])]
+#text(size: 13pt)[#align(
+  center,
+  [(#link("https://www.analog.com/media/en/technical-documentation/data-sheets/ADAU1372.pdf"))],
+)]
 
-===  DAPM: Dynamic Audio Power Management
+=== DAPM: Dynamic Audio Power Management
 
 - The power management component of ASoC
 
@@ -40,23 +43,29 @@
 
 #v(0.3em)
 
-#table(columns: (50%, 50%), stroke: none, gutter: 30pt, [
+#table(
+  columns: (50%, 50%),
+  stroke: none,
+  gutter: 30pt,
+  [
 
-#align(center, [#image("dapm-widgets-ain0.pdf", height: 25%)])
+    #align(center, [#image("dapm-widgets-ain0.pdf", height: 25%)])
 
-],[
+  ],
+  [
 
-#align(center, [#image("dapm-widgets-dmic0.pdf", height: 25%)])
+    #align(center, [#image("dapm-widgets-dmic0.pdf", height: 25%)])
 
-])
+  ],
+)
 
-===  DAPM: Dynamic Audio Power Management
+=== DAPM: Dynamic Audio Power Management
 
 - DAPM widgets can be controlled by a regular kcontrol
 
 #align(center, [#image("dapm-mux.pdf", height: 40%)])
 
-===  DAPM: Dynamic Audio Power Management
+=== DAPM: Dynamic Audio Power Management
 
 - The DAPM tree spans the whole card
 
@@ -67,7 +76,7 @@
 
 #align(center, [#image("dapm-widgets-cross-components.pdf", width: 100%)])
 
-===  [t]Endpoint widgets
+=== [t]Endpoint widgets
 
 #align(center, [#image("widgets-endpoint.pdf", width: 70%)])
 
@@ -79,7 +88,7 @@
 
 - Speaker, Line out, Microphone, …
 
-===  [t]Pass-through widgets
+=== [t]Pass-through widgets
 
 #align(center, [#image("widgets-pass-through.pdf", width: 70%)])
 
@@ -91,7 +100,7 @@
 
 - Routing: Mixer, Mux, Demux, Switch
 
-===  [t]Supply widgets
+=== [t]Supply widgets
 
 #align(center, [#image("widgets-supply.pdf", width: 70%)])
 
@@ -101,7 +110,7 @@
 
 - Clock, current, voltage
 
-===  Defining DAPM widgets
+=== Defining DAPM widgets
 
 - A widget is defined by #kstruct("snd_soc_dapm_widget")
 
@@ -109,29 +118,29 @@
 #text(size: 14pt)[#kfile("include/sound/soc-dapm.h")]
 #v(-0.3em)
 #[
-        #show raw.where(lang: "c", block: true): set text(size: 13pt)
-```c
-struct snd_soc_dapm_widget {
-    enum snd_soc_dapm_type id;
-    const char *name;                             /* widget name */
-    const char *sname;                            /* stream name */
-    struct snd_soc_dapm_context *dapm;
-    /* ... */
-    struct pinctrl *pinctrl;                      /* attached pinctrl */
-    /* ... */
-    int reg;                                      /* negative reg = no direct dapm */
-    unsigned char shift;                          /* bits to shift */
-    unsigned int mask;                            /* non-shifted mask */
-    unsigned int on_val;                          /* on state value */
-    unsigned int off_val;                         /* off state value */
-    /* ... */
-    unsigned short event_flags;                   /* flags to specify event types */
-    int (*event)(struct snd_soc_dapm_widget*, struct snd_kcontrol *, int);
-};
-```
+  #show raw.where(lang: "c", block: true): set text(size: 13pt)
+  ```c
+  struct snd_soc_dapm_widget {
+      enum snd_soc_dapm_type id;
+      const char *name;                             /* widget name */
+      const char *sname;                            /* stream name */
+      struct snd_soc_dapm_context *dapm;
+      /* ... */
+      struct pinctrl *pinctrl;                      /* attached pinctrl */
+      /* ... */
+      int reg;                                      /* negative reg = no direct dapm */
+      unsigned char shift;                          /* bits to shift */
+      unsigned int mask;                            /* non-shifted mask */
+      unsigned int on_val;                          /* on state value */
+      unsigned int off_val;                         /* off state value */
+      /* ... */
+      unsigned short event_flags;                   /* flags to specify event types */
+      int (*event)(struct snd_soc_dapm_widget*, struct snd_kcontrol *, int);
+  };
+  ```
 ]
 
-===  `snd_soc_dapm_widget`
+=== `snd_soc_dapm_widget`
 
 - An array of #kstruct("snd_soc_dapm_widget") is registered by the
   component.
@@ -143,80 +152,80 @@ struct snd_soc_dapm_widget {
 #v(-0.3em)
 
 #[
-        #show raw.where(lang: "c", block: true): set text(size: 10pt)
+  #show raw.where(lang: "c", block: true): set text(size: 10pt)
   ```c
-  #define SND_SOC_DAPM_INPUT(wname) 
-  {       .id = snd_soc_dapm_input, .name = wname, .kcontrol_news = NULL, 
+  #define SND_SOC_DAPM_INPUT(wname)
+  {       .id = snd_soc_dapm_input, .name = wname, .kcontrol_news = NULL,
           .num_kcontrols = 0, .reg = SND_SOC_NOPM }
-  #define SND_SOC_DAPM_OUTPUT(wname) 
-  {       .id = snd_soc_dapm_output, .name = wname, .kcontrol_news = NULL, 
+  #define SND_SOC_DAPM_OUTPUT(wname)
+  {       .id = snd_soc_dapm_output, .name = wname, .kcontrol_news = NULL,
           .num_kcontrols = 0, .reg = SND_SOC_NOPM }
-  #define SND_SOC_DAPM_MIC(wname, wevent) 
-  {       .id = snd_soc_dapm_mic, .name = wname, .kcontrol_news = NULL, 
-          .num_kcontrols = 0, .reg = SND_SOC_NOPM, .event = wevent, 
+  #define SND_SOC_DAPM_MIC(wname, wevent)
+  {       .id = snd_soc_dapm_mic, .name = wname, .kcontrol_news = NULL,
+          .num_kcontrols = 0, .reg = SND_SOC_NOPM, .event = wevent,
           .event_flags = SND_SOC_DAPM_PRE_PMU | SND_SOC_DAPM_POST_PMD}
   [...]
   #define SND_SOC_DAPM_PGA(wname, wreg, wshift, winvert,
-           wcontrols, wncontrols) 
-  {       .id = snd_soc_dapm_pga, .name = wname, 
-          SND_SOC_DAPM_INIT_REG_VAL(wreg, wshift, winvert), 
+           wcontrols, wncontrols)
+  {       .id = snd_soc_dapm_pga, .name = wname,
+          SND_SOC_DAPM_INIT_REG_VAL(wreg, wshift, winvert),
           .kcontrol_news = wcontrols, .num_kcontrols = wncontrols}
   [...]
-  #define SND_SOC_DAPM_MUX(wname, wreg, wshift, winvert, wcontrols) 
-  {       .id = snd_soc_dapm_mux, .name = wname, 
-          SND_SOC_DAPM_INIT_REG_VAL(wreg, wshift, winvert), 
+  #define SND_SOC_DAPM_MUX(wname, wreg, wshift, winvert, wcontrols)
+  {       .id = snd_soc_dapm_mux, .name = wname,
+          SND_SOC_DAPM_INIT_REG_VAL(wreg, wshift, winvert),
           .kcontrol_news = wcontrols, .num_kcontrols = 1}
-  #define SND_SOC_DAPM_DEMUX(wname, wreg, wshift, winvert, wcontrols) 
-  {       .id = snd_soc_dapm_demux, .name = wname, 
-          SND_SOC_DAPM_INIT_REG_VAL(wreg, wshift, winvert), 
+  #define SND_SOC_DAPM_DEMUX(wname, wreg, wshift, winvert, wcontrols)
+  {       .id = snd_soc_dapm_demux, .name = wname,
+          SND_SOC_DAPM_INIT_REG_VAL(wreg, wshift, winvert),
           .kcontrol_news = wcontrols, .num_kcontrols = 1}
   ```
 ]
 
-===  `snd_soc_dapm_widget`
+=== `snd_soc_dapm_widget`
 
 #text(size: 14pt)[#kfile("include/sound/soc-dapm.h")]
 #v(-0.3em)
 #[
-        #show raw.where(lang: "c", block: true): set text(size: 9pt)
-```c
-#define SND_SOC_DAPM_DAC(wname, stname, wreg, wshift, winvert) 
-{       .id = snd_soc_dapm_dac, .name = wname, .sname = stname, 
-        SND_SOC_DAPM_INIT_REG_VAL(wreg, wshift, winvert) }
-#define SND_SOC_DAPM_DAC_E(wname, stname, wreg, wshift, winvert, 
-                           wevent, wflags)                                
-{       .id = snd_soc_dapm_dac, .name = wname, .sname = stname, 
-        SND_SOC_DAPM_INIT_REG_VAL(wreg, wshift, winvert), 
-        .event = wevent, .event_flags = wflags}
+  #show raw.where(lang: "c", block: true): set text(size: 9pt)
+  ```c
+  #define SND_SOC_DAPM_DAC(wname, stname, wreg, wshift, winvert)
+  {       .id = snd_soc_dapm_dac, .name = wname, .sname = stname,
+          SND_SOC_DAPM_INIT_REG_VAL(wreg, wshift, winvert) }
+  #define SND_SOC_DAPM_DAC_E(wname, stname, wreg, wshift, winvert,
+                             wevent, wflags)
+  {       .id = snd_soc_dapm_dac, .name = wname, .sname = stname,
+          SND_SOC_DAPM_INIT_REG_VAL(wreg, wshift, winvert),
+          .event = wevent, .event_flags = wflags}
 
-#define SND_SOC_DAPM_ADC(wname, stname, wreg, wshift, winvert) 
-{       .id = snd_soc_dapm_adc, .name = wname, .sname = stname, 
-        SND_SOC_DAPM_INIT_REG_VAL(wreg, wshift, winvert), }
-#define SND_SOC_DAPM_ADC_E(wname, stname, wreg, wshift, winvert, 
-                           wevent, wflags)                                
-{       .id = snd_soc_dapm_adc, .name = wname, .sname = stname, 
-        SND_SOC_DAPM_INIT_REG_VAL(wreg, wshift, winvert), 
-        .event = wevent, .event_flags = wflags}
+  #define SND_SOC_DAPM_ADC(wname, stname, wreg, wshift, winvert)
+  {       .id = snd_soc_dapm_adc, .name = wname, .sname = stname,
+          SND_SOC_DAPM_INIT_REG_VAL(wreg, wshift, winvert), }
+  #define SND_SOC_DAPM_ADC_E(wname, stname, wreg, wshift, winvert,
+                             wevent, wflags)
+  {       .id = snd_soc_dapm_adc, .name = wname, .sname = stname,
+          SND_SOC_DAPM_INIT_REG_VAL(wreg, wshift, winvert),
+          .event = wevent, .event_flags = wflags}
 
 
-/* generic widgets */
-#define SND_SOC_DAPM_REG(wid, wname, wreg, wshift, wmask, won_val, woff_val) 
-{       .id = wid, .name = wname, .kcontrol_news = NULL, .num_kcontrols = 0, 
-        .reg = wreg, .shift = wshift, .mask = wmask, 
-        .on_val = won_val, .off_val = woff_val, }
-#define SND_SOC_DAPM_SUPPLY(wname, wreg, wshift, winvert, wevent, wflags) 
-{       .id = snd_soc_dapm_supply, .name = wname, 
-        SND_SOC_DAPM_INIT_REG_VAL(wreg, wshift, winvert), 
-        .event = wevent, .event_flags = wflags}
-#define SND_SOC_DAPM_REGULATOR_SUPPLY(wname, wdelay, wflags)            
-{       .id = snd_soc_dapm_regulator_supply, .name = wname, 
-        .reg = SND_SOC_NOPM, .shift = wdelay, .event = dapm_regulator_event, 
-        .event_flags = SND_SOC_DAPM_PRE_PMU | SND_SOC_DAPM_POST_PMD, 
-        .on_val = wflags}
-```
+  /* generic widgets */
+  #define SND_SOC_DAPM_REG(wid, wname, wreg, wshift, wmask, won_val, woff_val)
+  {       .id = wid, .name = wname, .kcontrol_news = NULL, .num_kcontrols = 0,
+          .reg = wreg, .shift = wshift, .mask = wmask,
+          .on_val = won_val, .off_val = woff_val, }
+  #define SND_SOC_DAPM_SUPPLY(wname, wreg, wshift, winvert, wevent, wflags)
+  {       .id = snd_soc_dapm_supply, .name = wname,
+          SND_SOC_DAPM_INIT_REG_VAL(wreg, wshift, winvert),
+          .event = wevent, .event_flags = wflags}
+  #define SND_SOC_DAPM_REGULATOR_SUPPLY(wname, wdelay, wflags)
+  {       .id = snd_soc_dapm_regulator_supply, .name = wname,
+          .reg = SND_SOC_NOPM, .shift = wdelay, .event = dapm_regulator_event,
+          .event_flags = SND_SOC_DAPM_PRE_PMU | SND_SOC_DAPM_POST_PMD,
+          .on_val = wflags}
+  ```
 ]
 
-===  DAPM example
+=== DAPM example
 
 #text(size: 14pt)[#kfile("sound/soc/codecs/pcm3168a.c")]
 #v(-0.3em)
@@ -245,7 +254,7 @@ static const struct snd_soc_dapm_widget pcm3168a_dapm_widgets[] = {
 Note: on the #link("https://www.ti.com/lit/gpn/pcm3168a")[PCM3168A] DACs
 and ADCs can only be powered down in pairs.
 
-===  DAPM example
+=== DAPM example
 
 #text(size: 14pt)[#kfile("sound/soc/codecs/pcm3168a.c")]
 #v(-0.3em)
@@ -267,7 +276,7 @@ and ADCs can only be powered down in pairs.
 };
 ```
 
-===  `snd_soc_dapm_route`
+=== `snd_soc_dapm_route`
 
 - An array of #kstruct("snd_soc_dapm_route") is registered by the
   component to define the routes.
@@ -290,7 +299,7 @@ struct snd_soc_dapm_route {
 };
 ```
 
-===  DAPM routes example
+=== DAPM routes example
 
 #text(size: 14pt)[#kfile("sound/soc/codecs/pcm3168a.c")]
 #v(-0.3em)
@@ -315,7 +324,7 @@ static const struct snd_soc_dapm_route adau1372_dapm_routes[] = {
 
 - Matching based on strings
 
-===  Adding DAPM widgets and routes
+=== Adding DAPM widgets and routes
 
 - Just point to the defined arrays in
   #kstruct("snd_soc_component_driver")
@@ -332,7 +341,7 @@ static const struct snd_soc_component_driver adau1372_driver = {
 };
 ```
 
-===  Adding DAPM widgets and routes dynamically
+=== Adding DAPM widgets and routes dynamically
 
 - DAPM routes can be added dynamically, e.g. based on codec model
 
@@ -354,7 +363,7 @@ static int wm8994_component_probe(struct snd_soc_component *component)
 }
 ```
 
-===  Connecting widgets to the DAI stream
+=== Connecting widgets to the DAI stream
 
 - The endpoints of the DAPM graph are
 
@@ -382,7 +391,7 @@ static struct snd_soc_dai_driver wm9705_dai[] = {
 ...
 ```
 
-===  [t]Phase 1: determining power state
+=== [t]Phase 1: determining power state
 
 #align(center, [#image("powerstate1.pdf", width: 70%)])
 #v(1.5em)
@@ -393,7 +402,7 @@ static struct snd_soc_dai_driver wm9705_dai[] = {
 - Sink widgets are powered if they are active (used by a stream) and
   have a route to an active source widget
 
-===  [t]Phase 1: determining power state
+=== [t]Phase 1: determining power state
 
 #align(center, [#image("powerstate2.pdf", width: 70%)])
 #v(1.5em)
@@ -403,7 +412,7 @@ static struct snd_soc_dai_driver wm9705_dai[] = {
 
 - Computed by DAPM automatically
 
-===  [t]Phase 1: determining power state
+=== [t]Phase 1: determining power state
 
 #align(center, [#image("powerstate3.pdf", width: 70%)])
 
@@ -413,7 +422,7 @@ static struct snd_soc_dai_driver wm9705_dai[] = {
 
 - Computed by DAPM automatically
 
-===  Phase 2: Powering sequence
+=== Phase 2: Powering sequence
 
 + Compute difference between previous and new configurations
 
@@ -423,7 +432,7 @@ static struct snd_soc_dai_driver wm9705_dai[] = {
 
 + Power up newly-enabled widgets
 
-===  debugfs
+=== debugfs
 
 - Each widget is exposed as a file in debugfs
 
@@ -432,7 +441,7 @@ static struct snd_soc_dai_driver wm9705_dai[] = {
 - `/sys/kernel/debug/asoc/${CARD}/dapm/${WIDGET}` for card-level widgets
 
 #[
-        #set text(size: 17pt)
+  #set text(size: 17pt)
   ```sh
   # cat "/sys/kernel/debug/asoc/STM32MP15-DK/cs42l51.0-004a/dapm/Left ADC"
   Left ADC: Off  in 1 out 0 - R2(0x2) mask 0x2
@@ -445,7 +454,7 @@ static struct snd_soc_dai_driver wm9705_dai[] = {
 ]
 - Format was improved in v6.10
 
-===  vizdapm
+=== vizdapm
 
 - Simple shell script developed by Dimitris Papastamos, Wolfson Micro
 
@@ -461,11 +470,11 @@ static struct snd_soc_dai_driver wm9705_dai[] = {
 # vizdapm /sys/kernel/debug/asoc/STM32MP15-DK/cs42l51.0-004a/dapm out.png
 ```
 
-===  vizdapm
+=== vizdapm
 
 #align(center, [#image("graphviz.png", height: 90%)])
 
-===  dapm-graph
+=== dapm-graph
 
 - Inspired by vizdapm and also based on `dot` from graphviz
 
@@ -489,7 +498,7 @@ static struct snd_soc_dai_driver wm9705_dai[] = {
 
 - Distributed with the kernel sources since v6.10
 
-===  dapm-graph
+=== dapm-graph
 
 ```text
 Usage:
@@ -507,6 +516,6 @@ Options:
     -h                  Print this help and exit
 ```
 
-===  dapm-graph
+=== dapm-graph
 
 #align(center, [#image("dapm-graph.pdf", height: 90%)])

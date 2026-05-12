@@ -6,14 +6,14 @@
 
 == alsa-utils
 
-===  alsa-utils
+=== alsa-utils
 
 - `alsa-utils` is a repository of tools to interact with ALSA
   devices
 
 - #link("https://github.com/alsa-project/alsa-utils")
 
-===  Controls
+=== Controls
 
 - `alsamixer ` provides a `ncurse` based graphical interface to
   modify sound cards controls.
@@ -35,7 +35,7 @@
 - `alsactl` is a tool that can save the control values to a file and
   restore them from a file.
 
-===  Playback and capture
+=== Playback and capture
 
 - `speaker-test` can generate tones or noises to play on specific
   channels with a specified rate.
@@ -45,14 +45,15 @@
 
 - `arecord` can record an audio stream to a file.
 
-#setupdemoframe([Userspace tools],[ Using userspace tools to:
+#setupdemoframe([Userspace tools], [
+  Using userspace tools to:
 
-- configure sound card controls
+  - configure sound card controls
 
-- load and store default values for controls
+  - load and store default values for controls
 
-- play sound
+  - play sound
 
-- record
+  - record
 
 ])
