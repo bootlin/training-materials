@@ -37,7 +37,7 @@
 ===  Describing non-discoverable hardware
 #let items = (
   (
-    title: [Directly in the *OS/bootloader code*],
+    title: [Directly in the \ *OS/bootloader \ code*],
     details: (
       [Using compiled data structures, typically in C],
       [How it was done on most embedded platforms in Linux, U-Boot.],
@@ -54,8 +54,8 @@
   (
     title: [Using a *Device Tree*],
     details: (
-      [Originates from *OpenFirmware*, defined by Sun, used on SPARC and PowerPC],
-      [that's why many Linux/U-Boot functions related to DT have a `of_` prefix],
+      [Originates from *OpenFirmware*, defined by Sun, used on SPARC and PowerPC
+        - that's why many Linux/U-Boot functions related to DT have a `of_` prefix],
       [Now used by most embedded-oriented CPU architectures that run Linux: ARC, ARM64, RISC-V, ARM32, PowerPC, Xtensa, MIPS, etc.],
       [Writing/tweaking a DT is necessary when porting Linux to a new board, or when connecting additional peripherals],
     ),
@@ -73,11 +73,7 @@
     gutter: 2cm,
 
     [
-      *(#(i + 1))*
-
-      #v(0.5cm)
-
-      #item.title
+      #text(fill: bootlin-orange, [#(i + 1).]) #item.title
     ],
 
     [
@@ -620,7 +616,8 @@ Is exactly equivalent to:
   violated.
 
 ===  The properties 
-#[ #set list(spacing: 0.3em)
+
+#[ #set text(size: 17pt)
 Device tree properties can:
 
 - Be generic and apply to most nodes
