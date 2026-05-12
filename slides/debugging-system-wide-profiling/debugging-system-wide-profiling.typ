@@ -1233,10 +1233,10 @@ $ lttng create my-session --set-url=net://remote-system
     maps types.
 
 ===  Program types and attach points
-#[ #set list(spacing: 0.3em)
+
 - There are different categories of hooks to which a program can be
   attached:
-
+  #[ #set list(spacing: 0.2em)
   - an arbitrary kprobe
 
   - a kernel-defined static tracepoint
@@ -1248,7 +1248,7 @@ $ lttng create my-session --set-url=net://remote-system
   - an arbitrary uprobe
 
   - and a lot more, see #ksym("bpf_attach_type")
-
+  ]
 - A specific attach-point type can only be hooked with a set of specific
   program types, see #ksym("bpf_prog_type") and
   #kdochtml("bpf/libbpf/program_types").
@@ -1266,7 +1266,6 @@ $ lttng create my-session --set-url=net://remote-system
 
   - You can learn about the context passed to any program type by
     checking #kfile("include/linux/bpf_types.h")
-]
 
 ===  eBPF maps
 
@@ -1572,7 +1571,7 @@ b.attach_kprobe(event=b.get_syscall_fnname("clone"), fn_name="hello")
 #[
 #show raw.where(lang: "console", block: true): set text(size: 15pt)
   ```console
-          $ clang -target bpf -O2 -g -c my_prog.bpf.c -o my_prog.bpf.o
+    $ clang -target bpf -O2 -g -c my_prog.bpf.c -o my_prog.bpf.o
   ```
 ]
   - The `-g` option allows to add debug information as well as BTF

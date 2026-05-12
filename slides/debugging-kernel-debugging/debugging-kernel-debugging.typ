@@ -415,8 +415,7 @@ Debugging kernel programming mistakes with integrated frameworks
 <the-magic-sysrq>
 
 ===  The Magic SysRq 
-#[ #set list(spacing: 0.4em)
-  #set text(size: 18.5pt)
+#[ #set text(size: 18pt)
 Functionality provided by serial drivers
 
 - Allows to run multiple debug/rescue commands even when the kernel
@@ -429,7 +428,7 @@ Functionality provided by serial drivers
   - By echoing `<character>` in `/proc/sysrq-trigger`
 
 - Example commands:
-
+  #[ #set list(spacing: 0.3em)
   - `h`: show available commands
 
   - `s`: sync all mounted filesystems
@@ -447,9 +446,10 @@ Functionality provided by serial drivers
   - `c`: triggers a crash (kernel panic)
 
   - You can even register your own!
-
+  ]
 - Detailed in #kdochtml("admin-guide/sysrq")
 ]
+
 == KGDB
 <kgdb>
 
