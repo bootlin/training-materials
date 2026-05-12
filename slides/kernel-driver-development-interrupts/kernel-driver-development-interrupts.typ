@@ -6,15 +6,15 @@
 
 == Interrupt Management
 
-===  Registering an interrupt handler 1/2 
+=== Registering an interrupt handler 1/2
 
 The _managed_ API is recommended:
 
 #[ #show raw.where(lang: "c", block: true): set text(size: 15pt)
-```c
-int devm_request_irq(struct device *dev, unsigned int irq, irq_handler_t handler,
-                     unsigned long irq_flags, const char *devname, void *dev_id);
-```]
+  ```c
+  int devm_request_irq(struct device *dev, unsigned int irq, irq_handler_t handler,
+                       unsigned long irq_flags, const char *devname, void *dev_id);
+  ```]
 
 - `device` for automatic freeing at device or module release time.
 
@@ -34,7 +34,7 @@ int devm_request_irq(struct device *dev, unsigned int irq, irq_handler_t handler
   pointer to a per-device data structure. It cannot be `NULL` as it is
   used as an identifier for freeing interrupts on a shared line.
 
-===  Registering an interrupt handler 2/2 
+=== Registering an interrupt handler 2/2
 
 Here are the most frequent `irq_flags` bit values in drivers (can be combined):
 
@@ -51,7 +51,7 @@ Here are the most frequent `irq_flags` bit values in drivers (can be combined):
   slides). Keeping the interrupt line disabled until the thread function
   has run.
 
-===  Interrupt handler constraints
+=== Interrupt handler constraints
 
 - No guarantee in which address space the system will be in when the
   interrupt occurs: can't transfer data to and from user space.
@@ -66,40 +66,42 @@ Here are the most frequent `irq_flags` bit values in drivers (can be combined):
   have to complete their job quickly enough, to avoiding blocking
   interrupts for too long.
 
-===  /proc/interrupts on Raspberry Pi 2 (ARM, Linux 4.19)
+=== /proc/interrupts on Raspberry Pi 2 (ARM, Linux 4.19)
 
 #text(size: 13pt)[
-```
-            CPU0       CPU1       CPU2       CPU3
- 17:     1005317          0          0          0  ARMCTRL-level   1 Edge      3f00b880.mailbox
- 18:          36          0          0          0  ARMCTRL-level   2 Edge      VCHIQ doorbell
- 40:           0          0          0          0  ARMCTRL-level  48 Edge      bcm2708_fb DMA
- 42:      427715          0          0          0  ARMCTRL-level  50 Edge      DMA IRQ
- 56:   478426356          0          0          0  ARMCTRL-level  64 Edge      dwc_otg, dwc_otg_pcd, dwc_otg_hcd:usb1
- 80:      411468          0          0          0  ARMCTRL-level  88 Edge      mmc0
- 81:         502          0          0          0  ARMCTRL-level  89 Edge      uart-pl011
-161:           0          0          0          0  bcm2836-timer   0 Edge      arch_timer
-162:    10963772    6378711   16583353    6406625  bcm2836-timer   1 Edge      arch_timer
-165:           0          0          0          0  bcm2836-pmu     9 Edge      arm-pmu 
-FIQ:                                               usb_fiq 
-IPI0:          0          0          0          0  CPU wakeup interrupts 
-IPI1:          0          0          0          0  Timer broadcast interrupts 
-IPI2:    2625198    4404191    7634127    3993714  Rescheduling interrupts 
-IPI3:       3140      56405      49483      59648  Function call interrupts 
-IPI4:          0          0          0          0  CPU stop interrupts 
-IPI5:    2167923     477097    5350168     412699  IRQ work interrupts 
-IPI6:          0          0          0          0  completion interrupts Err:           0
-```]
+  ```
+              CPU0       CPU1       CPU2       CPU3
+   17:     1005317          0          0          0  ARMCTRL-level   1 Edge      3f00b880.mailbox
+   18:          36          0          0          0  ARMCTRL-level   2 Edge      VCHIQ doorbell
+   40:           0          0          0          0  ARMCTRL-level  48 Edge      bcm2708_fb DMA
+   42:      427715          0          0          0  ARMCTRL-level  50 Edge      DMA IRQ
+   56:   478426356          0          0          0  ARMCTRL-level  64 Edge      dwc_otg, dwc_otg_pcd, dwc_otg_hcd:usb1
+   80:      411468          0          0          0  ARMCTRL-level  88 Edge      mmc0
+   81:         502          0          0          0  ARMCTRL-level  89 Edge      uart-pl011
+  161:           0          0          0          0  bcm2836-timer   0 Edge      arch_timer
+  162:    10963772    6378711   16583353    6406625  bcm2836-timer   1 Edge      arch_timer
+  165:           0          0          0          0  bcm2836-pmu     9 Edge      arm-pmu
+  FIQ:                                               usb_fiq
+  IPI0:          0          0          0          0  CPU wakeup interrupts
+  IPI1:          0          0          0          0  Timer broadcast interrupts
+  IPI2:    2625198    4404191    7634127    3993714  Rescheduling interrupts
+  IPI3:       3140      56405      49483      59648  Function call interrupts
+  IPI4:          0          0          0          0  CPU stop interrupts
+  IPI5:    2167923     477097    5350168     412699  IRQ work interrupts
+  IPI6:          0          0          0          0  completion interrupts Err:           0
+  ```]
 
 #v(0.5em)
 
-#text(size: 17pt)[Note: interrupt numbers shown on the left-most column are virtual
-numbers when the Device Tree is used. The physical interrupt numbers can
-be found in `/sys/kernel/debug/irq/irqs/<nr>` files when
-#kconfigval("CONFIG_GENERIC_IRQ_DEBUGFS", "y").
+#text(
+  size: 17pt,
+)[Note: interrupt numbers shown on the left-most column are virtual
+  numbers when the Device Tree is used. The physical interrupt numbers can
+  be found in `/sys/kernel/debug/irq/irqs/<nr>` files when
+  #kconfigval("CONFIG_GENERIC_IRQ_DEBUGFS", "y").
 ]
 
-===  Interrupt handler prototype
+=== Interrupt handler prototype
 
 - ```c irqreturn_t foo_interrupt(int irq, void *dev_id) ```
 
@@ -119,7 +121,7 @@ be found in `/sys/kernel/debug/irq/irqs/<nr>` files when
   - #ksym("IRQ_WAKE_THREAD"): handler requests to wake the handler
     thread (see next slides)
 
-===  Typical interrupt handler's job
+=== Typical interrupt handler's job
 
 - Acknowledge the interrupt to the device (otherwise no more interrupts
   will be generated, or the interrupt will keep firing over and over
@@ -128,10 +130,10 @@ be found in `/sys/kernel/debug/irq/irqs/<nr>` files when
 - Read/write data from/to the device
 
 - Wake up any process waiting for such data, typically on a per-device
-  wait queue: 
+  wait queue:
   `wake_up_interruptible(&device_queue);`
 
-===  Top half and bottom half processing
+=== Top half and bottom half processing
 
 - Splitting the execution of interrupt handlers in 2 parts is sometimes
   needed
@@ -161,7 +163,7 @@ be found in `/sys/kernel/debug/irq/irqs/<nr>` files when
     - And yet, the abbreviation "bh" often means "softirqs" for
       historical reasons!
 
-===  Softirqs
+=== Softirqs
 
 - Softirq handlers are callbacks executed once all interrupt handlers
   have completed, before the kernel resumes scheduling processes
@@ -185,11 +187,11 @@ be found in `/sys/kernel/debug/irq/irqs/<nr>` files when
 - A Tasklet is a deprecated mechanism which was dedicated to device
   drivers and was implemented on top of softirqs.
 
-===  Softirq execution flow
+=== Softirq execution flow
 
 #align(center, [#image("thread-halves.pdf", width: 100%)])
 
-===  Example usage of softirqs: NAPI
+=== Example usage of softirqs: NAPI
 
 - Interface in the Linux kernel used for interrupt mitigation in network
   drivers
@@ -206,13 +208,15 @@ be found in `/sys/kernel/debug/irq/irqs/<nr>` files when
   #ksym("NET_RX_SOFTIRQ").
 
 - See
-  #link("https://en.wikipedia.org/wiki/New_API")[https://en.wikipedia.org/wiki/New_API]
+  #link(
+    "https://en.wikipedia.org/wiki/New_API",
+  )[https://en.wikipedia.org/wiki/New_API]
   for details
 
 - See also our commented network driver on \
   #link("https://bootlin.com/pub/drivers/r6040-network-driver-with-comments.c")
 
-===  Threaded interrupts
+=== Threaded interrupts
 
 - It is possible to associate a threaded handler to a hard IRQ handler
 
@@ -231,102 +235,110 @@ be found in `/sys/kernel/debug/irq/irqs/<nr>` files when
 - Heavily used by `PREEMPT_RT`
 
 #[ #show raw.where(lang: "c", block: true): set text(size: 15pt)
-```c
-int devm_request_threaded_irq(struct device *dev, unsigned int irq,
-                              irq_handler_t handler, irq_handler_t thread_fn,
-                              unsigned long flags, const char *name,
-                              void *dev);
-```]
+  ```c
+  int devm_request_threaded_irq(struct device *dev, unsigned int irq,
+                                irq_handler_t handler, irq_handler_t thread_fn,
+                                unsigned long flags, const char *name,
+                                void *dev);
+  ```]
 
 - `handler`: "hard IRQ" handler
 
 - `thread_fn`: executed in a thread
 
-===  Workqueues
+=== Workqueues
 
-#[ #set text(size: 18pt)
+#[
+  #set text(size: 18pt)
 
-- Workqueues are a general mechanism for deferring work. It is not
-  limited in usage to handling interrupts.
+  - Workqueues are a general mechanism for deferring work. It is not
+    limited in usage to handling interrupts.
 
-  - Typically used for background jobs.
+    - Typically used for background jobs.
 
-- Functions registered to run in workqueues are called works:
+  - Functions registered to run in workqueues are called works:
 
-  - They can be created with the macro #kfunc("INIT_WORK")
+    - They can be created with the macro #kfunc("INIT_WORK")
 
-  - When scheduled, they become threads (called workers) running in
-    process context, which means:
+    - When scheduled, they become threads (called workers) running in
+      process context, which means:
 
-    - All interrupts are enabled
+      - All interrupts are enabled
 
-    - Sleeping is allowed
+      - Sleeping is allowed
 
-  - Works can be queued on:
+    - Works can be queued on:
 
-    - The default workqueue, with #kfunc("schedule_work")
+      - The default workqueue, with #kfunc("schedule_work")
 
-    - A workqueue allocated by the subsystem or the drivers, with
-      #kfunc("alloc_workqueue")
+      - A workqueue allocated by the subsystem or the drivers, with
+        #kfunc("alloc_workqueue")
 
-- The complete API is in #kfile("include/linux/workqueue.h")
+  - The complete API is in #kfile("include/linux/workqueue.h")
 
-- Example (#kfile("drivers/crypto/atmel-i2c.c")):
-  #[ #show raw.where(lang: "c", block: true): set text(size: 15pt)
-  ```c
-  INIT_WORK(&work_data->work, atmel_i2c_work_handler);
-  schedule_work(&work_data->work);
-  ```]
+  - Example (#kfile("drivers/crypto/atmel-i2c.c")):
+    #[ #show raw.where(lang: "c", block: true): set text(size: 15pt)
+      ```c
+      INIT_WORK(&work_data->work, atmel_i2c_work_handler);
+      schedule_work(&work_data->work);
+      ```]
 ]
 
-===  Interrupt and deferred mechanisms execution constraints summary
+=== Interrupt and deferred mechanisms execution constraints summary
 
 #text(size: 19pt)[
-#align(center)[
-#table(
-  columns: 6,
-  align: (col, row) => (left,center,center,center,center,center,).at(col),
-  inset: 6pt,
-  [*Mechanism*],
-  [*Context*],
-  [*IRQs*],
-  [*Priority \ tuning*],
-  [*Can \ sleep*],
-  [*Typical \ Use*],
-  [Hard IRQ],
-  [Interrupt],
-  [Disabled \ (local CPU)],
-  [No, \ FIFO],
-  [No],
-  [Fast handling, \ gen. purpose],
-  [Softirq],
-  [Interrupt],
-  [Enabled],
-  [No, \ fixed priorities],
-  [No],
-  [Fast handling, \ net, timers, RCU],
-  [Softirq],
-  [Process \ (ksoftirqd)],
-  [Enabled],
-  [One kthread \ per CPU],
-  [No],
-  [Softirq \ overflow],
-  [Threaded IRQ],
-  [Process \ (irq thread)],
-  [Enabled \ (#ksym("IRQF_ONESHOT"))],
-  [Yes],
-  [Yes],
-  [Interrupt handling \ needing to block],
-  [Workqueue],
-  [Process \ (worker)],
-  [Enabled],
-  [Yes, \ per queue],
-  [Yes],
-  [General purpose \ background worker],
-)
-]]
+  #align(center)[
+    #table(
+      columns: 6,
+      align: (col, row) => (left, center, center, center, center, center).at(
+        col,
+      ),
+      inset: 6pt,
+      [*Mechanism*],
+      [*Context*],
+      [*IRQs*],
+      [*Priority \ tuning*],
+      [*Can \ sleep*],
+      [*Typical \ Use*],
 
-===  Interrupt management summary
+      [Hard IRQ],
+      [Interrupt],
+      [Disabled \ (local CPU)],
+      [No, \ FIFO],
+      [No],
+      [Fast handling, \ gen. purpose],
+
+      [Softirq],
+      [Interrupt],
+      [Enabled],
+      [No, \ fixed priorities],
+      [No],
+      [Fast handling, \ net, timers, RCU],
+
+      [Softirq],
+      [Process \ (ksoftirqd)],
+      [Enabled],
+      [One kthread \ per CPU],
+      [No],
+      [Softirq \ overflow],
+
+      [Threaded IRQ],
+      [Process \ (irq thread)],
+      [Enabled \ (#ksym("IRQF_ONESHOT"))],
+      [Yes],
+      [Yes],
+      [Interrupt handling \ needing to block],
+
+      [Workqueue],
+      [Process \ (worker)],
+      [Enabled],
+      [Yes, \ per queue],
+      [Yes],
+      [General purpose \ background worker],
+    )
+  ]]
+
+=== Interrupt management summary
 
 - Device driver
 
@@ -350,14 +362,14 @@ int devm_request_threaded_irq(struct device *dev, unsigned int irq,
   - In the `remove()` function, for each device, the interrupt handler
     is automatically unregistered.
 
-#setuplabframe([Interrupts],[
+#setuplabframe([Interrupts], [
 
-- Adding read capability to the character driver developed earlier.
+  - Adding read capability to the character driver developed earlier.
 
-- Register an interrupt handler for each device.
+  - Register an interrupt handler for each device.
 
-- Waiting for data to be available in the read file operation.
+  - Waiting for data to be available in the read file operation.
 
-- Waking up the code when data are available from the devices.
+  - Waking up the code when data are available from the devices.
 
 ])

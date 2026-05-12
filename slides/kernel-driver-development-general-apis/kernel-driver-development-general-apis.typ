@@ -6,7 +6,7 @@
 
 == Useful general-purpose kernel APIs
 
-===  Memory/string utilities
+=== Memory/string utilities
 
 - In #kfile("include/linux/string.h")
 
@@ -31,7 +31,7 @@
 
   - Other string functions: #kfunc("sprintf"), #kfunc("sscanf")
 
-===  Linked lists
+=== Linked lists
 
 - Convenient linked-list facility in #kfile("include/linux/list.h")
 
@@ -57,55 +57,55 @@
 
   - Iterate over the list: `list_for_each_*()` family of macros
 
-===  Linked lists examples 1/2
+=== Linked lists examples 1/2
 
 #text(size: 16pt)[#kfile("drivers/i2c/busses/i2c-stm32f7.c")]
 #v(-0.2em)
 #[ #show raw.where(lang: "c", block: true): set text(size: 14pt)
-```c
-/**
- * struct stm32f7_i2c_timings - private I2C output parameters
- * @node: List entry
- * @presc: Prescaler value
- * @scldel: Data setup time
- * @sdadel: Data hold time
- * @sclh: SCL high period (master mode)
- * @scll: SCL low period (master mode)
- */
-struct stm32f7_i2c_timings {
-  struct list_head node;
-  u8 presc;
-  u8 scldel;
-  u8 sdadel;
-  u8 sclh;
-  u8 scll;
-};
-```]
+  ```c
+  /**
+   * struct stm32f7_i2c_timings - private I2C output parameters
+   * @node: List entry
+   * @presc: Prescaler value
+   * @scldel: Data setup time
+   * @sdadel: Data hold time
+   * @sclh: SCL high period (master mode)
+   * @scll: SCL low period (master mode)
+   */
+  struct stm32f7_i2c_timings {
+    struct list_head node;
+    u8 presc;
+    u8 scldel;
+    u8 sdadel;
+    u8 sclh;
+    u8 scll;
+  };
+  ```]
 
-===  Linked lists examples 2/2
+=== Linked lists examples 2/2
 
 #text(size: 16pt)[#kfile("drivers/i2c/busses/i2c-stm32f7.c")]
 #v(-0.2em)
 #[ #show raw.where(lang: "c", block: true): set text(size: 14pt)
-```c
-static int stm32f7_i2c_compute_timing(/* ... */)
-{
-  struct stm32f7_i2c_timings *v;
-  struct list_head solutions;
-  INIT_LIST_HEAD(&solutions);
-  /* ... */
+  ```c
+  static int stm32f7_i2c_compute_timing(/* ... */)
+  {
+    struct stm32f7_i2c_timings *v;
+    struct list_head solutions;
+    INIT_LIST_HEAD(&solutions);
+    /* ... */
 
-  for (p = 0; p < STM32F7_PRESC_MAX; p++) {
-    for (l = 0; l < STM32F7_SCLDEL_MAX; l++) {
-      v = kmalloc(sizeof(*v), GFP_KERNEL);
-      v->presc = p;
-      v->scldel = l;
-      list_add_tail(&v->node, &solutions);
+    for (p = 0; p < STM32F7_PRESC_MAX; p++) {
+      for (l = 0; l < STM32F7_SCLDEL_MAX; l++) {
+        v = kmalloc(sizeof(*v), GFP_KERNEL);
+        v->presc = p;
+        v->scldel = l;
+        list_add_tail(&v->node, &solutions);
+      }
+    }
+
+    list_for_each_entry(v, &solutions, node) {
+      /* ... */
     }
   }
-
-  list_for_each_entry(v, &solutions, node) {
-    /* ... */
-  }
-}
-```]
+  ```]

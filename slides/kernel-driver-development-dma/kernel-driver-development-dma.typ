@@ -9,7 +9,7 @@
 == DMA main principles
 <dma-main-principles>
 
-===  DMA integration 
+=== DMA integration
 
 DMA (#emph[Direct Memory Access]) is used to copy
 data directly between devices and RAM, without going through the CPU.
@@ -18,7 +18,7 @@ data directly between devices and RAM, without going through the CPU.
 
 #align(center, [#image("dma-integration.pdf", height: 80%)])
 
-===  Peripheral DMA 
+=== Peripheral DMA
 
 Some device controllers embedded their own DMA
 controller and therefore can do DMA on their own.
@@ -27,7 +27,7 @@ controller and therefore can do DMA on their own.
 
 #align(center, [#image("peripheral-dma.pdf", height: 80%)])
 
-===  DMA controllers 
+=== DMA controllers
 
 Other device controllers rely on an external DMA
 controller (on the SoC). Their drivers need to submit DMA descriptors to
@@ -37,7 +37,7 @@ this controller.
 
 #align(center, [#image("dma-controller.pdf", height: 80%)])
 
-===  DMA descriptors 
+=== DMA descriptors
 
 DMA descriptors describe the various attributes
 of a DMA transfer, and are chained.
@@ -46,7 +46,7 @@ of a DMA transfer, and are chained.
 
 #align(center, [#image("dma-descriptors.pdf", width: 100%)])
 
-===  Cache constraints
+=== Cache constraints
 
 - The CPU can access memory through a data cache
 
@@ -65,7 +65,7 @@ of a DMA transfer, and are chained.
 
 #align(center, [#image("caches.pdf", width: 75%)])
 
-===  DMA addressing constraints
+=== DMA addressing constraints
 
 - Memory and devices have physical addresses: #ksym("phys_addr_t")
 
@@ -82,7 +82,7 @@ of a DMA transfer, and are chained.
 
 #align(center, [#image("addressing.pdf", width: 70%)])
 
-===  DMA memory allocation constraints 
+=== DMA memory allocation constraints
 
 The APIs must remain generic and handle all cases transparently, hence:
 
@@ -109,7 +109,7 @@ The APIs must remain generic and handle all cases transparently, hence:
 == Kernel APIs for DMA
 <kernel-apis-for-dma>
 
-===  `dma-mapping` vs. `dmaengine` vs. `dma-buf` 
+=== `dma-mapping` vs. `dmaengine` vs. `dma-buf`
 
 The `dma-mapping` API:
 
@@ -138,7 +138,7 @@ The `dma-buf` API:
 
 - Not covered in this training
 
-===  `dma-mapping: Coherent or streaming DMA mappings`
+=== `dma-mapping: Coherent or streaming DMA mappings`
 
 - Coherent mappings
 
@@ -164,7 +164,7 @@ The `dma-buf` API:
   - Mapping set up for each transfer (keeps DMA registers free on the
     hardware)
 
-===  `dma-mapping: memory addressing constraints`
+=== `dma-mapping: memory addressing constraints`
 
 - Any device capable of being master on a bus shall assert its
   addressing capabilities.
@@ -191,52 +191,52 @@ The `dma-buf` API:
 
 ```c int dma_set_mask_and_coherent(struct device *dev, u64 mask) ```
 
-===  `dma-mapping: Allocating coherent memory mappings` 
+=== `dma-mapping: Allocating coherent memory mappings`
 
 The kernel takes care of both buffer allocation and mapping:
 
 #v(1em)
 
 #[ #show raw.where(lang: "c", block: true): set text(size: 13pt)
-```c
-#include <linux/dma-mapping.h>
+  ```c
+  #include <linux/dma-mapping.h>
 
-void *                       /* Output: buffer address */
-    dma_alloc_coherent(
-         struct device *dev, /* device structure */
-         size_t size,        /* Needed buffer size in bytes */
-         dma_addr_t *handle, /* Output: DMA bus address */
-         gfp_t gfp           /* Standard GFP flags */
-);
+  void *                       /* Output: buffer address */
+      dma_alloc_coherent(
+           struct device *dev, /* device structure */
+           size_t size,        /* Needed buffer size in bytes */
+           dma_addr_t *handle, /* Output: DMA bus address */
+           gfp_t gfp           /* Standard GFP flags */
+  );
 
-void dma_free_coherent(struct device *dev,
-    size_t size, void *cpu_addr, dma_addr_t handle);
-```]
+  void dma_free_coherent(struct device *dev,
+      size_t size, void *cpu_addr, dma_addr_t handle);
+  ```]
 
-===  `dma-mapping: Setting up streaming memory mappings (single)`
+=== `dma-mapping: Setting up streaming memory mappings (single)`
 
 Works on already allocated buffers:
 
 #v(1em)
 
 #[ #show raw.where(lang: "c", block: true): set text(size: 13pt)
-```c
-#include <linux/dma-mapping.h>
+  ```c
+  #include <linux/dma-mapping.h>
 
-dma_addr_t dma_map_single(
-      struct device *,        /* device structure */
-      void *,                 /* input: buffer to use */
-      size_t,                 /* buffer size */
-      enum dma_data_direction /* Either DMA_BIDIRECTIONAL,
-                               * DMA_TO_DEVICE or
-                               * DMA_FROM_DEVICE */
-);
+  dma_addr_t dma_map_single(
+        struct device *,        /* device structure */
+        void *,                 /* input: buffer to use */
+        size_t,                 /* buffer size */
+        enum dma_data_direction /* Either DMA_BIDIRECTIONAL,
+                                 * DMA_TO_DEVICE or
+                                 * DMA_FROM_DEVICE */
+  );
 
-void dma_unmap_single(struct device *dev, dma_addr_t handle,
-    size_t size, enum dma_data_direction dir);
-```]
+  void dma_unmap_single(struct device *dev, dma_addr_t handle,
+      size_t size, enum dma_data_direction dir);
+  ```]
 
-===  `dma-mapping: Setting up streaming memory mappings (multiples)` 
+=== `dma-mapping: Setting up streaming memory mappings (multiples)`
 
 A `scatterlist` using the `scatter-gather` library can be used to map
 several buffers and link them together
@@ -244,23 +244,23 @@ several buffers and link them together
 #v(1em)
 
 #[ #show raw.where(lang: "c", block: true): set text(size: 13pt)
-```c
-#include <linux/dma-mapping.h>
-#include <linux/scatterlist.h>
+  ```c
+  #include <linux/dma-mapping.h>
+  #include <linux/scatterlist.h>
 
-struct scatterlist sglist[NENTS], *sg; int i, count;
+  struct scatterlist sglist[NENTS], *sg; int i, count;
 
-sg_init_table(sglist, NENTS); sg_set_buf(&sglist[0], buf0, len0); sg_set_buf(&sglist[1], buf1, len1);
+  sg_init_table(sglist, NENTS); sg_set_buf(&sglist[0], buf0, len0); sg_set_buf(&sglist[1], buf1, len1);
 
-count = dma_map_sg(dev, sglist, NENTS, DMA_TO_DEVICE); for_each_sg(sglist, sg, count, i) {
-        dma_address[i] = sg_dma_address(sg);
-        dma_len[i] = sg_dma_len(sg);
-}
-...
-dma_unmap_sg(dev sglist, count, DMA_TO_DEVICE);
-```]
+  count = dma_map_sg(dev, sglist, NENTS, DMA_TO_DEVICE); for_each_sg(sglist, sg, count, i) {
+          dma_address[i] = sg_dma_address(sg);
+          dma_len[i] = sg_dma_len(sg);
+  }
+  ...
+  dma_unmap_sg(dev sglist, count, DMA_TO_DEVICE);
+  ```]
 
-===  `dma-mapping: Setting up streaming I/O mappings` 
+=== `dma-mapping: Setting up streaming I/O mappings`
 
 Physical addresses with MMIO registers might need to be remapped in order to be
 accessed through an IO-MMU:
@@ -268,24 +268,24 @@ accessed through an IO-MMU:
 #v(1em)
 
 #[ #show raw.where(lang: "c", block: true): set text(size: 13pt)
-```c
-#include <linux/dma-mapping.h>
+  ```c
+  #include <linux/dma-mapping.h>
 
-dma_addr_t dma_map_resource(
-      struct device *,         /* device structure */
-      phys_addr_t,             /* input: resource to use */
-      size_t,                  /* buffer size */
-      enum dma_data_direction, /* Either DMA_BIDIRECTIONAL,
-                                * DMA_TO_DEVICE or
-                                * DMA_FROM_DEVICE */
-      unsigned long attrs,     /* optional attributes */
-);
+  dma_addr_t dma_map_resource(
+        struct device *,         /* device structure */
+        phys_addr_t,             /* input: resource to use */
+        size_t,                  /* buffer size */
+        enum dma_data_direction, /* Either DMA_BIDIRECTIONAL,
+                                  * DMA_TO_DEVICE or
+                                  * DMA_FROM_DEVICE */
+        unsigned long attrs,     /* optional attributes */
+  );
 
-void dma_unmap_resource(struct device *dev, dma_addr_t handle,
-    size_t size, enum dma_data_direction dir, unsigned long attrs);
-```]
+  void dma_unmap_resource(struct device *dev, dma_addr_t handle,
+      size_t size, enum dma_data_direction dir, unsigned long attrs);
+  ```]
 
-===  `dma-mapping: Verifying DMA memory mappings`
+=== `dma-mapping: Verifying DMA memory mappings`
 
 - All mapping helpers can fail and return errors
 
@@ -297,7 +297,7 @@ void dma_unmap_resource(struct device *dev, dma_addr_t handle,
   - May give additional clues if #ksym("CONFIG_DMA_API_DEBUG") is
     enabled.
 
-===  `dma-mapping: Syncing streaming DMA mappings`
+=== `dma-mapping: Syncing streaming DMA mappings`
 
 - In general streaming mappings are:
 
@@ -325,11 +325,11 @@ void dma_unmap_resource(struct device *dev, dma_addr_t handle,
   - The device needs to access the data:
 
     ```c
-    dma_sync_single_for_device(dev, dma_handle, size, direction); 
+    dma_sync_single_for_device(dev, dma_handle, size, direction);
     dma_sync_sg_for_device(dev, sglist, nents, direction);
     ```
 
-===  Starting DMA transfers
+=== Starting DMA transfers
 
 - If the device you're writing a driver for is doing peripheral DMA, no
   external API is involved.
@@ -340,11 +340,11 @@ void dma_unmap_resource(struct device *dev, dma_addr_t handle,
 
   + Use Linux `dmaengine` framework, especially its slave API
 
-===  The `dmaengine framework`
+=== The `dmaengine framework`
 
 #align(center, [#image("dmaengine-framework.pdf", width: 90%)])
 
-===  `dmaengine: Slave API: Initial configuration`
+=== `dmaengine: Slave API: Initial configuration`
 
 Steps to start a DMA transfer with `dmaengine`:
 
@@ -366,32 +366,32 @@ struct dma_slave_config txconf = {};
  * direction, access size, burst length, source and destination).
  * Source being memory, there is no buswidth or maxburst limitation
  * and each buffer will be different. */
-txconf.direction = DMA_MEM_TO_DEV; 
-txconf.dst_addr_width = DMA_SLAVE_BUSWIDTH_1_BYTE; 
-txconf.dst_maxburst = TX_TRIGGER; 
-txconf.dst_addr = fifo_dma_addr; 
+txconf.direction = DMA_MEM_TO_DEV;
+txconf.dst_addr_width = DMA_SLAVE_BUSWIDTH_1_BYTE;
+txconf.dst_maxburst = TX_TRIGGER;
+txconf.dst_addr = fifo_dma_addr;
 ret = dmaengine_slave_config(dma->txchan, &txconf);
 ```
 
-===  `dmaengine: Slave API: Per-transfer configuration (1/2)`
+=== `dmaengine: Slave API: Per-transfer configuration (1/2)`
 
 + Create a descriptor with all the required configuration for the next
   transfer with:
 
 #[ #show raw.where(lang: "c", block: true): set text(size: 12pt)
-```c
-struct dma_async_tx_descriptor *
-dmaengine_prep_slave_single(struct dma_chan *chan, dma_addr_t buf,
-                            size_t len, enum dma_transfer_direction dir,
-                            unsigned long flags); 
-struct dma_async_tx_descriptor *
-dmaengine_prep_slave_sg(struct dma_chan *chan, struct scatterlist *sgl,
-                        unsigned int sg_len, enum dma_transfer_direction dir,
-                        unsigned long flags);
-struct dma_async_tx_descriptor *
-dmaengine_prep_dma_cyclic(struct dma_chan *chan, dma_addr_t buf, size_t buf_len,
-                          size_t period_len, enum dma_data_direction dir);
-```]
+  ```c
+  struct dma_async_tx_descriptor *
+  dmaengine_prep_slave_single(struct dma_chan *chan, dma_addr_t buf,
+                              size_t len, enum dma_transfer_direction dir,
+                              unsigned long flags);
+  struct dma_async_tx_descriptor *
+  dmaengine_prep_slave_sg(struct dma_chan *chan, struct scatterlist *sgl,
+                          unsigned int sg_len, enum dma_transfer_direction dir,
+                          unsigned long flags);
+  struct dma_async_tx_descriptor *
+  dmaengine_prep_dma_cyclic(struct dma_chan *chan, dma_addr_t buf, size_t buf_len,
+                            size_t period_len, enum dma_data_direction dir);
+  ```]
 
 - A common flag is:
 
@@ -399,16 +399,16 @@ dmaengine_prep_dma_cyclic(struct dma_chan *chan, dma_addr_t buf, size_t buf_len,
 
 - The descriptor returned can be used to fill-in a callback:
 #[ #show raw.where(lang: "c", block: true): set text(size: 12pt)
-```c
-desc->callback = foo_dma_complete; 
-desc->callback_param = foo_dev;
-```]
+  ```c
+  desc->callback = foo_dma_complete;
+  desc->callback_param = foo_dev;
+  ```]
 
-===  `dmaengine: Slave API: Per-transfer configuration (2/2)`
+=== `dmaengine: Slave API: Per-transfer configuration (2/2)`
 
 #block[
-#set enum(numbering: "1.", start: 2)
-+ Queue the next operation:
+  #set enum(numbering: "1.", start: 2)
+  + Queue the next operation:
 ]
 
 ```c
@@ -421,36 +421,36 @@ cookie = dmaengine_submit(desc); ret = dma_submit_error(cookie); if (ret)
 #v(0.5em)
 
 #block[
-#set enum(numbering: "1.", start: 3)
-+ 
-- Trigger the queued transfers
-  ```c
-  dma_async_issue_pending(chan);
-  ```
-- In case anything went wrong or the device should stop being used, it
-  is possible to terminate all ongoing transactions with:
-  ```c
-  dmaengine_terminate_sync(chan);
-  ```
+  #set enum(numbering: "1.", start: 3)
+  +
+  - Trigger the queued transfers
+    ```c
+    dma_async_issue_pending(chan);
+    ```
+  - In case anything went wrong or the device should stop being used, it
+    is possible to terminate all ongoing transactions with:
+    ```c
+    dmaengine_terminate_sync(chan);
+    ```
 ]
 
-===  Examples
+=== Examples
 
 - Commented network driver, whith both streaming and coherent mappings:
-  
+
   #link("https://bootlin.com/pub/drivers/r6040-network-driver-with-comments.c")
 
 - Example of usage of the slave API: look at the code for
   #kfunc("stm32_i2c_prep_dma_xfer").
 
-#setuplabframe([DMA],[
+#setuplabframe([DMA], [
 
-- Setup streaming mappings with the `dma-mapping` API
+  - Setup streaming mappings with the `dma-mapping` API
 
-- Configure a DMA controller with the `dmaengine` API
+  - Configure a DMA controller with the `dmaengine` API
 
-- Configure the hardware to trigger DMA transfers
+  - Configure the hardware to trigger DMA transfers
 
-- Wait for DMA completion
+  - Wait for DMA completion
 
 ])

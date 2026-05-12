@@ -4,8 +4,8 @@
 
 #show: bootlin-theme
 
-#setuplabframe([Downloading kernel source code],[
+#setuplabframe([Downloading kernel source code], [
 
-- Clone the mainline Linux source tree with git
+  - Clone the mainline Linux source tree with git
 
 ])

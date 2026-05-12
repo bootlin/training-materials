@@ -2,6 +2,6 @@
 
 #import "/typst/local/common.typ": *
 
-#show: bootlin-theme 
+#show: bootlin-theme
 
 = Linux Kernel Introduction

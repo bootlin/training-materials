@@ -6,7 +6,7 @@
 
 = Concurrent Access to Resources: Locking
 
-===  Sources of concurrency issues
+=== Sources of concurrency issues
 
 - In terms of concurrency, the kernel has the same constraint as a
   multi-threaded program: its state is global and visible in all
@@ -30,11 +30,11 @@
   shared resources that can't be made local (such as hardware ones), use
   locking.
 
-===  Concurrency protection with locks
+=== Concurrency protection with locks
 
 #align(center, [#image("concurrency-protection.pdf", height: 90%)])
 
-===  Linux mutexes #emph[mutex = #strong[mut]ual #strong[ex]clusion]
+=== Linux mutexes #emph[mutex = #strong[mut]ual #strong[ex]clusion]
 
 - The kernel's main locking primitive. It's a #emph[binary lock]. Note
   that #emph[counting locks] (#emph[semaphores]) are also available, but
@@ -57,7 +57,7 @@
 
   - ```c void mutex_init(struct mutex *lock); ```
 
-===  Locking and unlocking mutexes 1/2
+=== Locking and unlocking mutexes 1/2
 
 - ```c void mutex_lock(struct mutex *lock); ```
 
@@ -80,7 +80,7 @@
 
   - Releases the lock. Do it as soon as you leave the critical section.
 
-===  Spinlocks
+=== Spinlocks
 
 - Locks to be used for code that is not allowed to sleep (interrupt
   handlers), or that doesn't want to sleep (critical sections). Be very
@@ -97,7 +97,7 @@
 
 #align(center, [#image("spinlock.pdf", width: 40%)])
 
-===  The spinlock API
+=== The spinlock API
 
 - Spinlocks can be initialized:
 
@@ -118,11 +118,14 @@
 
   - ```c void spin_unlock(spinlock_t *lock); ```
 
-===  Using spinlocks 1/2
+=== Using spinlocks 1/2
 
 - Manipulating spinlocks implies some care:
 
-#align(center, [#image("/common/spinlock-deadlock-with-preemption.pdf", width: 90%)])
+#align(center, [#image(
+  "/common/spinlock-deadlock-with-preemption.pdf",
+  width: 90%,
+)])
 
 #v(0.5em)
 
@@ -133,12 +136,15 @@
 - Disabling kernel preemption also disables migration to avoid the same
   kind of issue as pictured above from happening.
 
-===  Using spinlocks 2/2
+=== Using spinlocks 2/2
 
 - We also need to avoid deadlocks because of interrupts that could want
   to get the same lock:
 
-#align(center, [#image("/common/spinlock-deadlock-with-interrupt.pdf", width: 80%)])
+#align(center, [#image(
+  "/common/spinlock-deadlock-with-interrupt.pdf",
+  width: 80%,
+)])
 
 - ```c void spin_lock_irqsave(spinlock_t *lock, unsigned long flags); ```
 
@@ -149,7 +155,7 @@
   - Typically used when the lock can be accessed in both process and
     interrupt context.
 
-===  Using spinlocks 3/3
+=== Using spinlocks 3/3
 
 - ```c void spin_lock_bh(spinlock_t *lock); ```
 
@@ -165,56 +171,62 @@
 - Note that reader/writer spinlocks also exist, allowing for multiple
   simultaneous readers.
 
-===  Spinlock example
+=== Spinlock example
 
 - From #kfile("drivers/tty/serial/uartlite.c")
 
 - Spinlock structure embedded into #kstruct("uart_port")
 
   #[ #show raw.where(lang: "c", block: true): set text(size: 15pt)
-  ```c
-  struct uart_port {
-          spinlock_t lock;
-          /* Other fields */
-  };
-  ```]
+    ```c
+    struct uart_port {
+            spinlock_t lock;
+            /* Other fields */
+    };
+    ```]
 
 - Spinlock taken/released with protection against interrupts
 
   #[ #show raw.where(lang: "c", block: true): set text(size: 15pt)
-  ```c
-  static unsigned int ulite_tx_empty(struct uart_port *port) {
-          unsigned long flags;
+    ```c
+    static unsigned int ulite_tx_empty(struct uart_port *port) {
+            unsigned long flags;
 
-          spin_lock_irqsave(&port->lock, flags);
-          /* Do something */
-          spin_unlock_irqrestore(&port->lock, flags);
-  }
-  ```]
+            spin_lock_irqsave(&port->lock, flags);
+            /* Do something */
+            spin_unlock_irqrestore(&port->lock, flags);
+    }
+    ```]
 
-===  More deadlock situations 
+=== More deadlock situations
 
 They can lock up your system. Make sure they never happen!
 
 #v(0.5em)
 
-#table(columns: (50%, 50%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (50%, 50%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-Rule 1: don't call a function that can try to get access to the same
-lock
-#align(center, [#image("deadlock-same-lock.pdf", width: 90%)])
+    Rule 1: don't call a function that can try to get access to the same
+    lock
+    #align(center, [#image("deadlock-same-lock.pdf", width: 90%)])
 
-],[
+  ],
+  [
 
-Rule 2: if you need multiple locks, always acquire them in the same
-order!
-#align(center, [#image("deadlock-two-locks.pdf", width: 90%)])
+    Rule 2: if you need multiple locks, always acquire them in the same
+    order!
+    #align(center, [#image("deadlock-two-locks.pdf", width: 90%)])
 
-])
+  ],
+)
 
 #include "/common/prove-locking.typ"
 
-===  Alternatives to locking 
+=== Alternatives to locking
 
 As we have just seen, locking can have a strong negative impact on system performance. In some situations, you
 could do without it.
@@ -228,7 +240,7 @@ could do without it.
 
 - When relevant, use atomic operations.
 
-===  RCU API
+=== RCU API
 
 - Conditions where RCU is useful:
 
@@ -253,7 +265,7 @@ could do without it.
 - RCU mentorship session by Paul E. McKenney:
   #link("https://youtu.be/K-4TI5gFsig")
 
-===  RCU example: ensuring consistent accesses (1/2)
+=== RCU example: ensuring consistent accesses (1/2)
 
 #text(size: 15pt)[Unsafe read/write]
 
@@ -276,45 +288,45 @@ unsafe_set(int new_a, int new_b)
 };
 ```
 
-===  RCU example: ensuring consistent accesses (2/2)
+=== RCU example: ensuring consistent accesses (2/2)
 
 #text(size: 15pt)[Safe read/write with RCU]
 
 #v(-0.2em)
 
 #[ #show raw.where(lang: "c", block: true): set text(size: 10pt)
-```c
-struct myconf { int a, b; } *shared_conf; /* initialized */
+  ```c
+  struct myconf { int a, b; } *shared_conf; /* initialized */
 
-safe_get(int *cur_a, int *cur_b)
-{
-        struct myconf *temp;
+  safe_get(int *cur_a, int *cur_b)
+  {
+          struct myconf *temp;
 
-        rcu_read_lock();
-        temp = rcu_dereference(shared_conf);
-        *cur_a = temp->a;
-        /* If *shared_conf is updated, temp->a and temp->b will remain consistent! */
-        *cur_b = temp->b;
-        rcu_read_unlock();
-};
+          rcu_read_lock();
+          temp = rcu_dereference(shared_conf);
+          *cur_a = temp->a;
+          /* If *shared_conf is updated, temp->a and temp->b will remain consistent! */
+          *cur_b = temp->b;
+          rcu_read_unlock();
+  };
 
-safe_set(int new_a, int new_b)
-{
-        struct myconf *newconf = kmalloc(...);
-        struct myconf *oldconf;
+  safe_set(int new_a, int new_b)
+  {
+          struct myconf *newconf = kmalloc(...);
+          struct myconf *oldconf;
 
-        oldconf = rcu_dereference(shared_conf);
-        newconf->a = new_a;
-        newconf->b = new_b;
-        rcu_assign_pointer(shared_conf, newconf);
-        /* Readers might still have a reference over the old struct here... */
-        synchronize_rcu();
-        /* ...but not here! No more readers of the old struct, kfree() is safe! */
-        kfree(oldconf);
-};
-```]
+          oldconf = rcu_dereference(shared_conf);
+          newconf->a = new_a;
+          newconf->b = new_b;
+          rcu_assign_pointer(shared_conf, newconf);
+          /* Readers might still have a reference over the old struct here... */
+          synchronize_rcu();
+          /* ...but not here! No more readers of the old struct, kfree() is safe! */
+          kfree(oldconf);
+  };
+  ```]
 
-===  Atomic variables 1/2 
+=== Atomic variables 1/2
 
 ```c #include <linux/atomic.h> ```
 
@@ -344,7 +356,7 @@ safe_set(int new_a, int new_b)
 
     - ```c void atomic_sub(int i, atomic_t *v); ```
 
-===  Atomic variables 2/2
+=== Atomic variables 2/2
 
 - Similar functions testing the result:
 
@@ -364,7 +376,7 @@ safe_set(int new_a, int new_b)
 
   - ```c int atomic_sub_return(...); ```
 
-===  Atomic bit operations
+=== Atomic bit operations
 
 - Supply very fast, atomic operations
 
@@ -394,38 +406,49 @@ safe_set(int new_a, int new_b)
 
   - ```c int test_and_change_bit(...); ```
 
-===  Kernel locking: summary and references
+=== Kernel locking: summary and references
 
-#table(columns: (65%, 35%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (65%, 35%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-- Use mutexes in code that is allowed to sleep
+    - Use mutexes in code that is allowed to sleep
 
-- Use spinlocks in code that is not allowed to sleep (interrupts) or for
-  which sleeping would be too costly (critical sections)
+    - Use spinlocks in code that is not allowed to sleep (interrupts) or for
+      which sleeping would be too costly (critical sections)
 
-- Use atomic operations to protect integers or addresses
+    - Use atomic operations to protect integers or addresses
 
-See #kdochtml("kernel-hacking/locking") in kernel documentation for
-many details about kernel locking mechanisms.
+    See #kdochtml("kernel-hacking/locking") in kernel documentation for
+    many details about kernel locking mechanisms.
 
-],[
+  ],
+  [
 
 
-#text(size: 17pt)[
-Further reading: see the classical
-#emph[#link("https://en.wikipedia.org/wiki/Dining_philosophers_problem")[dining philosophers problem]]
-for a nice illustration of synchronization and concurrency issues.]
+    #text(size: 17pt)[
+      Further reading: see the classical
+      #emph[#link(
+        "https://en.wikipedia.org/wiki/Dining_philosophers_problem",
+      )[dining philosophers problem]]
+      for a nice illustration of synchronization and concurrency issues.]
 
-#align(center, [#image("An_illustration_of_the_dining_philosophers_problem.jpg", width: 90%)])
+    #align(center, [#image(
+      "An_illustration_of_the_dining_philosophers_problem.jpg",
+      width: 90%,
+    )])
 
-#text(size: 11pt)[Image source:
-#link("https://en.wikipedia.org/wiki/Dining_philosophers_problem")[https://en.wikipedia.org/wiki/Dining_philosophers_problem])
-]
-])
+    #text(size: 11pt)[Image source:
+      #link("https://en.wikipedia.org/wiki/Dining_philosophers_problem")[https://en.wikipedia.org/wiki/Dining_philosophers_problem])
+    ]
+  ],
+)
 
-#setuplabframe([Locking],[
+#setuplabframe([Locking], [
 
-- Add locking to the driver to prevent concurrent accesses to shared
-  resources
+  - Add locking to the driver to prevent concurrent accesses to shared
+    resources
 
 ])

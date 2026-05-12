@@ -2,11 +2,11 @@
 
 #import "/typst/local/common.typ": *
 
-#show: bootlin-theme 
+#show: bootlin-theme
 
 == Linux kernel source code
 
-===  Programming language
+=== Programming language
 
 - Implemented in C like all UNIX systems
 
@@ -33,7 +33,7 @@
 - A subset of the supported architectures can be built with the LLVM C
   compiler (Clang) too: #link("https://clangbuiltlinux.github.io/")
 
-===  No C library
+=== No C library
 
 - The kernel has to be standalone and can't use user space code.
 
@@ -53,7 +53,7 @@
   convenience, like #kfunc("printk"), #kfunc("memset"),
   #kfunc("kmalloc"), ...
 
-===  Portability
+=== Portability
 
 - The Linux kernel code is designed to be portable
 
@@ -73,70 +73,82 @@
 - Never use floating point numbers in kernel code. Your code may need to
   run on a low-end processor without a floating point unit.
 
-===  Linux kernel to user API/ABI stability
+=== Linux kernel to user API/ABI stability
 
-#table(columns: (68%, 32%), stroke:none, gutter:15pt, [
+#table(
+  columns: (68%, 32%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-Linux kernel to userspace API is stable
+    Linux kernel to userspace API is stable
 
-- Source code for userspace applications will not have to be updated
-  when compiling for a more recent kernel
+    - Source code for userspace applications will not have to be updated
+      when compiling for a more recent kernel
 
-  - System calls, `/proc` and `/sys` content cannot be removed or
-    changed. Only new entries can be added.
+      - System calls, `/proc` and `/sys` content cannot be removed or
+        changed. Only new entries can be added.
 
-Linux kernel to userspace ABI is stable
+    Linux kernel to userspace ABI is stable
 
-- Binaries are portable and can be executed on a more recent kernel
+    - Binaries are portable and can be executed on a more recent kernel
 
-  - The way memory is accessed, the size of the variables in memory, how
-    structures are organized, the calling convention, etc, are all
-    stable over time.
+      - The way memory is accessed, the size of the variables in memory, how
+        structures are organized, the calling convention, etc, are all
+        stable over time.
 
-],[
-#v(-0.7em)
-#[ #set par(leading: 0.3em)
-#image("linux-user-api.pdf", height: 95%)
-#text(size: 11pt)[Modified Image from Wikipedia:] \
-#text(size: 10pt)[#link("https://bit.ly/2U2rdGB")]
-]
-])
+  ],
+  [
+    #v(-0.7em)
+    #[ #set par(leading: 0.3em)
+      #image("linux-user-api.pdf", height: 95%)
+      #text(size: 11pt)[Modified Image from Wikipedia:] \
+      #text(size: 10pt)[#link("https://bit.ly/2U2rdGB")]
+    ]
+  ],
+)
 
-===  Linux internal API/ABI instability
+=== Linux internal API/ABI instability
 
-#table(columns: (66%, 34%), stroke:none, gutter:15pt, [
+#table(
+  columns: (66%, 34%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-Linux internal API is not stable
+    Linux internal API is not stable
 
-- The source code of a driver is not portable across versions
+    - The source code of a driver is not portable across versions
 
-  - In-tree drivers are updated by the developer proposing the API
-    change: works great for mainline code
+      - In-tree drivers are updated by the developer proposing the API
+        change: works great for mainline code
 
-  - An out-of-tree driver compiled for a given version may no longer
-    compile or work on a more recent one
+      - An out-of-tree driver compiled for a given version may no longer
+        compile or work on a more recent one
 
-  - See #kdochtml("process/stable-api-nonsense") for reasons why
+      - See #kdochtml("process/stable-api-nonsense") for reasons why
 
-Linux internal ABI is not stable
+    Linux internal ABI is not stable
 
-- A binary module compiled for a given kernel version cannot be used
-  with another version
+    - A binary module compiled for a given kernel version cannot be used
+      with another version
 
-  - The module loading utilities will perform this check prior to the
-    insertion
+      - The module loading utilities will perform this check prior to the
+        insertion
 
-],[
+  ],
+  [
 
-#v(-0.8em)
-#[ #set par(leading: 0.3em)
-#image("linux-internal-api.pdf", height: 95%)
-#text(size: 11pt)[Modified Image from Wikipedia:] \
-#text(size: 10pt)[#link("https://bit.ly/2U2rdGB")]
-]
-])
+    #v(-0.8em)
+    #[ #set par(leading: 0.3em)
+      #image("linux-internal-api.pdf", height: 95%)
+      #text(size: 11pt)[Modified Image from Wikipedia:] \
+      #text(size: 10pt)[#link("https://bit.ly/2U2rdGB")]
+    ]
+  ],
+)
 
-===  Kernel memory constraints
+=== Kernel memory constraints
 
 - No memory protection
 
@@ -151,7 +163,7 @@ Linux internal ABI is not stable
   (except #emph[tmpfs] which lives completely in the page cache and on
   swap)
 
-===  Linux kernel licensing constraints
+=== Linux kernel licensing constraints
 
 - The Linux kernel is licensed under the GNU General Public License
   version 2
@@ -168,7 +180,9 @@ Linux internal ABI is not stable
     therefore must be released under GPLv2.
 
 - The GPL license has been successfully enforced in courts: \
-  #link("https://en.wikipedia.org/wiki/Gpl-violations.org#Notable_victories")[https://en.wikipedia.org/wiki/Gpl-violations.org#Notable_victories]
+  #link(
+    "https://en.wikipedia.org/wiki/Gpl-violations.org#Notable_victories",
+  )[https://en.wikipedia.org/wiki/Gpl-violations.org#Notable_victories]
 
 - However, you're only required to do so
 
@@ -176,7 +190,7 @@ Linux internal ABI is not stable
 
   - To your customers, not to the entire world
 
-===  Proprietary code and the kernel
+=== Proprietary code and the kernel
 
 - It is illegal to distribute a binary kernel that includes statically
   compiled proprietary drivers
@@ -195,39 +209,45 @@ Linux internal ABI is not stable
 
 - Is it really useful to keep drivers secret anyway?
 
-===  Abusing the kernel licensing constraints
+=== Abusing the kernel licensing constraints
 
-#table(columns: (50%, 50%), stroke:none, gutter:15pt, [
+#table(
+  columns: (50%, 50%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-- There are some examples of proprietary drivers
+    - There are some examples of proprietary drivers
 
-  - Nvidia uses a wrapper between their drivers and the kernel
+      - Nvidia uses a wrapper between their drivers and the kernel
 
-  - They claim the drivers could be used with a different OS with
-    another wrapper
+      - They claim the drivers could be used with a different OS with
+        another wrapper
 
-  - Unclear whether it makes it legal or not
+      - Unclear whether it makes it legal or not
 
-#v(0.5em)
+    #v(0.5em)
 
-#align(center, [#image("binary-blobs.pdf", height: 40%)])
+    #align(center, [#image("binary-blobs.pdf", height: 40%)])
 
-],[
+  ],
+  [
 
-- The current trend is to hide the logic in the firmware or in
-  userspace. The GPL kernel driver is almost empty and either:
+    - The current trend is to hide the logic in the firmware or in
+      userspace. The GPL kernel driver is almost empty and either:
 
-  - Blindly writes an incoming flow of bytes in the hardware
+      - Blindly writes an incoming flow of bytes in the hardware
 
-  - Exposes a huge MMIO region to userspace through `mmap`
+      - Exposes a huge MMIO region to userspace through `mmap`
 
-#v(0.5em)
+    #v(0.5em)
 
-#align(center, [#image("empty-modules.pdf", height: 40%)])
+    #align(center, [#image("empty-modules.pdf", height: 40%)])
 
-])
+  ],
+)
 
-===  Advantages of GPL drivers
+=== Advantages of GPL drivers
 
 - You don't have to write your driver from scratch. You can reuse code
   from similar free software drivers.
@@ -238,7 +258,7 @@ Linux internal ABI is not stable
 - Legal certainty, you are sure that a GPL driver is fine from a legal
   point of view.
 
-===  Advantages of mainlining your kernel drivers
+=== Advantages of mainlining your kernel drivers
 
 - The community, reviewers and maintainers will review your code before
   accepting it, offering you the opportunity to enhance it and
@@ -255,7 +275,7 @@ Linux internal ABI is not stable
 
 This will for sure reduce your maintenance and support work
 
-===  User space device drivers 1/2
+=== User space device drivers 1/2
 
 - The kernel provides some mechanisms to access hardware from userspace:
 
@@ -285,7 +305,7 @@ This will for sure reduce your maintenance and support work
 - Otherwise this is #strong[#emph[not]] how the system should be
   architectured. Kernel drivers should always be preferred!
 
-===  User space device drivers 2/2
+=== User space device drivers 2/2
 
 - Advantages
 
@@ -315,10 +335,10 @@ This will for sure reduce your maintenance and support work
 
   - Less straightforward to handle interrupts: increased latency.
 
-#setuplabframe([Kernel Source Code - Exploring],[
+#setuplabframe([Kernel Source Code - Exploring], [
 
-- Explore kernel sources manually
+  - Explore kernel sources manually
 
-- Use automated tools to explore the source code
+  - Use automated tools to explore the source code
 
 ])

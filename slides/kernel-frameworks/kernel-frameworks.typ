@@ -2,35 +2,41 @@
 
 #import "/typst/local/common.typ": *
 
-#show: bootlin-theme 
+#show: bootlin-theme
 
 = Kernel frameworks for device drivers
 
-===  Kernel and Device Drivers
+=== Kernel and Device Drivers
 
-#table(columns: (70%, 35%), stroke: none, gutter: 15pt, [
- 
-In Linux, a driver is always interfacing with:
+#table(
+  columns: (70%, 35%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-- a *framework* that allows the driver to expose the hardware
-  features to user space applications.
+    In Linux, a driver is always interfacing with:
 
-- a *bus infrastructure*, part of the device model, to
-  detect/communicate with the hardware.
+    - a *framework* that allows the driver to expose the hardware
+      features to user space applications.
 
-This section focuses on the _kernel frameworks_, while the
-_bus infrastructure_ was covered earlier in this training. 
+    - a *bus infrastructure*, part of the device model, to
+      detect/communicate with the hardware.
 
-],[
+    This section focuses on the _kernel frameworks_, while the
+    _bus infrastructure_ was covered earlier in this training.
 
-#align(center, [#image("driver-architecture.pdf", height: 95%)])
+  ],
+  [
 
-])
+    #align(center, [#image("driver-architecture.pdf", height: 95%)])
+
+  ],
+)
 
 == User space vision of devices
 <user-space-vision-of-devices>
 
-===  Types of devices 
+=== Types of devices
 
 Under Linux, there are essentially four types of devices:
 
@@ -54,7 +60,7 @@ Under Linux, there are essentially four types of devices:
 → Most devices are _character devices_, so we will study
 these in more details.
 
-===  Devices: everything is a file
+=== Devices: everything is a file
 
 - A very important UNIX design decision was to represent most
   _system objects_ as files
@@ -78,18 +84,18 @@ these in more details.
 - All _device files_ are by convention stored in the `/dev`
   directory
 
-===  Device files examples
+=== Device files examples
 
 Example of device files in a Linux system
 
 #v(0.5em)
 
 `
-$ ls -l /dev/ttyS0 /dev/tty1 /dev/sda /dev/sda1 /dev/sda2 /dev/sdc1 /dev/zero 
-brw-rw---- 1 root disk    8,  0 2011-05-27 08:56 /dev/sda 
+$ ls -l /dev/ttyS0 /dev/tty1 /dev/sda /dev/sda1 /dev/sda2 /dev/sdc1 /dev/zero
+brw-rw---- 1 root disk    8,  0 2011-05-27 08:56 /dev/sda
 brw-rw---- 1 root disk    8,  1 2011-05-27 08:56 /dev/sda1
 brw-rw---- 1 root disk    8,  2 2011-05-27 08:56 /dev/sda2
-brw-rw---- 1 root disk    8, 32 2011-05-27 08:56 /dev/sdc 
+brw-rw---- 1 root disk    8, 32 2011-05-27 08:56 /dev/sdc
 crw------- 1 root root    4,  1 2011-05-27 08:57 /dev/tty1
 crw-rw---- 1 root dialout 4, 64 2011-05-27 08:56 /dev/ttyS0
 crw-rw-rw- 1 root root    1,  5 2011-05-27 08:56 /dev/zero
@@ -104,14 +110,14 @@ port
 
 #[
   #show raw.where(lang: "c", block: true): set text(size: 16pt)
-```c
-int fd;
-fd = open("/dev/ttyS0", O_RDWR);
-write(fd, "Hello", 5); 
-close(fd);
-```]
+  ```c
+  int fd;
+  fd = open("/dev/ttyS0", O_RDWR);
+  write(fd, "Hello", 5);
+  close(fd);
+  ```]
 
-===  Creating device files
+=== Creating device files
 
 - Before Linux 2.6.32, on basic Linux systems, the device files had to
   be created manually using the `mknod` command
@@ -136,7 +142,7 @@ close(fd);
 == Character drivers
 <character-drivers>
 
-===  A character driver in the kernel
+=== A character driver in the kernel
 
 - From the point of view of an application, a _character device_ is
   essentially a *file*.
@@ -152,11 +158,11 @@ close(fd);
   are called when a user space application makes the corresponding
   system call.
 
-===  From user space to the kernel: character devices
+=== From user space to the kernel: character devices
 
 #align(center, [#image("user-kernel-exchanges.pdf", height: 90%)])
 
-===  File operations 
+=== File operations
 
 Here are the most important operations for a character driver, from the definition of #kstruct("file_operations"):
 
@@ -164,27 +170,27 @@ Here are the most important operations for a character driver, from the definiti
 
 #[
   #show raw.where(lang: "c", block: true): set text(size: 16pt)
-```c
-struct file_operations {
-    struct module *owner;
-    ssize_t (*read) (struct file *, char __user *,
-        size_t, loff_t *);
-    ssize_t (*write) (struct file *, const char __user *,
-        size_t, loff_t *);
-    long (*unlocked_ioctl) (struct file *, unsigned int,
-        unsigned long);
-    int (*mmap) (struct file *, struct vm_area_struct *);
-    int (*open) (struct inode *, struct file *);
-    int (*release) (struct inode *, struct file *);
-    ...
-};
-```]
+  ```c
+  struct file_operations {
+      struct module *owner;
+      ssize_t (*read) (struct file *, char __user *,
+          size_t, loff_t *);
+      ssize_t (*write) (struct file *, const char __user *,
+          size_t, loff_t *);
+      long (*unlocked_ioctl) (struct file *, unsigned int,
+          unsigned long);
+      int (*mmap) (struct file *, struct vm_area_struct *);
+      int (*open) (struct inode *, struct file *);
+      int (*release) (struct inode *, struct file *);
+      ...
+  };
+  ```]
 
 #v(0.5em)
 
 Many operations exist, they are all optional.
 
-===  open() and release()
+=== open() and release()
 
 - ```c int foo_open(struct inode *i, struct file *f) ```
 
@@ -216,7 +222,7 @@ Many operations exist, they are all optional.
   - *Only implement this function when you do something special
     with the device at `close()` time.*
 
-===  read() and write()
+=== read() and write()
 
 - ```c ssize_t foo_read(struct file*f, char __user*buf, size_t sz, loff_t*off) ```
 
@@ -227,7 +233,7 @@ Many operations exist, they are all optional.
     `off`. `f` is a pointer to the same file structure that was passed
     in the `open()` operation
 
-  - Must return the number of bytes read. 
+  - Must return the number of bytes read.
     `0` is usually interpreted by userspace as the end of the file.
 
   - On UNIX, `read()` operations typically block when there isn't enough
@@ -241,7 +247,7 @@ Many operations exist, they are all optional.
     write it to the device, update `off` and return the number of bytes
     written.
 
-===  Exchanging data with user space 1/3
+=== Exchanging data with user space 1/3
 
 - Kernel code isn't allowed to directly access user space memory, using
   #kfunc("memcpy") or direct pointer dereferencing
@@ -262,7 +268,7 @@ Many operations exist, they are all optional.
   handling, your driver must use special kernel functions to exchange
   data with user space.
 
-===  Exchanging data with user space 2/3
+=== Exchanging data with user space 2/3
 
 - A single value
 
@@ -279,22 +285,22 @@ Many operations exist, they are all optional.
 - A buffer
 
 
-  - ```c unsigned long copy_to_user(void __user *to, const void *from, 
-                                    unsigned long n);
-  ```
+  - ```c unsigned long copy_to_user(void __user *to, const void *from,
+                                      unsigned long n);
+    ```
 
-  - ```c unsigned long copy_from_user(void *to, const void __user *from, 
+  - ```c unsigned long copy_from_user(void *to, const void __user *from,
                                       unsigned long n);
     ```
 
 - The return value must be checked. Zero on success, non-zero on
   failure. If non-zero, the convention is to return #ksym("-EFAULT").
 
-===  Exchanging data with user space 3/3
+=== Exchanging data with user space 3/3
 
 #align(center, [#image("copy-to-from-user.pdf", height: 90%)])
 
-===  Zero copy access to user memory
+=== Zero copy access to user memory
 
 - Having to copy data to or from an intermediate kernel buffer can
   become expensive when the amount of data to transfer is large (video).
@@ -307,7 +313,7 @@ Many operations exist, they are all optional.
   - #kfunc("get_user_pages") and related functions to get a mapping
     to user pages without having to copy them.
 
-===  unlocked_ioctl()
+=== unlocked_ioctl()
 
 - ```c long unlocked_ioctl(struct file*f, unsigned int cmd, unsigned long arg) ```
 
@@ -332,69 +338,69 @@ Many operations exist, they are all optional.
 
   - The semantic of `cmd` and `arg` is driver-specific.
 
-===  ioctl() example: kernel side
+=== ioctl() example: kernel side
 
 #[ #show raw.where(lang: "c", block: true): set text(size: 10pt)
-```c 
-#include <linux/phantom.h> 
+  ```c
+  #include <linux/phantom.h>
 
-static long phantom_ioctl(struct file *file, unsigned int cmd,
-    unsigned long arg)
-{
-    struct phm_reg r;
-    void __user *argp = (void __user *)arg;
+  static long phantom_ioctl(struct file *file, unsigned int cmd,
+      unsigned long arg)
+  {
+      struct phm_reg r;
+      void __user *argp = (void __user *)arg;
 
-    switch (cmd) {
-    case PHN_SET_REG:
-        if (copy_from_user(&r, argp, sizeof(r)))
-            return -EFAULT;
-        /* Do something */
-        break;
-    ...
-    case PHN_GET_REG:
-        if (copy_to_user(argp, &r, sizeof(r)))
-            return -EFAULT;
-        /* Do something */
-        break;
-    ...
-    default:
-        return -ENOTTY;
-    }
+      switch (cmd) {
+      case PHN_SET_REG:
+          if (copy_from_user(&r, argp, sizeof(r)))
+              return -EFAULT;
+          /* Do something */
+          break;
+      ...
+      case PHN_GET_REG:
+          if (copy_to_user(argp, &r, sizeof(r)))
+              return -EFAULT;
+          /* Do something */
+          break;
+      ...
+      default:
+          return -ENOTTY;
+      }
 
-    return 0;
-}
-```]
+      return 0;
+  }
+  ```]
 
 Selected excerpt from #kfile("drivers/misc/phantom.c")
 
-===  Ioctl() Example: Application Side
+=== Ioctl() Example: Application Side
 
 #[ #show raw.where(lang: "c", block: true): set text(size: 16pt)
-```c
-#include <linux/phantom.h>
+  ```c
+  #include <linux/phantom.h>
 
-int main(void)
-{
-    int fd, ret;
-    struct phm_reg reg;
+  int main(void)
+  {
+      int fd, ret;
+      struct phm_reg reg;
 
-    fd = open("/dev/phantom");
-    assert(fd > 0);
+      fd = open("/dev/phantom");
+      assert(fd > 0);
 
-    reg.field1 = 42;
-    reg.field2 = 67;
+      reg.field1 = 42;
+      reg.field2 = 67;
 
-    ret = ioctl(fd, PHN_SET_REG, &reg);
-    assert(ret == 0);
+      ret = ioctl(fd, PHN_SET_REG, &reg);
+      assert(ret == 0);
 
-    return 0;
-}
-```]
+      return 0;
+  }
+  ```]
 
 == The concept of kernel frameworks
 <the-concept-of-kernel-frameworks>
 
-===  Beyond character drivers: kernel frameworks
+=== Beyond character drivers: kernel frameworks
 
 - Many device drivers are not implemented directly as character drivers
 
@@ -411,14 +417,14 @@ int main(void)
     minimizes driver boilerplate and it provides a coherent userspace
     interface whatever driver is being used
 
-===  Example: Some Kernel Frameworks
+=== Example: Some Kernel Frameworks
 
 #align(center, [#image("frameworks.pdf", height: 90%)])
 
 == Example: the input subsystem
 <example-the-input-subsystem>
 
-===  What is the input subsystem?
+=== What is the input subsystem?
 
 - The input subsystem takes care of all the input events coming from the
   human user.
@@ -440,11 +446,11 @@ int main(void)
 - In user space it is usually used by the graphic stack such as
   _X.Org_, _Wayland_ or _Android's InputManager_.
 
-===  Input subsystem diagram
+=== Input subsystem diagram
 
 #align(center, [#image("input-subsystem-diagram.pdf", height: 90%)])
 
-===  Input subsystem overview
+=== Input subsystem overview
 
 - Kernel option #kconfig("CONFIG_INPUT")
 
@@ -471,7 +477,7 @@ int main(void)
 
   - #kfile("include/linux/input.h")
 
-===  Input subsystem API 1/3 
+=== Input subsystem API 1/3
 
 An _input device_ is described by a very long #kstruct("input_dev") structure, an excerpt
 is:
@@ -499,14 +505,14 @@ struct input_dev {
 Before being used, this structure must be allocated and initialized,
 typically with: \ `struct input_dev *devm_input_allocate_device(struct device *dev);`
 
-===  Input subsystem API 2/3
+=== Input subsystem API 2/3
 
 - Depending on the type of events that will be generated, the input bit
   fields `evbit` and `keybit` must be configured: For example, for a
   button we only generate #ksym("EV_KEY") type events, and from
   these only #ksym("BTN_0") events code:
 #v(0.5em)
-  #[ #show raw.where(lang: "c", block: true): set text(size: 15pt)
+#[ #show raw.where(lang: "c", block: true): set text(size: 15pt)
   ```c
   set_bit(EV_KEY, myinput_dev.evbit);
   set_bit(BTN_0, myinput_dev.keybit);
@@ -515,60 +521,61 @@ typically with: \ `struct input_dev *devm_input_allocate_device(struct device *d
 - Once the _input device_ is allocated and filled, the function to
   register it is: \ `int input_register_device(struct input_dev *);`
 
-===  Input subsystem API 3/3 
+=== Input subsystem API 3/3
 
 The events are sent by the driver to the event handler using
 #v(0.5em)
-#[ #show raw.where(lang: "c", block: false): set text(size: 14pt)
+#[
+  #show raw.where(lang: "c", block: false): set text(size: 14pt)
 
-```c void input_event(struct input_dev *dev, unsigned int type, unsigned int code, int value) ```
+  ```c void input_event(struct input_dev *dev, unsigned int type, unsigned int code, int value) ```
 
-#v(0.5em)
+  #v(0.5em)
 
-- The event types are documented in #kdochtml("input/event-codes")
+  - The event types are documented in #kdochtml("input/event-codes")
 
-- An event is composed by one or several input data changes (packet of
-  input data changes) such as the button state, the relative or absolute
-  position along an axis, etc..
+  - An event is composed by one or several input data changes (packet of
+    input data changes) such as the button state, the relative or absolute
+    position along an axis, etc..
 
-- The input subsystem provides other wrappers such as:
+  - The input subsystem provides other wrappers such as:
 
-  - #kfunc("input_report_key")
+    - #kfunc("input_report_key")
 
-  - #kfunc("input_report_abs")
+    - #kfunc("input_report_abs")
 
-After submitting potentially multiple events, the _input_ core must
-be notified by calling:
-#v(0.5em)
-```c void input_sync(struct input_dev *dev) ```]
+  After submitting potentially multiple events, the _input_ core must
+  be notified by calling:
+  #v(0.5em)
+  ```c void input_sync(struct input_dev *dev) ```]
 
-===  Example from drivers/hid/usbhid/usbmouse.c
+=== Example from drivers/hid/usbhid/usbmouse.c
 
 #[ #show raw.where(lang: "c", block: true): set text(size: 14pt)
-```c
-static void usb_mouse_irq(struct urb *urb)
-{
-        struct usb_mouse *mouse = urb->context;
-        signed char *data = mouse->data;
-        struct input_dev *dev = mouse->dev;
-        ...
+  ```c
+  static void usb_mouse_irq(struct urb *urb)
+  {
+          struct usb_mouse *mouse = urb->context;
+          signed char *data = mouse->data;
+          struct input_dev *dev = mouse->dev;
+          ...
 
-        input_report_key(dev, BTN_LEFT,   data[0] & 0x01);
-        input_report_key(dev, BTN_RIGHT,  data[0] & 0x02);
-        input_report_key(dev, BTN_MIDDLE, data[0] & 0x04);
-        input_report_key(dev, BTN_SIDE,   data[0] & 0x08);
-        input_report_key(dev, BTN_EXTRA,  data[0] & 0x10);
+          input_report_key(dev, BTN_LEFT,   data[0] & 0x01);
+          input_report_key(dev, BTN_RIGHT,  data[0] & 0x02);
+          input_report_key(dev, BTN_MIDDLE, data[0] & 0x04);
+          input_report_key(dev, BTN_SIDE,   data[0] & 0x08);
+          input_report_key(dev, BTN_EXTRA,  data[0] & 0x10);
 
-        input_report_rel(dev, REL_X,     data[1]);
-        input_report_rel(dev, REL_Y,     data[2]);
-        input_report_rel(dev, REL_WHEEL, data[3]);
+          input_report_rel(dev, REL_X,     data[1]);
+          input_report_rel(dev, REL_Y,     data[2]);
+          input_report_rel(dev, REL_WHEEL, data[3]);
 
-        input_sync(dev);
-        ...
-}
-```]
+          input_sync(dev);
+          ...
+  }
+  ```]
 
-===  Polling input devices
+=== Polling input devices
 
 - The input subsystem provides an API to support simple input devices
   that _do not raise interrupts_ but have to be _periodically
@@ -586,7 +593,7 @@ static void usb_mouse_irq(struct urb *urb)
   #kfunc("input_set_min_poll_interval") and
   #kfunc("input_set_max_poll_interval")
 
-===  _evdev_ user space interface
+=== _evdev_ user space interface
 
 - The main user space interface to _input devices_ is the
   *event interface*
@@ -600,14 +607,14 @@ static void usb_mouse_irq(struct urb *urb)
 - Each read will return #kstruct("input_event") structures of the
   following format:
 #v(0.5em)
-  ```c
-  struct input_event {
-          struct timeval time;
-          unsigned short type;
-          unsigned short code;
-          unsigned int value;
-  };
-  ```
+```c
+struct input_event {
+        struct timeval time;
+        unsigned short type;
+        unsigned short code;
+        unsigned int value;
+};
+```
 #v(0.5em)
 - A very useful application for _input device_ testing is `evtest`,
   from \ #link("https://cgit.freedesktop.org/evtest/")
@@ -615,7 +622,7 @@ static void usb_mouse_irq(struct urb *urb)
 == Device-managed allocations
 <device-managed-allocations>
 
-===  Device managed allocations
+=== Device managed allocations
 
 - The `probe()` function is typically responsible for allocating a
   significant number of resources: memory, mapping I/O registers,
@@ -643,7 +650,7 @@ static void usb_mouse_irq(struct urb *urb)
 
 - See #kdochtml("driver-api/driver-model/devres") for details
 
-===  Device managed allocations: memory allocation example
+=== Device managed allocations: memory allocation example
 
 - Normally done with `kmalloc(size_t, gfp_t)`, released with
   `kfree(void *)`
@@ -652,68 +659,74 @@ static void usb_mouse_irq(struct urb *urb)
 
 #v(0.5em)
 
-#table(columns: (50%, 50%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (50%, 50%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-#text(size: 16pt)[Without devm functions] #v(-0.2em)
-#[ #show raw.where(lang: "c", block: true): set text(size: 10pt)
-```c
-int foo_probe(struct platform_device *pdev)
-{
-        struct foo_t *foo = kmalloc(sizeof(struct foo_t),
-                                    GFP_KERNEL);
-        /* Register to framework, store
-         * reference to framework structure in foo */
-        ...
-        if (failure) {
-                kfree(foo);
-                return -EBUSY;
-        }
-        platform_set_drvdata(pdev, foo);
-        return 0;
-}
+    #text(size: 16pt)[Without devm functions] #v(-0.2em)
+    #[ #show raw.where(lang: "c", block: true): set text(size: 10pt)
+      ```c
+      int foo_probe(struct platform_device *pdev)
+      {
+              struct foo_t *foo = kmalloc(sizeof(struct foo_t),
+                                          GFP_KERNEL);
+              /* Register to framework, store
+               * reference to framework structure in foo */
+              ...
+              if (failure) {
+                      kfree(foo);
+                      return -EBUSY;
+              }
+              platform_set_drvdata(pdev, foo);
+              return 0;
+      }
 
-void foo_remove(struct platform_device *pdev)
-{
-        struct foo_t *foo = platform_get_drvdata(pdev);
-        /* Retrieve framework structure from foo
-           and unregister it */
-        ...
-        kfree(foo);
-}
-```]
+      void foo_remove(struct platform_device *pdev)
+      {
+              struct foo_t *foo = platform_get_drvdata(pdev);
+              /* Retrieve framework structure from foo
+                 and unregister it */
+              ...
+              kfree(foo);
+      }
+      ```]
 
-],[
+  ],
+  [
 
-#text(size: 16pt)[With devm functions] #v(-0.2em)
+    #text(size: 16pt)[With devm functions] #v(-0.2em)
 
-#[ #show raw.where(lang: "c", block: true): set text(size: 10pt)
-```c
-int foo_probe(struct platform_device *pdev)
-{
-        struct foo_t *foo = devm_kmalloc(&pdev->dev,
-                           sizeof(struct foo_t),
-                           GFP_KERNEL);
-        /* Register to framework, store
-         * reference to framework structure in foo */
-        ...
-        if (failure)
-                return -EBUSY;
-        platform_set_drvdata(pdev, foo);
-        return 0;
-}
+    #[ #show raw.where(lang: "c", block: true): set text(size: 10pt)
+      ```c
+      int foo_probe(struct platform_device *pdev)
+      {
+              struct foo_t *foo = devm_kmalloc(&pdev->dev,
+                                 sizeof(struct foo_t),
+                                 GFP_KERNEL);
+              /* Register to framework, store
+               * reference to framework structure in foo */
+              ...
+              if (failure)
+                      return -EBUSY;
+              platform_set_drvdata(pdev, foo);
+              return 0;
+      }
 
-void foo_remove(struct platform_device *pdev)
-{
-        struct foo_t *foo = platform_get_drvdata(pdev);
-        /* Retrieve framework structure from foo
-           and unregister it */
-        ...
-        /* foo automatically freed */
-}
-```]
-])
+      void foo_remove(struct platform_device *pdev)
+      {
+              struct foo_t *foo = platform_get_drvdata(pdev);
+              /* Retrieve framework structure from foo
+                 and unregister it */
+              ...
+              /* foo automatically freed */
+      }
+      ```]
+  ],
+)
 
-===  Device managed allocations caveats
+=== Device managed allocations caveats
 
 - Cleanup is done when the `struct device` is cleaned up. There is no
   reference counting or anything like that.
@@ -723,12 +736,14 @@ void foo_remove(struct platform_device *pdev)
 
 - Be very careful when there are circular references.
 
-- #link("https://lpc.events/event/16/contributions/1227/")["Why is `devm_kzalloc()` harmful and what can we do about it", Laurent Pinchart, LPC 2022]
+- #link(
+    "https://lpc.events/event/16/contributions/1227/",
+  )["Why is `devm_kzalloc()` harmful and what can we do about it", Laurent Pinchart, LPC 2022]
 
 == Driver data structures and links
 <driver-data-structures-and-links>
 
-===  Driver data layout Three main data structures:
+=== Driver data layout Three main data structures:
 
 - Bus-specific device structure (#kstruct("i2c_client"),
   #kstruct("usb_dev"), etc)
@@ -753,104 +768,117 @@ void foo_remove(struct platform_device *pdev)
 
   - It stores references to both the bus and framework devices
 
-===  Driver data allocation stategies
+=== Driver data allocation stategies
 
-#table(columns: (33%, 33%, 33%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (33%, 33%, 33%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-Private data embeds the framework device therefore a single
-allocation allocates both the framework device and the private data.
+    Private data embeds the framework device therefore a single
+    allocation allocates both the framework device and the private data.
 
-```c
-struct imx_port {
-    struct uart_port port;
-    struct timer_list timer;
-    unsigned int old_status;
-    int txirq, rxirq, rtsirq;
-    [...]
-};
+    ```c
+    struct imx_port {
+        struct uart_port port;
+        struct timer_list timer;
+        unsigned int old_status;
+        int txirq, rxirq, rtsirq;
+        [...]
+    };
 
-sport = devm_kzalloc(&pdev->dev,
-                sizeof(*sport),
-                GFP_KERNEL);
-if (!sport)
-    return -ENOMEM;
-```
+    sport = devm_kzalloc(&pdev->dev,
+                    sizeof(*sport),
+                    GFP_KERNEL);
+    if (!sport)
+        return -ENOMEM;
+    ```
 
-],[ 
-  
-The framework exposes an helper to allocate the framework device,
-with space at the end to put the private data.
+  ],
+  [
 
-```c
-struct da311_data *data;
-struct iio_dev *idev;
+    The framework exposes an helper to allocate the framework device,
+    with space at the end to put the private data.
 
-idev = devm_iio_device_alloc(
-                &client->dev,
-                sizeof(*data));
-if (!idev)
-  return -ENOMEM;
+    ```c
+    struct da311_data *data;
+    struct iio_dev *idev;
 
-data = iio_priv(idev); data->client = client;
-```
+    idev = devm_iio_device_alloc(
+                    &client->dev,
+                    sizeof(*data));
+    if (!idev)
+      return -ENOMEM;
 
-],[ 
-  
-The framework device and private data are allocated separately.
+    data = iio_priv(idev); data->client = client;
+    ```
 
-```c
-struct rtc_device *rtc;
-struct ds1305 *ds1305;
+  ],
+  [
 
-ds1305 = devm_kzalloc(&spi->dev,
-                sizeof(*ds1305),
-                GFP_KERNEL);
-if (!ds1305)
-    return -ENOMEM;
+    The framework device and private data are allocated separately.
 
-rtc = devm_rtc_allocate_device(
-                &spi->dev);
-if (IS_ERR(rtc))
-    return PTR_ERR(rtc);
-```
+    ```c
+    struct rtc_device *rtc;
+    struct ds1305 *ds1305;
 
-])
+    ds1305 = devm_kzalloc(&spi->dev,
+                    sizeof(*ds1305),
+                    GFP_KERNEL);
+    if (!ds1305)
+        return -ENOMEM;
 
-===  Links between data structures
+    rtc = devm_rtc_allocate_device(
+                    &spi->dev);
+    if (IS_ERR(rtc))
+        return PTR_ERR(rtc);
+    ```
 
-#table(columns: (55%, 45%), stroke: none, gutter: 15pt, [
+  ],
+)
 
-- Inside bus callbacks, we get passed our bus device
+=== Links between data structures
 
-  - Inside #kstruct("device"), a pointer-sized field
-    `dev->driver_data` is reserved for driver usage
+#table(
+  columns: (55%, 45%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-  - Use #kfunc("dev_set_drvdata") at `probe()` time to put a
-    reference to our private data
+    - Inside bus callbacks, we get passed our bus device
 
-  - From bus callbacks, we can retrieve our private data using
-    #kfunc("dev_get_drvdata")
+      - Inside #kstruct("device"), a pointer-sized field
+        `dev->driver_data` is reserved for driver usage
 
-- Inside framework callbacks, we get passed our framework device
+      - Use #kfunc("dev_set_drvdata") at `probe()` time to put a
+        reference to our private data
 
-  - If our framework device is embedded in our private data, we use
-    #kfunc("container_of") that works using compiler provided
-    `offsetof()`
+      - From bus callbacks, we can retrieve our private data using
+        #kfunc("dev_get_drvdata")
 
-  - Otherwise, we use the framework device `dev->driver_data` and
-    retrieve our private data reference
+    - Inside framework callbacks, we get passed our framework device
 
-],[
+      - If our framework device is embedded in our private data, we use
+        #kfunc("container_of") that works using compiler provided
+        `offsetof()`
 
-#align(center, [#image("link-structures.pdf", height: 90%)])
+      - Otherwise, we use the framework device `dev->driver_data` and
+        retrieve our private data reference
 
-])
+  ],
+  [
 
-#setuplabframe([Expose the Nunchuk to user space],[
+    #align(center, [#image("link-structures.pdf", height: 90%)])
 
-- Extend the Nunchuk driver to expose the Nunchuk features to user space
-  applications, as an _input_ device.
+  ],
+)
 
-- Test the operation of the Nunchuk using `evtest`
+#setuplabframe([Expose the Nunchuk to user space], [
+
+  - Extend the Nunchuk driver to expose the Nunchuk features to user space
+    applications, as an _input_ device.
+
+  - Test the operation of the Nunchuk using `evtest`
 
 ])

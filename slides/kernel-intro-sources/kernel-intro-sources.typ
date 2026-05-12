@@ -2,11 +2,11 @@
 
 #import "/typst/local/common.typ": *
 
-#show: bootlin-theme 
+#show: bootlin-theme
 
 == Linux kernel sources
 
-===  Location of the official kernel sources
+=== Location of the official kernel sources
 
 - The mainline versions of the Linux kernel, as released by Torvalds
 
@@ -20,7 +20,7 @@
 
   - #link("https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git")
 
-===  Linux versioning scheme
+=== Linux versioning scheme
 
 - Until 2003, there was a new "stabilized" release branch of Linux every
   2 or 3 years (2.0, 2.2, 2.4). Development branches took 2-3 years to
@@ -47,9 +47,9 @@
 
 - Major updates
   #link("https://lore.kernel.org/lkml/CAHk-=wiiRA_XxoF96Q_1n4BadBGJLRkHarHG92u3aTc+1ZMeGQ@mail.gmail.com/")[have no specific meaning]!
-  
 
-===  Linux development model
+
+=== Linux development model
 
 - Each new release starts with a two-week merge window for new features
 
@@ -61,7 +61,7 @@
 
 #align(center, [#image("development-process-simple.pdf", width: 100%)])
 
-===  Need to further stabilize the official kernels
+=== Need to further stabilize the official kernels
 
 - Issue: bug and security fixes only merged into the master branch, need
   to update to the latest kernel to benefit from them.
@@ -74,7 +74,7 @@
 
 #align(center, [#image("development-process.pdf", width: 65%)])
 
-===  Location of the stable kernel sources
+=== Location of the stable kernel sources
 
 - The stable versions of the Linux kernel, as maintained by a
   maintainers group
@@ -92,30 +92,41 @@
 
   - Certain versions will be maintained much longer
 
-===  Need for long term support
+=== Need for long term support
 
 - Issue: bug and security fixes only released for most recent kernel
   versions.
 
 - Solution: the last release of each year is made an LTS #emph[(Long
-  Term Support)] release, and is supposed to be supported (and receive
+    Term Support)] release, and is supposed to be supported (and receive
   bug and security fixes) for at least 2 years. These projected EOL may
   be extended up to 6 years based on the industry interest at large.
 
-#table(columns: (60%, 40%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (60%, 40%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-#align(center, [#image("/common/long-term-support-kernels.png", width: 100%)]) 
+    #align(center, [#image(
+      "/common/long-term-support-kernels.png",
+      width: 100%,
+    )])
 
-],[ 
+  ],
+  [
 
-#text(size: 17pt)[Captured on #link("https://kernel.org") in Feb. 2026, following the
-  #link("https://www.kernel.org/category/releases.html")[#emph[Releases]]
-  link.]
-])
+    #text(
+      size: 17pt,
+    )[Captured on #link("https://kernel.org") in Feb. 2026, following the
+      #link("https://www.kernel.org/category/releases.html")[#emph[Releases]]
+      link.]
+  ],
+)
 - Example at Google: starting from #emph[Android O (2017)], all new
   Android devices have to run such an LTS kernel.
 
-===  Need for even longer term support
+=== Need for even longer term support
 
 - You could also get long term support from a commercial embedded Linux
   provider.
@@ -125,7 +136,7 @@
   - Ubuntu Core can be supported for up to 10 years.
 
 - #emph["If you are not using a supported distribution kernel, or a
-  stable / longterm kernel, you have an insecure kernel"] - Greg KH,
+    stable / longterm kernel, you have an insecure kernel"] - Greg KH,
   2019 \
   Some vulnerabilities are fixed in stable without ever getting a CVE.
 
@@ -135,7 +146,7 @@
   selected architectures. See \
   #link("https://wiki.linuxfoundation.org/civilinfrastructureplatform/start").
 
-===  Location of non-official kernel sources
+=== Location of non-official kernel sources
 
 - Many chip vendors supply their own kernel sources
 
@@ -166,13 +177,13 @@
 
   - Not suitable to be used in products
 
-===  Linux kernel size and structure
+=== Linux kernel size and structure
 
 - Linux v6.19 sources: close to 92k files, 42M lines, 1.4GiB
 
 - But a compressed Linux kernel just sizes a few megabytes.
 
-- So, why are these sources so big? 
+- So, why are these sources so big?
   Because they include numerous device drivers, network protocols,
   architectures, filesystems... The core is pretty small!
 
@@ -180,46 +191,53 @@
 
 #v(1em)
 
-#table(columns: (35%, 28%, 50%), stroke: none, gutter: -23pt,[
+#table(
+  columns: (35%, 28%, 50%),
+  stroke: none,
+  gutter: -23pt,
+  [
 
-- #kdir("drivers"): 61%
+    - #kdir("drivers"): 61%
 
-- #kdir("arch"): 12%
+    - #kdir("arch"): 12%
 
-- #kdir("tools"): 5.4%
+    - #kdir("tools"): 5.4%
 
-- #kdir("sound"): 3.9%
+    - #kdir("sound"): 3.9%
 
-- #kdir("fs"): 3.8%
+    - #kdir("fs"): 3.8%
 
-- #kdir("Documentation"): 3.8%
+    - #kdir("Documentation"): 3.8%
 
-],[
+  ],
+  [
 
-- #kdir("include"): 3.4%
+    - #kdir("include"): 3.4%
 
-- #kdir("net"): 3.1%
+    - #kdir("net"): 3.1%
 
-- #kdir("kernel"): 1.3%
+    - #kdir("kernel"): 1.3%
 
-- #kdir("lib"): 0.8%
+    - #kdir("lib"): 0.8%
 
-- #kdir("mm"): 0.5%
+    - #kdir("mm"): 0.5%
 
-- #kdir("scripts"): 0.3%
+    - #kdir("scripts"): 0.3%
 
-],[
+  ],
+  [
 
-- #kdir("security"), #kdir("rust"), #kdir("crypto"),
-  #kdir("block"), #kdir("samples"), #kdir("io_uring"),
-  #kdir("virt"), #kdir("usr"), #kdir("LICENSES"),
-  #kdir("ipc"), #kdir("init"), #kdir("certs"): ≤ 0.3%
+    - #kdir("security"), #kdir("rust"), #kdir("crypto"),
+      #kdir("block"), #kdir("samples"), #kdir("io_uring"),
+      #kdir("virt"), #kdir("usr"), #kdir("LICENSES"),
+      #kdir("ipc"), #kdir("init"), #kdir("certs"): ≤ 0.3%
 
-- Build system files: #kfile("Kbuild"), #kfile("Kconfig"),
-  #kfile("Makefile")
+    - Build system files: #kfile("Kbuild"), #kfile("Kconfig"),
+      #kfile("Makefile")
 
-- Other files: #kfile("COPYING"), #kfile("CREDITS"),
-  #kfile("MAINTAINERS"), #kfile("README")
+    - Other files: #kfile("COPYING"), #kfile("CREDITS"),
+      #kfile("MAINTAINERS"), #kfile("README")
 
-  
-])
+
+  ],
+)

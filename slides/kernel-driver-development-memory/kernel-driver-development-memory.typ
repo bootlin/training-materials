@@ -6,47 +6,53 @@
 
 = Memory Management
 
-===  Physical and virtual memory
+=== Physical and virtual memory
 
 #align(center, [#image("mmu.pdf", height: 90%)])
 
-===  Virtual memory organization
+=== Virtual memory organization
 
-#table(columns: (40%, 60%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (40%, 60%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-#align(center, [#image("memory-organization.pdf", height: 95%)])
+    #align(center, [#image("memory-organization.pdf", height: 95%)])
 
-],[
+  ],
+  [
 
-- The top quarter reserved for kernel-space
+    - The top quarter reserved for kernel-space
 
-  - Contains kernel code and core data structures
+      - Contains kernel code and core data structures
 
-  - Allocations for loading modules
+      - Allocations for loading modules
 
-  - All kernel physical mappings
+      - All kernel physical mappings
 
-  - Identical in all address spaces
+      - Identical in all address spaces
 
-- The lower part is a per user process exclusive mapping
+    - The lower part is a per user process exclusive mapping
 
-  - Process code and data (program, stack, ...)
+      - Process code and data (program, stack, ...)
 
-  - Memory-mapped files
+      - Memory-mapped files
 
-  - Each process has its own address space!
+      - Each process has its own address space!
 
-- The exact virtual mapping in-use is displayed in the kernel log early
-  at boot time
+    - The exact virtual mapping in-use is displayed in the kernel log early
+      at boot time
 
 
-])
+  ],
+)
 
-===  Physical/virtual memory mapping on 32-bit systems
+=== Physical/virtual memory mapping on 32-bit systems
 
 #align(center, [#image("memory-mapping-32b.pdf", height: 90%)])
 
-===  32-bit systems limitations
+=== 32-bit systems limitations
 
 - Only less than 1GB memory addressable directly through kernel virtual
   addresses
@@ -73,34 +79,40 @@
   (#link("https://resources.linaro.org/en/resource/TXkzgNDFp3HiJKdfQjbssL")[video and slides])
   at Linaro Connect virtual 2020.
 
-===  Physical/virtual memory mapping on 64-bit systems (4kiB-pages)
+=== Physical/virtual memory mapping on 64-bit systems (4kiB-pages)
 
 #align(center, [#image("memory-mapping-64b.pdf", height: 90%)])
 
-===  User space virtual address space
+=== User space virtual address space
 
-#table(columns: (35%, 66%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (35%, 66%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-- When a process starts, the executable code is loaded in RAM and mapped
-  into the process virtual address space.
+    - When a process starts, the executable code is loaded in RAM and mapped
+      into the process virtual address space.
 
-- During execution, additional mappings can be created:
+    - During execution, additional mappings can be created:
 
-  - Memory allocations
+      - Memory allocations
 
-  - Memory mapped files
+      - Memory mapped files
 
-  - `mmap`'ed areas
+      - `mmap`'ed areas
 
-  - ...
+      - ...
 
-],[
+  ],
+  [
 
-#align(center, [#image("userspace-mappings.pdf", height: 80%)])
+    #align(center, [#image("userspace-mappings.pdf", height: 80%)])
 
-])
+  ],
+)
 
-===  Userspace memory allocations
+=== Userspace memory allocations
 
 - Userspace mappings can target the full memory
 
@@ -123,11 +135,11 @@
 - OOM killer kicks in and selects a process to kill to retrieve some
   memory. That's better than letting the system freeze.
 
-===  Kernel memory allocators
+=== Kernel memory allocators
 
 #align(center, [#image("allocators.pdf", height: 90%)])
 
-===  Page allocator
+=== Page allocator
 
 - Appropriate for medium-size allocations
 
@@ -142,7 +154,7 @@
   configuration.
 
 - The allocated area maps to physically contiguous pages, in the
-    identity-mapped part of the kernel memory space.
+  identity-mapped part of the kernel memory space.
 
   - This means that large areas may not be available or hard to retrieve
     due to physical memory fragmentation.
@@ -151,7 +163,7 @@
     reserve a given amount of memory at boot (see
     #link("https://lwn.net/Articles/486301/").
 
-===  Page allocator API
+=== Page allocator API
 
 - ```c unsigned long get_zeroed_page(gfp_t gfp_mask) ```
 
@@ -179,14 +191,14 @@
 - ```c void free_page(unsigned long addr) ```
 
   - Frees one page.
-  
+
 #v(0.5em)
 
 - ```c void free_pages(unsigned long addr, unsigned int order) ```
 
   - Frees multiple pages. Need to use the same order as in allocation.
 
-===  Page allocator flags 
+=== Page allocator flags
 
 The most common ones are:
 
@@ -206,7 +218,7 @@ The most common ones are:
 - Others are defined in #kfile("include/linux/gfp_types.h"). \
   See also the documentation in #kdochtml("core-api/memory-allocation")
 
-===  SLAB allocator 1/2
+=== SLAB allocator 1/2
 
 - The SLAB allocator allows to create #emph[caches], which contain a set
   of objects of the same size. In English, #emph[slab] means
@@ -228,11 +240,11 @@ The most common ones are:
 
 - See #kfile("include/linux/slab.h") for the API
 
-===  SLAB allocator 2/2
+=== SLAB allocator 2/2
 
 #align(center, [#image("slab-allocator.pdf", height: 90%)])
 
-===  Different SLAB allocators 
+=== Different SLAB allocators
 
 There are different, but API compatible, implementations of a SLAB allocator in the Linux kernel. A
 particular implementation is chosen at configuration time.
@@ -246,7 +258,7 @@ particular implementation is chosen at configuration time.
 
 #align(center, [#image("slab-screenshot.png", height: 20%)])
 
-===  kmalloc allocator
+=== kmalloc allocator
 
 - The kmalloc allocator is the general purpose memory allocator in the
   Linux kernel
@@ -266,14 +278,14 @@ particular implementation is chosen at configuration time.
   #ksym("GFP_ATOMIC"), etc.) with the same semantics.
 
 - Maximum sizes, on `x86` and `arm` (see #link("https://j.mp/YIGq6W")):
-  
-  - Per allocation: 4 MB 
+
+  - Per allocation: 4 MB
   - Total allocations: 128 MB
 
 - Should be used as the primary allocator unless there is a strong
   reason to use another one.
 
-===  kmalloc API 1/2
+=== kmalloc API 1/2
 
 - ```c #include <linux/slab.h> ```
 
@@ -299,19 +311,19 @@ particular implementation is chosen at configuration time.
   kfree(tprops);
   ```
 
-===  kmalloc API 2/2
+=== kmalloc API 2/2
 
 - ```c void *kzalloc(size_t size, gfp_t flags); ```
 
   - Allocates a zero-initialized buffer
-  
+
 #v(0.5em)
 
 - ```c void *kcalloc(size_t n, size_t size, gfp_t flags); ```
 
   - Allocates memory for an array of `n` elements of `size` size, and
     zeroes its contents.
-  
+
 #v(0.5em)
 
 - ```c void *krealloc(const void *p, size_t new_size, gfp_t flags); ```
@@ -320,7 +332,7 @@ particular implementation is chosen at configuration time.
     reallocating a new buffer and copying the data, unless `new_size`
     fits within the alignment of the existing buffer.
 
-===  devm_kmalloc functions 
+=== devm_kmalloc functions
 
 Allocations with automatic freeing when the corresponding device or module is unprobed.
 
@@ -336,11 +348,11 @@ Allocations with automatic freeing when the corresponding device or module is un
 For use in `probe()` functions, in which you have access to a
 #kstruct("device") structure.
 
-===  vmalloc allocator
+=== vmalloc allocator
 
 - The #kfunc("vmalloc") allocator is used to obtain memory zones
-    that are not made out of physically contiguous pages, outside of
-    the identically-mapped area.
+  that are not made out of physically contiguous pages, outside of
+  the identically-mapped area.
 
 - The requested memory size is rounded up to the next page (not
   efficient for small allocations).
@@ -359,7 +371,7 @@ For use in `probe()` functions, in which you have access to a
 
   - ```c void vfree(void *addr); ```
 
-===  Kernel memory debugging
+=== Kernel memory debugging
 
 - `KASAN` (#emph[Kernel Address Sanitizer])
 
@@ -390,12 +402,15 @@ For use in `probe()` functions, in which you have access to a
 KASAN and Kmemleak have a significant overhead. Only use them in
 development!
 
-===  Kernel memory management: resources 
+=== Kernel memory management: resources
 
 Virtual memory and Linux, Alan Ott and Matt Porter, 2016 \
 Great and much more complete presentation about this topic \
 #link("https://bit.ly/2Af1G2i") (video: #link("https://bit.ly/2Bwwv0C"))
-  
+
 #v(0.5em)
 
-#align(center, [#image("ott-porter-kernel-virtual-memory-presentation.jpg", height: 70%)])
+#align(center, [#image(
+  "ott-porter-kernel-virtual-memory-presentation.jpg",
+  height: 70%,
+)])

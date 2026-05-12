@@ -6,7 +6,7 @@
 
 == Clocking and power management
 
-===  Enabling hardware
+=== Enabling hardware
 
 In order to become functional, hardware blocks require:
 
@@ -24,7 +24,7 @@ In order to become functional, hardware blocks require:
 
 - Resets to be released
 
-===  Power handling
+=== Power handling
 
 - Internal and external devices can be fed by a regulator
 
@@ -41,7 +41,7 @@ In order to become functional, hardware blocks require:
     domain (CRTC, LCD controller, HDMI phy, etc). The whole domain is
     either powered on or off.
 
-===  Clocks handling
+=== Clocks handling
 
 - A clock tree typically starts from the main crystal, feeds PLLs,
   gates, divisors and reaches every device in the system
@@ -74,11 +74,11 @@ In order to become functional, hardware blocks require:
 
 - Is implemented in #kdir("drivers/clk")
 
-===  Diagram overview of the common clock framework
+=== Diagram overview of the common clock framework
 
 #align(center, [#image("clock-framework.pdf", width: 100%)])
 
-===  Reset handling
+=== Reset handling
 
 - Goal is to put a device in a known harder default state
 
@@ -98,16 +98,16 @@ In order to become functional, hardware blocks require:
 
     - #kfunc("reset_control_deassert")
 
-===  Runtime Power Management
+=== Runtime Power Management
 
 - The state of a device can change at runtime, a sort of per-device idle
   state
 
 - According to the kernel configuration interface: #emph[Enable
-  functionality allowing I/O devices to be put into energy-saving (low
-  power) states at run time (or autosuspended) after a specified period
-  of inactivity and woken up in response to a hardware-generated wake-up
-  event or a driver's request.]
+    functionality allowing I/O devices to be put into energy-saving (low
+    power) states at run time (or autosuspended) after a specified period
+    of inactivity and woken up in response to a hardware-generated wake-up
+    event or a driver's request.]
 
 - New hooks may be added to the drivers: `runtime_suspend()`,
   `runtime_resume()`, `runtime_idle()` in the
@@ -129,22 +129,28 @@ In order to become functional, hardware blocks require:
   - It sometimes replaces direct clock lookups and handling on some old
     ARM platforms, like the AM335x.
 
-===  Useful resources
+=== Useful resources
 
 - #kdochtmldir("power") in kernel documentation.
 
 - Introduction to kernel power management \
   Kevin Hilman (Kernel Recipes 2015)
 
-  - #link("https://www.youtube.com/watch?v=juJJZORgVwI")[https://www.youtube.com/watch?v=juJJZORgVwI]
+  - #link(
+      "https://www.youtube.com/watch?v=juJJZORgVwI",
+    )[https://www.youtube.com/watch?v=juJJZORgVwI]
 
 - Overview of Generic PM Domains \
   Kevin Hilman (Kernel Recipes 2017)
 
-  - #link("https://www.youtube.com/watch?v=SctfvoskABM")[https://www.youtube.com/watch?v=SctfvoskABM]
+  - #link(
+      "https://www.youtube.com/watch?v=SctfvoskABM",
+    )[https://www.youtube.com/watch?v=SctfvoskABM]
 
 - Linux Power Management Features, Their Relationships and Interactions
-  
+
   Théo Lebrun (Embedded Linux Conference Europe 2024)
 
-  - #link("https://www.youtube.com/watch?v=_jb6U40ZCZk")[https://www.youtube.com/watch?v=_jb6U40ZCZk]
+  - #link(
+      "https://www.youtube.com/watch?v=_jb6U40ZCZk",
+    )[https://www.youtube.com/watch?v=_jb6U40ZCZk]
