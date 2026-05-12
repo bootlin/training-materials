@@ -10,6 +10,7 @@ ENTRYPOINT ["/build_materials.sh"]
 
 RUN dnf -y update && \
     dnf -y install \
+	curl \
 	dia \
 	fakeroot \
 	ghostscript \
@@ -48,6 +49,13 @@ RUN dnf -y update && \
 	texlive-babel-english \
 	texlive-babel-french \
 	texlive-appendixnumberbeamer
+
+ARG TYPST_VERSION=0.14.2
+RUN curl -fsSL https://github.com/typst/typst/releases/download/v${TYPST_VERSION}/typst-x86_64-unknown-linux-musl.tar.xz \
+        -o /tmp/typst.tar.xz && \
+    tar -xJf /tmp/typst.tar.xz -C /tmp && \
+    install -m 0755 /tmp/typst-x86_64-unknown-linux-musl/typst /usr/local/bin/typst && \
+    rm -rf /tmp/typst.tar.xz /tmp/typst-x86_64-unknown-linux-musl
 
 ENV HOME /tmp
 
