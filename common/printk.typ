@@ -19,16 +19,14 @@
   - Not recommended for upstream contributions
 
 Example:
-
-`
+```c
 printk("in probe\n");
-`
+```
 
 Here's what you get in the kernel log:
-
-`
-[    1.878382] in probe
-`
+```console
+[    1.878382] in probe`
+```
 
 All other logging facilities are based on it.
 
@@ -44,27 +42,26 @@ All other logging facilities are based on it.
     next pages)
 
   - They allow setting a manual prefix (eg. eases grepping):
-    `#define pr_fmt(fmt) "foo: " fmt`
+    ```c
+    #define pr_fmt(fmt) "foo: " fmt
+    ```
 
 - Also defined in #kfile("include/linux/printk.h")
 
 Example:
-
-`
+```c
 pr_info("in probe\n");
-`
+```
 
 Here's what you get in the kernel log:
-
-`
+```shell
 [    1.878382] in probe
-`
+```
 
 or similarly with a manual format:
-
-`
+```shell
 [    1.878382] foo: in probe
-`
+```
 
 === Debugging/tracing using logs 3/4
 
@@ -85,17 +82,15 @@ or similarly with a manual format:
   - To be used in device drivers
 
 Example:
-
-`
+```c
 dev_info(&pdev->dev, "in probe\n");
-`
+```
 
 Here's what you get in the kernel log:
-
-`
+```shell
 [    1.878382] serial 48024000.serial: in probe
 [    1.884873] serial 481a8000.serial: in probe
-`
+```
 
 === Debugging/tracing using logs 4/4
 
