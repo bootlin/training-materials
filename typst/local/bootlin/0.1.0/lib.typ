@@ -463,7 +463,12 @@
         stroke: bootlin-orange,
         [#v(-0.2em)‣],
       ),
-      text(size: 1em, fill: bootlin-orange, stroke: bootlin-orange, [🞄]),
+      text(
+        size: 1em,
+        fill: bootlin-orange,
+        stroke: bootlin-orange,
+        [🞄],
+      ),
       text(
         size: 0.5em,
         fill: bootlin-orange,

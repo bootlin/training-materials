@@ -76,11 +76,10 @@
 === Linux kernel to user API/ABI stability
 
 #table(
-  columns: (68%, 32%),
+  columns: (75%, 25%),
   stroke: none,
   gutter: 15pt,
   [
-
     Linux kernel to userspace API is stable
 
     - Source code for userspace applications will not have to be updated
@@ -96,13 +95,11 @@
       - The way memory is accessed, the size of the variables in memory, how
         structures are organized, the calling convention, etc, are all
         stable over time.
-
   ],
   [
-    #v(-0.7em)
     #[ #set par(leading: 0.3em)
-      #image("linux-user-api.pdf", height: 95%)
-      #text(size: 11pt)[Modified Image from Wikipedia:] \
+      #image("linux-user-api.pdf", height: 80%)
+      #text(size: 10pt)[Modified Image from Wikipedia:] \
       #text(size: 10pt)[#link("https://bit.ly/2U2rdGB")]
     ]
   ],
@@ -111,11 +108,10 @@
 === Linux internal API/ABI instability
 
 #table(
-  columns: (66%, 34%),
+  columns: (75%, 25%),
   stroke: none,
   gutter: 15pt,
   [
-
     Linux internal API is not stable
 
     - The source code of a driver is not portable across versions
@@ -135,14 +131,11 @@
 
       - The module loading utilities will perform this check prior to the
         insertion
-
   ],
   [
-
-    #v(-0.8em)
     #[ #set par(leading: 0.3em)
-      #image("linux-internal-api.pdf", height: 95%)
-      #text(size: 11pt)[Modified Image from Wikipedia:] \
+      #image("linux-internal-api.pdf", height: 80%)
+      #text(size: 10pt)[Modified Image from Wikipedia:] \
       #text(size: 10pt)[#link("https://bit.ly/2U2rdGB")]
     ]
   ],
