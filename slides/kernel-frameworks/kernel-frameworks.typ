@@ -196,8 +196,8 @@ Many operations exist, they are all optional.
 
   - Called when user space opens the device file.
 
-  - *Only implement this function when you do something special
-    with the device at `open()` time.*
+  - Only implement this function when you do something special
+    with the device at `open()` time.
 
   - #kstruct("inode") is a structure that uniquely represents a file
     in the filesystem (be it a regular file, a directory, a symbolic
@@ -219,8 +219,8 @@ Many operations exist, they are all optional.
 
   - Called when user space closes the file.
 
-  - *Only implement this function when you do something special
-    with the device at `close()` time.*
+  - Only implement this function when you do something special
+    with the device at `close()` time.
 
 === read() and write()
 
