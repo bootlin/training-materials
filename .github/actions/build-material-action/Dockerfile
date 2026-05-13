@@ -15,6 +15,7 @@ RUN dnf -y update && \
 	fakeroot \
 	ghostscript \
 	git \
+	ImageMagick \
 	inkscape \
 	levien-inconsolata-fonts \
 	liberation-serif-fonts \
