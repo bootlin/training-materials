@@ -21,31 +21,31 @@
   stroke: none,
   gutter: 20pt,
   [
-      - BeagleBone Black or BeagleBone Black Wireless, from #link("https://beagleboard.org")[BeagleBoard.org]
-        - Texas Instruments AM335x (ARM Cortex-A8 CPU)
-        - 512 MB of RAM
-        - 4 GB of on-board eMMC storage
-        - Plenty of peripherals and features
-        - 2 x 46 pins headers, with access to many expansion buses (I2C, SPI, UART and more)
-      - MicroUSB cable
-      - USB Serial Cable - 3.3 V - Female ends (for serial console)
+    - BeagleBone Black or BeagleBone Black Wireless, from #link("https://beagleboard.org")[BeagleBoard.org]
+      - Texas Instruments AM335x (ARM Cortex-A8 CPU)
+      - 512 MB of RAM
+      - 4 GB of on-board eMMC storage
+      - Plenty of peripherals and features
+      - 2 x 46 pins headers, with access to many expansion buses (I2C, SPI, UART and more)
+    - MicroUSB cable
+    - USB Serial Cable - 3.3 V - Female ends (for serial console)
+      #footnote[#text(size: 10pt)[#link(
+        "https://www.olimex.com/Products/USB-Modules/Interfaces/USB-SERIAL-F",
+      )]]
+    #if beaglebone-nunchuk [
+      - Nintendo Nunchuk with UEXT connector
         #footnote[#text(size: 10pt)[#link(
-          "https://www.olimex.com/Products/USB-Modules/Interfaces/USB-SERIAL-F",
+          "https://www.olimex.com/Products/Modules/Sensors/MOD-WII/MOD-Wii-UEXT-NUNCHUCK/",
         )]]
-      #if beaglebone-nunchuk [
-        - Nintendo Nunchuk with UEXT connector
-          #footnote[#text(size: 10pt)[#link(
-            "https://www.olimex.com/Products/Modules/Sensors/MOD-WII/MOD-Wii-UEXT-NUNCHUCK/",
-          )]]
-        - Breadboard jumper wires - Male ends (to connect the Nunchuk)
-          #footnote[#text(size: 10pt)[#link(
-            "https://www.olimex.com/Products/Breadboarding/JUMPER-WIRES/JW-110x10/",
-          )]]
-      ]
-      - MicroSD card
-      #if beaglebone-audio [
-        - A standard USB audio headset
-      ]
+      - Breadboard jumper wires - Male ends (to connect the Nunchuk)
+        #footnote[#text(size: 10pt)[#link(
+          "https://www.olimex.com/Products/Breadboarding/JUMPER-WIRES/JW-110x10/",
+        )]]
+    ]
+    - MicroSD card
+    #if beaglebone-audio [
+      - A standard USB audio headset
+    ]
   ],
   [
     #align(center)[
