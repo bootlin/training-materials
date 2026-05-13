@@ -21,7 +21,6 @@
   stroke: none,
   gutter: 20pt,
   [
-    #text(size: 18pt)[
       - BeagleBone Black or BeagleBone Black Wireless, from #link("https://beagleboard.org")[BeagleBoard.org]
         - Texas Instruments AM335x (ARM Cortex-A8 CPU)
         - 512 MB of RAM
@@ -30,26 +29,26 @@
         - 2 x 46 pins headers, with access to many expansion buses (I2C, SPI, UART and more)
       - MicroUSB cable
       - USB Serial Cable - 3.3 V - Female ends (for serial console)
-        #footnote[#text(size: 11pt)[#link(
+        #footnote[#text(size: 10pt)[#link(
           "https://www.olimex.com/Products/USB-Modules/Interfaces/USB-SERIAL-F",
         )]]
       #if beaglebone-nunchuk [
         - Nintendo Nunchuk with UEXT connector
-          #footnote[#text(size: 11pt)[#link(
+          #footnote[#text(size: 10pt)[#link(
             "https://www.olimex.com/Products/Modules/Sensors/MOD-WII/MOD-Wii-UEXT-NUNCHUCK/",
           )]]
         - Breadboard jumper wires - Male ends (to connect the Nunchuk)
-          #footnote[#text(size: 11pt)[#link(
+          #footnote[#text(size: 10pt)[#link(
             "https://www.olimex.com/Products/Breadboarding/JUMPER-WIRES/JW-110x10/",
           )]]
       ]
       - MicroSD card
       #if beaglebone-audio [
         - A standard USB audio headset
-      ]]
-
+      ]
   ],
-  [#align(center)[
+  [
+    #align(center)[
       #v(-1em)
       #image("beagleboneblack.png", width: 50%) \
       #v(-1em)
