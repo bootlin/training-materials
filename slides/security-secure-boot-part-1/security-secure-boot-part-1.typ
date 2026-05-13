@@ -40,19 +40,25 @@
 
 === Initial bootloader verification
 
-#table(columns: (70%, 30%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (70%, 30%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-#align(center, [#image("phase1.pdf", width: 90%)])
+    #align(center, [#image("phase1.pdf", width: 90%)])
 
-],[
+  ],
+  [
 
-- The public key's hash is stored in a once-writable memory
+    - The public key's hash is stored in a once-writable memory
 
-- The BootROM uses it to validate the embeded key
+    - The BootROM uses it to validate the embeded key
 
-- It uses that key to recompute the hash from the signature
+    - It uses that key to recompute the hash from the signature
 
-])
+  ],
+)
 
 === Initial bootloader verification
 
@@ -71,19 +77,25 @@
 
 === Kernel verification
 
-#table(columns: (70%, 30%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (70%, 30%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-#align(center, [#image("phase2.pdf", width: 85%)])
+    #align(center, [#image("phase2.pdf", width: 85%)])
 
-],[
+  ],
+  [
 
-- End of the "traditional" secure boot chain
+    - End of the "traditional" secure boot chain
 
-- Verify the kernel before execution
+    - Verify the kernel before execution
 
-- Must be supported by the bootloader
+    - Must be supported by the bootloader
 
-])
+  ],
+)
 
 === Kernel verification
 
@@ -121,13 +133,19 @@
   - usually implemented via #link("https://uefi.org/")[UEFI].
 
   - Pushed by Microsoft,
-    #link("https://blogs.windows.com/windows-insider/2021/08/27/update-on-windows-11-minimum-system-requirements-and-the-pc-health-check-app/")[Windows 11 makes it a requirement]
+    #link(
+      "https://blogs.windows.com/windows-insider/2021/08/27/update-on-windows-11-minimum-system-requirements-and-the-pc-health-check-app/",
+    )[Windows 11 makes it a requirement]
 
 - On Android:
-  #link("https://source.android.com/docs/security/features/verifiedboot/avb")[Android Verified Boot]
+  #link(
+    "https://source.android.com/docs/security/features/verifiedboot/avb",
+  )[Android Verified Boot]
   (AVB) \
   This is why
-  "#link("https://source.android.com/docs/security/features/verifiedboot/boot-flow")[bootloader unlocks]"
+  "#link(
+    "https://source.android.com/docs/security/features/verifiedboot/boot-flow",
+  )[bootloader unlocks]"
   are necessary
 
 - In
@@ -193,7 +211,9 @@
 
   - Intel Boot Guard
 
-  - #link("https://www.ioactive.com/exploring-amd-platform-secure-boot/")[AMD Platform Secure Boot]
+  - #link(
+      "https://www.ioactive.com/exploring-amd-platform-secure-boot/",
+    )[AMD Platform Secure Boot]
     (PSB)
 
 == Example: Raspberry Pi secure boot
@@ -205,9 +225,13 @@
 
 - Raspberry Pi Ltd has 2 whitepapers on the topic:
 
-  - #link("https://pip.raspberrypi.com/categories/1260-security/documents/RP-004651-WP/Raspberry-Pi-4-Boot-Security.pdf")[Boot security]
+  - #link(
+      "https://pip.raspberrypi.com/categories/1260-security/documents/RP-004651-WP/Raspberry-Pi-4-Boot-Security.pdf",
+    )[Boot security]
 
-  - #link("https://pip-assets.raspberrypi.com/categories/1260-security/documents/RP-003466-WP-3-Boot%20Security%20Howto.pdf?disposition=inline")[Secure Boot]
+  - #link(
+      "https://pip-assets.raspberrypi.com/categories/1260-security/documents/RP-003466-WP-3-Boot%20Security%20Howto.pdf?disposition=inline",
+    )[Secure Boot]
 
 - The BootROM holds 4 RSA 2048 public keys
 
@@ -289,7 +313,9 @@
   Boot (HAB)
 
 - Starting from i.MX8, moved to
-  #link("https://github.com/nxp-imx/uboot-imx/blob/lf_v2025.04/doc/imx/ahab/introduction_ahab.txt")[Advanced HAB]
+  #link(
+    "https://github.com/nxp-imx/uboot-imx/blob/lf_v2025.04/doc/imx/ahab/introduction_ahab.txt",
+  )[Advanced HAB]
   (AHAB)
 
 - Uses a table of 4 asymmetric keys called Secure Root Keys (SRKs)
@@ -297,7 +323,9 @@
 - The hash of the SRK table is stored in the SoC's fuses
 
 - AHAB actions can be performed using NXP's
-  #link("https://spsdk.readthedocs.io/en/latest/index.html#")[Secure Provisioning SDK (SPSDK)]
+  #link(
+    "https://spsdk.readthedocs.io/en/latest/index.html#",
+  )[Secure Provisioning SDK (SPSDK)]
 
 === The EdgeLock (Secure) Enclave (ELE)
 
@@ -333,7 +361,9 @@
 - Using the ELE to wrap keys for filesystem encryption is possible
 
 - No ELE support for
-  #link("https://docs.kernel.org/security/keys/trusted-encrypted.html")[Trusted Keys]
+  #link(
+    "https://docs.kernel.org/security/keys/trusted-encrypted.html",
+  )[Trusted Keys]
 
   - LUKS will not be supported, only "naked" cryptsetup
 
@@ -362,78 +392,78 @@
 <detailed-example-i.mx93---ahab-container-template>
 
 #text(size: 17pt)[
-```yaml
-# Description: NXP chip family identifier.
-family: mimx9352
-# --------------===== MCU revision [Optional] =====--------------------------------
-# Description: Revision of silicon. The 'latest' name, means most current revision.
-# Possible options: <a0, a1, latest>
-revision: a1
-# --------------===== Memory type [Required] =====----------------------------------
-# Description: Specify type of memory used by bootable image description.
-memory_type: serial_downloader 
-init_offset: 0
-# --------------===== Primary Image Container Set [Optional] =====-------------------
-# Container Set that is validated by ROM and usually contains DDR init and SPL.
-# It could be used as pre-prepared binary form of AHAB and also YAML configuration
-# file for AHAB. In case that YAML configuration file is used, the Bootable image tool
-# builds the AHAB itself.
-primary_image_container_set: ahab_primary_container.yaml 
-secondary_image_container_set: ahab_secondary_container.yaml
-```]
+  ```yaml
+  # Description: NXP chip family identifier.
+  family: mimx9352
+  # --------------===== MCU revision [Optional] =====--------------------------------
+  # Description: Revision of silicon. The 'latest' name, means most current revision.
+  # Possible options: <a0, a1, latest>
+  revision: a1
+  # --------------===== Memory type [Required] =====----------------------------------
+  # Description: Specify type of memory used by bootable image description.
+  memory_type: serial_downloader
+  init_offset: 0
+  # --------------===== Primary Image Container Set [Optional] =====-------------------
+  # Container Set that is validated by ROM and usually contains DDR init and SPL.
+  # It could be used as pre-prepared binary form of AHAB and also YAML configuration
+  # file for AHAB. In case that YAML configuration file is used, the Bootable image tool
+  # builds the AHAB itself.
+  primary_image_container_set: ahab_primary_container.yaml
+  secondary_image_container_set: ahab_secondary_container.yaml
+  ```]
 
 === Detailed example: i.MX93 - AHAB primary container
 <detailed-example-i.mx93---ahab-primary-container>
 
 #text(size: 16pt)[
-```yaml
-family: mimx9352
-revision: a1
-target_memory: serial_downloader 
-output: ahab-primary-container-set.bin 
-containers:
-  - binary_container:
-      path: mx93a1-ahab-container.img   # ELE firmware, provided and signed by NXP
-  - container:
-      srk_set: oem
-      used_srk_id: 0
-      signer: Super_Root_Key_1.pem
-      images:
-        -
-          lpddr_imem_1d: lpddr4_imem_1d_v202201.bin     # LPDDR memory FW in 1D mode
-          lpddr_imem_2d: lpddr4_imem_2d_v202201.bin     # LPDDR memory FW in 2D mode
-          lpddr_dmem_1d: lpddr4_dmem_1d_v202201.bin     # LPDDR memory data in 1D mode
-          lpddr_dmem_2d: lpddr4_dmem_2d_v202201.bin     # LPDDR memory data in 2D mode
-          spl_ddr: u-boot-spl.bin       # SPL
-      srk_table:
-        flag_ca: false
-        hash_algorithm: default
-        srk_array:
-          - Super_Root_Key_1.pub    # 4 lines, one for each SRK
-```]
+  ```yaml
+  family: mimx9352
+  revision: a1
+  target_memory: serial_downloader
+  output: ahab-primary-container-set.bin
+  containers:
+    - binary_container:
+        path: mx93a1-ahab-container.img   # ELE firmware, provided and signed by NXP
+    - container:
+        srk_set: oem
+        used_srk_id: 0
+        signer: Super_Root_Key_1.pem
+        images:
+          -
+            lpddr_imem_1d: lpddr4_imem_1d_v202201.bin     # LPDDR memory FW in 1D mode
+            lpddr_imem_2d: lpddr4_imem_2d_v202201.bin     # LPDDR memory FW in 2D mode
+            lpddr_dmem_1d: lpddr4_dmem_1d_v202201.bin     # LPDDR memory data in 1D mode
+            lpddr_dmem_2d: lpddr4_dmem_2d_v202201.bin     # LPDDR memory data in 2D mode
+            spl_ddr: u-boot-spl.bin       # SPL
+        srk_table:
+          flag_ca: false
+          hash_algorithm: default
+          srk_array:
+            - Super_Root_Key_1.pub    # 4 lines, one for each SRK
+  ```]
 
 === Detailed example: i.MX93 - AHAB secondary container
 <detailed-example-i.mx93---ahab-secondary-container>
 
 #text(size: 15pt)[
-```yaml
-[...]
-containers:
-  -
-    container:
-      srk_set: oem
-      used_srk_id: 0
-      signer: Super_Root_Key_1.pem
-      images:
-        - atf: bl31-imx93.bin-optee
-        - uboot: u-boot.bin
-        - tee: tee.bin
-      srk_table:
-        flag_ca: false
-        hash_algorithm: default
-        srk_array:
-          - Super_Root_Key_1.pub    # 4 lines, one for each SRK
-```]
+  ```yaml
+  [...]
+  containers:
+    -
+      container:
+        srk_set: oem
+        used_srk_id: 0
+        signer: Super_Root_Key_1.pem
+        images:
+          - atf: bl31-imx93.bin-optee
+          - uboot: u-boot.bin
+          - tee: tee.bin
+        srk_table:
+          flag_ca: false
+          hash_algorithm: default
+          srk_array:
+            - Super_Root_Key_1.pub    # 4 lines, one for each SRK
+  ```]
 
 === Detailed example: i.MX93 - AHAB
 <detailed-example-i.mx93---ahab>
@@ -442,7 +472,9 @@ containers:
   fuses.
 
 - The
-  #link("https://github.com/nxp-mcuxpresso/spsdk/blob/master/spsdk/data/devices/mimx9352/fuses.json#L6638")[SPSDK sources]
+  #link(
+    "https://github.com/nxp-mcuxpresso/spsdk/blob/master/spsdk/data/devices/mimx9352/fuses.json#L6638",
+  )[SPSDK sources]
   show that those fuses are index `0x80` to `0x87`
 
 - On i.MX93, the hash function being used is SHA256, so the hash will be
@@ -454,42 +486,46 @@ containers:
 - The fuses will be flashed by the ELE, via the usual message interface
 
   - U-Boot has an
-    #link("https://github.com/nxp-imx/uboot-imx/blob/lf_v2025.04/arch/arm/mach-imx/ele_ahab.c#L874")[ele_message]
+    #link(
+      "https://github.com/nxp-imx/uboot-imx/blob/lf_v2025.04/arch/arm/mach-imx/ele_ahab.c#L874",
+    )[ele_message]
     command
 
 - This is a sensitive step, so SPSDK can generate a script to automate
   it
 
-=== #link("https://github.com/nxp-mcuxpresso/spsdk/blob/master/tests/nxpimage/data/ahab/fuses_scripts/mimx9352_ahab_oem0_srk0_hash_nxpele.bcf")[Example]
+=== #link(
+  "https://github.com/nxp-mcuxpresso/spsdk/blob/master/tests/nxpimage/data/ahab/fuses_scripts/mimx9352_ahab_oem0_srk0_hash_nxpele.bcf",
+)[Example]
 <example>
 
 #text(size: 13pt)[
-```yaml
-# nxpele AHAB SRK fuses programming script
-# Generated by SPSDK 3.0.0.dev68+g99003d2be
-# Family: mimx9352, Revision: latest
+  ```yaml
+  # nxpele AHAB SRK fuses programming script
+  # Generated by SPSDK 3.0.0.dev68+g99003d2be
+  # Family: mimx9352, Revision: latest
 
-# Value: 0xCB2CC774B2DCEC92C840ECA0646B78F8D3661D3A43ED265A490A13ACA75E190A
-# Description: SHA256 hash digest of hash of four SRK keys
-# Grouped register name: SRKH
+  # Value: 0xCB2CC774B2DCEC92C840ECA0646B78F8D3661D3A43ED265A490A13ACA75E190A
+  # Description: SHA256 hash digest of hash of four SRK keys
+  # Grouped register name: SRKH
 
-# OTP ID: OEM_SRKH7, Value: 0x74C72CCB
-write-fuse --index 128 --data 0x74C72CCB
-# OTP ID: OEM_SRKH6, Value: 0x92ECDCB2
-write-fuse --index 129 --data 0x92ECDCB2
-# OTP ID: OEM_SRKH5, Value: 0xA0EC40C8
-write-fuse --index 130 --data 0xA0EC40C8
-# OTP ID: OEM_SRKH4, Value: 0xF8786B64
-write-fuse --index 131 --data 0xF8786B64
-# OTP ID: OEM_SRKH3, Value: 0x3A1D66D3
-write-fuse --index 132 --data 0x3A1D66D3
-# OTP ID: OEM_SRKH2, Value: 0x5A26ED43
-write-fuse --index 133 --data 0x5A26ED43
-# OTP ID: OEM_SRKH1, Value: 0xAC130A49
-write-fuse --index 134 --data 0xAC130A49
-# OTP ID: OEM_SRKH0, Value: 0x0A195EA7
-write-fuse --index 135 --data 0xA195EA7
-```]
+  # OTP ID: OEM_SRKH7, Value: 0x74C72CCB
+  write-fuse --index 128 --data 0x74C72CCB
+  # OTP ID: OEM_SRKH6, Value: 0x92ECDCB2
+  write-fuse --index 129 --data 0x92ECDCB2
+  # OTP ID: OEM_SRKH5, Value: 0xA0EC40C8
+  write-fuse --index 130 --data 0xA0EC40C8
+  # OTP ID: OEM_SRKH4, Value: 0xF8786B64
+  write-fuse --index 131 --data 0xF8786B64
+  # OTP ID: OEM_SRKH3, Value: 0x3A1D66D3
+  write-fuse --index 132 --data 0x3A1D66D3
+  # OTP ID: OEM_SRKH2, Value: 0x5A26ED43
+  write-fuse --index 133 --data 0x5A26ED43
+  # OTP ID: OEM_SRKH1, Value: 0xAC130A49
+  write-fuse --index 134 --data 0xAC130A49
+  # OTP ID: OEM_SRKH0, Value: 0x0A195EA7
+  write-fuse --index 135 --data 0xA195EA7
+  ```]
 
 === AHAB status
 <ahab-status>
@@ -498,32 +534,32 @@ write-fuse --index 135 --data 0xA195EA7
 
 - Before the fuses are flashed, this will result in the following error:
   #text(size: 12pt)[
-  ```yaml
-     > ahab_status 
-     Lifecycle: 0x00000008, OEM Open
+    ```yaml
+       > ahab_status
+       Lifecycle: 0x00000008, OEM Open
 
-          0x0287fad6
-          IPC = MU APD (0x2)
-          CMD = ELE_OEM_CNTN_AUTH_REQ (0x87)
-          IND = ELE_BAD_KEY_HASH_FAILURE_IND (0xFA)
-          STA = ELE_SUCCESS_IND (0xD6)
+            0x0287fad6
+            IPC = MU APD (0x2)
+            CMD = ELE_OEM_CNTN_AUTH_REQ (0x87)
+            IND = ELE_BAD_KEY_HASH_FAILURE_IND (0xFA)
+            STA = ELE_SUCCESS_IND (0xD6)
 
-          0x0287fad6
-          IPC = MU APD (0x2)
-          CMD = ELE_OEM_CNTN_AUTH_REQ (0x87)
-          IND = ELE_BAD_KEY_HASH_FAILURE_IND (0xFA)
-          STA = ELE_SUCCESS_IND (0xD6)
-  ```]
+            0x0287fad6
+            IPC = MU APD (0x2)
+            CMD = ELE_OEM_CNTN_AUTH_REQ (0x87)
+            IND = ELE_BAD_KEY_HASH_FAILURE_IND (0xFA)
+            STA = ELE_SUCCESS_IND (0xD6)
+    ```]
 
 - Once they are, AHAB should report no events:
   #text(size: 12pt)[
-  ```yaml
-      > ahab_status 
-      Lifecycle: 0x00000008, OEM Open
+    ```yaml
+        > ahab_status
+        Lifecycle: 0x00000008, OEM Open
 
 
-          No Events Found!
-  ```]
+            No Events Found!
+    ```]
 
 - Then the board can be set to `OEM Closed`, and signatures will be
   enforced

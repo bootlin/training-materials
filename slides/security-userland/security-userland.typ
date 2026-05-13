@@ -74,14 +74,14 @@
 #v(0.5em)
 
 #text(size: 13pt)[
-```
-$ ls -l /run/
-drwxr-xr-x  2 root              root         60 Jan 22 15:51 blkid
--rw-r--r--  1 root              root          5 Jan 22 15:51 blkmapd.pid 
-drwxr-xr-x  3 root              lp          100 Feb  6 10:26 cups
--rw-r--r--  1 statd             nogroup       5 Jan 22 15:52 rpc.statd.pid
--rw-------  1 root              root          5 Jan 22 15:52 sm-notify.pid
-```]
+  ```
+  $ ls -l /run/
+  drwxr-xr-x  2 root              root         60 Jan 22 15:51 blkid
+  -rw-r--r--  1 root              root          5 Jan 22 15:51 blkmapd.pid
+  drwxr-xr-x  3 root              lp          100 Feb  6 10:26 cups
+  -rw-r--r--  1 statd             nogroup       5 Jan 22 15:52 rpc.statd.pid
+  -rw-------  1 root              root          5 Jan 22 15:52 sm-notify.pid
+  ```]
 
 === Mandatory access control
 
@@ -157,50 +157,53 @@ drwxr-xr-x  3 root              lp          100 Feb  6 10:26 cups
 === Linux capability examples
 <linux-capability-examples>
 
-#[ #set list(spacing: 0.5em)
+#[
+  #set list(spacing: 0.5em)
 
-All capabilities are documented in the
-#link("https://manned.org/capabilities.7")[capabilities(7)] manpage
+  All capabilities are documented in the
+  #link("https://manned.org/capabilities.7")[capabilities(7)] manpage
 
-- #link("https://elixir.bootlin.com/linux/v6.19/source/include/uapi/linux/capability.h#L148")[CAP_KILL]:
-  Bypass permission checks for sending signals
+  - #link("https://elixir.bootlin.com/linux/v6.19/source/include/uapi/linux/capability.h#L148")[CAP_KILL]:
+    Bypass permission checks for sending signals
 
-- #link("https://elixir.bootlin.com/linux/v6.19/source/include/uapi/linux/capability.h#L205")[CAP_NET_ADMIN]:
-  Perform various network-related operations
+  - #link("https://elixir.bootlin.com/linux/v6.19/source/include/uapi/linux/capability.h#L205")[CAP_NET_ADMIN]:
+    Perform various network-related operations
 
-  - interface configuration, firewalling, routes, TOS, promiscuous mode,
-    multicasting…
+    - interface configuration, firewalling, routes, TOS, promiscuous mode,
+      multicasting…
 
-- #link("https://elixir.bootlin.com/linux/v6.19/source/include/uapi/linux/capability.h#L185")[CAP_NET_BIND_SERVICE]:
-  Bind a socket to Internet domain privileged ports (port numbers less
-  than 1024).
+  - #link("https://elixir.bootlin.com/linux/v6.19/source/include/uapi/linux/capability.h#L185")[CAP_NET_BIND_SERVICE]:
+    Bind a socket to Internet domain privileged ports (port numbers less
+    than 1024).
 
-- #link("https://elixir.bootlin.com/linux/v6.19/source/include/uapi/linux/capability.h#L211")[CAP_NET_RAW]:
-  Use RAW and PACKET sockets
+  - #link("https://elixir.bootlin.com/linux/v6.19/source/include/uapi/linux/capability.h#L211")[CAP_NET_RAW]:
+    Use RAW and PACKET sockets
 
-- #link("https://elixir.bootlin.com/linux/v6.19/source/include/uapi/linux/capability.h#L154")[CAP_SETGID],
-  #link("https://elixir.bootlin.com/linux/v6.19/source/include/uapi/linux/capability.h#L159")[CAP_SETUID]:
-  Make arbitrary manipulations of process GIDs/UIDs
+  - #link("https://elixir.bootlin.com/linux/v6.19/source/include/uapi/linux/capability.h#L154")[CAP_SETGID],
+    #link("https://elixir.bootlin.com/linux/v6.19/source/include/uapi/linux/capability.h#L159")[CAP_SETUID]:
+    Make arbitrary manipulations of process GIDs/UIDs
 
-- #link("https://elixir.bootlin.com/linux/v6.19/source/include/uapi/linux/capability.h#L343")[CAP_SETFCAP]:
-  Set arbitrary capabilities on a file.
+  - #link("https://elixir.bootlin.com/linux/v6.19/source/include/uapi/linux/capability.h#L343")[CAP_SETFCAP]:
+    Set arbitrary capabilities on a file.
 
-- #link("https://elixir.bootlin.com/linux/v6.19/source/include/uapi/linux/capability.h#L281")[CAP_SYS_ADMIN]
-  Gives _a lot_ of system administration related powers:
+  - #link(
+      "https://elixir.bootlin.com/linux/v6.19/source/include/uapi/linux/capability.h#L281",
+    )[CAP_SYS_ADMIN]
+    Gives _a lot_ of system administration related powers:
 
-  - mounts, hostname, privileged log operations, monitoring, tracing…
+    - mounts, hostname, privileged log operations, monitoring, tracing…
 
-- #link("https://elixir.bootlin.com/linux/v6.19/source/include/uapi/linux/capability.h#L285")[CAP_SYS_BOOT]:
-  Use reboot(2) and kexec_load(2)
+  - #link("https://elixir.bootlin.com/linux/v6.19/source/include/uapi/linux/capability.h#L285")[CAP_SYS_BOOT]:
+    Use reboot(2) and kexec_load(2)
 
-- #link("https://elixir.bootlin.com/linux/v6.19/source/include/uapi/linux/capability.h#L224")[CAP_SYS_MODULE]:
-  Load and unload kernel modules
+  - #link("https://elixir.bootlin.com/linux/v6.19/source/include/uapi/linux/capability.h#L224")[CAP_SYS_MODULE]:
+    Load and unload kernel modules
 
-- #link("https://elixir.bootlin.com/linux/v6.19/source/include/uapi/linux/capability.h#L296")[CAP_SYS_NICE]:
-  Lower the process nice value and change the nice value for arbitrary
-  processes, set real-time scheduling policies, set CPU affinity…
+  - #link("https://elixir.bootlin.com/linux/v6.19/source/include/uapi/linux/capability.h#L296")[CAP_SYS_NICE]:
+    Lower the process nice value and change the nice value for arbitrary
+    processes, set real-time scheduling policies, set CPU affinity…
 
-- …
+  - …
 
 ]
 
@@ -212,7 +215,7 @@ All capabilities are documented in the
   - Controlling capabilities a thread is allowed to use:
 
     - Permitted: limits capabilities that might be in _Effective_
-      and _Inheritable_ sets. 
+      and _Inheritable_ sets.
       Thread can drop but never add capabilities to this set, except
       while using `execve()` on a file granting capabilities or with the
       set-uid bit.
@@ -228,7 +231,7 @@ All capabilities are documented in the
       privileged process
 
     - Ambient: capabilities that are preserved across an `execve()` of a
-      program that is not privileged. 
+      program that is not privileged.
       Can be used to add capabilities to an unprivileged program
 
     - Bounding: capabilities that might be gained on `execve()`. Can be
@@ -259,34 +262,34 @@ All capabilities are documented in the
 
 - `getcap` can be used to show file capabilities
 #text(size: 12pt)[
-```
-  $ getcap /usr/lib/x86_64-linux-gnu/gstreamer1.0/gstreamer-1.0/gst-ptp-helper
-  /usr/lib/x86_64-linux-gnu/gstreamer1.0/gstreamer-1.0/gst-ptp-helper cap_net_bind_service cap_net_admin,cap_sys_nice=ep
-  $ getcap -r /usr/bin
-  /usr/bin/clockdiff cap_net_raw,cap_sys_nice=ep
-  /usr/bin/dumpcap cap_net_admin,cap_net_raw=eip
-```]
+  ```
+    $ getcap /usr/lib/x86_64-linux-gnu/gstreamer1.0/gstreamer-1.0/gst-ptp-helper
+    /usr/lib/x86_64-linux-gnu/gstreamer1.0/gstreamer-1.0/gst-ptp-helper cap_net_bind_service cap_net_admin,cap_sys_nice=ep
+    $ getcap -r /usr/bin
+    /usr/bin/clockdiff cap_net_raw,cap_sys_nice=ep
+    /usr/bin/dumpcap cap_net_admin,cap_net_raw=eip
+  ```]
 
-  - `gst-ptp-helper` has `CAP_NET_BIND_SERVICE`, `CAP_NET_ADMIN` and
-    `CAP_SYS_NICE` in its _Permitted_ and _Effective_ sets but
-    not in its _Inheritable_ set
+- `gst-ptp-helper` has `CAP_NET_BIND_SERVICE`, `CAP_NET_ADMIN` and
+  `CAP_SYS_NICE` in its _Permitted_ and _Effective_ sets but
+  not in its _Inheritable_ set
 
-  - `/usr/bin/clockdiff` has `CAP_NET_RAW` and `CAP_SYS_NICE` in its
-    _Permitted_ and _Effective_ sets but not in its
-    _Inheritable_ set
+- `/usr/bin/clockdiff` has `CAP_NET_RAW` and `CAP_SYS_NICE` in its
+  _Permitted_ and _Effective_ sets but not in its
+  _Inheritable_ set
 
-  - `/usr/bin/dumpcap` has `CAP_NET_ADMIN` and `CAP_NET_RAW` in all
-    three sets
+- `/usr/bin/dumpcap` has `CAP_NET_ADMIN` and `CAP_NET_RAW` in all
+  three sets
 
 - `setcap` can be used to set file capabilities
 #text(size: 12pt)[
-```
-  # getcap /usr/bin/dumpcap
-  /usr/bin/dumpcap cap_net_admin,cap_net_raw=eip
-  # setcap cap_net_admin=eip /usr/bin/dumpcap
-  # getcap /usr/bin/dumpcap
-  /usr/bin/dumpcap cap_net_admin=eip
-```]
+  ```
+    # getcap /usr/bin/dumpcap
+    /usr/bin/dumpcap cap_net_admin,cap_net_raw=eip
+    # setcap cap_net_admin=eip /usr/bin/dumpcap
+    # getcap /usr/bin/dumpcap
+    /usr/bin/dumpcap cap_net_admin=eip
+  ```]
 
 - Capabilities syntax is described in
   #link("https://manned.org/cap_from_text.3")[cap_from_text(3)]
@@ -310,38 +313,38 @@ All capabilities are documented in the
   #link("https://manned.org/cap_get_proc.3")[cap_get_proc(3)] and
   #link("https://manned.org/cap_clear.3")[cap_clear(3)] manpages.
 
-=== Manipulating thread capabilities II 
+=== Manipulating thread capabilities II
 
 #text(size: 13pt)[
-```
-...
-cap_t caps; 
-const cap_value_t cap_list[2] = {CAP_FOWNER, CAP_SETFCAP};
+  ```
+  ...
+  cap_t caps;
+  const cap_value_t cap_list[2] = {CAP_FOWNER, CAP_SETFCAP};
 
-if (!CAP_IS_SUPPORTED(CAP_SETFCAP))
-     /* handle error */
+  if (!CAP_IS_SUPPORTED(CAP_SETFCAP))
+       /* handle error */
 
-caps = cap_get_proc(); if (caps == NULL)
-     /* handle error */;
+  caps = cap_get_proc(); if (caps == NULL)
+       /* handle error */;
 
-if (cap_set_flag(caps, CAP_EFFECTIVE, 2, cap_list, CAP_SET) == -1)
-     /* handle error */;
+  if (cap_set_flag(caps, CAP_EFFECTIVE, 2, cap_list, CAP_SET) == -1)
+       /* handle error */;
 
-if (cap_set_proc(caps) == -1)
-     /* handle error */;
+  if (cap_set_proc(caps) == -1)
+       /* handle error */;
 
-if (cap_free(caps) == -1)
-     /* handle error */;
-...
-```]
+  if (cap_free(caps) == -1)
+       /* handle error */;
+  ...
+  ```]
 
 #v(0.5em)
 
 #align(center, [
-Example from
-#link("https://manned.org/cap_get_proc.3")[cap_get_proc(3)] manpage,
-adding `CAP_FOWNER` and `CAP_SETFCAP` effective capabilities to the
-calling thread.
+  Example from
+  #link("https://manned.org/cap_get_proc.3")[cap_get_proc(3)] manpage,
+  adding `CAP_FOWNER` and `CAP_SETFCAP` effective capabilities to the
+  calling thread.
 ])
 
 === setuid and capabilities
@@ -382,21 +385,21 @@ calling thread.
   manpage provides a summary of capabilities transformations:
   #v(0.5em)
   #text(size: 19pt)[
-  ```
-             P'(ambient)     = (file is privileged) ? 0 : P(ambient)
-             P'(permitted)   = (P(inheritable) & F(inheritable)) |
-                               (F(permitted) & P(bounding)) | P'(ambient)
-             P'(effective)   = F(effective) ? P'(permitted) : P'(ambient)
-             P'(inheritable) = P(inheritable)    [i.e., unchanged]
-             P'(bounding)    = P(bounding)       [i.e., unchanged]
+    ```
+               P'(ambient)     = (file is privileged) ? 0 : P(ambient)
+               P'(permitted)   = (P(inheritable) & F(inheritable)) |
+                                 (F(permitted) & P(bounding)) | P'(ambient)
+               P'(effective)   = F(effective) ? P'(permitted) : P'(ambient)
+               P'(inheritable) = P(inheritable)    [i.e., unchanged]
+               P'(bounding)    = P(bounding)       [i.e., unchanged]
 
-         where:
-             P()    denotes the value of a thread capability set before the
-                    execve(2)
-             P'()   denotes the value of a thread capability set after the
-                    execve(2)
-             F()    denotes a file capability set
-  ```]
+           where:
+               P()    denotes the value of a thread capability set before the
+                      execve(2)
+               P'()   denotes the value of a thread capability set after the
+                      execve(2)
+               F()    denotes a file capability set
+    ```]
 
 == Process isolation: namespaces
 <process-isolation-namespaces>
@@ -442,8 +445,9 @@ calling thread.
   namespace had a different network configuration: devices, IP
   addresses, routing, firewalling…
 
-=== Linux Namespaces types II 
+=== Linux Namespaces types II
 <linux-namespaces-types-II>
+
 - User namespaces: allowing to isolate user ids and group ids. Ids
   inside and outside of a namespace can be different, allowing an
   unprivileged user to have the ID 0 inside of the namespace, i.e. being
@@ -571,15 +575,17 @@ calling thread.
   files of the associated folder in `/sys/fs/cgroup`
 
 #text(size: 13pt)[
-```
-  cat /sys/fs/cgroup/mygroup/memory.current
-  45056
-  echo 10000 > /sys/fs/cgroup/mygroup/memory.max
-```]
+  ```
+    cat /sys/fs/cgroup/mygroup/memory.current
+    45056
+    echo 10000 > /sys/fs/cgroup/mygroup/memory.max
+  ```]
 
 - List of all supported controllers can be found in kernel
   documentation:
-  #link("https://elixir.bootlin.com/linux/v6.18/source/Documentation/admin-guide/cgroup-v2.rst#L1091")[Documentation/admin-guide/cgroup-v2.rst]
+  #link(
+    "https://elixir.bootlin.com/linux/v6.18/source/Documentation/admin-guide/cgroup-v2.rst#L1091",
+  )[Documentation/admin-guide/cgroup-v2.rst]
 
 - A few examples:
 
@@ -604,24 +610,24 @@ calling thread.
   childs through the `cgroup.subtree_control` control file:
 
 #text(size: 13pt)[
-```
-  # echo +cpu -memory -pids > /sys/fs/cgroup/mygroup/cgroup.subtree_control
-  # cat /sys/fs/cgroup/mygroup/cgroup.subtree_control 
-  cpu
-  # cat /sys/fs/cgroup/mygroup/mysubgroup/cgroup.controllers 
-  cpu 
-  bootlin-mathieu# ls /sys/fs/cgroup/mygroup/mysubgroup/pids* | wc -l
-  0
-```]
+  ```
+    # echo +cpu -memory -pids > /sys/fs/cgroup/mygroup/cgroup.subtree_control
+    # cat /sys/fs/cgroup/mygroup/cgroup.subtree_control
+    cpu
+    # cat /sys/fs/cgroup/mygroup/mysubgroup/cgroup.controllers
+    cpu
+    bootlin-mathieu# ls /sys/fs/cgroup/mygroup/mysubgroup/pids* | wc -l
+    0
+  ```]
 
 - Some statistics files will still be present when the controller is
   disabled:
 
 #text(size: 13pt)[
-```
-  #ls -l /sys/fs/cgroup/mygroup/mysubgroup/memory.*
-  /sys/fs/cgroup/mygroup/mysubgroup/memory.pressure
-```]
+  ```
+    #ls -l /sys/fs/cgroup/mygroup/mysubgroup/memory.*
+    /sys/fs/cgroup/mygroup/mysubgroup/memory.pressure
+  ```]
 
 === Cgroups example
 <cgroups-example>
@@ -658,9 +664,9 @@ calling thread.
   used
 
 #text(size: 13pt)[
-```
-  syscall(SYS_seccomp, SECCOMP_SET_MODE_STRICT, 0, NULL);
-```]
+  ```
+    syscall(SYS_seccomp, SECCOMP_SET_MODE_STRICT, 0, NULL);
+  ```]
 
 === Seccomp filters
 <seccomp-filters>
@@ -674,10 +680,10 @@ calling thread.
   syscalls
 
   #text(size: 13pt)[
-  ```
-  struct sock_fprog prog = { /* BPF program description */ }; 
-  syscall(SYS_seccomp, SECCOMP_SET_MODE_FILTER, 0, &prog);
-  ```]
+    ```
+    struct sock_fprog prog = { /* BPF program description */ };
+    syscall(SYS_seccomp, SECCOMP_SET_MODE_FILTER, 0, &prog);
+    ```]
 
 - Supported filters are described in
   #link("https://manned.org/seccomp.2")[seccomp(2)] manpage.
@@ -793,35 +799,38 @@ Users: 1
 
 - Each object (files, users, processes) has a context composed by 3 or 4 fields:
   - user
-    #[ #set list(spacing: 0.3em)
-    - An identifier, different from POSIX user
-    - Determines which roles can be used
+    #[
+      #set list(spacing: 0.3em)
+      - An identifier, different from POSIX user
+      - Determines which roles can be used
     ]
   - role
-    #[ #set list(spacing: 0.3em)
-    - Determines what domains can be accessed
-    - Each SELinux user can play a fixed set of roles
+    #[
+      #set list(spacing: 0.3em)
+      - Determines what domains can be accessed
+      - Each SELinux user can play a fixed set of roles
     ]
   - domain or type
-    #[ #set list(spacing: 0.3em)
-    - Defines the security context
-    - Most SELinux rules will rely on it
-    - E.g. `bin_t`, `httpd_t`, `my_application_t`
-    - List of types for a given role can be seen with `seinfo`
+    #[
+      #set list(spacing: 0.3em)
+      - Defines the security context
+      - Most SELinux rules will rely on it
+      - E.g. `bin_t`, `httpd_t`, `my_application_t`
+      - List of types for a given role can be seen with `seinfo`
     ]
 #[ #show raw.where(lang: "console", block: true): set text(size: 9pt)
-```console
-# seinfo -rstaff_r -x
+  ```console
+  # seinfo -rstaff_r -x
 
-Roles: 1
-   role staff_r types { auditadm_screen_t bluetooth_helper_t chfn_t chkpwd_t
-   chromium_naclhelper_t chromium_renderer_t chromium_sandbox_t chromium_t
-   container_engine_t container_kvm_t container_t crio_t ddclient_t dirmngr_t
-   dockerc_user_t dockerd_t dockerd_user_t evolution_alarm_t evolution_exchange_t
-   evolution_server_t evolution_t evolution_webcal_t exim_t games_t gconfd_t gpg_agent_t
-    ...
-   };
-```]
+  Roles: 1
+     role staff_r types { auditadm_screen_t bluetooth_helper_t chfn_t chkpwd_t
+     chromium_naclhelper_t chromium_renderer_t chromium_sandbox_t chromium_t
+     container_engine_t container_kvm_t container_t crio_t ddclient_t dirmngr_t
+     dockerc_user_t dockerd_t dockerd_user_t evolution_alarm_t evolution_exchange_t
+     evolution_server_t evolution_t evolution_webcal_t exim_t games_t gconfd_t gpg_agent_t
+      ...
+     };
+  ```]
 
 === SELinux context
 
@@ -898,26 +907,26 @@ Roles: 1
 - `ls -Z` can be used to show file context:
 
 #text(size: 13pt)[
-```
-  # ls -lZ /
-  lrwxrwxrwx.   1 root root system_u:object_r:bin_t:s0                   7 Feb 19 08:09 bin -> usr/bin
-  drwxr-xr-x.   3 root root system_u:object_r:boot_t:s0               4096 Feb 19 08:11 boot 
-  drwxr-xr-x.  19 root root system_u:object_r:device_t:s0             3300 Feb 19 08:29 dev 
-  drwxr-xr-x.  78 root root system_u:object_r:etc_t:s0                4096 Feb 19 08:28 etc 
-  drwxr-xr-x.   3 root root system_u:object_r:home_root_t:s0          4096 Feb 19 08:11 home
-  ...
-```]
+  ```
+    # ls -lZ /
+    lrwxrwxrwx.   1 root root system_u:object_r:bin_t:s0                   7 Feb 19 08:09 bin -> usr/bin
+    drwxr-xr-x.   3 root root system_u:object_r:boot_t:s0               4096 Feb 19 08:11 boot
+    drwxr-xr-x.  19 root root system_u:object_r:device_t:s0             3300 Feb 19 08:29 dev
+    drwxr-xr-x.  78 root root system_u:object_r:etc_t:s0                4096 Feb 19 08:28 etc
+    drwxr-xr-x.   3 root root system_u:object_r:home_root_t:s0          4096 Feb 19 08:11 home
+    ...
+  ```]
 
 - `chcon` can be used to change file context:
 
 #text(size: 13pt)[
-```
-  # ls -lZ hello.sh
-  -rwxr-xr-x. 1 root root unconfined_u:object_r:user_home_t:s0 23 Feb 19 08:29 hello.sh
-  # chcon system_u:object_r:bin_t:s0 hello.sh
-  # ls -lZ hello.sh
-  -rwxr-xr-x. 1 root root system_u:object_r:bin_t:s0 23 Feb 19 08:29 hello.sh
-```]
+  ```
+    # ls -lZ hello.sh
+    -rwxr-xr-x. 1 root root unconfined_u:object_r:user_home_t:s0 23 Feb 19 08:29 hello.sh
+    # chcon system_u:object_r:bin_t:s0 hello.sh
+    # ls -lZ hello.sh
+    -rwxr-xr-x. 1 root root system_u:object_r:bin_t:s0 23 Feb 19 08:29 hello.sh
+  ```]
 
 - `restorecon` can be used to set file context to policy default values
 
@@ -930,33 +939,33 @@ Roles: 1
 - `id -Z` can be used to show own context in a shell:
 
 #text(size: 13pt)[
-```
-  # id -Z
-  unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023
-```]
+  ```
+    # id -Z
+    unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023
+  ```]
 
 - `ps -Z` can be used to show processes contexts:
 
 #text(size: 13pt)[
-```
-  # ps -Z
-  LABEL                               PID TTY          TIME CMD
-  unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 738 pts/0 00:00:00 bash
-  unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 1608 pts/0 00:00:00 ps
-```]
+  ```
+    # ps -Z
+    LABEL                               PID TTY          TIME CMD
+    unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 738 pts/0 00:00:00 bash
+    unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023 1608 pts/0 00:00:00 ps
+  ```]
 
 - `runcon` can be used to start a process with a different context:
 
   - The transition must be allowed by SELinux policy rules
 
 #text(size: 13pt)[
-```
-    # id -Z
-    unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023
-    # runcon -r system_r bash
-    # id -Z
-    unconfined_u:system_r:unconfined_t:s0-s0:c0.c1023
-```]
+  ```
+      # id -Z
+      unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023
+      # runcon -r system_r bash
+      # id -Z
+      unconfined_u:system_r:unconfined_t:s0-s0:c0.c1023
+  ```]
 
 === SELinux modes
 <selinux-modes>
@@ -980,15 +989,15 @@ Roles: 1
 - Active mode can be seen with `sestatus`
 
 #text(size: 13pt)[
-```
-  # sestatus 
-  SELinux status:                 enabled 
-  SELinuxfs mount:                /sys/fs/selinux 
-  SELinux root directory:         /etc/selinux 
-  Loaded policy name:             default 
-  Current mode:                   permissive
-  ...
-```]
+  ```
+    # sestatus
+    SELinux status:                 enabled
+    SELinuxfs mount:                /sys/fs/selinux
+    SELinux root directory:         /etc/selinux
+    Loaded policy name:             default
+    Current mode:                   permissive
+    ...
+  ```]
 
 === SELinux policies
 <selinux-policies>
@@ -1043,29 +1052,29 @@ Roles: 1
 - The most common rule is `allow`, allowing a specific access
 
 #text(size: 13pt)[
-```
-  allow user_t lib_t : file { execute };
-```]
+  ```
+    allow user_t lib_t : file { execute };
+  ```]
 
-  - Allows processes from `user_t` domain
+- Allows processes from `user_t` domain
 
-  - To `execute` `files`
+- To `execute` `files`
 
-  - Of the `lib_t` type
+- Of the `lib_t` type
 
 - Other types of rules exist, such as `type_transition`, allowing
   process transition to a different context:
 
 #text(size: 13pt)[
-```
-  type_transition init_t initrc_exec_t : process initrc_t;
-```]
+  ```
+    type_transition init_t initrc_exec_t : process initrc_t;
+  ```]
 
-  - Processes running in `init_t` domain
+- Processes running in `init_t` domain
 
-  - Executing a file with `initrc_exec_t` type
+- Executing a file with `initrc_exec_t` type
 
-  - Shall transition to the `initrc_t` domain
+- Shall transition to the `initrc_t` domain
 
 === Listing SELinux rules
 <listing-selinux-rules>
@@ -1092,12 +1101,12 @@ Roles: 1
     - …
 
 #text(size: 13pt)[
-```
-  # sesearch --allow --source wireshark_t --target proc_net_t 
-  allow wireshark_t proc_net_t:dir { getattr ioctl lock open read search }; 
-  allow wireshark_t proc_net_t:file { getattr ioctl lock open read }; 
-  allow wireshark_t proc_net_t:lnk_file { getattr read };
-```]
+  ```
+    # sesearch --allow --source wireshark_t --target proc_net_t
+    allow wireshark_t proc_net_t:dir { getattr ioctl lock open read search };
+    allow wireshark_t proc_net_t:file { getattr ioctl lock open read };
+    allow wireshark_t proc_net_t:lnk_file { getattr read };
+  ```]
 
 === SELinux policy modules
 <selinux-policy-modules>
@@ -1113,20 +1122,22 @@ Roles: 1
   - `–disable`
 
 #text(size: 13pt)[
-```
-  # semodule --list-modules | head -5
-  accountsd 
-  acct 
-  afs 
-  aide 
-  alsa
-  # semodule --disable alsa 
-  libsemanage.add_user: user sddm not in password file 
-  root@setest:~# semodule --list-modules | grep alsa
-```]
+  ```
+    # semodule --list-modules | head -5
+    accountsd
+    acct
+    afs
+    aide
+    alsa
+    # semodule --disable alsa
+    libsemanage.add_user: user sddm not in password file
+    root@setest:~# semodule --list-modules | grep alsa
+  ```]
 
 - Generic policies might be provided by projects, distributions or the
-  #link("https://github.com/SELinuxProject/refpolicy")[SELinux refpolicy project]
+  #link(
+    "https://github.com/SELinuxProject/refpolicy",
+  )[SELinux refpolicy project]
 
 === Creating SELinux policies
 <creating-selinux-policies>
@@ -1158,21 +1169,21 @@ Roles: 1
   `semodule_package` or more easily with some helper script
 
 #text(size: 13pt)[
-```
-  # mkdir myapp && cd myapp
-  # sepolicy generate --init -n myapp /bin/myapp 
-  Failed to retrieve rpm info for selinux-policy 
-  Created the following files:
-  /root/myapp/myapp.te # Type Enforcement file
-  /root/myapp/myapp.if # Interface file
-  /root/myapp/myapp.fc # File Contexts file
-  /root/myapp/myapp_selinux.spec # Spec file
-  /root/myapp/myapp.sh # Setup Script
-  # ... Define your custom rules ...
-  # ./myapp.sh
-  # semodule -l | grep myapp 
-  myapp
-```]
+  ```
+    # mkdir myapp && cd myapp
+    # sepolicy generate --init -n myapp /bin/myapp
+    Failed to retrieve rpm info for selinux-policy
+    Created the following files:
+    /root/myapp/myapp.te # Type Enforcement file
+    /root/myapp/myapp.if # Interface file
+    /root/myapp/myapp.fc # File Contexts file
+    /root/myapp/myapp_selinux.spec # Spec file
+    /root/myapp/myapp.sh # Setup Script
+    # ... Define your custom rules ...
+    # ./myapp.sh
+    # semodule -l | grep myapp
+    myapp
+  ```]
 
 - In most cases, audit2allow can help you to define those rules
 
@@ -1256,25 +1267,25 @@ Roles: 1
 - `/etc/apparmor.d/bin.ping` content:
 
 #text(size: 11pt)[
-```
-  abi <abi/4.0>,
+  ```
+    abi <abi/4.0>,
 
-  include <tunables/global>
-  profile ping /{usr/,}bin/{,iputils-}ping flags=(complain) {
-    include <abstractions/base>
-    include <abstractions/consoles>
-    include <abstractions/nameservice>
+    include <tunables/global>
+    profile ping /{usr/,}bin/{,iputils-}ping flags=(complain) {
+      include <abstractions/base>
+      include <abstractions/consoles>
+      include <abstractions/nameservice>
 
-    capability net_raw,
-    capability setuid,
-    network inet raw,
-    network inet6 raw,
+      capability net_raw,
+      capability setuid,
+      network inet raw,
+      network inet6 raw,
 
-    /{,usr/}bin/{,iputils-}ping mixr,
-    /etc/modules.conf r,
-    @{PROC}/sys/net/ipv6/conf/all/disable_ipv6 r,
-  }
-```]
+      /{,usr/}bin/{,iputils-}ping mixr,
+      /etc/modules.conf r,
+      @{PROC}/sys/net/ipv6/conf/all/disable_ipv6 r,
+    }
+  ```]
 
 - This profile can be used by `ping` and `iputils-ping` binaries
 
@@ -1294,29 +1305,29 @@ Roles: 1
   - Shows current AppArmor status
 
 #text(size: 13pt)[
-```
-  # aa-status 
-  apparmor module is loaded.
-  126 profiles are loaded.
-  6 profiles are in enforce mode.
-    /usr/bin/man
-    lsb_release
-    ...
-  44 profiles are in complain mode.
-    Xorg
-    avahi-daemon
-    dnsmasq
-    ...
-```]
+  ```
+    # aa-status
+    apparmor module is loaded.
+    126 profiles are loaded.
+    6 profiles are in enforce mode.
+      /usr/bin/man
+      lsb_release
+      ...
+    44 profiles are in complain mode.
+      Xorg
+      avahi-daemon
+      dnsmasq
+      ...
+  ```]
 
 - `aa-complain` and `aa-enforce`
 
   - Either enter complain (audit) or enforce mode for a given profile
 
 #text(size: 13pt)[
-```
-# aa-enforce /bin/ping
-```]
+  ```
+  # aa-enforce /bin/ping
+  ```]
 
 === AppArmor base commands (2)
 <apparmor-base-commands-2>
@@ -1326,18 +1337,18 @@ Roles: 1
   - Load or reload a profile file
 
 #text(size: 13pt)[
-```
-# apparmor_parser -r /etc/apparmor.d/bin.ping
-```]
+  ```
+  # apparmor_parser -r /etc/apparmor.d/bin.ping
+  ```]
 
 - `aa-exec`
 
   - Execute a program with non-default profile
 
 #text(size: 13pt)[
-```
-# aa-exec -p unconfined -- ping bootlin.com
-```]
+  ```
+  # aa-exec -p unconfined -- ping bootlin.com
+  ```]
 
 === AppArmor audit log
 <apparmor-audit-log>
@@ -1347,18 +1358,18 @@ Roles: 1
   - We can test with a modified _ping_ profile, with `net_raw`
     capability removed
 
-#text(size: 11.5pt)[ 
-```
-# aa-enforce /bin/ping
-# ping -N name bootlin.com 
-ping: socktype: SOCK_RAW
-ping: socket: Permission denied
-# grep success=no /var/log/audit/audit.log  
-type=SYSCALL msg=audit(1771853258.629:191): arch=c000003e syscall=41 success=no exit=-13 a0=2 a1=3 a2=1 a3=6 items=0 ppid=849 pid=869
-auid=0 uid=0 gid=0 euid=0 suid=0 fsuid=0 egid=0 sgid=0 fsgid=0 tty=pts0 ses=1 comm="ping" exe="/usr/bin/ping" subj=ping 
-key=(null)ARCH=x86_64 SYSCALL=socket AUID="root" UID="root" GID="root" EUID="root" SUID="root" FSUID="root" EGID="root" SGID="root"
-FSGID="root"
-```]
+#text(size: 11.5pt)[
+  ```
+  # aa-enforce /bin/ping
+  # ping -N name bootlin.com
+  ping: socktype: SOCK_RAW
+  ping: socket: Permission denied
+  # grep success=no /var/log/audit/audit.log
+  type=SYSCALL msg=audit(1771853258.629:191): arch=c000003e syscall=41 success=no exit=-13 a0=2 a1=3 a2=1 a3=6 items=0 ppid=849 pid=869
+  auid=0 uid=0 gid=0 euid=0 suid=0 fsuid=0 egid=0 sgid=0 fsgid=0 tty=pts0 ses=1 comm="ping" exe="/usr/bin/ping" subj=ping
+  key=(null)ARCH=x86_64 SYSCALL=socket AUID="root" UID="root" GID="root" EUID="root" SUID="root" FSUID="root" EGID="root" SGID="root"
+  FSGID="root"
+  ```]
 
 == Application hardening via systemd
 <application-hardening-via-systemd>
@@ -1507,33 +1518,35 @@ FSGID="root"
     `RestrictNetworkInterfaces=`…
 
 - All settings are described in
-  #link("https://manned.org/systemd.resource-control.5")[systemd.resource-control(5)]
+  #link(
+    "https://manned.org/systemd.resource-control.5",
+  )[systemd.resource-control(5)]
   manpage.
 
 === Systemd service example: openvpn@.service
 <systemd-service-example-openvpn.service>
 
 #text(size: 12pt)[
-```
-[Unit]
-Description=OpenVPN connection to %i
-...
+  ```
+  [Unit]
+  Description=OpenVPN connection to %i
+  ...
 
-[Service]
-Type=notify 
-PrivateTmp=true 
-WorkingDirectory=/etc/openvpn 
-ExecStart=/usr/sbin/openvpn --daemon ovpn-%i --status /run/openvpn/%i.status 10 --cd /etc/openvpn --config /etc/openvpn/%i.conf
-    --writepid /run/openvpn/%i.pid 
-PIDFile=/run/openvpn/%i.pid 
-KillMode=process 
-CapabilityBoundingSet=CAP_IPC_LOCK CAP_NET_ADMIN CAP_NET_BIND_SERVICE CAP_NET_RAW CAP_SETGID CAP_SETUID CAP_SETPCAP CAP_SYS_CHROOT
-    CAP_DAC_OVERRIDE CAP_AUDIT_WRITE
-TasksMax=10
-DeviceAllow=/dev/null rw 
-DeviceAllow=/dev/net/tun rw 
-ProtectSystem=true 
-ProtectHome=true 
-RestartSec=5s 
-Restart=on-failure
-```]
+  [Service]
+  Type=notify
+  PrivateTmp=true
+  WorkingDirectory=/etc/openvpn
+  ExecStart=/usr/sbin/openvpn --daemon ovpn-%i --status /run/openvpn/%i.status 10 --cd /etc/openvpn --config /etc/openvpn/%i.conf
+      --writepid /run/openvpn/%i.pid
+  PIDFile=/run/openvpn/%i.pid
+  KillMode=process
+  CapabilityBoundingSet=CAP_IPC_LOCK CAP_NET_ADMIN CAP_NET_BIND_SERVICE CAP_NET_RAW CAP_SETGID CAP_SETUID CAP_SETPCAP CAP_SYS_CHROOT
+      CAP_DAC_OVERRIDE CAP_AUDIT_WRITE
+  TasksMax=10
+  DeviceAllow=/dev/null rw
+  DeviceAllow=/dev/net/tun rw
+  ProtectSystem=true
+  ProtectHome=true
+  RestartSec=5s
+  Restart=on-failure
+  ```]

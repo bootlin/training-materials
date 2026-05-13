@@ -145,7 +145,9 @@ Flip side of the security properties:
 <threat-modeling-frameworks-attack-tree>
 
 - Popularized by
-  #link("https://www.schneier.com/academic/archives/1999/12/attack_trees.html")[Bruce Schneier]
+  #link(
+    "https://www.schneier.com/academic/archives/1999/12/attack_trees.html",
+  )[Bruce Schneier]
 
 - Start with a goal, e.g. "run a program as root", this is your root
   node
@@ -336,16 +338,21 @@ Flip side of the security properties:
     must be introduced, otherwise input patterns might be identifiable
     in the output.
     #align(center, [
-    #align(center)[
-    #box(image("Tux.pdf", width: 10%))#box(image("Tux_encrypted_ecb.png", width: 10%))
-    ]
-    #text(size: 13pt)[
-    An image and its encryption in ECB mode] \
-    #text(size: 10pt)[
-    Larry Ewing, Simon Budig, Garrett LeSage, CC0:
-    #link("https://en.wikipedia.org/wiki/File:Tux.svg") \ 
-    RFL890, CC0:
-    #link("https://en.wikipedia.org/wiki/File:Tux_encrypted_ecb.png")[https://en.wikipedia.org/wiki/File:Tux_encrypted_ecb.png]]
+      #align(center)[
+        #box(image("Tux.pdf", width: 10%))#box(image(
+          "Tux_encrypted_ecb.png",
+          width: 10%,
+        ))
+      ]
+      #text(size: 13pt)[
+        An image and its encryption in ECB mode] \
+      #text(size: 10pt)[
+        Larry Ewing, Simon Budig, Garrett LeSage, CC0:
+        #link("https://en.wikipedia.org/wiki/File:Tux.svg") \
+        RFL890, CC0:
+        #link(
+          "https://en.wikipedia.org/wiki/File:Tux_encrypted_ecb.png",
+        )[https://en.wikipedia.org/wiki/File:Tux_encrypted_ecb.png]]
     ])
 
 - Additionally, we often want protection from data modification by third
@@ -356,46 +363,60 @@ Flip side of the security properties:
 === Block Cipher Modes of Operation Examples (1)
 <block-cipher-modes-of-operation-examples-1>
 #text(size: 18pt)[
-- Modes ensuring data confidentiality:
-  #text(size: 16pt)[
-  - CBC: Cipher block chaining
-    #[ #set list(spacing: 0.5em)
-    - Input of each block is XORed with the output of the previous block
+  - Modes ensuring data confidentiality:
+    #text(size: 16pt)[
+      - CBC: Cipher block chaining
+        #[
+          #set list(spacing: 0.5em)
+          - Input of each block is XORed with the output of the previous block
 
-    - The input of the first block is XORed with either a deterministic
-      initialization vector or a random one, which is shared along with
-      the encrypted data.
+          - The input of the first block is XORed with either a deterministic
+            initialization vector or a random one, which is shared along with
+            the encrypted data.
+        ]
+      - CTR: Counter
+        #[
+          #set list(spacing: 0.5em)
+          - An incrementing value is encrypted
+
+          - This encrypted value is XORed with the input block to generate
+            encrypted data
+
+          - No dependency between blocks: encryption can be parallelized,
+            random blocks can be modified
+
+          - The initial counter value is derived from a nonce, which should be
+            unique for each message encrypted with the same key
+        ]
     ]
-  - CTR: Counter
-    #[ #set list(spacing: 0.5em)
-    - An incrementing value is encrypted
+]
+#table(
+  columns: (50%, 50%),
+  stroke: none,
+  gutter: 30pt,
+  [
 
-    - This encrypted value is XORed with the input block to generate
-      encrypted data
+    #text(size: 12pt)[
+      #align(center)[
+        #align(center, [#image("CBC_encryption.pdf", width: 90%)])
+        WhiteTimberwolf, Public domain: \
+        #link(
+          "https://commons.wikimedia.org/wiki/File:CBC_encryption.svg",
+        )[https://commons.wikimedia.org/wiki/File:CBC_encryption.svg]
+      ]]
+  ],
+  [
 
-    - No dependency between blocks: encryption can be parallelized,
-      random blocks can be modified
-
-    - The initial counter value is derived from a nonce, which should be
-      unique for each message encrypted with the same key
-    ]]]
-#table(columns: (50%, 50%), stroke: none, gutter: 30pt, [
-
-#text(size: 12pt)[
-#align(center)[
-#align(center, [#image("CBC_encryption.pdf", width: 90%)])
-WhiteTimberwolf, Public domain: \
-#link("https://commons.wikimedia.org/wiki/File:CBC_encryption.svg")[https://commons.wikimedia.org/wiki/File:CBC_encryption.svg]
-]]
-],[
-
-#text(size: 12pt)[
-#align(center)[
-#align(center, [#image("CTR_encryption_2.pdf", width: 90%)])
-WhiteTimberwolf, Public domain: \
-#link("https://commons.wikimedia.org/wiki/File:CTR_encryption_2.svg")[https://commons.wikimedia.org/wiki/File:CTR_encryption_2.svg]
-]]
-])
+    #text(size: 12pt)[
+      #align(center)[
+        #align(center, [#image("CTR_encryption_2.pdf", width: 90%)])
+        WhiteTimberwolf, Public domain: \
+        #link(
+          "https://commons.wikimedia.org/wiki/File:CTR_encryption_2.svg",
+        )[https://commons.wikimedia.org/wiki/File:CTR_encryption_2.svg]
+      ]]
+  ],
+)
 
 === Block Cipher Modes of Operation Examples (2)
 <block-cipher-modes-of-operation-examples-2>
@@ -413,11 +434,13 @@ WhiteTimberwolf, Public domain: \
 
     - CBC-MAC can be sent with the message, allowing receiver to verify
       data integrity
-    #text(size: 11pt)[ 
-    #align(center, [#image("CBC-MAC_structure.pdf", width: 40%)
-    Benjamin D. Esham, Public domain:
-    #link("https://commons.wikimedia.org/wiki/File:CBC-MAC_structure_(en).svg")[https://commons.wikimedia.org/wiki/File:CBC-MAC_structure_(en).svg]
-    ])]
+    #text(size: 11pt)[
+      #align(center, [#image("CBC-MAC_structure.pdf", width: 40%)
+        Benjamin D. Esham, Public domain:
+        #link(
+          "https://commons.wikimedia.org/wiki/File:CBC-MAC_structure_(en).svg",
+        )[https://commons.wikimedia.org/wiki/File:CBC-MAC_structure_(en).svg]
+      ])]
 
   - In most situations, keys should not be reused between
     confidentiality and authentication modes, at the risk of leaking
@@ -526,36 +549,44 @@ WhiteTimberwolf, Public domain: \
 === Diffie-Hellman
 <diffie-hellman>
 
-#table(columns: (68%, 32%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (68%, 32%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-- Published by Whitfield Diffie and Martin Hellman in 1976
+    - Published by Whitfield Diffie and Martin Hellman in 1976
 
-- A key exchange algorithm that allows two parties to jointly generate a
-  key
+    - A key exchange algorithm that allows two parties to jointly generate a
+      key
 
-  - Both parties will generate part of the key
+      - Both parties will generate part of the key
 
-  - A third party eavesdropping during the key generation would not be
-    able to recreate this key
+      - A third party eavesdropping during the key generation would not be
+        able to recreate this key
 
-- Provides forward secrecy
+    - Provides forward secrecy
 
-  - Communication sessions remain secret over the long term, even if a
-    long-term secret key is leaked
+      - Communication sessions remain secret over the long term, even if a
+        long-term secret key is leaked
 
-],[
+  ],
+  [
 
-#align(center, [#image("Diffie-Hellman_Key_Exchange.pdf", width: 75%)
-#text(size: 16.5pt)[
-Diffie-Hellman key exchange analogy] \
-#text(size: 12pt)[
-#set par(leading: 0.4em)
-A.J. Vinck, Public domain: \
-#link("https://en.wikipedia.org/wiki/File:Diffie-Hellman_Key_Exchange.svg")[https://en.wikipedia.org/wiki/File:Diffie-Hellman_Key_Exchange.svg]
-]
-])
+    #align(center, [#image("Diffie-Hellman_Key_Exchange.pdf", width: 75%)
+      #text(size: 16.5pt)[
+        Diffie-Hellman key exchange analogy] \
+      #text(size: 12pt)[
+        #set par(leading: 0.4em)
+        A.J. Vinck, Public domain: \
+        #link(
+          "https://en.wikipedia.org/wiki/File:Diffie-Hellman_Key_Exchange.svg",
+        )[https://en.wikipedia.org/wiki/File:Diffie-Hellman_Key_Exchange.svg]
+      ]
+    ])
 
-])
+  ],
+)
 
 == Real world use cases
 <real-world-use-cases>
@@ -654,202 +685,244 @@ A.J. Vinck, Public domain: \
 === TLS handshake with server authentication only
 <tls-handshake-with-server-authentication-only>
 
-#table(columns: (70%, 30%), stroke: none, gutter: 15pt, [
-- Assumptions
+#table(
+  columns: (70%, 30%),
+  stroke: none,
+  gutter: 15pt,
+  [
+    - Assumptions
 
-  - Only the server is authenticated
+      - Only the server is authenticated
 
-  - This is the first time the peers connect
+      - This is the first time the peers connect
 
-  - TLS version 1.3: #link("https://www.rfc-editor.org/rfc/rfc8446")
+      - TLS version 1.3: #link("https://www.rfc-editor.org/rfc/rfc8446")
 
-],[
+  ],
+  [
 
-#align(center, [#image("tls_empty.pdf", width: 100%)])
+    #align(center, [#image("tls_empty.pdf", width: 100%)])
 
-])
-
-#pagebreak()
-
-#table(columns: (70%, 30%), stroke: none, gutter: 15pt, [
-
-- Assumptions
-
-- Client: Client Hello
-
-  - Very first message, sent by the client willing to open the
-    connection
-
-  - Contains:
-
-    - The client protocol version
-
-    - A 32 bytes random number
-
-    - The list of supported symmetric cipher suites (e.g.,
-      `AES_128_CCM`, `CHACHA20_POLY1305`)
-
-    - A list of supported mechanisms for key exchange and their
-      associated values (e.g., Diffie-Hellman with client public
-      parameters).
-
-],[
-
-#align(center, [#image("tls_client_hello.pdf", width: 100%)])
-
-])
+  ],
+)
 
 #pagebreak()
 
-#table(columns: (70%, 30%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (70%, 30%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-- Assumptions
+    - Assumptions
 
-- Client: Client Hello
+    - Client: Client Hello
 
-- Server: Server Hello
+      - Very first message, sent by the client willing to open the
+        connection
 
-  - Server reply agreeing on the configuration to use
+      - Contains:
 
-  - Contains:
+        - The client protocol version
 
-    - The selected protocol version (e.g., TLS 1.3)
+        - A 32 bytes random number
 
-    - A 32 bytes random number
+        - The list of supported symmetric cipher suites (e.g.,
+          `AES_128_CCM`, `CHACHA20_POLY1305`)
 
-    - The selected symmetric cipher suites, e.g. `AES_128_CCM`
+        - A list of supported mechanisms for key exchange and their
+          associated values (e.g., Diffie-Hellman with client public
+          parameters).
 
-    - One of the key exchange mechanisms offered by the client and its
-      associated values (e.g., Diffie-Hellman with server public
-      parameters).
+  ],
+  [
 
-],[
+    #align(center, [#image("tls_client_hello.pdf", width: 100%)])
 
-#align(center, [#image("tls_server_finish.pdf", width: 100%)])
-
-])
-
-#pagebreak()
-
-#table(columns: (70%, 30%), stroke: none, gutter: 15pt, [
-
-- Assumptions
-
-- Client: Client Hello
-
-- Server: Server Hello
-
-- Server: Certificate
-
-  - Provides the server certificate
-
-- Server: Certificate Verify
-
-  - Provides a proof the server owns the corresponding private key
-
-  - Contains:
-
-    - A signature of all previous handshake messages
-
-  - Algorithms depend on the certificate, e.g. ECDSA
-
-],[
-
-#align(center, [#image("tls_server_finish.pdf", width: 100%)])
-
-])
+  ],
+)
 
 #pagebreak()
 
-#table(columns: (70%, 30%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (70%, 30%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-- Assumptions
+    - Assumptions
 
-- Client: Client Hello
+    - Client: Client Hello
 
-- Server: Server Hello
+    - Server: Server Hello
 
-- Server: Certificate
+      - Server reply agreeing on the configuration to use
 
-- Server: Certificate Verify
+      - Contains:
 
-- Server: Finished
+        - The selected protocol version (e.g., TLS 1.3)
 
-  - Confirms the handshake step is done from the server side: the client
-    can now send Application data
+        - A 32 bytes random number
 
-  - Contains:
+        - The selected symmetric cipher suites, e.g. `AES_128_CCM`
 
-    - A MAC covering the entire handshake (using an HMAC algorithm)
+        - One of the key exchange mechanisms offered by the client and its
+          associated values (e.g., Diffie-Hellman with server public
+          parameters).
 
-],[
+  ],
+  [
 
-#align(center, [#image("tls_server_finish.pdf", width: 100%)])
+    #align(center, [#image("tls_server_finish.pdf", width: 100%)])
 
-])
-
-#pagebreak()
-
-#table(columns: (70%, 30%), stroke: none, gutter: 15pt, [
-
-- Assumptions
-
-- Client: Client Hello
-
-- Server: Server Hello
-
-- Server: Certificate
-
-- Server: Certificate Verify
-
-- Server: Finished
-
-- Client: Finished
-
-  - Confirms the handshake step is done from the client side: the server
-    can now send Application data
-
-  - Contains:
-
-    - A MAC covering the entire handshake (using an HMAC algorithm)
-
-],[
-
-#align(center, [#image("tls_client_finish.pdf", width: 100%)])
-
-])
+  ],
+)
 
 #pagebreak()
 
-#table(columns: (70%, 30%), stroke: none, gutter: 15pt, [
+#table(
+  columns: (70%, 30%),
+  stroke: none,
+  gutter: 15pt,
+  [
 
-- Assumptions
+    - Assumptions
 
-- Client: Client Hello
+    - Client: Client Hello
 
-- Server: Server Hello
+    - Server: Server Hello
 
-- Server: Certificate
+    - Server: Certificate
 
-- Server: Certificate Verify
+      - Provides the server certificate
 
-- Server: Finished
+    - Server: Certificate Verify
 
-- Client: Finished
+      - Provides a proof the server owns the corresponding private key
 
-- Application data can then be sent between peers
+      - Contains:
 
-  - Algorithm and operation mode has been selected during the handshake,
-    e.g. `AES_128_CCM`
+        - A signature of all previous handshake messages
 
-  - Key has been constructed from the key exchange data during the
-    handshake
+      - Algorithms depend on the certificate, e.g. ECDSA
 
-],[
+  ],
+  [
 
-#align(center, [#image("tls_full.pdf", width: 100%)])
+    #align(center, [#image("tls_server_finish.pdf", width: 100%)])
 
-])
+  ],
+)
+
+#pagebreak()
+
+#table(
+  columns: (70%, 30%),
+  stroke: none,
+  gutter: 15pt,
+  [
+
+    - Assumptions
+
+    - Client: Client Hello
+
+    - Server: Server Hello
+
+    - Server: Certificate
+
+    - Server: Certificate Verify
+
+    - Server: Finished
+
+      - Confirms the handshake step is done from the server side: the client
+        can now send Application data
+
+      - Contains:
+
+        - A MAC covering the entire handshake (using an HMAC algorithm)
+
+  ],
+  [
+
+    #align(center, [#image("tls_server_finish.pdf", width: 100%)])
+
+  ],
+)
+
+#pagebreak()
+
+#table(
+  columns: (70%, 30%),
+  stroke: none,
+  gutter: 15pt,
+  [
+
+    - Assumptions
+
+    - Client: Client Hello
+
+    - Server: Server Hello
+
+    - Server: Certificate
+
+    - Server: Certificate Verify
+
+    - Server: Finished
+
+    - Client: Finished
+
+      - Confirms the handshake step is done from the client side: the server
+        can now send Application data
+
+      - Contains:
+
+        - A MAC covering the entire handshake (using an HMAC algorithm)
+
+  ],
+  [
+
+    #align(center, [#image("tls_client_finish.pdf", width: 100%)])
+
+  ],
+)
+
+#pagebreak()
+
+#table(
+  columns: (70%, 30%),
+  stroke: none,
+  gutter: 15pt,
+  [
+
+    - Assumptions
+
+    - Client: Client Hello
+
+    - Server: Server Hello
+
+    - Server: Certificate
+
+    - Server: Certificate Verify
+
+    - Server: Finished
+
+    - Client: Finished
+
+    - Application data can then be sent between peers
+
+      - Algorithm and operation mode has been selected during the handshake,
+        e.g. `AES_128_CCM`
+
+      - Key has been constructed from the key exchange data during the
+        handshake
+
+  ],
+  [
+
+    #align(center, [#image("tls_full.pdf", width: 100%)])
+
+  ],
+)
 
 == Understanding Public Key Infrastructures
 <understanding-public-key-infrastructures>

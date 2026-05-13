@@ -108,12 +108,16 @@
   practical
 
 - This is the role of U-Boot's
-  #link("https://elixir.bootlin.com/u-boot/v2026.01/source/tools/mkimage.c")[mkimage]
+  #link(
+    "https://elixir.bootlin.com/u-boot/v2026.01/source/tools/mkimage.c",
+  )[mkimage]
 
 === U-boot image formats
 
 - U-boot and mkimage support various
-  #link("https://elixir.bootlin.com/u-boot/v2026.01/source/boot/image.c#L141")[image formats]
+  #link(
+    "https://elixir.bootlin.com/u-boot/v2026.01/source/boot/image.c#L141",
+  )[image formats]
 
 - Some are SoC vendor-specific
 
@@ -121,13 +125,19 @@
 
   - #link("https://elixir.bootlin.com/u-boot/v2026.01/C/ident/IMAGE_FORMAT_LEGACY")[legacy image],
     which is concatenated files with a simple
-    #link("https://elixir.bootlin.com/u-boot/v2026.01/source/include/image.h#L324")[header]
+    #link(
+      "https://elixir.bootlin.com/u-boot/v2026.01/source/include/image.h#L324",
+    )[header]
 
-  - #link("https://elixir.bootlin.com/u-boot/v2026.01/C/ident/IMAGE_FORMAT_FIT")[FIT (Flattened Image Tree)]
+  - #link(
+      "https://elixir.bootlin.com/u-boot/v2026.01/C/ident/IMAGE_FORMAT_FIT",
+    )[FIT (Flattened Image Tree)]
 
   - #link("https://elixir.bootlin.com/u-boot/v2026.01/C/ident/IMAGE_FORMAT_ANDROID")[Android boot image],
     which uses this
-    #link("https://source.android.com/docs/core/architecture/bootloader/boot-image-header")[header]
+    #link(
+      "https://source.android.com/docs/core/architecture/bootloader/boot-image-header",
+    )[header]
 
 - FIT is the current format for non-Android devices
 
@@ -137,14 +147,18 @@
   was split off of U-Boot
 
 - FIT images are Flattened Device Trees/
-  #link("https://devicetree-specification.readthedocs.io/en/stable/flattened-format.html")[Device Tree Blobs]
+  #link(
+    "https://devicetree-specification.readthedocs.io/en/stable/flattened-format.html",
+  )[Device Tree Blobs]
   that respect additional constraints.
 
 - They are essentially containers for
   sub-#link("https://fitspec.osfw.foundation/#align(center, [#images-node")[images]
 
 - Each of these images can include a
-  #link("https://fitspec.osfw.foundation/#align(center, [#image-signature-nodes")[signature]
+  #link(
+    "https://fitspec.osfw.foundation/#align(center, [#image-signature-nodes",
+  )[signature]
 
 - The FIT image can also list
   #link("https://fitspec.osfw.foundation/#configuration-nodes")[configurations],
@@ -155,7 +169,7 @@
   The `sign-images` property will list the images to include in the
   signature.
 
-- Support must be enabled via #projconfig("u-boot","CONFIG_FIT")
+- Support must be enabled via #projconfig("u-boot", "CONFIG_FIT")
 
 === FIT generation
 
@@ -167,18 +181,17 @@
 
   - the file should be in `arch/<arch>/boot/dts`
 
-  - as documented in #projfile("u-boot",
-    "tools/binman/binman.rst"), binman will look for the following
+  - as documented in #projfile("u-boot", "tools/binman/binman.rst"), binman will look for the following
     files, in order:
 
     - `<dts>-u-boot.dtsi` where <dts> is the base name of the .dts
       file
 
-    - `<`#projconfig("u-boot","CONFIG_SYS_SOC")`>“-u-boot.dtsi`
+    - `<`#projconfig("u-boot", "CONFIG_SYS_SOC")`>“-u-boot.dtsi`
 
-    - `<`#projconfig("u-boot","CONFIG_SYS_CPU")`>“-u-boot.dtsi`
+    - `<`#projconfig("u-boot", "CONFIG_SYS_CPU")`>“-u-boot.dtsi`
 
-    - `<`#projconfig("u-boot","CONFIG_SYS_VENDOR")`>“-u-boot.dtsi`
+    - `<`#projconfig("u-boot", "CONFIG_SYS_VENDOR")`>“-u-boot.dtsi`
 
     - `u-boot.dtsi`
 
@@ -186,49 +199,48 @@
 <example-projfileu-boot-archarmdtsimx93-u-boot.dtsi>
 
 #[ #show raw.where(lang: "c", block: true): set text(size: 9pt)
-```c
-/ { binman: binman { multiple-images; }; };
-...
-&binman {
-        u-boot-spl-ddr {
-                align = <4>;
-                align-size = <4>;
-                filename = "u-boot-spl-ddr.bin";
-                pad-byte = <0xff>;
-                u-boot-spl     { filename = "u-boot-spl.bin"; align-end = <4>; };
-                ddr-1d-imem-fw { filename = "lpddr4_imem_1d_v202201.bin"; align-end = <4>; type = "blob-ext"; };
-                ...
-                ddr-2d-dmem-fw { filename = "lpddr4_dmem_2d_v202201.bin"; align-end = <4>; type = "blob-ext"; };
-        };
+  ```c
+  / { binman: binman { multiple-images; }; };
+  ...
+  &binman {
+          u-boot-spl-ddr {
+                  align = <4>;
+                  align-size = <4>;
+                  filename = "u-boot-spl-ddr.bin";
+                  pad-byte = <0xff>;
+                  u-boot-spl     { filename = "u-boot-spl.bin"; align-end = <4>; };
+                  ddr-1d-imem-fw { filename = "lpddr4_imem_1d_v202201.bin"; align-end = <4>; type = "blob-ext"; };
+                  ...
+                  ddr-2d-dmem-fw { filename = "lpddr4_dmem_2d_v202201.bin"; align-end = <4>; type = "blob-ext"; };
+          };
 
-        spl { filename = "spl.bin";
-              mkimage { args = "-n spl/u-boot-spl.cfgout -T imx8image -e 0x2049A000"; blob { filename = "u-boot-spl-ddr.bin"; }; };
-        };
+          spl { filename = "spl.bin";
+                mkimage { args = "-n spl/u-boot-spl.cfgout -T imx8image -e 0x2049A000"; blob { filename = "u-boot-spl-ddr.bin"; }; };
+          };
 
-        u-boot-container {
-                filename = "u-boot-container.bin";
-                mkimage { args = "-n u-boot-container.cfgout -T imx8image -e 0x0"; blob { filename = "u-boot.bin"; }; };
-        };
+          u-boot-container {
+                  filename = "u-boot-container.bin";
+                  mkimage { args = "-n u-boot-container.cfgout -T imx8image -e 0x0"; blob { filename = "u-boot.bin"; }; };
+          };
 
-        imx-boot {
-                filename = "flash.bin";
-                pad-byte = <0x00>;
-                spl: blob-ext@1 { filename = "spl.bin"; offset = <0x0>; align-size = <0x400>; align = <0x400>; };
-                uboot: blob-ext@2 { filename = "u-boot-container.bin"; };
-        };
-};
-```]
+          imx-boot {
+                  filename = "flash.bin";
+                  pad-byte = <0x00>;
+                  spl: blob-ext@1 { filename = "spl.bin"; offset = <0x0>; align-size = <0x400>; align = <0x400>; };
+                  uboot: blob-ext@2 { filename = "u-boot-container.bin"; };
+          };
+  };
+  ```]
 
 === Configuring FIT verification
 <configuring-fit-verification>
 
-- The feature is documented in #projfile("u-boot",
-  "doc/usage/fit/signature.rst")
+- The feature is documented in #projfile("u-boot", "doc/usage/fit/signature.rst")
 
-- #projconfig("u-boot","CONFIG_FIT_SIGNATURE") must be set
+- #projconfig("u-boot", "CONFIG_FIT_SIGNATURE") must be set
 
   - this will disable
-    #projconfig("u-boot","CONFIG_LEGACY_IMAGE_FORMAT"), as this
+    #projconfig("u-boot", "CONFIG_LEGACY_IMAGE_FORMAT"), as this
     format cannot be signed
 
   - it is not enough for signatures to be *required*
@@ -241,33 +253,33 @@
 
   - `#include` your `fit_signing_key.dtsi` from your main device tree
 
-  - Use #projconfig("u-boot","CONFIG_DEVICE_TREE_INCLUDES") to
+  - Use #projconfig("u-boot", "CONFIG_DEVICE_TREE_INCLUDES") to
     do it for you
 
 === fit_signing_key.dtsi
 <fit_signing_key.dtsi>
 
 #[ #show raw.where(lang: "c", block: true): set text(size: 15pt)
-```c
-      / {
-        signature {
-            key-fit_signing_key {
-                key-name-hint = "fit_signing_key";
-                algo = "sha256,rsa4096";
-                rsa,num-bits = <4096>;
-                rsa,modulus = [bd 32 f6 a6 5d f7 9a ed 
-[...]
-                               7c 0b 2f 8e 8f d0 4d 95];
-                rsa,exponent = [00 00 00 00 00 01 00 01];
-                rsa,r-squared = [bc 5b f8 07 15 a2 36 92 
-[...]
-                                 49 1f da e8 b9 74 07 3a];
-               rsa,n0-inverse = <0x7bec6a43>;
-               required = "image";
-            };
-        };
-    };
-```]
+  ```c
+        / {
+          signature {
+              key-fit_signing_key {
+                  key-name-hint = "fit_signing_key";
+                  algo = "sha256,rsa4096";
+                  rsa,num-bits = <4096>;
+                  rsa,modulus = [bd 32 f6 a6 5d f7 9a ed
+  [...]
+                                 7c 0b 2f 8e 8f d0 4d 95];
+                  rsa,exponent = [00 00 00 00 00 01 00 01];
+                  rsa,r-squared = [bc 5b f8 07 15 a2 36 92
+  [...]
+                                   49 1f da e8 b9 74 07 3a];
+                 rsa,n0-inverse = <0x7bec6a43>;
+                 required = "image";
+              };
+          };
+      };
+  ```]
 
 === Configuring FIT signing
 <configuring-fit-signing>
@@ -279,7 +291,9 @@
   - sign the FIT image
 
 - Both can be done by
-  #link("https://elixir.bootlin.com/u-boot/v2026.01/source/tools/mkimage.c")[mkimage] \
+  #link(
+    "https://elixir.bootlin.com/u-boot/v2026.01/source/tools/mkimage.c",
+  )[mkimage] \
   `tools/mkimage -k keys_dir -f kernel_fit.its kernel_fit.itb -r`
 
 - The `-r` option marks the key as required.
@@ -288,42 +302,42 @@
 <fit.its>
 
 #[ #show raw.where(lang: "c", block: true): set text(size: 9pt)
-```c
-/dts-v1/;
-/ {
-        description = "Image for Linux Kernel";
-        images {
-                kernel {
-                        description = "Linux Kernel";
-                        data = /incbin/("Image.gz");
-                        ...
-                        compression = "gzip";
-                        load =  <0xDEADBEEF>;
-                        entry = <0xDEADBEEF>;
-                        hash-1 { algo = "sha256";};
-                };
-                fdt {
-                        description = "fdt";
-                        data = /incbin/("platform.dtb");
-                        ...
-                };
-        };
-        configurations {
-                default = "config-1";
-                config-1 {
-                        description = "Linux configuration";
-                        kernel = "kernel";
-                        fdt = "fdt";
-                        signature-1 {
-                                algo = "sha256,rsa2048";
-                                key-name-hint = "fit_signing_key";
-                                sign-images = "fdt", "kernel";
-                        };
+  ```c
+  /dts-v1/;
+  / {
+          description = "Image for Linux Kernel";
+          images {
+                  kernel {
+                          description = "Linux Kernel";
+                          data = /incbin/("Image.gz");
+                          ...
+                          compression = "gzip";
+                          load =  <0xDEADBEEF>;
+                          entry = <0xDEADBEEF>;
+                          hash-1 { algo = "sha256";};
+                  };
+                  fdt {
+                          description = "fdt";
+                          data = /incbin/("platform.dtb");
+                          ...
+                  };
+          };
+          configurations {
+                  default = "config-1";
+                  config-1 {
+                          description = "Linux configuration";
+                          kernel = "kernel";
+                          fdt = "fdt";
+                          signature-1 {
+                                  algo = "sha256,rsa2048";
+                                  key-name-hint = "fit_signing_key";
+                                  sign-images = "fdt", "kernel";
+                          };
 
-                };
-        };
-};
-```]
+                  };
+          };
+  };
+  ```]
 
 == Last stage: rootFS verification
 <last-stage-rootfs-verification>
@@ -416,26 +430,27 @@
 - To properly setup the `verity` device, the kernel will need the
   following parameters (described in
   #kdochtml("admin-guide/device-mapper/verity")):
-  #[ #set list(spacing: 0.2em)
-  - `version`
+  #[
+    #set list(spacing: 0.2em)
+    - `version`
 
-  - `dev`
+    - `dev`
 
-  - `hash_dev`
+    - `hash_dev`
 
-  - `data_block_size`
+    - `data_block_size`
 
-  - `hash_block_size`
+    - `hash_block_size`
 
-  - `num_data_blocks`
+    - `num_data_blocks`
 
-  - `hash_start_block`
+    - `hash_start_block`
 
-  - `algorithm`
+    - `algorithm`
 
-  - `digest`
+    - `digest`
 
-  - `salt`
+    - `salt`
   ]
 - This assumes that the root hash has already been calculated, and the
   hash tree generated.
@@ -481,7 +496,9 @@
 === crypt/veritysetup
 
 - Interacting with the device can be done using cryptesetup's
-  #link("https://gitlab.com/cryptsetup/cryptsetup/-/blob/main/src/veritysetup.c")[veritysetup]
+  #link(
+    "https://gitlab.com/cryptsetup/cryptsetup/-/blob/main/src/veritysetup.c",
+  )[veritysetup]
 
   - `veritysetup format`
 

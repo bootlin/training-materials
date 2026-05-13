@@ -9,7 +9,7 @@
 == Concept
 <concept>
 
-===  Measured boot
+=== Measured boot
 
 - Another way of establishing *trust*
 
@@ -25,7 +25,7 @@
 
 - Also called *trusted* boot `!=` secure/verified boot
 
-===  Differences from Secure Boot
+=== Differences from Secure Boot
 
 - The software is not *authenticated*, only *measured*
 
@@ -37,7 +37,7 @@
 - It can only consist of recording the measurement discrepancy, or more
   complex actions
 
-===  Measurements
+=== Measurements
 
 - A measurement is a hash of the data we are trying to measure
 
@@ -47,7 +47,7 @@
 
 - We need to store these hashes
 
-===  Measured boot support
+=== Measured boot support
 
 - A lot of the software components we've already covered support
   Measured boot:
@@ -57,7 +57,9 @@
   - U-Boot
 
 - systemd supports measured boot using
-  #link("https://www.freedesktop.org/software/systemd/man/latest/systemd-measure.html")[systemd-measure]
+  #link(
+    "https://www.freedesktop.org/software/systemd/man/latest/systemd-measure.html",
+  )[systemd-measure]
 
   - this feature is experimental
 
@@ -66,7 +68,7 @@
 == Trusted Platform Module (TPM)
 <trusted-platform-module-tpm>
 
-===  Trusted Platform Module
+=== Trusted Platform Module
 
 - Dedicated and isolated crypto component
 
@@ -86,7 +88,7 @@
   `Another reasonable implementation of a TPM is to have the code run on
   the host processor while the processor is in a special execution mode`
 
-===  TPM 2.0
+=== TPM 2.0
 
 - Current version of the specification
 
@@ -95,7 +97,9 @@
 - Specifies the TPM as a _library_
 
 - The TCG's
-  #link("https://trustedcomputinggroup.org/wp-content/uploads/2019_TCG_TPM2_BriefOverview_DR02web.pdf")[Brief overview]
+  #link(
+    "https://trustedcomputinggroup.org/wp-content/uploads/2019_TCG_TPM2_BriefOverview_DR02web.pdf",
+  )[Brief overview]
   recognizes 5 types of TPM:
 
   - Discrete TPMs, or dTPM: dedicated hardened chip \
@@ -105,10 +109,14 @@
   - Integrated TPMs: co-processor. Examples:
 
     - Microsoft's
-      #link("https://learn.microsoft.com/en-us/windows/security/hardware-security/pluton/microsoft-pluton-security-processor")[Pluton]
+      #link(
+        "https://learn.microsoft.com/en-us/windows/security/hardware-security/pluton/microsoft-pluton-security-processor",
+      )[Pluton]
 
     - The AMD
-      #link("https://dayzerosec.com/blog/2023/04/17/reversing-the-amd-secure-processor-psp.html")[Secure Processor]
+      #link(
+        "https://dayzerosec.com/blog/2023/04/17/reversing-the-amd-secure-processor-psp.html",
+      )[Secure Processor]
       (ASP, or PSP)
 
   - Firmware TPMs, or fTPMs: hardware-isolated software. Examples:
@@ -117,15 +125,19 @@
 
   - Software TPMs: only useful for testing \
     example: this
-    #link("https://github.com/microsoft/ms-tpm-20-ref")[reference implementation]
+    #link(
+      "https://github.com/microsoft/ms-tpm-20-ref",
+    )[reference implementation]
     from Microsoft.
 
   - Virtual TPMs, or vTPMs: basically an fTPM running in a hypervisor \
     Google
-    #link("https://cloud.google.com/blog/products/identity-security/virtual-trusted-platform-module-for-shielded-vms-security-in-plaintext?hl=en")[implemented one]
+    #link(
+      "https://cloud.google.com/blog/products/identity-security/virtual-trusted-platform-module-for-shielded-vms-security-in-plaintext?hl=en",
+    )[implemented one]
     for GCP
 
-===  Using the TPM
+=== Using the TPM
 
 - Key storage and generation
 
@@ -147,20 +159,24 @@
 
     - The order of measurement therefore impacts the final PCR value
 
-===  Additional references
+=== Additional references
 
 - The Open Security Training 2 "Trusted Computing" track:
   #link("https://p.ost2.fyi/courses/course-v1:OpenSecurityTraining2+TC1101_IntroTPM+2024_v2/about")[TC1101],
   #link("https://p.ost2.fyi/courses/course-v1:OpenSecurityTraining2+TC1102_IntermediateTPM+2024_v1/about")[TC1102],
-  #link("https://p.ost2.fyi/courses/course-v1:OpenSecurityTraining2+TC2202_tpm2-pytss+2025_v1/about")[TC2202]
+  #link(
+    "https://p.ost2.fyi/courses/course-v1:OpenSecurityTraining2+TC2202_tpm2-pytss+2025_v1/about",
+  )[TC2202]
 
 - The Open Access
-  #link("https://link.springer.com/book/10.1007/978-1-4302-6584-9")[Practical Guide to TPM 2.0]
+  #link(
+    "https://link.springer.com/book/10.1007/978-1-4302-6584-9",
+  )[Practical Guide to TPM 2.0]
 
 == IMA/EVM
 <imaevm>
 
-===  Integrity Measurement Architecture (IMA)
+=== Integrity Measurement Architecture (IMA)
 
 - #link("https://ima-doc.readthedocs.io/en/latest/index.html")[IMA] is a
   Linux kernel subsystem, found under `security/integrity/ima`
@@ -175,7 +191,7 @@
 
 - Focuses on the integrity of file *contents*
 
-===  Integrity Measurement Architecture Appraisal
+=== Integrity Measurement Architecture Appraisal
 
 - IMA appraisal validates the integrity of file content
 
@@ -204,7 +220,7 @@
   - `off`: appraisal is completely disabled: hashes or signature are
     neither generated nor validates
 
-===  Integrity Measurement Architecture Policies
+=== Integrity Measurement Architecture Policies
 
 - Policies defines what is measured
 
@@ -213,20 +229,21 @@
 - Several policies can be combined
 
 - IMA comes with predefined policies:
-  #[ #set list(spacing: 0.3em)
-  - Controls what is measured
+  #[
+    #set list(spacing: 0.3em)
+    - Controls what is measured
 
-  - `tcb`: measures all executed programs, files mmap'd for execution,
-    and all files read with uid or effective uid set to 0
+    - `tcb`: measures all executed programs, files mmap'd for execution,
+      and all files read with uid or effective uid set to 0
 
-  - `appraise_tcb` appraises the integrity of all files owned by root
+    - `appraise_tcb` appraises the integrity of all files owned by root
 
-  - `secure_boot` appraises the integrity of files based on file
-    signatures
+    - `secure_boot` appraises the integrity of files based on file
+      signatures
 
-  - `fail_securely` always force file signature verification
+    - `fail_securely` always force file signature verification
 
-  - `critical_data` measures kernel integrity critical data
+    - `critical_data` measures kernel integrity critical data
   ]
 - Custom policies can be defined
 
@@ -238,9 +255,11 @@
     #v(-0.3em)
     - Logs, databases…
 
-===  Extended Verification Module (EVM)
+=== Extended Verification Module (EVM)
 
-- #link("https://ima-doc.readthedocs.io/en/latest/ima-concepts.html#extended-verification-module-evm")[EVM]
+- #link(
+    "https://ima-doc.readthedocs.io/en/latest/ima-concepts.html#extended-verification-module-evm",
+  )[EVM]
   is also a Linux kernel subsystem, found under `security/integrity/evm`
 
 - Uses extended attributes
@@ -253,7 +272,7 @@
 
 - Focuses on the integrity of file *metadata*
 
-===  Extended Verification Module (EVM)
+=== Extended Verification Module (EVM)
 
 - Similarly to IMA, EVM is split into:
 
@@ -276,7 +295,7 @@
 - As for IMA, nothing prevent from renaming the file: filename is not
   part of the metadata
 
-===  IMA/EVM vs dm-verity
+=== IMA/EVM vs dm-verity
 
 - Both aim to enforce userland integrity
 

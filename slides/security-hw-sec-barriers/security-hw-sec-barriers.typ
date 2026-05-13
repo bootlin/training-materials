@@ -42,7 +42,9 @@
 
   - ARM has 4 "Exception Levels" (EL), with the kernel in EL1 and
     userland in EL0. The current EL is tracked in the
-    #link("https://developer.arm.com/documentation/ddi0595/2021-06/AArch64-Registers/CurrentEL--Current-Exception-Level")[CurrentEL]
+    #link(
+      "https://developer.arm.com/documentation/ddi0595/2021-06/AArch64-Registers/CurrentEL--Current-Exception-Level",
+    )[CurrentEL]
     register
 
 - The privilege level is checked e.g. when accessing memory
@@ -57,11 +59,11 @@
 <system-calls-12>
 
 -A system call allows the user space to request services from the
-  kernel by executing a special instruction that will switch to the
-  kernel mode (#manpage("syscall", "2"))
+kernel by executing a special instruction that will switch to the
+kernel mode (#manpage("syscall", "2"))
 
-  - When executing functions provided by the libc (`read()`, `write()`,
-    etc), they often end up executing a system call.
+- When executing functions provided by the libc (`read()`, `write()`,
+  etc), they often end up executing a system call.
 
 - System calls are identified by a numeric identifier that is passed via
   the registers.
@@ -73,15 +75,15 @@
 
 ```C
 #define __NR_read 63
-#define __NR_write 64 
+#define __NR_write 64
 ```
 
 === System Calls (2/2)
 <system-calls-22>
 
 -The kernel holds a table of function pointers which matches these
-  identifiers and will invoke the correct handler after checking the
-  validity of the syscall.
+identifiers and will invoke the correct handler after checking the
+validity of the syscall.
 
 - System call parameters are passed via registers (up to 6).
 
@@ -119,10 +121,14 @@
 - Documentation:
 
   - ARMv8-A:
-    #link("https://developer.arm.com/documentation/100940/0101/")[Armv8-A Address Translation]
+    #link(
+      "https://developer.arm.com/documentation/100940/0101/",
+    )[Armv8-A Address Translation]
 
   - x86:
-    #link("https://www.intel.com/content/www/us/en/developer/articles/technical/intel-sdm.html")[Intel Software Developer's Manual, Volume 3a, Chapter 5]
+    #link(
+      "https://www.intel.com/content/www/us/en/developer/articles/technical/intel-sdm.html",
+    )[Intel Software Developer's Manual, Volume 3a, Chapter 5]
 
 === Memory attributes
 
@@ -142,7 +148,9 @@
   conditional:
 
   - x86: depends on SMEP, see
-    #link("https://www.intel.com/content/www/us/en/developer/articles/technical/intel-sdm.html")[Intel SDM, Vol 3a, 5.6.1]
+    #link(
+      "https://www.intel.com/content/www/us/en/developer/articles/technical/intel-sdm.html",
+    )[Intel SDM, Vol 3a, 5.6.1]
 
   - 64-bit ARM: this is why *XN* is split into
     #kfunc("PTE_UXN") and #kfunc("PTE_PXN")
@@ -162,61 +170,41 @@
 
   #table(
     columns: 6,
-    align: (col, row) => (left,center,center,center,center,center,).at(col),
+    align: (col, row) => (left, center, center, center, center, center).at(col),
     inset: 6pt,
     [AP], [], [bit 7], [bit 6], [EL0], [EL1+],
-    [00],
-    [],
-    [0],
-    [0],
-    [No access],
-    [RW],
-    [01],
-    [],
-    [0],
-    [1],
-    [RW],
-    [RW],
-    [10],
-    [],
-    [1],
-    [0],
-    [No access],
-    [RO],
-    [11],
-    [],
-    [1],
-    [1],
-    [RO],
-    [RO],
+    [00], [], [0], [0], [No access], [RW],
+    [01], [], [0], [1], [RW], [RW],
+    [10], [], [1], [0], [No access], [RO],
+    [11], [], [1], [1], [RO], [RO],
   )
 
 === Experimenting with memory attributes
 <experimenting-with-memory-attributes>
 
 #[ #show raw.where(lang: "c", block: true): set text(size: 13pt)
-```c
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/mman.h>
+  ```c
+  #include <stdio.h>
+  #include <stdlib.h>
+  #include <sys/mman.h>
 
-int main(int argc, char *argv[])
-{
-        unsigned char *ptr = mmap(
-            NULL, 4096 * 2, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0
-        );
+  int main(int argc, char *argv[])
+  {
+          unsigned char *ptr = mmap(
+              NULL, 4096 * 2, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0
+          );
 
-        printf("ptr: %pn", ptr);                               // 0x7XXXXXXXX000
-        ptr[0] = 0xFF;
-        printf("ptr[1025]: 0x%02xn", ptr[1025]);               // 0x00
-        printf("ptr[4097]: 0x%02xn", ptr[4097]);               // 0x00
+          printf("ptr: %pn", ptr);                               // 0x7XXXXXXXX000
+          ptr[0] = 0xFF;
+          printf("ptr[1025]: 0x%02xn", ptr[1025]);               // 0x00
+          printf("ptr[4097]: 0x%02xn", ptr[4097]);               // 0x00
 
-        unsigned int ret = mprotect(ptr, 1024,  PROT_NONE);
+          unsigned int ret = mprotect(ptr, 1024,  PROT_NONE);
 
-        printf("ptr[4097]: 0x%02xn", ptr[4097]);               // 0x00
-        printf("ptr[1025]: 0x%02xn", ptr[1025]);               // SIGSEGV
-}
-```]
+          printf("ptr[4097]: 0x%02xn", ptr[4097]);               // 0x00
+          printf("ptr[1025]: 0x%02xn", ptr[1025]);               // SIGSEGV
+  }
+  ```]
 
 === Limits to this model
 

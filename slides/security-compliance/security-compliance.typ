@@ -6,7 +6,7 @@
 
 = Maintenance, regulation and compliance
 
-===  Rationale
+=== Rationale
 
 - "Cybersecurity" has been a rapidly growing concern
 
@@ -24,7 +24,7 @@
 
 - Predictably, this has led to produce standards and legislation
 
-===  Examples
+=== Examples
 
 - standards
 
@@ -48,7 +48,7 @@
 == Vulnerability frameworks
 <vulnerability-frameworks>
 
-===  Vulnerability taxonomy
+=== Vulnerability taxonomy
 
 - A Vulnerability is a rather high-level concept
 
@@ -68,7 +68,7 @@
 
 - CWE uses different categories to organize vulnerabilities
 
-===  Vulnerability databases
+=== Vulnerability databases
 
 - Idea: central repository listing published vulnerabilities
 
@@ -89,7 +89,7 @@
 
   - Version ranges are not super trivial to parse
 
-===  The CVE program
+=== The CVE program
 
 - CVE stands for "Common Vulnerabilities and Exposures"
 
@@ -98,7 +98,9 @@
 - This funding has had ups and downs in 2025, which has led to data
   quality issues
 
-- #link("https://www.cve.org/programorganization/cnas")[CVE Numbering Authorities (CNAs)]
+- #link(
+    "https://www.cve.org/programorganization/cnas",
+  )[CVE Numbering Authorities (CNAs)]
   can reserve and assign CVE numbers within their scope
 
 - The Linux kernel team became a CNA in early 2024
@@ -110,7 +112,7 @@
 - Database is cached into a
   #link("https://github.com/CVEProject/cvelistV5")[github repo]
 
-===  Common Vulnerability Scoring System (CVSS)
+=== Common Vulnerability Scoring System (CVSS)
 
 - Open Framework published by FIRST
   (#link("https://www.first.org/cvss/specification-document")[specification])
@@ -131,7 +133,7 @@
   #link("https://github.com/FIRSTdotorg/cvss-v4-calculator")[computation]
   (#link("https://redhatproductsecurity.github.io/cvss-v4-calculator/")[online calculator])
 
-===  Exploitation Predictability Scoring System (EPSS)
+=== Exploitation Predictability Scoring System (EPSS)
 
 - Relatively recent (2021) effort
 
@@ -147,7 +149,7 @@
 - One big question here is how big the blind spot due to the
   incompleteness of the exploitation data is
 
-===  Common Platform Enumerations (CPEs)
+=== Common Platform Enumerations (CPEs)
 
 - CPEs are unambiguous identifiers for a specific product
 
@@ -165,7 +167,7 @@
 
 - Structure of a CPE:
   #text(size: 18pt)[
-  `cpe:<version>:<part>:<vendor>:<product>:<version>:<update>:<edition>:<language> \\
+    `cpe:<version>:<part>:<vendor>:<product>:<version>:<update>:<edition>:<language> \\
      :<sw_edition>:<target_sw>:<target_hw>:<other>
   `]
 
@@ -174,13 +176,13 @@
 
   ```yaml cpe:2.3:a:openclaw:openclaw:*:*:*:*:*:node.js:*:```
 
-===  Summary
+=== Summary
 
 - _CWE_\s (Common Weakness Enumerations) classify vulneraibilities
   into types.
 
 - _CVE_\s (Common Vulnerabilities and Exposures) inventory
-  individual vulnerabilities 
+  individual vulnerabilities
   #link("https://nvd.nist.gov/vuln/detail/CVE-2012-5109")[CVE-2012-5109]
   and
   #link("https://nvd.nist.gov/vuln/detail/CVE-2025-29834")[CVE-2025-29834]
@@ -205,7 +207,7 @@
 == Regulation
 <regulation>
 
-===  The Cyber Resiliance Act #link("https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A02024R2847-20241120")[CRA]
+=== The Cyber Resiliance Act #link("https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A02024R2847-20241120")[CRA]
 
 - European Law adopted on October 10 2024
 
@@ -246,10 +248,14 @@
 === #link("https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A02024R2847-20241120")[CRA]: useful resources
 
 - The
-  #link("https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A02024R2847-20241120")[law]
+  #link(
+    "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A02024R2847-20241120",
+  )[law]
 
 - The european comission has an implementation
-  #link("https://digital-strategy.ec.europa.eu/en/library/cyber-resilience-act-implementation-frequently-asked-questions")[FAQ]
+  #link(
+    "https://digital-strategy.ec.europa.eu/en/library/cyber-resilience-act-implementation-frequently-asked-questions",
+  )[FAQ]
 
 - Draft candidates for future ETSI
   #link("https://docbox.etsi.org/CYBER/EUSR/Open")[standards]
@@ -257,21 +263,23 @@
 == Software Bill of Materials
 <software-bill-of-materials>
 
-===  SBoM
+=== SBoM
 
 - CRA definition:
 
   `a formal record containing details and supply chain relationships of components included in the software elements of a product with digital elements; a commonly used and machine-readable format covering at the very least the top-level dependencies of the products
   `
 
-- #link("https://www.cisa.gov/resources-tools/resources/shared-vision-software-bill-materials-sbom-cybersecurity")[High-level explanation]
+- #link(
+    "https://www.cisa.gov/resources-tools/resources/shared-vision-software-bill-materials-sbom-cybersecurity",
+  )[High-level explanation]
 
 - SBoMs are supposed to give end-users a good overview of their
   dependencies
 
 - Without them, answering "are we using component X" can be hard
 
-===  SBom standards
+=== SBom standards
 
 - No law imposes a specific format for SBoMs
 
@@ -281,9 +289,11 @@
 
   - #link("https://spdx.dev/")[SPDX]
 
-===  #link("https://cyclonedx.org/")[CycloneDX]
+=== #link("https://cyclonedx.org/")[CycloneDX]
 
-- #link("https://ecma-international.org/publications-and-standards/standards/ecma-424/")[Standard]
+- #link(
+    "https://ecma-international.org/publications-and-standards/standards/ecma-424/",
+  )[Standard]
   published by ECMA (ECMA-424 as of December 2025)
 
 - Supports the following serialization formats:
@@ -300,7 +310,7 @@
 
   - SBoM Manager (Keysight)
 
-===  #link("https://spdx.dev/")[SPDX]
+=== #link("https://spdx.dev/")[SPDX]
 
 - Software Package Data eXchange
 
@@ -317,44 +327,46 @@
 
 - Tends to be supported by open-source tools
 
-===  SPDX3: Example
+=== SPDX3: Example
 
 #text(size: 10pt)[
-```json
-{
-  "@context": "https://spdx.org/rdf/3.0.1/spdx-context.jsonld",
-  "@graph": [
-    {
-      "type": "CreationInfo",
-      "@id": "_:CreationInfo1",
-      "created": "2011-04-05T23:00:00Z",
-      "createdBy": ["http://spdx.org/spdxdocs/bitbake-addba517-4804-5ae3-87c2-0c3a1a5812ba/bitbake/agent/OpenEmbedded"],
-      "createdUsing": ["http://spdx.org/spdxdocs/bitbake-addba517-4804-5ae3-87c2-0c3a1a5812ba/bitbake/tool/oe-spdx-creator_1_0"],
-      "specVersion": "3.0.1"
-    },
-    ...
-    {
-      "type": "Relationship",
-      "spdxId": "http://spdx.org/spdxdocs/kiss-image-289390b0-d487-53ac-ab83-c6af87b87d1f/9f6c<...>1961/relationship/4a02<...>82ee",
-      "creationInfo": "_:CreationInfo1",
-      "extension": [
-        {
-          "type": "https://rdf.openembedded.org/spdx/3.0/id-alias",
-          "https://rdf.openembedded.org/spdx/3.0/alias": 
-            "http://spdxdocs.org/openembedded-alias/by-doc-hash/cdfb<...>c0ee/kiss-image/UNIHASH/relationship/4a02dce12485470d12bf7e20117282ee"
-        }
-      ],
-      "from": "http://spdx.org/spdxdocs/kiss-image-289390b0-d487-53ac-ab83-c6af87b87d1f/9f6c<...>1961/rootfs/kiss-image",
-      "relationshipType": "contains",
-      "to": [
-        "http://spdx.org/spdxdocs/kiss-image-289390b0-d487-53ac-ab83-c6af87b87d1f/9f6c<...>1961/rootfs-file/etc_default_dropbear",
-        "http://spdx.org/spdxdocs/kiss-image-289390b0-d487-53ac-ab83-c6af87b87d1f/9f6c<...>1961/rootfs-file/etc_group"
-        ...
-      ]
-}
-```]
+  ```json
+  {
+    "@context": "https://spdx.org/rdf/3.0.1/spdx-context.jsonld",
+    "@graph": [
+      {
+        "type": "CreationInfo",
+        "@id": "_:CreationInfo1",
+        "created": "2011-04-05T23:00:00Z",
+        "createdBy": ["http://spdx.org/spdxdocs/bitbake-addba517-4804-5ae3-87c2-0c3a1a5812ba/bitbake/agent/OpenEmbedded"],
+        "createdUsing": ["http://spdx.org/spdxdocs/bitbake-addba517-4804-5ae3-87c2-0c3a1a5812ba/bitbake/tool/oe-spdx-creator_1_0"],
+        "specVersion": "3.0.1"
+      },
+      ...
+      {
+        "type": "Relationship",
+        "spdxId": "http://spdx.org/spdxdocs/kiss-image-289390b0-d487-53ac-ab83-c6af87b87d1f/9f6c<...>1961/relationship/4a02<...>82ee",
+        "creationInfo": "_:CreationInfo1",
+        "extension": [
+          {
+            "type": "https://rdf.openembedded.org/spdx/3.0/id-alias",
+            "https://rdf.openembedded.org/spdx/3.0/alias":
+              "http://spdxdocs.org/openembedded-alias/by-doc-hash/cdfb<...>c0ee/kiss-image/UNIHASH/relationship/4a02dce12485470d12bf7e20117282ee"
+          }
+        ],
+        "from": "http://spdx.org/spdxdocs/kiss-image-289390b0-d487-53ac-ab83-c6af87b87d1f/9f6c<...>1961/rootfs/kiss-image",
+        "relationshipType": "contains",
+        "to": [
+          "http://spdx.org/spdxdocs/kiss-image-289390b0-d487-53ac-ab83-c6af87b87d1f/9f6c<...>1961/rootfs-file/etc_default_dropbear",
+          "http://spdx.org/spdxdocs/kiss-image-289390b0-d487-53ac-ab83-c6af87b87d1f/9f6c<...>1961/rootfs-file/etc_group"
+          ...
+        ]
+  }
+  ```]
 
-=== #link("https://www.cisa.gov/resources-tools/resources/minimum-requirements-vulnerability-exploitability-exchange-vex")[VEX]
+=== #link(
+  "https://www.cisa.gov/resources-tools/resources/minimum-requirements-vulnerability-exploitability-exchange-vex",
+)[VEX]
 
 - Vulnerability Exploitability eXchange
 
@@ -376,39 +388,39 @@
 
 - VEX expresses e.g. the applicability of those vulnerabilities
 
-===  SPDX3: Example
+=== SPDX3: Example
 
 #text(size: 14pt)[
-```json
-    {
-      "name": "busybox",
-      "layer": "meta",
-      "version": "1.36.1",
-      "products": [
-        {
-          "product": "busybox",
-          "cvesInRecord": "No"
-        }
-      ],
-      "cpes": [ "cpe:2.3:*:*:busybox:1.36.1:*:*:*:*:*:*:*" ],
-      "issue": [
-        {
-          "id": "CVE-2021-42380",
-          "status": "Patched",
-          "link": "https://nvd.nist.gov/vuln/detail/CVE-2021-42380",
-          "detail": "backported-patch"
-        },
-        {
-          "id": "CVE-2022-28391",
-          "status": "Patched",
-          "link": "https://nvd.nist.gov/vuln/detail/CVE-2022-28391",
-          "detail": "backported-patch"
-        },
-      ]
-    }
-```]
+  ```json
+      {
+        "name": "busybox",
+        "layer": "meta",
+        "version": "1.36.1",
+        "products": [
+          {
+            "product": "busybox",
+            "cvesInRecord": "No"
+          }
+        ],
+        "cpes": [ "cpe:2.3:*:*:busybox:1.36.1:*:*:*:*:*:*:*" ],
+        "issue": [
+          {
+            "id": "CVE-2021-42380",
+            "status": "Patched",
+            "link": "https://nvd.nist.gov/vuln/detail/CVE-2021-42380",
+            "detail": "backported-patch"
+          },
+          {
+            "id": "CVE-2022-28391",
+            "status": "Patched",
+            "link": "https://nvd.nist.gov/vuln/detail/CVE-2022-28391",
+            "detail": "backported-patch"
+          },
+        ]
+      }
+  ```]
 
-===  Generating your SBoM
+=== Generating your SBoM
 
 - #link("https://buildroot.org/")[Buildroot]:
 
@@ -416,25 +428,33 @@
     `make pkg-stats`
 
   - can convert that output to CycloneDX using
-    #link("https://github.com/buildroot/buildroot/blob/master/utils/generate-cyclonedx")[utils/generate-cyclonedx]
+    #link(
+      "https://github.com/buildroot/buildroot/blob/master/utils/generate-cyclonedx",
+    )[utils/generate-cyclonedx]
 
 - #link("https://www.yoctoproject.org/")[Yocto]
 
   - has a
-    #link("https://github.com/openembedded/openembedded-core/blob/master/meta/classes/create-spdx.bbclass")[create-spdx]
+    #link(
+      "https://github.com/openembedded/openembedded-core/blob/master/meta/classes/create-spdx.bbclass",
+    )[create-spdx]
     class, which supports both SPDX 2.3 and SPDX 3.0
 
   - process is documented
     #link("https://docs.yoctoproject.org/dev/dev-manual/sbom.html")[here]
 
   - also has a
-    #link("https://github.com/openembedded/openembedded-core/blob/master/meta/classes/vex.bbclass")[vex]
+    #link(
+      "https://github.com/openembedded/openembedded-core/blob/master/meta/classes/vex.bbclass",
+    )[vex]
     class, which was used to generate the example VEX
 
   - Yocto can annotate a CVE's status, as e.g. in their
-    #link("https://github.com/openembedded/openembedded-core/blob/master/meta/recipes-kernel/linux/cve-exclusion.inc")[exclusion lists]
+    #link(
+      "https://github.com/openembedded/openembedded-core/blob/master/meta/recipes-kernel/linux/cve-exclusion.inc",
+    )[exclusion lists]
 
-===  Using the SBoM
+=== Using the SBoM
 
 - SBoMs are a catalogue of the software on your device, including its
   version
@@ -451,7 +471,7 @@
 - They can be used periodically to scan _new_ vulnerabilities,
   without rebuilding
 
-===  VulnScout
+=== VulnScout
 
 - Open Source tool from Savoir-faire Linux
 
@@ -461,11 +481,11 @@
 
 - Supports SPDX2.2, SPDX 3 and Cyclone DX
 
-===  VulnScout
+=== VulnScout
 
 #image("vulnscout.png", height: 90%)
 
-===  sbom-cve-check
+=== sbom-cve-check
 
 - Open Source tool from Bootlin
 
@@ -489,7 +509,7 @@
 == Upgrading strategy
 <upgrading-strategy>
 
-===  Upgrades
+=== Upgrades
 
 - Updates can be necessary for multiple reasons:
 
@@ -505,7 +525,7 @@
 
 - Version upgrades can be hard, especially when skipping over versions
 
-===  Picking a version
+=== Picking a version
 
 - Embedded systems rely on a plethora of Open Source projects
 
@@ -522,7 +542,7 @@
 
 - The issue is compatibility
 
-===  Long-Term Support
+=== Long-Term Support
 
 - Long-Term Support (LTS) versions stay supported for longer
 

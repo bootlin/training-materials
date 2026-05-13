@@ -6,7 +6,7 @@
 
 = Handling confidential information
 
-===  Problem statement
+=== Problem statement
 
 - Most systems handle some type of confidential information
 
@@ -29,7 +29,7 @@
 == Hardware Security Modules (HSMs)
 <hardware-security-modules-hsms>
 
-===  HSMs
+=== HSMs
 
 - Dedicated Hardware for storing cryptographic secrets
 
@@ -47,7 +47,7 @@
 
 - Separate usage of various keys based on PINs
 
-===  HSMs: threat model
+=== HSMs: threat model
 
 - HSMs split
 
@@ -60,7 +60,7 @@
 - HSMs do not necessarily prevent an adversary from *using* the
   key
 
-===  HSMs: usage
+=== HSMs: usage
 
 - HSMs are usually used to store sensitive keys
 
@@ -76,7 +76,7 @@
 
 - All HSMs implement a command interface, and a PKCS\#11 API
 
-===  "Software HSMs"
+=== "Software HSMs"
 
 - Strange concept at first glance
 
@@ -91,12 +91,14 @@
   - #link("https://www.softhsm.org/")[SoftHSM]
 
   - OP-TEE has a
-    #link("https://github.com/OP-TEE/optee_os/tree/master/ta/pkcs11")[PKCS\#11 TA]
+    #link(
+      "https://github.com/OP-TEE/optee_os/tree/master/ta/pkcs11",
+    )[PKCS\#11 TA]
 
 == PKCS\#11
 <pkcs11>
 
-===  PKCS
+=== PKCS
 
 - Public Key Cryptography Standards
 
@@ -118,7 +120,7 @@
 
   - PKCS\#11, or "Cryptoki" is the Cryptographic Token Interface
 
-===  PKCS\#11
+=== PKCS\#11
 
 - CRYPtographic TOKen Interface
 
@@ -127,7 +129,9 @@
 - Libraries implementing it are often called cryptoki
 
 - Since 2013, overseen by an
-  #link("https://www.oasis-open.org/committees/tc_home.php?wg_abbrev=pkcs11")[OASIS technical committee]
+  #link(
+    "https://www.oasis-open.org/committees/tc_home.php?wg_abbrev=pkcs11",
+  )[OASIS technical committee]
 
 - The specification includes C header files
 
@@ -137,11 +141,13 @@
     #link("https://github.com/Nitrokey/nethsm-pkcs11")[nethsm-pkcs11]
 
   - Yubico's
-    #link("https://developers.yubico.com/yubihsm-shell/yubihsm-pkcs11.html")[PKCS11 module for YubiHSM]
+    #link(
+      "https://developers.yubico.com/yubihsm-shell/yubihsm-pkcs11.html",
+    )[PKCS11 module for YubiHSM]
 
   - Thales' libCryptoki2, part of the Luna client
 
-===  PKCS\#11 clients
+=== PKCS\#11 clients
 
 - PKCS\#11 is very specific (even implements a header)
 
@@ -153,12 +159,14 @@
     #link("https://github.com/openssl-projects/pkcs11-provider")[provider]
 
   - GnuTLS'
-    #link("https://www.gnutls.org/manual/html_node/p11tool-Invocation.html")[p11tool]
+    #link(
+      "https://www.gnutls.org/manual/html_node/p11tool-Invocation.html",
+    )[p11tool]
 
 == Cryptographic keys in the kernel
 <cryptographic-keys-in-the-kernel>
 
-===  The Kernel Key Retention Service
+=== The Kernel Key Retention Service
 
 - Also called "Kernel Key Ring Service", or "Kernel keyring"
 
@@ -169,7 +177,7 @@
 - The protection here is against adversaries that have gotten
   unprivileged code execution
 
-===  Trusted & Encrypted Keys
+=== Trusted & Encrypted Keys
 
 - Specific key types in the Kernel keyring
 
