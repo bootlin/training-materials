@@ -75,7 +75,6 @@
 === Useful Plugins
 
 #text(size: 15pt)[
-<<<<<<< HEAD
   #align(center)[
     #table(
       columns: 3,
