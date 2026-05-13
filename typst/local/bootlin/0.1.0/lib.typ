@@ -44,7 +44,7 @@
 /* Generic utils/macros */
 #let link(dest, ..body) = {
   if body == none { body = dest }
-  text(font: "DejaVu Sans Mono", size: 0.8em, fill: color-link, std.link(
+  text(fill: color-link, std.link(
     dest,
     ..body,
   ))
