@@ -85,12 +85,24 @@
       inset: 6pt,
       [alsasink], [Sink Audio], [Output to a sound card via ALSA],
       [alsasrc], [Source Audio], [Read from a sound card via ALSA],
-      [audioconvert], [Filter Converter Audio], [Convert audio to different formats],
+      [audioconvert],
+      [Filter Converter Audio],
+      [Convert audio to different formats],
+
       [audiodynamic], [Filter Effect Audio], [Compressor and Expander],
-      [audiolatency], [Audio Util], [Measures the audio latency between the source and the sink],
-      [audioloudnorm], [Filter Effect Audio], [Normalizes perceived loudness of an audio stream],
-      [audiomixmatrix], [Filter Audio], [Mixes a number of input channels into a number of output channels
+      [audiolatency],
+      [Audio Util],
+      [Measures the audio latency between the source and the sink],
+
+      [audioloudnorm],
+      [Filter Effect Audio],
+      [Normalizes perceived loudness of an audio stream],
+
+      [audiomixmatrix],
+      [Filter Audio],
+      [Mixes a number of input channels into a number of output channels
         according to a transformation matrix],
+
       [audioresample], [Filter Converter Audio], [Resamples audio],
       [clocksync], [Generic], [Synchronise buffers to the clock],
       [dtmfdetect], [Filter Analyzer Audio], [This element detects DTMF tones],
