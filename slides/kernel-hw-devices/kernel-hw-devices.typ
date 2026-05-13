@@ -253,7 +253,7 @@
 #table(
   columns: (50%, 50%),
   stroke: none,
-  gutter: 15pt,
+  gutter: 10pt,
   [
 
     - Tree of *nodes*
@@ -273,7 +273,7 @@
   ],
   [
 
-    #align(center, [#image("dt-basic-syntax.pdf", height: 80%)])
+    #align(center, [#image("dt-basic-syntax.pdf", width: 100%)])
 
   ],
 )
