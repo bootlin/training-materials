@@ -161,7 +161,7 @@
 
   - The #emph[Contiguous Memory Allocator] (`CMA`) can be used to
     reserve a given amount of memory at boot (see
-    #link("https://lwn.net/Articles/486301/").
+    #link("https://lwn.net/Articles/486301/")).
 
 === Page allocator API
 
