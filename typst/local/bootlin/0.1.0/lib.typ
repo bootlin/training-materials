@@ -1,6 +1,6 @@
 #import "@preview/touying:0.6.0": *
 
-// ── Entrées système ────────────────────────────────────────────────
+/* Inputs */
 #let trainingtitle
 #let trainer
 #if sys.inputs.training == "embedded-linux" {
@@ -32,7 +32,7 @@
 }
 #let last_update = datetime.today()
 
-// ── Couleurs ───────────────────────────────────────────────────────
+/* Colors */
 #let bootlin-orange = rgb("#FF631A")
 #let color-link = rgb("#2c4cdb")
 #let color-code = rgb("#595959")
@@ -41,7 +41,7 @@
 #let blcode = rgb("#595959")
 #let blcodebg = rgb("#E6E6E6")
 
-// ── Fonctions utilitaires ──────────────────────────────────────────
+/* Generic utils/macros */
 #let link(dest, ..body) = {
   if body == none { body = dest }
   text(font: "DejaVu Sans Mono", size: 0.8em, fill: color-link, std.link(
@@ -79,7 +79,7 @@
   "TODO: " + arg1
 }
 
-// ── Slides Touying ─────────────────────────────────────────────────
+/* Touying configuration */
 #let slide(
   config: (:),
   repeat: auto,
@@ -359,7 +359,7 @@
   touying-slide(self: self, config: config, slide-body)
 })
 
-// ── Frames (second fichier) ────────────────────────────────────────
+/* Frames */
 #let frame(title, body) = [
   #block[
     #set text(size: 16pt, weight: "bold")
@@ -448,7 +448,7 @@
   )
 }
 
-// ── Thème Touying principal ────────────────────────────────────────
+/* Main Touying theme */
 #let bootlin-theme(
   aspect-ratio: "16-9",
   header: self => utils.display-current-heading(depth: self.slide-level),
