@@ -31,13 +31,13 @@
 === Security properties: CIA triad
 <security-properties-cia-triad>
 
-- #strong[Confidentiality]: Can an unauthorized entity gain access to
+- *Confidentiality*: Can an unauthorized entity gain access to
   information?
 
-- #strong[Integrity]: Can there be unauthorized modification of
+- *Integrity*: Can there be unauthorized modification of
   information?
 
-- #strong[Availability]: Can authorized access to information be
+- *Availability*: Can authorized access to information be
   impended?
 
 === Confidentiality
@@ -45,18 +45,18 @@
 
 - The main property one wants out of a secure information system
 
-- Typical adversary: #strong[passive] MITM
+- Typical adversary: *passive* MITM
 
-- Protecting it is #strong[encryption]'s main role
+- Protecting it is *encryption*'s main role
 
-- Can make it harder to ensure #strong[Availability]
+- Can make it harder to ensure *Availability*
 
 === Integrity
 <integrity>
 
 - Aims to ensure that information is not modified
 
-- Typical adversary is an #strong[active] MITM
+- Typical adversary is an *active* MITM
 
 - The most basic form of protection are checksums
 
@@ -79,28 +79,28 @@
 === In cybersecurity: the five pillars
 <in-cybersecurity-the-five-pillars>
 
-- #strong[Confidentiality]: Can an unauthorized entity gain access to
+- *Confidentiality*: Can an unauthorized entity gain access to
   information?
 
-- #strong[Integrity]: Can there be unauthorized modification of
+- *Integrity*: Can there be unauthorized modification of
   information?
 
-- #strong[Availability]: Can authorized access to information be
+- *Availability*: Can authorized access to information be
   impended?
 
-- #strong[Authenticity]: Can an unauthorized entity insert
+- *Authenticity*: Can an unauthorized entity insert
   undistinguishable information?
 
-- #strong[Non-repudiation]: Can an authorized entity deny some
+- *Non-repudiation*: Can an authorized entity deny some
   information's authenticity?
 
-The #strong[Parkerian hexad] introduces
+The *Parkerian hexad* introduces
 
-- #strong[Utility]: Is the information useful?
+- *Utility*: Is the information useful?
 
-and trades #strong[Non-repudiation] for
+and trades *Non-repudiation* for
 
-- #strong[Control]: Can authorized users access information?
+- *Control*: Can authorized users access information?
 
 === Authenticity
 <authenticity>
@@ -111,7 +111,7 @@ and trades #strong[Non-repudiation] for
 
 - This is not the same as integrity:
 
-  - No protection against #strong[replaying] a signed message
+  - No protection against *replaying* a signed message
 
 === Non-repudiation
 <non-repudiation>
@@ -127,19 +127,19 @@ and trades #strong[Non-repudiation] for
 
 Flip side of the security properties:
 
-- #strong[Spoofing]: Unauthorized use of credentials
+- *Spoofing*: Unauthorized use of credentials
 
-- #strong[Tampering]: Unauthorized modification of information
+- *Tampering*: Unauthorized modification of information
 
-- #strong[Repudiation]: Performing unauthorized actions that cannot be
+- *Repudiation*: Performing unauthorized actions that cannot be
   detected
 
-- #strong[Information disclosure]: Unauthorized access to information
+- *Information disclosure*: Unauthorized access to information
 
-- #strong[Denial of Service]: Disruption of authorized access to a
+- *Denial of Service*: Disruption of authorized access to a
   resource
 
-- #strong[Elevation of privilege]: Execution of unauthorized actions
+- *Elevation of privilege*: Execution of unauthorized actions
 
 === Threat modeling frameworks: Attack tree
 <threat-modeling-frameworks-attack-tree>
@@ -173,24 +173,24 @@ Flip side of the security properties:
 
 - Suitable for GDPR/HIPAA/
 
-  - #strong[Linkability] Can an adversary link actions or data to a
+  - *Linkability* Can an adversary link actions or data to a
     person?
 
-  - #strong[Identifiability] Can an adversary leak a person's identity?
+  - *Identifiability* Can an adversary leak a person's identity?
 
-  - #strong[Non-repudiation] Can an adversary attribute a claim to an
+  - *Non-repudiation* Can an adversary attribute a claim to an
     person?
 
-  - #strong[Detectability] Can an adversary detect a person's
+  - *Detectability* Can an adversary detect a person's
     involvment?
 
-  - #strong[Disclosure of information] Can an adversary access personal
+  - *Disclosure of information* Can an adversary access personal
     data?
 
-  - #strong[Unawareness] Do persons know how their data is being
+  - *Unawareness* Do persons know how their data is being
     processed?
 
-  - #strong[Non-compliance] Does the system comply with standards and
+  - *Non-compliance* Does the system comply with standards and
     regulation?
 
 === Threat modeling frameworks: PASTA
@@ -202,19 +202,19 @@ Flip side of the security properties:
 
 - Works in 7 stages:
 
-  - #strong[Definition of objectives]
+  - *Definition of objectives*
 
-  - #strong[Definition of technical scope]
+  - *Definition of technical scope*
 
-  - #strong[System decomposition]
+  - *System decomposition*
 
-  - #strong[Threat analysis]
+  - *Threat analysis*
 
-  - #strong[Vulnerability analysis]
+  - *Vulnerability analysis*
 
-  - #strong[Attack modeling]
+  - *Attack modeling*
 
-  - #strong[Impact analysis]
+  - *Impact analysis*
 
 === Which methodology to choose?
 <which-methodology-to-choose>
@@ -632,7 +632,7 @@ A.J. Vinck, Public domain: \
 === Understanding the TLS protocol
 <understanding-the-tls-protocol>
 
-- TLS protocol is based on #emph[records] containing either protocol
+- TLS protocol is based on _records_ containing either protocol
   management data or application data.
 
 - Two main phases:

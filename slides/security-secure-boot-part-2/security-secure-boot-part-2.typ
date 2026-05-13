@@ -15,16 +15,16 @@
 
   - A small on-chip RAM (640 KB for i.MX93, 200KB for RK3399)
 
-  - One or several big (GiB) #strong[external] memory ((LP)DDR) bank(s)
+  - One or several big (GiB) *external* memory ((LP)DDR) bank(s)
 
-- The on-chip RAM is #strong[static] and requires little initialization,
+- The on-chip RAM is *static* and requires little initialization,
   which can be done by the BootROM.
 
-- The #strong[external] RAM is #strong[dynamic], it and its controller
+- The *external* RAM is *dynamic*, it and its controller
   needs to be initialized
 
 - At startup, we must start running from the on-chip RAM, so at least
-  the #strong[external] RAM init logic must have a small memory
+  the *external* RAM init logic must have a small memory
   footprint.
 
 - The same goes for using NAND flash as a boot medium.
@@ -33,19 +33,19 @@
   Our i.MX93 U-Boot is 850 kiB
 
 - We need to split up the boot: a small loader will initialize the
-  #strong[external] RAM, and load the main bootloader there
+  *external* RAM, and load the main bootloader there
 
 === Secondary Program Loader (SPL)
 
 - Usually started by the bootROM, also at EL3
 
-- In ARM terms, this is #strong[BL2]
+- In ARM terms, this is *BL2*
 
 - Runs either from SRAM or directly from flash
 
 - Initializes DRAM and DRAM controller, usually using firmware
 
-- Loads the #strong[proper] bootloader
+- Loads the *proper* bootloader
 
 - Can be stripped down to save space
 
@@ -63,9 +63,9 @@
 
 - On TrustZone platforms, started by TF-A, running at NS-EL2
 
-- In ARM terms, this is #strong[BL32]
+- In ARM terms, this is *BL32*
 
-- Runs from #strong[external] DRAM
+- Runs from *external* DRAM
 
 - More complex, has support for more peripherals and filesystems
 
@@ -231,7 +231,7 @@
     #projconfig("u-boot","CONFIG_LEGACY_IMAGE_FORMAT"), as this
     format cannot be signed
 
-  - it is not enough for signatures to be #strong[required]
+  - it is not enough for signatures to be *required*
 
 - The signing key itself will need to be loaded using a `.dtsi` file
 
@@ -346,7 +346,7 @@
   - We cannot put the signing key onto the system, so the signature must
     be generated off the system
 
-- The kernel must verify the rootFS #strong[before] it loads anything
+- The kernel must verify the rootFS *before* it loads anything
   from it, so this will introduce a significant delay in the boot
   process.
 
@@ -374,7 +374,7 @@
 
 - Needs the #kconfig("CONFIG_DM_VERITY") option enabled
 
-- Splits the block device into #strong[blocks]
+- Splits the block device into *blocks*
 
 - Each block then gets hashed to give the leaves of a hash tree
 
@@ -382,7 +382,7 @@
   blocks of the data block size, and hashing them.
 
 - After `math.ceil(math.log(num_blocks, block_size/hash_size))`
-  iterations, we are left with one single hash: the #strong[root hash]
+  iterations, we are left with one single hash: the *root hash*
 
 - The tree can have maximum #ksym("DM_VERITY_MAX_LEVELS") (63 in
   6.18) levels
@@ -405,7 +405,7 @@
   - If not, dm-verity will walk the hash tree down from the root, and
     for each level, recalculate the hashes.
 
-  - It will then hash the #strong[actual block data] and compare the
+  - It will then hash the *actual block data* and compare the
     hash to the hash from the tree that was used in the calculations.
 
   - The behaviour on error depends on the device configuration, but can
@@ -442,11 +442,11 @@
 
 - These arguments can be passed on the kernel command line
 
-- The value of the root hash is #strong[sensitive], but not
-  #strong[secret]
+- The value of the root hash is *sensitive*, but not
+  *secret*
 
-- Its #strong[integrity] must be protected, not its
-  #strong[confidentiality]
+- Its *integrity* must be protected, not its
+  *confidentiality*
 
 === Storing the root hash
 
@@ -499,7 +499,7 @@
 - We can use an initramFS, see
   #kdochtml("filesystems/ramfs-rootfs-initramfs")
 
-- To avoid breaking our secure boot chain, it must be #strong[signed]
+- To avoid breaking our secure boot chain, it must be *signed*
 
 - Fortunately, this is one of the images that can be included in the
   FIT: `FIT_RAMDISK_PROP`

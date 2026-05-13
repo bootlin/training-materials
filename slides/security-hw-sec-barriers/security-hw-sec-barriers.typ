@@ -26,15 +26,15 @@
 
 === Kernel/Userland isolation
 
-- The kernel has #strong[privileged] access to the hardware
+- The kernel has *privileged* access to the hardware
 
-- On older CPUs, or some architectures, it even has #strong[unfiltered]
+- On older CPUs, or some architectures, it even has *unfiltered*
   access
 
 - Needs to be isolated from useland even though both run on the same
   hardware
 
-- The key is the #strong[privilege level]
+- The key is the *privilege level*
 
   - x86 defines 4 "protection rings", tracked in 2 bits of the Code
     Segment Selector register Only 2 are actually used: ring 0 for the
@@ -107,7 +107,7 @@
 
   - this is where the MMU comes in
 
-- The CPU accesses #strong[virtual], not #strong[physical] addresses
+- The CPU accesses *virtual*, not *physical* addresses
 
 - Each process has a different virtual address space
 
@@ -144,7 +144,7 @@
   - x86: depends on SMEP, see
     #link("https://www.intel.com/content/www/us/en/developer/articles/technical/intel-sdm.html")[Intel SDM, Vol 3a, 5.6.1]
 
-  - 64-bit ARM: this is why #strong[XN] is split into
+  - 64-bit ARM: this is why *XN* is split into
     #kfunc("PTE_UXN") and #kfunc("PTE_PXN")
 
 - On x86, userland (ring 3) access from kernel (ring 0) can be disabled
@@ -228,7 +228,7 @@ int main(int argc, char *argv[])
 
   - "Custom ROMs"
 
-- Or it is not trusted #strong[enough]:
+- Or it is not trusted *enough*:
 
   - Large attack surface
 

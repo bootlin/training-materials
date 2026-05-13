@@ -32,7 +32,7 @@
 
 - Compute the hash of the next stage binary
 
-- Use the embedded #strong[public] key to retrieve the signed hash
+- Use the embedded *public* key to retrieve the signed hash
 
 - Compare re-computed hash to extracted hash
 
@@ -106,7 +106,7 @@
 
 - This leaves some unanswered questions:
 
-  - What happens once the kernel starts #emph[init]?
+  - What happens once the kernel starts _init_?
 
   - What about the DTB?
 

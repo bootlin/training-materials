@@ -8,7 +8,7 @@
 
 ===  A/B updates
 
-- Mecanism for Over-The-Air (OTA) #emph[image] updates
+- Mecanism for Over-The-Air (OTA) _image_ updates
 
 - Key idea: avoid one update bricking the device
 
@@ -19,7 +19,7 @@
   - Avoid RMAs or in-the-field intervention
 
 - The key idea is to maintain 2 copies of the system, in two
-  #strong[slots]
+  *slots*
 
   - minimum is 2 rootFS
 
@@ -38,51 +38,51 @@
 - They each have dedicated boot locations (usually boot medium
   partitions)
 
-- On the running system, the slot booted is the #strong[current] slot
+- On the running system, the slot booted is the *current* slot
 
-- An OTA should never touch boot locations from the #strong[current]
+- An OTA should never touch boot locations from the *current*
   slot
 
-- Each slot can be marked #strong[bootable]
+- Each slot can be marked *bootable*
 
 - Updates will usually be built independently from the slot they will
   occupy
 
 ===  A/B updates: strategy
 
-- At boot, the system detect which slot (A or B) is the #strong[current]
+- At boot, the system detect which slot (A or B) is the *current*
   slot
 
-- The updater will locate the boot locations for the #strong[alternate]
+- The updater will locate the boot locations for the *alternate*
   slot
 
-- The updater then applies the update to the #strong[alternate] boot
+- The updater then applies the update to the *alternate* boot
   locations
 
-- The updater marks the #strong[alternate] slot as #strong[next] to be
+- The updater marks the *alternate* slot as *next* to be
   booted
 
 - Eventually, the system reboots. Possibly triggered at the end of the
   update
 
-- At boot, the bootloader detects the #strong[next] slot and boots it
+- At boot, the bootloader detects the *next* slot and boots it
 
   - If the system fails to boot, the watchdog reboots the system. If the
     slot fails to boot several times, the system boots the other slot.
 
   - If the boot succeed, the system runs checks and if they pass, marks
-    the #strong[current] slot as #strong[primary]
+    the *current* slot as *primary*
 
 ===  A/B updates: bootloader
 
 - The bootloader is responsible for:
 
-  - Booting the #strong[primary] slot by default
+  - Booting the *primary* slot by default
 
   - Keeping track of boot failures per slot
 
-  - Trying out the #strong[alternate] slot if it is marked as
-    #strong[next]
+  - Trying out the *alternate* slot if it is marked as
+    *next*
 
   - Optionally, telling the kernel which slot has been booted (A or B)
 

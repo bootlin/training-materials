@@ -18,8 +18,8 @@
 
   - Objects: resources that need to be controlled
 
-- Access control makes sure only legitimate #emph[subjects] can access
-  an #emph[object]
+- Access control makes sure only legitimate _subjects_ can access
+  an _object_
 
 - Most systems use one of the following paradigms:
 
@@ -43,7 +43,7 @@
   - Access control list (ACL) based: subjects appear in an authorization
     list linked with the object
 
-  - Capability based: subjects hold a #emph[capability] that allows to
+  - Capability based: subjects hold a _capability_ that allows to
     manipulate an object
 
 #align(center, [#image("DAC.pdf", width: 60%)])
@@ -119,9 +119,9 @@ drwxr-xr-x  3 root              lp          100 Feb  6 10:26 cups
 
   - Examples:
 
-    - Subject #emph[user1] can read object #emph[/etc/motd]
+    - Subject _user1_ can read object _/etc/motd_
 
-    - Subject #emph[user2] can listen on #emph[TCP port 22] object.
+    - Subject _user2_ can listen on _TCP port 22_ object.
 
 - POSIX standard comes with a capabilities specification, differing on
   various points:
@@ -132,7 +132,7 @@ drwxr-xr-x  3 root              lp          100 Feb  6 10:26 cups
 
   - Examples:
 
-    - #emph[CAP_NET_BIND_SERVICE] allows to listen on any privileged
+    - _CAP_NET_BIND_SERVICE_ allows to listen on any privileged
       ports.
 
 === Linux capabilities
@@ -186,7 +186,7 @@ All capabilities are documented in the
   Set arbitrary capabilities on a file.
 
 - #link("https://elixir.bootlin.com/linux/v6.19/source/include/uapi/linux/capability.h#L281")[CAP_SYS_ADMIN]
-  Gives #emph[a lot] of system administration related powers:
+  Gives _a lot_ of system administration related powers:
 
   - mounts, hostname, privileged log operations, monitoring, tracing…
 
@@ -211,8 +211,8 @@ All capabilities are documented in the
 
   - Controlling capabilities a thread is allowed to use:
 
-    - Permitted: limits capabilities that might be in #emph[Effective]
-      and #emph[Inheritable] sets. 
+    - Permitted: limits capabilities that might be in _Effective_
+      and _Inheritable_ sets. 
       Thread can drop but never add capabilities to this set, except
       while using `execve()` on a file granting capabilities or with the
       set-uid bit.
@@ -245,13 +245,13 @@ All capabilities are documented in the
     regardless of the thread's inheritable capabilities
 
   - Inheritable: capabilities that can be permitted, if they also appear
-    in thread #emph[Inheritable] set.
+    in thread _Inheritable_ set.
 
-  - Effective: a single bit determining if #emph[Permitted] set has to
-    be copied into the thread #emph[Effective] set.
+  - Effective: a single bit determining if _Permitted_ set has to
+    be copied into the thread _Effective_ set.
 
-- When executing a program with the #emph[set-user-ID] mode bit set,
-  file #emph[Inheritable] and #emph[Permitted] sets are ignored and are
+- When executing a program with the _set-user-ID_ mode bit set,
+  file _Inheritable_ and _Permitted_ sets are ignored and are
   considered to be all ones.
 
 === Manipulating file capability sets
@@ -268,12 +268,12 @@ All capabilities are documented in the
 ```]
 
   - `gst-ptp-helper` has `CAP_NET_BIND_SERVICE`, `CAP_NET_ADMIN` and
-    `CAP_SYS_NICE` in its #emph[Permitted] and #emph[Effective] sets but
-    not in its #emph[Inheritable] set
+    `CAP_SYS_NICE` in its _Permitted_ and _Effective_ sets but
+    not in its _Inheritable_ set
 
   - `/usr/bin/clockdiff` has `CAP_NET_RAW` and `CAP_SYS_NICE` in its
-    #emph[Permitted] and #emph[Effective] sets but not in its
-    #emph[Inheritable] set
+    _Permitted_ and _Effective_ sets but not in its
+    _Inheritable_ set
 
   - `/usr/bin/dumpcap` has `CAP_NET_ADMIN` and `CAP_NET_RAW` in all
     three sets
@@ -698,7 +698,7 @@ calling thread.
 
 - Additionally, writing BPF code can be tricky
 
-- The #emph[libseccomp] library provides a higher level abstraction
+- The _libseccomp_ library provides a higher level abstraction
 
   - Easier to use
 
@@ -864,11 +864,11 @@ Roles: 1
 === SELinux Multi-Level and Multi-Category Security
 <selinux-multi-level-and-multi-category-security>
 
-- Context #emph[range] can be composed by two parts:
+- Context _range_ can be composed by two parts:
 
   - The sensitivity level, as an integer
 
-    - Order is defined by the #emph[dominance], s0 is generally the
+    - Order is defined by the _dominance_, s0 is generally the
       lowest
 
     - For MCS, only one level is used: typically s0
@@ -887,7 +887,7 @@ Roles: 1
 
   - `s2:c1.c4,c7`: sensitivity level 2, categories 1 to 4 and 7
 
-  - #emph[dominance] determinates other allowed security levels
+  - _dominance_ determinates other allowed security levels
 
 === SELinux file context
 <selinux-file-context>
@@ -1013,7 +1013,7 @@ Roles: 1
 === SELinux rules
 <selinux-rules>
 
-- SELinux rules are based on a #emph[access vector] describing the
+- SELinux rules are based on a _access vector_ describing the
   access, composed by:
 
   - The source context
@@ -1197,8 +1197,8 @@ Roles: 1
 === AppArmor differences with SELinux
 <apparmor-differences-with-selinux>
 
-- Files are identified by their path instead of attaching #emph[security
-  labels] to inodes
+- Files are identified by their path instead of attaching _security
+  labels_ to inodes
 
   - Creating a hardlink to a restricted file might help to bypass
     restrictions
@@ -1206,7 +1206,7 @@ Roles: 1
 - As no data is stored in file inodes, the configuration is more
   centralized
 
-- AppArmor only supports about 20 #emph[Access Modes]:
+- AppArmor only supports about 20 _Access Modes_:
 
   - SELinux supports hundreds of different permissions, depending on the
     type of object
@@ -1225,7 +1225,7 @@ Roles: 1
 === AppArmor profile files
 <apparmor-profile-files>
 
-- AppArmor relies on #emph[Profiles] to describe applications
+- AppArmor relies on _Profiles_ to describe applications
   confinement
 
 - Simple text files stored in `/etc/apparmor.d`, one file per binary
@@ -1344,7 +1344,7 @@ Roles: 1
 
 - AppArmor log will list rules violations
 
-  - We can test with a modified #emph[ping] profile, with `net_raw`
+  - We can test with a modified _ping_ profile, with `net_raw`
     capability removed
 
 #text(size: 11.5pt)[ 
@@ -1366,7 +1366,7 @@ FSGID="root"
 === Systemd
 <systemd>
 
-- Modern #emph[init] system used by almost all Linux desktop/server
+- Modern _init_ system used by almost all Linux desktop/server
   distributions
 
 - Provides features such as
@@ -1375,11 +1375,11 @@ FSGID="root"
 
   - Monitoring of services
 
-  - On-demand startup of services, through #emph[socket activation]
+  - On-demand startup of services, through _socket activation_
 
   - Resource-management of services: CPU limits, memory limits
 
-- Configuration based on #emph[unit files]
+- Configuration based on _unit files_
 
   - Declarative language, instead of shell scripts used in other init
     systems
@@ -1428,7 +1428,7 @@ FSGID="root"
 
   - Highly simplifies usage of various security features
 
-- All options are described in the #emph[SANDBOXING] section of the
+- All options are described in the _SANDBOXING_ section of the
   #link("https://manned.org/systemd.exec.5")[systemd.exec(5)] manpage
 
 - A good practice is to enable as much as possible of these options

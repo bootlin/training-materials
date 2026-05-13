@@ -176,10 +176,10 @@
 
 ===  Summary
 
-- #emph[CWE]s (Common Weakness Enumerations) classify vulneraibilities
+- _CWE_\s (Common Weakness Enumerations) classify vulneraibilities
   into types.
 
-- #emph[CVE]s (Common Vulnerabilities and Exposures) inventory
+- _CVE_\s (Common Vulnerabilities and Exposures) inventory
   individual vulnerabilities 
   #link("https://nvd.nist.gov/vuln/detail/CVE-2012-5109")[CVE-2012-5109]
   and
@@ -188,16 +188,16 @@
   #link("https://cwe.mitre.org/data/definitions/125.html")[CWE-125]: \
   Out-of-bounds Read
 
-- #emph[CVSS] scores give a "grade" from 0 to 10 (critical) to the
+- _CVSS_ scores give a "grade" from 0 to 10 (critical) to the
   vulnerability
 
   - broken down into a vector along metrics (privilege,
     physical/local/network, user interaction...)
 
-- #emph[EPSS] is a score trying to predict the likelyhood of the
+- _EPSS_ is a score trying to predict the likelyhood of the
   vulnerability being exploited
 
-- #emph[CPE]s (Common Plaftorm Enumerations) are identifiers for the
+- _CPE_\s (Common Plaftorm Enumerations) are identifiers for the
   target (software or hardware)
 
   - They can be specific e.g. to a version, or a patch level
@@ -363,7 +363,7 @@
 
 - There are a few implementation options:
 
-  - CycloneDX integrates VEX within the #emph[vulnerabilities] property
+  - CycloneDX integrates VEX within the _vulnerabilities_ property
 
   - The Common Security Advisory Framework
     (#link("https://www.csaf.io/")[CSAF]) defines a VEX profile
@@ -442,13 +442,13 @@
 - They can be used to look up vulnerabilities in databases (NVD,
   CVElistV5, EUVD...)
 
-- They can also include #emph[annotations] in the form of VEX
+- They can also include _annotations_ in the form of VEX
   information
 
   - For instance, yocto includes annotations that are part of the layer
     in their SBoMs
 
-- They can be used periodically to scan #emph[new] vulnerabilities,
+- They can be used periodically to scan _new_ vulnerabilities,
   without rebuilding
 
 ===  VulnScout
@@ -509,13 +509,13 @@
 
 - Embedded systems rely on a plethora of Open Source projects
 
-- A lot of work is done #strong[upstream]
+- A lot of work is done *upstream*
 
 - When a vulnerability is found or reported, or an important bug is
-  fixed, only #strong[supported versions] will get the fix
+  fixed, only *supported versions* will get the fix
 
 - The further one's version strays from a supported version, the harder
-  #strong[tracking] and #strong[porting] fixes becomes
+  *tracking* and *porting* fixes becomes
 
 - In terms of security, being on the newest stable version is usually
   best
@@ -530,8 +530,8 @@
 
   - Yocto LTS versions receive 4 years of support
 
-  - Buildroot LTSs are supported for 3 #strong[years] instead of 3
-    #strong[months]
+  - Buildroot LTSs are supported for 3 *years* instead of 3
+    *months*
 
 - This is advertised plainly:
 

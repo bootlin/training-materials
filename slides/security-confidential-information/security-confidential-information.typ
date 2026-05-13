@@ -16,9 +16,9 @@
 
   - Cryptographic material (private keys)
 
-- The usual way to protect it is #strong[encryption]
+- The usual way to protect it is *encryption*
 
-- Raises the issue of storing the #strong[key]
+- Raises the issue of storing the *key*
 
 - This is a hard problem on embedded systems
 
@@ -43,7 +43,7 @@
 
 - Prevent the key from leaving in cleartext form
 
-- Some can be exported in #strong[wrapped] (encrypted) form
+- Some can be exported in *wrapped* (encrypted) form
 
 - Separate usage of various keys based on PINs
 
@@ -51,13 +51,13 @@
 
 - HSMs split
 
-  - #strong[usage] of cryptographic material from
+  - *usage* of cryptographic material from
 
-  - #strong[knowledge] of the cryptographic material
+  - *knowledge* of the cryptographic material
 
 - In case of compromise, this means recovery can happen without rotation
 
-- HSMs do not necessarily prevent an adversary from #strong[using] the
+- HSMs do not necessarily prevent an adversary from *using* the
   key
 
 ===  HSMs: usage
@@ -177,6 +177,6 @@
 
 - The kernel sort of acts as an HSM for userland
 
-- #strong[Trusted key] encryption is harware-backed
+- *Trusted key* encryption is harware-backed
 
-- #strong[Encrypted key] encryption is backed by a kernel keyring key
+- *Encrypted key* encryption is backed by a kernel keyring key

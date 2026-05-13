@@ -11,7 +11,7 @@
 
 ===  Measured boot
 
-- Another way of establishing #strong[trust]
+- Another way of establishing *trust*
 
 - Idea: measure caracteristics of the system and record the measurement
 
@@ -23,16 +23,16 @@
 
   - boot parameters (e.g. kernel command line)
 
-- Also called #strong[trusted] boot `!=` secure/verified boot
+- Also called *trusted* boot `!=` secure/verified boot
 
 ===  Differences from Secure Boot
 
-- The software is not #strong[authenticated], only #strong[measured]
+- The software is not *authenticated*, only *measured*
 
 - To be useful, the measurement needs to be used to make some decision
 
-- This is a different step called #strong[attestation] or
-  #strong[appraisal]
+- This is a different step called *attestation* or
+  *appraisal*
 
 - It can only consist of recording the measurement discrepancy, or more
   complex actions
@@ -92,7 +92,7 @@
 
 - This is e.g. the one that is a Windows 11 requirement
 
-- Specifies the TPM as a #emph[library]
+- Specifies the TPM as a _library_
 
 - The TCG's
   #link("https://trustedcomputinggroup.org/wp-content/uploads/2019_TCG_TPM2_BriefOverview_DR02web.pdf")[Brief overview]
@@ -140,7 +140,7 @@
   - Initial value must be all 0s or all 1s, except for PCR[0], which
     can be used as a locality indicator
 
-  - Cannot be set, only #strong[reset] or #strong[extended]
+  - Cannot be set, only *reset* or *extended*
 
     - This means hashing the current value of the PCR appended with the
       measurement
@@ -173,7 +173,7 @@
 
 - Continues the measurement process after the kernel takes over
 
-- Focuses on the integrity of file #strong[contents]
+- Focuses on the integrity of file *contents*
 
 ===  Integrity Measurement Architecture Appraisal
 
@@ -251,7 +251,7 @@
 
 - Continues the measurement process after the kernel takes over
 
-- Focuses on the integrity of file #strong[metadata]
+- Focuses on the integrity of file *metadata*
 
 ===  Extended Verification Module (EVM)
 
