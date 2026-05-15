@@ -989,3 +989,16 @@ Flip side of the security properties:
 
   - Authenticate devices in a fleet, where the PKI is entirely managed
     by the device vendor
+
+#setuplabframe([Experiment basic cryptographic tools], [
+  Time to apply some fundamental concepts!
+
+  - Using OpenSSL to generate a key hierarchy
+
+  - Exchange and verify encrypted and signed messages
+
+  - Experimenting with key revocation
+
+  - Performance comparison of public and private key encryption
+
+])

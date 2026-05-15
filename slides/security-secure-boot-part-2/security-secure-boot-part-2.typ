@@ -546,3 +546,16 @@
 
   - We can use a U-Boot 'script` to set the `bootargs' environment
     variable. The script can be added to the FIT image as a script entry
+
+#setuplabframe([Exploring Secure boot later stages], [
+  Time to setup kernel signature verification!
+
+  - Integrating the public key into the DTB
+
+  - Adding signature to the kernel FIT image
+
+  - Configuring U-Boot to enforce signature verification
+
+  - Optionally, configuring SPL to also enforce signature verification
+
+])

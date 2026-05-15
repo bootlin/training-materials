@@ -230,3 +230,18 @@ validity of the syscall.
 <arm-trustzone>
 
 #include "trustzone.typ"
+
+#setuplabframe([Exploring the secure world], [
+  Time to use hardware security barriers!
+
+  - Building secure world software (TF-A, OP-TEE, TA)
+
+  - Adding logs to observe Exception level transitions
+
+  - Adding logs to observe world transitions
+
+  - Writing a small Trusted Application in OP-TEE
+
+  - Interacting with our Trusted Application from userland
+
+])

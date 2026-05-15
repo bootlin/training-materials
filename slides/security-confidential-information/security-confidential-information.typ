@@ -188,3 +188,16 @@
 - *Trusted key* encryption is harware-backed
 
 - *Encrypted key* encryption is backed by a kernel keyring key
+
+#setuplabframe([Exploring secure key management], [
+  Time to handle confidential information!
+
+  - Provisioning keys into the i.MX93 ELE
+
+  - Using OP-TEE as software HSM
+
+  - Optionally, filesystem encryption using the ELE key
+
+  - Optionally, signing U-Boot FITs with HSM integration over PKCS\#11
+
+])
