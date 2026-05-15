@@ -1550,3 +1550,14 @@ Users: 1
   RestartSec=5s
   Restart=on-failure
   ```]
+
+#setuplabframe([Exploring userland security measures], [
+  Time to restrict userland applications!
+
+  - Preventing a simple application from executing shellcode using SECCOMP
+
+  - Manipulating SELinux contexts
+
+  - Using systemd to restrict a daemon's access to resources
+
+])

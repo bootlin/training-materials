@@ -571,3 +571,16 @@
   - under the Linux Foundation
 
   - some features are introduced, not just fixes
+
+#setuplabframe([Exploring compliance topics], [
+  Time to get familiar with SBoMs and CVEs!
+
+  - Generating an SBoM for a Yocto distribution
+
+  - Analyzing the generated SBoM using \code{sbom-cve-check}
+
+  - Patching a CVE present in the SBoM
+
+  - Differential analysis
+
+])

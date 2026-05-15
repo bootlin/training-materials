@@ -306,3 +306,16 @@ filename=barebox.img
   )[`boot_partition`]
 
   - This helps making the OTA update slot-agnostic
+
+#setuplabframe([Exploring A/B updates], [
+  Time to setup RAUC!
+
+  - RAUC configuration on the target
+
+  - Building, shipping and installing a RAUC bundle
+
+  - Bundle signature verification using PKCS\#11
+
+  - Optionally, RAUC bundle encryption
+
+])

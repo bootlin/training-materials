@@ -563,3 +563,16 @@
 
 - Then the board can be set to `OEM Closed`, and signatures will be
   enforced
+
+#setuplabframe([Exploring Secure boot first stages], [
+  Time to setup AHAB on i.MX93!
+
+  - Building all software components for secure boot (AHAB) on i.MX93
+
+  - Creating a signed AHAB container using SPSDK
+
+  - Flashing the fuses on the i.MX93 to enable secure boot (AHAB)
+
+  - Testing that secure boot (AHAB) is correctly enabled
+
+])
