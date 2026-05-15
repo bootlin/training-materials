@@ -1,0 +1,273 @@
+\newenvironment{warning}
+ {\par\begin{mdframed}[linewidth=2pt,linecolor=red]%
+    \begin{list}{}{\leftmargin=1cm
+                   \labelwidth=\leftmargin}}
+  {\end{list}\end{mdframed}\par}
+
+\subchapter{Setup AHAB on i.MX93}{Objective: Learn how to implement the first stage of a secure boot}
+
+\section{Prerequisite}
+
+To build the AHAB container for the first stage of the i.MX93 secure boot, we are going
+to use NXP's Secure Provisioning SDK (\href{https://spsdk.readthedocs.io/en/latest/}{SPSDK}).
+
+First, install it in your python virtual environment (the one you created to install kas
+in the \code{Build Yocto} section of the \code{Board setup} lab):
+
+\begin{bashinput}
+(.venv) $ pip install spsdk
+\end{bashinput}
+
+AHAB also necessitates asymmetric keys to:
+\begin{itemize}
+  \item sign the container on the host
+  \item verify the signature on the target
+\end{itemize}
+
+It can include up to 4 of these keys, which must all be hashed together, and we therefore
+need to generate those 4 Super Root Keys (SRKs):
+
+\begin{bashinput}
+$ for i in `seq 0 3`; \
+  do openssl genrsa -out keys/srk_$i.pem 4096; \
+  openssl rsa -in keys/srk_$i.pem -pubout > keys/srk_$i.pub; \
+done
+\end{bashinput}
+
+\section{Building a signed AHAB container}
+
+The first step in building the AHAB image container we will use for the first stage of secure
+boot, is to identify the system's components we want the ROM code to verify.
+
+Remember that the container will actually be split into 2 container sets:
+\begin{itemize}
+  \item The \textbf{primary} container set, which will contain the very early boot components
+  \item The \textbf{secondary} container set, containing the next stage(s)
+\end{itemize}
+
+Both will be signed with one of the SRKs created at the previous step.
+
+The \textbf{primary} container set will contain:
+\begin{itemize}
+  \item The ELE firmware, which must be downloaded from NXP. In our case, Yocto did that for us:
+	  \code{build/tmp-glibc/sysroots-components/cortexa55/firmware-ele-imx/usr/lib/firmware/imx/ele/mx93a1-ahab-container.img}
+  \item The DRAM training binaries, which Yocto also downloaded:
+  \begin{itemize}
+	  \item \code{build/tmp-glibc/sysroots-components/cortexa55/imx-boot-firmware-files/firmware/lpddr4_imem_1d_v202201.bin}
+	  \item \code{build/tmp-glibc/sysroots-components/cortexa55/imx-boot-firmware-files/firmware/lpddr4_imem_2d_v202201.bin}
+	  \item \code{build/tmp-glibc/sysroots-components/cortexa55/imx-boot-firmware-files/firmware/lpddr4_dmem_1d_v202201.bin}
+	  \item \code{build/tmp-glibc/sysroots-components/cortexa55/imx-boot-firmware-files/firmware/lpddr4_dmem_2d_v202201.bin}
+  \end{itemize}
+  \item Finally, U-Boot's SPL built by Yocto, and located in \code{build/tmp-glibc/work/freiheit93-oe-linux/u-boot-kiss/git/build/imx93_frdm_defconfig/u-boot-spl-ddr.bin}
+\end{itemize}
+
+The \textbf{secondary} container set will contain:
+\begin{itemize}
+  \item TF-A's BL31: \code{build/tmp-glibc/deploy/images/freiheit93/bl31.bin}
+  \item OP-TEE: \code{build/tmp-glibc/deploy/images/freiheit93/optee/tee-raw.bin}
+  \item Finally, U-Boot proper: \code{build/tmp-glibc/work/freiheit93-oe-linux/u-boot-kiss/git/build/imx93_frdm_defconfig/u-boot-dtb.bin}
+\end{itemize}
+
+The easiest way to write the YAML templates is to start from the ones included in spsdk:
+
+\begin{bashinput}
+(.venv) $ nxpimage bootable-image get-templates -f mimx9352 -t imx_boot_flash_singleboot -o ahab_template
+(.venv) $ ls ahab_template
+bootable_image.yaml  inputs  spl.yaml  uboot.yaml
+\end{bashinput}
+
+Once you are done filling the YAML templates, you can build the image:
+
+\begin{bashinput}
+(.venv) $ nxpimage -v bootable-image export -c ahab_template/bootable_image.yaml
+\end{bashinput}
+
+This should create:
+\begin{itemize}
+  \item The AHAB container image: \code{ahab_template/bootable_image.bin} 
+  \item One \code{nxpele} script for each subcontainer:
+  \begin{itemize}
+    \item \code{output/ahab_oem0_srk0_hash_nxpele.bcf}
+    \item \code{output/ahab_oem1_srk0_hash_nxpele.bcf}
+  \end{itemize}	
+\end{itemize}
+
+The SoC only has one set of SRK eFuses, so both container set should use the same keys,
+so these two scripts should be identical:
+
+\begin{bashinput}
+$ diff output/ahab_oem1_srk0_hash_nxpele.bcf output/ahab_oem0_srk0_hash_nxpele.bcf
+\end{bashinput}
+
+\section{Flashing the i.MX93 eFuses}
+
+\begin{warning}
+\Large
+This step is irreversible: the eFuses can only be flashed once. Although the device will still
+boot unless the i.MX93 is transitioned into \textbf{OEM\_CLOSED} state, this might still be undesirable.
+\end{warning}
+
+The easiest way to interact with the SoC's eFuses is by using \href{https://spsdk.readthedocs.io/en/latest/}{SPSDK}'s
+\code{nxpele} tool. In our case, we will use it to issue command to U-Boot over the command line.
+We therefore need to reset the board, and interrupt U-Boot's boot process.
+
+Once this is done, we'll need to disconnect the serial client, as it would interfere with \code{nxpele}.
+
+\begin{bashinput}
+$ for i in `seq 128 135`; do nxpele -p /dev/ttyACM0 -d uboot_serial -f mimx9352 -v read-common-fuse --index $i; done
+INFO:spsdk.ele.ele_comm:ELE communicator is using 131072 B size buffer at 83800000 address in mimx9352, Revision: latest target.
+INFO:spsdk.ele.ele_comm:Sent message information:
+Command:         READ_COMMON_FUSE - (0x97)
+Command words:   2
+Command data:    False
+Response words:  3
+Response data:   False
+Response status: Success
+
+Read common fuse ends successfully.
+Fuse ID_128: 0x00000000
+
+[...]
+
+Read common fuse ends successfully.
+Fuse ID_135: 0x00000000
+\end{bashinput}
+
+Before you flash the eFuses, take note of the output of U-Boot's \code{ahab_status}:
+
+If the board is not booting from a \textbf{signed} AHAB container, the output should be:
+\begin{bashinput}
+$ Hit any key to stop autoboot:  0 
+u-boot=> ahab_status
+Lifecycle: 0x00000008, OEM Open
+
+
+        0x0287eed6
+        IPC = MU APD (0x2)
+        CMD = ELE_OEM_CNTN_AUTH_REQ (0x87)
+        IND = ELE_NO_AUTHENTICATION_FAILURE_IND (0xEE)
+        STA = ELE_SUCCESS_IND (0xD6)
+
+        0x0287eed6
+        IPC = MU APD (0x2)
+        CMD = ELE_OEM_CNTN_AUTH_REQ (0x87)
+        IND = ELE_NO_AUTHENTICATION_FAILURE_IND (0xEE)
+        STA = ELE_SUCCESS_IND (0xD6)
+
+\end{bashinput}
+
+If the board \textbf{is} booting from a \textbf{signed} AHAB container, this should be the output:
+
+\begin{bashinput}
+Hit any key to stop autoboot:  0 
+u-boot=> ahab_status
+Lifecycle: 0x00000008, OEM Open
+
+
+        0x0287fad6
+        IPC = MU APD (0x2)
+        CMD = ELE_OEM_CNTN_AUTH_REQ (0x87)
+        IND = ELE_BAD_KEY_HASH_FAILURE_IND (0xFA)
+        STA = ELE_SUCCESS_IND (0xD6)
+
+        0x0287fad6
+        IPC = MU APD (0x2)
+        CMD = ELE_OEM_CNTN_AUTH_REQ (0x87)
+        IND = ELE_BAD_KEY_HASH_FAILURE_IND (0xFA)
+        STA = ELE_SUCCESS_IND (0xD6)
+
+\end{bashinput}
+
+We can now flash the eFuses. Although this step is \textbf{irreversible}, it will not prevent your board
+from booting, as AHAB will not enforce the signature in \textbf{OEM\_OPEN}.
+
+\begin{bashinput}
+$ nxpele -p /dev/ttyACM0 -d uboot_serial -f mimx9352 -v batch output/ahab_oem0_srk0_hash_nxpele.bcf 
+INFO:spsdk.ele.ele_comm:ELE communicator is using 131072 B size buffer at 83800000 address in mimx9352, Revision: latest target.
+INFO:spsdk.ele.ele_comm:Sent message information:
+Command:         WRITE_FUSE - (0xd6)
+Command words:   3
+Command data:    False
+Response words:  3
+Response data:   False
+Response status: Success
+
+ELE write fuse ends successfully.
+
+[...] Repeats 7 more times because the hash is 8*32 = 256 bits
+
+\end{bashinput}
+
+We can now re-read the fuses, and they should contain our hash:
+
+\begin{bashinput}
+$ for i in `seq 128 135`; do nxpele -p /dev/ttyACM0 -d uboot_serial -f mimx9352 -v read-common-fuse --index $i; done
+INFO:spsdk.ele.ele_comm:ELE communicator is using 131072 B size buffer at 83800000 address in mimx9352, Revision: latest target.
+INFO:spsdk.ele.ele_comm:Sent message information:
+Command:         READ_COMMON_FUSE - (0x97)
+Command words:   2
+Command data:    False
+Response words:  3
+Response data:   False
+Response status: Success
+
+Read common fuse ends successfully.
+Fuse ID_128: 0x09C79D69
+
+[...]
+Fuse ID_129: 0x340DBD87
+[...]
+Fuse ID_130: 0x6BA8EB5A
+[...]
+Fuse ID_131: 0xECD130AD
+[...]
+Fuse ID_132: 0xFD09593E
+[...]
+Fuse ID_133: 0x38FA50F1
+[...]
+Fuse ID_134: 0x18DC2FA2
+[...]
+Fuse ID_135: 0xC6DED0B6
+\end{bashinput}
+
+\section{Testing the AHAB stage}
+
+Now that the eFuses are flashed (if you finished the previous step), the ELE ROM should now be able
+to verify the signature on the AHAB subcontainers.
+
+If you succesfully signed your AHAB containers, this is the output you should see when running \code{ahab_status}:
+
+\begin{bashinput}
+Hit any key to stop autoboot:  0 
+u-boot=> ahab_status
+Lifecycle: 0x00000008, OEM Open
+
+
+        No Events Found!
+
+\end{bashinput}
+
+This indicates that the system would have booted, even in \code{OEM_CLOSED} or \code{OEM_LOCKED}.
+
+Because we have not transitioned the system to either state, though, it will still boot an unsigned
+container, or a wrongly signed one.
+
+For example, we can change the value of \code{used_srk_id} in \code{ahab_template/uboot.yaml} to \code{1}:
+\begin{bashinput}
+u-boot=> ahab_status
+Lifecycle: 0x00000008, OEM Open
+
+
+        0x0287f0d6
+        IPC = MU APD (0x2)
+        CMD = ELE_OEM_CNTN_AUTH_REQ (0x87)
+        IND = ELE_BAD_SIGNATURE_FAILURE_IND (0xF0)
+        STA = ELE_SUCCESS_IND (0xD6)
+
+\end{bashinput}
+
+Notice that we only have one error this time, because we only changed one subcontainer.
+We also have a very slightly different error code.
+
+To get back to good state, you can either change \code{used_srk_id} back to \code{0}, or adapt
+\code{signer} to use the SRK with ID \code{1}.
