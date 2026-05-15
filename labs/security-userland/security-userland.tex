@@ -1,0 +1,534 @@
+\subchapter{Restricting userland applications}{Objective: Learn
+	how to restrict userspace attack surface using various tools: seccomp, SELinux,
+	and systemd configuration}
+
+To demonstrate possibilities to filter userspace operations, we will show how
+various mechanisms can be used. First, we will use seccomp to restrict
+accessible syscalls in a simple application.
+Next, we will quickly manipulate SELinux contexts.
+Finally, we will show how userland security features can be used directly from
+Systemd.
+
+\section{Preventing a simple application from executing shellcode using SECCOMP}
+
+The \code{$HOME/__SESSION_NAME__-labs/userland/seccomp} folder contains the
+code of a sample application.
+This application does two things: it prints the content of some existing file,
+then launches a shell.
+Of course, launching the shell is an expected behavior here, but we are
+actually trying to mimic a faulty application, where an attacker exploits a
+breach to launch a shell.
+To avoid that, we will demonstrate how \emph{seccomp} can be used to restrict
+accessible syscalls.
+
+First, you can have a look at the source code and compile the application.
+Then, launch it and observe the current behaviour.
+
+\begin{bashinput}
+$ cd $HOME/__SESSION_NAME__-labs/userland/seccomp
+$ . $HOME/__SESSION_NAME__-labs/sdk/environment-setup-cortexa55-oe-linux
+$ make
+$ ssh root@${BOARD} mkdir -p /usr/local/bin
+$ scp seccomp-test root@${BOARD}:/usr/local/bin
+$ ssh root@${BOARD} /usr/local/bin/seccomp-test
+Showing content of "/proc/cmdline":
+console=ttyLP0,115200 root=/dev/mmcblk1p2 rootwait rw selinux=1 enforcing=0
+Running "/bin/bash":
+\end{bashinput}
+
+As you can see, after printing file content, a shell was started.
+We really want to avoid that.
+
+One solution is to use basic seccomp mechanism.
+Remember, this will only allow processes to use very basic syscalls, such as
+\texttt{read()} or \texttt{write()}.
+Modify the \texttt{seccomp-test.c} source file, and uncomment the call to
+\texttt{enable\_seccomp()}.
+Rebuild, and relaunch.
+
+\begin{bashinput}
+$ make
+$ scp seccomp-test root@${BOARD}:/usr/local/bin
+\end{bashinput}
+
+We do not get much output with SSH, so you should run it directly on the target:
+
+\begin{bashinput}
+$ ssh root@${BOARD} /usr/local/bin/seccomp-test
+Killed
+\end{bashinput}
+
+As expected, the process gets killed.
+However, what might not be expected is the content of \texttt{/proc/cmdline} is
+no longer shown.
+You can use \texttt{strace} to analyze what syscalls were used, and understand
+this new behaviour.
+On the board, you can run:
+
+\begin{bashinput}
+$ strace seccomp-test
+...
+seccomp(SECCOMP_SET_MODE_STRICT, 0, NULL) = 0
+fstat(1,  <unfinished ...>)             = ?
++++ killed by SIGKILL +++
+[1]    1202806 killed     strace seccomp-test
+\end{bashinput}
+
+As you can see, \texttt{printf()} did call \texttt{fstat()}.
+It tends to do that only on the very first call, so this could be avoided by
+calling \texttt{printf()} before enabling seccomp.
+But we are later calling \texttt{close()}, which is also denied by seccomp.
+
+As an alternative, we will use libseccomp to add our own custom filters.
+
+Modify again the source code, defining the \texttt{USE\_SECCOMP\_FILTERS} macro:
+the \texttt{enable\_seccomp()} will now use libseccomp to define our custom
+filters.
+Some filters were already added by the example code, but you will have to
+complete this list.
+Again, you can use \texttt{strace} to identify the correct syscalls.
+
+Remember, our goal is to have an application that can successfully show the file
+content, but cannot execute the shell.
+After having added all needed filters, you should have the following behaviour:
+
+\begin{bashinput}
+$ seccomp-test
+Showing content of "/proc/cmdline":
+console=ttyLP0,115200 root=/dev/mmcblk1p2 rootwait rw selinux=1 enforcing=0
+Running "/bin/bash":
+Bad system call (core dumped)
+\end{bashinput}
+
+\section{Manipulating SELinux contexts}
+
+To demonstrate SELinux use case, we will use a small TFTP server present on the
+board.
+This TFTP server has been misconfigured: instead of serving the content of
+\texttt{/srv/tftp/}, it does serve the content of the whole root filesystem
+(\texttt{/}).
+We can create two files on the board, to demonstrate this behaviour.
+
+\begin{bashinput}
+# echo "Public data" > /srv/tftp/public
+# echo "Very secret data" > /root/secret
+# chmod 777 /root
+\end{bashinput}
+
+On the host computer, use a tftp client to download these files.
+As the tftp server will connect to a random UDP port on the host, you might need
+to disable some firewalling rules.
+
+\begin{bashinput}
+$ tftp $BOARD -vc get /srv/tftp/public
+Connected to 192.168.0.168 (192.168.0.168), port 69
+getting from 192.168.0.168:/srv/tftp/public to public [netascii]
+Received 13 bytes in 0.0 seconds [3200 bit/s]
+$ cat public
+Public data
+$ tftp $BOARD -vc get /root/secret
+Connected to 192.168.0.168 (192.168.0.168), port 69
+getting from 192.168.0.168:/root/secret to secret [netascii]
+Received 18 bytes in 0.0 seconds [4270 bit/s]
+$ cat secret
+Very secred data
+\end{bashinput}
+
+If downloads are failing, you might need to have a look at the tftp server logs:
+
+\begin{bashinput}
+# journalctl -u atftpd -f
+\end{bashinput}
+
+Once we have this working setup, we can start experimenting with SELinux.
+SELinux enforcement is disabled by default, thanks to the kernel command line.
+This is a specific setup, made so we can run other labs without having SELinux
+blocking anything.
+The first step is then to enable SELinux until the next reboot:
+
+\begin{bashinput}
+# setenforce 1
+\end{bashinput}
+
+SELinux status can be shown with the \texttt{sestatus} command:
+
+\begin{bashinput}
+# sestatus
+SELinux status:                 enabled
+SELinuxfs mount:                /sys/fs/selinux
+SELinux root directory:         /etc/selinux
+Loaded policy name:             standard
+Current mode:                   enforcing
+Mode from config file:          enforcing
+Policy MLS status:              disabled
+Policy deny_unknown status:     allowed
+Memory protection checking:     actual (secure)
+Max kernel policy version:      34
+\end{bashinput}
+
+Let's manipulate a bit SELinux: first we will look for SELinux users.
+You can both the list of users and the mapping between Linux and SELinux users.
+
+\begin{bashinput}
+# seinfo -u
+
+Users: 7
+   root
+   staff_u
+   sysadm_u
+   system_u
+   unconfined_u
+   user_u
+   xdm
+# semanage login -l
+
+Login Name                SELinux User
+
+__default__               user_u
+root                      root
+\end{bashinput}
+
+The first commands, shows existing SELinux users, the second one shows mapping
+from Linux users.
+We can see the \emph{root} user is mapped to the \emph{root} SELinux user, while
+all others are mapped to \emph{user\_u}.
+
+Similarly, we can show the corresponding roles:
+
+\begin{bashinput}
+# seinfo -u -x
+
+Users: 7
+   user root roles { staff_r sysadm_r system_r };
+   user staff_u roles { staff_r sysadm_r };
+   user sysadm_u roles sysadm_r;
+   user system_u roles system_r;
+   user unconfined_u roles { system_r unconfined_r };
+   user user_u roles user_r;
+   user xdm roles xdm_r;
+\end{bashinput}
+
+As our Linux root user is mapped to the SELinux root user, the corresponding
+line is the first one. Keep in mind this mapping might be different on
+production systems.
+
+We can list which types can be accessed by \emph{staff\_r}, \emph{sysadm\_r} or
+\emph{system\_r} roles.
+
+\begin{bashinput}
+# seinfo -rstaff_r -x
+
+Roles: 1
+   role staff_r types { auditadm_screen_t bluetooth_helper_t cdrecord_t chfn_t chkpwd_t chromium_naclhelper_t chromium_renderer_t chromium_sandbox_t chromium_t consoletype_t container_engine_t container_t crio_t cronjob_t crontab_t ddclient_t dhcpc_t dirmngr_t 
+   ...
+
+# seinfo -rsysadm_r -x
+
+Roles: 1
+   role sysadm_r types { acngtool_t acpi_t admin_crontab_t aide_t amanda_recover_t apt_t auditadm_screen_t auditctl_t backup_t bacula_admin_t bluetooth_helper_t bootloader_t calamaris_t cdrecord_t certbot_t certwatch_t cgclear_t checkpc_t checkpolicy_t chfn_t
+   ...
+
+# seinfo -rsystem_r -x
+
+Roles: 1
+   role system_r types { NetworkManager_t abrt_dump_oops_t abrt_handle_event_t abrt_helper_t abrt_retrace_coredump_t abrt_retrace_worker_t abrt_t abrt_upload_watch_t abrt_watch_log_t accountsd_t acct_t acngtool_t acpi_t acpid_t afs_bosserver_t afs_fsserver_t
+   ...
+\end{bashinput}
+
+We can also observe the context of running processes, with \texttt{ps -Z}:
+
+\begin{bashinput}
+# ps -Z
+  PID CONTEXT                          STAT COMMAND
+    1 system_u:system_r:init_t         S    {systemd} /sbin/init
+    2 system_u:system_r:kernel_t       SW   [kthreadd]
+    3 system_u:system_r:kernel_t       SW   [pool_workqueue_]
+    4 system_u:system_r:kernel_t       IW<  [kworker/R-rcu_g]
+    5 system_u:system_r:kernel_t       IW<  [kworker/R-sync_]
+    6 system_u:system_r:kernel_t       IW<  [kworker/R-kvfre]
+    ...
+  310 root:sysadm_r:sysadm_t           S    -sh
+  338 system_u:system_r:kernel_t       IW<  [kworker/1:2H]
+  371 system_u:system_r:kernel_t       IW   [kworker/u8:1-ev]
+  386 system_u:system_r:kernel_t       IW   [kworker/u8:2-ev]
+  389 root:sysadm_r:sysadm_t           R    {ps} /usr/bin/busybox.nosuid /usr/bin/ps -Z
+\end{bashinput}
+
+We now want to compare the SELinux context of the two files we created earlier.
+This can be shown with \texttt{ls -Z}.
+
+\begin{bashinput}
+# ls -lZ /srv/tftp/public /root/secret
+-rw-r--r--. 1 root root root:object_r:user_home_t 17 Mar 17 09:27 /root/secret
+-rw-r--r--. 1 root root root:object_r:var_t       12 Mar 17 09:31 /srv/tftp/public
+\end{bashinput}
+
+As you can see, the two files were automatically labelled differently, based on
+the folder they were created in.
+As SELinux is now enabled, we can again try to dowload them using tftp.
+You can run the same commands as previously on the host
+
+\begin{bashinput}
+$ rm -f public secret
+$ tftp $BOARD -vc get /srv/tftp/public
+Connected to 192.168.0.168 (192.168.0.168), port 69
+getting from 192.168.0.168:/srv/tftp/public to public [netascii]
+Received 13 bytes in 0.0 seconds [3200 bit/s]
+$ cat public
+Public data
+$ tftp $BOARD -vc get /root/secret
+Connected to 192.168.0.168 (192.168.0.168), port 69
+getting from 192.168.0.168:/root/secret to secret [netascii]
+Error code 1: File not found
+\end{bashinput}
+
+Thanks to the SELinux policies, the tftp server no longer has access to the
+content of \texttt{/root}.
+
+Let's pretend this access is legitimate.
+We could either modify SELinux rules or the file context.
+For demonstration purpose, we can try this later solution, changing the context
+of \texttt{/root/secret} to be the same as \texttt{/srv/tftp/public}.
+
+\begin{bashinput}
+# chcon root:object_r:var_t /root/secret
+# ls -lZ /root/secret
+-rw-r--r--. 1 root root root:object_r:var_t 17 Mar 17 09:27 /root/secret
+\end{bashinput}
+
+And then try again to download the file:
+
+\begin{bashinput}
+$ tftp $BOARD -vc get /root/secret
+Connected to 192.168.0.168 (192.168.0.168), port 69
+getting from 192.168.0.168:/root/secret to secret [netascii]
+Received 18 bytes in 0.0 seconds [4580 bit/s]
+\end{bashinput}
+
+The \texttt{restorecon} command can then be used to revert to a sane context:
+
+\begin{bashinput}
+# restorecon /root/secret
+root@freiheit93:~# ls -lZ /root/secret
+-rw-r--r--. 1 root root root:object_r:user_home_t 17 Mar 17 09:27 /root/secret
+\end{bashinput}
+
+\section{Using systemd to restrict a daemon's access to resources}
+
+We now want to run an application with systemd, using systemd unit configuration
+to filter the operations the application can make.
+
+This application is again an artificial one, trying to mimic one doing some legit
+operations, but also doing some unwanted ones, because of bugs or security
+breaches exploited by an attacker.
+
+As legitimate operation, the application does:
+\begin{itemize}
+  \item Adds some entropy to \texttt{/dev/urandom}: this does require the
+    \texttt{CAP\_SYS\_ADMIN} capability.
+    Note, this is mostly used for demonstration.
+    The added entropy is based on current system time: this is not a
+    particularly good entropy source and should not be used in real systems.
+  \item Runs \texttt{ping -N}.
+    This is again an option requiring the \texttt{CAP\_NET\_RAW} capability.
+\end{itemize}
+
+The application also simulates two bogus operations:
+\begin{itemize}
+	\item It writes some data to a file in \texttt{/var/cache}.
+	\item It modifies the machine hostname.
+\end{itemize}
+
+The \code{$HOME/__SESSION_NAME__-labs/userland/systemd} contains both the
+application source code and a sample systemd unit.
+Cross-compile the application, and deploy it on the target, to the
+\texttt{/usr/local/bin} folder; then deploy the service file to
+\texttt{/etc/systemd/system/}.
+
+\begin{bashinput}
+$ cd $HOME/__SESSION_NAME__-labs/userland/systemd
+$ make
+$ scp systemd-test root@${BOARD}:/usr/local/bin
+$ scp training-systemd-test.service root@${BOARD}:/etc/systemd/system/
+\end{bashinput}
+
+Now, start the service and monitor the log output.
+
+\begin{bashinput}
+# systemctl daemon-reload
+# systemctl restart training-systemd-test --no-block
+# journalctl -u training-systemd-test -f -n 50
+Starting training-systemd-test.service - Security training systemd demo...
+Adding entropy count
+Writing data to "/var/cache/security_training_systemd"
+Setting hostname to "changed-hostname"
+hostname: changed-hostname
+Executing ping command
+PING google.com (172.217.22.206) 56(84) bytes of data.
+64 bytes from muc11s01-in-f14.1e100.net (172.217.22.206): icmp_seq=1 ttl=111 time=14.1 ms
+--- google.com ping statistics ---
+1 packets transmitted, 1 received, 0% packet loss, time 0ms
+rtt min/avg/max/mdev = 14.112/14.112/14.112/0.000 ms
+training-systemd-test.service: Deactivated successfully.
+Finished training-systemd-test.service - Security training systemd demo.
+\end{bashinput}
+
+Looking at the log, we have some good and bad news: adding entropy and running
+ping did succeed.
+But so did changing the hostname and writing data to
+\texttt{/var/cache/security\_training\_systemd}.
+We can verify this:
+
+\begin{bashinput}
+# cat /var/cache/security_training_systemd
+Hello!
+# cat /proc/sys/kernel/hostname
+changed-hostname
+\end{bashinput}
+
+Let's revert these changes:
+
+\begin{bashinput}
+# rm /var/cache/security_training_systemd
+# echo "myboard" > /proc/sys/kernel/hostname
+\end{bashinput}
+
+To prevent these changes, we can limit the permissions of the process launched
+by systemd.
+First, instead of running as root, we should be using an unprivileged user
+account, thanks to the \texttt{User=} directive.
+We can ask systemd to create an ephemeral one, with \texttt{DynamicUser=}.
+
+Modify the unit file with \texttt{systemctl edit --full training-systemd-test}
+to add following lines into the \texttt{[Service]} section.
+Then restart the service.
+
+\begin{verbatim}
+User=someuser
+DynamicUser=true
+\end{verbatim}
+
+\begin{bashinput}
+# systemctl restart training-systemd-test --no-block
+# journalctl -u training-systemd-test -f -n 50
+Starting training-systemd-test.service - Security training systemd demo...
+Writing data to "/var/cache/security_training_systemd"
+Failed to open "/var/cache/security_training_systemd": Read-only file system
+training-systemd-test.service: Main process exited, code=exited, status=1/FAILURE
+training-systemd-test.service: Failed with result 'exit-code'.
+Failed to start training-systemd-test.service - Security training systemd demo.
+\end{bashinput}
+
+The application can no longer write to \texttt{/var/cache/}, that's great, but
+as a consequence it immediately stops.
+We can ask systemd to mount a tmpfs on /var/cache/, so the application can still
+write in there, without impacting the system.
+Modify the service file, and add the following line:
+
+\begin{verbatim}
+TemporaryFileSystem=/var/cache:mode=0777
+\end{verbatim}
+
+Then restart the application, and look for logs.
+
+\begin{bashinput}
+# systemctl restart training-systemd-test --no-block
+# journalctl -u training-systemd-test -f -n 50
+Starting training-systemd-test.service - Security training systemd demo...
+Writing data to "/var/cache/security_training_systemd"
+Adding entropy count
+Failed to add entropy: Operation not permitted
+Setting hostname to "changed-hostname"
+Failed to set hostname: Operation not permitted
+hostname: myboard
+Executing ping command
+ping: socktype: SOCK_RAW
+ping: socket: Operation not permitted
+ping: => missing cap_net_raw+p capability or setuid?
+training-systemd-test.service: Main process exited, code=exited, status=2/INVALIDARGUMENT
+training-systemd-test.service: Failed with result 'exit-code'.
+Failed to start training-systemd-test.service - Security training systemd demo.
+\end{bashinput}
+
+So now, the application can happily write to
+\texttt{/var/cache/security\_training\_systemd}.
+You can verify that this file was not really created on your system, but on some
+tmpfs.
+We can also see the hostname was not changed.
+However, we now have two issues: adding entropy failed, and ping
+complains: \texttt{WARNING: failed to set mark: 42: Operation not permitted}.
+Both issues come from missing capabilities, as we are no longer running as
+root.
+We can modify the configuration to add the required ambient capabilities and
+restart the service.
+
+\begin{verbatim}
+AmbientCapabilities=CAP_NET_RAW CAP_SYS_ADMIN
+\end{verbatim}
+
+\begin{bashinput}
+# systemctl restart training-systemd-test --no-block
+# journalctl -u training-systemd-test -f -n 50
+Starting training-systemd-test.service - Security training systemd demo...
+Writing data to "/var/cache/security_training_systemd"
+Adding entropy count
+Setting hostname to "changed-hostname"
+hostname: changed-hostname
+Executing ping command
+PING google.com (172.217.22.78) 56(84) bytes of data.
+64 bytes from tzpara-am-in-f14.1e100.net (172.217.22.78): icmp_seq=1 ttl=112 time=14.1 ms
+--- google.com ping statistics ---
+1 packets transmitted, 1 received, 0% packet loss, time 0ms
+rtt min/avg/max/mdev = 14.122/14.122/14.122/0.000 ms
+training-systemd-test.service: Deactivated successfully.
+Finished training-systemd-test.service - Security training systemd demo.
+\end{bashinput}
+
+With the added capabilities, both the ping and entropy adding operation succeed,
+but we also granted the possibility to change the hostname.
+One solution is to use the \texttt{ProtectHostname=} option to forbid this.
+
+\begin{verbatim}
+ProtectHostname=on
+\end{verbatim}
+
+\begin{bashinput}
+# systemctl restart training-systemd-test --no-block
+# journalctl -u training-systemd-test -f -n 50
+Starting training-systemd-test.service - Security training systemd demo...
+Writing data to "/var/cache/security_training_systemd"
+Adding entropy count
+Setting hostname to "changed-hostname"
+Failed to set hostname: Operation not permitted
+hostname: myboard
+Executing ping command
+PING google.com (172.217.22.78) 56(84) bytes of data.
+64 bytes from tzpara-am-in-f14.1e100.net (172.217.22.78): icmp_seq=1 ttl=112 time=13.8 ms
+--- google.com ping statistics ---
+1 packets transmitted, 1 received, 0% packet loss, time 0ms
+rtt min/avg/max/mdev = 13.830/13.830/13.830/0.000 ms
+training-systemd-test.service: Deactivated successfully.
+Finished training-systemd-test.service - Security training systemd demo.
+\end{bashinput}
+
+Alternatively, one could use seccomp to prevent call to \texttt{sethostname()}.
+Systemd \texttt{SystemCallFilter=} configuration allows to do so easily.
+
+\begin{verbatim}
+SystemCallFilter=~sethostname
+\end{verbatim}
+
+An interesting difference is the process is killed, except if we also use
+\texttt{SystemCallErrorNumber=}.
+
+\begin{bashinput}
+# systemctl restart training-systemd-test --no-block
+# journalctl -u training-systemd-test -f -n 50
+Starting training-systemd-test.service - Security training systemd demo...
+Writing data to "/var/cache/security_training_systemd"
+Adding entropy count
+Setting hostname to "changed-hostname"
+training-systemd-test.service: Main process exited, code=killed, status=31/SYS
+training-systemd-test.service: Failed with result 'signal'.
+Failed to start training-systemd-test.service - Security training systemd demo.
+\end{bashinput}
