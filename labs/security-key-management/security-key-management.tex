@@ -1,0 +1,144 @@
+\subchapter{Key management}{
+	Objective: Experiment with PKCS\#11 and OP-TEE}
+
+\section{Background}
+
+The OP-TEE codebase includes a
+\href{https://github.com/OP-TEE/optee_os/tree/master/ta/pkcs11}{PKCS\#11 Trusted Application}.
+
+First, confirm that this TA is present on your system.
+
+\section{Setting up the TA}
+
+We could write a small client application as we did in the \textit{secure world} lab, but
+we don't need to.
+Indeed, the API exposed by the TA can be compared to the internal API of an HSM, but the main
+advantage of PKCS\#11 is the high-level API specification, which lets manufacturers provide
+compatibility modules in the form of shared objects.
+
+OP-TEE is no exception, and the compatibility module is implemented by the
+\href{https://optee.readthedocs.io/en/latest/building/gits/optee_client.html}{OP-TEE client},
+in the form of \href{https://github.com/OP-TEE/optee_client/tree/master/libckteec}{libckteec},
+as documented \href{https://optee.readthedocs.io/en/latest/building/userland_integration.html#pkcs-11-driver}{here}.
+
+You can confirm that everything is working by showing some general info:
+\begin{bashinput}
+root@freiheit93:~# p11 -I
+Cryptoki version 2.40
+Manufacturer     Linaro
+Library          OP-TEE PKCS11 Cryptoki library (ver 0.1)
+Using slot 0 with a present token (0x0)
+\end{bashinput}
+Notice the "Cryptoki" name showing up.
+
+The next steps are the same as for a "normal" HSM, and described in the documenation linked above:
+\begin{itemize}
+\item Initialize the token, with a label and a Security Office (SO) PIN:
+\begin{bashinput}
+root@freiheit93:~# p11 --init-token --label optee
+Using slot 0 with a present token (0x0)
+Please enter the new SO PIN: 
+Please enter the new SO PIN (again): 
+Token successfully initialized
+
+root@freiheit93:~# p11 -L
+Available slots:
+Slot 0 (0x0): OP-TEE PKCS11 TA - TEE UUID 94e9ab89-4c43-56ea-8b35-45dc07226830
+  token label        : optee
+  token manufacturer : Linaro
+  token model        : OP-TEE TA
+  token flags        : login required, rng, token initialized
+  hardware version   : 0.0
+  firmware version   : 0.1
+  serial num         : 0000000000000000
+  pin min/max        : 4/128
+Slot 1 (0x1): OP-TEE PKCS11 TA - TEE UUID 94e9ab89-4c43-56ea-8b35-45dc07226830
+  token state:   uninitialized
+Slot 2 (0x2): OP-TEE PKCS11 TA - TEE UUID 94e9ab89-4c43-56ea-8b35-45dc07226830
+  token state:   uninitialized
+
+\end{bashinput}
+\item Log in as the Security Office and create a User PIN:
+\begin{bashinput}
+# p11 -l --login-type so --init-pin
+Using slot 0 with a present token (0x0)
+Logging in to "optee".
+Please enter SO PIN: 
+Please enter the new PIN: 
+Please enter the new PIN again: 
+User PIN successfully initialized
+\end{bashinput}
+\end{itemize}
+
+
+\section{Using the TA as a soft HSM}
+
+Now that the (virtual) token has been initialized, we can use it to store the target's private key
+that we generated earlier. This is done using the \code{--write-object} command:
+\begin{bashinput}
+# p11 -l --login-type user --write-object target.key --type privkey --label 'Target Key'
+Using slot 0 with a present token (0x0)
+Logging in to "optee".
+Please enter User PIN: 
+Created private key:
+Private Key Object; RSA 
+  label:      Target Key
+  Usage:      none
+  Access:     sensitive
+\end{bashinput}
+
+Unfortunately, this key risks to not be very useful. Experiment with the commands to fix that,
+and please make sure that key cannot be used to sign MD5 hashes.
+
+For the purpose of the first lab, we generate the target key using \code{openssl}. This is typically
+the type of task that an HSM is well suited for.
+
+Generate a new RSA 4096 key directly in OP-TEE.
+
+\section{Thinking about HW storage}
+
+Once your key is properly setup, reboot the device, and list the keys in the slot you were using:
+
+\begin{bashinput}
+$ p11 -l -O
+\end{bashinput}
+
+You should still see the keys that you created in the previous step. But OP-TEE itself does not
+have a filesystem. Looking at the OP-TEE documentation and sources, try and figure out how
+OP-TEE stored those keys.
+
+We now have an RSA key that is tied to the hardware, and cannot leave the secure world in cleartext.
+However, this key is not yet integrated into our PKI. We're going to enroll it now, following
+similar steps as we did earlier.
+
+In order to be able to use this key with OpenSSL, however, we need specific configuration:
+
+\begin{bashinput}
+$ cat /root/openssl.conf 
+openssl_conf = openssl_init
+
+[openssl_init]
+engines = engine_section
+
+[engine_section]
+pkcs11 = pkcs11_section
+
+[pkcs11_section]
+engine_id = pkcs11
+dynamic_path = /usr/lib/engines-3/pkcs11.so
+MODULE_PATH = /usr/lib/libckteec.so.0.1.0
+PIN = 5678
+
+\end{bashinput}
+
+Now we can generate a CSR:
+
+\begin{bashinput}
+# OPENSSL_CONF=openssl.conf openssl req -new \
+	-engine pkcs11 \
+	-keyform engine \
+	-key pkcs11:object=TargetOnlyKey \
+	-out target.csr
+\end{bashinput}
+
+After this, we can follow the steps from the first lab to sign the CSR.
