@@ -1,0 +1,112 @@
+\subchapter{Software Bill of Materials (SBoM)}{Objective:
+	Generate and analyze the image's SBoM.
+}
+
+\section{Prerequisites}
+
+We are going to use \code{sbom-cve-check} to analyze our SBoM.
+
+\begin{bashinput}
+(.venv) $ pip install sbom-cve-check[extra]
+\end{bashinput}
+
+\section{The default SPDX2.2 SBoM}
+
+Yocto is able to generate SPDX SBoMs, but the version we are currently using (Scarthgap)
+is using the 2.2 standard by default.
+
+This SBoMs are generated during the build of each recipe.
+You can find them under \code{build/tmp-glibc/deploy/spdx/2.2}
+
+\begin{bashinput}
+$ tree -d build/tmp-glibc/deploy/spdx/2.2/freiheit93/
+|-- packages
+|-- recipes
+`-- runtime
+\end{bashinput}
+
+One downside of SPDX2.2 is, that the SBoM is fragmented into a large number of files. This makes it less obvious
+to quickly get an overview:
+
+\begin{bashinput}
+$ find build/tmp-glibc/deploy/spdx/2.2/freiheit93/  -type f | wc -l
+1952
+\end{bashinput}
+
+\section{Generating an SPDX3 SBoM}
+
+To be able to generate an SPDX3 SBoM, we need to add the following lines in 
+\code{board_setup/meta-security-training/conf/distro/security-training.conf}:
+
+\begin{bashinput}
+INHERIT:remove = "create-spdx"
+INHERIT:append = " create-spdx-3.0"
+\end{bashinput}
+
+(notice the space on the second line)
+
+In order to generate the full SBoM, Yocto needs to rebuild the image (but it will use the cache).
+
+\begin{bashinput}
+$ bitbake security-training-image
+\end{bashinput}
+
+You should now see a \code{build/tmp-glibc/deploy/spdx/3.0.1} directory.
+The "main" SBoM, the one for the image, is under
+\code{build/tmp-glibc/deploy/spdx/3.0.1/freiheit93/image/security-training-image-freiheit93-image.spdx.json}
+
+This SBoM is rather short, so it can be reviewed manually, but it is high-level.
+However, the SPDX3 directory, \code{build/tmp-glibc/deploy/spdx/3.0.1} includes an SBoM for the rootFS.
+That one is not so short:
+
+\begin{bashinput}
+$ jq . build/tmp-glibc/deploy/spdx/3.0.1/freiheit93/rootfs/security-training-image-freiheit93-rootfs.spdx.json | wc -l
+23938
+\end{bashinput}
+
+Analyzing this SBoM manually is not a good option, even though the system we are using is a rather bare-bones one.
+
+\section{Analyzing the SBoM}
+
+In this section, we are going to use \href{https://sbom-cve-check.readthedocs.io/en/latest/introduction.html}{sbom-cve-check}
+to analyze the SBoM generated and determine which CVEs affect our target's rootFS.
+
+\begin{bashinput}
+$ sbom-cve-check --sbom-type spdx3 -S build/tmp-glibc/deploy/images/freiheit93/security-training-image-freiheit93.rootfs.spdx.json -f summary -o cve_summary_novex
+\end{bashinput}
+
+\begin{bashinput}
+INHERIT:remove = "create-spdx"
+INHERIT:append = " create-spdx-3.0"
+INHERIT:append = " vex"
+\end{bashinput}
+
+\begin{bashinput}
+$ bitbake security-training-image
+\end{bashinput}
+
+This should have created the VEX manifest in \code{build/tmp-glibc/deploy/images/freiheit93/security-training-image-freiheit93.rootfs.json},
+which we can now use to add context to \code{sbom-cve-check}:
+
+\begin{bashinput}
+$ sbom-cve-check --sbom-type spdx3 \
+	-S build/tmp-glibc/deploy/images/freiheit93/security-training-image-freiheit93.rootfs.spdx.json \
+	--yocto-vex-manifest build/tmp-glibc/deploy/images/freiheit93/security-training-image-freiheit93.rootfs.json \
+	-f summary -o cve_summary_vex
+\end{bashinput}
+
+Compare both outputs to find out the impact of the annotations built into Yocto.
+
+% CVE-2024-58251
+
+Take a look at \href{https://nvd.nist.gov/vuln/detail/cve-2024-9287}{CVE-2024-9287}. Does it actually apply here?
+If not, try to correct \code{sbom-cve-check}'s assessment.
+
+The \code{summary} format does not indicate \textbf{why} \code{sbom-cve-check} concluded that this CVE was applicable.
+You might want to generate a \code{yocto-cve-check-manifest} output.
+
+\section{Patching a CVE reported by sbom-cve-check}
+
+In this section, we are going to fix one of the CVEs. Specifically, \href{https://nvd.nist.gov/vuln/detail/CVE-2026-33317}{CVE-2026-33317}.
+
+Take a look at the CVE, patch it, and make sure it no longer appears in \code{sbom-cve-check}'s report.
