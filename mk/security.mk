@@ -14,3 +14,15 @@ SECURITY_SLIDES = \
 	security-compliance \
 	security-ab-updates \
 	last-slides
+
+SECURITY_IMX93_FRDM_LABS = \
+	setup \
+	security-board-setup-imx93-frdm \
+	security-fundamental-concepts \
+	security-secure-world \
+	security-secure-boot-part1 \
+	security-secure-boot-part2 \
+	security-key-management \
+	security-userland \
+	security-sbom \
+	security-rauc
