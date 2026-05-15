@@ -1,0 +1,27 @@
+# short-description: Create SD card image with a boot partition
+# long-description:
+# Create an image that can be written onto a SD card using dd for use
+# with i.MX SoC family
+# It uses u-boot + other binaries gathered together on imx-boot file
+#
+# The disk layout used is:
+# mmcblk1                  p1      p2      p3        p4        p5
+#                           |       |       |         |         |
+#                           v       v       v         v         v
+#  - ---------- ------------ ------- ------- --------- --------- ------
+# | | imx-boot | u-boot env | bootA | bootB | rootfsA | rootfsB | data |
+#  - ---------- ------------ ------- ------- --------- --------- ------
+# ^ ^          ^            ^       ^       ^         ^         ^      ^
+# | |          |            |       |       |         |         |      |
+# 0 |        8MiB         10MiB   266MiB  522MiB   1034MiB   1546MiB   2GiB
+#   ${IMX_BOOT_SEEK} 32 or 33kiB, see reference manual
+#
+part imx-boot --source rawcopy --sourceparams="file=flash.bin.tagged" --ondisk mmcblk --no-table --align ${IMX_BOOT_SEEK} --fixed-size 8160K
+part u-boot-env --source rawcopy --sourceparams="file=flash.bin.tagged" --ondisk mmcblk --no-table --align ${IMX_BOOT_SEEK} --fixed-size 2M
+part bootA --source rawcopy --sourceparams="file=fitImage" --ondisk mmcblk1 --offset 10M --fixed-size 256M
+part bootB --source rawcopy --sourceparams="file=fitImage" --ondisk mmcblk1 --offset 266M --fixed-size 256M
+part / --source rootfs --ondisk mmcblk1 --fstype=ext4 --offset 522M --fixed-size 510M --label rootA
+part / --source rootfs --ondisk mmcblk1 --fstype=ext4 --offset 1034M --fixed-size 510M --label rootB
+#part /data --ondisk mmcblk1 --offset 1546M --label data --fixed-size 502M --label data
+
+bootloader --ptable msdos

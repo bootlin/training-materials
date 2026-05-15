@@ -1,0 +1,36 @@
+From 2ea4f5fc5acd489fe13e40e288be20c1797c5614 Mon Sep 17 00:00:00 2001
+From: Olivier Benjamin <olivier.benjamin@bootlin.com>
+Date: Wed, 22 Apr 2026 09:53:32 +0200
+Subject: [PATCH 08/13] imx93_frdm.h: Move heap to fix AHAB boot
+
+By default, SPSDK sets the AHAB container for i.MX93 to load TF-A
+in non-secure OCRAM at 0x204E0000 [1].
+
+Unfortunately, when the heap starts at 0x204D0000, early devices
+are located there, and end up being overwritten by Tf-A.
+Once SPL hands off to the BootROM to jump onto TF-A, the system
+crashes with a Secure Exception, due to that corruption.
+
+1: https://github.com/nxp-mcuxpresso/spsdk/blob/master/spsdk/data/devices/mimx9352/database.yaml#L206
+
+Signed-off-by: Olivier Benjamin <olivier.benjamin@bootlin.com>
+---
+ include/configs/imx93_frdm.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/include/configs/imx93_frdm.h b/include/configs/imx93_frdm.h
+index 987fcacb999..1934670c071 100644
+--- a/include/configs/imx93_frdm.h
++++ b/include/configs/imx93_frdm.h
+@@ -12,7 +12,7 @@
+ 	(QSPI0_AMBA_BASE + CONFIG_SYS_MMCSD_RAW_MODE_U_BOOT_SECTOR * 512)
+ 
+ #ifdef CONFIG_XPL_BUILD
+-#define CFG_MALLOC_F_ADDR		0x204D0000
++#define CFG_MALLOC_F_ADDR		0x204F0000
+ #endif
+ 
+ /* Link Definitions */
+-- 
+2.43.0
+

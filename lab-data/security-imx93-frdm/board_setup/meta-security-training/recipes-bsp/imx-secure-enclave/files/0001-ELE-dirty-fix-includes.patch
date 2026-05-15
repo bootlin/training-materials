@@ -1,0 +1,751 @@
+From 21f44f26b3afae92aee5814c6754f86fbbcd9927 Mon Sep 17 00:00:00 2001
+From: Olivier Benjamin <olivier.benjamin@bootlin.com>
+Date: Wed, 8 Oct 2025 17:49:17 +0200
+Subject: [PATCH] ELE: dirty fix includes
+
+The headers in include/hsm/internal themselves include headers
+in "internal", such as "internal/hsm_common_def.h"
+This cannot work, and breaks for users of the library.
+We cannot symlink, because we do not know the symroot's path here.
+
+Signed-off-by: Olivier Benjamin <olivier.benjamin@bootlin.com>
+---
+ include/hsm/internal/hsm_auth_enc.h               | 6 +++---
+ include/hsm/internal/hsm_butterfly.h              | 8 ++++----
+ include/hsm/internal/hsm_cipher.h                 | 6 +++---
+ include/hsm/internal/hsm_data_storage.h           | 6 +++---
+ include/hsm/internal/hsm_dev_attest.h             | 4 ++--
+ include/hsm/internal/hsm_dev_getinfo.h            | 6 +++---
+ include/hsm/internal/hsm_dev_write_fuse.h         | 6 +++---
+ include/hsm/internal/hsm_ecies.h                  | 8 ++++----
+ include/hsm/internal/hsm_gc_acrypto.h             | 6 +++---
+ include/hsm/internal/hsm_gc_aead.h                | 6 +++---
+ include/hsm/internal/hsm_gc_akey_gen.h            | 6 +++---
+ include/hsm/internal/hsm_gc_cipher.h              | 6 +++---
+ include/hsm/internal/hsm_get_info.h               | 4 ++--
+ include/hsm/internal/hsm_hash.h                   | 4 ++--
+ include/hsm/internal/hsm_import_pub_key.h         | 6 +++---
+ include/hsm/internal/hsm_importkey.h              | 4 ++--
+ include/hsm/internal/hsm_key.h                    | 2 +-
+ include/hsm/internal/hsm_key_exchange.h           | 8 ++++----
+ include/hsm/internal/hsm_key_gen_ext.h            | 8 ++++----
+ include/hsm/internal/hsm_key_generate.h           | 6 +++---
+ include/hsm/internal/hsm_key_generic_crypto.h     | 8 ++++----
+ include/hsm/internal/hsm_key_management.h         | 4 ++--
+ include/hsm/internal/hsm_key_recovery.h           | 6 +++---
+ include/hsm/internal/hsm_key_store.h              | 4 ++--
+ include/hsm/internal/hsm_lc_update.h              | 4 ++--
+ include/hsm/internal/hsm_mac.h                    | 6 +++---
+ include/hsm/internal/hsm_manage_key_group.h       | 6 +++---
+ include/hsm/internal/hsm_pub_key_attest.h         | 6 +++---
+ include/hsm/internal/hsm_pub_key_decompression.h  | 8 ++++----
+ include/hsm/internal/hsm_pub_key_reconstruction.h | 8 ++++----
+ include/hsm/internal/hsm_rng.h                    | 6 +++---
+ include/hsm/internal/hsm_root_kek_export.h        | 6 +++---
+ include/hsm/internal/hsm_sign_gen.h               | 4 ++--
+ include/hsm/internal/hsm_sign_prepare.h           | 6 +++---
+ include/hsm/internal/hsm_sm2_eces.h               | 8 ++++----
+ include/hsm/internal/hsm_sm2_get_z.h              | 8 ++++----
+ include/hsm/internal/hsm_st_butterfly.h           | 8 ++++----
+ include/hsm/internal/hsm_tls_finish.h             | 8 ++++----
+ include/hsm/internal/hsm_utils.h                  | 2 +-
+ include/hsm/internal/hsm_verify_sign.h            | 8 ++++----
+ src/plat/ele/ele.mk                               | 2 +-
+ 41 files changed, 121 insertions(+), 121 deletions(-)
+
+diff --git a/include/hsm/internal/hsm_auth_enc.h b/include/hsm/internal/hsm_auth_enc.h
+index 388dc43..a7a57c5 100644
+--- a/include/hsm/internal/hsm_auth_enc.h
++++ b/include/hsm/internal/hsm_auth_enc.h
+@@ -6,9 +6,9 @@
+ #ifndef HSM_AUTH_ENC_H
+ #define HSM_AUTH_ENC_H
+ 
+-#include "internal/hsm_common_def.h"
+-#include "internal/hsm_utils.h"
+-#include "internal/hsm_handle.h"
++#include "hsm_common_def.h"
++#include "hsm_utils.h"
++#include "hsm_handle.h"
+ 
+ /**
+  *  @defgroup group4 Ciphering
+diff --git a/include/hsm/internal/hsm_butterfly.h b/include/hsm/internal/hsm_butterfly.h
+index c251c42..294d9db 100644
+--- a/include/hsm/internal/hsm_butterfly.h
++++ b/include/hsm/internal/hsm_butterfly.h
+@@ -6,10 +6,10 @@
+ #ifndef HSM_BUT_H
+ #define HSM_BUT_H
+ 
+-#include "internal/hsm_common_def.h"
+-#include "internal/hsm_utils.h"
+-#include "internal/hsm_handle.h"
+-#include "internal/hsm_key.h"
++#include "hsm_common_def.h"
++#include "hsm_utils.h"
++#include "hsm_handle.h"
++#include "hsm_key.h"
+ #ifndef PSA_COMPLIANT
+ /**
+  *  @defgroup group Key Management
+diff --git a/include/hsm/internal/hsm_cipher.h b/include/hsm/internal/hsm_cipher.h
+index 0dd222d..1f32e43 100644
+--- a/include/hsm/internal/hsm_cipher.h
++++ b/include/hsm/internal/hsm_cipher.h
+@@ -6,9 +6,9 @@
+ #ifndef HSM_CIPHER_H
+ #define HSM_CIPHER_H
+ 
+-#include "internal/hsm_handle.h"
+-#include "internal/hsm_utils.h"
+-#include "internal/hsm_common_def.h"
++#include "hsm_handle.h"
++#include "hsm_utils.h"
++#include "hsm_common_def.h"
+ #include "common/cipher.h"
+ 
+ #define CIPHER_OPEN_FLAGS_DEFAULT       0x0u
+diff --git a/include/hsm/internal/hsm_data_storage.h b/include/hsm/internal/hsm_data_storage.h
+index f9ccc82..cce915e 100644
+--- a/include/hsm/internal/hsm_data_storage.h
++++ b/include/hsm/internal/hsm_data_storage.h
+@@ -6,9 +6,9 @@
+ #ifndef HSM_DATA_STORAGE_H
+ #define HSM_DATA_STORAGE_H
+ 
+-#include "internal/hsm_handle.h"
+-#include "internal/hsm_utils.h"
+-#include "internal/hsm_common_def.h"
++#include "hsm_handle.h"
++#include "hsm_utils.h"
++#include "hsm_common_def.h"
+ 
+ /**
+  *  @defgroup group13 Data storage
+diff --git a/include/hsm/internal/hsm_dev_attest.h b/include/hsm/internal/hsm_dev_attest.h
+index efaf423..82f9efd 100644
+--- a/include/hsm/internal/hsm_dev_attest.h
++++ b/include/hsm/internal/hsm_dev_attest.h
+@@ -6,8 +6,8 @@
+ #ifndef HSM_DEV_ATTEST_H
+ #define HSM_DEV_ATTEST_H
+ 
+-#include "internal/hsm_handle.h"
+-#include "internal/hsm_utils.h"
++#include "hsm_handle.h"
++#include "hsm_utils.h"
+ 
+ /**
+  *  @defgroup group27 Dev attest
+diff --git a/include/hsm/internal/hsm_dev_getinfo.h b/include/hsm/internal/hsm_dev_getinfo.h
+index 30f0f43..859cc38 100644
+--- a/include/hsm/internal/hsm_dev_getinfo.h
++++ b/include/hsm/internal/hsm_dev_getinfo.h
+@@ -6,9 +6,9 @@
+ #ifndef HSM_DEV_GET_INFO_H
+ #define HSM_DEV_GET_INFO_H
+ 
+-#include "internal/hsm_handle.h"
+-#include "internal/hsm_key.h"
+-#include "internal/hsm_utils.h"
++#include "hsm_handle.h"
++#include "hsm_key.h"
++#include "hsm_utils.h"
+ 
+ /**
+  *  @defgroup group29 Dev Info
+diff --git a/include/hsm/internal/hsm_dev_write_fuse.h b/include/hsm/internal/hsm_dev_write_fuse.h
+index dd33b0e..9faa4d4 100644
+--- a/include/hsm/internal/hsm_dev_write_fuse.h
++++ b/include/hsm/internal/hsm_dev_write_fuse.h
+@@ -6,9 +6,9 @@
+ #ifndef HSM_DEV_WRITE_FUSE_H
+ #define HSM_DEV_WRITE_FUSE_H
+ 
+-#include "internal/hsm_handle.h"
+-#include "internal/hsm_key.h"
+-#include "internal/hsm_utils.h"
++#include "hsm_handle.h"
++#include "hsm_key.h"
++#include "hsm_utils.h"
+ 
+ /**
+  *  @defgroup group32 Write Fuse
+diff --git a/include/hsm/internal/hsm_ecies.h b/include/hsm/internal/hsm_ecies.h
+index 9f862bc..55ab4bd 100644
+--- a/include/hsm/internal/hsm_ecies.h
++++ b/include/hsm/internal/hsm_ecies.h
+@@ -6,10 +6,10 @@
+ #ifndef HSM_ECIES_H
+ #define HSM_ECIES_H
+ 
+-#include "internal/hsm_common_def.h"
+-#include "internal/hsm_utils.h"
+-#include "internal/hsm_handle.h"
+-#include "internal/hsm_key.h"
++#include "hsm_common_def.h"
++#include "hsm_utils.h"
++#include "hsm_handle.h"
++#include "hsm_key.h"
+ #ifndef PSA_COMPLIANT
+ /**
+  *  @defgroup group11 ECIES encryption
+diff --git a/include/hsm/internal/hsm_gc_acrypto.h b/include/hsm/internal/hsm_gc_acrypto.h
+index 8672d30..0675896 100644
+--- a/include/hsm/internal/hsm_gc_acrypto.h
++++ b/include/hsm/internal/hsm_gc_acrypto.h
+@@ -6,9 +6,9 @@
+ #ifndef HSM_GC_ACRYPTO_H
+ #define HSM_GC_ACRYPTO_H
+ 
+-#include "internal/hsm_key.h"
+-#include "internal/hsm_utils.h"
+-#include "internal/hsm_handle.h"
++#include "hsm_key.h"
++#include "hsm_utils.h"
++#include "hsm_handle.h"
+ 
+ /**
+  *	@defgroup group24 Generic Crypto: Asymmetric Crypto
+diff --git a/include/hsm/internal/hsm_gc_aead.h b/include/hsm/internal/hsm_gc_aead.h
+index 7375355..d398d92 100644
+--- a/include/hsm/internal/hsm_gc_aead.h
++++ b/include/hsm/internal/hsm_gc_aead.h
+@@ -6,9 +6,9 @@
+ #ifndef HSM_GC_AEAD_H
+ #define HSM_GC_AEAD_H
+ 
+-#include "internal/hsm_key.h"
+-#include "internal/hsm_utils.h"
+-#include "internal/hsm_handle.h"
++#include "hsm_key.h"
++#include "hsm_utils.h"
++#include "hsm_handle.h"
+ 
+ /**
+  *	@defgroup group26 Generic Crypto: AEAD
+diff --git a/include/hsm/internal/hsm_gc_akey_gen.h b/include/hsm/internal/hsm_gc_akey_gen.h
+index d3bdf39..cd70203 100644
+--- a/include/hsm/internal/hsm_gc_akey_gen.h
++++ b/include/hsm/internal/hsm_gc_akey_gen.h
+@@ -6,9 +6,9 @@
+ #ifndef HSM_GC_AKEY_GEN_H
+ #define HSM_GC_AKEY_GEN_H
+ 
+-#include "internal/hsm_key.h"
+-#include "internal/hsm_utils.h"
+-#include "internal/hsm_handle.h"
++#include "hsm_key.h"
++#include "hsm_utils.h"
++#include "hsm_handle.h"
+ 
+ /**
+  *	@defgroup group23 Generic Crypto Asymmetric Key Generate
+diff --git a/include/hsm/internal/hsm_gc_cipher.h b/include/hsm/internal/hsm_gc_cipher.h
+index f65fe0c..379514d 100644
+--- a/include/hsm/internal/hsm_gc_cipher.h
++++ b/include/hsm/internal/hsm_gc_cipher.h
+@@ -6,9 +6,9 @@
+ #ifndef HSM_GC_CIPHER_H
+ #define HSM_GC_CIPHER_H
+ 
+-#include "internal/hsm_key.h"
+-#include "internal/hsm_utils.h"
+-#include "internal/hsm_handle.h"
++#include "hsm_key.h"
++#include "hsm_utils.h"
++#include "hsm_handle.h"
+ 
+ /**
+  *	@defgroup group25 Generic Crypto: Cipher
+diff --git a/include/hsm/internal/hsm_get_info.h b/include/hsm/internal/hsm_get_info.h
+index 3c72776..0154762 100644
+--- a/include/hsm/internal/hsm_get_info.h
++++ b/include/hsm/internal/hsm_get_info.h
+@@ -6,8 +6,8 @@
+ #ifndef HSM_GET_INFO_H
+ #define HSM_GET_INFO_H
+ 
+-#include "internal/hsm_handle.h"
+-#include "internal/hsm_utils.h"
++#include "hsm_handle.h"
++#include "hsm_utils.h"
+ #include "common/get_info.h"
+ 
+ /**
+diff --git a/include/hsm/internal/hsm_hash.h b/include/hsm/internal/hsm_hash.h
+index c192cbe..307217a 100644
+--- a/include/hsm/internal/hsm_hash.h
++++ b/include/hsm/internal/hsm_hash.h
+@@ -9,8 +9,8 @@
+ #include <stdint.h>
+ #include <string.h>
+ 
+-#include "internal/hsm_handle.h"
+-#include "internal/hsm_utils.h"
++#include "hsm_handle.h"
++#include "hsm_utils.h"
+ /**
+  *  @defgroup group8 Hashing
+  * @{
+diff --git a/include/hsm/internal/hsm_import_pub_key.h b/include/hsm/internal/hsm_import_pub_key.h
+index ee12545..cd334b0 100644
+--- a/include/hsm/internal/hsm_import_pub_key.h
++++ b/include/hsm/internal/hsm_import_pub_key.h
+@@ -6,9 +6,9 @@
+ #ifndef HSM_IMPORT_PUB_KEY_H
+ #define HSM_IMPORT_PUB_KEY_H
+ 
+-#include "internal/hsm_utils.h"
+-#include "internal/hsm_handle.h"
+-#include "internal/hsm_key.h"
++#include "hsm_utils.h"
++#include "hsm_handle.h"
++#include "hsm_key.h"
+ #ifndef PSA_COMPLIANT
+ /**
+  * Bit field describing the operation attributes
+diff --git a/include/hsm/internal/hsm_importkey.h b/include/hsm/internal/hsm_importkey.h
+index 183d5b3..1edefbe 100644
+--- a/include/hsm/internal/hsm_importkey.h
++++ b/include/hsm/internal/hsm_importkey.h
+@@ -10,8 +10,8 @@
+ #include <stdlib.h>
+ #include <stdio.h>
+ 
+-#include "internal/hsm_handle.h"
+-#include "internal/hsm_utils.h"
++#include "hsm_handle.h"
++#include "hsm_utils.h"
+ 
+ /**
+  *  @defgroup group3 Key management
+diff --git a/include/hsm/internal/hsm_key.h b/include/hsm/internal/hsm_key.h
+index f30487b..0beb995 100644
+--- a/include/hsm/internal/hsm_key.h
++++ b/include/hsm/internal/hsm_key.h
+@@ -8,7 +8,7 @@
+ 
+ #include <stdint.h>
+ 
+-#include "internal/hsm_common_def.h"
++#include "hsm_common_def.h"
+ 
+ #define IV_LENGTH		12
+ 
+diff --git a/include/hsm/internal/hsm_key_exchange.h b/include/hsm/internal/hsm_key_exchange.h
+index a64f89b..ea0a133 100644
+--- a/include/hsm/internal/hsm_key_exchange.h
++++ b/include/hsm/internal/hsm_key_exchange.h
+@@ -6,10 +6,10 @@
+ #ifndef HSM_KEY_EXCHANGE_H
+ #define HSM_KEY_EXCHANGE_H
+ 
+-#include "internal/hsm_key.h"
+-#include "internal/hsm_utils.h"
+-#include "internal/hsm_handle.h"
+-#include "internal/hsm_key_generate.h"
++#include "hsm_key.h"
++#include "hsm_utils.h"
++#include "hsm_handle.h"
++#include "hsm_key_generate.h"
+ 
+ /**
+  *  @defgroup group20 Key exchange
+diff --git a/include/hsm/internal/hsm_key_gen_ext.h b/include/hsm/internal/hsm_key_gen_ext.h
+index 44ef8b6..1c9483f 100644
+--- a/include/hsm/internal/hsm_key_gen_ext.h
++++ b/include/hsm/internal/hsm_key_gen_ext.h
+@@ -6,10 +6,10 @@
+ #ifndef HSM_KEY_GEN_EXT_H
+ #define HSM_KEY_GEN_EXT_H
+ 
+-#include "internal/hsm_key.h"
+-#include "internal/hsm_utils.h"
+-#include "internal/hsm_handle.h"
+-#include "internal/hsm_key_generate.h"
++#include "hsm_key.h"
++#include "hsm_utils.h"
++#include "hsm_handle.h"
++#include "hsm_key_generate.h"
+ 
+ /**
+  *  @defgroup group3 Key management
+diff --git a/include/hsm/internal/hsm_key_generate.h b/include/hsm/internal/hsm_key_generate.h
+index fb5257e..911dbd9 100644
+--- a/include/hsm/internal/hsm_key_generate.h
++++ b/include/hsm/internal/hsm_key_generate.h
+@@ -6,9 +6,9 @@
+ #ifndef HSM_KEY_GENERATE_H
+ #define HSM_KEY_GENERATE_H
+ 
+-#include "internal/hsm_key.h"
+-#include "internal/hsm_utils.h"
+-#include "internal/hsm_handle.h"
++#include "hsm_key.h"
++#include "hsm_utils.h"
++#include "hsm_handle.h"
+ 
+ /**
+  *  @defgroup group3 Key management
+diff --git a/include/hsm/internal/hsm_key_generic_crypto.h b/include/hsm/internal/hsm_key_generic_crypto.h
+index 938980c..df20327 100644
+--- a/include/hsm/internal/hsm_key_generic_crypto.h
++++ b/include/hsm/internal/hsm_key_generic_crypto.h
+@@ -6,10 +6,10 @@
+ #ifndef HSM_KEY_GENERIC_CRYPTO_H
+ #define HSM_KEY_GENERIC_CRYPTO_H
+ 
+-#include "internal/hsm_handle.h"
+-#include "internal/hsm_utils.h"
+-#include "internal/hsm_key.h"
+-#include "internal/hsm_key_generate.h"
++#include "hsm_handle.h"
++#include "hsm_utils.h"
++#include "hsm_key.h"
++#include "hsm_key_generate.h"
+ #ifndef PSA_COMPLIANT
+ /**
+  *  @defgroup group22 Key generic crypto service
+diff --git a/include/hsm/internal/hsm_key_management.h b/include/hsm/internal/hsm_key_management.h
+index 5e0cf93..3773b78 100644
+--- a/include/hsm/internal/hsm_key_management.h
++++ b/include/hsm/internal/hsm_key_management.h
+@@ -6,8 +6,8 @@
+ #ifndef HSM_KEY_MANAGEMENT_H
+ #define HSM_KEY_MANAGEMENT_H
+ 
+-#include "internal/hsm_handle.h"
+-#include "internal/hsm_utils.h"
++#include "hsm_handle.h"
++#include "hsm_utils.h"
+ 
+ /**
+  *  @defgroup group3 Key management
+diff --git a/include/hsm/internal/hsm_key_recovery.h b/include/hsm/internal/hsm_key_recovery.h
+index 6ae3ebe..29e9f3e 100644
+--- a/include/hsm/internal/hsm_key_recovery.h
++++ b/include/hsm/internal/hsm_key_recovery.h
+@@ -6,9 +6,9 @@
+ #ifndef HSM_KEY_RECOVERY_H
+ #define HSM_KEY_RECOVERY_H
+ 
+-#include "internal/hsm_utils.h"
+-#include "internal/hsm_handle.h"
+-#include "internal/hsm_key.h"
++#include "hsm_utils.h"
++#include "hsm_handle.h"
++#include "hsm_key.h"
+ 
+ /**
+  *  @defgroup group12 Public key recovery
+diff --git a/include/hsm/internal/hsm_key_store.h b/include/hsm/internal/hsm_key_store.h
+index 5ad485c..55817fa 100644
+--- a/include/hsm/internal/hsm_key_store.h
++++ b/include/hsm/internal/hsm_key_store.h
+@@ -6,8 +6,8 @@
+ #ifndef HSM_KEY_STORE_H
+ #define HSM_KEY_STORE_H
+ 
+-#include "internal/hsm_handle.h"
+-#include "internal/hsm_utils.h"
++#include "hsm_handle.h"
++#include "hsm_utils.h"
+ #include "common/key_store.h"
+ 
+ /**
+diff --git a/include/hsm/internal/hsm_lc_update.h b/include/hsm/internal/hsm_lc_update.h
+index b2d08cc..1399d78 100644
+--- a/include/hsm/internal/hsm_lc_update.h
++++ b/include/hsm/internal/hsm_lc_update.h
+@@ -6,8 +6,8 @@
+ #ifndef HSM_LC_UPDATE_H
+ #define HSM_LC_UPDATE_H
+ 
+-#include "internal/hsm_handle.h"
+-#include "internal/hsm_utils.h"
++#include "hsm_handle.h"
++#include "hsm_utils.h"
+ 
+ /**
+  *  @defgroup group26 Life Cycle update
+diff --git a/include/hsm/internal/hsm_mac.h b/include/hsm/internal/hsm_mac.h
+index 7660ddf..b071a46 100644
+--- a/include/hsm/internal/hsm_mac.h
++++ b/include/hsm/internal/hsm_mac.h
+@@ -6,9 +6,9 @@
+ #ifndef HSM_MAC_H
+ #define HSM_MAC_H
+ 
+-#include "internal/hsm_handle.h"
+-#include "internal/hsm_utils.h"
+-#include "internal/hsm_key.h"
++#include "hsm_handle.h"
++#include "hsm_utils.h"
++#include "hsm_key.h"
+ 
+ /**
+  *  @defgroup group16 Mac
+diff --git a/include/hsm/internal/hsm_manage_key_group.h b/include/hsm/internal/hsm_manage_key_group.h
+index 31bdc0a..2514a3c 100644
+--- a/include/hsm/internal/hsm_manage_key_group.h
++++ b/include/hsm/internal/hsm_manage_key_group.h
+@@ -6,9 +6,9 @@
+ #ifndef HSM_MANAGE_KEY_GROUP_H
+ #define HSM_MANAGE_KEY_GROUP_H
+ 
+-#include "internal/hsm_key.h"
+-#include "internal/hsm_utils.h"
+-#include "internal/hsm_handle.h"
++#include "hsm_key.h"
++#include "hsm_utils.h"
++#include "hsm_handle.h"
+ 
+ #define MAX_VALID_KEY_GROUP (0x64)
+ /**
+diff --git a/include/hsm/internal/hsm_pub_key_attest.h b/include/hsm/internal/hsm_pub_key_attest.h
+index 15928f7..611d830 100644
+--- a/include/hsm/internal/hsm_pub_key_attest.h
++++ b/include/hsm/internal/hsm_pub_key_attest.h
+@@ -8,9 +8,9 @@
+ 
+ #include <stdint.h>
+ 
+-#include "internal/hsm_common_def.h"
+-#include "internal/hsm_handle.h"
+-#include "internal/hsm_utils.h"
++#include "hsm_common_def.h"
++#include "hsm_handle.h"
++#include "hsm_utils.h"
+ 
+ /**
+  *  @defgroup group5 Signature generation
+diff --git a/include/hsm/internal/hsm_pub_key_decompression.h b/include/hsm/internal/hsm_pub_key_decompression.h
+index 9d1106b..cf060cc 100644
+--- a/include/hsm/internal/hsm_pub_key_decompression.h
++++ b/include/hsm/internal/hsm_pub_key_decompression.h
+@@ -6,10 +6,10 @@
+ #ifndef HSM_PUB_KEY_DECOMPRESSION_H
+ #define HSM_PUB_KEY_DECOMPRESSION_H
+ 
+-#include "internal/hsm_common_def.h"
+-#include "internal/hsm_utils.h"
+-#include "internal/hsm_handle.h"
+-#include "internal/hsm_key.h"
++#include "hsm_common_def.h"
++#include "hsm_utils.h"
++#include "hsm_handle.h"
++#include "hsm_key.h"
+ #ifndef PSA_COMPLIANT
+ /**
+  *  @defgroup group10 Public key decompression
+diff --git a/include/hsm/internal/hsm_pub_key_reconstruction.h b/include/hsm/internal/hsm_pub_key_reconstruction.h
+index 3b6c2de..de3543f 100644
+--- a/include/hsm/internal/hsm_pub_key_reconstruction.h
++++ b/include/hsm/internal/hsm_pub_key_reconstruction.h
+@@ -6,10 +6,10 @@
+ #ifndef HSM_PUB_KEY_RECONSTRUCTION_H
+ #define HSM_PUB_KEY_RECONSTRUCTION_H
+ 
+-#include "internal/hsm_common_def.h"
+-#include "internal/hsm_utils.h"
+-#include "internal/hsm_handle.h"
+-#include "internal/hsm_key.h"
++#include "hsm_common_def.h"
++#include "hsm_utils.h"
++#include "hsm_handle.h"
++#include "hsm_key.h"
+ #ifndef PSA_COMPLIANT
+ /**
+  *  @defgroup group9 Public key reconstruction
+diff --git a/include/hsm/internal/hsm_rng.h b/include/hsm/internal/hsm_rng.h
+index f97e248..2c7a619 100644
+--- a/include/hsm/internal/hsm_rng.h
++++ b/include/hsm/internal/hsm_rng.h
+@@ -6,9 +6,9 @@
+ #ifndef HSM_RNG_H
+ #define HSM_RNG_H
+ 
+-#include "internal/hsm_handle.h"
+-#include "internal/hsm_utils.h"
+-#include "internal/hsm_key.h"
++#include "hsm_handle.h"
++#include "hsm_utils.h"
++#include "hsm_key.h"
+ 
+ #include "common/rng.h"
+ 
+diff --git a/include/hsm/internal/hsm_root_kek_export.h b/include/hsm/internal/hsm_root_kek_export.h
+index 85e61b0..f1a3fe0 100644
+--- a/include/hsm/internal/hsm_root_kek_export.h
++++ b/include/hsm/internal/hsm_root_kek_export.h
+@@ -6,9 +6,9 @@
+ #ifndef HSM_ROOT_KEK_EXPORT_H
+ #define HSM_ROOT_KEK_EXPORT_H
+ 
+-#include "internal/hsm_common_def.h"
+-#include "internal/hsm_utils.h"
+-#include "internal/hsm_handle.h"
++#include "hsm_common_def.h"
++#include "hsm_utils.h"
++#include "hsm_handle.h"
+ #ifndef PSA_COMPLIANT
+ /**
+  *  @defgroup group14 Root KEK export
+diff --git a/include/hsm/internal/hsm_sign_gen.h b/include/hsm/internal/hsm_sign_gen.h
+index fbdf3ca..21a4887 100644
+--- a/include/hsm/internal/hsm_sign_gen.h
++++ b/include/hsm/internal/hsm_sign_gen.h
+@@ -8,8 +8,8 @@
+ 
+ #include <stdint.h>
+ 
+-#include "internal/hsm_handle.h"
+-#include "internal/hsm_utils.h"
++#include "hsm_handle.h"
++#include "hsm_utils.h"
+ 
+ /**
+  *  @defgroup group5 Signature generation
+diff --git a/include/hsm/internal/hsm_sign_prepare.h b/include/hsm/internal/hsm_sign_prepare.h
+index 891149f..e363996 100644
+--- a/include/hsm/internal/hsm_sign_prepare.h
++++ b/include/hsm/internal/hsm_sign_prepare.h
+@@ -8,9 +8,9 @@
+ 
+ #include <stdint.h>
+ 
+-#include "internal/hsm_handle.h"
+-#include "internal/hsm_utils.h"
+-#include "internal/hsm_sign_gen.h"
++#include "hsm_handle.h"
++#include "hsm_utils.h"
++#include "hsm_sign_gen.h"
+ 
+ /**
+  *  @defgroup group5 Signature generation
+diff --git a/include/hsm/internal/hsm_sm2_eces.h b/include/hsm/internal/hsm_sm2_eces.h
+index a93180f..9ccbcc7 100644
+--- a/include/hsm/internal/hsm_sm2_eces.h
++++ b/include/hsm/internal/hsm_sm2_eces.h
+@@ -6,10 +6,10 @@
+ #ifndef HSM_SM2_ECES_H
+ #define HSM_SM2_ECES_H
+ 
+-#include "internal/hsm_common_def.h"
+-#include "internal/hsm_utils.h"
+-#include "internal/hsm_handle.h"
+-#include "internal/hsm_key.h"
++#include "hsm_common_def.h"
++#include "hsm_utils.h"
++#include "hsm_handle.h"
++#include "hsm_key.h"
+ #ifndef PSA_COMPLIANT
+ /**
+  *  @defgroup group18 SM2 ECES
+diff --git a/include/hsm/internal/hsm_sm2_get_z.h b/include/hsm/internal/hsm_sm2_get_z.h
+index 92b1ff1..9cd88d9 100644
+--- a/include/hsm/internal/hsm_sm2_get_z.h
++++ b/include/hsm/internal/hsm_sm2_get_z.h
+@@ -6,10 +6,10 @@
+ #ifndef HSM_SM2_GET_Z_H
+ #define HSM_SM2_GET_Z_H
+ 
+-#include "internal/hsm_common_def.h"
+-#include "internal/hsm_utils.h"
+-#include "internal/hsm_handle.h"
+-#include "internal/hsm_key.h"
++#include "hsm_common_def.h"
++#include "hsm_utils.h"
++#include "hsm_handle.h"
++#include "hsm_key.h"
+ #ifndef PSA_COMPLIANT
+ /**
+  *  @defgroup group17 SM2 Get Z
+diff --git a/include/hsm/internal/hsm_st_butterfly.h b/include/hsm/internal/hsm_st_butterfly.h
+index 2ad0559..8c89548 100644
+--- a/include/hsm/internal/hsm_st_butterfly.h
++++ b/include/hsm/internal/hsm_st_butterfly.h
+@@ -6,10 +6,10 @@
+ #ifndef HSM_ST_BUT_H
+ #define HSM_ST_BUT_H
+ 
+-#include "internal/hsm_common_def.h"
+-#include "internal/hsm_utils.h"
+-#include "internal/hsm_handle.h"
+-#include "internal/hsm_key.h"
++#include "hsm_common_def.h"
++#include "hsm_utils.h"
++#include "hsm_handle.h"
++#include "hsm_key.h"
+ #ifndef PSA_COMPLIANT
+ /**
+  *  @defgroup group21 Standalone butterfly key expansion
+diff --git a/include/hsm/internal/hsm_tls_finish.h b/include/hsm/internal/hsm_tls_finish.h
+index fc65b3b..7eef213 100644
+--- a/include/hsm/internal/hsm_tls_finish.h
++++ b/include/hsm/internal/hsm_tls_finish.h
+@@ -6,10 +6,10 @@
+ #ifndef HSM_TLS_FINISH_H
+ #define HSM_TLS_FINISH_H
+ 
+-#include "internal/hsm_key.h"
+-#include "internal/hsm_utils.h"
+-#include "internal/hsm_handle.h"
+-#include "internal/hsm_key_generate.h"
++#include "hsm_key.h"
++#include "hsm_utils.h"
++#include "hsm_handle.h"
++#include "hsm_key_generate.h"
+ #ifndef PSA_COMPLIANT
+ /**
+  *  @defgroup group30 TLS finish
+diff --git a/include/hsm/internal/hsm_utils.h b/include/hsm/internal/hsm_utils.h
+index cd9648e..5fa68e0 100644
+--- a/include/hsm/internal/hsm_utils.h
++++ b/include/hsm/internal/hsm_utils.h
+@@ -8,7 +8,7 @@
+ 
+ #include "stdint.h"
+ 
+-#include "internal/hsm_handle.h"
++#include "hsm_handle.h"
+ #include "common/global_info.h"
+ 
+ #define HSM_PREPARE	0x66
+diff --git a/include/hsm/internal/hsm_verify_sign.h b/include/hsm/internal/hsm_verify_sign.h
+index cdb5a1d..673b5da 100644
+--- a/include/hsm/internal/hsm_verify_sign.h
++++ b/include/hsm/internal/hsm_verify_sign.h
+@@ -10,10 +10,10 @@
+ #include <stdio.h>
+ #include <stdlib.h>
+ 
+-#include "internal/hsm_sign_gen.h"
+-#include "internal/hsm_handle.h"
+-#include "internal/hsm_utils.h"
+-#include "internal/hsm_key.h"
++#include "hsm_sign_gen.h"
++#include "hsm_handle.h"
++#include "hsm_utils.h"
++#include "hsm_key.h"
+ 
+ /**
+  *  @defgroup group6 Signature verification
+diff --git a/src/plat/ele/ele.mk b/src/plat/ele/ele.mk
+index 0687349..1214396 100644
+--- a/src/plat/ele/ele.mk
++++ b/src/plat/ele/ele.mk
+@@ -27,7 +27,7 @@ EXPORT_NVM_DAEMON := cp $(NVM_DAEMON) $(DESTDIR)$(BINDIR)
+ EXPORT_NVMD_CONF_FILE := cp $(PLAT_COMMON_PATH)/nvm/$(NVMD_CONF_FILE) $(DESTDIR)$(ETC_DIR)
+ EXPORT_SYSTEMD_NVM_SERVICE := cp $(PLAT_COMMON_PATH)/nvm/$(SYSTEMD_NVM_SERVICE) $(DESTDIR)$(SYSTEMD_DIR)
+ 
+-INCLUDE_HEADERS_CP = cp -a include/common include/hsm include/nvm.h $(DESTDIR)$(INCLUDEDIR)
++INCLUDE_HEADERS_CP = mkdir include/hsm/internal/internal && cp include/hsm/internal/*.h include/hsm/internal/internal/ && cp -a include/common include/hsm include/nvm.h $(DESTDIR)$(INCLUDEDIR)
+ PSA := psa
+ 
+ DEFINES		+=	-DCONFIG_PLAT_ELE -DPLAT_ELE_FEAT_NOT_SUPPORTED=0 \
+-- 
+2.49.0
+

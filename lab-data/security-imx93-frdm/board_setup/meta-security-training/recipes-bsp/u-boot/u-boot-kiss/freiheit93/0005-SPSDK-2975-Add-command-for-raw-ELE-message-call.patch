@@ -1,0 +1,188 @@
+From 493c4c46fde52a3f0f2b23d4dd7f93773368a017 Mon Sep 17 00:00:00 2001
+From: Marek Vitula <marek.vitula@nxp.com>
+Date: Thu, 14 Dec 2023 09:18:05 +0100
+Subject: [PATCH] [SPSDK-2975] Add command for raw ELE message call
+
+---
+ arch/arm/include/asm/mach-imx/ele_api.h |   1 +
+ arch/arm/mach-imx/ele_ahab.c            | 111 ++++++++++++++++++++++++
+ drivers/misc/imx_ele/ele_api.c          |  20 +++++
+ 3 files changed, 132 insertions(+)
+
+diff --git a/arch/arm/include/asm/mach-imx/ele_api.h b/arch/arm/include/asm/mach-imx/ele_api.h
+index f58d6c73921..49179642e37 100644
+--- a/arch/arm/include/asm/mach-imx/ele_api.h
++++ b/arch/arm/include/asm/mach-imx/ele_api.h
+@@ -159,3 +159,4 @@ int ele_start_rng(void);
+ int ele_write_shadow_fuse(u32 fuse_id, u32 fuse_val, u32 *response);
+ int ele_read_shadow_fuse(u32 fuse_id, u32 *fuse_val, u32 *response);
++int ele_message_call(struct ele_msg *msg);
+ #endif
+diff --git a/arch/arm/mach-imx/ele_ahab.c b/arch/arm/mach-imx/ele_ahab.c
+index 02048157826..9d41a796c21 100644
+--- a/arch/arm/mach-imx/ele_ahab.c
++++ b/arch/arm/mach-imx/ele_ahab.c
+@@ -3,7 +3,9 @@
+  * Copyright 2022 NXP
+  */
+ 
++#include "vsprintf.h"
+ #include <command.h>
++#include <ctype.h>
+ #include <errno.h>
+ #include <imx_container.h>
+ #include <asm/io.h>
+@@ -14,6 +16,7 @@
+ #include <console.h>
+ #include <cpu_func.h>
+ #include <asm/global_data.h>
++#include <stdio.h>
+ 
+ DECLARE_GLOBAL_DATA_PTR;
+ 
+@@ -721,6 +724,114 @@ static int do_ahab_commit(struct cmd_tbl *cmdtp, int flag, int argc,
+ 	return 0;
+ }
+ 
++static uint decode_digit(int ch)
++{
++	ch = tolower(ch);
++	bool is_digit = ('0' <= ch && ch <= '9') || ('a' <= ch && ch <= 'f');
++
++  if (!is_digit)
++		return 256;
++
++	return ch <= '9' ? ch - '0' : ch - 'a' + 0xa;
++}
++
++u8 hexstring_to_byte(const char *data)
++{
++	return decode_digit(data[0]) << 4 | decode_digit(data[1]);
++}
++
++u32 hexstring_to_word(const char *data)
++{
++	return hexstring_to_byte(data)
++	| hexstring_to_byte(data + 2) << 8
++	| hexstring_to_byte(data + 4) << 16
++	| hexstring_to_byte(data + 6) << 24;
++}
++
++int decode_ele_message(struct ele_msg *msg, const char *data)
++{
++	u32 arglen = strlen(data);
++
++	if (arglen < 8) {
++		printf("Message lacks ELE header\n");
++		return 1;
++	}
++
++	/* ELE header */
++	msg->version = hexstring_to_byte(data + 0);
++	msg->size    = hexstring_to_byte(data + 2);
++	msg->command = hexstring_to_byte(data + 4);
++	msg->tag     = hexstring_to_byte(data + 6);
++
++	/* Number of words expected has to match number of received hex characters */
++	if (arglen != msg->size * 8) {
++		printf("Argument size %d bytes does not match the expected size %d bytes \n",
++		       arglen, msg->size * 8);
++		return 1;
++	}
++
++	/* Parse the remaining size - 1 words */
++	for (u32 i = 0; i < msg->size - 1; i++)
++		msg->data[i] = hexstring_to_word(data + (i + 1) * 8);
++
++	return 0;
++}
++
++void print_as_hexstring(char *msg, u32 size)
++{
++	for (u32 i = 0; i < size; i++)
++		printf("%02x", msg[i]);
++}
++
++void print_ele_message(struct ele_msg *msg)
++{
++	print_as_hexstring((char *) msg, msg->size * sizeof(u32));
++}
++
++static int do_ele_message(struct cmd_tbl *cmdtp, int flag, int argc,
++			   char *const argv[])
++{
++	struct ele_msg msg = { 0 };
++	int ret;
++
++	if (argc < 4)
++		return CMD_RET_USAGE;
++
++	ulong ele_buffer_address = hextoul(argv[1], NULL);
++	ulong ele_buffer_size    = hextoul(argv[2], NULL);
++
++	/* We parse the ELE message encoded as hex string */
++	ret = decode_ele_message(&msg, argv[3]);
++	if (ret) {
++		printf("Decode ELE message error\n");
++		return CMD_RET_FAILURE;
++	}
++
++	flush_cache(ele_buffer_address, ele_buffer_size);
++
++	/* We send the message to ELE and receive back the response */
++	ret = ele_message_call(&msg);
++	if (ret) {
++		printf("Call ELE message error %d\n", ret);
++		return CMD_RET_FAILURE;
++	}
++
++	invalidate_dcache_range(ele_buffer_address, ele_buffer_size);
++
++	/* ELE reponse is a message too */
++	print_ele_message(&msg);
++
++	return CMD_RET_SUCCESS;
++}
++
++U_BOOT_CMD(ele_message, CONFIG_SYS_MAXARGS, 4, do_ele_message,
++		"Send RAW message to ELE",
++		"<addr> <size> <msg>\n"
++		"addr - ELE Buffer start address\n"
++		"size - ELE Buffer size in bytes\n"
++		"msg  - RAW message encoded as hexstring\n"
++);
++
+ U_BOOT_CMD(auth_cntr, CONFIG_SYS_MAXARGS, 1, do_authenticate,
+ 	   "autenticate OS container via AHAB",
+ 	   "addr\n"
+diff --git a/drivers/misc/imx_ele/ele_api.c b/drivers/misc/imx_ele/ele_api.c
+index cb4717c841f..77f720dc7c2 100644
+--- a/drivers/misc/imx_ele/ele_api.c
++++ b/drivers/misc/imx_ele/ele_api.c
+@@ -853,3 +853,23 @@ int ele_v2x_get_state(struct v2x_get_state *state, u32 *response)
+ 
+ 	return ret;
+ }
++
++int ele_message_call(struct ele_msg *msg)
++{
++	struct udevice *dev = gd->arch.ele_dev;
++	int size = sizeof(struct ele_msg);
++	int ret = -EINVAL;
++
++	if (!dev) {
++		printf("ele dev is not initialized\n");
++		return -ENODEV;
++	}
++
++	/* Call pre-prepared ELE message. */
++	ret = misc_call(dev, false, msg, size, msg, size);
++	if (ret)
++		printf("Error: %s: ret 0x%x, response 0x%x\n",
++		       __func__, ret, msg->data[0]);
++
++	return ret;
++}
+-- 
+2.54.0
+

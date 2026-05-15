@@ -1,0 +1,54 @@
+From 6c785432d2b02d512e3eb928d94c8efe1779b835 Mon Sep 17 00:00:00 2001
+From: Olivier Benjamin <olivier.benjamin@bootlin.com>
+Date: Fri, 24 Apr 2026 11:51:19 +0200
+Subject: [PATCH 04/13] Switch to FIT image
+
+Signed-off-by: Olivier Benjamin <olivier.benjamin@bootlin.com>
+---
+ board/freescale/imx93_frdm/imx93_frdm.env | 12 +-----------
+ configs/imx93_frdm_defconfig              |  4 +++-
+ 2 files changed, 4 insertions(+), 12 deletions(-)
+
+diff --git a/board/freescale/imx93_frdm/imx93_frdm.env b/board/freescale/imx93_frdm/imx93_frdm.env
+index 111f38ed72a..8de2ea54a3b 100644
+--- a/board/freescale/imx93_frdm/imx93_frdm.env
++++ b/board/freescale/imx93_frdm/imx93_frdm.env
+@@ -25,15 +25,5 @@ emmc_dev=0
+ sd_dev=1
+ dofastboot=0
+ 
+-bsp_bootcmd=
+-	if test ${dofastboot} = 1; then
+-		fastboot 0;
+-	fi;
+-	echo Running BSP bootcmd ...;
+-	mmc dev ${mmcdev};
+-	run mmcargs;
+-	run loadimage;
+-	run loadfdt;
+-	run boot_os;
+-
++bsp_bootcmd=run mmcargs; load mmc 1:1 0x83000000 fitImage; iminfo; bootm 0x83000000
+ scriptaddr=0x83500000
+diff --git a/configs/imx93_frdm_defconfig b/configs/imx93_frdm_defconfig
+index ae95c57218c..86746ea4331 100644
+--- a/configs/imx93_frdm_defconfig
++++ b/configs/imx93_frdm_defconfig
+@@ -31,7 +31,7 @@ CONFIG_EFI_RUNTIME_UPDATE_CAPSULE=y
+ CONFIG_EFI_CAPSULE_ON_DISK=y
+ CONFIG_EFI_CAPSULE_FIRMWARE_RAW=y
+ # CONFIG_ANDROID_BOOT_IMAGE is not set
+-CONFIG_BOOTCOMMAND="bootflow scan -lb; run bsp_bootcmd"
++CONFIG_BOOTCOMMAND="run bsp_bootcmd"
+ CONFIG_DEFAULT_FDT_FILE="imx93-11x11-frdm.dtb"
+ CONFIG_SYS_CBSIZE=2048
+ CONFIG_SYS_PBSIZE=2074
+@@ -136,3 +136,5 @@ CONFIG_SHA384=y
+ CONFIG_LZO=y
+ CONFIG_BZIP2=y
+ CONFIG_UTHREAD=y
++
++CONFIG_FIT=y
+-- 
+2.43.0
+

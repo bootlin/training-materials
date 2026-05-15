@@ -1,0 +1,130 @@
+\subchapter{Board setup}{Objective: setup your board to be used during all
+following labs}
+
+During this lab, you will:
+\begin{itemize}
+  \item Build a Yocto image and the associated SDK
+	\item Deploy it on the board
+	\item Setup SSH connection with the board
+\end{itemize}
+
+\section{Build Yocto}
+
+Go to the \code{$HOME/__SESSION_NAME__-labs/board_setup} directory.
+
+Install the kas command, either from you distribution repositories or from
+\href{pypi.org}{https://pypi.org/project/kas/}
+
+\begin{bashinput}
+$ python3 -m venv .venv
+$ . ./.venv/bin/activate
+$ pip install kas
+\end{bashinput}
+
+Then run kas to build the Yocto image. This might take a few hours.
+
+\begin{bashinput}
+$ kas build security-training-imx93-frdm.yaml
+\end{bashinput}
+
+\section{Set up the SD card}
+
+We will now use an SD card to store the bootloader, kernel and root filesystem
+files.
+The SD card image has been generated in the build folder and is named
+\code{security-training-image-freiheit93.rootfs.wic}.
+
+Now flash the image with the following command:
+\begin{bashinput}
+sudo dd if=build/tmp-glibc/deploy/images/freiheit93/security-training-image-freiheit93.rootfs.wic of=/dev/mmcblkX conv=fdatasync bs=1M status=progress
+\end{bashinput}
+
+\section{Setting up serial communication with the board}
+To set up serial communication with the board, simply connect the USB-C cable to
+the port labeled DEBUG.
+
+Once the cable is plugged in, a new serial port should appear:
+\code{/dev/ttyACM0}.
+You can also see this device appear by looking at the output of \code{dmesg}.
+
+To communicate with the board through the serial port, install a
+serial communication program, such as \code{picocom}:
+
+\begin{bashinput}
+sudo apt install picocom
+\end{bashinput}
+
+If you run \code{ls -l /dev/ttyACM0}, you can also see that only
+\code{root} and users belonging to the \code{dialout} group have
+read and write access to this file.
+Therefore, you need to add your user to the \code{dialout} group:
+
+\begin{bashinput}
+sudo adduser $USER dialout
+\end{bashinput}
+
+{\bf Important}: for the group change to be effective, in Ubuntu 18.04, you have to
+{\em completely reboot} the system \footnote{As explained on
+\url{https://askubuntu.com/questions/1045993/after-adding-a-group-logoutlogin-is-not-enough-in-18-04/}.}.
+A workaround is to run \code{newgrp dialout}, but it is not global.
+You have to run it in each terminal.
+
+Now, you can run \code{picocom -b 115200 /dev/ttyACM0}, to start serial
+communication on \code{/dev/ttyACM0}, with a baudrate of \code{115200}.
+If you wish to exit \code{picocom}, press \code{[Ctrl][a]} followed by
+\code{[Ctrl][x]}.
+
+There should be nothing on the serial line so far, as the board is not
+powered up yet.
+
+\section{Boot}
+Insert the SD card in the dedicated slot on the imx93-frdm.
+Make sure that switches 1 and 2 in the center of the board are set to ON, and
+switches 3 and 4 are set to OFF.
+
+Plug in the power USB-C.
+You should see boot messages on the console.
+
+During the very first boot, a full re-labelling of SELinux file context will
+occur, followed by a reboot.
+The whole process should take about 2 minutes.
+
+Wait until the login prompt, then enter \code{root} as user.
+Congratulations! The board has booted and you now have a shell.
+
+\section{SSH access}
+
+Plug a network cable on any of the two Ethernet ports of the board.
+If the network is providing DHCP, the board should automatically get an IP
+address; otherwise you will need to set it up by manually.
+
+You can run the following command on the board to obtain the board IP address
+
+\begin{bashinput}
+# ip addr show eth0 | grep "inet "
+\end{bashinput}
+
+On your computer, you should be able to connect to the board using SSH:
+
+\begin{bashinput}
+$ BOARD=root@192.168.10.89
+$ ssh root@$BOARD
+root@freiheit93:~# 
+\end{bashinput}
+
+\section{Installing SDK}
+
+Yocto has also been generating an SDK, providing a toolchain that can be used to
+cross-compile software for your target.
+As we will need to compile code during various labs, you should install this SDK
+now:
+
+\begin{bashinput}
+$ /build/tmp-glibc/deploy/sdk/oecore-security-training-image-x86_64-cortexa55-freiheit93-toolchain-1.0.sh -d $HOME/__SESSION_NAME__-labs/sdk/
+\end{bashinput}
+
+You can then use the SDK by sourcing the environment file:
+
+\begin{bashinput}
+$ . $HOME/__SESSION_NAME__-labs/sdk/environment-setup-cortexa55-oe-linux
+\end{bashinput}
