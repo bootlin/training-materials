@@ -507,7 +507,7 @@
   - `veritysetup close`
 
 - The root hash signature can be passed using the
-  `—-root-hash-signature` option
+  `----root-hash-signature` option
 
 === Setup using an initramFS
 
