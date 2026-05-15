@@ -1,0 +1,120 @@
+\subchapter{Exploring the secure world}{Objective: 
+	Observe Exception Levels and the secure world, build secure world software.}
+
+\section{Observing Exception Levels}
+
+In this section, we are going to patch secure world software to display some information.
+The software we are going to patch is:
+\begin{itemize}
+  \item ARM Trusted Firmware (TF-A)
+  \item the Trusted Execution Environment: OP-TEE
+\end{itemize}
+
+\subsection{Preparing to patch}
+
+\begin{bashinput}
+$ git clone https://review.trustedfirmware.org/TF-A/trusted-firmware-a.git --revision 569e16caad976a0684147da1ecc6333fd9b7f813
+$ git clone https://github.com/OP-TEE/optee_os.git --revision 18b424c23aa5a798dfe2e4d20b4bde3919dc4e99 
+\end{bashinput}
+
+Once you are done modifying the code in the next sections, do
+
+\begin{bashinput}
+$ git commit -s -m 'Bootlin Security Training'
+$ git format-patch HEAD~1
+\end{bashinput}
+
+This should generate \code{0001-Bootlin-Security-Training.patch}.
+Make sure the filename is correct!
+
+Once you are happy with your patch, you can copy it to the appropriate destination to be applied.
+
+For TF-A:
+\begin{bashinput}
+$ cp 0001-Bootlin-Security-Training.patch meta-security-training/recipes-bsp/trusted-firmware-a/trusted-firmware-a/
+\end{bashinput}
+
+For OP-TEE:
+\begin{bashinput}
+$ cp 0001-Bootlin-Security-Training.patch meta-security-training/recipes-security/optee/optee-os/
+\end{bashinput}
+
+And re-build the image:
+\begin{bashinput}
+$ bitbake security-training-image
+\end{bashinput}
+
+\subsection{Adding logs to TF-A}
+
+We are interested in observing two characteristics of the system:
+\begin{itemize}
+  \item The current Exception Level
+  \item The Security state
+\end{itemize}
+Once you've determined where that information is stored (e.g. by looking at
+\href{}{the ARM documentation}), you can either implement a routine for looking it up
+yourself, or by searching for relevant functionality in the TF-A codebase.
+
+\subsection{Adding logs to OP-TEE}
+
+After reviewing whether that information is accessible from OP-TEE
+\begin{itemize}
+  \item think about the output you expect
+  \item port the code you just used to OP-TEE
+\end{itemize}
+
+\section{Writing a small Trusted Application (TA)}
+
+In order to understand how Trusted Applications work, we are going to write one.
+More specifically, we are going to write a 
+\href{https://optee.readthedocs.io/en/latest/architecture/trusted_applications.html\#user-mode-trusted-applications}{User Mode TA}
+which will be loaded from the \href{https://optee.readthedocs.io/en/latest/architecture/trusted_applications.html\#ree-filesystem-ta}{REE filesystem}.
+
+The requirements for Trusted Application is documented in the
+\href{https://optee.readthedocs.io/en/latest/building/trusted_applications.html}{build} section of the OP-TEE documentation.
+
+We are going to use OP-TEE's TA-devkit to build the TA, so we need to meet those requirements.
+In the labs data, under \code{board_setup/meta-security-training/recipes-security/test_ta/}, the basic infrastructure for building the TA is provided.
+
+You will need to write or edit the following files:
+\begin{itemize}
+  \item \code{board_setup/meta-security-training/recipes-security/test_ta/files/ta/Makefile}
+  \item \code{board_setup/meta-security-training/recipes-security/test_ta/files/ta/include/test-ta.h}
+  \item \code{board_setup/meta-security-training/recipes-security/test_ta/files/ta/test-ta.c}
+  \item \code{board_setup/meta-security-training/recipes-security/test_ta/files/ta/user_ta_header_defines.h}
+\end{itemize}
+
+Once you are done, you can run
+\begin{bashinput}
+$ bitbake test-ta
+\end{bashinput}
+
+\section{Writing the userland client for the TA}
+
+User mode TAs, contrary to pseudo TAs, are loaded into OP-TEE when the REE attempts to call them.
+We now need a client on the REE side to call our TA.
+It will need to invoke the command we just implemented in the previous step.
+
+You will need to write or edit the following files:
+\begin{itemize}
+  \item \code{board_setup/meta-security-training/recipes-security/test_ta/files/host/test_ta_host.c}
+\end{itemize}
+
+\section{Deploying the TA}
+
+OP-TEE's REE FS Trusted Applications should be installed in \code{/lib/optee_armtz}.
+Each one is stored as \code{<UUID>.ta}, we'll deploy ours in the same way:
+
+\begin{bashinput}
+$ cp <UUID>.ta /lib/optee_armtz/
+\end{bashinput}
+
+Confirm that \code{tee-supplicant} is running, as that's the daemon that will load the TA:
+\begin{bashinput}
+$ ps | grep tee
+\end{bashinput}
+
+You can now trigger your TA:
+\begin{bashinput}
+$ ./test_ta_host
+\end{bashinput}
