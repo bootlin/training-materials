@@ -1,0 +1,176 @@
+\subchapter{Secure boot: kernel FIT verification}{
+	Objective:  Learn how to setup the second stage of secure boot: verification of
+the kernel signature by U-Boot.}
+
+\section{Activating signature verification in U-Boot}
+
+\subsection{Configuring signature verification}
+
+We now want U-Boot to verify the kernel FIT image before it loads it.
+There is one configuration option in U-Boot that needs to be enabled for this.
+
+That option is actually already enabled in our build, you can see it by looking at
+the following patch:
+\begin{bashinput}
+$ cat board_setup/meta-security-training/recipes-bsp/u-boot/u-boot-kiss/freiheit93/0009-Add-FIT-signature.patch
+commit 88fd6a65083c4e8cc2cfa2a38719a128fa8f3770
+Author: Olivier Benjamin <olivier.benjamin@bootlin.com>
+Date:   Sat May 9 14:45:09 2026 +0000
+
+    Add FIT signature
+    
+    Signed-off-by: Olivier Benjamin <olivier.benjamin@bootlin.com>
+
+diff --git a/configs/imx93_frdm_defconfig b/configs/imx93_frdm_defconfig
+index 1deb7957cbc..8aef68c2f0b 100644
+--- a/configs/imx93_frdm_defconfig
++++ b/configs/imx93_frdm_defconfig
+@@ -132,6 +132,8 @@ CONFIG_BZIP2=y
+ CONFIG_UTHREAD=y
+ 
+ CONFIG_FIT=y
++CONFIG_FIT_SIGNATURE=y
++CONFIG_DEVICE_TREE_INCLUDES="secure-boot.dtsi"
+ 
+ CONFIG_ENV_IS_NOWHERE=y
+ CONFIG_ENV_IS_IN_MMC=y
+
+\end{bashinput}
+
+\begin{bashinput}
+\end{bashinput}
+
+\subsection{Passing the signing key to U-Boot}
+
+Our build does not actually sign the FIT image, but U-Boot still boots it.
+This shows that activating FIT signature is not enough for U-Boot to refuse to boot unsigned or wrongly signed 
+FIT images.
+It will only do so if it has an embedded key, and a list of images or configurations that \textbf{require} signature.
+U-Boot expects this configuration in the form of a DTSI file, that can be included in its Device Tree Blob (DTB).
+We can use the \code{key2dtsi.py} to generate the appropriate configuration based on a key.
+
+As you can see, the patch above is already prepared to include this, in the form of \code{secure-boot.dtsi}.
+Looking at that file, which is located in
+\code{board_setup/meta-security-training/recipes-bsp/u-boot/u-boot-kiss/freiheit93/}.
+
+You can now use \code{key2dtsi.py} to replace that file. You can use the version that Yocto deployed
+as part of the native build of the \code{u-boot tools}:
+
+\begin{bashinput}
+(.venv) $ pip install pycryptodomex
+(.venv) $ export UBOOT_TOOLS_DIR=build/tmp-glibc/work/x86_64-linux/u-boot-tools-native/2024.01
+(.venv) $ ${UBOOT_TOOLS_DIR}/git/tools/key2dtsi.py --help
+\end{bashinput}
+
+\subsection{Testing}
+
+Once this is done, you can rebuild U-Boot and flash it to the micro SD card.
+Because Yocto does a lot of caching, the easiest way is probably to rebuild the entire image:
+
+\begin{bashinput}
+$ bitbake security-training-image
+\end{bashinput}
+
+Once it has been rebuilt, you can flash it to your micro SD card:
+\begin{bashinput}
+$ bmaptool copy build/tmp-glibc/deploy/images/freiheit93/security-training-image-freiheit93.rootfs.wic /dev/sdc
+\end{bashinput}
+
+Once you boot, this is the result you should see:
+
+\begin{bashinput}
+Verifying Hash Integrity ... Failed to verify required signature 'key-fit_signing_key'
+error!
+Unable to verify required signature for '' hash node in 'kernel-1' image node
+Bad Data Hash
+ERROR -2: can't get kernel image!
+u-boot=>
+\end{bashinput}
+
+The system refuses to boot the FIT image, because it has not been signed. This is secure boot working as it
+should. In the next step, we’ll build a signed FIT image that can be booted.
+
+\section{Signing the FIT image}
+
+We need to craft a new FIT image, properly signed for U-Boot to accept it.
+We could do this directly in Yocto, but we'll do it manually here to learn the process.
+
+FIT images, just like for AHAB, are a type of "container", so our first step will be identifying what components
+need to go in.
+In this case, our FIT image will contain:
+\begin{itemize}
+  \item our kernel: \code{build/tmp-glibc/work/freiheit93-oe-linux/linux-kiss/6.16/build/linux.bin}
+  \item its DTB: \code{build/tmp-glibc/deploy/images/freiheit93/imx93-11x11-frdm.dtb}
+\end{itemize}
+
+In the labs-data, we included \code{unsigned_fit.its}, which a FIT specification similar to the one
+that Yocto is currently using. Modify it to create your specification including the signature.
+You can now use \code{mkimage} to create the signed FIT:
+
+\begin{bashinput}
+$ sudo apt install -y device-tree-compiler
+(.venv) $ ${UBOOT_TOOLS_DIR}/build/tools/mkimage --help
+\end{bashinput}
+
+Once you're done, and you have flashed you new signed FIT image, your U-Boot boot log should look like this:
+
+\begin{bashinput}
+## Checking Image at 83000000 ...
+   FIT image found
+   FIT description: Kernel fitImage for security training Linux/6.16/freiheit93
+    Image 0 (kernel-1)
+     Description:  Linux kernel
+     Type:         Kernel Image
+     Compression:  uncompressed
+     Data Start:   0x830000ec
+     Data Size:    20439552 Bytes = 19.5 MiB
+     Architecture: AArch64
+     OS:           Linux
+     Load Address: 0x80400000
+     Entry Point:  0x83000000
+     Hash algo:    sha256
+     Hash value:   654f25e2b7aa16277b871ec3c39adc2d7da6bd69ce59fbb59a5726d431ade708
+     Sign algo:    sha256,rsa4096:key-fit_signing_key
+     Sign value:   c57a3f0461f3ca2d64d0a4f14...cd7f1527375a55e55117b227ceb40e8b131268
+    Image 1 (fdt-imx93-11x11-frdm.dtb)
+     Description:  Flattened Device Tree blob
+     Type:         Flat Device Tree
+     Compression:  uncompressed
+     Data Start:   0x8437e698
+     Data Size:    38662 Bytes = 37.8 KiB
+     Architecture: AArch64
+     Hash algo:    sha256
+     Hash value:   c3e8f00b2b1c59b447a59a821e4b46c27270ab92bb14aa312236f2673b187b7a
+     Sign algo:    sha256,rsa4096:key-fit_signing_key
+     Sign value:   5732c710e63f5dac330bd5f9abf...ce31baf45895f9bc951c4e96e9ec78c317f
+    Default Configuration: 'conf-imx93-11x11-frdm.dtb'
+    Configuration 0 (conf-imx93-11x11-frdm.dtb)
+     Description:  1 Linux kernel, FDT blob
+     Kernel:       kernel-1
+     FDT:          fdt-imx93-11x11-frdm.dtb
+     Hash algo:    sha256
+     Hash value:   unavailable
+     Sign algo:    sha256,rsa4096:key-fit_signing_key
+     Sign value:   2d2c1444d2094a9078ac7f35be446...bb136b3ca2a972a339afd0cbbc8e36cb14
+## Checking hash(es) for FIT Image at 83000000 ...
+   Hash(es) for Image 0 (kernel-1): sha256,rsa4096:key-fit_signing_key+ sha256+ 
+   Hash(es) for Image 1 (fdt-imx93-11x11-frdm.dtb): sha256,rsa4096:key-fit_signing_key+ sha256+ 
+## Loading kernel (any) from FIT Image at 83000000 ...
+   Using 'conf-imx93-11x11-frdm.dtb' configuration
+   Verifying Hash Integrity ... OK
+   Trying 'kernel-1' kernel subimage
+     Description:  Linux kernel
+     Type:         Kernel Image
+     Compression:  uncompressed
+     Data Start:   0x830000ec
+     Data Size:    20439552 Bytes = 19.5 MiB
+     Architecture: AArch64
+     OS:           Linux
+     Load Address: 0x80400000
+     Entry Point:  0x83000000
+     Hash algo:    sha256
+     Hash value:   654f25e2b7aa16277b871ec3c39adc2d7da6bd69ce59fbb59a5726d431ade708
+     Sign algo:    sha256,rsa4096:key-fit_signing_key
+     Sign value:   c57a3f0461f3ca2d64d0a4f14bd34...cd7f1527375a55e55117b227ceb40e8b131268
+   Verifying Hash Integrity ... sha256,rsa4096:key-fit_signing_key+ sha256+ OK
+\end{bashinput}
