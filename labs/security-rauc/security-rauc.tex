@@ -1,0 +1,131 @@
+\subchapter{A/B updates}{Objective:
+	Learn to configure RAUC and deploy A/B updates to our board}
+
+\section{Prerequisites}
+
+For this stage, we are going to run RAUC also on the development host, to generate
+the update bundle(s).
+Run the following command:
+
+\begin{bashinput}
+$ sudo apt install -y rauc squashfs-tools
+\end{bashinput}
+
+\section{A/B update partition setup}
+
+To avoid rebuilds and reflashes, the system already has an A/B setup.
+You can confirm this and look at the details in \code{board_setup/meta-security-training/wic/security-training-image.freiheit93.wks.in}
+
+\section{Configuring RAUC on the platform}
+
+Systemd should have tried to start the RAUC daemon:
+
+\begin{bashinput}
+# systemctl status rauc
+\end{bashinput}
+
+This should show that the service has not been started.
+You can look at the logs to figure out why:
+
+\begin{bashinput}
+# journalctl -xeu rauc.service
+\end{bashinput}
+
+RAUC needs a few things it currently does not have to function:
+\begin{itemize}
+  \item its main \href{https://rauc.readthedocs.io/en/latest/reference.html\#system-configuration-file}{configuration file}
+  \item the \href{https://rauc.readthedocs.io/en/latest/reference.html\#keyring-section}{keyring} which will be used
+	  to verify the bundle's signature
+  \item functional \code{fw_printenv} and \code{fw_setenv} commands
+\end{itemize}
+
+\subsection{Setting up fw\_printenv/fw\_setenv}
+
+Running \code{fw_printenv} should currently fail:
+
+\begin{bashinput}
+$ fw_printenv
+Cannot initialize environment
+\end{bashinput}
+
+The reason for this is that the \href{https://github.com/ARM-software/u-boot/blob/master/tools/env/fw_env.config}{configuration} is missing.
+Considering the A/B setup as defined in \code{board_setup/meta-security-training/wic/security-training-image.freiheit93.wks.in}, create the
+configuration file in \code{/etc/fw_env.config}.
+
+
+\subsection{The \href{https://rauc.readthedocs.io/en/latest/reference.html\#keyring-section}{keyring}}
+
+RAUC does not support \textbf{unsigned} updates, by design. Therefore, we need a key pair for our RAUC updates.
+We'll also want a certificate, that we'll deploy to the target for RAUC to use to verify the signature.
+We could use:
+\begin{itemize}
+  \item A self-signed certificate
+  \item the root CA certificate
+\end{itemize}
+
+The first will mean less flexibility in handling certificates, while the second risks exposing
+your root key, which is unnecessary.
+Fortunately, we already have the key pair (and certificate) we need: the bundle will be built on the host,
+we'll just use its key pair and certificate.
+
+We could use \code{host.crt} directly as the keyring, but using \code{cacert.pem} is better, as we expect
+that certificate to change very infrequently, and it is the root of trust of our PKI.
+
+In a real case, we would possibly have at least one child CA, and therefore one intermediate certificate,
+but we'll keep things simple here.
+
+\subsection{Building and installing the bundle}
+
+RAUC bundles use a configuration file called a \href{https://rauc.readthedocs.io/en/latest/reference.html\#sec-ref-manifest}{manifest}.
+This is what you'll be writing in this section.
+
+Once you're done, you can build the update bundle:
+
+\begin{bashinput}
+$ mkdir bundle
+# edit bundle/manifest.raucm
+$ cd bundle
+$ mkdir root
+$ echo "The rootfs has been updated" > root/UPDATED.txt
+$ gzip -d rootfs.tar.gz
+$ tar -u rootfs.tar root
+$ rauc bundle . update.bundle --signing-keyring=../ca/cacert.pem --key=../host/hostkey.pem --cert=../host/host.crt 
+Creating 'verity' format bundle
+rauc-Message: Keyring given, doing signature verification
+rauc-Message: Verified inline signature by 'C = FR, ST = Some-State, O = Bootlin security training, CN = host computer'
+$ scp update.bundle root@{BOARD}
+\end{bashinput}
+
+And then install it and reboot:
+
+\begin{bashinput}
+$ rauc install update.bundle
+\end{bashinput}
+
+RAUC might fail because the system's date is too long in the past for the certificate we generated to already be valid.
+
+\begin{bashinput}
+$ date -s 'YYYY-MM-DD'
+\end{bashinput}
+
+Alternatively, you can also instruct RAUC to use the time at which the bundle was signed instead of the system time,
+by adding
+\begin{bashinput}
+use-bundle-signing-time=true
+\end{bashinput}
+to the \code{[keyring]} section of \code{/etc/rauc/system.conf}.
+
+Even once the bundle is correctly installed, the board should not show UPDATED.txt.
+Running \code{mount} should help figure out why.
+
+You can also look at the U-Boot environment to see what RAUC attempted to do:
+\begin{bashinput}
+$ fw_printenv
+BOOT_ORDER=rootB
+BOOT_rootB_LEFT=3
+\end{bashinput}
+
+\subsection{U-Boot configuration}
+
+We now need to change the way U-Boot boots up the system.
+You can take some inspiration from \href{https://github.com/rauc/rauc/blob/master/contrib/uboot.sh}{this example}.
