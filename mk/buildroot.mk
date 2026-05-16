@@ -42,3 +42,12 @@ BUILDROOT_STM32MP1_LABS = \
 	buildroot-advanced-packages \
 	buildroot-advanced \
 	buildroot-appdev
+
+BUILDROOT_BEAGLEPLAY_LABS = \
+	setup \
+	buildroot-basic-beagleplay \
+	buildroot-rootfs-beagleplay \
+	buildroot-new-packages \
+	buildroot-advanced-packages \
+	buildroot-advanced \
+	buildroot-appdev

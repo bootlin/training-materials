@@ -1,0 +1,83 @@
+\section{Prepare a bootable micro-SD card}
+
+The AM62x ROM code will look for boot images in a FAT partition on the
+SD card. To be recognized by the ROM code, this partition must have a
+special type and the {\em Bootable} flag set.
+
+Let's prepare an SD card with such a partition.
+
+Plug the SD card your instructor gave you on your workstation. Type
+the \code{sudo dmesg} command to see which device is used by your
+workstation. In case the device is \code{/dev/mmcblk0}, you will see
+something like
+
+\begin{verbatim}
+[46939.425299] mmc0: new high speed SDHC card at address 0007
+[46939.427947] mmcblk0: mmc0:0007 SD16G 14.5 GiB
+\end{verbatim}
+
+The device file name may be different (such as \code{/dev/sdb})
+if the card reader is connected to a USB bus (either internally
+or using a USB card reader).
+
+In the following instructions, we will assume that your SD card is
+seen as \code{/dev/mmcblk0} by your PC workstation.
+
+Type the \code{mount} command to check your currently mounted
+partitions. If SD partitions are mounted, unmount them:
+
+\bashcmd{$ sudo umount /dev/mmcblk0p*}
+
+We will erase the existing partition table by simply zero-ing the
+first 16 MiB of the SD card:
+
+\bashcmd{$ sudo dd if=/dev/zero of=/dev/mmcblk0 bs=1M count=16}
+
+Now, let's use \code{cfdisk} to create the partitions that we need:
+
+\begin{bashinput}
+sudo apt install fdisk
+sudo cfdisk /dev/mmcblk0
+\end{bashinput}
+
+If \code{cfdisk} asks you to \code{Select a label type}, choose
+\code{dos}. This corresponds to traditional partition tables that
+DOS/Windows would understand. \code{gpt} partition tables are needed
+for disks bigger than 2 TB.
+
+In the \code{cfdisk} interface, delete existing partitions, then
+create two partitions with the following properties:
+
+\begin{itemize}
+\item First Partition
+\begin{itemize}
+  \item Size: \code{128MB}
+  \item Select \code{primary} partition
+  \item Type: \code{W95 FAT32 (LBA)} (\code{c} choice)
+  \item Bootable flag enabled
+\end{itemize}
+
+\item Second Partition
+\begin{itemize}
+  \item Size: use the rest of the available space
+  \item Select \code{primary} partition
+  \item Type: \code{Linux} (\code{83} choice)
+\end{itemize}
+\end{itemize}
+
+Press \code{Write} when you are done.
+
+To make sure that partition definitions are reloaded on your
+workstation, remove the SD card and insert it again.
+
+Now create a FAT32 filesystem on the first partition and an ext4
+filesystem on the second one:
+
+\begin{bashinput}
+sudo mkfs.vfat -F 32 -n boot /dev/mmcblk0p1
+sudo mkfs.ext4 -L rootfs -E nodiscard /dev/mmcblk0p2
+\end{bashinput}
+
+You can now make your workstation automatically mount these partitions
+by removing the SD card and plugging it back. They should now be
+mounted on \code{/media/$USER/boot} and \code{/media/$USER/rootfs}.
