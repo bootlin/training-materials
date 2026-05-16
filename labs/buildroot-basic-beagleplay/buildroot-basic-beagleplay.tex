@@ -131,10 +131,10 @@ Now, let's do the configuration:
 
   \item Now, we need to define which kernel configuration to
     use. We'll start by using a default configuration provided within
-    the kernel sources themselves, called a {\em defconfig}. On ARM64,
-    there is a single unified {\em defconfig} that supports all ARM64
-    platforms, simply called \code{defconfig}. Enter \code{defconfig}
-    in the \code{Defconfig name} option.
+    the kernel sources themselves. Select \code{Use the architecture
+      default configuration} as the \code{Kernel configuration}. On
+    ARM64, this uses the unified \code{defconfig} which supports all
+    ARM64 platforms, including the TI AM62x.
 
   \item The \code{Kernel binary format} is the next option. On AArch64
     platforms, the kernel image format is \code{Image}. Make sure this
@@ -189,35 +189,73 @@ Now, let's do the configuration:
 
   \item The BeaglePlay uses the TI AM62x SoC from the K3 family. The
     U-Boot configuration for the A53 cores is
-    \code{am62x_evm_a53_defconfig}. So enter \code{am62x_evm_a53} as
-    the \code{Board defconfig}.
+    \code{am62x_beagleplay_a53_defconfig}. So enter
+    \code{am62x_beagleplay_a53} as the \code{Board defconfig}.
 
   \item U-Boot on AM62x produces two main images for the A53 boot
     stage: \code{tispl.bin} (containing the U-Boot SPL and TF-A) and
     \code{u-boot.img} (the full U-Boot). Select \code{u-boot.img} as
     the \code{U-Boot binary format}, and enable \code{Install U-Boot
-      SPL binary image} with \code{tispl.bin} as the \code{U-Boot SPL
-      binary image name}.
-
-  \item {\bf Note:} The AM62x boot process also requires a first-stage
-    binary called \code{tiboot3.bin}, which runs on the R5 core and
-    initializes the SoC. Building this binary requires a separate
-    32-bit toolchain and TI-specific firmware. For simplicity, we
-    provide a pre-built \code{tiboot3.bin} in the lab data directory at
-    \code{$HOME/__SESSION_NAME__-labs/buildroot-basic/data/}.
+      SPL binary image} with \code{tispl.bin\_unsigned} as the
+    \code{U-Boot SPL/TPL binary image name(s)}.
 
   \end{itemize}
 
-\item \code{Host utilities} menu.
+\item Still in the \code{Bootloaders} menu, enable \code{ARM Trusted
+    Firmware (ATF)}. The U-Boot build for AM62x needs the TF-A BL31
+  binary. Configure it with:
 
   \begin{itemize}
-
-  \item The U-Boot build for AM62x requires TF-A (Trusted
-    Firmware-A). Enable \code{Host arm-trusted-firmware} and configure
-    it with platform \code{k3} and target board \code{lite}. This will
-    build the BL31 binary needed by U-Boot.
-
+  \item \code{ATF Version}: use the default or a recent version
+  \item \code{ATF platform}: enter \code{k3}
+  \item \code{ATF target board}: enter \code{lite}
   \end{itemize}
+
+\item Still in the \code{Bootloaders} menu, enable
+  \code{optee_os}. The AM62x U-Boot expects an OP-TEE binary.
+  Configure it with:
+
+  \begin{itemize}
+  \item \code{Target platform (mandatory)}: enter \code{k3}
+  \item \code{Target platform flavor (optional)}: enter \code{am62x}
+  \end{itemize}
+
+\item Still in the \code{Bootloaders} menu, enable
+  \code{ti-k3-boot-firmware}. This provides the TI Device Manager
+  firmware that runs on the Cortex-M4F core.
+
+\item Now go back to the \code{U-Boot} options in the
+  \code{Bootloaders} menu. You should now see additional options
+  that appeared after enabling ATF and OP-TEE:
+
+  \begin{itemize}
+  \item Enable \code{U-Boot use binman}. This is required for
+    AM62x, as U-Boot uses binman to assemble the final boot images.
+  \item Enable \code{U-Boot needs ATF BL31} and select
+    \code{bl31.bin} as the \code{U-Boot ATF BL31 format}.
+  \item Enable \code{U-Boot needs OPTEE TEE} and select
+    \code{tee.bin} as the format if given a choice.
+  \end{itemize}
+
+\item {\bf Note:} The AM62x SoC has a complex multi-stage boot
+    process involving multiple processor cores. Before the Cortex-A53
+    cores can run U-Boot, a Cortex-R5F core must first initialize the
+    SoC (configure the DDR memory, load TI Foundational Security
+    firmware, etc.). This first-stage binary is called
+    \code{tiboot3.bin} and is a combination of the R5 U-Boot SPL and
+    TI firmware, packaged together using TI's \code{k3-image-gen}
+    tool.
+
+    Building \code{tiboot3.bin} requires a separate 32-bit ARM
+    toolchain (\code{arm-none-eabi-}), the TI firmware from
+    \code{ti-linux-firmware}, and the \code{k3-image-gen} tool. Since
+    this is outside the scope of Buildroot, we provide a pre-built
+    \code{tiboot3.bin} in the lab data directory at
+    \code{$HOME/__SESSION_NAME__-labs/buildroot-basic/data/}.
+
+    If you want to learn how to build it yourself, refer to the
+    Bootlin {\em Embedded Linux} training course, which covers the
+    full AM62x boot chain in detail.
 
 \end{itemize}
 

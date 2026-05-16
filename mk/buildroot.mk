@@ -48,7 +48,7 @@ BUILDROOT_BEAGLEPLAY_LABS = \
 	setup \
 	buildroot-basic-beagleplay \
 	buildroot-rootfs-beagleplay \
-	buildroot-new-packages \
-	buildroot-advanced-packages \
+	buildroot-new-packages-beagleplay \
+	buildroot-advanced-packages-beagleplay \
 	buildroot-advanced-beagleplay \
 	buildroot-appdev-beagleplay
