@@ -1,4 +1,4 @@
-FROM fedora:34
+FROM fedora:44
 
 LABEL maintainer="Bootlin <feedback@bootlin.com>" \
       vendor="Bootlin" \
@@ -28,10 +28,13 @@ RUN dnf -y update && \
 	texlive-epstopdf \
 	texlive-eurosym \
 	texlive-collection-fontsextra \
+	texlive-enumitem \
+	texlive-hypcap \
 	texlive-hyphenat \
 	texlive-inconsolata \
 	texlive-lstaddons \
 	texlive-ltablex \
+	texlive-marvosym \
 	texlive-mdframed \
 	texlive-moreverb \
 	texlive-overpic \
@@ -48,7 +51,8 @@ RUN dnf -y update && \
 	texlive-fmtcount \
 	texlive-babel-english \
 	texlive-babel-french \
-	texlive-appendixnumberbeamer
+	texlive-appendixnumberbeamer \
+	which
 
 ARG TYPST_VERSION=0.14.2
 RUN curl -fsSL https://github.com/typst/typst/releases/download/v${TYPST_VERSION}/typst-x86_64-unknown-linux-musl.tar.xz \
