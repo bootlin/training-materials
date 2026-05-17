@@ -14,5 +14,5 @@ SRC_URI:append:freiheit93 = " \
 "
 
 do_compile:prepend() {
-    cp ${WORKDIR}/secureboot.dtsi ${S}/arch/arm/dts/
+    cp ${WORKDIR}/secure-boot.dtsi ${S}/arch/arm/dts/
 }
