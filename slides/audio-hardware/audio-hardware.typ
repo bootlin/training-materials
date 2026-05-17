@@ -9,7 +9,7 @@
 
 === Anatomy
 
-#align(center, [#image("anatomy.pdf", width: 100%)])
+#align(center, [#image("anatomy.svg", width: 100%)])
 #align(center, [#emph[Example of an embedded system sound card]])
 
 == CODECs
@@ -35,7 +35,7 @@
 
 The CODEC DAI is a synchronous serial bus. A common PCM interface is represented here:
 
-#align(center, [#image("i2s.pdf", height: 50%)])
+#align(center, [#image("i2s.svg", height: 50%)])
 
 === Digital audio interface - signals
 
@@ -159,9 +159,9 @@ data.
 
 #v(0.5em)
 
-#align(center, [#image("ac97.pdf", height: 35%)])
+#align(center, [#image("ac97.svg", height: 35%)])
 
-#align(center, [#image("ac97_phases.pdf", height: 35%)])
+#align(center, [#image("ac97_phases.svg", height: 35%)])
 
 === Digital formats - PDM
 
@@ -169,20 +169,20 @@ There is another, less common interface,
 using Pulse Density Modulation. It has two signals per channels, clock
 and data. Data has only one bit.
 
-#align(center, [#image("PDM.pdf", height: 85%)])
+#align(center, [#image("PDM.svg", height: 85%)])
 
 === Digital formats - S/PDIF or IEC 60958
 
 S/PDIF uses only one wire. Data is encoded using BMC (Biphase Mark Code), also known as
 differential Manchester encoding. Its clock is then twice the bitrate.
 
-#align(center, [#image("BMC.pdf", height: 25%)])
+#align(center, [#image("BMC.svg", height: 25%)])
 
 Blocks of 192 frames are transmitted, each frame consisting of two
 subframes (32bit words). There are three different preambles, one for
 start of block and channel 0, one for channel 0 and one for channel 1.
 
-#align(center, [#image("SPDIF.pdf", height: 30%)])
+#align(center, [#image("SPDIF.svg", height: 30%)])
 
 == Auxiliary devices
 <auxiliary-devices>

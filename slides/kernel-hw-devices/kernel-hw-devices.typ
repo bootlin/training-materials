@@ -118,7 +118,7 @@
   ],
   [
 
-    #align(center, [#image("dts-to-dtb.pdf", height: 70%)])
+    #align(center, [#image("dts-to-dtb.svg", height: 70%)])
 
   ],
 )
@@ -132,7 +132,7 @@
   [
 
     #text(size: 16pt)[
-      ```
+      ```dts
       $ cat foo.dts
       /dts-v1/;
 
@@ -156,7 +156,7 @@
   gutter: 15pt,
   [
     #text(size: 16pt)[
-      ```
+      ```dts
       $ cat foo.dts
       /dts-v1/;
 
@@ -187,7 +187,7 @@
   gutter: 15pt,
   [
     #text(size: 16pt)[
-      ```
+      ```dts
       $ cat foo.dts
       /dts-v1/;
 
@@ -211,7 +211,7 @@
   [
 
     #text(size: 16pt)[
-      ```
+      ```dts
       $ dtc -I dtb -O dts foo.dtb
       /dts-v1/;
 
@@ -273,7 +273,7 @@
   ],
   [
 
-    #align(center, [#image("dt-basic-syntax.pdf", width: 100%)])
+    #align(center, [#image("dt-basic-syntax.svg", width: 100%)])
 
   ],
 )
@@ -287,7 +287,7 @@
   [
 
     #[ #set text(size: 12pt)
-      ```perl
+      ```dts
       / {
         #address-cells = <1>;
         #size-cells = <1>;
@@ -310,7 +310,7 @@
   ],
   [
 
-    #align(center, [#image("simple-hardware.pdf", width: 100%)])
+    #align(center, [#image("simple-hardware.svg", width: 100%)])
 
   ],
 )
@@ -325,7 +325,7 @@
 
     #[ #set text(size: 12pt)
 
-      ```perl
+      ```dts
       / {
         cpus {
           #address-cells = <1>;
@@ -355,7 +355,7 @@
   ],
   [
 
-    #align(center, [#image("simple-hardware.pdf", width: 100%)])
+    #align(center, [#image("simple-hardware.svg", width: 100%)])
 
   ],
 )
@@ -367,7 +367,7 @@
   [
 
     #[ #set text(size: 12pt)
-      ```perl
+      ```dts
       / {
         cpus { ... };
         memory@0x80000000 { ... };
@@ -394,6 +394,7 @@
           l4_per: interconnect@44c00000 {
             i2c0: i2c@40012000 { ... };
           };
+
         };
       };
       ```
@@ -402,7 +403,7 @@
   ],
   [
 
-    #align(center, [#image("simple-hardware.pdf", width: 100%)])
+    #align(center, [#image("simple-hardware.svg", width: 100%)])
 
   ],
 )
@@ -414,7 +415,7 @@
   [
 
     #[ #set text(size: 12pt)
-      ```perl
+      ```dts
       / {
         cpus { ... };
         memory@0x80000000 { ... };
@@ -448,7 +449,7 @@
   ],
   [
 
-    #align(center, [#image("simple-hardware.pdf", width: 100%)])
+    #align(center, [#image("simple-hardware.svg", width: 100%)])
 
   ],
 )
@@ -460,7 +461,7 @@
   [
 
     #[ #set text(size: 12pt)
-      ```perl
+      ```dts
       / {
         cpus { ... };
         memory@0x80000000 { ... };
@@ -494,7 +495,7 @@
   ],
   [
 
-    #align(center, [#image("simple-hardware.pdf", width: 100%)])
+    #align(center, [#image("simple-hardware.svg", width: 100%)])
 
   ],
 )
@@ -527,7 +528,7 @@
 
 === Device Tree inheritance example
 
-#align(center, [#image("dt-inheritance.pdf", width: 100%)])
+#align(center, [#image("dt-inheritance.svg", width: 100%)])
 
 === Inheritance and labels
 
@@ -541,7 +542,7 @@
     #v(0.5em)
     #text(size: 14pt)[soc.dtsi]
     #[ #set text(size: 13pt)
-      ```perl
+      ```dts
       / {
         ocp {
           uart0: serial@0 {
@@ -558,7 +559,7 @@
     #text(size: 14pt)[board.dts]
 
     #[ #set text(size: 13pt)
-      ```perl
+      ```dts
       #include "soc.dtsi"
 
       / {
@@ -587,7 +588,7 @@
 
     #text(size: 14pt)[soc.dtsi]
     #[ #set text(size: 13pt)
-      ```perl
+      ```dts
       / {
         ocp {
           uart0: serial@0 {
@@ -603,7 +604,7 @@
 
     #text(size: 14pt)[board.dts]
     #[ #set text(size: 13pt)
-      ```perl
+      ```dts
       #include "soc.dtsi"
 
       / {
@@ -626,7 +627,7 @@
 
     #text(size: 14pt)[soc.dtsi]
     #[ #set text(size: 13pt)
-      ```perl
+      ```dts
       / {
         ocp {
           uart0: serial@0 {
@@ -642,7 +643,7 @@
 
     #text(size: 14pt)[board.dts]
     #[ #set text(size: 13pt)
-      ```perl
+      ```dts
       #include "soc.dtsi"
 
       &uart0 {
@@ -657,7 +658,7 @@
 
 === DT inheritance in Bone Black support
 
-#align(center, [#image("dt-inheritance-bbb.pdf", height: 90%)])
+#align(center, [#image("dt-inheritance-bbb.svg", height: 90%)])
 
 === Device Tree design principles
 
@@ -784,7 +785,8 @@
 
   ],
   [
-    #align(center, [#image("dt-to-devices.pdf", width: 100%)])
+
+    #align(center, [#image("dt-to-devices.svg", width: 100%)])
 
   ],
 )
@@ -1070,7 +1072,7 @@ sai4: sai@50027000 {
   [
 
     #text(size: 12.5pt)[
-      ```perl
+      ```dts
       intc: interrupt-controller@a0021000 {
          compatible = "arm,cortex-a7-gic";
          #interrupt-cells = <3>;
@@ -1124,7 +1126,7 @@ sai4: sai@50027000 {
 
   - Examples: `gpio-names`, `clock-names`, `reset-names`
 
-```perl
+```dts
 uart0@4000c000 {
     dmas = <&edma 26 0>, <&edma 27 0>;
     dma-names = "tx", "rx";

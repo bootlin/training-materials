@@ -59,7 +59,7 @@
 
 #v(0.5em)
 
-#align(center, [#image("development-process-simple.pdf", width: 100%)])
+#align(center, [#image("development-process-simple.svg", width: 100%)])
 
 === Need to further stabilize the official kernels
 
@@ -72,7 +72,7 @@
 
 #v(0.5em)
 
-#align(center, [#image("development-process.pdf", width: 65%)])
+#align(center, [#image("development-process.svg", width: 65%)])
 
 === Location of the stable kernel sources
 

@@ -32,7 +32,7 @@
 
 === Concurrency protection with locks
 
-#align(center, [#image("concurrency-protection.pdf", height: 90%)])
+#align(center, [#image("concurrency-protection.svg", height: 90%)])
 
 === Linux mutexes #emph[mutex = #strong[mut]ual #strong[ex]clusion]
 
@@ -95,7 +95,7 @@
 
 #v(0.5em)
 
-#align(center, [#image("spinlock.pdf", width: 40%)])
+#align(center, [#image("spinlock.svg", width: 40%)])
 
 === The spinlock API
 
@@ -123,7 +123,7 @@
 - Manipulating spinlocks implies some care:
 
 #align(center, [#image(
-  "/common/spinlock-deadlock-with-preemption.pdf",
+  "/common/spinlock-deadlock-with-preemption.svg",
   width: 90%,
 )])
 
@@ -142,7 +142,7 @@
   to get the same lock:
 
 #align(center, [#image(
-  "/common/spinlock-deadlock-with-interrupt.pdf",
+  "/common/spinlock-deadlock-with-interrupt.svg",
   width: 80%,
 )])
 
@@ -212,14 +212,14 @@ They can lock up your system. Make sure they never happen!
 
     Rule 1: don't call a function that can try to get access to the same
     lock
-    #align(center, [#image("deadlock-same-lock.pdf", width: 90%)])
+    #align(center, [#image("deadlock-same-lock.svg", width: 90%)])
 
   ],
   [
 
     Rule 2: if you need multiple locks, always acquire them in the same
     order!
-    #align(center, [#image("deadlock-two-locks.pdf", width: 90%)])
+    #align(center, [#image("deadlock-two-locks.svg", width: 90%)])
 
   ],
 )

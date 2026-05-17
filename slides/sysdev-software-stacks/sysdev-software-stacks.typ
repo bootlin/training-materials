@@ -37,7 +37,7 @@
   ],
   [
 
-    #align(center, [#image("dbus.pdf", width: 100%)])
+    #align(center, [#image("dbus.svg", width: 100%)])
 
   ],
 )
@@ -133,7 +133,7 @@
 
 === Linux graphics stack overview
 
-#align(center, [#image("graphics-stack.pdf", height: 95%)])
+#align(center, [#image("graphics-stack.svg", height: 95%)])
 
 === Display controller support
 
@@ -217,7 +217,7 @@
   ],
   [
 
-    #align(center, [#image("display-server.pdf", width: 100%)])
+    #align(center, [#image("display-server.svg", width: 100%)])
 
   ],
 )
@@ -250,7 +250,7 @@
   ],
   [
 
-    #align(center, [#image("xorg.pdf", width: 100%)])
+    #align(center, [#image("xorg.svg", width: 100%)])
 
   ],
 )
@@ -339,7 +339,7 @@
   ],
   [
 
-    #align(center, [#image("toolkit.pdf", height: 90%)])
+    #align(center, [#image("toolkit.svg", height: 90%)])
 
   ],
 )
@@ -377,7 +377,8 @@
   ],
   [
 
-    #align(center, [#image("qt-logo.pdf", width: 100%)])
+    #align(center, [#image("qt-logo.svg", width: 100%)])
+
   ],
 )
 
@@ -443,8 +444,9 @@
   ],
   [
 
-    #align(center, [#image("Google-flutter-logo.pdf", width: 90%)])
+    #align(center, [#image("Google-flutter-logo.svg", width: 90%)])
     #align(center, [#image("flutter-app.png", width: 70%)])
+
   ],
 )
 
@@ -502,7 +504,7 @@
 
 === Linux multimedia stack overview
 
-#align(center, [#image("multimedia-stack.pdf", height: 90%)])
+#align(center, [#image("multimedia-stack.svg", height: 90%)])
 
 === Audio stack
 
@@ -602,7 +604,7 @@
 
 === Linux networking stack
 
-#align(center, [#image("networking-stack.pdf", height: 95%)])
+#align(center, [#image("networking-stack.svg", height: 95%)])
 
 === Web accessible UI
 

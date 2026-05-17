@@ -6,4 +6,4 @@
 
 === Overall booting process with initramfs
 
-#align(center, [#image("initramfs-boot-sequence.pdf", height: 80%)])
+#align(center, [#image("initramfs-boot-sequence.svg", height: 80%)])

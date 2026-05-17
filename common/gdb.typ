@@ -179,11 +179,11 @@ A few useful GDB commands
     - `gdbserver` is used on the target system (only 400 KB on arm).
 ]
 
-#align(center, [#image("gdb-vs-gdbserver.pdf", width: 50%)])
+#align(center, [#image("gdb-vs-gdbserver.svg", width: 50%)])
 
 === Remote debugging: architecture
 
-#align(center, [#image("gdb-vs-gdbserver-architecture.pdf", width: 100%)])
+#align(center, [#image("gdb-vs-gdbserver-architecture.svg", width: 100%)])
 
 === Remote debugging: target setup
 

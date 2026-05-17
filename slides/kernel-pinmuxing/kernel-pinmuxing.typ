@@ -26,7 +26,7 @@
 
 === Pin muxing diagram
 
-#align(center, [#image("pin-muxing-principle.pdf", height: 90%)])
+#align(center, [#image("pin-muxing-principle.svg", height: 90%)])
 
 === Pin muxing in the Linux kernel
 
@@ -48,7 +48,7 @@
 
 === `pinctrl` subsystem diagram
 
-#align(center, [#image("pinctrl-subsystem.pdf", height: 90%)])
+#align(center, [#image("pinctrl-subsystem.svg", height: 90%)])
 
 === Device Tree properties for consumer devices
 
@@ -74,7 +74,7 @@ The devices that require certains pins to be muxed will use the
   gutter: 15pt,
   [
 
-    ```perl
+    ```dts
     i2c0: i2c@11000 {
             ...
             pinctrl-0 = <&pmx_twsi0>;
@@ -88,7 +88,7 @@ The devices that require certains pins to be muxed will use the
   [
 
     #text(size: 17pt)[
-      ```perl
+      ```dts
       i2c0: i2c@f8014000 {
              ...
              pinctrl-names = "default", "gpio";
@@ -147,7 +147,7 @@ The devices that require certains pins to be muxed will use the
   [
 
     #text(size: 12pt)[
-      ```perl
+      ```dts
       /* Excerpt from am335x-bone-common.dts */
 
       &am33xx_pinmux {
@@ -182,7 +182,7 @@ The devices that require certains pins to be muxed will use the
 
 === Example on the Allwinner A20 SoC
 
-#align(center, [#image("allwinner-example.pdf", height: 90%)])
+#align(center, [#image("allwinner-example.svg", height: 90%)])
 
 #setuplabframe([Setup pinmuxing to enable I2C communication], [
 

@@ -107,7 +107,7 @@
 
 === Symbols exported to modules 2/2
 
-#align(center, [#image("exported-symbols.pdf", width: 100%)])
+#align(center, [#image("exported-symbols.svg", width: 100%)])
 
 === Module license
 
@@ -184,7 +184,7 @@ endif
 
 === Compiling an out-of-tree module 2/2
 
-#align(center, [#image("out-of-tree.pdf", height: 50%)])
+#align(center, [#image("out-of-tree.svg", height: 50%)])
 #v(0.5em)
 - The module `Makefile` is interpreted with `KERNELRELEASE` undefined,
   so it calls the kernel `Makefile`, passing the module directory in the

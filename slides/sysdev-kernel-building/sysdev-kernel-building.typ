@@ -376,7 +376,7 @@ set of options
 
 #v(1em)
 
-#align(center, [#image("iso-example.pdf", width: 100%)])
+#align(center, [#image("iso-example.svg", width: 100%)])
 
 === make oldconfig
 
@@ -432,7 +432,7 @@ A frequent problem:
   ],
   [
 
-    #align(center, [#image("parallel-make-benefits.pdf", width: 100%)])
+    #align(center, [#image("parallel-make-benefits.svg", width: 100%)])
 
   ],
 )
@@ -524,7 +524,7 @@ A frequent problem:
   [
     === Module alias: _modules.alias_
     #align(center, [#image(
-      "/slides/kernel-hw-devices/module-alias-usage.pdf",
+      "/slides/kernel-hw-devices/module-alias-usage.svg",
       width: 100%,
     )])
   ]
@@ -570,7 +570,7 @@ A frequent problem:
 
 === Kernel building overview
 
-#align(center, [#image("kernel-building-overview.pdf", height: 90%)])
+#align(center, [#image("kernel-building-overview.svg", height: 90%)])
 
 == Booting the kernel
 <booting-the-kernel>

@@ -28,7 +28,7 @@
 
 === Toolchain definition (2)
 
-#align(center, [#image("cross-toolchain.pdf", width: 80%)])
+#align(center, [#image("cross-toolchain.svg", width: 80%)])
 
 === Architecture tuple and toolchain prefix
 
@@ -62,7 +62,7 @@
 
 === Components of gcc toolchains
 
-#align(center, [#image("components.pdf", width: 75%)])
+#align(center, [#image("components.svg", width: 75%)])
 
 === Binutils
 
@@ -142,7 +142,7 @@
   ],
   [
 
-    #align(center, [#image("kernel-headers.pdf", width: 100%)])
+    #align(center, [#image("kernel-headers.svg", width: 100%)])
 
   ],
 )
@@ -219,7 +219,7 @@ your project.
   [
 
     #align(center, [#image(
-      "Linux_kernel_System_Call_Interface_and_uClibc.pdf",
+      "Linux_kernel_System_Call_Interface_and_uClibc.svg",
       width: 100%,
     )])
     #text(size: 14pt)[
@@ -254,7 +254,7 @@ your project.
   ],
   [
 
-    #align(center, [#image("heckert_gnu_white.pdf", width: 100%)])
+    #align(center, [#image("heckert_gnu_white.svg", width: 100%)])
     #text(size: 14pt)[
       #link(
         "https://en.wikipedia.org/wiki/File:Heckert_GNU_white.svg",

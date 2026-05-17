@@ -16,7 +16,7 @@ data directly between devices and RAM, without going through the CPU.
 
 #v(0.5em)
 
-#align(center, [#image("dma-integration.pdf", height: 80%)])
+#align(center, [#image("dma-integration.svg", height: 80%)])
 
 === Peripheral DMA
 
@@ -25,7 +25,7 @@ controller and therefore can do DMA on their own.
 
 #v(0.5em)
 
-#align(center, [#image("peripheral-dma.pdf", height: 80%)])
+#align(center, [#image("peripheral-dma.svg", height: 80%)])
 
 === DMA controllers
 
@@ -35,7 +35,7 @@ this controller.
 
 #v(0.5em)
 
-#align(center, [#image("dma-controller.pdf", height: 80%)])
+#align(center, [#image("dma-controller.svg", height: 80%)])
 
 === DMA descriptors
 
@@ -44,7 +44,7 @@ of a DMA transfer, and are chained.
 
 #v(0.5em)
 
-#align(center, [#image("dma-descriptors.pdf", width: 100%)])
+#align(center, [#image("dma-descriptors.svg", width: 100%)])
 
 === Cache constraints
 
@@ -63,7 +63,7 @@ of a DMA transfer, and are chained.
     cache lines must be flushed/cleaned in order to force the data to
     reach the memory
 
-#align(center, [#image("caches.pdf", width: 75%)])
+#align(center, [#image("caches.svg", width: 75%)])
 
 === DMA addressing constraints
 
@@ -80,7 +80,7 @@ of a DMA transfer, and are chained.
 
   - an IOMMU, in which case a specific mapping must be created
 
-#align(center, [#image("addressing.pdf", width: 70%)])
+#align(center, [#image("addressing.svg", width: 70%)])
 
 === DMA memory allocation constraints
 
@@ -342,7 +342,7 @@ accessed through an IO-MMU:
 
 === The `dmaengine framework`
 
-#align(center, [#image("dmaengine-framework.pdf", width: 90%)])
+#align(center, [#image("dmaengine-framework.svg", width: 90%)])
 
 === `dmaengine: Slave API: Initial configuration`
 

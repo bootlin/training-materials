@@ -98,7 +98,7 @@
   ],
   [
     #[ #set par(leading: 0.3em)
-      #image("linux-user-api.pdf", height: 80%)
+      #image("linux-user-api.svg", height: 80%)
       #text(size: 10pt)[Modified Image from Wikipedia:] \
       #text(size: 10pt)[#link("https://bit.ly/2U2rdGB")]
     ]
@@ -134,7 +134,7 @@
   ],
   [
     #[ #set par(leading: 0.3em)
-      #image("linux-internal-api.pdf", height: 80%)
+      #image("linux-internal-api.svg", height: 80%)
       #text(size: 10pt)[Modified Image from Wikipedia:] \
       #text(size: 10pt)[#link("https://bit.ly/2U2rdGB")]
     ]
@@ -221,7 +221,7 @@
 
     #v(0.5em)
 
-    #align(center, [#image("binary-blobs.pdf", height: 40%)])
+    #align(center, [#image("binary-blobs.svg", height: 40%)])
 
   ],
   [
@@ -235,7 +235,7 @@
 
     #v(0.5em)
 
-    #align(center, [#image("empty-modules.pdf", height: 40%)])
+    #align(center, [#image("empty-modules.svg", height: 40%)])
 
   ],
 )

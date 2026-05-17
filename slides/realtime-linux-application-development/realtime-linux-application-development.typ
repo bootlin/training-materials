@@ -92,7 +92,7 @@
 
 #v(0.5em)
 
-#align(center, [#image("thread-vs-process.pdf", width: 80%)])
+#align(center, [#image("thread-vs-process.svg", width: 80%)])
 
 === Creating threads
 

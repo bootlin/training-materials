@@ -144,7 +144,7 @@ Not recommended for embedded systems today!
   ],
   [
 
-    #align(center, [#image("journal.pdf", width: 80%)])
+    #align(center, [#image("journal.svg", width: 80%)])
 
   ],
 )
@@ -155,7 +155,7 @@ Not recommended for embedded systems today!
   columns: (40%, 60%),
   stroke: none,
   [
-    #align(center, [#image("journal-recovery.pdf", width: 100%)])
+    #align(center, [#image("journal-recovery.svg", width: 100%)])
 
   ],
   [
@@ -314,7 +314,7 @@ A more recent read-only, compressed solution
 
 === Filesystem benchmarks
 
-#align(center, [#image("rating.pdf", height: 80%)])
+#align(center, [#image("rating.svg", height: 80%)])
 
 #[ #set text(size: 16pt)
   See our presentation for more details and benchmarks (Linux 6.3, ARM32
@@ -491,7 +491,7 @@ systems:
   ],
   [
 
-    #align(center, [#image("mixing-filesystems.pdf", height: 80%)])
+    #align(center, [#image("mixing-filesystems.svg", height: 80%)])
 
   ],
 )

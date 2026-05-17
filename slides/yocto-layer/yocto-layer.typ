@@ -22,7 +22,7 @@
 === Layers in Poky
 
 #align(center, [#image(
-  "/slides/yocto-overview/yocto-overview-poky.pdf",
+  "/slides/yocto-overview/yocto-overview-poky.svg",
   height: 90%,
 )])
 
@@ -48,7 +48,7 @@
 
 === Third party layers
 
-#align(center, [#image("yocto-layer-intro.pdf", height: 90%)])
+#align(center, [#image("yocto-layer-intro.svg", height: 90%)])
 
 === Integrate and use a layer 1/3
 
@@ -154,7 +154,7 @@
 
 === Custom layer
 
-#align(center, [#image("yocto-layer-create.pdf", height: 90%)])
+#align(center, [#image("yocto-layer-create.svg", height: 90%)])
 
 === Create a custom layer 1/2
 

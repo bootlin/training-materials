@@ -329,7 +329,7 @@ The Linux kernel and most other architecture-dependent components support a wide
   ],
   [
     #align(center, [#image(
-      "../shopping-list-beaglebone/beagleboneblack.png",
+      "../shopping-list-beaglebone/beagleboneblack.jpg",
       height: 25%,
     )])
     #[ #set text(size: 15pt)
@@ -370,7 +370,7 @@ The Linux kernel and most other architecture-dependent components support a wide
 
 === Host and target
 
-#align(center, [#image("host-and-target.pdf", height: 90%)])
+#align(center, [#image("host-and-target.svg", height: 90%)])
 
 === Software components
 

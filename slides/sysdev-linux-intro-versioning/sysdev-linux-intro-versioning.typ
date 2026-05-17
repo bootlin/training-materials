@@ -36,7 +36,7 @@
 
 === Linux development model Using merge and bug fixing windows
 
-#align(center, [#image("development-process.pdf", width: 100%)])
+#align(center, [#image("development-process.svg", width: 100%)])
 
 === Need for long term support (1)
 

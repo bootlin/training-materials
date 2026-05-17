@@ -31,13 +31,13 @@
       library.
   ],
   [
-    #align(center, [#image("kernel-driver-stack.pdf", height: 80%)])
+    #align(center, [#image("kernel-driver-stack.svg", height: 80%)])
   ],
 )
 
 === Stack illustrated with a GPIO expander
 
-#align(center, [#image("kernel-driver-stack-gpio-i2c.pdf", height: 90%)])
+#align(center, [#image("kernel-driver-stack-gpio-i2c.svg", height: 90%)])
 
 === Standardized user-space interface
 
@@ -135,7 +135,7 @@
   ],
   [
     #align(center, [#image(
-      "kernel-driver-stack-gpio-i2c-direct-userspace.pdf",
+      "kernel-driver-stack-gpio-i2c-direct-userspace.svg",
       height: 90%,
     )])
 
@@ -611,7 +611,7 @@ A class of devices worth mentioning is GPIOs (_General Purpose Input Output_)
   ],
   [
 
-    #align(center, [#image("modules-to-access-rootfs.pdf", width: 100%)])
+    #align(center, [#image("modules-to-access-rootfs.svg", width: 100%)])
 
   ],
 )
@@ -654,7 +654,7 @@ A class of devices worth mentioning is GPIOs (_General Purpose Input Output_)
 
 === Module alias: _modules.alias_
 
-#align(center, [#image("module-alias-usage.pdf", width: 100%)])
+#align(center, [#image("module-alias-usage.svg", width: 100%)])
 
 === Module utilities: _modinfo_
 
@@ -885,7 +885,7 @@ A class of devices worth mentioning is GPIOs (_General Purpose Input Output_)
       - `fdt_` APIs
   ],
   [
-    #align(center, [#image("dts-to-dtb.pdf", height: 70%)])
+    #align(center, [#image("dts-to-dtb.svg", height: 70%)])
 
   ],
 )
@@ -897,7 +897,7 @@ A class of devices worth mentioning is GPIOs (_General Purpose Input Output_)
   stroke: none,
   [
     #[ #set text(size: 18pt)
-      ```
+      ```dts
       $ cat foo.dts
       /dts-v1/;
 
@@ -919,7 +919,7 @@ A class of devices worth mentioning is GPIOs (_General Purpose Input Output_)
   stroke: none,
   [
     #[ #set text(size: 18pt)
-      ```
+      ```dts
       $ cat foo.dts
       /dts-v1/;
 
@@ -949,7 +949,7 @@ A class of devices worth mentioning is GPIOs (_General Purpose Input Output_)
   stroke: none,
   [
     #[ #set text(size: 18pt)
-      ```
+      ```dts
       $ cat foo.dts
       /dts-v1/;
 
@@ -972,7 +972,7 @@ A class of devices worth mentioning is GPIOs (_General Purpose Input Output_)
   ],
   [
 
-    ```
+    ```dts
     $ dtc -I dtb -O dts foo.dtb
     /dts-v1/;
 
@@ -1013,7 +1013,7 @@ A class of devices worth mentioning is GPIOs (_General Purpose Input Output_)
   ],
   [
 
-    #align(center, [#image("ram.pdf", height: 80%)])
+    #align(center, [#image("ram.svg", height: 80%)])
 
   ],
 )
@@ -1064,7 +1064,7 @@ A class of devices worth mentioning is GPIOs (_General Purpose Input Output_)
   ],
   [
 
-    #align(center, [#image("dt-basic-syntax.pdf", height: 60%)])
+    #align(center, [#image("dt-basic-syntax.svg", height: 60%)])
 
   ],
 )
@@ -1078,7 +1078,7 @@ A class of devices worth mentioning is GPIOs (_General Purpose Input Output_)
   [
 
     #[ #set text(size: 18pt)
-      ```perl
+      ```dts
       / {
         #address-cells = <1>;
         #size-cells = <1>;
@@ -1099,7 +1099,7 @@ A class of devices worth mentioning is GPIOs (_General Purpose Input Output_)
   ],
   [
 
-    #align(center, [#image("simple-hardware.pdf", width: 100%)])
+    #align(center, [#image("simple-hardware.svg", width: 100%)])
 
   ],
 )
@@ -1114,7 +1114,7 @@ A class of devices worth mentioning is GPIOs (_General Purpose Input Output_)
 
     #[ #set text(size: 12pt)
 
-      ```perl
+      ```dts
       / {
         cpus {
           #address-cells = <1>;
@@ -1147,7 +1147,7 @@ A class of devices worth mentioning is GPIOs (_General Purpose Input Output_)
   ],
   [
 
-    #align(center, [#image("simple-hardware.pdf", width: 100%)])
+    #align(center, [#image("simple-hardware.svg", width: 100%)])
 
   ],
 )
@@ -1159,7 +1159,7 @@ A class of devices worth mentioning is GPIOs (_General Purpose Input Output_)
   [
 
     #[ #set text(size: 18pt)
-      ```perl
+      ```dts
       / {
         cpus { ... };
         memory@0 {
@@ -1183,7 +1183,7 @@ A class of devices worth mentioning is GPIOs (_General Purpose Input Output_)
   ],
   [
 
-    #align(center, [#image("simple-hardware.pdf", width: 100%)])
+    #align(center, [#image("simple-hardware.svg", width: 100%)])
 
   ],
 )
@@ -1195,7 +1195,7 @@ A class of devices worth mentioning is GPIOs (_General Purpose Input Output_)
   [
 
     #[ #set text(size: 13pt)
-      ```perl
+      ```dts
       / {
         cpus { ... };
         memory@0 { ... };
@@ -1225,7 +1225,7 @@ A class of devices worth mentioning is GPIOs (_General Purpose Input Output_)
   ],
   [
 
-    #align(center, [#image("simple-hardware.pdf", width: 100%)])
+    #align(center, [#image("simple-hardware.svg", width: 100%)])
 
   ],
 )
@@ -1237,7 +1237,7 @@ A class of devices worth mentioning is GPIOs (_General Purpose Input Output_)
   [
 
     #[ #set text(size: 13pt)
-      ```perl
+      ```dts
       / {
         cpus { ... };
         memory@0 { ... };
@@ -1269,7 +1269,7 @@ A class of devices worth mentioning is GPIOs (_General Purpose Input Output_)
   ],
   [
 
-    #align(center, [#image("simple-hardware.pdf", width: 100%)])
+    #align(center, [#image("simple-hardware.svg", width: 100%)])
 
   ],
 )
@@ -1281,7 +1281,7 @@ A class of devices worth mentioning is GPIOs (_General Purpose Input Output_)
   [
 
     #[ #set text(size: 13pt)
-      ```perl
+      ```dts
       / {
         cpus { ... };
         memory@0 { ... };
@@ -1312,7 +1312,7 @@ A class of devices worth mentioning is GPIOs (_General Purpose Input Output_)
   ],
   [
 
-    #align(center, [#image("simple-hardware.pdf", width: 100%)])
+    #align(center, [#image("simple-hardware.svg", width: 100%)])
 
   ],
 )
@@ -1346,7 +1346,7 @@ A class of devices worth mentioning is GPIOs (_General Purpose Input Output_)
 
 === Device Tree inheritance example
 
-#align(center, [#image("dt-inheritance.pdf", width: 100%)])
+#align(center, [#image("dt-inheritance.svg", width: 100%)])
 
 === Inheritance and labels
 
@@ -1362,7 +1362,7 @@ A class of devices worth mentioning is GPIOs (_General Purpose Input Output_)
     ]
 
     #[ #set text(size: 12pt)
-      ```perl
+      ```dts
       / {
         soc {
           usart1: serial@5c000000 {
@@ -1378,7 +1378,7 @@ A class of devices worth mentioning is GPIOs (_General Purpose Input Output_)
       board.dts
     ]
     #[ #set text(size: 12pt)
-      ```perl
+      ```dts
       #include "soc.dtsi"
 
       / {
@@ -1407,7 +1407,7 @@ A class of devices worth mentioning is GPIOs (_General Purpose Input Output_)
     ]
 
     #[ #set text(size: 12pt)
-      ```perl
+      ```dts
       / {
         soc {
           usart1: serial@5c000000 {
@@ -1423,7 +1423,7 @@ A class of devices worth mentioning is GPIOs (_General Purpose Input Output_)
       board.dts
     ]
     #[ #set text(size: 12pt)
-      ```perl
+      ```dts
       #include "soc.dtsi"
 
       / {
@@ -1444,7 +1444,7 @@ A class of devices worth mentioning is GPIOs (_General Purpose Input Output_)
       soc.dtsi
     ]
     #[ #set text(size: 12pt)
-      ```perl
+      ```dts
       / {
         soc {
           usart1: serial@5c000000 {
@@ -1461,7 +1461,7 @@ A class of devices worth mentioning is GPIOs (_General Purpose Input Output_)
       board.dts
     ]
     #[ #set text(size: 12pt)
-      ```perl
+      ```dts
       #include "soc.dtsi"
 
       &usart1 {
@@ -1476,7 +1476,7 @@ A class of devices worth mentioning is GPIOs (_General Purpose Input Output_)
 
 === DT inheritance in STM32MP1 support
 
-#align(center, [#image("dt-inheritance-stm32.pdf", height: 90%)])
+#align(center, [#image("dt-inheritance-stm32.svg", height: 90%)])
 
 === Device Tree design principles
 
@@ -1777,7 +1777,7 @@ A class of devices worth mentioning is GPIOs (_General Purpose Input Output_)
   ],
   [
 
-    #align(center, [#image("dt-to-devices.pdf", width: 100%)])
+    #align(center, [#image("dt-to-devices.svg", width: 100%)])
 
   ],
 )
@@ -1952,7 +1952,7 @@ static struct i2c_driver cs42l51_i2c_driver = {
   [
 
     #[ #set text(size: 10pt)
-      ```perl
+      ```dts
       intc: interrupt-controller@a0021000 {
          compatible = "arm,cortex-a7-gic";
          #interrupt-cells = <3>;
@@ -2009,7 +2009,7 @@ static struct i2c_driver cs42l51_i2c_driver = {
   ],
   [
 
-    #align(center, [#image("pin-muxing-principle.pdf", width: 100%)])
+    #align(center, [#image("pin-muxing-principle.svg", width: 100%)])
 
   ],
 )
@@ -2020,7 +2020,7 @@ static struct i2c_driver cs42l51_i2c_driver = {
   #kfileversion("arch/arm/boot/dts/st/stm32mp151.dtsi", "6.1")
 ]
 #[ #set text(size: 12pt)
-  ```perl
+  ```dts
   pinctrl: pin-controller@50002000 {
           #address-cells = <1>;
           #size-cells = <1>;
@@ -2053,7 +2053,7 @@ static struct i2c_driver cs42l51_i2c_driver = {
   #kfileversion("arch/arm/boot/dts/st/stm32mp15-pinctrl.dtsi", "6.1")
 ]
 #[ #set text(size: 11.5pt)
-  ```perl
+  ```dts
   &pinctrl {
           ...
           i2c1_pins_a: i2c1-0 {
@@ -2095,7 +2095,7 @@ static struct i2c_driver cs42l51_i2c_driver = {
 === Pin-muxing consumer
 
 #[ #set text(size: 15pt)
-  ```perl
+  ```dts
   &i2c1 {
           pinctrl-names = "default", "sleep";
           pinctrl-0 = <&i2c1_pins_a>;
@@ -2160,7 +2160,7 @@ static struct i2c_driver cs42l51_i2c_driver = {
       stm32mp157a-dk1-custom.dts
     ]
     #[ #set text(size: 12pt)
-      ```perl
+      ```dts
       #include "stm32mp157a-dk1.dts"
 
       / {
@@ -2201,7 +2201,7 @@ static struct i2c_driver cs42l51_i2c_driver = {
       stm32mp157a-dk1-custom.dts
     ]
     #[ #set text(size: 12pt)
-      ```perl
+      ```dts
       &i2c5 {
               status = "okay";
               clock-frequency = <100000>;

@@ -8,7 +8,7 @@
 
 === Sleeping
 
-#align(center, [#image("sleeping.pdf", width: 100%)])
+#align(center, [#image("sleeping.svg", width: 100%)])
 
 #align(
   center,
@@ -142,7 +142,7 @@ Typically done by interrupt handlers when data sleeping threads are waiting for 
   gutter: 15pt,
   [
 
-    #align(center, [#image("wait-event.pdf", height: 90%)])
+    #align(center, [#image("wait-event.svg", height: 90%)])
 
   ],
   [

@@ -37,7 +37,7 @@
   ```]
 #v(1em)
 
-#align(center, [#image("sparse.pdf", height: 12%)])
+#align(center, [#image("sparse.svg", height: 12%)])
 
 === Good practices in kernel development (1/2)
 
@@ -191,11 +191,11 @@ BUILD_BUG_ON(sizeof(ctx->__reserved) != sizeof(reserved));
 
 === Oops example (1/2)
 
-#align(center, [#image("oops1.pdf", height: 90%)])
+#align(center, [#image("oops1.svg", height: 90%)])
 
 === Oops example (2/2)
 
-#align(center, [#image("oops2.pdf", height: 90%)])
+#align(center, [#image("oops2.svg", height: 90%)])
 
 === Kernel oops debugging: `addr2line`
 
@@ -559,7 +559,7 @@ R10: 0000000000000000 R11: 0000000000000246 R12: 00000000ffffffff R13: 000000000
   ],
   [
 
-    #align(center, [#image("kdmx.pdf", width: 100%)])
+    #align(center, [#image("kdmx.svg", width: 100%)])
 
   ],
 )
@@ -802,7 +802,7 @@ KERNEL STACK SIZE: 8192
   - Or through device tree:
 
 #v(0.5em)
-```c
+```dts
 reserved-memory {
         [...]
         ramoops@8f000000 {

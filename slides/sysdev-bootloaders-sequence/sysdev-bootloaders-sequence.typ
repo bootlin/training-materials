@@ -80,9 +80,9 @@
 
 === Legacy BIOS booting: sequence and storage
 
-#align(center, [#image("legacy-bios-sequence.pdf", width: 70%)])
+#align(center, [#image("legacy-bios-sequence.svg", width: 70%)])
 
-#align(center, [#image("legacy-bios-storage.pdf", width: 90%)])
+#align(center, [#image("legacy-bios-storage.svg", width: 90%)])
 
 === UEFI booting
 
@@ -119,8 +119,8 @@
 
 === UEFI booting: sequence and storage
 
-#align(center, [#image("uefi-sequence.pdf", width: 50%)])
-#align(center, [#image("uefi-storage.pdf", width: 70%)])
+#align(center, [#image("uefi-sequence.svg", width: 50%)])
+#align(center, [#image("uefi-storage.svg", width: 70%)])
 
 === ACPI
 
@@ -242,7 +242,7 @@
 
 === Two stage booting sequence
 
-#align(center, [#image("two-step-boot-process.pdf", height: 90%)])
+#align(center, [#image("two-step-boot-process.svg", height: 90%)])
 
 === ROM code recovery mechanism
 
@@ -289,7 +289,7 @@
   ],
   [
 
-    #align(center, [#image("stm32mp1-rom-code-recovery.pdf", width: 100%)])],
+    #align(center, [#image("stm32mp1-rom-code-recovery.svg", width: 100%)])],
 )
 
 == Bootloaders
@@ -592,7 +592,7 @@
   ],
   [
 
-    #align(center, [#image("arm-interfaces.pdf", width: 100%)])
+    #align(center, [#image("arm-interfaces.svg", width: 100%)])
 
   ],
 )
@@ -646,7 +646,7 @@
 
 === ARM: summary
 
-#align(center, [#image("arm-nomenclature.pdf", height: 70%)])
+#align(center, [#image("arm-nomenclature.svg", height: 70%)])
 
 #[
 
@@ -695,7 +695,7 @@
   ],
   [
 
-    #align(center, [#image("riscv-boot.pdf", width: 80%)])
+    #align(center, [#image("riscv-boot.svg", width: 80%)])
 
   ],
 )
@@ -705,11 +705,11 @@
 
 === TI AM335x (32 bit BeagleBone): ARMv7
 
-#align(center, [#image("sequence-am335x.pdf", width: 80%)])
+#align(center, [#image("sequence-am335x.svg", width: 80%)])
 
 === NXP i.MX6: ARMv7
 
-#align(center, [#image("sequence-imx.pdf", height: 70%)])
+#align(center, [#image("sequence-imx.svg", height: 70%)])
 
 #[ #set text(size: 16pt)
 
@@ -720,7 +720,7 @@
 
 === STM32MP1: ARMv7
 
-#align(center, [#image("/common/sequence-stm32mp1.pdf", width: 80%)])
+#align(center, [#image("/common/sequence-stm32mp1.svg", width: 80%)])
 
 #[ #set text(size: 18pt)
 
@@ -730,11 +730,11 @@
 
 === Allwinner ARMv8 cores
 
-#align(center, [#image("sequence-allwinner-64-bit.pdf", height: 80%)])
+#align(center, [#image("sequence-allwinner-64-bit.svg", height: 80%)])
 
 === TI AM62x (BeaglePlay): ARMv7 and ARMv8 cores
 
-#align(center, [#image("sequence-am62x.pdf", height: 80%)])
+#align(center, [#image("sequence-am62x.svg", height: 80%)])
 
 #[ #set text(size: 16pt)
 

@@ -68,8 +68,14 @@ PICTURES_WITH_TRANSFORMATION = \
 PICTURES_NO_TRANSFORMATION = \
 	$(patsubst %,$(OUTDIR)/%,$(foreach s,$(1),$(wildcard $(s)/*.$(2))))
 
+# Function that transforms .dia files to .svg in the output directory.
+# Used by the Typst backend (LaTeX uses dia→eps→pdf instead).
+PICTURES_DIA_TO_SVG = \
+	$(patsubst %.dia,$(OUTDIR)/%.svg,$(foreach s,$(1),$(wildcard $(s)/*.dia)))
+
 # Function that computes the list of pictures from the directories in
 # $(1) and returns output filenames in the output directory.
+# This variant produces .pdf from .dia (used by LaTeX backend).
 PICTURES = \
 	$(call PICTURES_WITH_TRANSFORMATION,$(1),svg) \
 	$(call PICTURES_WITH_TRANSFORMATION,$(1),dia) \
@@ -77,8 +83,17 @@ PICTURES = \
 	$(call PICTURES_NO_TRANSFORMATION,$(1),jpg)   \
 	$(call PICTURES_NO_TRANSFORMATION,$(1),pdf)
 
+# Same as PICTURES but copies .svg as-is and produces .svg from .dia (Typst backend).
+PICTURES_TYPST = \
+	$(call PICTURES_NO_TRANSFORMATION,$(1),svg) \
+	$(call PICTURES_DIA_TO_SVG,$(1)) \
+	$(call PICTURES_NO_TRANSFORMATION,$(1),png)   \
+	$(call PICTURES_NO_TRANSFORMATION,$(1),jpg)   \
+	$(call PICTURES_NO_TRANSFORMATION,$(1),pdf)
+
 # List of common pictures
-COMMON_PICTURES   = $(call PICTURES,common)
+COMMON_PICTURES       = $(call PICTURES,common)
+COMMON_PICTURES_TYPST = $(call PICTURES_TYPST,common)
 
 default: help
 
@@ -150,7 +165,7 @@ ifneq ($(TRAINER),)
 SLIDES_TYP     += slides/first-slides/$(TRAINER).typ
 endif
 
-SLIDES_PICTURES = $(call PICTURES,$(foreach s,$(SLIDES_CHAPTERS),slides/$(s))) $(COMMON_PICTURES)
+SLIDES_PICTURES = $(call PICTURES_TYPST,$(foreach s,$(SLIDES_CHAPTERS),slides/$(s))) $(COMMON_PICTURES_TYPST)
 
 ifeq ($(TRAINER),)
 TRAINER_OPT     =
@@ -371,6 +386,17 @@ $(OUTDIR)/%.eps: %.dia
 	@mkdir -p $(dir $@)
 	$(DIA) -e $@ -t eps $^
 
+.PRECIOUS: $(OUTDIR)/%.svg
+
+$(OUTDIR)/%.svg: %.svg
+	@mkdir -p $(dir $@)
+	@cp $^ $@
+
+$(OUTDIR)/%.svg: %.dia
+	@printf "%-15s%-20s->%20s\n" DIA-SVG $(notdir $^) $(notdir $@)
+	@mkdir -p $(dir $@)
+	$(DIA) -e $@ -t svg $^
+
 .PRECIOUS: $(OUTDIR)/%.png
 
 $(OUTDIR)/%.png: %.png
@@ -380,8 +406,8 @@ $(OUTDIR)/%.png: %.png
 .PRECIOUS: $(OUTDIR)/%.jpg
 
 $(OUTDIR)/%.jpg: %.jpg
-	mkdir -p $(dir $@)
-	@cp $^ $@
+	@mkdir -p $(dir $@)
+	magick $^ -colorspace sRGB -resize '987x1754>' -filter Cubic -quality 65 -sampling-factor 2x2 -strip $@
 
 $(OUTDIR)/%.pdf: %.pdf
 	mkdir -p $(dir $@)

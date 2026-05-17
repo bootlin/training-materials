@@ -60,7 +60,7 @@
   [
     #align(center)[
       #v(-1em)
-      #image("imx93-frdm.png", width: 50%) \
+      #image("imx93-frdm.jpg", width: 50%) \
       #v(-1em)
       #if imx93-frdm-extra-serial [
         #image("/common/usb-serial-cable-female.jpg", width: 50%) \
@@ -74,7 +74,7 @@
       ]
 
       #if imx93-frdm-audio [
-        #image("/common/usb-audio.png", width: 50%) \
+        #image("/common/usb-audio.jpg", width: 50%) \
       ]
     ]
   ],

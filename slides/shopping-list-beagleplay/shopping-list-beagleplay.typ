@@ -47,7 +47,7 @@
   ],
   [
     #align(center)[
-      #image("beagleplay.png", width: 55%) \
+      #image("beagleplay.jpg", width: 55%) \
 
       #if beagleplay-nunchuk [
         #image("/common/nunchuk.jpg", width: 50%) \
@@ -55,7 +55,7 @@
       ]
 
       #if beagleplay-audio [
-        #image("/common/usb-audio.png", width: 50%) \
+        #image("/common/usb-audio.jpg", width: 50%) \
 
       ]
     ]
