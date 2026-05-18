@@ -191,11 +191,40 @@ BUILD_BUG_ON(sizeof(ctx->__reserved) != sizeof(reserved));
 
 === Oops example (1/2)
 
-#align(center, [#image("oops1.pdf", height: 90%)])
+#table(
+  columns: (80%, 20%),
+  stroke: none,
+  align: top,
+  [
+    #align(center, [#image("oops1.jpg")])
+  ],
+  [
+    #set text(size: 1em)
+    #v(1em)
+    Cause and generic information
+    #v(4em)
+    Register content and CPU state
+    #v(7em)
+    Stack content
+  ],
+)
 
 === Oops example (2/2)
 
-#align(center, [#image("oops2.pdf", height: 90%)])
+#table(
+  columns: (80%, 20%),
+  stroke: none,
+  align: top,
+  [
+    #align(center, [#image("oops2.jpg")])
+  ],
+  [
+    #v(8em)
+    Backtrace
+    #v(8em)
+    Exception stack content
+  ],
+)
 
 === Kernel oops debugging: `addr2line`
 
