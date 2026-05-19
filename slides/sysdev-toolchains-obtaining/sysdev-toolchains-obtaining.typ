@@ -74,7 +74,8 @@
     Often limited to ARM/ARM64 with glibc.
 
   - Bootlin's GNU toolchains, most CPU architectures, with
-    glibc/uClibc/musl, #link("https://toolchains.bootlin.com")
+    glibc/uClibc/musl:\
+    #link("https://toolchains.bootlin.com")
 
   - #link(
       "https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain/downloads",
