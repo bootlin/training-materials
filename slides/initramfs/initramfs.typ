@@ -56,7 +56,7 @@ It is also possible to boot the system with a filesystem in memory: _initramfs_
 === Built-in initramfs
 
 #table(
-  columns: (80%, 20%),
+  columns: (70%, 30%),
   stroke: none,
   [
     To have the kernel
@@ -65,13 +65,11 @@ It is also possible to boot the system with a filesystem in memory: _initramfs_
 
     - It can be the path to a directory containing the root filesystem
       contents
-
     - It can be the path to a ready made cpio archive
-
-    - It can be a text file describing the contents of the initramfs
+    - It can be a text file describing the contents of the initramfs \
 
     See the kernel documentation for details:
-    #kdochtml("driver-api/early-userspace/early_userspace_support")
+    #box[#kdochtml("driver-api/early-userspace/early_userspace_support")] \ \
     *WARNING*: only binaries from GPLv2 compatible code are allowed
     to be included in the kernel binary using this technique. Otherwise, use
     an external initramfs. ],
