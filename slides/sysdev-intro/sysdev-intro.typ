@@ -157,32 +157,23 @@ document, in updates and in translations.]
   stroke: none,
   gutter: 15pt,
   [
-    #[ #set text(size: 17pt)
-      SpaceX Starlink satellites
-    ]
+    #text(size: 17pt)[SpaceX Starlink satellites]
     #align(left, [#image("starlink.jpg", height: 30%)])
-    #[ #set text(size: 17pt)
-      SpaceX Falcon 9 and Falcon Heavy rockets
-    ]
+    #text(size: 17pt)[SpaceX Falcon 9 and Falcon Heavy rockets]
     #align(left, [#image("falcon-heavy.jpg", height: 30%)])
-    #[ #set text(size: 17pt)
-      Image credits: Wikipedia
-    ]
+    #text(size: 10pt)[Image credits: Wikipedia]
   ],
   [
-    #[ #set text(size: 17pt)
-      Mars Ingenuity Helicopter
-    ]
+    #text(size: 17pt)[Mars Ingenuity Helicopter]
     #align(left, [#image("mars-helicopter.jpg", height: 30%)])
-
     #align(left, [#image("mars-helicopter-video.jpg", height: 30%)])
-    #[ #set text(size: 12pt)
+    #text(size: 12pt)[
       See the _Linux on Mars: How the Perseverance Rover and Ingenuity
       Helicopter Leveraged Linux to Accomplish their Mission_ presentation
       from Tim Canham (JPL, NASA):
       #link(
         "https://youtu.be/0_GfMcBmbCg?t=111",
-      )[https://youtu.be/0_GfMcBmbCg?t=111]
+      )[OSS talk]
     ]
   ],
 )
@@ -286,28 +277,16 @@ The Linux kernel and most other architecture-dependent components support a wide
   [
 
     #[ #set par(leading: 0.4em)
-      #align(center, [#image("stm32mp157c-ev1.png", width: 100%)])
-      #[ #set text(size: 17pt)
-        STM32MP157C-EV1evaluation board
-      ]
-      #v(-0.8em)
-      #[ #set text(size: 13pt)
-        \
-        #link(
-          "https://www.mouser.fr/ProductDetail/STMicroelectronics/STM32MP157C-EV1?qs=9r4v7xj2LnmHBJ35TLmsRg%3D%3D",
-        )[Image credits]
-      ]
-      #align(center, [#image("pocketbeagle.png", width: 100%)])
-      #[ #set text(size: 17pt)
-        PocketBeagle]  \
-      #[ #set text(size: 13pt)
-        Image credits (Beagleboard.org):
-      ]
-      #[ #set text(size: 12pt)
-        #link("https://beagleboard.org/pocket")
-      ]
+      #align(left, [#image("stm32mp157c-ev1.png", width: 100%)])
+      #text(size: 12pt)[STM32MP157C-EV1 eval board] \
+      #link("https://www.mouser.fr/ProductDetail/STMicroelectronics/STM32MP157C-EV1?qs=9r4v7xj2LnmHBJ35TLmsRg%3D%3D"
+      )[#text(size: 10pt)[Image credits]]
+      #align(left, [#image("pocketbeagle.png", width: 100%)])
+      #text(size: 12pt)[PocketBeagle] \
+      #link("https://beagleboard.org/pocket"
+      )[#text(size: 10pt)[Image credits]]
     ]
-  ],
+  ]
 )
 
 === Types of hardware platforms (2)
@@ -332,18 +311,14 @@ The Linux kernel and most other architecture-dependent components support a wide
       "../shopping-list-beaglebone/beagleboneblack.jpg",
       height: 25%,
     )])
-    #[ #set text(size: 15pt)
-      Beaglebone Black Wireless board
-    ]
+    #text(size: 12pt)[Beaglebone Black Wireless board] \
     #align(left, [#image("teres-pcb1-a64.jpg", height: 30%)])
-    #[ #set text(size: 15pt)
+    #text(size: 12pt)[
       Olimex Open hardware \
-      ARM laptop main board \
-    ]
-    #[ #set text(size: 10pt)
-      Image credits (Olimex): \
-      #link("https://www.olimex.com/Products/DIY-Laptop/")
-    ]
+      ARM laptop main board
+    ] \
+    #link("https://www.olimex.com/Products/DIY-Laptop/SPARE-PARTS/"
+    )[#text(size: 10pt)[Image credits (Olimex)]]
   ],
 )
 
