@@ -26,7 +26,7 @@
 
 === OS for Linux development
 
-#[ #set text(size: 18.5pt)
+#text(size: 18.5pt)[
   We strongly recommend to use GNU/Linux as the desktop operating system to embedded Linux developers, for
   multiple reasons.
 
