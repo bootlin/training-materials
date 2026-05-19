@@ -271,7 +271,7 @@ Many root filesystem build systems also allow the construction of a cross-compil
 
 #align(center, [#image("ct-ng-menu.png", height: 70%)])
 
-`./ct-ng menuconfig`
+#align(center, `./ct-ng menuconfig`)
 
 === Crosstool-NG: toolchain building
 
