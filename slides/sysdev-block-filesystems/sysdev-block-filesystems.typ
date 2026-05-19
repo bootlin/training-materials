@@ -512,16 +512,11 @@ systems:
 - Using industrial grade storage devices (MMC/SD, USB) is also
   recommended.
 
-See the
-#link(
-  "https://lwn.net/Articles/428584/",
+Note that some SD cards report their erase block size, available in
+#box[`/sys/bus/mmc/devices/<dev>/preferred_erase_size`].\
+For more details, see #link("https://lwn.net/Articles/428584/",
 )[_Optimizing Linux with cheap flash drives_]
-article from Arnd Bergmann and try his _flashbench_ tool
-(#link("https://git.linaro.org/plugins/gitiles/people/arnd/flashbench.git/+/refs/heads/master/README"))
-for finding out the erase block and page size for your storage, and
-optimizing your partitions and filesystems for best performance. Note
-that some SD cards report their erase block size, available in
-`/sys/bus/mmc/devices/<dev>/preferred_erase_size`.
+from Arnd Bergmann.
 
 #setuplabframe([Block filesystems], [
 
