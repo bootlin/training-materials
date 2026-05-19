@@ -245,7 +245,7 @@ A few useful GDB commands
 - On the host
 
   - After the crash, transfer the `core` file from the target to the
-    host, and run `ARCH-linux-gdb application-binary core-file`
+    host, and run #box[`ARCH-linux-gdb application-binary core-file`]
 
 === minicoredumper
 
