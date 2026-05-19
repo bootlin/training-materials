@@ -66,7 +66,7 @@ It is also possible to boot the system with a filesystem in memory: _initramfs_
     - It can be the path to a directory containing the root filesystem
       contents
     - It can be the path to a ready made cpio archive
-    - It can be a text file describing the contents of the initramfs \
+    - It can be a text file describing the contents of the initramfs
 
     See the kernel documentation for details:
     #box[#kdochtml("driver-api/early-userspace/early_userspace_support")] \ \

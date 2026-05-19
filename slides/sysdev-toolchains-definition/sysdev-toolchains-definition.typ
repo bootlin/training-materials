@@ -380,7 +380,7 @@ your project.
     bare-metal code (firmware, bootloader, Linux kernel)
 
   - is identified by the `linux` OS identifier in the toolchain tuple:
-    `arm-linux`, `arm-none-linux-gnueabihf`
+    `arm-linux`, #box[`arm-none-linux-gnueabihf`]
 
 - A *bare metal toolchain*
 
@@ -391,7 +391,7 @@ your project.
     Linux kernel)
 
   - is identified by the `none` OS identifier in the toolchain tuple:
-    `arm-none-eabi`, `arm-none-none-eabi` (vendor is `none`, OS is
+    `arm-none-eabi`, #box[`arm-none-none-eabi`] (vendor is `none`, OS is
     `none`)
 
 === An alternate compiler suite: LLVM
