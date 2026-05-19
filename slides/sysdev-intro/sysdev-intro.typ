@@ -132,23 +132,23 @@
 === Wireless routers
 
 #align(center, [#image("linksys-wireless-router.jpg", height: 80%)])
-Image credits: Evan Amos (#link("https://bit.ly/2JzDIkv"))
+#text(size: 10pt)[Image credits: Evan Amos (#link("https://bit.ly/2JzDIkv"))]
 
 === Video systems
 
 #align(center, [#image("chromecast-2015.jpg", height: 80%)])
-Image credits: #link("https://bit.ly/2HbwyVq")
+#text(size: 10pt)[Image credits: #link("https://bit.ly/2HbwyVq")]
 
 === Bike computers
 
 #align(center, [#image("bike-computer.jpg", height: 80%)])
-Product from BLOKS Permission to use this picture only in this document,
-in updates and in translations.
+#text(size: 10pt)[Product from BLOKS. Permission to use this picture only in this
+document, in updates and in translations.]
 
 === Robots
 
 #align(center, [#image("beagle-robot.jpg", height: 80%)])
-eduMIP robot (#link("https://www.ucsdrobotics.org/edumip"))
+#text(size: 10pt)[eduMIP robot (#link("https://www.ucsdrobotics.org/edumip"))]
 
 === In space
 
