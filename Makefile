@@ -8,6 +8,8 @@ DIA      = dia
 EPSTOPDF = epstopdf
 PDFTYPST = typst compile
 
+MAGICK = $(or $(shell which magick 2>/dev/null),$(shell which convert 2>/dev/null))
+
 INKSCAPE_IS_NEW = $(shell $(INKSCAPE) --version | grep -q "^Inkscape 1" && echo YES)
 
 ifeq ($(INKSCAPE_IS_NEW),YES)
@@ -407,7 +409,7 @@ $(OUTDIR)/%.png: %.png
 
 $(OUTDIR)/%.jpg: %.jpg
 	@mkdir -p $(dir $@)
-	magick $^ -colorspace sRGB -resize '987x1754>' -filter Cubic -quality 65 -sampling-factor 2x2 -strip $@
+	$(MAGICK) $^ -colorspace sRGB -resize '987x1754>' -filter Cubic -quality 65 -sampling-factor 2x2 -strip $@
 
 $(OUTDIR)/%.pdf: %.pdf
 	mkdir -p $(dir $@)
