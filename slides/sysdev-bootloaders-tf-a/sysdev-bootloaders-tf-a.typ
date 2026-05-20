@@ -33,10 +33,10 @@
 - All the configuration is based on variables passed on the `make`
   command line
 
-- Most variables are documented at:
+- Most variables are documented in
   #link(
     "https://trustedfirmware-a.readthedocs.io/en/latest/getting_started/build-options.html",
-  )[https://trustedfirmware-a.readthedocs.io/en/latest/getting_started/build-options.html]
+  )[TF-A's getting started]
 
 === Configure TF-A: important variables
 
