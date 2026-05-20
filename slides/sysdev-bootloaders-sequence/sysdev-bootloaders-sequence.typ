@@ -643,7 +643,7 @@
   Largely inspired from _Ahmad Fatoum_ presentation _From Reset
   Vector to Kernel_,
   #link("https://archive.fosdem.org/2021/schedule/event/from_reset_vector_to_kernel/attachments/slides/4632/export/events/attachments/from_reset_vector_to_kernel/slides/4632/from_reset_vector_to_kernel.pdf")[slides],
-  #link("https://www.youtube.com/watch?v=-Ak9MWGxd7M")[video]
+  #link("https://www.youtube.com/watch?v=-Ak9MWGxd7M")[video] \
   See also
   #link(
     "https://trustedfirmware-a.readthedocs.io/en/latest/design/firmware-design.html",
@@ -702,7 +702,7 @@
 #[ #set text(size: 16pt)
 
   Note: this diagram shows one possible boot flow on NXP i.MX6, but it is
-  also possible to use the U-Boot SPL → U-Boot boot flow on i.MX6.
+  also possible to use the #box[U-Boot SPL → U-Boot] boot flow on i.MX6.
 
 ]
 
@@ -732,7 +732,7 @@
       + [#link(
         "https://u-boot.readthedocs.io/en/latest/board/ti/am62x_sk.html",
       )[https://u-boot.readthedocs.io/en/latest/board/ti/am62x_sk.html]]
-      + "for details.",
+      + " for details.",
   )
 
 ]
