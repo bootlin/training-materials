@@ -70,24 +70,13 @@
 
   ],
   [
-
-    #[
-      #set text(size: 16pt)
-      See the "Understanding U-Boot Falcon Mode" presentation from Michael
-      Opdenacker, for details about how U-Boot boots Linux. ]
-    #align(center, [#image(
-      "understanding-falcon-mode-presentation.png",
-      width: 100%,
-    )])
-
-    #[ #set text(size: 15pt)
-      Slides: #link("https://bootlin.com/pub/conferences/2021/lee/")  \
-      Video:
-      #link(
-        "https://www.youtube.com/watch?v=LFe3x2QMhSo",
-      )[https://www.youtube.com/watch?v=LFe3x2QMhSo]
-    ]
-
+    #text(size: 14pt)[
+    See the _"Understanding U-Boot Falcon Mode"_ presentation from Michael
+    Opdenacker, for details about how U-Boot boots Linux :]
+    #link("https://bootlin.com/pub/conferences/2021/lee/"
+    )[#text(size: 14pt)[Slides ]]
+    #link("https://www.youtube.com/watch?v=LFe3x2QMhSo"
+    )[#text(size: 14pt)[Video]]
   ],
 )
 
