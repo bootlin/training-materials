@@ -492,12 +492,9 @@ CONFIG_STM32_SPI=y
       "u-boot-environment-configuration.png",
       width: 100%,
     )])
-
-    #[ #set text(size: 13pt)
-
-      U-Boot environment configuration menu
-    ]
-
+    #align(center, [#text(size: 13pt)[
+      _U-Boot environment configuration menu_
+    ]])
   ],
 )
 
