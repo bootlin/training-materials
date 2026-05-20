@@ -101,15 +101,14 @@ There are actually two ways of defining `ARCH` and `CROSS_COMPILE`:
 
 - Pass `ARCH` and `CROSS_COMPILE` on the `make` command line:  \
   `make ARCH=arm CROSS_COMPILE=arm-linux- ...`  \
-  Drawback: it is easy to forget to pass these variables when you run
-  any `make` command, causing your build and configuration to be screwed
-  up.
+  _Drawback: it is easy to forget to pass these variables when you run_
+  _any `make` command, causing your build and configuration to be screwed up._
 
 - Define `ARCH` and `CROSS_COMPILE` as environment variables:  \
   `export ARCH=arm` \
   `export CROSS_COMPILE=arm-linux-`  \
-  Drawback: it only works inside the current shell or terminal. You
-  could put these settings in a file that you source every time you
+  _Drawback: it only works inside the current shell or terminal._ \
+  You could put these settings in a file that you source every time you
   start working on the project, see also the
   #link("https://direnv.net/") project.
 
