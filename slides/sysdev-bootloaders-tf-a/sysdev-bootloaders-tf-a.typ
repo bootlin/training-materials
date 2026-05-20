@@ -101,20 +101,11 @@ TOS_FW_CONFIG: offset=0x10C716, size=0x3CF6, cmdline="--tos-fw-config"
   columns: (50%, 50%),
   stroke: none,
   [
-
-    #align(center, [#image("stm32mp1-tfa.svg", width: 90%)])
-
-    #[ #set text(size: 18pt)
-
-      #align(center, "Reminder: boot sequence with TF-A on STM32MP1")
-
-    ]
-
+    #align(left, [#image("stm32mp1-tfa.svg", width: 90%)])
   ],
   [
-
-    #align(center, [#image("/common/sequence-stm32mp1.svg", width: 90%)])
-
+    #align(right, [#image("/common/sequence-stm32mp1.svg", width: 90%)])
+    #align(center, [#text(size: 12pt)[_Reminder: STM32MP1's boot sequence_]])
   ],
 )
 
@@ -124,22 +115,13 @@ TOS_FW_CONFIG: offset=0x10C716, size=0x3CF6, cmdline="--tos-fw-config"
   columns: (50%, 50%),
   stroke: none,
   [
-
-    #align(center, [#image("am62x-tfa.svg", width: 90%)])
-
-    #[ #set text(size: 18pt)
-
-      #align(center, "Reminder: boot sequence with TF-A on AM62x")
-
-    ]
-
+    #align(left, [#image("am62x-tfa.svg", width: 90%)])
   ],
   [
-
-    #align(center, [#image(
+    #align(right, [#image(
       "../sysdev-bootloaders-sequence/sequence-am62x.svg",
       width: 90%,
     )])
-
+    #align(center, [#text(size: 12pt)[_Reminder: AM62x's boot sequence_]])
   ],
 )
