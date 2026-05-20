@@ -22,43 +22,67 @@
 
 === Important directories (1)
 
-/ /bin: Basic programs
-
-/ /boot: Kernel images, configurations and initramfs (only when the kernel is loaded from a filesystem, not common on non-x86 architectures)
-
-/ /dev: Device files (covered later)
-
-/ /etc: System-wide configuration
-
-/ /home: Directory for the users home directories
-
-/ /lib: Basic libraries
-
-/ /media: Mount points for removable media
-
-/ /mnt: Mount point for a temporarily mounted filesystem
-
-/ /proc: Mount point for the proc virtual filesystem
+#table(
+  columns: (10%, 90%),
+  stroke: none,
+  [
+    / /bin:
+    / /boot:
+    \ /* Hack to have lines aligned */
+    / /dev:
+    / /etc:
+    / /home:
+    / /lib:
+    / /media:
+    / /mnt:
+    / /proc:
+  ],
+  [
+    Basic programs\
+    Kernel images, configurations and initramfs (only when the kernel is loaded
+    from a filesystem, not common on non-x86 architectures)\
+    Device files (covered later)\
+    System-wide configuration\
+    Directory for the users home directories\
+    Basic libraries\
+    Mount points for removable media\
+    Mount point for a temporarily mounted filesystem\
+    Mount point for the proc virtual filesystem\
+  ],
+)
 
 === Important directories (2)
 
-/ /root: Home directory of the `root` user
-
-/ /run: Run-time variable data (previously `/var/run`)
-
-/ /sbin: Basic system programs
-
-/ /sys: Mount point of the sysfs virtual filesystem
-
-/ /tmp: Temporary files
-
-/ /usr: / /usr/bin: Non-basic programs
-
-  / /usr/lib: Non-basic libraries
-
-  / /usr/sbin: Non-basic system programs
-
-/ /var: Variable data files, for system services. This includes spool directories and files, administrative and logging data, and transient and temporary files
+#table(
+  columns: (17%, 83%),
+  stroke: none,
+  [
+    / /root:
+    / /run:
+    / /sbin:
+    / /sys:
+    / /tmp:
+    / /usr:
+      / /usr/bin:
+      / /usr/lib:
+      / /usr/sbin:
+    / /var:
+    \ /* Hack to have lines aligned */
+  ],
+  [
+    Home directory of the `root` user \
+    Run-time variable data (previously `/var/run`) \
+    Basic system programs \
+    Mount point of the sysfs virtual filesystem \
+    Temporary files \
+    \ /* Hack to have lines aligned */
+    Non-basic programs \
+    Non-basic libraries \
+    Non-basic system programs \
+    Variable data files, for system services. This includes spool directories
+    and files, administrative and logging data, and transient and temporary files
+  ]
+)
 
 === Separation of programs and libraries
 
