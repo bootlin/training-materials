@@ -102,4 +102,4 @@
   - Example: `console=ttyS0 loglevel=5`
 
 - It is possible to write to the kernel log from user space: \
-`echo "<n>Debug info" > /dev/kmsg`
+  `echo "<n>Debug info" > /dev/kmsg`
