@@ -25,7 +25,7 @@
 
   - Versions `6.0` (Oct. 2022) to `6.19` (Feb. 2026)
 
-  - Version `7.0` will be released in March/April 2026.
+  - Versions `7.0` (Apr. 2026) to `7.??`
 
 - Features are added to the kernel in a progressive way. Since 2003,
   kernel developers have managed to do so without having to introduce a
