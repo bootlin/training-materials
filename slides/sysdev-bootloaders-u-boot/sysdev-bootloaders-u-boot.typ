@@ -577,53 +577,35 @@ U-Boot can manipulate raw storage devices:
   columns: (60%, 40%),
   stroke: none,
   [
-
     - NAND flash
-
       - `nand info`
-
       - `nand read <addr> <off|partition> <size>`
-
       - `nand erase [<off> [<size>]]`
-
       - `nand write <addr> <off|partition> <size>`
-
       - More: `help nand`
-
     - MMC
-
       - `mmc info`
-
       - `mmc read <addr> <blk#> <cnt>`
-
       - `mmc write <addr> <blk#> <cnt>`
-
       - `mmc part` to show partition table
-
       - `mmc dev` to show/set current MMC device
-
       - More: `help mmc`
 
   ],
   [
-
+    #align(top, block[
     - USB storage
-
       - `usb info`
-
       - `usb read <addr> <blk#> <cnt>`
-
       - `usb write <addr> <blk#> <cnt>`
-
       - `usb part`
-
       - `usb dev`
-
       - More: `help usb`
-    Note: `<addr>` are addresses in RAM where data is stored
-
+    ])
   ],
 )
+
+Note: `<addr>` are addresses in RAM where data is stored
 
 === U-Boot commands example
 
