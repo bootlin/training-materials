@@ -614,12 +614,7 @@ Note: `<addr>` are addresses in RAM where data is stored
   stroke: none,
   gutter: 10pt,
   [
-
-    #[ #set text(size: 15pt)
-
-      List partitions on MMC
-    ]
-
+    #text(size: 16pt)[List partitions on MMC]
     ```
     STM32MP> mmc part
     Partition Map for MMC device 0  --   Partition Type: EFI
@@ -645,23 +640,14 @@ Note: `<addr>` are addresses in RAM where data is stored
             guid:   6251ecf7-d985-4d81-a396-7a6b6fab8b7c
       [...]
     ```
-
   ],
   [
-
-    Read block 0x22 from MMC to RAM 0xc0000000
-
+    #text(size: 16pt)[Read block 0x22 from MMC to RAM 0xc0000000]
     ```
     STM32MP> mmc read c0000000 22 1
-
     MMC read: dev #0, block #34, count 1 ... 1 blocks read: OK
     ```
-
-    #[ #set text(size: 15pt)
-
-      Dump memory at 0xc00000000
-    ]
-
+    #text(size: 16pt)[Dump memory at 0xc00000000]
     ```
     STM32MP> md c0000000
     c0000000: 324d5453 00000000 00000000 00000000  STM2............
@@ -669,7 +655,6 @@ Note: `<addr>` are addresses in RAM where data is stored
     c0000020: 00000000 00000000 00000000 00000000  ................
     c0000030: 00000000 00000000 00000000 00000000  ................
     ```
-
   ],
 )
 
