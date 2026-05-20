@@ -34,7 +34,8 @@ It is also possible to boot the system with a filesystem in memory: _initramfs_
 
   ```
   cd rootfs/
-  find . | cpio -H newc -o > ../initramfs.cpio cd ..
+  find . | cpio -H newc -o > ../initramfs.cpio
+  cd ..
   gzip initramfs.cpio
   ```
 
