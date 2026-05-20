@@ -676,11 +676,12 @@ Note: `<addr>` are addresses in RAM where data is stored
 
 - "New" generic commands, working for all filesystem types
 
-  - Load a file: `load <interface> [<dev[:part]> [<addr> [<filename> [bytes [pos]]]]]`
+  - Load a file: \
+    `load <interface> [<dev[:part]> [<addr> [<filename> [bytes [pos]]]]]`
 
   - List files: `ls <interface> [<dev[:part]> [directory]]`
 
-  - Get the size of a file: `size <interface> <dev[:part]> <filename>`
+  - Get the size of a file: `size <interface> <dev[:part]> <filename>` \
     (result stored in `filesize` environment variable)
 
   - `interface`: `mmc`, `usb`
