@@ -198,45 +198,33 @@
 === Booting on STM32MP1: datasheet
 
 #table(
-  columns: (50%, 50%),
+  columns: (70%, 30%),
   stroke: none,
-  gutter: 9pt,
   [
-
-    #align(center, [#image("stm32mp1-rom-code.png", height: 85%)])
-
+    #align(center, [#image("stm32mp1-rom-code.png", height: 100%)])
   ],
   [
-
-    #[ #set text(size: 15pt)
-      Source:
-      #link(
-        "https://www.st.com/resource/en/application_note/dm00389996-getting-started-with-stm32mp151-stm32mp153-and-stm32mp157-line-hardware-development-stmicroelectronics.pdf",
-      )[https://www.st.com/resource/en/application_note/dm00389996-getting-started-with-stm32mp151-stm32mp153-and-stm32mp157-line-hardware-development-stmicroelectronics.pdf] \
-      Useful details: \
-      #link(
-        "https://wiki.st.com/stm32mpu/wiki/STM32_MPU_ROM_code_overview",
-      )[https://wiki.st.com/stm32mpu/wiki/STM32_MPU_ROM_code_overview]
-
-    ]],
+    #text(size: 14pt)[Source: ] \
+    #link("https://www.st.com/resource/en/application_note/dm00389996-getting-started-with-stm32mp151-stm32mp153-and-stm32mp157-line-hardware-development-stmicroelectronics.pdf",
+    )[#text(size: 14pt)[Getting started with STM32MP157]] \
+    #text(size: 14pt)[Useful details: ] \
+    #link("https://wiki.st.com/stm32mpu/wiki/STM32_MPU_ROM_code_overview",
+    )[#text(size: 14pt)[STM32 MPU ROM code overview]]
+  ],
 )
 
 === Booting on AM335x (32 bit BeagleBone): datasheet
 
 #table(
-  columns: (50%, 50%),
+  columns: (70%, 30%),
   stroke: none,
   [
-
-    #align(center, [#image("am335x-rom-code.png", height: 90%)])
-
+    #align(center, [#image("am335x-rom-code.png", height: 100%)])
   ],
   [
-
-    #[ #set text(size: 15pt)
-
-      Source: #link("https://www.mouser.com/pdfdocs/spruh73h.pdf"), chapter 26]
-
+    #text(size: 14pt)[Source: ] \
+    #link("https://www.mouser.com/pdfdocs/spruh73h.pdf"
+    )[#text(size: 14pt)[AM335x TRM / chapter 26]]
   ],
 )
 
