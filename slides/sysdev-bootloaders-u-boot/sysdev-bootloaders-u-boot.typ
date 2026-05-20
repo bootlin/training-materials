@@ -518,8 +518,8 @@ CONFIG_STM32_SPI=y
 - `saveenv`  \
   Saves the current state of the environment to storage for persistence.
 
-- `env` command, with many sub-commands: `env default`, `env info`, `env
-  erase`, `env set`, `env save`, etc.
+- `env` command, with many sub-commands:\ `env default`, `env info`, `env erase`,
+  `env set`, `env save`, etc.
 
 === U-Boot environment commands example
 
