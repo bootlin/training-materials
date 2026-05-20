@@ -937,7 +937,7 @@ Kernel image @ 0xc2000000 [ 0x000000 - 0x7306c8 ]
   - Once a configuration is selected, will load and boot the
     corresponding kernel, device tree and initramfs images.
 
-  - Example `bootcmd`:
+  - Example `bootcmd`: \
     `part list mmc 0 -bootable bootpart; sysboot mmc 0:$bootpart any`
 
 - #link("https://u-boot.readthedocs.io/en/latest/develop/distro.html")
