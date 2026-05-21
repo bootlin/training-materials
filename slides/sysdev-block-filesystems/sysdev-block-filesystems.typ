@@ -313,14 +313,12 @@ A more recent read-only, compressed solution
 
 === Filesystem benchmarks
 
-#align(center, [#image("rating.svg", height: 80%)])
+#align(center, [#image("rating.svg", height: 90%)])
 
-#[ #set text(size: 16pt)
-  See our presentation for more details and benchmarks (Linux 6.3, ARM32
-  BeagleBone Black): \
-  #link(
-    "https://bootlin.com/pub/conferences/2023/eoss/opdenacker-finding-best-block-filesystem/",
-  )
+#text(size: 16pt)[
+  See our #link("https://bootlin.com/pub/conferences/2023/eoss/opdenacker-finding-best-block-filesystem/"
+  )[presentation] for more details and benchmarks (Linux 6.3,
+  ARM32 BeagleBone Black):
 ]
 
 === Compatibility filesystems
