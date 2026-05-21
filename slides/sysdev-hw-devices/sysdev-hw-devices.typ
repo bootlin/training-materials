@@ -807,7 +807,7 @@ A class of devices worth mentioning is GPIOs (_General Purpose Input Output_)
 
 #let items = (
   (
-    title: [Directly in the \ *OS/bootloader \ code*],
+    title: [Directly in the *OS/bootloader code*],
     details: (
       [Using compiled data structures, typically in C],
       [How it was done on most embedded platforms in Linux, U-Boot.],
