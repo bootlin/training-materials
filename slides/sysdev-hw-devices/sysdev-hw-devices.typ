@@ -1064,10 +1064,8 @@ A class of devices worth mentioning is GPIOs (_General Purpose Input Output_)
 #table(
   columns: (60%, 40%),
   stroke: none,
-  gutter: 15pt,
   [
-
-    #[ #set text(size: 18pt)
+    #text(size: 12pt)[
       ```dts
       / {
         #address-cells = <1>;
@@ -1084,13 +1082,11 @@ A class of devices worth mentioning is GPIOs (_General Purpose Input Output_)
           ethernet0: ethernet@5800a000 { ... };
         };
       };
-      ```]
-
+      ```
+    ]
   ],
   [
-
     #align(center, [#image("simple-hardware.svg", width: 100%)])
-
   ],
 )
 
@@ -1099,11 +1095,8 @@ A class of devices worth mentioning is GPIOs (_General Purpose Input Output_)
 #table(
   columns: (60%, 40%),
   stroke: none,
-  gutter: 15pt,
   [
-
-    #[ #set text(size: 12pt)
-
+    #text(size: 12pt)[
       ```dts
       / {
         cpus {
@@ -1132,23 +1125,19 @@ A class of devices worth mentioning is GPIOs (_General Purpose Input Output_)
           ethernet0: ethernet@5800a000 { ... };
         };
       };
-      ```]
-
+      ```
+    ]
   ],
   [
-
     #align(center, [#image("simple-hardware.svg", width: 100%)])
-
   ],
 )
 
 #table(
   columns: (60%, 40%),
   stroke: none,
-  gutter: 15pt,
   [
-
-    #[ #set text(size: 18pt)
+    #text(size: 12pt)[
       ```dts
       / {
         cpus { ... };
@@ -1169,22 +1158,17 @@ A class of devices worth mentioning is GPIOs (_General Purpose Input Output_)
       };
       ```
     ]
-
   ],
   [
-
     #align(center, [#image("simple-hardware.svg", width: 100%)])
-
   ],
 )
 
 #table(
   columns: (60%, 40%),
   stroke: none,
-  gutter: 15pt,
   [
-
-    #[ #set text(size: 13pt)
+    #text(size: 12pt)[
       ```dts
       / {
         cpus { ... };
@@ -1211,22 +1195,17 @@ A class of devices worth mentioning is GPIOs (_General Purpose Input Output_)
       };
       ```
     ]
-
   ],
   [
-
     #align(center, [#image("simple-hardware.svg", width: 100%)])
-
   ],
 )
 
 #table(
   columns: (60%, 40%),
   stroke: none,
-  gutter: 15pt,
   [
-
-    #[ #set text(size: 13pt)
+    #text(size: 12pt)[
       ```dts
       / {
         cpus { ... };
@@ -1255,22 +1234,17 @@ A class of devices worth mentioning is GPIOs (_General Purpose Input Output_)
       };
       ```
     ]
-
   ],
   [
-
     #align(center, [#image("simple-hardware.svg", width: 100%)])
-
   ],
 )
 
 #table(
   columns: (60%, 40%),
   stroke: none,
-  gutter: 15pt,
   [
-
-    #[ #set text(size: 13pt)
+    #text(size: 13pt)[
       ```dts
       / {
         cpus { ... };
@@ -1296,14 +1270,15 @@ A class of devices worth mentioning is GPIOs (_General Purpose Input Output_)
               phy0: ethernet-phy@0 {
                 reg = <0>;
               };
-            }; }; }; };
-      ```]
-
+            };
+          };
+        };
+      };
+      ```
+    ]
   ],
   [
-
     #align(center, [#image("simple-hardware.svg", width: 100%)])
-
   ],
 )
 
