@@ -143,8 +143,7 @@
   Example: `arm-linux-`
 
 - Set the installation directory in the configuration interface:  \
-  `Settings → Installation Options` '  \
-  → `Destination path for 'make install'`
+  `Settings → Installation Options → Destination path for 'make install'`
 
 - Add the cross-compiler path to the PATH environment variable:  \
   `export PATH=$HOME/x-tools/arm-unknown-linux-uclibcgnueabi/bin:$PATH`
