@@ -1865,7 +1865,7 @@ static struct i2c_driver cs42l51_i2c_driver = {
   memory-mapped registers. Can have several entries for multiple
   register areas.
 
-  ```
+  ```dts
   sai4: sai@50027000 {
       reg = <0x50027000 0x4>, <0x500273f0 0x10>;
   };
@@ -1879,7 +1879,7 @@ static struct i2c_driver cs42l51_i2c_driver = {
 
 - *I2C* devices: address of the device on the I2C bus.
 
-  ```
+  ```dts
   &i2c1 {
      hdmi-transmitter@39 {
         reg = <0x39>;
@@ -1900,7 +1900,7 @@ static struct i2c_driver cs42l51_i2c_driver = {
 
 - *SPI* devices: chip select number
 
-  ```
+  ```dts
   &qspi {
           flash0: mx66l51235l@0 {
                   reg = <0>;
@@ -1923,7 +1923,7 @@ static struct i2c_driver cs42l51_i2c_driver = {
 
 - The unit address must be the address of the first `reg` entry.
 
-  ```
+  ```dts
   sai4: sai@50027000 {
       reg = <0x50027000 0x4>, <0x500273f0 0x10>;
   };
