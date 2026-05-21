@@ -1738,9 +1738,7 @@ complicated. This example is highly simplified.]
   - `make dtbs_check`
     validate DTs currently enabled against YAML bindings
 
-  - `make
-    DT_SCHEMA_FILES=Documentation/devicetree/bindings/trivial-devices.yaml
-    dtbs_check`
+  - `make DT_SCHEMA_FILES=path/to/specific/yaml dtbs_check`
     validate DTs against a specific YAML binding
 
 === The `compatible` property
