@@ -67,11 +67,11 @@ A separate tool is needed for that, usual solutions are:
 
 === Retrieve the project using `repo`
 
-`
+```console
 $ mkdir my-project; cd my-project
 $ repo init -u https://git.example.net/manifest.git
 $ repo sync -j4
-`
+```
 
 - `repo init` uses the `default.xml` manifest in the repository, unless
   specified otherwise.

@@ -72,7 +72,7 @@
 - Newlines need to be escaped (this does not apply to functions)
 
   ```sh
-  LIST = "this
+  LIST = "this \
           and that"
   ```
 

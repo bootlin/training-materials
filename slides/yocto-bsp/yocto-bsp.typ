@@ -265,8 +265,8 @@ SRC_URI += "file://defconfig \
 ```sh
 define KFEATURE_DESCRIPTION "Enable Nunchuk driver"
 
-kconf hardware enable-nunchuk-driver.cfg patch
-Add-nunchuk-driver.patch
+kconf hardware enable-nunchuk-driver.cfg
+patch Add-nunchuk-driver.patch
 ```
 #v(0.5em)
 

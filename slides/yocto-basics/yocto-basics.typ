@@ -39,27 +39,30 @@
 
 - The `oe-init-build-env` script creates the `build` directory with only
   one subdirectory in it: \
-  - / /conf: Configuration files. Image specific and layer configuration
+  - *conf\/* Configuration files. Image specific and layer configuration
 
 === Exported environment variables
 
-#align(center, [
-  / BUILDDIR: Absolute path of the build directory.
-
-  #v(0.5em)
-
-  / PATH: Contains the directories where executable programs are located. \ Absolute paths to `scripts/` and `bitbake/bin/` are prepended.
-])
+#grid(
+  columns: 2,
+  inset: (x: 0.5em, y: 0.5em),
+  [*BUILDDIR*], [Absolute path of the build directory.],
+  [*PATH*],
+  [Contains the directories where executable programs are located. \ Absolute paths to `scripts/` and `bitbake/bin/` are prepended.],
+)
 
 === Available commands
 
-#align(center, [
-  / bitbake: The main build engine command. Used to perform tasks on available recipes (download, configure, compile…).
+#grid(
+  columns: 2,
+  inset: (x: 0.5em, y: 0.5em),
+  [*bitbake*],
+  [The main build engine command. Used to perform tasks on available recipes (download, configure, compile…).],
 
-  #v(0.5em)
+  [*bitbake-\**],
+  [Various specific commands related to the BitBake build engine.],
+)
 
-  / bitbake-\*: Various specific commands related to the BitBake build engine.
-])
 
 == Configuring the build system
 <configuring-the-build-system>
@@ -118,13 +121,16 @@ The `conf/local.conf` configuration file holds local user configuration variable
 
 === The `build/ directory after the build 1/2`
 
-/ conf/: Configuration files, as before, not touched by the build.#v(0.5em)
+#grid(
+  columns: 2,
+  inset: (x: 0.5em, y: 0.5em),
+  [*conf\/*], [Configuration files, as before, not touched by the build.],
+  [*downloads\/*],
+  [Downloaded upstream tarballs of the recipes used in the builds.],
 
-/ downloads/: Downloaded upstream tarballs of the recipes used in the builds.#v(0.5em)
-
-/ state-cache/: Shared state cache. Used by all builds.#v(0.5em)
-
-/ tmp/: Holds all the build system outputs.#v(0.5em)
+  [*state-cache\/*], [Shared state cache. Used by all builds.],
+  [*tmp\/*], [Holds all the build system outputs.],
+)
 
 === The `build/ directory after the build 2/2`
 

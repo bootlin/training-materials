@@ -53,7 +53,8 @@
       ```text
       libpcap$ ./configure
       ...
-      checking for bluetooth/bluetooth.h... yes configure: Bluetooth sniffing is supported
+      checking for bluetooth/bluetooth.h... yes
+      configure: Bluetooth sniffing is supported
       ```]
 
 === Per-recipe sysroot
@@ -308,7 +309,7 @@ Real life example of anonymous function: \
   #yoctovar("PACKAGECONFIG") varflags available for each recipe:
 
   #text(size: 15pt)[
-    ```sh
+    ```console
     $ ../poky/scripts/contrib/list-packageconfig-flags.py
     RECIPE NAME    PACKAGECONFIG FLAGS
     ==================================
@@ -320,7 +321,7 @@ Real life example of anonymous function: \
 - The `-a` flag shows all the details:
 
   #text(size: 14pt)[
-    ```sh
+    ```console
     $ ../poky/scripts/contrib/list-packageconfig-flags.py -a
     connman-1.41
     /home/murray/w/yocto-stm32-labs/poky/meta/recipes-connectivity/connman/connman_1.41.bb
@@ -511,8 +512,7 @@ FILES:kdump = "${sbindir}/kdump"
 
 - In other words: it needs the library in its _sysroot_
 
-- In `ninvaders.bb`, the line
-  `DEPENDS = "ncurses"`
+- In `ninvaders.bb`, the line #block[`DEPENDS = "ncurses"`]
   creates a dependency
 
   - Of `ninvaders.do_prepare_recipe_sysroot`
@@ -528,8 +528,7 @@ FILES:kdump = "${sbindir}/kdump"
 
 - It does not need it at build time
 
-- In `inetutils_2.4.bb`, the line
-  `RDEPENDS:${PN}-ftpd += "xinetd"`
+- In `inetutils_2.4.bb`, the line #block[`RDEPENDS:${PN}-ftpd += "xinetd"`]
   creates a dependency
 
   - Of `inetutils.do_build`
@@ -554,7 +553,6 @@ FILES:kdump = "${sbindir}/kdump"
   - Depending on a kernel module that might also be built-in in the
     kernel Image
 
-- In `watchdog_5.16.bb`, the line
-  `RRECOMMENDS:${PN} += "kernel-module-softdog"`
+- In `watchdog_5.16.bb`, the line #block[`RRECOMMENDS:${PN} += "kernel-module-softdog"`]
   does nothing if the `softdog` kernel module is not built by the kernel
   (could be builtin)

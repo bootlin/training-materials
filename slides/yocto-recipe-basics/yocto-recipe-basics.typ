@@ -174,7 +174,7 @@ SRC_URI[sha256sum] = "5891b5b522d..."
 #v(0.5em)
 
 ```sh
-SRC_URI = "http://example.com/src.tar.bz2;name=tarball
+SRC_URI = "http://example.com/src.tar.bz2;name=tarball \
            http://example.com/fixes.patch;name=patch"
 
 SRC_URI[tarball.sha256sum] = "97b2c3fb082241ab5c56..."
@@ -300,10 +300,8 @@ a different `defconfig` can be used for different
 
 ```sh
 LIC_FILES_CHKSUM = "file://gpl.txt;md5=393a5ca..."
-LIC_FILES_CHKSUM =
-    "file://main.c;beginline=3;endline=21;md5=58e..."
-LIC_FILES_CHKSUM =
-    "file://${COMMON_LICENSE_DIR}/MIT;md5=083..."
+LIC_FILES_CHKSUM = "file://main.c;beginline=3;endline=21;md5=58e..."
+LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=083..."
 ```
 
 #v(0.5em)
@@ -464,7 +462,7 @@ EXTRA_OEMAKE = "-e"
 
 
 ```sh
-SRC_URI += "file://joystick-support.patch
+SRC_URI += "file://joystick-support.patch \
             file://smp-fixes.diff
            "
 ```

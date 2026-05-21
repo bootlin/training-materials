@@ -187,27 +187,36 @@ In Yocto / OpenEmbedded, the _build engine_ is implemented by the `bitbake` prog
 
 #align(center, [#image("yocto-overview-poky.svg", height: 90%)])
 
-=== Poky source tree 1/2
+=== Poky source tree
 
-/ /bitbake/: Holds all scripts used by the `bitbake` command. Usually matches the stable release of the BitBake project.
+#grid(
+  columns: 2,
+  inset: (x: 0.5em, y: 0.5em),
+  [*bitbake\/*],
+  [Holds all scripts used by the `bitbake` command. Usually matches the stable release of the BitBake project.],
 
-/ /documentation/: All documentation sources for the Yocto Project documentation. Can be used to generate nice PDFs.
+  [*documentation\/*],
+  [All documentation sources for the Yocto Project documentation. Can be used to generate nice PDFs.],
 
-/ /meta/: Contains the OpenEmbedded-Core metadata.
+  [*meta\/*], [Contains the OpenEmbedded-Core metadata.],
+  [*meta-skeleton\/*],
+  [Contains template recipes for BSP and kernel development.],
 
-/ /meta-skeleton/: Contains template recipes for BSP and kernel development.
+  [*meta-poky\/*],
+  [Holds the configuration for the Poky reference distribution.],
 
-=== Poky source tree 2/2
+  [*meta-yocto-bsp\/*],
+  [ Configuration for the Yocto Project reference hardware board support package.],
 
-/ /meta-poky/: Holds the configuration for the Poky reference distribution.
+  [*LICENSE*],
+  [ The license under which Poky is distributed (a mix of GPLv2 and MIT).],
 
-/ /meta-yocto-bsp/: Configuration for the Yocto Project reference hardware board support package.
+  [*oe-init-build-env*],
+  [ Script to set up the OpenEmbedded build environment. It will create the build directory.],
 
-/ /LICENSE: The license under which Poky is distributed (a mix of GPLv2 and MIT).
-
-/ /oe-init-build-env: Script to set up the OpenEmbedded build environment. It will create the build directory.
-
-/ /scripts/: Contains scripts used to set up the environment, development tools, and tools to flash the generated images on the target.
+  [*scripts\/*],
+  [ Contains scripts used to set up the environment, development tools, and tools to flash the generated images on the target.],
+)
 
 === Documentation
 
