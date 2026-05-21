@@ -273,7 +273,7 @@
   ],
   [
 
-    #align(center, [#image("dt-basic-syntax.svg", width: 100%)])
+    #align(center, [#image("dt-basic-syntax.png", width: 100%)])
 
   ],
 )

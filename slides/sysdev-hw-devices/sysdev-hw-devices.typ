@@ -1042,30 +1042,20 @@ A class of devices worth mentioning is GPIOs (_General Purpose Input Output_)
 === Device Tree base syntax
 
 #table(
-  columns: (50%, 50%),
+  columns: (40%, 60%),
   stroke: none,
   gutter: 15pt,
   [
-
     - Tree of *nodes*
-
     - Nodes with *properties*
-
     - Node ≈ a device or IP block
-
     - Properties ≈ device characteristics
-
     - Notion of *cells* in property values
-
     - Notion of *phandle* to point to other nodes
-
     - `dtc` only does syntax checking, no semantic validation
-
   ],
   [
-
-    #align(center, [#image("dt-basic-syntax.svg", height: 60%)])
-
+    #align(center, [#image("dt-basic-syntax.png", height: 80%)])
   ],
 )
 
