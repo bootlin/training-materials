@@ -142,8 +142,10 @@
 === Bike computers
 
 #align(center, [#image("bike-computer.jpg", height: 80%)])
-#text(size: 10pt)[Product from BLOKS. Permission to use this picture only in this
-document, in updates and in translations.]
+#text(
+  size: 10pt,
+)[Product from BLOKS. Permission to use this picture only in this
+  document, in updates and in translations.]
 
 === Robots
 
@@ -279,14 +281,14 @@ The Linux kernel and most other architecture-dependent components support a wide
     #[ #set par(leading: 0.4em)
       #align(left, [#image("stm32mp157c-ev1.png", width: 100%)])
       #text(size: 12pt)[STM32MP157C-EV1 eval board] \
-      #link("https://www.mouser.fr/ProductDetail/STMicroelectronics/STM32MP157C-EV1?qs=9r4v7xj2LnmHBJ35TLmsRg%3D%3D"
+      #link(
+        "https://www.mouser.fr/ProductDetail/STMicroelectronics/STM32MP157C-EV1?qs=9r4v7xj2LnmHBJ35TLmsRg%3D%3D",
       )[#text(size: 10pt)[Image credits]]
       #align(left, [#image("pocketbeagle.png", width: 100%)])
       #text(size: 12pt)[PocketBeagle] \
-      #link("https://beagleboard.org/pocket"
-      )[#text(size: 10pt)[Image credits]]
+      #link("https://beagleboard.org/pocket")[#text(size: 10pt)[Image credits]]
     ]
-  ]
+  ],
 )
 
 === Types of hardware platforms (2)
@@ -317,8 +319,9 @@ The Linux kernel and most other architecture-dependent components support a wide
       Olimex Open hardware \
       ARM laptop main board
     ] \
-    #link("https://www.olimex.com/Products/DIY-Laptop/SPARE-PARTS/"
-    )[#text(size: 10pt)[Image credits (Olimex)]]
+    #link("https://www.olimex.com/Products/DIY-Laptop/SPARE-PARTS/")[#text(
+      size: 10pt,
+    )[Image credits (Olimex)]]
   ],
 )
 

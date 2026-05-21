@@ -316,8 +316,7 @@ A more recent read-only, compressed solution
 #align(center, [#image("rating.svg", height: 90%)])
 
 #text(size: 16pt)[
-  See our #link("https://bootlin.com/pub/conferences/2023/eoss/opdenacker-finding-best-block-filesystem/"
-  )[presentation] for more details and benchmarks (Linux 6.3,
+  See our #link("https://bootlin.com/pub/conferences/2023/eoss/opdenacker-finding-best-block-filesystem/")[presentation] for more details and benchmarks (Linux 6.3,
   ARM32 BeagleBone Black):
 ]
 
@@ -511,8 +510,7 @@ systems:
 
 Note that some SD cards report their erase block size, available in
 #box[`/sys/bus/mmc/devices/<dev>/preferred_erase_size`].\
-For more details, see #link("https://lwn.net/Articles/428584/",
-)[_Optimizing Linux with cheap flash drives_]
+For more details, see #link("https://lwn.net/Articles/428584/")[_Optimizing Linux with cheap flash drives_]
 from Arnd Bergmann.
 
 #setuplabframe([Block filesystems], [

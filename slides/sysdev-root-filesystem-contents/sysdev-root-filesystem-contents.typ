@@ -81,7 +81,7 @@
     Non-basic system programs \
     Variable data files, for system services. This includes spool directories
     and files, administrative and logging data, and transient and temporary files
-  ]
+  ],
 )
 
 === Separation of programs and libraries

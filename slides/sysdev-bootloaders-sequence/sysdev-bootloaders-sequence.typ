@@ -205,10 +205,12 @@
   ],
   [
     #text(size: 14pt)[Source: ] \
-    #link("https://www.st.com/resource/en/application_note/dm00389996-getting-started-with-stm32mp151-stm32mp153-and-stm32mp157-line-hardware-development-stmicroelectronics.pdf",
+    #link(
+      "https://www.st.com/resource/en/application_note/dm00389996-getting-started-with-stm32mp151-stm32mp153-and-stm32mp157-line-hardware-development-stmicroelectronics.pdf",
     )[#text(size: 14pt)[Getting started with STM32MP157]] \
     #text(size: 14pt)[Useful details: ] \
-    #link("https://wiki.st.com/stm32mpu/wiki/STM32_MPU_ROM_code_overview",
+    #link(
+      "https://wiki.st.com/stm32mpu/wiki/STM32_MPU_ROM_code_overview",
     )[#text(size: 14pt)[STM32 MPU ROM code overview]]
   ],
 )
@@ -223,8 +225,9 @@
   ],
   [
     #text(size: 14pt)[Source: ] \
-    #link("https://www.mouser.com/pdfdocs/spruh73h.pdf"
-    )[#text(size: 14pt)[AM335x TRM / chapter 26]]
+    #link("https://www.mouser.com/pdfdocs/spruh73h.pdf")[#text(
+      size: 14pt,
+    )[AM335x TRM / chapter 26]]
   ],
 )
 

@@ -594,13 +594,13 @@ U-Boot can manipulate raw storage devices:
   ],
   [
     #align(top, block[
-    - USB storage
-      - `usb info`
-      - `usb read <addr> <blk#> <cnt>`
-      - `usb write <addr> <blk#> <cnt>`
-      - `usb part`
-      - `usb dev`
-      - More: `help usb`
+      - USB storage
+        - `usb info`
+        - `usb read <addr> <blk#> <cnt>`
+        - `usb write <addr> <blk#> <cnt>`
+        - `usb part`
+        - `usb dev`
+        - More: `help usb`
     ])
   ],
 )

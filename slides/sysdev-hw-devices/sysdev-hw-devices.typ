@@ -1394,11 +1394,11 @@ A class of devices worth mentioning is GPIOs (_General Purpose Input Output_)
       Note: The real DTB is in binary format. Here we show the text equivalent of
       the DTB contents.
     ]])
-  ]
+  ],
 )
 
 #text(size: 11pt)[Note: The actual Device Trees for this platform are more
-complicated. This example is highly simplified.]
+  complicated. This example is highly simplified.]
 
 === Inheritance and labels
 

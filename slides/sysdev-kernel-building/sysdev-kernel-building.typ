@@ -224,42 +224,42 @@ Enabling a network driver requires the network stack to be enabled, therefore co
   gutter: 15pt,
   [
     #align(top, block[
-    - `depends on` dependency:
-      #text(size: 14.5pt)[
-        ```
-        config B
-            depends on A
-        ```]
-      - B is not visible until A is enabled
-      - Works well for dependency chains
+      - `depends on` dependency:
+        #text(size: 14.5pt)[
+          ```
+          config B
+              depends on A
+          ```]
+        - B is not visible until A is enabled
+        - Works well for dependency chains
     ])
   ],
   [
     #align(top, block[
-    - `select` dependency:
-      #text(size: 14.5pt)[
-        ```
-        config A
-            select B
-        ```]
-      - When A is enabled, B is enabled too (and cannot be disabled
-        manually)
-      - Should preferably not select symbols with `depends on` dependencies
-      - Used to declare hardware features or select libraries
+      - `select` dependency:
+        #text(size: 14.5pt)[
+          ```
+          config A
+              select B
+          ```]
+        - When A is enabled, B is enabled too (and cannot be disabled
+          manually)
+        - Should preferably not select symbols with `depends on` dependencies
+        - Used to declare hardware features or select libraries
     ])
   ],
 )
 
 #text(size: 14.5pt)[
-```
-config SPI_ATH79
-        tristate "Atheros AR71XX/AR724X/AR913X SPI controller driver"
-        depends on ATH79 || COMPILE_TEST
-        select SPI_BITBANG
-        help
-          This enables support for the SPI controller present on the
-          Atheros AR71XX/AR724X/AR913X SoCs.
-```
+  ```
+  config SPI_ATH79
+          tristate "Atheros AR71XX/AR724X/AR913X SPI controller driver"
+          depends on ATH79 || COMPILE_TEST
+          select SPI_BITBANG
+          help
+            This enables support for the SPI controller present on the
+            Atheros AR71XX/AR724X/AR913X SoCs.
+  ```
 ]
 
 === Kernel configuration details

@@ -71,12 +71,14 @@
   ],
   [
     #text(size: 14pt)[
-    See the _"Understanding U-Boot Falcon Mode"_ presentation from Michael
-    Opdenacker, for details about how U-Boot boots Linux :]
-    #link("https://bootlin.com/pub/conferences/2021/lee/"
-    )[#text(size: 14pt)[Slides ]]
-    #link("https://www.youtube.com/watch?v=LFe3x2QMhSo"
-    )[#text(size: 14pt)[Video]]
+      See the _"Understanding U-Boot Falcon Mode"_ presentation from Michael
+      Opdenacker, for details about how U-Boot boots Linux :]
+    #link("https://bootlin.com/pub/conferences/2021/lee/")[#text(
+      size: 14pt,
+    )[Slides ]]
+    #link("https://www.youtube.com/watch?v=LFe3x2QMhSo")[#text(
+      size: 14pt,
+    )[Video]]
   ],
 )
 

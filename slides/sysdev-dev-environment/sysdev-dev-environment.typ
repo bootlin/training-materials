@@ -70,9 +70,8 @@
   ],
   [
     #align(center, [#image("/common/ubuntu.svg", width: 100%)])
-    #link("https://tinyurl.com/f4zxj5kw"
-    )[#text(size: 10pt)[Image credits]]
-  ]
+    #link("https://tinyurl.com/f4zxj5kw")[#text(size: 10pt)[Image credits]]
+  ],
 )
 
 === Host vs. target
