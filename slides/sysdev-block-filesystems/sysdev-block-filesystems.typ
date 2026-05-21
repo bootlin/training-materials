@@ -215,8 +215,7 @@ A Journaling filesystem
 
 A copy-on-write filesystem
 
-- Pronounced as "better F S", "butter F S" or "b-tree F S", since
-  2009.
+- Pronounced as "better F S", "butter F S" or "b-tree F S", since 2009.
 
 - A modern filesystem with many advanced features: volumes, snapshots,
   transparent compression... Looks great for storage experts.
