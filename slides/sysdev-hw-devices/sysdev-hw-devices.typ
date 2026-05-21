@@ -1311,7 +1311,94 @@ A class of devices worth mentioning is GPIOs (_General Purpose Input Output_)
 
 === Device Tree inheritance example
 
-#align(center, [#image("dt-inheritance.svg", width: 100%)])
+#table(
+  columns: (30%, 5%, 30%, 5%, 30%),
+  stroke: none,
+  [
+    #align(top, [#text(size: 11pt)[
+      Definition of the STM32MP157A SoC
+      ```dts
+      / {
+        soc {
+          i2c1: i2c@40012000 {
+            compatible = "st,stm32mp15-i2c";
+            reg = <0x40012000 0x400>;
+            status = "disabled";
+          };
+        };
+      };
+
+
+
+
+
+
+
+
+      ```
+      _stm32mp157.dtsi_
+    ]])
+  ],
+  [
+    #text(size: 35pt)[+]
+  ],
+  [
+    #align(top, [#text(size: 11pt)[
+      Definition of the STM32MP157A-DK1 board
+      ```dts
+      #include "stm32mp157.dtsi"
+
+      / {
+      soc {
+        i2c1: i2c@40012000 {
+          pinctrl-names = "default";
+          pinctrl-0 = <&i2c1_pins_a>;
+          status = "okay";
+
+            cs42l51: cs42l51@4a {
+              compatible = "cirrus,cs42l51";
+              reg = <0x4a>;
+            };
+          };
+        };
+      };
+      ```
+      _stm32mp157a-dk1.dts_
+    ]])
+  ],
+  [
+    #text(size: 35pt)[=]
+  ],
+  [
+    #align(top, [#text(size: 11pt)[
+      Compiled DTB
+      ```dts
+      / {
+        soc {
+          i2c1: i2c@40012000 {
+            compatible = "st,stm32mp15-i2c";
+            reg = <0x40012000 0x400>;
+            pinctrl-names = "default";
+            pinctrl-0 = <&i2c1_pins_a>;
+            status = "okay";
+
+            cs42l51: cs42l51@4a {
+              compatible = "cirrus,cs42l51";
+              reg = <0x4a>;
+            };
+          };
+        };
+      };
+      ```
+      _stm32mp157a-dk1.dtb_ \ \
+      Note: The real DTB is in binary format. Here we show the text equivalent of
+      the DTB contents.
+    ]])
+  ]
+)
+
+#text(size: 11pt)[Note: The actual Device Trees for this platform are more
+complicated. This example is highly simplified.]
 
 === Inheritance and labels
 
