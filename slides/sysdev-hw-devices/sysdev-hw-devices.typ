@@ -763,16 +763,16 @@ A class of devices worth mentioning is GPIOs (_General Purpose Input Output_)
 - Mostly for debugging/tweaking, as parameters are global to the module,
   not per-device managed by the module
 
-- Through `insmod` or `modprobe`:
-  `insmod ./usb-storage.ko delay_use=0`
+- Through `insmod` or `modprobe`: \
+  `insmod ./usb-storage.ko delay_use=0` \
   `modprobe usb-storage delay_use=0`
 
 - `modprobe` supports configuration files: `/etc/modprobe.conf` or in
-  any file in `/etc/modprobe.d/`:
+  any file in #box[`/etc/modprobe.d/`]: \
   `options usb-storage delay_use=0`
 
 - Through the kernel command line, when the module is built statically
-  into the kernel:
+  into the kernel: \
   `usb-storage.delay_use=0`
 
   - `usb-storage` is the _module name_
