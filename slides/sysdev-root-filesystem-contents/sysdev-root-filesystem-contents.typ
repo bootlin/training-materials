@@ -107,5 +107,5 @@
 - All other programs and libraries are in `/usr`
 
 - Update: distributions are now making `/bin` link to `/usr/bin`, `/lib`
-  to `/usr/lib` and  \ `/sbin` to `/usr/sbin`. Details on
-  #link("https://systemd.io/THE_CASE_FOR_THE_USR_MERGE/")[https://systemd.io/THE_CASE_FOR_THE_USR_MERGE/].
+  to `/usr/lib` and  \ `/sbin` to `/usr/sbin`. Details here:
+  #link("https://systemd.io/THE_CASE_FOR_THE_USR_MERGE/")[The Case for the /usr Merge].
