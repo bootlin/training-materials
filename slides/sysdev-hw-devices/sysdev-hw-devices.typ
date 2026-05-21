@@ -1405,15 +1405,10 @@ complicated. This example is highly simplified.]
 #table(
   columns: (50%, 50%),
   stroke: none,
-  gutter: 15pt,
   [
-
-    Doing:  \
-    #[ #set text(size: 14pt)
-      soc.dtsi
-    ]
-
-    #[ #set text(size: 12pt)
+    #align(top, [Doing:])
+    #align(top, [#text(size: 12pt)[
+      _soc.dtsi_
       ```dts
       / {
         soc {
@@ -1425,11 +1420,7 @@ complicated. This example is highly simplified.]
         };
       };
       ```
-    ]
-    #[ #set text(size: 14pt)
-      board.dts
-    ]
-    #[ #set text(size: 12pt)
+      _board.dts_
       ```dts
       #include "soc.dtsi"
 
@@ -1441,7 +1432,7 @@ complicated. This example is highly simplified.]
         };
       };
       ```
-    ]
+    ]])
   ],
 )
 
@@ -1450,15 +1441,10 @@ complicated. This example is highly simplified.]
 #table(
   columns: (50%, 50%),
   stroke: none,
-  gutter: 15pt,
   [
-
-    Doing:  \
-    #[ #set text(size: 14pt)
-      soc.dtsi
-    ]
-
-    #[ #set text(size: 12pt)
+    #align(top, [Doing:])
+    #align(top, [#text(size: 12pt)[
+      _soc.dtsi_
       ```dts
       / {
         soc {
@@ -1470,11 +1456,7 @@ complicated. This example is highly simplified.]
         };
       };
       ```
-    ]
-    #[ #set text(size: 14pt)
-      board.dts
-    ]
-    #[ #set text(size: 12pt)
+      _board.dts_
       ```dts
       #include "soc.dtsi"
 
@@ -1486,16 +1468,12 @@ complicated. This example is highly simplified.]
         };
       };
       ```
-    ]
-
+    ]])
   ],
   [
-
-    Is exactly equivalent to:  \
-    #[ #set text(size: 14pt)
-      soc.dtsi
-    ]
-    #[ #set text(size: 12pt)
+    #align(top, [Is exactly equivalent to:])
+    #align(top, [#text(size: 12pt)[
+      _soc.dtsi_
       ```dts
       / {
         soc {
@@ -1507,12 +1485,7 @@ complicated. This example is highly simplified.]
         };
       };
       ```
-    ]
-
-    #[ #set text(size: 14pt)
-      board.dts
-    ]
-    #[ #set text(size: 12pt)
+      _board.dts_
       ```dts
       #include "soc.dtsi"
 
@@ -1520,9 +1493,8 @@ complicated. This example is highly simplified.]
         status = "okay";
       };
       ```
-    ]
+    ]])
     → this solution is now often preferred
-
   ],
 )
 
