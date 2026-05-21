@@ -94,7 +94,7 @@
 
   - *Typical mistake*: copying a file (which is not a filesystem
     image) to a filesystem without mounting it first: \
-    `dd if=zImage of=/dev/sde1`
+    `dd if=zImage of=/dev/sde1` \
     Instead, you should use:  \
     `sudo mount /dev/sde1 /boot`  \
     `cp zImage /boot/`
