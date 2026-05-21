@@ -50,42 +50,43 @@
   columns: (50%, 50%),
   stroke: none,
   [
+    #align(center, [
+      *Non-Copyleft*  \
+      (BSD, MIT, Apache, X11…)
 
-    *Non-Copyleft*  \
-    (BSD, MIT, Apache, X11…)
+      \
 
-    \
+      *You can*  \
+      Use  \
+      Modify  \
+      Redistribute
 
-    *You can*  \
-    Use  \
-    Modify  \
-    Redistribute
+      \
 
-    \
-
-    *You must*  \
-    Provide license text  \
-    Attribution
-
+      *You must*  \
+      Provide license text  \
+      Attribution
+    ])
   ],
   [
-    *Copyleft*  \
-    (GPL, LGPL, AGPL…)
+    #align(center, [
+      *Copyleft*  \
+      (GPL, LGPL, AGPL…)
 
-    \
+      \
 
-    *You can*   \
-    Use  \
-    Modify  \
-    Redistribute
+      *You can*   \
+      Use  \
+      Modify  \
+      Redistribute
 
-    \
+      \
 
-    *You must*  \
-    Provide license text  \
-    Attribution  \
-    Make source code available
-
+      *You must*  \
+      Provide license text  \
+      Attribution  \
+      Make source code available
+    ])
   ],
 )
 
