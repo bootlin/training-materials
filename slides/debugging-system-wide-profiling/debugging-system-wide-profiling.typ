@@ -1675,7 +1675,6 @@ b.attach_kprobe(event=b.get_syscall_fnname("clone"), fn_name="hello")
   - Load and attach a program
   #v(0.5em)
   ```console
-  $ mkdir /sys/fs/bpf/myprog
   $ bpftool prog loadall trace_execve.bpf.o /sys/fs/bpf/myprog autoattach
   ```
   #v(0.5em)
