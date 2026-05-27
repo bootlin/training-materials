@@ -104,27 +104,19 @@
 - The root of trust for this stage is the combined:
 
   - last stage bootloader (e.g. U-Boot proper)
-
   - last stage signature public key
-
-- _Signature_$""^(-1)$
 
 - Both should have been verified in the previous stage
 
 - This ensures that the kernel that has been started is the one that the
   possessor of the last stage private key expects.
 
-=== Kernel verification
-
-- This leaves some unanswered questions:
+- This leaves some unanswered questions, which we'll answer in the next
+  part:
 
   - What happens once the kernel starts _init_?
-
   - What about the DTB?
-
   - What about the command line parameters?
-
-- We'll answer these in the next part.
 
 === Examples
 
@@ -158,10 +150,12 @@
   of software. This includes:
 
   - Offline modification of the software by reflashing the boot medium.
+    
     This could be how an attacker gain access.
 
-  - Runtime rewriting of the software (persistence). This is
-    defense-in-depth against an attacker who already has access.
+  - Runtime rewriting of the software (persistence).
+
+    This is defense-in-depth against an attacker who already has access.
 
 - It is not designed to protect against:
 
@@ -386,7 +380,11 @@
 
 - They will include one or several binaries
 
-- The `signer` property will indicate how to sign the binaries
+- The `signer` property will indicate how to sign the binaries.
+  It can point to:
+
+  - A PEM file containing the private key
+  - A signature provider (e.g. a PKCS\#11 URI, for instance pointing to an HSM)
 
 === Detailed example: i.MX93 - AHAB container template
 <detailed-example-i.mx93---ahab-container-template>
@@ -462,7 +460,10 @@
           flag_ca: false
           hash_algorithm: default
           srk_array:
-            - Super_Root_Key_1.pub    # 4 lines, one for each SRK
+            - Super_Root_Key_1.pub
+            - Super_Root_Key_2.pub
+            - Super_Root_Key_3.pub
+            - Super_Root_Key_4.pub
   ```]
 
 === Detailed example: i.MX93 - AHAB
@@ -491,7 +492,7 @@
     )[ele_message]
     command
 
-- This is a sensitive step, so SPSDK can generate a script to automate
+- This is a *sensitive* step, so SPSDK can generate a script to automate
   it
 
 === #link(

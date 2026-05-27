@@ -370,53 +370,49 @@ Flip side of the security properties:
           #set list(spacing: 0.5em)
           - Input of each block is XORed with the output of the previous block
 
-          - The input of the first block is XORed with either a deterministic
-            initialization vector or a random one, which is shared along with
-            the encrypted data.
+          - The first plaintext block is XORed with an initialization vector
+            either deterministic or random, shared along the encrypted data.
         ]
+    ]
+]
+#text(size: 12pt)[
+  #align(center)[
+    #align(center, [#image("CBC_encryption.svg", width: 80%)])
+      WhiteTimberwolf, Public domain: \
+      #link(
+        "https://commons.wikimedia.org/wiki/File:CBC_encryption.svg",
+        )[https://commons.wikimedia.org/wiki/File:CBC_encryption.svg]
+  ]
+]
+
+=== Block Cipher Modes of Operation Examples (1)
+<block-cipher-modes-of-operation-examples-1>
+#text(size: 18pt)[
+  - Modes ensuring data confidentiality:
+    #text(size: 16pt)[
       - CTR: Counter
         #[
           #set list(spacing: 0.5em)
-          - An incrementing value is encrypted
-
-          - This encrypted value is XORed with the input block to generate
-            encrypted data
+          - An incrementing value is encrypted, then XORed with the input block
+            to generate encrypted data
 
           - No dependency between blocks: encryption can be parallelized,
             random blocks can be modified
 
-          - The initial counter value is derived from a nonce, which should be
-            unique for each message encrypted with the same key
+          - The counter is initially derived from a nonce, which should be
+            unique per message-key combination.
         ]
     ]
 ]
-#table(
-  columns: (50%, 50%),
-  stroke: none,
-  gutter: 30pt,
-  [
-
-    #text(size: 12pt)[
-      #align(center)[
-        #align(center, [#image("CBC_encryption.svg", width: 90%)])
-        WhiteTimberwolf, Public domain: \
-        #link(
-          "https://commons.wikimedia.org/wiki/File:CBC_encryption.svg",
-        )[https://commons.wikimedia.org/wiki/File:CBC_encryption.svg]
-      ]]
-  ],
-  [
-
-    #text(size: 12pt)[
-      #align(center)[
-        #align(center, [#image("CTR_encryption_2.svg", width: 90%)])
-        WhiteTimberwolf, Public domain: \
-        #link(
-          "https://commons.wikimedia.org/wiki/File:CTR_encryption_2.svg",
-        )[https://commons.wikimedia.org/wiki/File:CTR_encryption_2.svg]
-      ]]
-  ],
-)
+#text(size: 12pt)[
+  #align(center)[
+    #align(center, [#image("CTR_encryption_2.svg", width: 80%)])
+      WhiteTimberwolf, Public domain: \
+      #link(
+        "https://commons.wikimedia.org/wiki/File:CTR_encryption_2.svg",
+      )[https://commons.wikimedia.org/wiki/File:CTR_encryption_2.svg]
+  ]
+]
 
 === Block Cipher Modes of Operation Examples (2)
 <block-cipher-modes-of-operation-examples-2>
@@ -588,7 +584,7 @@ Flip side of the security properties:
   ],
 )
 
-== Real world use cases
+== Real-world use cases
 <real-world-use-cases>
 
 === Symmetric vs asymmetric cryptographic algorithms

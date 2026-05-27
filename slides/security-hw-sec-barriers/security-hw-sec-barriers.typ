@@ -49,7 +49,7 @@
 
 - The privilege level is checked e.g. when accessing memory
 
-- Some instructions can only be executed from eleveated privilege levels
+- Some instructions can only be executed from elevated privilege levels
 
 === Protection rings
 
@@ -58,12 +58,12 @@
 === System Calls (1/2)
 <system-calls-12>
 
--A system call allows the user space to request services from the
-kernel by executing a special instruction that will switch to the
-kernel mode (#manpage("syscall", "2"))
+- A system call allows userspace to request services from the
+  kernel by executing a special instruction that will switch to
+  kernel mode (#manpage("syscall", "2"))
 
-- When executing functions provided by the libc (`read()`, `write()`,
-  etc), they often end up executing a system call.
+- Executing functions provided by the libc (`read()`, `write()`,
+  etc) often ends up executing a system call.
 
 - System calls are identified by a numeric identifier that is passed via
   the registers.
@@ -81,14 +81,14 @@ kernel mode (#manpage("syscall", "2"))
 === System Calls (2/2)
 <system-calls-22>
 
--The kernel holds a table of function pointers which matches these
-identifiers and will invoke the correct handler after checking the
-validity of the syscall.
+- The kernel holds a table of function pointers which matches these
+  identifiers and will invoke the correct handler after checking the
+  validity of the syscall.
 
 - System call parameters are passed via registers (up to 6).
 
 - When executing this instruction the CPU will change its execution
-  state and switch to the kernel mode.
+  state and switch to kernel mode.
 
 - Each architecture uses a specific hardware mechanism
   (#manpage("syscall", "2"))
@@ -103,7 +103,7 @@ validity of the syscall.
 
 === Virtual address translation
 
-- When a core is running a user program it is not running the kernel
+- When a core is running a *user program* it is *not* running the *kernel*
 
 - The hardware itself must be able to enforce memory protection
 
@@ -114,7 +114,9 @@ validity of the syscall.
 - Each process has a different virtual address space
 
 - Virtual memory is organized into a hierarchy of tables, the lowest
-  level being pages. See #kdochtml("mm/page_tables")
+  level being pages.
+
+  See #kdochtml("mm/page_tables")
 
 - Table elements are descriptors, and contain several attributes
 

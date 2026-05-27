@@ -38,7 +38,7 @@
 
 === World transitions: Secure to Non-Secure
 
-- The CPU starts executing at the highest EL: EL3, so in Secure World
+- The CPU starts executing at the *highest* EL: EL3, so in Secure World
 
 - It then sets up the rest of Secure World, then Normal World, in stages
 
@@ -53,10 +53,12 @@
   - Going from Secure World back to Non-Secure is simply setting
     _NS_ to 1
 
-  - The Security model expects only the Secure Monitor to do this
-    transition
+  - The Security model expects only the Secure Monitor (running at EL3)
+    to do this transition
 
 - The ARM spec leaves non-EL3 access to SCR as _undefined_
+
+  - In practice, accessing SCR from non-secure or from S-EL0 will fault.
 
 === World transitions: Back to Secure
 
@@ -75,9 +77,6 @@
 - The authority is the _Secure Configuration Register (SCR)_'s NS
   bit
 
-- Accessing SCR from non-secure or from S-EL0 will fault.
-
-- Only the Secure Monitor (running at EL3) *should* change it.
 
 === #link("https://www.trustedfirmware.org/")[Arm Trusted Firmware]
 

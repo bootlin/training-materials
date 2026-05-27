@@ -12,7 +12,7 @@
 === Access control in computer security
 <access-control-in-computer-security>
 
-- Access control defines relations between two groups of entities:
+- Access control defines relationships between two groups of entities:
 
   - Subjects: entities who can perform an action
 
@@ -36,14 +36,14 @@
 
   - Each object has an owner, e.g. the object creator.
 
-  - The owner assigns permissions to the object, for himself and others.
+  - The owner assigns permissions to the object, for themselves and others.
 
 - Typical access model:
 
-  - Access control list (ACL) based: subjects appear in an authorization
+  - Access control list (ACL)-based: subjects appear in an authorization
     list linked with the object
 
-  - Capability based: subjects hold a _capability_ that allows to
+  - Capability-based: subjects hold a _capability_ that allows to
     manipulate an object
 
 #align(center, [#image("DAC.pdf", width: 60%)])
@@ -51,10 +51,10 @@
 === POSIX permissions
 <posix-permissions>
 
-- POSIX permission is a typical example of a DAC based on ACL
+- POSIX permissions are a typical example of a DAC based on ACLs
 
-- UNIX philosophy: everything is a file, so each object is represented
-  by a file, including devices.
+- UNIX philosophy: everything is a file, so objects (including devices) are 
+  represented by files.
 
 - Files metadata include:
 
@@ -63,11 +63,9 @@
   - Permissions for each classes: owning user, owning group and others
 
     - Read: grants the ability to read file content
-
     - Write: grants the ability to write file content
-
     - Execute: grants the ability to execute a file, or read metadata of
-      child files when applied on a folder.
+      children files when applied on a folder.
 
   - Additional permission bits, such as `setuid` or `setgid`
 
@@ -91,7 +89,7 @@
 
 - Access control is determined by rules
 - Rules are controlled by the system administrator
-- Every time a subject tries to access an object, the operating system
+- Every time a subject tries to access an object, the OS
   looks for a corresponding rule
 - Objects can be accessed only if an existing rule allows this access
 - Allows to enforce better rules, but more complex to maintain than DAC
@@ -103,35 +101,25 @@
 == Linux capabilities: usage and examples
 <linux-capabilities-usage-and-examples>
 
-=== Capability based security
+=== Capability-based security
 <capability-based-security>
 
 - Theoretical concepts:
 
   - Subjects have capabilities: unforgeable tokens of authority
-
-  - Capabilities control if and how the subject can manipulate a given
-    object
-
+  - Capabilities control if and how the subject can manipulate a given object
   - A given capability specifies access right on a given object.
-
   - Completely removes the need of ACL
-
   - Examples:
-
     - Subject _user1_ can read object _/etc/motd_
-
     - Subject _user2_ can listen on _TCP port 22_ object.
 
 - POSIX standard comes with a capabilities specification, differing on
   various points:
 
   - Capabilities are not associated with objects
-
   - Capabilities are used in complement of ACL
-
   - Examples:
-
     - _CAP_NET_BIND_SERVICE_ allows to listen on any privileged
       ports.
 
@@ -140,17 +128,12 @@
 
 - Capabilities are a per-thread attribute, allowing to gain privileges
   traditionally associated with superuser
-
 - Fully integrated since Linux 2.6.24
-
 - Capabilities can be independently enabled and disabled
-
 - Capabilities can be attached to executable files, pre-setting runtime
   capabilities
-
 - Threads may voluntarily enable or disable a capability they are
   permitted to use, allowing to only use them in code paths needing it
-
 - Threads may voluntarily preserve capabilities while executing another
   executable (`execve()`).
 
@@ -214,7 +197,7 @@
 
   - Controlling capabilities a thread is allowed to use:
 
-    - Permitted: limits capabilities that might be in _Effective_
+    - *Permitted*: limits capabilities that might be in _Effective_
       and _Inheritable_ sets.
       Thread can drop but never add capabilities to this set, except
       while using `execve()` on a file granting capabilities or with the
@@ -222,19 +205,17 @@
 
   - Controlling capabilities effective at the moment:
 
-    - Effective: used by the kernel to perform permission checks for the
+    - *Effective*: used by the kernel to perform permission checks for the
       thread
 
   - Controlling capabilities present while executing a new program:
 
-    - Inheritable: capabilities preserved across `execve()` on
+    - *Inheritable*: capabilities preserved across `execve()` on
       privileged process
-
-    - Ambient: capabilities that are preserved across an `execve()` of a
+    - *Ambient*: capabilities that are preserved across an `execve()` of a
       program that is not privileged.
       Can be used to add capabilities to an unprivileged program
-
-    - Bounding: capabilities that might be gained on `execve()`. Can be
+    - *Bounding*: capabilities that might be gained on `execve()`. Can be
       used to limit capabilities that will be acquired from file
       capability sets
 
@@ -246,10 +227,8 @@
 
   - Permitted: capabilities automatically permitted to the thread,
     regardless of the thread's inheritable capabilities
-
   - Inheritable: capabilities that can be permitted, if they also appear
     in thread _Inheritable_ set.
-
   - Effective: a single bit determining if _Permitted_ set has to
     be copied into the thread _Effective_ set.
 
@@ -408,20 +387,14 @@
 <linux-namespaces>
 
 - A way to partition kernel resources
-
 - Different groups of processes will see different resources
-
 - In each namespaces, resources appear isolated from the other
   namespaces
-
 - One fundamental principle behind software containers
-
 - One namespace of each type is created at boot, processes can create or
   join different namespaces during their runtime
-
 - Most features were introduced in Linux 3.8 (2013) or before, but some
   new features keep being added
-
 - Namespace features are optional: they have to be enabled at kernel
   build time to be used
 
@@ -487,31 +460,23 @@
 - `clone()`:
 
   - Namespace related flags can be specified
-
   - The newly created child process will be in different namespace
 
 - `unshare()`:
 
   - Create a new namespace without forking
-
   - Also wrapped by the `unshare` command-line tool
 
 - `setns()`:
 
   - Join an existing namespace
-
   - Pointing to a specific namespace:
-
     - First argument: a link file in `proc/pid/ns/`
-
     - Second argument: a single flag describing the namespace type
 
   - Pointing to a running process:
-
     - First argument: a PID file descriptor obtained with `pidfd_open()`
-
-    - Second argument: a bit mask of flags describing the namespaces to
-      join
+    - Second argument: a bitmask of flags describing the namespaces to join
 
   - Also wrapped by the `nsenter` command-line tool
 
@@ -530,12 +495,9 @@
   process
 
 - Control groups allow to:
-
   - Limit resources allocated to a group: CPU time, CPU set, memory,
     number of file descriptors…
-
   - Prioritize one group over another one
-
   - Measure resource usage, without enforcing any particular limit
 
 - cgroup v2 was introduced in Linux kernel 4.5 (2016) with breaking
@@ -590,17 +552,11 @@
 - A few examples:
 
   - cpu.stat: read-only file of CPU usage statistics
-
   - cpu.max: maximum CPU bandwidth limit
-
   - memory.current: read-only file of current memory usage
-
   - memory.max: memory usage hard limit
-
   - io.stat: read-only file of I/O statistics
-
   - pids.max: Hard limit of number of processes
-
   - cpuset.cpus: CPUs to be used by tasks of this group
 
 === Cgroup interfaces: controllers II
@@ -650,11 +606,8 @@
   themselves to use only a few system calls:
 
   - `read()`
-
   - `write()`
-
   - `exit()`
-
   - `sigreturn()`
 
 - If the process later tries to use another syscall, it will be killed
@@ -707,28 +660,22 @@
 - The _libseccomp_ library provides a higher level abstraction
 
   - Easier to use
-
   - Function based filtering
-
   - Platform independent
 
 === Going further on process isolation
 <going-further-on-process-isolation>
 
 - Namespaces:
-
   - A namespaces article series:
     #link("https://lwn.net/Articles/531114/")
 
 - Control groups:
-
   - A control groups article series:
     #link("https://lwn.net/Articles/604609/")
 
 - seccomp:
-
   - A seccomp overview: #link("https://lwn.net/Articles/656307/")
-
   - About seccomp caveats: #link("https://lwn.net/Articles/738694/")
 
 == Linux Security Modules: SELinux
@@ -739,21 +686,14 @@
 
 - Originally developed by the National Security Agency of the United
   States
-
 - Part of mainline Linux since 2.6.0 in 2003
-
 - Based on the Linux Security Module (LSM) framework of the kernel
-
 - Introduces mandatory access control for userspace components
-
 - Additional access control: traditional access control list mechanism
   is still present
-
 - SELinux can be used to precisely control which activities a system
   allows each user, process, and daemon
-
 - Provided by all major distributions, Yocto and Buildroot
-
 - Used on all Android devices
 
 === SELinux context
@@ -1381,21 +1321,16 @@ Users: 1
   distributions
 
 - Provides features such as
-
   - Parallel startup of services, taking into account dependencies
-
   - Monitoring of services
-
   - On-demand startup of services, through _socket activation_
-
   - Resource-management of services: CPU limits, memory limits
 
 - Configuration based on _unit files_
-
   - Declarative language, instead of shell scripts used in other init
     systems
 
-=== Capabilities related settings
+=== Capabilities-related settings
 <capabilities-related-settings>
 
 - Systemd execution units allow to specify capabilities related settings
@@ -1411,7 +1346,7 @@ Users: 1
   - `NoNewPrivileges=` is a boolean value, controlling if
     `PR_SET_NO_NEW_PRIVS` flag should be applied with `prctl()`. If set,
     ensure no new privilege is ever gained through `execve()`: effective
-    UID and GID are not affected by 'setuid` and 'setgid` bits,
+    UID and GID are not affected by `setuid` and `setgid` bits,
     capabilities cannot be added.
 
 === SELinux and AppArmor control
@@ -1433,10 +1368,8 @@ Users: 1
 - Systemd execution units allow to sandbox processes
 
   - Can be used to limit the system exposure
-
   - Sandboxing options relies on various kernel features: seccomp,
     namespaces…
-
   - Highly simplifies usage of various security features
 
 - All options are described in the _SANDBOXING_ section of the
@@ -1456,7 +1389,6 @@ Users: 1
 
   - `/dev` can be replaced by a folder with only a few pseudo devices,
     such as `/dev/null` or \ `/dev/zero`
-
   - A separate network namespace or a completely isolated network can be
     used. Alternatively, communication can be restricted to some socket
     families
@@ -1464,9 +1396,7 @@ Users: 1
 - System configuration:
 
   - Various parts of `/proc` can be made read-only
-
   - Kernel modules loading can be blocked
-
   - Realtime scheduling can be limited
 
 - Dedicated namespaces can be used: IPC, PID, UTS, clocks…
@@ -1489,13 +1419,10 @@ Users: 1
 
   - `@basic-io`, system calls for basic I/O: `read()`, `write()` and
     related calls
-
   - `@mount`, mounting and unmounting of file system: `mount()`,
     `chroot()`, and related calls
-
   - `@reboot`, System calls for rebooting and reboot preparation:
     `reboot()`, `kexec()`, and related calls
-
   - …
 
 === Systemd resource control
@@ -1527,7 +1454,7 @@ Users: 1
 <systemd-service-example-openvpn.service>
 
 #text(size: 12pt)[
-  ```
+  ```ini
   [Unit]
   Description=OpenVPN connection to %i
   ...
@@ -1554,10 +1481,8 @@ Users: 1
 #setuplabframe([Exploring userland security measures], [
   Time to restrict userland applications!
 
-  - Preventing a simple application from executing shellcode using SECCOMP
-
-  - Manipulating SELinux contexts
-
-  - Using systemd to restrict a daemon's access to resources
+  - Preventing a simple application from executing shellcode using *SECCOMP*
+  - Manipulating *SELinux* contexts
+  - Using *systemd* to restrict a daemon's access to resources
 
 ])

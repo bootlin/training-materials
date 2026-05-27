@@ -107,13 +107,13 @@
 - Some are more relevant than others:
 
   - PKCS\#1, or
-    #link("RFC 8017")[https://datatracker.ietf.org/doc/html/rfc8017] is
+    #link("https://datatracker.ietf.org/doc/html/rfc8017")[RFC 8017] is
     the RSA specification
 
   - PKCS\#3 describes the Diffie-Hellman key agreement protocol
 
   - PKCS\#7 or
-    #link("RFC 2315")[https://datatracker.ietf.org/doc/html/rfc2315]
+    #link("https://datatracker.ietf.org/doc/html/rfc2315")[RFC 2315]
     describes the Cryptographic Message Syntax (CMS)
 
   - PKCS\#10 is a common format for Certificate Signing Requests (CSRs)
@@ -133,7 +133,10 @@
     "https://www.oasis-open.org/committees/tc_home.php?wg_abbrev=pkcs11",
   )[OASIS technical committee]
 
-- The specification includes C header files
+- The specification includes
+  #link(
+    "https://github.com/oasis-tcs/pkcs11/tree/pkcs11-3.00/published/3-00"
+  )[C header files]
 
 - It is then up to token manufacturers to implement the API
 
@@ -146,6 +149,26 @@
     )[PKCS11 module for YubiHSM]
 
   - Thales' libCryptoki2, part of the Luna client
+
+=== PKCS\#11 functions
+
+Below are some examples of functions declared in the `pkcs11f.h` header:
+#[ #show raw.where(lang: "c", block: true): set text(size: 13pt)
+  ```c
+  /* C_Initialize initializes the Cryptoki library. */
+  CK_PKCS11_FUNCTION_INFO(C_Initialize)
+
+  /* C_Finalize indicates that an application is done with the
+   * Cryptoki library.
+   */
+  CK_PKCS11_FUNCTION_INFO(C_Finalize)
+
+  /* C_GetMechanismList obtains a list of mechanism types
+   * supported by a token.
+   */
+  CK_PKCS11_FUNCTION_INFO(C_GetMechanismList)
+  ```
+]
 
 === PKCS\#11 clients
 
@@ -162,6 +185,42 @@
     #link(
       "https://www.gnutls.org/manual/html_node/p11tool-Invocation.html",
     )[p11tool]
+
+=== The OP-TEE PKCS\#11 TA
+
+- Implements the PKCS\#11 interface over the kernel's interface to the TEE
+
+- The "vendor" module is optee_client's
+  #link(
+    "https://github.com/OP-TEE/optee_client/tree/master/libckteec"
+  )[`libckteec.so`]
+
+- Requires the TA to be loaded in OP-TEE
+
+  - this a perfect job for the 
+    #link(
+      "https://github.com/OP-TEE/optee_client/blob/master/libckteec/src/pkcs11_api.c#L95"
+    )[`C_Initialize`] function.
+  - Ultimately, `ckteec_invoke_init` is called:
+ 
+  #[ #show raw.where(lang: "c", block: true): set text(size: 13pt)
+  ```c
+  CK_RV ckteec_invoke_init(void)                                                  
+  {                                                                               
+           TEEC_UUID uuid = PKCS11_TA_UUID;
+  ...
+           res = TEEC_InitializeContext(NULL, &ta_ctx.context);                    
+           if (res != TEEC_SUCCESS) {                                              
+                   EMSG("TEEC init context failed\n");                             
+                   rv = CKR_DEVICE_ERROR;                                          
+                   goto out;                                                       
+           }                                                                       
+                                                                                   
+           res = TEEC_OpenSession(&ta_ctx.context, &ta_ctx.session, &uuid,         
+                                  login_method, login_data, NULL, &origin);
+  ...
+  }
+  ```]
 
 == Cryptographic keys in the kernel
 <cryptographic-keys-in-the-kernel>

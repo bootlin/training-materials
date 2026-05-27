@@ -9,22 +9,15 @@
 === A/B updates
 
 - Mecanism for Over-The-Air (OTA) _image_ updates
-
 - Key idea: avoid one update bricking the device
-
   - Even if tested, one update might prevent the system from booting
-
   - Enable the device to recover from a bad update automatically
-
   - Avoid RMAs or in-the-field intervention
 
 - The key idea is to maintain 2 copies of the system, in two
   *slots*
-
   - minimum is 2 rootFS
-
   - usually also includes the kernel
-
   - can involve the bootloader, depending on the bootROM
 
 - Non-A/B OTAs are
@@ -34,75 +27,45 @@
 === A/B updates: slots
 
 - A/B systems have 2 slots: slot A and slot B
-
-- They each have dedicated boot locations (usually boot medium
-  partitions)
-
+- They each have dedicated boot locations (usually boot medium partitions)
 - On the running system, the slot booted is the *current* slot
-
-- An OTA should never touch boot locations from the *current*
-  slot
-
+- An OTA should never touch boot locations from the *current* slot
 - Each slot can be marked *bootable*
-
-- Updates will usually be built independently from the slot they will
-  occupy
+- Updates will usually be built independently from the slot they will occupy
 
 === A/B updates: strategy
 
-- At boot, the system detect which slot (A or B) is the *current*
-  slot
-
-- The updater will locate the boot locations for the *alternate*
-  slot
-
-- The updater then applies the update to the *alternate* boot
-  locations
-
-- The updater marks the *alternate* slot as *next* to be
-  booted
-
-- Eventually, the system reboots. Possibly triggered at the end of the
-  update
-
+- At boot, the system detect which slot (A or B) is the *current* slot
+- The updater will locate the boot locations for the *alternate* slot
+- The updater then applies the update to the *alternate* boot locations
+- The updater marks the *alternate* slot as *next* to be booted
+- Eventually, the system reboots. Possibly triggered at the end of the update
 - At boot, the bootloader detects the *next* slot and boots it
-
   - If the system fails to boot, the watchdog reboots the system. If the
     slot fails to boot several times, the system boots the other slot.
-
   - If the boot succeed, the system runs checks and if they pass, marks
     the *current* slot as *primary*
 
 === A/B updates: bootloader
 
 - The bootloader is responsible for:
-
   - Booting the *primary* slot by default
-
   - Keeping track of boot failures per slot
-
-  - Trying out the *alternate* slot if it is marked as
-    *next*
-
+  - Trying out the *alternate* slot if it is marked as *next*
   - Optionally, telling the kernel which slot has been booted (A or B)
-
 - Communication between bootloader and the system is short
 
 === Updater: SWUpdate
 
 - Open source project
-
 - #link("https://swupdate.org/")[website] –
   #link("https://github.com/sbabic/swupdate")[code] –
   #link("https://sbabic.github.io/swupdate/index.html")[doc]
 
 - Used e.g. by the
   #link("https://cip-project.org/")[Civil Infrastructure Project]
-
 - Integrated in both Buildroot and Yocto
-
 - Written in C
-
 - Uses `libconfig` syntax for configuration
 
 === SWUpdate: configuration
@@ -145,19 +108,13 @@
 === Updater: RAUC
 
 - Robust Auto-Update Controller
-
 - Also open source
-
 - #link("https://rauc.io/")[website] –
   #link("https://github.com/rauc/rauc")[code] –
   #link("https://rauc.readthedocs.io/en/latest/")[doc]
-
 - Integrated in Buildroot and Yocto
-
 - Written in python
-
 - Uses a configuration and `manifest` in INI format
-
 - Updates are handled in the form of `bundles`
 
 === RAUC: configuration
@@ -205,13 +162,9 @@ filename=barebox.img
 === Updates backend: #link("https://hawkbit.eclipse.dev")[hawkBit]
 
 - Open Source project from the Eclipse foundation
-
 - Back-end for update rollout
-
 - Can break down shipping updates into groups
-
 - Includes a management interface and visualisation
-
 - Supported by both RAUC and SWUpdate
 
 == Examples
@@ -222,13 +175,10 @@ filename=barebox.img
 - U-Boot is natively supported by RAUC
 
 - RAUC will use U-Boot's environment to affect boot order
-
   - `BOOT_ORDER`: Names of all slots, in order of priority
-
   - `BOOT_<slot_name>_LEFT`: remaining boot attempts for the slot
 
 - The environments variables will be read and set by a boot script
-
   - RAUC includes an
     #link("https://github.com/rauc/rauc/blob/master/contrib/uboot.sh")[example]
     (see next slide)
@@ -283,7 +233,6 @@ filename=barebox.img
   )[boot sequence]
 
 - the boot actually stats on the VideoCore, which is the GPU
-
 - this lets users configure the CPU's bootloader via `.txt` files
 
   - #link(
@@ -311,11 +260,7 @@ filename=barebox.img
   Time to setup RAUC!
 
   - RAUC configuration on the target
-
   - Building, shipping and installing a RAUC bundle
-
   - Bundle signature verification using PKCS\#11
-
   - Optionally, RAUC bundle encryption
-
 ])

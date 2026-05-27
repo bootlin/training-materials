@@ -9,39 +9,24 @@
 === Rationale
 
 - "Cybersecurity" has been a rapidly growing concern
-
 - The stakes are high:
-
   - Reputation
-
   - Downtime
-
   - Money (blackmail, ransomware)
-
 - You can actually buy cybersecurity insurance
-
 - Some vulnerabilities have wide-reaching consequences for everyone
-
 - Predictably, this has led to produce standards and legislation
 
 === Examples
 
 - standards
-
   - ISO 27001
-
   - NIST standards, such as
-
     - the Federal Information Processing Standard (FIPS)
-
     - the Advanced Encryption Standard (AES)
-
   - Common Criteria
-
 - laws
-
   - Federal Information Security Modernization Act (FISMA)
-
   - The Cyber Resilience Act
     (#link("https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A02024R2847-20241120")[CRA])
 
@@ -51,15 +36,10 @@
 === Vulnerability taxonomy
 
 - A Vulnerability is a rather high-level concept
-
 - Very different phenomena can be deemed a vulnerability:
-
   - Having a deprecated feature still present in a UI
-
   - Using HTTP
-
   - Use-after-frees
-
   - etc...
 
 - The MITRE corporation has a categorization of vulnerabilities by
@@ -71,44 +51,31 @@
 === Vulnerability databases
 
 - Idea: central repository listing published vulnerabilities
-
 - The main problem here is maintenance
-
 - The reference was the U.S National Vulnerability Database (NVD)
-
   - Funding issues have fragilized NVD as a reliable source
 
 - China has 2 databases: CNVD and CNNVD
-
   - Both require accounts and can be difficult to navigate
 
 - The EU has started the
   #link("https://euvd.enisa.europa.eu/search")[EUVD] in 2025
-
   - Uses UUIDs for vendors and products
-
   - Version ranges are not super trivial to parse
 
 === The CVE program
 
 - CVE stands for "Common Vulnerabilities and Exposures"
-
 - Has been operated by MITRE with US government funding
-
 - This funding has had ups and downs in 2025, which has led to data
   quality issues
-
 - #link(
     "https://www.cve.org/programorganization/cnas",
   )[CVE Numbering Authorities (CNAs)]
   can reserve and assign CVE numbers within their scope
-
 - The Linux kernel team became a CNA in early 2024
-
 - This is the program that serves as a base for the NVD
-
 - Usually contains mostly rudimentary information at first
-
 - Database is cached into a
   #link("https://github.com/CVEProject/cvelistV5")[github repo]
 
@@ -116,18 +83,14 @@
 
 - Open Framework published by FIRST
   (#link("https://www.first.org/cvss/specification-document")[specification])
-
 - Current version is 4 since November 2023
-
 - Usually, CVE records will use 1 or 2 versions of CVSS, depending on
   publication date
-
 - CVSS results in:
-
   - A "vector" representing the values of a discrete set of metrics
-
   - A score between 0 and 10, which is a numerical conversion of the
     vector
+  - both are therefore fully equivalent
 
 - The score is the result of a complex-ish
   #link("https://github.com/FIRSTdotorg/cvss-v4-calculator")[computation]
@@ -136,41 +99,30 @@
 === Exploitation Predictability Scoring System (EPSS)
 
 - Relatively recent (2021) effort
-
 - Backed by FIRST
-
 - Gives an estimated probability of the vulnerability being exploited
   within the next 30 days
-
 - Uses machine learning to correlate exploit activity to vulnerabilities
-
 - Relies on closed-source data from industry partners re: exploitation
-
 - One big question here is how big the blind spot due to the
   incompleteness of the exploitation data is
 
 === Common Platform Enumerations (CPEs)
 
 - CPEs are unambiguous identifiers for a specific product
-
 - Can be very specific, or use wildcards (such as "\*") to identify a
   range of products
-
 - CPE is a MITRE trademark
-
 - An authoritative
   #link("https://nvd.nist.gov/products/cpe")[dictionary] of CPEs is
   maintained by the NIST
-
 - The #link("https://csrc.nist.gov/pubs/ir/7695/final")[specification]
   is also published by the NIST
-
 - Structure of a CPE:
   #text(size: 18pt)[
     `cpe:<version>:<part>:<vendor>:<product>:<version>:<update>:<edition>:<language> \\
      :<sw_edition>:<target_sw>:<target_hw>:<other>
   `]
-
 - Example for
   #link("https://github.com/CVEProject/cvelistV5/blob/main/cves/2026/22xxx/CVE-2026-22174.json")[CVE-2026-22174]:
 
@@ -210,19 +162,15 @@
 === The Cyber Resiliance Act #link("https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A02024R2847-20241120")[CRA]
 
 - European Law adopted on October 10 2024
-
   - Most dispositions start applying on December 11 2027
-
   - Manufacturer's reporting obligations to
     #link("https://www.enisa.europa.eu/")[ENISA] start on September 11
     2026
 
 - Applies to products placed on the European market
-
   - "Products" in this case include software
 
 - Enforces obligations from different actors regarding cybersecurity
-
 - Introduces a minimum amount of time these obligations must be carried
   out: the support period
 
@@ -231,15 +179,10 @@
 - It is defined in Article 13, paragraph 8
 
 - Determined by the manufacturer, taking into account:
-
   - EU law (other than CRA) if existing
-
   - ADCO (ADministrative COoperation group) guidance
-
   - comparable products' support period
-
   - the "availability of the operating environment"
-
   - the support period of critical components
 
 - Minimum is 5 years unless the product cannot reasonably be expected to
@@ -267,7 +210,10 @@
 
 - CRA definition:
 
-  `a formal record containing details and supply chain relationships of components included in the software elements of a product with digital elements; a commonly used and machine-readable format covering at the very least the top-level dependencies of the products
+  `a formal record containing details and supply chain relationships of
+components included in the software elements of a product with
+digital elements; a commonly used and machine-readable format covering 
+at the very least the top-level dependencies of the products
   `
 
 - #link(
@@ -276,17 +222,13 @@
 
 - SBoMs are supposed to give end-users a good overview of their
   dependencies
-
-- Without them, answering "are we using component X" can be hard
+- Without them, answering "are we using component X?" can be hard
 
 === SBom standards
 
 - No law imposes a specific format for SBoMs
-
 - Two main standards are competing:
-
   - #link("https://cyclonedx.org/")[CycloneDX]
-
   - #link("https://spdx.dev/")[SPDX]
 
 === #link("https://cyclonedx.org/")[CycloneDX]
@@ -297,34 +239,22 @@
   published by ECMA (ECMA-424 as of December 2025)
 
 - Supports the following serialization formats:
-
   - JSON (JavaScript Object Notation)
-
   - XML (eXtensible Markup Language)
-
   - Protocol buffers
 
 - Tends to be supported by commercial tools
-
   - SBoM Studio (Cybeats)
-
   - SBoM Manager (Keysight)
 
 === #link("https://spdx.dev/")[SPDX]
 
 - Software Package Data eXchange
-
 - Open Source project hosted by the Linux Foundation
-
-- #link("https://www.iso.org/standard/81870.html")[Standard] published
-  by ISO
-
+- #link("https://www.iso.org/standard/81870.html")[Standard] published by ISO
 - Two versions coexist:
-
   - 2.3 is widely supported, and the current ISO standard
-
   - 3.0 tooling is trailing a bit, and the next ISO standard (draft)
-
 - Tends to be supported by open-source tools
 
 === SPDX3: Example
@@ -369,23 +299,16 @@
 )[VEX]
 
 - Vulnerability Exploitability eXchange
-
 - Not actually a standard: CISA only defines a set of minimum
   requirements
-
 - There are a few implementation options:
-
   - CycloneDX integrates VEX within the _vulnerabilities_ property
-
   - The Common Security Advisory Framework
     (#link("https://www.csaf.io/")[CSAF]) defines a VEX profile
-
   - #link("https://openvex.dev/")[OpenVEX] is a community-driven
     standard of VEX that meets the CSAF minimum requirements
-
 - The SBoM is an inventory of the software which can be used to lookup
   vulnerabilities
-
 - VEX expresses e.g. the applicability of those vulnerabilities
 
 === SPDX3: Example
@@ -456,29 +379,21 @@
 
 === Using the SBoM
 
-- SBoMs are a catalogue of the software on your device, including its
-  version
-
+- SBoMs are a catalogue of the software on your device, including its version
 - They can be used to look up vulnerabilities in databases (NVD,
   CVElistV5, EUVD...)
-
 - They can also include _annotations_ in the form of VEX
   information
-
   - For instance, yocto includes annotations that are part of the layer
     in their SBoMs
-
 - They can be used periodically to scan _new_ vulnerabilities,
   without rebuilding
 
 === VulnScout
 
 - Open Source tool from Savoir-faire Linux
-
 - Graphical interface
-
 - Uses a docker container for the HTTP server
-
 - Supports SPDX2.2, SPDX 3 and Cyclone DX
 
 === VulnScout
@@ -493,17 +408,11 @@
   #link("https://sbom-cve-check.readthedocs.io/en/latest/")[documentation]
 
 - Written in python, with as few dependencies as possible
-
 - SBoM enrichment based on CVE databases: NVD, CVElistV5
-
 - Supports SPDX 2.2 (Yocto's format) and SPDX 3
-
 - Can take CVE annotations in format:
-
   - simple-annotations (YAML)
-
   - Yocto VEX manifest
-
   - OpenVEX
 
 == Upgrading strategy
@@ -512,34 +421,23 @@
 === Upgrades
 
 - Updates can be necessary for multiple reasons:
-
   - Patching a security vulnerability
-
   - Rotating cryptographic material (e.g. later stage secure boot keys)
-
   - Legal obligation (e.g. CRA)
-
   - Adding functionality
 
 - Some upgrades are simple, e.g. deploying a patch
-
 - Version upgrades can be hard, especially when skipping over versions
 
 === Picking a version
 
 - Embedded systems rely on a plethora of Open Source projects
-
 - A lot of work is done *upstream*
-
 - When a vulnerability is found or reported, or an important bug is
   fixed, only *supported versions* will get the fix
-
 - The further one's version strays from a supported version, the harder
   *tracking* and *porting* fixes becomes
-
-- In terms of security, being on the newest stable version is usually
-  best
-
+- In terms of security, being on the newest stable version is usually best
 - The issue is compatibility
 
 === Long-Term Support
@@ -547,9 +445,7 @@
 - Long-Term Support (LTS) versions stay supported for longer
 
   - Linux kernel LTS versions are supported for 2 years minimum
-
   - Yocto LTS versions receive 4 years of support
-
   - Buildroot LTSs are supported for 3 *years* instead of 3
     *months*
 
@@ -557,30 +453,22 @@
 
   - the Linux kernel has a
     #link("https://www.kernel.org/category/releases.html")[list of LTS versions]
-
   - so does the
     #link("https://www.yoctoproject.org/development/releases/")[Yocto project]
-
   - the same for #link("https://buildroot.org/lts.html")[buildroot]
 
 - The #link("https://cip-project.org/")[Civil Infrastructure Platform]
   aims to extend LTS windows to over 5 years
 
   - consortium of large industry members
-
   - under the Linux Foundation
-
   - some features are introduced, not just fixes
 
 #setuplabframe([Exploring compliance topics], [
   Time to get familiar with SBoMs and CVEs!
 
   - Generating an SBoM for a Yocto distribution
-
   - Analyzing the generated SBoM using \code{sbom-cve-check}
-
   - Patching a CVE present in the SBoM
-
   - Differential analysis
-
 ])

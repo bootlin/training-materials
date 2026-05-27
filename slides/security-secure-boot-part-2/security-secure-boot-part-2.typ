@@ -143,14 +143,14 @@
 
 === Flattened Image Tree (FIT)
 
-- The FIT image #link("https://fitspec.osfw.foundation/")[specification]
-  was split off of U-Boot
-
 - FIT images are Flattened Device Trees/
   #link(
     "https://devicetree-specification.readthedocs.io/en/stable/flattened-format.html",
   )[Device Tree Blobs]
   that respect additional constraints.
+
+- The FIT image #link("https://fitspec.osfw.foundation/")[specification]
+  was split off of U-Boot
 
 - They are essentially containers for
   sub-#link("https://fitspec.osfw.foundation/#align(center, [#images-node")[images]
@@ -298,6 +298,11 @@
 
 - The `-r` option marks the key as required.
 
+- The `.its` file will need to specify:
+
+  - which files to pack into the FIT image
+  - which nodes of the Device Tree to sign
+
 === fit.its
 <fit.its>
 
@@ -346,7 +351,7 @@
 
 - We have verified software up to the kernel, what about userland?
 
-- We want to check the integrity of the root filesystem
+- We want to check the authenticity of the root filesystem
 
   - The system cannot modify the root filesystem, so it might as well be
     mounted read-only.
