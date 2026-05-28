@@ -332,8 +332,6 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=083..."
 
 - `bitbake` allows to reflect this by using:
 
-  - `DEPENDS = "recipe-b (>= 1.2)"`
-
   - `RDEPENDS:$PN = "recipe-b (>= 1.2)"`
 
 - The following operators are supported: `=`, `>`, `<`, `>=` and `<=`.
