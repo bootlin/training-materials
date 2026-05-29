@@ -175,7 +175,7 @@ Flip side of the security properties:
 
 - Suitable for GDPR/HIPAA/
 
-  - *Likability* Can an adversary link actions or data to a
+  - *Linkability* Can an adversary link actions or data to a
     person?
 
   - *Identifiability* Can an adversary leak a person's identity?
