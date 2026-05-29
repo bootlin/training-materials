@@ -30,7 +30,7 @@ $ . $HOME/__SESSION_NAME__-labs/sdk/environment-setup-cortexa55-oe-linux
 $ make
 $ ssh root@${BOARD} mkdir -p /usr/local/bin
 $ scp seccomp-test root@${BOARD}:/usr/local/bin
-$ ssh root@${BOARD} /usr/local/bin/seccomp-test
+$ ssh -t root@${BOARD} /usr/local/bin/seccomp-test
 Showing content of "/proc/cmdline":
 console=ttyLP0,115200 root=/dev/mmcblk1p2 rootwait rw selinux=1 enforcing=0
 Running "/bin/bash":
@@ -102,6 +102,7 @@ Bad system call (core dumped)
 
 \section{Manipulating SELinux contexts}
 
+
 To demonstrate SELinux use case, we will use a small TFTP server present on the
 board.
 This TFTP server has been misconfigured: instead of serving the content of
@@ -139,6 +140,15 @@ If downloads are failing, you might need to have a look at the tftp server logs:
 \begin{bashinput}
 # journalctl -u atftpd -f
 \end{bashinput}
+
+Before we can use SELinux, we need to relable the filesystem. Run the
+command
+
+\begin{bashinput}
+$ fixfiles relabel
+\end{bashinput}
+
+Then reboot the board.
 
 Once we have this working setup, we can start experimenting with SELinux.
 SELinux enforcement is disabled by default, thanks to the kernel command line.

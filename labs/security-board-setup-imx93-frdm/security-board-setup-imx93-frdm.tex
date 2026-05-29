@@ -27,6 +27,23 @@ Then run kas to build the Yocto image. This might take a few hours.
 $ kas build security-training-imx93-frdm.yaml
 \end{bashinput}
 
+You might have to explicitly allow \code{bitbake} to use user namespaces:
+
+First, add the following content in \code{/etc/apparmor.d/bitbake}:
+
+\begin{bashinput}
+abi <abi/4.0>,
+include <tunables/global>
+
+profile bitbake /path-to-your/bitbake flags=(unconfined) {
+  userns,
+}
+\end{bashinput}
+
+\begin{bashinput}
+$ cat /etc/apparmor.d/bitbake | sudo apparmor_parser -a
+\end{bashinput}
+
 \section{Set up the SD card}
 
 We will now use an SD card to store the bootloader, kernel and root filesystem
