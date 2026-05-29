@@ -135,7 +135,7 @@
 
 - The specification includes
   #link(
-    "https://github.com/oasis-tcs/pkcs11/tree/pkcs11-3.00/published/3-00"
+    "https://github.com/oasis-tcs/pkcs11/tree/pkcs11-3.00/published/3-00",
   )[C header files]
 
 - It is then up to token manufacturers to implement the API
@@ -192,35 +192,33 @@ Below are some examples of functions declared in the `pkcs11f.h` header:
 
 - The "vendor" module is optee_client's
   #link(
-    "https://github.com/OP-TEE/optee_client/tree/master/libckteec"
+    "https://github.com/OP-TEE/optee_client/tree/master/libckteec",
   )[`libckteec.so`]
 
 - Requires the TA to be loaded in OP-TEE
 
-  - this a perfect job for the 
-    #link(
-      "https://github.com/OP-TEE/optee_client/blob/master/libckteec/src/pkcs11_api.c#L95"
-    )[`C_Initialize`] function.
+  - this a perfect job for the
+    #link("https://github.com/OP-TEE/optee_client/blob/master/libckteec/src/pkcs11_api.c#L95")[`C_Initialize`] function.
   - Ultimately, `ckteec_invoke_init` is called:
- 
+
   #[ #show raw.where(lang: "c", block: true): set text(size: 13pt)
-  ```c
-  CK_RV ckteec_invoke_init(void)                                                  
-  {                                                                               
-           TEEC_UUID uuid = PKCS11_TA_UUID;
-  ...
-           res = TEEC_InitializeContext(NULL, &ta_ctx.context);                    
-           if (res != TEEC_SUCCESS) {                                              
-                   EMSG("TEEC init context failed\n");                             
-                   rv = CKR_DEVICE_ERROR;                                          
-                   goto out;                                                       
-           }                                                                       
-                                                                                   
-           res = TEEC_OpenSession(&ta_ctx.context, &ta_ctx.session, &uuid,         
-                                  login_method, login_data, NULL, &origin);
-  ...
-  }
-  ```]
+    ```c
+    CK_RV ckteec_invoke_init(void)
+    {
+             TEEC_UUID uuid = PKCS11_TA_UUID;
+    ...
+             res = TEEC_InitializeContext(NULL, &ta_ctx.context);
+             if (res != TEEC_SUCCESS) {
+                     EMSG("TEEC init context failed\n");
+                     rv = CKR_DEVICE_ERROR;
+                     goto out;
+             }
+
+             res = TEEC_OpenSession(&ta_ctx.context, &ta_ctx.session, &uuid,
+                                    login_method, login_data, NULL, &origin);
+    ...
+    }
+    ```]
 
 == Cryptographic keys in the kernel
 <cryptographic-keys-in-the-kernel>

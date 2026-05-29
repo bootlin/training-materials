@@ -150,7 +150,7 @@
   of software. This includes:
 
   - Offline modification of the software by reflashing the boot medium.
-    
+
     This could be how an attacker gain access.
 
   - Runtime rewriting of the software (persistence).
