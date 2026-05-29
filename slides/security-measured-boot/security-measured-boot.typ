@@ -12,7 +12,7 @@
 === Measured boot
 
 - Another way of establishing *trust*
-- Idea: measure caracteristics of the system and record the measurement
+- Idea: measure characteristics of the system and record the measurement
 - One major target for measurement is the software being run
 - Other targets include:
   - configuration (e.g. U-Boot environment)

@@ -26,7 +26,7 @@
 - Provides an analysis of what affects the security and which measures
   need to be implemented
 
-- A large number of framworks and methodologies exist.
+- A large number of frameworks and methodologies exist.
 
 === Security properties: CIA triad
 <security-properties-cia-triad>
@@ -175,7 +175,7 @@ Flip side of the security properties:
 
 - Suitable for GDPR/HIPAA/
 
-  - *Linkability* Can an adversary link actions or data to a
+  - *Likability* Can an adversary link actions or data to a
     person?
 
   - *Identifiability* Can an adversary leak a person's identity?
@@ -184,7 +184,7 @@ Flip side of the security properties:
     person?
 
   - *Detectability* Can an adversary detect a person's
-    involvment?
+    involvement?
 
   - *Disclosure of information* Can an adversary access personal
     data?
@@ -198,7 +198,7 @@ Flip side of the security properties:
 === Threat modeling frameworks: PASTA
 <threat-modeling-frameworks-pasta>
 
-- Process for Attack Simultation and Threat Analysis
+- Process for Attack Simulation and Threat Analysis
 
 - Rather complex
 

@@ -53,7 +53,7 @@
 
     - The public key's hash is stored in a once-writable memory
 
-    - The BootROM uses it to validate the embeded key
+    - The BootROM uses it to validate the embedded key
 
     - It uses that key to recompute the hash from the signature
 
@@ -181,7 +181,7 @@
 
   - The CPU
 
-  - Optionally, harware implementations of cryptography
+  - Optionally, hardware implementations of cryptography
 
 - Of these, only the hash(es) are in an integrator's control
 
@@ -198,7 +198,7 @@
 
 - Mostly used on x86
 
-- UEFI uses a mofified version of Microsoft's Portable Executable (PE)
+- UEFI uses a modified version of Microsoft's Portable Executable (PE)
   file format
 
 - Must be authenticated by the CPU first

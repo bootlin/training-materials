@@ -31,7 +31,7 @@
 - On older CPUs, or some architectures, it even has *unfiltered*
   access
 
-- Needs to be isolated from useland even though both run on the same
+- Needs to be isolated from userland even though both run on the same
   hardware
 
 - The key is the *privilege level*

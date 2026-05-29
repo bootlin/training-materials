@@ -159,7 +159,7 @@
 == Regulation
 <regulation>
 
-=== The Cyber Resiliance Act #link("https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A02024R2847-20241120")[CRA]
+=== The Cyber Resilience Act #link("https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A02024R2847-20241120")[CRA]
 
 - European Law adopted on October 10 2024
   - Most dispositions start applying on December 11 2027

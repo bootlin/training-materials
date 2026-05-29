@@ -8,7 +8,7 @@
 
 === A/B updates
 
-- Mecanism for Over-The-Air (OTA) _image_ updates
+- Mechanism for Over-The-Air (OTA) _image_ updates
 - Key idea: avoid one update bricking the device
   - Even if tested, one update might prevent the system from booting
   - Enable the device to recover from a bad update automatically

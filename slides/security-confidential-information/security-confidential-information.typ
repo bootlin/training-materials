@@ -244,7 +244,7 @@ Below are some examples of functions declared in the `pkcs11f.h` header:
 
 - The kernel sort of acts as an HSM for userland
 
-- *Trusted key* encryption is harware-backed
+- *Trusted key* encryption is hardware-backed
 
 - *Encrypted key* encryption is backed by a kernel keyring key
 
