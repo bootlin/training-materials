@@ -1,0 +1,37 @@
+#!/bin/sh
+# Abort the commit if any staged .typ file is not formatted per typstyle.
+# Checks the staged blob (not the worktree) so unrelated edits don't interfere.
+
+set -e
+
+if ! command -v typstyle >/dev/null 2>&1; then
+    echo "pre-commit: typstyle not found in PATH; skipping .typ format check" >&2
+    exit 0
+fi
+
+# Added/Copied/Modified/Renamed, NUL-separated to handle spaces in paths.
+files=$(git diff --cached --name-only --diff-filter=ACMR -z | tr '\0' '\n' | grep -E '\.typ$' || true)
+
+[ -z "$files" ] && exit 0
+
+bad=""
+while IFS= read -r f; do
+    [ -z "$f" ] && continue
+    if ! git show ":$f" | typstyle --check >/dev/null 2>&1; then
+        bad="$bad $f"
+    fi
+done <<EOF
+$files
+EOF
+
+if [ -n "$bad" ]; then
+    echo "pre-commit: the following staged .typ files are not formatted:" >&2
+    for f in $bad; do
+        printf '  %s\n' "$f" >&2
+    done
+    echo >&2
+    echo "To fix, run:" >&2
+    echo "  typstyle -i$bad" >&2
+    echo "then 'git add' the files and commit again." >&2
+    exit 1
+fi

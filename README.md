@@ -24,6 +24,11 @@ sudo pacman -S texlive-binextra texlive-fontsextra texlive-fontutils texlive-lan
   ttf-inconsolata ttf-liberation ghostscript otf-latin-modern && yay -S dia-git
 ```
 
+You will also need to install
+[Typst](https://typst.app/open-source/#download)(prefer the "standalone
+executable" installation method) as well as
+[typstyle](https://typstyle-rs.github.io/typstyle/).
+
 Then, run 'make help' to see what available targets are.
 
 For example:
@@ -41,6 +46,22 @@ Compiling issues
    compile again.
 
    Example case: https://tex.stackexchange.com/questions/352017/miktex-and-beamer-error-beamerendinputifotherversion
+
+General formatting guidelines
+=============================
+
+ * The repository contains document sources in both LaTeX (.tex files) and
+   Typst (.typ files). For the latter, the files are expected to be
+   properly formatted at any point of time in the git history. The chosen
+   formatting tool is typstyle. To make sure not to commit any unformatted
+   typst content, you can copy the git pre-commit hook stored in this
+   repository to your git hooks:
+   ```
+   $ cp utils/git-hooks/pre-commit .git/hooks
+   ```
+   Once done, git will refuse to commit any file that is not properly
+   formatted, it is then up to you to format those with the command hinted
+   by the hook, to stage them again and to commit.
 
 Labs formatting guidelines
 ==========================
