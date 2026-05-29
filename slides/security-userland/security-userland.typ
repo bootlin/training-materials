@@ -53,7 +53,7 @@
 
 - POSIX permissions are a typical example of a DAC based on ACLs
 
-- UNIX philosophy: everything is a file, so objects (including devices) are 
+- UNIX philosophy: everything is a file, so objects (including devices) are
   represented by files.
 
 - Files metadata include:

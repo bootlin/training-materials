@@ -378,10 +378,10 @@ Flip side of the security properties:
 #text(size: 12pt)[
   #align(center)[
     #align(center, [#image("CBC_encryption.svg", width: 80%)])
-      WhiteTimberwolf, Public domain: \
-      #link(
-        "https://commons.wikimedia.org/wiki/File:CBC_encryption.svg",
-        )[https://commons.wikimedia.org/wiki/File:CBC_encryption.svg]
+    WhiteTimberwolf, Public domain: \
+    #link(
+      "https://commons.wikimedia.org/wiki/File:CBC_encryption.svg",
+    )[https://commons.wikimedia.org/wiki/File:CBC_encryption.svg]
   ]
 ]
 
@@ -407,10 +407,10 @@ Flip side of the security properties:
 #text(size: 12pt)[
   #align(center)[
     #align(center, [#image("CTR_encryption_2.svg", width: 80%)])
-      WhiteTimberwolf, Public domain: \
-      #link(
-        "https://commons.wikimedia.org/wiki/File:CTR_encryption_2.svg",
-      )[https://commons.wikimedia.org/wiki/File:CTR_encryption_2.svg]
+    WhiteTimberwolf, Public domain: \
+    #link(
+      "https://commons.wikimedia.org/wiki/File:CTR_encryption_2.svg",
+    )[https://commons.wikimedia.org/wiki/File:CTR_encryption_2.svg]
   ]
 ]
 

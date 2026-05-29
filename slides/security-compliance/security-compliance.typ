@@ -212,7 +212,7 @@
 
   `a formal record containing details and supply chain relationships of
 components included in the software elements of a product with
-digital elements; a commonly used and machine-readable format covering 
+digital elements; a commonly used and machine-readable format covering
 at the very least the top-level dependencies of the products
   `
 
