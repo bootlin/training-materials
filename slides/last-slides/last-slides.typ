@@ -8,6 +8,10 @@
   sys.inputs.trainer
 } else { none }
 
+#let sessionurl = if "session_url" in sys.inputs {
+  sys.inputs.session_url
+} else { none }
+
 = Last slides
 
 #if trainer != none {
@@ -17,35 +21,27 @@
 
     - Rate this training session and provide your feedback:
 
-      #link("sessionurl/survey.html")[sessionurl/survey.html]
+      #link(sessionurl + "/survey.html")[#sessionurl/survey.html]
 
     === Evaluation and final quiz
 
     - Rate this training session and provide your feedback:
 
-      #link("sessionurl/survey.html")[sessionurl/survey.html]
+      #link(sessionurl + "/survey.html")[#sessionurl/survey.html]
+
+      #v(1em)
 
     - Fill in the final quiz to assess your level of knowledge on the topics
       covered in this course. To get the training certificate, you must have
       attended all sessions, and get at least 50% of correct answers at this
       final quiz:
 
-      #link("sessionurl/quiz-after.html")[sessionurl/quiz-after.html]
+      #link(sessionurl + "/quiz-after.html")[#sessionurl/quiz-after.html]
 
       The final quiz must be filled in within two weeks of the training
       end's date.
 
-      The training certificate is sent two weeks after the training end's
-      date.
-    - Fill in the final quiz to assess your level of knowledge on the topics
-      covered in this course. To get the training certificate, you must have
-      attended all sessions, and get at least 50% of correct answers at this
-      final quiz:
-
-      #link("sessionurl/quiz-after.html")[sessionurl/quiz-after.html]
-
-      The final quiz must be filled in within two weeks of the training
-      end's date.
+      #v(1em)
 
       The training certificate is sent two weeks after the training end's
       date.
