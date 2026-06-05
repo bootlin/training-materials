@@ -87,20 +87,28 @@ $ mkdir bundle
 $ cd bundle
 $ mkdir root
 $ echo "The rootfs has been updated" > root/UPDATED.txt
+$ cp ../../board_setup/build/tmp-glibc/deploy/images/freiheit93/security-training-image-freiheit93.rootfs.tar.gz rootfs.tar.gz
 $ gzip -d rootfs.tar.gz
-$ tar -uvf rootfs.tar root
+$ tar -uvf rootfs.tar ./root
+$ rm -rf root
+$ gzip rootfs.tar
 $ rauc bundle . update.bundle --signing-keyring=../ca/cacert.pem --key=../host/hostkey.pem --cert=../host/host.crt 
 Creating 'verity' format bundle
 rauc-Message: Keyring given, doing signature verification
 rauc-Message: Verified inline signature by 'C = FR, ST = Some-State, O = Bootlin security training, CN = host computer'
-$ scp update.bundle root@{BOARD}
+$ scp update.bundle root@${BOARD}:
 \end{bashinput}
+
+Disable SELinux
 
 And then install it and reboot:
 
 \begin{bashinput}
 $ rauc install update.bundle
 \end{bashinput}
+
+You might get SELinux errors during bundle installation: this can be fixed by
+disabling SELinux in the kernel command line with \code{selinux=0}.
 
 RAUC might fail because the system's date is too long in the past for the certificate we generated to already be valid.
 
