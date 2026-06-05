@@ -6,7 +6,7 @@
 
 #titleframe()
 #let sessionurl = if "session_url" in sys.inputs {
-  sys.inputs.session_url
+  sys.inputs.session_url.trim("/", at: end)
 } else { none }
 
 #let trainer = if "trainer" in sys.inputs {

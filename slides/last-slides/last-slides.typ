@@ -9,7 +9,7 @@
 } else { none }
 
 #let sessionurl = if "session_url" in sys.inputs {
-  sys.inputs.session_url
+  sys.inputs.session_url.trim("/", at: end)
 } else { none }
 
 = Last slides
@@ -21,13 +21,13 @@
 
     - Rate this training session and provide your feedback:
 
-      #link(sessionurl + "/survey.html")[#sessionurl/survey.html]
+      #link(sessionurl + "survey.html")[#sessionurl/survey.html]
 
     === Evaluation and final quiz
 
     - Rate this training session and provide your feedback:
 
-      #link(sessionurl + "/survey.html")[#sessionurl/survey.html]
+      #link(sessionurl + "survey.html")[#sessionurl/survey.html]
 
       #v(1em)
 
