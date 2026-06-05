@@ -69,7 +69,7 @@
   the registers.
 
   - The kernel exports some defines (in `unistd.h`) that are named
-    `__NR_<sycall>` and defines the syscall identifiers.
+    `__NR_<syscall>` and defines the syscall identifiers.
 
 #v(0.5em)
 
