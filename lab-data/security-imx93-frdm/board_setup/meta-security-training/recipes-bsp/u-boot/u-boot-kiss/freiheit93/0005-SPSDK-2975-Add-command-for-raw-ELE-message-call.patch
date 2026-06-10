@@ -1,4 +1,4 @@
-From 493c4c46fde52a3f0f2b23d4dd7f93773368a017 Mon Sep 17 00:00:00 2001
+From b4049a8fedf8a9ad1f4ed46a839dd589d19fd563 Mon Sep 17 00:00:00 2001
 From: Marek Vitula <marek.vitula@nxp.com>
 Date: Thu, 14 Dec 2023 09:18:05 +0100
 Subject: [PATCH] [SPSDK-2975] Add command for raw ELE message call
@@ -10,16 +10,17 @@ Subject: [PATCH] [SPSDK-2975] Add command for raw ELE message call
  3 files changed, 132 insertions(+)
 
 diff --git a/arch/arm/include/asm/mach-imx/ele_api.h b/arch/arm/include/asm/mach-imx/ele_api.h
-index f58d6c73921..49179642e37 100644
+index 4e1afc42bd86..5f76159ad42a 100644
 --- a/arch/arm/include/asm/mach-imx/ele_api.h
 +++ b/arch/arm/include/asm/mach-imx/ele_api.h
-@@ -159,3 +159,4 @@ int ele_start_rng(void);
- int ele_write_shadow_fuse(u32 fuse_id, u32 fuse_val, u32 *response);
+@@ -164,4 +164,5 @@ int ele_write_shadow_fuse(u32 fuse_id, u32 fuse_val, u32 *response);
  int ele_read_shadow_fuse(u32 fuse_id, u32 *fuse_val, u32 *response);
+ int ele_volt_change_start_req(void);
+ int ele_volt_change_finish_req(void);
 +int ele_message_call(struct ele_msg *msg);
  #endif
 diff --git a/arch/arm/mach-imx/ele_ahab.c b/arch/arm/mach-imx/ele_ahab.c
-index 02048157826..9d41a796c21 100644
+index 4d4620dcafd5..71f5f7a72c63 100644
 --- a/arch/arm/mach-imx/ele_ahab.c
 +++ b/arch/arm/mach-imx/ele_ahab.c
 @@ -3,7 +3,9 @@
@@ -32,7 +33,7 @@ index 02048157826..9d41a796c21 100644
  #include <errno.h>
  #include <imx_container.h>
  #include <asm/io.h>
-@@ -14,6 +16,7 @@
+@@ -15,6 +17,7 @@
  #include <console.h>
  #include <cpu_func.h>
  #include <asm/global_data.h>
@@ -40,7 +41,7 @@ index 02048157826..9d41a796c21 100644
  
  DECLARE_GLOBAL_DATA_PTR;
  
-@@ -721,6 +724,114 @@ static int do_ahab_commit(struct cmd_tbl *cmdtp, int flag, int argc,
+@@ -722,6 +725,114 @@ static int do_ahab_commit(struct cmd_tbl *cmdtp, int flag, int argc,
  	return 0;
  }
  
@@ -156,10 +157,10 @@ index 02048157826..9d41a796c21 100644
  	   "autenticate OS container via AHAB",
  	   "addr\n"
 diff --git a/drivers/misc/imx_ele/ele_api.c b/drivers/misc/imx_ele/ele_api.c
-index cb4717c841f..77f720dc7c2 100644
+index e7aee0fcef1f..b236e2a68fac 100644
 --- a/drivers/misc/imx_ele/ele_api.c
 +++ b/drivers/misc/imx_ele/ele_api.c
-@@ -853,3 +853,23 @@ int ele_v2x_get_state(struct v2x_get_state *state, u32 *response)
+@@ -844,3 +844,23 @@ int ele_volt_change_finish_req(void)
  
  	return ret;
  }
@@ -184,5 +185,5 @@ index cb4717c841f..77f720dc7c2 100644
 +	return ret;
 +}
 -- 
-2.54.0
+2.47.3
 
