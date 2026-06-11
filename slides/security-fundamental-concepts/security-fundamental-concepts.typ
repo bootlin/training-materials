@@ -38,7 +38,7 @@
   information?
 
 - *Availability*: Can authorized access to information be
-  impended?
+  impeded?
 
 === Confidentiality
 <confidentiality>
@@ -86,7 +86,7 @@
   information?
 
 - *Availability*: Can authorized access to information be
-  impended?
+  impeded?
 
 - *Authenticity*: Can an unauthorized entity insert
   undistinguishable information?
@@ -173,7 +173,7 @@ Flip side of the security properties:
 
 - Developed by researchers at KU Leuven
 
-- Suitable for GDPR/HIPAA/
+- Suitable for GDPR/HIPAA
 
   - *Linkability* Can an adversary link actions or data to a
     person?
@@ -385,7 +385,7 @@ Flip side of the security properties:
   ]
 ]
 
-=== Block Cipher Modes of Operation Examples (1)
+=== Block Cipher Modes of Operation Examples (2)
 <block-cipher-modes-of-operation-examples-1>
 #text(size: 18pt)[
   - Modes ensuring data confidentiality:
@@ -414,7 +414,7 @@ Flip side of the security properties:
   ]
 ]
 
-=== Block Cipher Modes of Operation Examples (2)
+=== Block Cipher Modes of Operation Examples (3)
 <block-cipher-modes-of-operation-examples-2>
 
 - Modes ensuring data authentication:
@@ -442,7 +442,7 @@ Flip side of the security properties:
     confidentiality and authentication modes, at the risk of leaking
     part of it.
 
-=== Block Cipher Modes of Operation Examples (2)
+=== Block Cipher Modes of Operation Examples (4)
 <block-cipher-modes-of-operation-examples-2-1>
 
 - Modes ensuring data authentication and confidentiality:
@@ -990,11 +990,8 @@ Flip side of the security properties:
   Time to apply some fundamental concepts!
 
   - Using OpenSSL to generate a key hierarchy
-
   - Exchange and verify encrypted and signed messages
-
   - Experimenting with key revocation
-
-  - Performance comparison of public and private key encryption
+  - Performance comparison of symmetric and asymmetric encryption algorithms
 
 ])

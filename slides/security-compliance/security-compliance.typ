@@ -468,7 +468,7 @@ at the very least the top-level dependencies of the products
   Time to get familiar with SBoMs and CVEs!
 
   - Generating an SBoM for a Yocto distribution
-  - Analyzing the generated SBoM using \code{sbom-cve-check}
+  - Analyzing the generated SBoM using sbom-cve-check
   - Patching a CVE present in the SBoM
   - Differential analysis
 ])

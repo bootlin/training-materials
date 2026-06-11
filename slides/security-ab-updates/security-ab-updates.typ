@@ -177,6 +177,8 @@ filename=barebox.img
 - RAUC will use U-Boot's environment to affect boot order
   - `BOOT_ORDER`: Names of all slots, in order of priority
   - `BOOT_<slot_name>_LEFT`: remaining boot attempts for the slot
+  - When using secure boot, u-boot environment should be protected using
+    `CONFIG_ENV_WRITEABLE_LIST`
 
 - The environments variables will be read and set by a boot script
   - RAUC includes an
@@ -262,5 +264,4 @@ filename=barebox.img
   - RAUC configuration on the target
   - Building, shipping and installing a RAUC bundle
   - Bundle signature verification using PKCS\#11
-  - Optionally, RAUC bundle encryption
 ])

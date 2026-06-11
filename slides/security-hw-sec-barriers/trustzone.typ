@@ -102,7 +102,7 @@
 
 === Trusted Firmware A (TF-A)
 
-- TF-A is split into 5 steps:
+- TF-A boot is split into 5 steps:
 
   - BootLoader 1, or BL1: the SoC vendor's ROM code
 
@@ -131,7 +131,7 @@
 
 === ARMv8 boot sequence: TF-A names
 
-#align(center, [#image("/common/armv8-boot-sequence-generic.svg", width: 60%)])
+#align(center, [#image("/common/armv8-boot-sequence-generic.svg", width: 55%)])
 
 === Trusted Firmware A (TF-A)
 
