@@ -25,7 +25,7 @@ sudo pacman -S texlive-binextra texlive-fontsextra texlive-fontutils texlive-lan
 ```
 
 You will also need to install
-[Typst](https://typst.app/open-source/#download)(prefer the "standalone
+[Typst](https://typst.app/open-source/#download) (prefer the "standalone
 executable" installation method) as well as
 [typstyle](https://typstyle-rs.github.io/typstyle/).
 
