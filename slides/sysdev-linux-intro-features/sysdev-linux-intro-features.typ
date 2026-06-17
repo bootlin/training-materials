@@ -17,7 +17,7 @@
         - The Linux kernel was created as a hobby in 1991 by a Finnish student, Linus Torvalds.
           - Linux quickly started to be used as the kernel for free software operating systems
 
-        - Linux Torvalds has been able to create a large and dynamic developer and user community around Linux.
+        - Linus Torvalds has been able to create a large and dynamic developer and user community around Linux.
         - As of today, about 2000+ people contribute to each kernel release, individuals or companies big and small.
 
       ],
