@@ -624,6 +624,10 @@
 
 - The `skb` is *fragmented* if needed
 
+ - Unless *GSO* is used (Generic Segmentation Offload)
+
+ - Packet is fragmented just before the driver sends it in that case
+
 - Once the *routing* information is found, the *neighbour*
   is looked up
 
@@ -631,3 +635,26 @@
   table
 
   - ARP tables can be dumped with `ip neigh` (or `arp`)
+
+- `neigh_hh_output` calls `dev_queue_xmit` after the `net_device` has been found
+
+=== Packet transmission
+
+- #kfunc("dev_queue_xmit") is one of the main functions to send a packet
+
+- The `net_device` that must be used for transmission is stored in `skb->dev`
+
+- This function eventually calls #kfunc("qdisc_run"):
+
+ - If the packet can be sent right-away, the interface's `.ndo_start_xmit` is
+   called
+
+  - This is done in #kfunc("dev_hard_start_xmit"), in the *caller process's context*
+
+ - Otherwise, #kfunc("__netif_schedule") is called, and the packet is queued
+
+  - The packet will be sent later, in *softirq context* (`NET_TX_SOFTIRQ`)
+
+- The `sendmsg() / sendto() / write()` syscalls are asynchronous:
+
+- They don't return after the packet has been sent, but rather when it has been queued
