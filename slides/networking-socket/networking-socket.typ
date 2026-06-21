@@ -227,8 +227,8 @@
 
 === Socket queues
 
-- All sockets are created with 2 queues : A *Receive* queue and a
-  *Transmit* queue
+- All sockets are created with 3 queues : A *Receive* queue, a *Transmit* queue
+  and an *Error* queue
 
 - Queue size is the same for every socket at creation time, but can be
   adjusted
@@ -240,6 +240,22 @@
 - Packets that can't be queued because the queue is full are dropped
 
 - `netstat` shows the current queue usage of every open socket
+
+=== Error queue
+
+- When a transmit operation fails, users can query the error information
+  for each packet through the *socket error queue*
+
+- Retrieved by calling `recvmsg()` with the `MSG_ERRQUEUE` flag set
+
+- The message contains the original packet content, and one or more ancilllary
+  messages
+
+- Mecanism also used for non-error use-cases:
+
+ - *timestamping* of transmitted packets, looped back to the error queue with an associated timestamp
+
+ - *zerocopy* packets, to notify when a buffer can be safely re-used
 
 === read() and write()
 
