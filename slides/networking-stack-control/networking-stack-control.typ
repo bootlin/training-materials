@@ -10,22 +10,27 @@
 
 - The Networking stack is very highly configurable, at all levels :
 
-- Controller and driver behaviour, through `ethtool`, _e.g._ set
-  the link speed
+- *Controller* and *driver* behaviour, through specific tools :
 
-- Interface configuration, with `iproute2`, _e.g._ configure the IP
+ - `ethtool` for Ethernet interfaces
+
+ - `iw` for Wifi interfaces and wiphys
+
+ - `wpan-tools` for 802.15.4, `can-utils` for CAN Bus, etc.
+
+- *Interface* configuration, with `iproute2`, _e.g._ configure the IP
   address
 
-- System-wide configuration, _e.g._ enable IP forwarding
+- *System-wide* or *per namespace* configuration, _e.g._ enable IP forwarding
 
-- Per-connection configuration, _e.g._ select the TCP
+- *Per socket* configuration, _e.g._ select the TCP
   congestion-control algorithm
 
   - The `setsockopts()` syscall is covered later in this training.
 
 === ioctl interface
 
-- The `ioctl` syscall is used to perform device-specific configuration
+- The `ioctl` syscall is used for *global* and *device-specific* configuration
 
 - `ioctl()` acts on a *file descriptor*.
 
@@ -35,7 +40,7 @@
 - We don't have any `fd` that corresponds to a specific
   #kstruct("net_device")
 
-- Network admin `ioctl` uses a `fd` corresponding to a *socket*
+- Network-related`ioctl` can use a `fd` corresponding to a *socket*
   with unspecified family : `AF_UNSPEC`
 
 - Any socket *fd* can be used for network ioctls.
