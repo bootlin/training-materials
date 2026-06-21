@@ -362,20 +362,24 @@
 - User processes run within a given *netns* and cannot see other
   interfaces
 
-  - `ip netns <ns> exec <cmd>` : Run `cmd` in the `ns` namespace
+ - `ip netns <ns> exec <cmd>` : Run `cmd` in the `ns` namespace
+
+ - `ip -n <ns> ...` for native iproute2 commands
+
+  - e.g. `ip -n netns_1 link show`
 
 - By default, netdevs are created in the *init_ns*
 
 #v(0.5em)
 
-#align(center, [#image("netns.pdf", width: 60%)])
+#align(center, [#image("netns.pdf", width: 50%)])
 
 === `veth` : Virtual Ethernet Pairs
 
 - `ip link add type veth` : creates `veth0@veth1` and `veth1@veth0`
 
 - Both `veth0` and `veth1` are linked together, traffic flows between
-  the 2
+  the two
 
 - Main way to traverse namespaces, heavily used by containers
 
