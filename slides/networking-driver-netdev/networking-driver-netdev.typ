@@ -313,6 +313,10 @@ dev->ethtool_ops = &mvneta_eth_tool_ops;
 
 - Page pools allows fast page allocation without locking
 
+- A buffer returns to the pool after being consumed, while staying mapped
+
+ - Built-in recycling mechanism
+
 - One `struct page_pool` must be allocated per-queue
 
 - Getting a page from `page_pool` happens without locking
