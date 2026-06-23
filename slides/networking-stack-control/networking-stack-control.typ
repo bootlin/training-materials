@@ -12,11 +12,11 @@
 
 - *Controller* and *driver* behaviour, through specific tools :
 
- - `ethtool` for Ethernet interfaces
+  - `ethtool` for Ethernet interfaces
 
- - `iw` for Wifi interfaces and wiphys
+  - `iw` for Wifi interfaces and wiphys
 
- - `wpan-tools` for 802.15.4, `can-utils` for CAN Bus, etc.
+  - `wpan-tools` for 802.15.4, `can-utils` for CAN Bus, etc.
 
 - *Interface* configuration, with `iproute2`, _e.g._ configure the IP
   address

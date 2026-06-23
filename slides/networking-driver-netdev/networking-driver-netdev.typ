@@ -315,7 +315,7 @@ dev->ethtool_ops = &mvneta_eth_tool_ops;
 
 - A buffer returns to the pool after being consumed, while staying mapped
 
- - Built-in recycling mechanism
+  - Built-in recycling mechanism
 
 - One `struct page_pool` must be allocated per-queue
 

@@ -362,11 +362,11 @@
 - User processes run within a given *netns* and cannot see other
   interfaces
 
- - `ip netns <ns> exec <cmd>` : Run `cmd` in the `ns` namespace
+  - `ip netns <ns> exec <cmd>` : Run `cmd` in the `ns` namespace
 
- - `ip -n <ns> ...` for native iproute2 commands
+  - `ip -n <ns> ...` for native iproute2 commands
 
-  - e.g. `ip -n netns_1 link show`
+    - e.g. `ip -n netns_1 link show`
 
 - By default, netdevs are created in the *init_ns*
 

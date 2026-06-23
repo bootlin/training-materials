@@ -253,9 +253,9 @@
 
 - Mecanism also used for non-error use-cases:
 
- - *timestamping* of transmitted packets, looped back to the error queue with an associated timestamp
+  - *timestamping* of transmitted packets, looped back to the error queue with an associated timestamp
 
- - *zerocopy* packets, to notify when a buffer can be safely re-used
+  - *zerocopy* packets, to notify when a buffer can be safely re-used
 
 === read() and write()
 
@@ -624,9 +624,9 @@
 
 - The `skb` is *fragmented* if needed
 
- - Unless *GSO* is used (Generic Segmentation Offload)
+  - Unless *GSO* is used (Generic Segmentation Offload)
 
- - Packet is fragmented just before the driver sends it in that case
+  - Packet is fragmented just before the driver sends it in that case
 
 - Once the *routing* information is found, the *neighbour*
   is looked up
@@ -646,14 +646,14 @@
 
 - This function eventually calls #kfunc("qdisc_run"):
 
- - If the packet can be sent right-away, the interface's `.ndo_start_xmit` is
-   called
+  - If the packet can be sent right-away, the interface's `.ndo_start_xmit` is
+    called
 
-  - This is done in #kfunc("dev_hard_start_xmit"), in the *caller process's context*
+    - This is done in #kfunc("dev_hard_start_xmit"), in the *caller process's context*
 
- - Otherwise, #kfunc("__netif_schedule") is called, and the packet is queued
+  - Otherwise, #kfunc("__netif_schedule") is called, and the packet is queued
 
-  - The packet will be sent later, in *softirq context* (`NET_TX_SOFTIRQ`)
+    - The packet will be sent later, in *softirq context* (`NET_TX_SOFTIRQ`)
 
 - The `sendmsg() / sendto() / write()` syscalls are asynchronous:
 
