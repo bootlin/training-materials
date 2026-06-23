@@ -484,11 +484,11 @@ KERNEL_DEVICETREE:dra7xx-evm = "dra7-evm.dtb"    # This is ignored
 
   - Force the `dropbear` recipe to run all tasks.
 
-- `bitbake –runall=fetch core-image-minimal`
+- `bitbake --runall=fetch core-image-minimal`
 
   - Download all recipe sources and their dependencies.
 
-- For a full description: `bitbake –help`
+- For a full description: `bitbake --help`
 
 === shared state cache
 

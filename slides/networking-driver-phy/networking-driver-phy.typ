@@ -383,11 +383,11 @@
 
   - Detects cable and connector faults
 
-  - `ethtool –cable-test eth0`
+  - `ethtool --cable-test eth0`
 
 - They may report stats, useful for debugging link bringup
 
-  - `ethtool –phy-statistics eth0`
+  - `ethtool --phy-statistics eth0`
 
 - *`BaseT1S`* PHYs can configure the
   #link(

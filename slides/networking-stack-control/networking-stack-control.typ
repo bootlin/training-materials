@@ -167,7 +167,7 @@
   - Applications can listen for specific notifications (Address change,
     link up, etc.)
 
-  - e.g. `ip monitor`, `ethtool –monitor`, etc.
+  - e.g. `ip monitor`, `ethtool --monitor`, etc.
 
 - It is also possible to listen to *All Netlink Traffic*
 

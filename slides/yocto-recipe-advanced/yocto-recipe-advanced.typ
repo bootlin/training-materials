@@ -530,7 +530,7 @@ PREMIRRORS:prepend = "\
   #yoctovar("BB_NO_NETWORK = \"1\"")
 
   - To download all the sources before disabling network access use \
-    `bitbake –runall=fetch core-image-minimal`
+    `bitbake --runall=fetch core-image-minimal`
 
 - Or restrict `bitbake` to only download files from the
   #yoctovar("PREMIRRORS"), using

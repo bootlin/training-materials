@@ -77,9 +77,9 @@
 
   - `ethtool -S eth0`
 
-  - `ethtool –phy-statistics eth0`
+  - `ethtool --phy-statistics eth0`
 
-  - `ethtool -S eth0 –groups eth-mac|eth-phy|eth-ctrl|rmon`
+  - `ethtool -S eth0 --groups eth-mac|eth-phy|eth-ctrl|rmon`
 
 - Some information may be available in *debugfs*
 

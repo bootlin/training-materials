@@ -1024,9 +1024,9 @@ Users: 1
 
   - Filters can be added on the type of rules:
 
-    - `–allow`
+    - `--allow`
 
-    - `–role_transition`
+    - `--role_transition`
 
     - …
 
@@ -1055,11 +1055,11 @@ Users: 1
 
 - Policy modules can be dynamically loaded or unloaded with `semodule`
 
-  - `–list-modules`
+  - `--list-modules`
 
-  - `–enable`
+  - `--enable`
 
-  - `–disable`
+  - `--disable`
 
 #text(size: 13pt)[
   ```

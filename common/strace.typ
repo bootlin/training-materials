@@ -76,4 +76,4 @@
   ```
   #v(0.5em)
 ]
-- Run `strace –tips` to learn new commands !
+- Run `strace --tips` to learn new commands !

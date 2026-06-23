@@ -76,7 +76,7 @@ BUILD_BUG_ON(sizeof(ctx->__reserved) != sizeof(reserved));
 - If during compilation you have some warnings about unused
   variables/parameters, they must be fixed.
 
-- Apply `checkpatch.pl –strict` when possible which might find some
+- Apply `checkpatch.pl --strict` when possible which might find some
   potential problems in your code.
 
 == Linux Kernel Debugging
@@ -768,8 +768,8 @@ KERNEL STACK SIZE: 8192
 
 - Load a dump-capture kernel on the first kernel with `kexec`:
 
-  - `kexec –type zImage -p my_zImage –dtb=my_dtb.dtb \` \
-    `–initrd=my_initrd –command-line="kernel command line"`
+  - `kexec --type zImage -p my_zImage --dtb=my_dtb.dtb \` \
+    `--initrd=my_initrd --command-line="kernel command line"`
 
 - Then simply wait for a crash to happen!
 
