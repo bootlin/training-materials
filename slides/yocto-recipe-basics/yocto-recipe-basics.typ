@@ -19,9 +19,9 @@
   (application, library, …).
 
 - It is a set of instructions to describe how to retrieve, patch,
-  compile, install and generate binary packages.s
+  compile, install and generate binary packages.
 
-- It also defines what build or runtime dependencies are required.s
+- It also defines what build or runtime dependencies are required.
 
 - Recipes are parsed by the `bitbake` build engine.
 
