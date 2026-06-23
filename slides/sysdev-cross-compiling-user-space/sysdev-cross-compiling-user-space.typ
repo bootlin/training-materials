@@ -367,15 +367,15 @@
 
 + *Configuration:* `./configure`
 
-  - `./configure –help` is very useful
+  - `./configure --help` is very useful
 
-  - `–prefix`: execution location
+  - `--prefix`: execution location
 
-  - `–host`: target machine when cross-compiling, if not provided,
+  - `--host`: target machine when cross-compiling, if not provided,
     auto-detected. Also used as the cross-compiler prefix.
 
-  - Often `–enable-<foo>`, `–disable-<foo>`, `–with-<foo>`,
-    `–without-<foo>` for optional features.
+  - Often `--enable-<foo>`, `--disable-<foo>`, `--with-<foo>`,
+    `--without-<foo>` for optional features.
 
   - `CC`, `CXX`, `CFLAGS`, `CXXFLAGS`, `LDFLAGS` and many more variables
 
@@ -669,7 +669,7 @@ only the C cross-compiler needs to be specified:
     - Can be created manually, or may be provided by an embedded Linux build
       systems such as Buildroot or Yocto.
 
-    - `–cross-file` option of _Meson_
+    - `--cross-file` option of _Meson_
 
   ],
   [

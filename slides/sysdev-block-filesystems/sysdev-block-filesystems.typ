@@ -421,7 +421,7 @@ systems:
   disk image.
 
 - The `losetup` command allows to manually associate a loop device to a
-  file, and offers a `–partscan` option allowing to also create extra
+  file, and offers a `--partscan` option allowing to also create extra
   block device files for the partitions inside the image:
 
   ```

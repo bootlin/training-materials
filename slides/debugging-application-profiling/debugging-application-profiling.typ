@@ -110,7 +110,7 @@
 - `#`: Peak allocation
 
 - `@`: Detailed snapshot (count can be adjusted thanks to
-  `–detailed-freq`)
+  `--detailed-freq`)
 
 === Massif report
 
@@ -356,7 +356,7 @@ Performance counter stats for 'cat /etc/fstab':
 - `cg_annotate` is a CLI tool used to visualize cachegrind simulation
   results.
 
-- It also has a `–diff` option to allow comparing two measures files
+- It also has a `--diff` option to allow comparing two measures files
 
 === Kcachegrind - Visualizing Cachegrind profiling data
 

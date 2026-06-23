@@ -52,7 +52,7 @@
   [
 
     Example with `pw-play audio.wav` and
-    `pw-record –target pw-play rec.wav`:
+    `pw-record --target pw-play rec.wav`:
 
     ```text
     $ pw-cli ls Core
@@ -695,7 +695,7 @@ $ pw-config --name custom.conf paths
 
 - By default, it connects to the PipeWire daemon and creates a graph
   representation of the global objects. It can also work from the output
-  of `pw-dump` using the `–json` flag.
+  of `pw-dump` using the `--json` flag.
 
 - That file can be turned into a graphical representation and viewed on
   a host using:
@@ -711,13 +711,13 @@ $ pw-config --name custom.conf paths
 
 - It has many options available to control the exposed props and params:
 
-  - `–target` allows asking to be routed to a given node;
+  - `--target` allows asking to be routed to a given node;
 
-  - `–latency` asks for a given latency (therefore buffer size);
+  - `--latency` asks for a given latency (therefore buffer size);
 
-  - `–quality` controls the adaptive resampling;
+  - `--quality` controls the adaptive resampling;
 
-  - `–rate`, `–channels`, `–channel-map`, `–format`, `–volume` are
+  - `--rate`, `--channels`, `--channel-map`, `--format`, `--volume` are
     self-describing.
 
   - etc.
@@ -867,7 +867,7 @@ PIPEWIRE_RUNTIME_DIR=/tmp helvum
 
   - This can be done using Helvum with its GUI.
 
-  - Otherwise, `pw-dot` or `pw-link –links` to get an overview then
+  - Otherwise, `pw-dot` or `pw-link --links` to get an overview then
     `pw-link <output-port> <input-port>` to create a new link.
 
 == WirePlumber
@@ -917,7 +917,7 @@ PIPEWIRE_RUNTIME_DIR=/tmp helvum
 
 - Nodes can also request to be routed to:
 
-  + a target node using `target.object` (for example `pw-cat –target`);
+  + a target node using `target.object` (for example `pw-cat --target`);
 
   + nothing automatically using `node.autoconnect`. WirePlumber will not
     create any automatic link, letting any PipeWire client create the
@@ -1420,7 +1420,7 @@ static const struct pw_filter_events filter_events = {
 
 A dump of useful links:
 
-- For MIDI support, see `pw-cat –midi`, `pw-mididump` and
+- For MIDI support, see `pw-cat --midi`, `pw-mididump` and
   #link("https://docs.pipewire.org/page_midi.html")[the documentation].
 
 - For the PulseAudio compatibility layer, see

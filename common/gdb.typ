@@ -193,11 +193,11 @@ A few useful GDB commands
   `gdbserver /dev/ttyS0 <executable> <args>`
 
 - Otherwise, attach `gdbserver` to an already running program:  \
-  `gdbserver –attach :<port> <pid>`
+  `gdbserver --attach :<port> <pid>`
 
 - You can also start gdbserver without passing any program to start or
   attach (and set the target program later, on client side):  \
-  `gdbserver –multi :<port>`
+  `gdbserver --multi :<port>`
 
 === Remote debugging: host setup
 
@@ -213,7 +213,7 @@ A few useful GDB commands
     `gdb> target remote /dev/ttyUSB0` (serial link)
 
     - Make sure to replace `target remote` with `target extended-remote`
-      if you have started gdbserver with the `–multi` option
+      if you have started gdbserver with the `--multi` option
 
   - If you did not set the program to debug on gdbserver commandline:  \
     `gdb> set remote exec-file <path_to_program_on_target>`

@@ -1046,7 +1046,7 @@ int main(int argc, char *argv[])
   ```
 ]
 #v(0.5em)
-- Then on the target, at session creation, use the `–set-url`
+- Then on the target, at session creation, use the `--set-url`
 #v(0.5em)
 #[
   #show raw.where(lang: "console", block: true): set text(size: 15pt)
