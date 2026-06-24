@@ -544,8 +544,7 @@ do_install() { ... }
 require tar.inc
 
 LICENSE = "GPL-2.0-only"
-LIC_FILES_CHKSUM =
-  "file://COPYING;md5=59530bdf33659b29e73d4adb9f9f6552"
+LIC_FILES_CHKSUM = "file://COPYING;md5=59530bdf33659b29e73d4adb9f9f6552"
 
 SRC_URI += "file://avoid_heap_overflow.patch"
 
@@ -558,8 +557,7 @@ SRC_URI[sha256sum] = "cec18d7f18fe5..."
 require tar.inc
 
 LICENSE = "GPL-3.0-only"
-LIC_FILES_CHKSUM =
-  "file://COPYING;md5=d32239bcb673463ab874e80d47fae504"
+LIC_FILES_CHKSUM = "file://COPYING;md5=d32239bcb673463ab874e80d47fae504"
 
 SRC_URI[sha256sum] = "731140004fdb6..."
 ```

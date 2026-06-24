@@ -70,7 +70,7 @@
 FILESEXTRAPATHS:prepend := "${THISDIR}/files:"
 
 SRC_URI += "file://defconfig \
-            file://fix-memory-leak.patch
+            file://fix-memory-leak.patch \
             "
 ```
 

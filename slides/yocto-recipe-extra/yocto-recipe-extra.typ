@@ -416,14 +416,14 @@ Real life example of anonymous function: \
 #v(0.5em)
 
 ```sh
-FILES:${PN}-dev = \
-    "${includedir} ${FILES_SOLIBSDEV} ${libdir}/*.la \
+FILES:${PN}-dev = "\
+     ${includedir} ${FILES_SOLIBSDEV} ${libdir}/*.la \
      ${libdir}/*.o ${libdir}/pkgconfig ${datadir}/pkgconfig \
      ${datadir}/aclocal ${base_libdir}/*.o \
      ${libdir}/${BPN}/*.la ${base_libdir}/*.la \
      ${libdir}/cmake ${datadir}/cmake"
-FILES:${PN}-dbg = \
-    "/usr/lib/debug /usr/lib/debug-static \
+FILES:${PN}-dbg = "\
+     /usr/lib/debug /usr/lib/debug-static \
      /usr/src/debug"
 ```
 
@@ -437,8 +437,8 @@ FILES:${PN}-dbg = \
 #v(0.5em)
 
 ```sh
-FILES:${PN} = \
-    "${bindir}/* ${sbindir}/* ${libexecdir}/* ${libdir}/lib*${SOLIBS} \
+FILES:${PN} = "\
+     ${bindir}/* ${sbindir}/* ${libexecdir}/* ${libdir}/lib*${SOLIBS} \
      ${sysconfdir} ${sharedstatedir} ${localstatedir} \
      ${base_bindir}/* ${base_sbindir}/* \
      ${base_libdir}/*${SOLIBS} \
