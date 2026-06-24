@@ -135,11 +135,13 @@
 
 - A working example:
 
-  - #link("https://github.com/bootlin/simplest-yocto-setup")
+  - #link("https://github.com/bootlin/yocto-kiss")
 
   - Minimal dependencies: BitBake, OE-core, meta-arm
 
   - One company-specific layer: meta-kiss
+
+  - Vendor-specific layers: meta-kiss-amd, meta-kiss-nxp, meta-kiss-st, meta-kiss-ti
 
   - Custom distro and machine configurations, image recipes
 
