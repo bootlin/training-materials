@@ -437,15 +437,24 @@ SRC_URI += "file://defconfig"
 
 ```sh
 INHERIT += "buildhistory"
-BUILDHISTORY_COMMIT = "1"
 ```
 
 #v(0.5em)
 
 Then use the `buildhistory-diff` tool to examine differences between
-two builds.
+two builds:
 
-- `buildhistory-diff`
+#v(0.5em)
+
+```console
+$ buildhistory-diff
+Changes to .../core-image-minimal (files-in-image.txt):
+  /usr/bin/bash was added
+  ...
+Changes to .../core-image-minimal (installed-package-names.txt):
+  bash was added
+  ...
+```
 
 == Network usage
 <network-usage>
