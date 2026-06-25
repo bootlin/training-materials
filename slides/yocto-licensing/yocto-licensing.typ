@@ -152,6 +152,10 @@ SPDX SBoM can be attached to a software delivery, and used for:
 The US government is pushing for having such information in all software
 it procures and will probably make it mandatory soon.
 
+- `sbom-cve-check` tool from Bootlin can be used to track CVEs from SBOMs:
+
+  #link("https://github.com/bootlin/sbom-cve-check")
+
 === How to create SPDX3 SBoM with OpenEmbedded
 
 - SPDX2.2 and SPDX3.0 are available in Yocto Scarthgap (SPDX2.2 enabled
