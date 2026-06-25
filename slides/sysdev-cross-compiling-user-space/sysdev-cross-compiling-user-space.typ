@@ -790,7 +790,8 @@ only the C cross-compiler needs to be specified:
   Use `PKG_CONFIG_LIBDIR`
   ```
   $ export PKG_CONFIG_LIBDIR=/tmp/staging/usr/lib/pkgconfig
-  $ pkg-config --list-all openssl                        OpenSSL - Secure Sockets Layer and cryptography
+  $ pkg-config --list-all
+  openssl                        OpenSSL - Secure Sockets Layer and cryptography
   libraries and tools libssl                         OpenSSL-libssl - Secure Sockets Layer and cryptography
   libraries libcrypto                      OpenSSL-libcrypto - OpenSSL cryptography library
   $ pkg-config --cflags --libs openssl
