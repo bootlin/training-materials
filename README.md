@@ -38,6 +38,32 @@ make full-linux-kernel-slides.pdf
 make full-linux-kernel-bbb-labs.pdf
 ```
 
+Building in a container
+=======================
+
+Building in a container is possible using the `utils/container/Dockerfile` file.
+
+1. Build the container (replace `$OCI` by `docker` or `podman`):
+
+   ```console
+   $ $OCI build -t bootlin-training:latest utils/container
+   ```
+
+2. Build with the container (`<target>` being a make target, e.g.
+   "full-yocto-slides.pdf", see `make help`).
+
+   - With Docker:
+
+     ```console
+     $ docker run -u $(id -u):$(id -g) -v $(pwd):/training -it --rm bootlin-training <target>
+     ```
+
+   - With Podman:
+
+     ```console
+     $ podman run --userns=keep-id -v $(pwd):/training -it --rm bootlin-training <target>
+     ```
+
 Compiling issues
 ================
 
