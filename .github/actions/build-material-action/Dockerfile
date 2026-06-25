@@ -4,10 +4,6 @@ LABEL maintainer="Bootlin <feedback@bootlin.com>" \
       vendor="Bootlin" \
 description="Container with everything needed to build Bootlin training materials"
 
-COPY build_materials.sh /build_materials.sh
-
-ENTRYPOINT ["/build_materials.sh"]
-
 RUN dnf -y update && \
     dnf -y install \
 	curl \
@@ -65,3 +61,7 @@ RUN curl -fsSL https://github.com/typst/typst/releases/download/v${TYPST_VERSION
 ENV HOME /tmp
 
 WORKDIR /training
+
+RUN git config --system --add safe.directory "*"
+
+ENTRYPOINT ["make"]
