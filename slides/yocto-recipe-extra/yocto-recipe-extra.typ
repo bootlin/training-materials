@@ -451,7 +451,7 @@ FILES:${PN} = "\
 
 === Example
 
-- The `kexec tools` provides `kexec` and `kdump`:
+- The `kexec-tools` *recipe* provides the `kexec` and `kdump` *packages*:
 
 #v(0.5em)
 
