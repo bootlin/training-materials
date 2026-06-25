@@ -224,8 +224,8 @@ Real life example of anonymous function: \
   do_patch[depends] = "quilt-native:do_populate_sysroot"
   ```]
 
-== Packages features
-<packages-features>
+== Package features
+<package-features>
 
 === Benefits
 
