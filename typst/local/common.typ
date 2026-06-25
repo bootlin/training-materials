@@ -55,7 +55,7 @@
 
 #let ksym(arg) = text(size: 18pt)[#codelink(
   arg,
-  "https://elixir.bootlin.com/linux/latest/ident" + arg,
+  "https://elixir.bootlin.com/linux/latest/ident/" + arg,
 )]
 
 #let kcompat(arg1, arg2) = text(size: 18pt)[#codelink(
