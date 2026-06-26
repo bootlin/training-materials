@@ -39,7 +39,7 @@
     "https://wiki.yoctoproject.org/wiki/Main_Page",
   )[https://wiki.yoctoproject.org/wiki/Main_Page]
 
-=== Useful Reading (1)
+=== Useful Reading
 
 #table(
   columns: (70%, 30%),
@@ -63,36 +63,6 @@
   [
 
     #align(center, [#image("ELDYP.jpg", width: 100%)])
-
-  ],
-)
-
-=== Useful Reading (2)
-
-#table(
-  columns: (70%, 30%),
-  stroke: none,
-  gutter: 15pt,
-  [
-
-    Embedded Linux Projects Using Yocto Project Cookbook - Second
-    Edition, January 2018
-
-    - #link(
-        "https://www.packtpub.com/en-us/product/embedded-linux-development-using-yocto-project-cookbook-9781788392921",
-      )
-
-    - By Alex González
-
-    - A set of recipes that you can refer to and solve your immediate
-      problems instead of reading it from cover to cover.
-
-    See our review: #link("https://bit.ly/1GgVmCB")
-
-  ],
-  [
-
-    #align(center, [#image("ELPYPC.jpg", width: 100%)])
 
   ],
 )
