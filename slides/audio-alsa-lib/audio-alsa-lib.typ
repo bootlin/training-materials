@@ -47,7 +47,7 @@
 - This can be specified as a hardware device. The three arguments (in
   order: CARD,DEV,SUBDEV) specify card number or identifier, device
   number and subdevice number (-1 means any). For example: `hw:0 `or
-  `hw:1,0`. Instead of the index, the card name can be used: ```hw:STM32MP15DK,0 ```
+  `hw:1,0`. Instead of the index, the card name can be used: ``` hw:STM32MP15DK,0 ```
 
 - Or through the `plug` plugin: `plug:mypcmdef`, `plug:hw:0,0`.
 
