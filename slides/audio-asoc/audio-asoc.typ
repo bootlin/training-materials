@@ -473,7 +473,7 @@
   [...]
           cpu_np = of_parse_phandle(np, "atmel,ssc-controller", 0);
           if (!cpu_np) {
-                  dev_err(&pdev->dev, "failed to get dai and pcm infon");
+                  dev_err(&pdev->dev, "failed to get dai and pcm info\n");
                   ret = -EINVAL;
                   return ret;
           }
@@ -483,7 +483,7 @@
 
           codec_np = of_parse_phandle(np, "atmel,audio-codec", 0);
           if (!codec_np) {
-                  dev_err(&pdev->dev, "failed to get codec infon");
+                  dev_err(&pdev->dev, "failed to get codec info\n");
                   ret = -EINVAL;
                   return ret;
           }
@@ -506,20 +506,20 @@
           card->dev = &pdev->dev;
           ret = atmel_asoc_wm8904_dt_init(pdev);
           if (ret) {
-                  dev_err(&pdev->dev, "failed to init dt infon");
+                  dev_err(&pdev->dev, "failed to init dt info\n");
                   return ret;
           }
 
           id = of_alias_get_id((struct device_node *)dailink->cpus->of_node, "ssc");
           ret = atmel_ssc_set_audio(id);
           if (ret != 0) {
-                  dev_err(&pdev->dev, "failed to set SSC %d for audion", id);
+                  dev_err(&pdev->dev, "failed to set SSC %d for audio\n", id);
                   return ret;
           }
 
           ret = snd_soc_register_card(card);
           if (ret) {
-                  dev_err(&pdev->dev, "snd_soc_register_card failedn");
+                  dev_err(&pdev->dev, "snd_soc_register_card failed\n");
                   goto err_set_audio;
           }
   [...]
@@ -592,13 +592,13 @@ and inputs that are actually used on the board. This is called routing.
   [...]
           ret = snd_soc_of_parse_card_name(card, "atmel,model");
           if (ret) {
-                  dev_err(&pdev->dev, "failed to parse card namen");
+                  dev_err(&pdev->dev, "failed to parse card name\n");
                   return ret;
           }
 
           ret = snd_soc_of_parse_audio_routing(card, "atmel,audio-routing");
           if (ret) {
-                  dev_err(&pdev->dev, "failed to parse audio routingn");
+                  dev_err(&pdev->dev, "failed to parse audio routing\n");
                   return ret;
           }
   [...]
@@ -857,7 +857,7 @@ static int atmel_asoc_wm8904_hw_params(struct snd_pcm_substream *substream,
           ret = snd_soc_dai_set_sysclk(codec_dai, WM8904_CLK_FLL,
                           0, SND_SOC_CLOCK_IN);
           if (ret < 0) {
-                  pr_err("%s -failed to set wm8904 SYSCLKn", __func__);
+                  pr_err("%s -failed to set wm8904 SYSCLK\n", __func__);
                   return ret;
           }
 

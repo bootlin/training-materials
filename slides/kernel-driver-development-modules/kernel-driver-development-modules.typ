@@ -18,13 +18,13 @@
 
   static int __init hello_init(void)
   {
-    pr_alert("Good morrow to this fair assembly.n");
+    pr_alert("Good morrow to this fair assembly.\n");
     return 0;
   }
 
   static void __exit hello_exit(void)
   {
-    pr_alert("Alas, poor world, what treasure hast thou lost!n");
+    pr_alert("Alas, poor world, what treasure hast thou lost!\n");
   }
 
   module_init(hello_init);
@@ -288,13 +288,13 @@ config USB_SERIAL_NAVMAN
       int i;
 
       for (i = 0; i < howmany; i++)
-          pr_alert("(%d) Hello, %sn", i, whom);
+          pr_alert("(%d) Hello, %s\n", i, whom);
       return 0;
   }
 
   static void __exit hello_exit(void)
   {
-      pr_alert("Goodbye, cruel %sn", whom);
+      pr_alert("Goodbye, cruel %s\n", whom);
   }
 
   module_init(hello_init);

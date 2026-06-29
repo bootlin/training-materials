@@ -112,10 +112,10 @@ $ LD_PRELOAD=./my_lib.so ./exe
 
       read_func = dlsym(RTLD_NEXT, "read");
       if (!read_func) {
-          fprintf(stderr, "Can not find read symbol: %sn", dlerror());
+          fprintf(stderr, "Can not find read symbol: %s\n", dlerror());
           return 0;
       }
-      fprintf(stderr, "Trying to read %lu bytes to %p from file descriptor %dn", size, data, fd);
+      fprintf(stderr, "Trying to read %lu bytes to %p from file descriptor %d\n", size, data, fd);
       return read_func(fd, data, size);
   }
   ```

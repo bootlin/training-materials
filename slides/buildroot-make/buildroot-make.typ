@@ -126,8 +126,8 @@ distclean: clean
     MESSAGE = echo "$(TERM_BOLD)>>> $($(PKG)_NAME) $($(PKG)_VERSION) $(call qstrip,$(1))$(TERM_RESET)"
 
     define legal-license-header # pkg, license-file, {HOST|TARGET}
-            printf "$(LEGAL_INFO_SEPARATOR)nt$(1): \
-                    $(2)n$(LEGAL_INFO_SEPARATOR)nnn" >>$(LEGAL_LICENSES_TXT_$(3))
+            printf "$(LEGAL_INFO_SEPARATOR)\n\t$(1): \
+                    $(2)\n$(LEGAL_INFO_SEPARATOR)\n\n\n" >>$(LEGAL_LICENSES_TXT_$(3))
     endef
     ```
 

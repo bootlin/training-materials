@@ -159,7 +159,7 @@
 
 #[ #show raw.where(lang: "console", block: true): set text(size: 14pt)
   ```console
-  ; bpf_printk("Hello %sn", "World");
+  ; bpf_printk("Hello %s\n", "World");
         0:  r1 = 0x0 ll
         2:  r2 = 0xa
         3:  r3 = 0x0 ll
@@ -445,7 +445,7 @@ from bcc import BPF
 # define BPF program
 prog = """
 int hello(void *ctx) {
-    bpf_trace_printk("Hello, World!n");
+    bpf_trace_printk("Hello, World!\n");
     return 0;
 }
 """
@@ -757,7 +757,7 @@ b.attach_kprobe(event=b.get_syscall_fnname("clone"), fn_name="hello")
 
             while(true) {
                 bpf_map__lookup_elem(skel->maps.counter_map, &key, sizeof(key), &counter, sizeof(counter), 0);
-                fprintf(stderr, "Scheduling switch count: %dn", counter);
+                fprintf(stderr, "Scheduling switch count: %d\n", counter);
                 sleep(1);
             }
 

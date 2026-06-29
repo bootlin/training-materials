@@ -767,7 +767,7 @@ $ trace-cmd reset
 void read_hw()
 {
   if (condition)
-    trace_printk("Condition is true!n");
+    trace_printk("Condition is true!\n");
 }
 ```
 #v(0.5em)
@@ -1220,7 +1220,7 @@ int main(int argc, char *argv[])
 #[
   #show raw.where(lang: "console", block: true): set text(size: 15pt)
   ```console
-  ; bpf_printk("Hello %sn", "World");
+  ; bpf_printk("Hello %s\n", "World");
         0:  r1 = 0x0 ll
         2:  r2 = 0xa
         3:  r3 = 0x0 ll
@@ -1505,7 +1505,7 @@ from bcc import BPF
 
 # define BPF program prog = '''
 int hello(void *ctx) {
-    bpf_trace_printk("Hello, World!n");
+    bpf_trace_printk("Hello, World!\n");
     return 0;
 }
 '''
@@ -1788,7 +1788,7 @@ $ bpftool gen skeleton trace_sched_switch.bpf.o name trace_sched_switch
 
             while(true) {
                 bpf_map__lookup_elem(skel->maps.counter_map, &key, sizeof(key), &counter, sizeof(counter), 0);
-                fprintf(stderr, "Scheduling switch count: %dn", counter);
+                fprintf(stderr, "Scheduling switch count: %d\n", counter);
                 sleep(1);
             }
 

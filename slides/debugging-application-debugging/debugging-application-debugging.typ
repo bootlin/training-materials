@@ -157,7 +157,7 @@
     [...]
     void callee(void *ptr) {
       int *myptr = (int *)ptr;
-      printf("Executing suspicious operationn");
+      printf("Executing suspicious operation\n");
       myptr[2] = 0;
     }
 

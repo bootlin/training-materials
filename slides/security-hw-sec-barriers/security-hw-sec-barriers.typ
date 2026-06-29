@@ -196,15 +196,15 @@
               NULL, 4096 * 2, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0
           );
 
-          printf("ptr: %pn", ptr);                               // 0x7XXXXXXXX000
+          printf("ptr: %p\n", ptr);                               // 0x7XXXXXXXX000
           ptr[0] = 0xFF;
-          printf("ptr[1025]: 0x%02xn", ptr[1025]);               // 0x00
-          printf("ptr[4097]: 0x%02xn", ptr[4097]);               // 0x00
+          printf("ptr[1025]: 0x%02x\n", ptr[1025]);               // 0x00
+          printf("ptr[4097]: 0x%02x\n", ptr[4097]);               // 0x00
 
           unsigned int ret = mprotect(ptr, 1024,  PROT_NONE);
 
-          printf("ptr[4097]: 0x%02xn", ptr[4097]);               // 0x00
-          printf("ptr[1025]: 0x%02xn", ptr[1025]);               // SIGSEGV
+          printf("ptr[4097]: 0x%02x\n", ptr[4097]);               // 0x00
+          printf("ptr[1025]: 0x%02x\n", ptr[1025]);               // SIGSEGV
   }
   ```]
 

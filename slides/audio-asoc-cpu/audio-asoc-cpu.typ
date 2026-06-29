@@ -74,7 +74,7 @@ static int atmel_i2s_probe(struct platform_device *pdev)
                 pcm_flags |= SND_DMAENGINE_PCM_FLAG_HALF_DUPLEX;
         err = devm_snd_dmaengine_pcm_register(&pdev->dev, NULL, pcm_flags);
         if (err) {
-                dev_err(&pdev->dev, "failed to register PCM: %dn", err);
+                dev_err(&pdev->dev, "failed to register PCM: %d\n", err);
                 clk_disable_unprepare(dev->pclk);
                 return err;
         }

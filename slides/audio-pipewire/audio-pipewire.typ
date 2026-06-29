@@ -1258,11 +1258,11 @@ void pw_registry_add_listener(struct pw_registry *registry,
 
 static void registry_event_global(void *data, uint32_t id, uint32_t permissions,
                 const char *type, uint32_t version, const struct spa_dict *props) {
-        printf("object added: id:%uttype:%s/%dn", id, type, version);
+        printf("object added: id:%uttype:%s/%d\n", id, type, version);
 }
 
 static void registry_event_global_remove(void *data, uint32_t id) {
-        printf("object removed: id:%un", id);
+        printf("object removed: id:%u\n", id);
 }
 
 static const struct pw_registry_events registry_events = {
