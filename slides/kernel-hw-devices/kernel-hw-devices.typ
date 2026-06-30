@@ -332,7 +332,7 @@
 
         memory@0x80000000 {
           device_type = "memory";
-          reg = <0x80000000 0x10000000>; /* 256 MB *\/
+          reg = <0x80000000 0x10000000>; /* 256 MB */
         };
 
         chosen {
