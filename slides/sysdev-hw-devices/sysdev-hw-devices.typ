@@ -894,31 +894,13 @@ A class of devices worth mentioning is GPIOs (_General Purpose Input Output_)
 
 #table(
   columns: (50%, 50%),
+  rows: (60%, 30%),
   stroke: none,
+  gutter: 15pt,
+  align: (x, y) => if y == 0 { bottom } else { top },
   [
-    #[ #set text(size: 18pt)
-      ```dts
-      $ cat foo.dts
-      /dts-v1/;
 
-      / {
-              welcome = <0xBADCAFE>;
-              bootlin {
-                      webinar = "great";
-                      demo = <1>, <2>, <3>;
-              };
-      };
-      ```]
-  ],
-)
-
-#pagebreak()
-
-#table(
-  columns: (50%, 50%),
-  stroke: none,
-  [
-    #[ #set text(size: 18pt)
+    #text(size: 0.9em)[
       ```dts
       $ cat foo.dts
       /dts-v1/;
@@ -931,7 +913,11 @@ A class of devices worth mentioning is GPIOs (_General Purpose Input Output_)
               };
       };
       ```
+    ]
 
+  ], [], [
+
+    #text(size: 0.9em)[
       ```
       $ dtc -I dts -O dtb -o foo.dtb foo.dts
       $ ls -l foo.dt*
@@ -939,16 +925,21 @@ A class of devices worth mentioning is GPIOs (_General Purpose Input Output_)
       -rw-r--r-- 1 thomas thomas 102 ... foo.dts
       ```
     ]
-  ],
+
+  ], [],
 )
 
 #pagebreak()
 
 #table(
   columns: (50%, 50%),
+  rows: (60%, 30%),
   stroke: none,
+  gutter: 15pt,
+  align: (x, y) => if y == 0 { bottom } else { top },
   [
-    #[ #set text(size: 18pt)
+
+    #text(size: 0.9em)[
       ```dts
       $ cat foo.dts
       /dts-v1/;
@@ -961,7 +952,29 @@ A class of devices worth mentioning is GPIOs (_General Purpose Input Output_)
               };
       };
       ```
+    ]
 
+  ], [
+
+    #text(size: 0.9em)[
+      ```dts
+      $ dtc -I dtb -O dts foo.dtb
+      /dts-v1/;
+
+      / {
+              welcome = <0xbadcafe>;
+
+              bootlin {
+                      webinar = "great";
+                      demo = <0x01 0x02 0x03>;
+              };
+      };
+      ```
+    ]
+
+  ], [
+
+    #text(size: 0.9em)[
       ```
       $ dtc -I dts -O dtb -o foo.dtb foo.dts
       $ ls -l foo.dt*
@@ -969,24 +982,8 @@ A class of devices worth mentioning is GPIOs (_General Purpose Input Output_)
       -rw-r--r-- 1 thomas thomas 102 ... foo.dts
       ```
     ]
-  ],
-  [
 
-    ```dts
-    $ dtc -I dtb -O dts foo.dtb
-    /dts-v1/;
-
-    / {
-            welcome = <0xbadcafe>;
-
-            bootlin {
-                    webinar = "great";
-                    demo = <0x01 0x02 0x03>;
-            };
-    };
-    ```
-
-  ],
+  ], [],
 )
 
 === Device Tree: using the blob

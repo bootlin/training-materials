@@ -127,11 +127,13 @@
 
 #table(
   columns: (50%, 50%),
+  rows: (60%, 30%),
   stroke: none,
   gutter: 15pt,
+  align: (x, y) => if y == 0 { bottom } else { top },
   [
 
-    #text(size: 16pt)[
+    #text(size: 0.9em)[
       ```dts
       $ cat foo.dts
       /dts-v1/;
@@ -144,49 +146,33 @@
               };
       };
       ```
-    ]],
-)
+    ]
 
-#pagebreak()
+  ], [], [
 
-
-#table(
-  columns: (50%, 50%),
-  stroke: none,
-  gutter: 15pt,
-  [
-    #text(size: 16pt)[
-      ```dts
-      $ cat foo.dts
-      /dts-v1/;
-
-      / {
-              welcome = <0xBADCAFE>;
-              bootlin {
-                      webinar = "great";
-                      demo = <1>, <2>, <3>;
-              };
-      };
-      ```
-
+    #text(size: 0.9em)[
       ```
       $ dtc -I dts -O dtb -o foo.dtb foo.dts
       $ ls -l foo.dt*
       -rw-r--r-- 1 thomas thomas 169 ... foo.dtb
       -rw-r--r-- 1 thomas thomas 102 ... foo.dts
-      ```]
-  ],
+      ```
+    ]
+
+  ], [],
 )
 
 #pagebreak()
 
-
 #table(
   columns: (50%, 50%),
+  rows: (60%, 30%),
   stroke: none,
   gutter: 15pt,
+  align: (x, y) => if y == 0 { bottom } else { top },
   [
-    #text(size: 16pt)[
+
+    #text(size: 0.9em)[
       ```dts
       $ cat foo.dts
       /dts-v1/;
@@ -199,18 +185,11 @@
               };
       };
       ```
+    ]
 
-      ```
-      $ dtc -I dts -O dtb -o foo.dtb foo.dts
-      $ ls -l foo.dt*
-      -rw-r--r-- 1 thomas thomas 169 ... foo.dtb
-      -rw-r--r-- 1 thomas thomas 102 ... foo.dts
-      ```]
+  ], [
 
-  ],
-  [
-
-    #text(size: 16pt)[
+    #text(size: 0.9em)[
       ```dts
       $ dtc -I dtb -O dts foo.dtb
       /dts-v1/;
@@ -223,8 +202,21 @@
                       demo = <0x01 0x02 0x03>;
               };
       };
-      ```]
-  ],
+      ```
+    ]
+
+  ], [
+
+    #text(size: 0.9em)[
+      ```
+      $ dtc -I dts -O dtb -o foo.dtb foo.dts
+      $ ls -l foo.dt*
+      -rw-r--r-- 1 thomas thomas 169 ... foo.dtb
+      -rw-r--r-- 1 thomas thomas 102 ... foo.dts
+      ```
+    ]
+
+  ], [],
 )
 
 === Where are Device Tree Sources located?
