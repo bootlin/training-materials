@@ -379,7 +379,7 @@
             reg-names = "mc", "control";
             interrupts = <18>;
             dr_mode = "otg";
-            dmas = <&cppi41dma  0 0 &cppi41dma  1 0 ...>;
+            dmas = <&cppi41dma 0 0>, <&cppi41dma 1 0>;
             status = "okay";
           };
 
