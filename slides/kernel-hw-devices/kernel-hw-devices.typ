@@ -526,31 +526,33 @@
 
 #table(
   columns: (50%, 50%),
+  rows: (50%, 45%),
   stroke: none,
   gutter: 15pt,
+  align: top,
   [
 
     Doing:
     #v(0.5em)
-    #text(size: 14pt)[soc.dtsi]
-    #[ #set text(size: 13pt)
+    #text(size: 0.75em)[
+      soc.dtsi
       ```dts
       / {
         ocp {
           uart0: serial@0 {
-            compatible = "ti,am3352-uart", "ti,omap3-uart";
+            compatible = "ti,am3352-uart";
             reg = <0x0 0x1000>;
             status = "disabled";
           };
         };
       };
-      ```]
+      ```
+    ]
 
-    #v(0.5em)
+  ], [], [
 
-    #text(size: 14pt)[board.dts]
-
-    #[ #set text(size: 13pt)
+    #text(size: 0.75em)[
+      board.dts
       ```dts
       #include "soc.dtsi"
 
@@ -561,41 +563,62 @@
           };
         };
       };
-      ```]
+      ```
+    ]
+
   ],
 )
 
 #pagebreak()
 
-
 #table(
   columns: (50%, 50%),
+  rows: (50%, 45%),
   stroke: none,
   gutter: 15pt,
+  align: top,
   [
 
     Doing:
-
     #v(0.5em)
-
-    #text(size: 14pt)[soc.dtsi]
-    #[ #set text(size: 13pt)
+    #text(size: 0.75em)[
+      soc.dtsi
       ```dts
       / {
         ocp {
           uart0: serial@0 {
-            compatible = "ti,am3352-uart", "ti,omap3-uart";
+            compatible = "ti,am3352-uart";
             reg = <0x0 0x1000>;
             status = "disabled";
           };
         };
       };
-      ```]
+      ```
+    ]
 
+  ], [
+
+    Is exactly equivalent to:
     #v(0.5em)
+    #text(size: 0.75em)[
+      soc.dtsi
+      ```dts
+      / {
+        ocp {
+          uart0: serial@0 {
+            compatible = "ti,am3352-uart";
+            reg = <0x0 0x1000>;
+            status = "disabled";
+          };
+        };
+      };
+      ```
+    ]
 
-    #text(size: 14pt)[board.dts]
-    #[ #set text(size: 13pt)
+  ], [
+
+    #text(size: 0.75em)[
+      board.dts
       ```dts
       #include "soc.dtsi"
 
@@ -606,44 +629,23 @@
           };
         };
       };
-      ```]
+      ```
+    ]
 
-  ],
-  [
+  ], [
 
-    // <2>
-
-    Is exactly equivalent to:
-
-    #v(0.5em)
-
-    #text(size: 14pt)[soc.dtsi]
-    #[ #set text(size: 13pt)
-      ```dts
-      / {
-        ocp {
-          uart0: serial@0 {
-            compatible = "ti,am3352-uart", "ti,omap3-uart";
-            reg = <0x0 0x1000>;
-            status = "disabled";
-          };
-        };
-      };
-      ```]
-
-    #v(0.5em)
-
-    #text(size: 14pt)[board.dts]
-    #[ #set text(size: 13pt)
+    #text(size: 0.75em)[
+      board.dts
       ```dts
       #include "soc.dtsi"
 
       &uart0 {
         status = "okay";
       };
-      ```]
+      ```
+    ]
 
-    → this solution is now often preferred
+    → this solution is preferred
 
   ],
 )
