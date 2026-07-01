@@ -191,7 +191,7 @@ Many operations exist, they are all optional.
 
 === open() and release()
 
-- ```c int foo_open(struct inode *i, struct file *f) ```
+- ```c int open(struct inode *i, struct file *f) ```
 
   - Called when user space opens the device file.
 
@@ -214,7 +214,7 @@ Many operations exist, they are all optional.
     - A pointer to the #ksym("file") structure is passed to all other
       operations
 
-- ```c int foo_release(struct inode *i, struct file *f) ```
+- ```c int release(struct inode *i, struct file *f) ```
 
   - Called when user space closes the file.
 
@@ -223,7 +223,7 @@ Many operations exist, they are all optional.
 
 === read() and write()
 
-- ```c ssize_t foo_read(struct file*f, char __user*buf, size_t sz, loff_t*off) ```
+- ```c ssize_t read(struct file *f, char __user *buf, size_t sz, loff_t *off)```
 
   - Called when user space uses the `read()` system call on the device.
 
@@ -238,7 +238,7 @@ Many operations exist, they are all optional.
   - On UNIX, `read()` operations typically block when there isn't enough
     data to read from the device
 
-- ```c ssize_t foo_write(struct file*f, const char __user*buf, size_t sz, loff_t*off) ```
+- ```c ssize_t write(struct file *f, const char __user *buf, size_t sz, loff_t *off)```
 
   - Called when user space uses the `write()` system call on the device
 
@@ -314,7 +314,7 @@ Many operations exist, they are all optional.
 
 === unlocked_ioctl()
 
-- ```c long unlocked_ioctl(struct file*f, unsigned int cmd, unsigned long arg) ```
+- ```c long unlocked_ioctl(struct file *f, unsigned int cmd, unsigned long arg)```
 
   - Associated to the `ioctl()` system call.
 
