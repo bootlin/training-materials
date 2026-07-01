@@ -284,13 +284,15 @@ Many operations exist, they are all optional.
 - A buffer
 
 
-  - ```c unsigned long copy_to_user(void __user *to, const void *from,
-                                      unsigned long n);
-    ```
+  - ```c
+  unsigned long copy_to_user(void __user *to, const void *from,
+                             unsigned long n);
+  ```
 
-  - ```c unsigned long copy_from_user(void *to, const void __user *from,
-                                      unsigned long n);
-    ```
+  - ```c
+  unsigned long copy_from_user(void *to, const void __user *from,
+                               unsigned long n);
+  ```
 
 - The return value must be checked. Zero on success, non-zero on
   failure. If non-zero, the convention is to return #ksym("-EFAULT").
@@ -344,29 +346,29 @@ Many operations exist, they are all optional.
   #include <linux/phantom.h>
 
   static long phantom_ioctl(struct file *file, unsigned int cmd,
-      unsigned long arg)
+                            unsigned long arg)
   {
-      struct phm_reg r;
-      void __user *argp = (void __user *)arg;
+          struct phm_reg r;
+          void __user *argp = (void __user *)arg;
 
-      switch (cmd) {
-      case PHN_SET_REG:
-          if (copy_from_user(&r, argp, sizeof(r)))
-              return -EFAULT;
-          /* Do something */
-          break;
-      ...
-      case PHN_GET_REG:
-          if (copy_to_user(argp, &r, sizeof(r)))
-              return -EFAULT;
-          /* Do something */
-          break;
-      ...
-      default:
-          return -ENOTTY;
-      }
+          switch (cmd) {
+          case PHN_SET_REG:
+                  if (copy_from_user(&r, argp, sizeof(r)))
+                          return -EFAULT;
+                  /* Do something */
+                  break;
+          ...
+          case PHN_GET_REG:
+                  if (copy_to_user(argp, &r, sizeof(r)))
+                          return -EFAULT;
+                  /* Do something */
+                  break;
+          ...
+          default:
+                  return -ENOTTY;
+          }
 
-      return 0;
+          return 0;
   }
   ```]
 
@@ -380,19 +382,19 @@ Selected excerpt from #kfile("drivers/misc/phantom.c")
 
   int main(void)
   {
-      int fd, ret;
-      struct phm_reg reg;
+          int fd, ret;
+          struct phm_reg reg;
 
-      fd = open("/dev/phantom");
-      assert(fd > 0);
+          fd = open("/dev/phantom");
+          assert(fd > 0);
 
-      reg.field1 = 42;
-      reg.field2 = 67;
+          reg.field1 = 42;
+          reg.field2 = 67;
 
-      ret = ioctl(fd, PHN_SET_REG, &reg);
-      assert(ret == 0);
+          ret = ioctl(fd, PHN_SET_REG, &reg);
+          assert(ret == 0);
 
-      return 0;
+          return 0;
   }
   ```]
 
