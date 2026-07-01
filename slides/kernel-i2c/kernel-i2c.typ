@@ -122,7 +122,6 @@ From #kfile("drivers/iio/accel/adxl345_i2c.c")
 
 #text(size: 16pt)[#kfileversion("arch/arm/mach-iop32x/em7210.c", "6.2.16")]
 
-#[ #show raw.where(lang: "c", block: true): set text(size: 16pt)
   ```c
   static struct i2c_board_info __initdata em7210_i2c_devices[] = {
           { I2C_BOARD_INFO("rs5c372a", 0x32) },
@@ -141,7 +140,7 @@ From #kfile("drivers/iio/accel/adxl345_i2c.c")
           i2c_register_board_info(0, em7210_i2c_devices,
                   ARRAY_SIZE(em7210_i2c_devices));
   }
-  ```]
+  ```
 
 === Registering an I2C device, in the DT
 
@@ -167,7 +166,7 @@ From #kfile("drivers/iio/accel/adxl345_i2c.c")
 
 === Registering an I2C device, DT example (1/2)
 
-#text(size: 16pt)[Definition of the I2C controller]
+Definition of an I2C controller:
 
 ```dts
 i2c0: i2c@01c2ac00 {

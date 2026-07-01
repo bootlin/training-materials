@@ -376,7 +376,6 @@ Selected excerpt from #kfile("drivers/misc/phantom.c")
 
 === Ioctl() Example: Application Side
 
-#[ #show raw.where(lang: "c", block: true): set text(size: 16pt)
   ```c
   #include <linux/phantom.h>
 
@@ -396,7 +395,7 @@ Selected excerpt from #kfile("drivers/misc/phantom.c")
 
           return 0;
   }
-  ```]
+  ```
 
 == The concept of kernel frameworks
 <the-concept-of-kernel-frameworks>
