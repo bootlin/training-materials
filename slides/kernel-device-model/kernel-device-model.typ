@@ -474,10 +474,10 @@ macro when they do nothing special in `init()` and `exit()` functions:
 
 #v(0.5em)
 
-  ```c
-  res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-  sport->rxirq = platform_get_irq(pdev, 0);
-  ```
+```c
+res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+sport->rxirq = platform_get_irq(pdev, 0);
+```
 
 #v(0.5em)
 
@@ -514,10 +514,10 @@ macro when they do nothing special in `init()` and `exit()` functions:
 
 #v(0.5em)
 
-  ```c
-  /* Get NAND controller capabilities */
-  if (pdev->id_entry) /* legacy way */
-          nfc->caps = (void *)pdev->id_entry->driver_data;
-  else /* current way */
-          nfc->caps = of_device_get_match_data(&pdev->dev);
-  ```
+```c
+/* Get NAND controller capabilities */
+if (pdev->id_entry) /* legacy way */
+        nfc->caps = (void *)pdev->id_entry->driver_data;
+else /* current way */
+        nfc->caps = of_device_get_match_data(&pdev->dev);
+```

@@ -122,25 +122,25 @@ From #kfile("drivers/iio/accel/adxl345_i2c.c")
 
 #text(size: 16pt)[#kfileversion("arch/arm/mach-iop32x/em7210.c", "6.2.16")]
 
-  ```c
-  static struct i2c_board_info __initdata em7210_i2c_devices[] = {
-          { I2C_BOARD_INFO("rs5c372a", 0x32) },
-  };
+```c
+static struct i2c_board_info __initdata em7210_i2c_devices[] = {
+        { I2C_BOARD_INFO("rs5c372a", 0x32) },
+};
 
-  static void __init em7210_init_machine(void)
-  {
-          register_iop32x_gpio();
-          platform_device_register(&em7210_serial_device);
-          platform_device_register(&iop3xx_i2c0_device);
-          platform_device_register(&iop3xx_i2c1_device);
-          platform_device_register(&em7210_flash_device);
-          platform_device_register(&iop3xx_dma_0_channel);
-          platform_device_register(&iop3xx_dma_1_channel);
+static void __init em7210_init_machine(void)
+{
+        register_iop32x_gpio();
+        platform_device_register(&em7210_serial_device);
+        platform_device_register(&iop3xx_i2c0_device);
+        platform_device_register(&iop3xx_i2c1_device);
+        platform_device_register(&em7210_flash_device);
+        platform_device_register(&iop3xx_dma_0_channel);
+        platform_device_register(&iop3xx_dma_1_channel);
 
-          i2c_register_board_info(0, em7210_i2c_devices,
-                  ARRAY_SIZE(em7210_i2c_devices));
-  }
-  ```
+        i2c_register_board_info(0, em7210_i2c_devices,
+                ARRAY_SIZE(em7210_i2c_devices));
+}
+```
 
 === Registering an I2C device, in the DT
 

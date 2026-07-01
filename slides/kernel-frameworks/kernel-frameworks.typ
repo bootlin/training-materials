@@ -285,14 +285,14 @@ Many operations exist, they are all optional.
 
 
   - ```c
-  unsigned long copy_to_user(void __user *to, const void *from,
-                             unsigned long n);
-  ```
+    unsigned long copy_to_user(void __user *to, const void *from,
+                               unsigned long n);
+    ```
 
   - ```c
-  unsigned long copy_from_user(void *to, const void __user *from,
-                               unsigned long n);
-  ```
+    unsigned long copy_from_user(void *to, const void __user *from,
+                                 unsigned long n);
+    ```
 
 - The return value must be checked. Zero on success, non-zero on
   failure. If non-zero, the convention is to return #ksym("-EFAULT").
@@ -376,26 +376,26 @@ Selected excerpt from #kfile("drivers/misc/phantom.c")
 
 === Ioctl() Example: Application Side
 
-  ```c
-  #include <linux/phantom.h>
+```c
+#include <linux/phantom.h>
 
-  int main(void)
-  {
-          int fd, ret;
-          struct phm_reg reg;
+int main(void)
+{
+        int fd, ret;
+        struct phm_reg reg;
 
-          fd = open("/dev/phantom");
-          assert(fd > 0);
+        fd = open("/dev/phantom");
+        assert(fd > 0);
 
-          reg.field1 = 42;
-          reg.field2 = 67;
+        reg.field1 = 42;
+        reg.field2 = 67;
 
-          ret = ioctl(fd, PHN_SET_REG, &reg);
-          assert(ret == 0);
+        ret = ioctl(fd, PHN_SET_REG, &reg);
+        assert(ret == 0);
 
-          return 0;
-  }
-  ```
+        return 0;
+}
+```
 
 == The concept of kernel frameworks
 <the-concept-of-kernel-frameworks>

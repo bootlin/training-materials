@@ -915,7 +915,10 @@ A class of devices worth mentioning is GPIOs (_General Purpose Input Output_)
       ```
     ]
 
-  ], [], [
+  ],
+  [],
+
+  [
 
     #text(size: 0.9em)[
       ```
@@ -926,7 +929,8 @@ A class of devices worth mentioning is GPIOs (_General Purpose Input Output_)
       ```
     ]
 
-  ], [],
+  ],
+  [],
 )
 
 #pagebreak()
@@ -954,7 +958,8 @@ A class of devices worth mentioning is GPIOs (_General Purpose Input Output_)
       ```
     ]
 
-  ], [
+  ],
+  [
 
     #text(size: 0.9em)[
       ```dts
@@ -972,7 +977,9 @@ A class of devices worth mentioning is GPIOs (_General Purpose Input Output_)
       ```
     ]
 
-  ], [
+  ],
+
+  [
 
     #text(size: 0.9em)[
       ```
@@ -983,7 +990,8 @@ A class of devices worth mentioning is GPIOs (_General Purpose Input Output_)
       ```
     ]
 
-  ], [],
+  ],
+  [],
 )
 
 === Device Tree: using the blob
