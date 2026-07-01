@@ -476,7 +476,6 @@ macro when they do nothing special in `init()` and `exit()` functions:
 
   ```c
   res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-  base = ioremap(res->start, PAGE_SIZE);
   sport->rxirq = platform_get_irq(pdev, 0);
   ```
 
