@@ -182,10 +182,10 @@ i2c0: i2c@01c2ac00 {
 ```
 
 From #kfile("arch/arm/boot/dts/allwinner/sun7i-a20.dtsi")
-`#address-cells`: number of 32-bit values needed to encode the address
-fields
-`#size-cells`: number of 32-bit values needed to encode the size fields
 
+`#address-cells`: number of 32-bit values needed to encode the address
+fields\
+`#size-cells`: number of 32-bit values needed to encode the size fields\
 See details in
 #link(
   "https://elinux.org/Device_Tree_Usage",

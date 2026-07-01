@@ -1938,7 +1938,8 @@ static struct i2c_driver cs42l51_i2c_driver = {
 - In Linux, controls if a device is instantiated
 
 - In `.dtsi` files describing SoCs: all devices that interface to the
-  outside world have `status = "disabled";`
+  outside world have:\
+  `status = "disabled";`
 
 - Enabled on a per-device basis in the board `.dts`
 

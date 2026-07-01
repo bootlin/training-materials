@@ -1033,7 +1033,8 @@ sai4: sai@50027000 {
 - In Linux, controls if a device is instantiated
 
 - In `.dtsi` files describing SoCs: all devices that interface to the
-  outside world have `status = "disabled";`
+  outside world have:\
+  `status = "disabled";`
 
 - Enabled on a per-device basis in the board `.dts`
 
@@ -1093,7 +1094,8 @@ sai4: sai@50027000 {
          interrupts = <GIC_SPI 51 IRQ_TYPE_LEVEL_HIGH>;
          clocks = <&rcc SPI3_K>;
          resets = <&rcc SPI3_R>;
-         dmas = <&dmamux1 61 0x400 0x05>,  <&dmamux1 62 0x400 0x05>;
+         dmas = <&dmamux1 61 0x400 0x05>,
+                <&dmamux1 62 0x400 0x05>;
       };
       ```]
 

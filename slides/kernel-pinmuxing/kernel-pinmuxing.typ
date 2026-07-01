@@ -154,10 +154,12 @@ The devices that require certains pins to be muxed will use the
          ...
          i2c2_pins: pinmux_i2c2_pins {
             pinctrl-single,pins = <
-               AM33XX_PADCONF(AM335X_PIN_UART1_CTSN, PIN_INPUT_PULLUP, MUX_MODE3)
                /* uart1_ctsn.i2c2_sda */
-               AM33XX_PADCONF(AM335X_PIN_UART1_RTSN, PIN_INPUT_PULLUP, MUX_MODE3)
+               AM33XX_PADCONF(AM335X_PIN_UART1_CTSN,
+                              PIN_INPUT_PULLUP, MUX_MODE3)
                /* uart1_rtsn.i2c2_scl */
+               AM33XX_PADCONF(AM335X_PIN_UART1_RTSN,
+                              PIN_INPUT_PULLUP, MUX_MODE3)
             >;
          };
       };
