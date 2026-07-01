@@ -189,18 +189,16 @@
   `/lib/modules/$(uname -r)/modules.{alias, usbmap}`
 
 #v(0.5em)
-#[ #show raw.where(lang: "c", block: true): set text(size: 17pt)
-  ```c
-  static struct usb_device_id rtl8150_table[] = {
-      { USB_DEVICE(VENDOR_ID_REALTEK, PRODUCT_ID_RTL8150) },
-      { USB_DEVICE(VENDOR_ID_MELCO, PRODUCT_ID_LUAKTX) },
-      { USB_DEVICE(VENDOR_ID_MICRONET, PRODUCT_ID_SP128AR) },
-      { USB_DEVICE(VENDOR_ID_LONGSHINE, PRODUCT_ID_LCS8138TX) },
-      [...]
-      {}
-  }; MODULE_DEVICE_TABLE(usb, rtl8150_table);
-  ```
-]
+```c
+static struct usb_device_id rtl8150_table[] = {
+    { USB_DEVICE(VENDOR_ID_REALTEK, PRODUCT_ID_RTL8150) },
+    { USB_DEVICE(VENDOR_ID_MELCO, PRODUCT_ID_LUAKTX) },
+    { USB_DEVICE(VENDOR_ID_MICRONET, PRODUCT_ID_SP128AR) },
+    { USB_DEVICE(VENDOR_ID_LONGSHINE, PRODUCT_ID_LCS8138TX) },
+    [...]
+    {}
+}; MODULE_DEVICE_TABLE(usb, rtl8150_table);
+```
 
 === Instantiation of usb_driver
 
@@ -211,17 +209,16 @@
 - This structure inherits from #kstruct("device_driver"), which is
   defined by the device model.
 #v(0.5em)
-#[ #show raw.where(lang: "c", block: true): set text(size: 17pt)
-  ```c
-  static struct usb_driver rtl8150_driver = {
-      .name = "rtl8150",
-      .probe = rtl8150_probe,
-      .disconnect = rtl8150_disconnect,
-      .id_table = rtl8150_table,
-      .suspend = rtl8150_suspend,
-      .resume = rtl8150_resume
-  };
-  ```]
+```c
+static struct usb_driver rtl8150_driver = {
+    .name = "rtl8150",
+    .probe = rtl8150_probe,
+    .disconnect = rtl8150_disconnect,
+    .id_table = rtl8150_table,
+    .suspend = rtl8150_suspend,
+    .resume = rtl8150_resume
+};
+```
 
 === Driver registration and unregistration
 
@@ -231,29 +228,27 @@
 - Done using #kfunc("usb_register") and
   #kfunc("usb_deregister"), provided by the USB core.
 #v(0.5em)
-#[ #show raw.where(lang: "c", block: true): set text(size: 14pt)
-  ```c
-  static int __init usb_rtl8150_init(void)
-  {
-      return usb_register(&rtl8150_driver);
-  }
+```c
+static int __init usb_rtl8150_init(void)
+{
+    return usb_register(&rtl8150_driver);
+}
 
-  static void __exit usb_rtl8150_exit(void)
-  {
-      usb_deregister(&rtl8150_driver);
-  }
+static void __exit usb_rtl8150_exit(void)
+{
+    usb_deregister(&rtl8150_driver);
+}
 
-  module_init(usb_rtl8150_init);
-  module_exit(usb_rtl8150_exit);
-  ```]
+module_init(usb_rtl8150_init);
+module_exit(usb_rtl8150_exit);
+```
 #v(0.5em)
 - All this code is actually replaced by a call to the
   #kfunc("module_usb_driver") macro:
 #v(0.5em)
-#[ #show raw.where(lang: "c", block: true): set text(size: 14pt)
-  ```c
-  module_usb_driver(rtl8150_driver);
-  ```]
+```c
+module_usb_driver(rtl8150_driver);
+```
 
 === At Initialization
 
@@ -275,7 +270,7 @@
 
 === When a device is detected
 
-#align(center, [#image("usb-detection.svg", width: 100%)])
+#align(center, [#image("usb-detection.svg", width: 90%)])
 
 === Probe method
 
@@ -300,12 +295,12 @@
 #table(
   columns: (50%, 50%),
   stroke: none,
-  gutter: 15pt,
   [
 
     ```c
-    static int rtl8150_probe(struct usb_interface *intf,
-        const struct usb_device_id *id)
+    static int
+    rtl8150_probe(struct usb_interface *intf,
+                  const struct usb_device_id *id)
     {
         rtl8150_t *dev;
         struct net_device *netdev;
@@ -313,7 +308,8 @@
         netdev = alloc_etherdev(sizeof(rtl8150_t));
         [...]
         dev = netdev_priv(netdev);
-        tasklet_init(&dev->tl, rx_fixup, (unsigned long)dev);
+        tasklet_init(&dev->tl, rx_fixup,
+                     (unsigned long)dev);
         spin_lock_init(&dev->rx_pool_lock);
         [...]
         netdev->netdev_ops = &rtl8150_netdev_ops;
@@ -333,7 +329,8 @@
   [
 
     ```c
-    static void rtl8150_disconnect(struct usb_interface *intf)
+    static void
+    rtl8150_disconnect(struct usb_interface *intf)
     {
             rtl8150_t *dev = usb_get_intfdata(intf);
 
@@ -477,12 +474,11 @@ macro when they do nothing special in `init()` and `exit()` functions:
 
 #v(0.5em)
 
-#[ #show raw.where(lang: "c", block: true): set text(size: 16pt)
   ```c
   res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
   base = ioremap(res->start, PAGE_SIZE);
   sport->rxirq = platform_get_irq(pdev, 0);
-  ```]
+  ```
 
 #v(0.5em)
 
@@ -503,7 +499,7 @@ macro when they do nothing special in `init()` and `exit()` functions:
 
 - A `const void *data` pointer can be used to store per-compatible
   specificities:
-#[ #show raw.where(lang: "c", block: true): set text(size: 14pt)
+
   ```c
   static const struct of_device_id marvell_nfc_of_ids[] = {
           {
@@ -511,7 +507,7 @@ macro when they do nothing special in `init()` and `exit()` functions:
                   .data = &marvell_armada_8k_nfc_caps,
           },
   };
-  ```]
+  ```
 
 #v(0.5em)
 
@@ -519,12 +515,10 @@ macro when they do nothing special in `init()` and `exit()` functions:
 
 #v(0.5em)
 
-#[ #show raw.where(lang: "c", block: true): set text(size: 14pt)
   ```c
-          /* Get NAND controller capabilities */
-          if (pdev->id_entry) /* legacy way */
-                  nfc->caps = (void *)pdev->id_entry->driver_data;
-          else /* current way */
-                  nfc->caps = of_device_get_match_data(&pdev->dev);
+  /* Get NAND controller capabilities */
+  if (pdev->id_entry) /* legacy way */
+          nfc->caps = (void *)pdev->id_entry->driver_data;
+  else /* current way */
+          nfc->caps = of_device_get_match_data(&pdev->dev);
   ```
-]
