@@ -25,7 +25,7 @@ printk("in probe\n");
 
 Here's what you get in the kernel log:
 ```console
-[    1.878382] in probe`
+[    1.878382] in probe
 ```
 
 All other logging facilities are based on it.
