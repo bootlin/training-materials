@@ -768,7 +768,7 @@ struct input_event {
 
   - It stores references to both the bus and framework devices
 
-=== Driver data allocation stategies
+=== Driver data allocation strategies
 
 #table(
   columns: (33%, 33%, 33%),
