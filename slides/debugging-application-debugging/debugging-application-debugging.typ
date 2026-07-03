@@ -380,7 +380,7 @@ Temporary breakpoint 3 at 0x5555555587da
       backtraces
 
   - Prevent code optimization from reusing frame pointer register: with
-    GCC, make sure `-fno-omit-frame-pointer` option is set
+    GCC, make sure the `-fno-omit-frame-pointer` option is set
 
     - Not only true for debugging: any profiling/tracing tool relying on
       backtraces will benefit from it
