@@ -332,7 +332,7 @@ static int st1232_ts_read_data(struct st1232_ts_data *ts)
         msg[0].len = 1;
         msg[0].buf = &start_reg;
 
-        msg[1].addr = ts->client->addr;
+        msg[1].addr = client->addr;
         msg[1].flags = I2C_M_RD;
         msg[1].len = ts->read_buf_len;
         msg[1].buf = buf;
