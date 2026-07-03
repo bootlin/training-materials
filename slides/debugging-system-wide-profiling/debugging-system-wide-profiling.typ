@@ -141,8 +141,8 @@
     their names will require a kernel compiled with
     #kconfig("CONFIG_DEBUG_INFO").
 
-  - If perf does not find `vmlinux` you have to provide it using `-k
-  <vmlinux>`.
+  - If perf does not find `vmlinux` you have to provide it using
+    `-k <vmlinux>`.
 
   === perf example
 
