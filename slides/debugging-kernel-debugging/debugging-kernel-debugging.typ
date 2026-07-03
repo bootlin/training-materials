@@ -348,7 +348,7 @@ BUILD_BUG_ON(sizeof(ctx->__reserved) != sizeof(reserved));
 
 - Results are displayed in debugfs
 
-  - `# cat /sys/kernel/debug`
+  - `# cat /sys/kernel/debug/kmemleak`
 
 - See #kdochtml("dev-tools/kmemleak") for more information
 
