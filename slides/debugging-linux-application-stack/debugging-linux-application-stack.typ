@@ -203,7 +203,7 @@ Multiple processes have different user memory spaces
 - New memory zones can be created using `mmap()`
   (#manpage("mmap", "2"))
 
-- Per application mappings are visible in _/proc/<pid>\/maps_
+- Per application mappings are visible in `/proc/<pid>/maps`
 
   `
   7f1855b2a000-7f1855b2c000 rw-p 00030000 103:01 3408650  ld-2.33.so

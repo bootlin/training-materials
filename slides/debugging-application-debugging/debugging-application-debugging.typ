@@ -336,7 +336,7 @@ TraceFDs()
 
 - Python scripts can be loaded using gdb `source` command
 
-  - Or the script can be named <program>-gdb.py and will be loaded
+  - Or the script can be named `<program>-gdb.py` and will be loaded
     automatically by GDB
 
 #v(0.5em)

@@ -271,7 +271,7 @@ libncursesw.so.6 => /usr/lib/libncursesw.so.6 (0x00007fa2d288e000)
 
   - Displays PID, CPU usage, memory usage, uptime, etc.
 
-  - Uses _/proc/<pid>/_ directory to obtain process information.
+  - Uses `/proc/<pid>/` directory to obtain process information.
 
   - Almost always present on embedded platforms (provided by
     _Busybox_).
