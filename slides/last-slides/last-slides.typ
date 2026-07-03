@@ -23,12 +23,6 @@
 
       #link(sessionurl + "survey.html")[#sessionurl/survey.html]
 
-    === Evaluation and final quiz
-
-    - Rate this training session and provide your feedback:
-
-      #link(sessionurl + "survey.html")[#sessionurl/survey.html]
-
       #v(1em)
 
     - Fill in the final quiz to assess your level of knowledge on the topics
