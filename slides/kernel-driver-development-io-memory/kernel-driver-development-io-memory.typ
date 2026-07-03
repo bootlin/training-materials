@@ -134,24 +134,19 @@
 
 === Managed API
 
-Using #kfunc("request_mem_region") and #kfunc("ioremap") in device drivers is now deprecated. You should use
-the below "managed" functions instead, which simplify driver coding
-and error handling:
+Instead of calling the following three functions in a row and handle all possible errors:
 
-- #kfunc("devm_ioremap"), #kfunc("devm_iounmap")
+- #kfunc("platform_get_resource") to retrieve the physical offsets
 
-- #kfunc("devm_ioremap_resource")
+- #kfunc("request_mem_region") to reserve the region
 
-  - Takes care of both the request and remapping operations!
+- #kfunc("ioremap") to create a virtual mapping for the region
 
-- #kfunc("devm_platform_ioremap_resource")
+it is preferred to use #kfunc("devm_ioremap_resource") instead.
 
-  - Takes care of #kfunc("platform_get_resource"),
-    #kfunc("request_mem_region") and #kfunc("ioremap")
-
-  - Caution: unlike the other `devm_` functions, its first argument is
-    of type #kstruct("platform_device"), not a pointer to
-    #kstruct("device"):
+- Caution: unlike the other `devm_` functions, its first argument is
+  of type #kstruct("platform_device"), not a pointer to
+  #kstruct("device"):
 
 #v(0.5em)
 
