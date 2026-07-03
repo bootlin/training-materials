@@ -495,7 +495,8 @@ Multiple processes have different user memory spaces
 #v(0.5em)
 
 ```console
-$ ps --ppid 2 -p 2 -o uname,pid,ppid,cmd,cls USER         PID    PPID CMD                         CLS
+$ ps --ppid 2 -p 2 -o uname,pid,ppid,cmd,cls
+USER         PID    PPID CMD                         CLS
 root           2       0 [kthreadd]                   TS
 root           3       2 [rcu_gp]                     TS
 root           4       2 [rcu_par_gp]                 TS

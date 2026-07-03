@@ -178,7 +178,8 @@
   #v(0.5em)
 
   ```console
-  $ perf report Samples: 591  of event 'cycles', Event count (approx.): 393877062
+  $ perf report
+  Samples: 591  of event 'cycles', Event count (approx.): 393877062
   Overhead  Command      Shared Object                   Symbol
     22,88%  firefox-esr  [nvidia]                        [k] _nv031568rm
      3,21%  firefox-esr  ld-linux-x86-64.so.2            [.] __minimal_realloc
@@ -228,7 +229,8 @@
   #v(0.5em)
 
   ```console
-  $ perf probe --vmlinux=vmlinux_file do_sys_openat2 filename:string Added new event:
+  $ perf probe --vmlinux=vmlinux_file do_sys_openat2 filename:string
+  Added new event:
     probe:do_sys_openat2 (on do_sys_openat2 with filename:string)
   ```
   #v(0.5em)
@@ -248,11 +250,16 @@
   - Display the recorded tracepoints with _perf script_:
   #v(0.5em)
 
-  ```console
-  $ perf script tail   164 [000]  3552.956573: probe:do_sys_openat2: (c02c3750) filename_string="/etc/ld.so.cache"
-  tail   164 [000]  3552.956642: probe:do_sys_openat2: (c02c3750) filename_string="/lib/tls/v7l/neon/vfp/libresolv.so.2"
-  ...
-  ```
+  #[
+    #show raw.where(lang: "console", block: true): set text(size: 10pt)
+      ```console
+      $ perf script
+      tail   164 [000]  3552.956573: probe:do_sys_openat2: (c02c3750) filename_string="/etc/ld.so.cache"
+      tail   164 [000]  3552.956642: probe:do_sys_openat2: (c02c3750) filename_string="/lib/tls/v7l/neon/vfp/libresolv.so.2"
+      ...
+      ```
+  ]
+
   #v(0.5em)
 
   - Create a new probe to capture the return value from `ksys_read`
@@ -562,15 +569,20 @@ $ trace-cmd report
 dd-113   [000]   304.526590: funcgraph_entry:                   |  sys_write() {
 dd-113   [000]   304.526597: funcgraph_entry:                   |    ksys_write() {
 dd-113   [000]   304.526603: funcgraph_entry:                   |      __fdget_pos() {
-dd-113   [000]   304.526609: funcgraph_entry:        6.541 us   |        __fget_light(); dd-113   [000]   304.526621: funcgraph_exit:       + 18.500 us  |      }
+dd-113   [000]   304.526609: funcgraph_entry:        6.541 us   |        __fget_light();
+dd-113   [000]   304.526621: funcgraph_exit:       + 18.500 us  |      }
 dd-113   [000]   304.526627: funcgraph_entry:                   |      vfs_write() {
-dd-113   [000]   304.526634: funcgraph_entry:        6.334 us   |        rw_verify_area(); dd-113   [000]   304.526646: funcgraph_entry:        6.208 us   |        write_null(); dd-113   [000]   304.526658: funcgraph_entry:        6.292 us   |        __fsnotify_parent(); dd-113   [000]   304.526669: funcgraph_exit:       + 43.042 us  |      }
+dd-113   [000]   304.526634: funcgraph_entry:        6.334 us   |        rw_verify_area();
+dd-113   [000]   304.526646: funcgraph_entry:        6.208 us   |        write_null();
+dd-113   [000]   304.526658: funcgraph_entry:        6.292 us   |        __fsnotify_parent();
+dd-113   [000]   304.526669: funcgraph_exit:       + 43.042 us  |      }
 dd-113   [000]   304.526675: funcgraph_exit:       + 78.833 us  |    }
 dd-113   [000]   304.526680: funcgraph_exit:       + 91.291 us  |  }
 dd-113   [000]   304.526689: funcgraph_entry:                   |  sys_read() {
 dd-113   [000]   304.526695: funcgraph_entry:                   |    ksys_read() {
 dd-113   [000]   304.526702: funcgraph_entry:                   |      __fdget_pos() {
-dd-113   [000]   304.526708: funcgraph_entry:        6.167 us   |        __fget_light(); dd-113   [000]   304.526719: funcgraph_exit:       + 18.083 us  |      }
+dd-113   [000]   304.526708: funcgraph_entry:        6.167 us   |        __fget_light();
+dd-113   [000]   304.526719: funcgraph_exit:       + 18.083 us  |      }
 ```
 
 === irqsoff tracer
@@ -1503,7 +1515,8 @@ int main(int argc, char *argv[])
 
 from bcc import BPF
 
-# define BPF program prog = '''
+# define BPF program
+prog = '''
 int hello(void *ctx) {
     bpf_trace_printk("Hello, World!\n");
     return 0;
@@ -1707,13 +1720,17 @@ int sched_tracer(struct sched_switch_args * ctx):
 #v(0.5em)
 - Dump eBPF program logs
 #v(0.5em)
-```console
-$ bpftool prog tracelog kworker/u80:0-11  [013] d..41  1796.003605: bpf_trace_printk: Old task was kworker/u80:0, new task is swapper/13
-<idle>-0          [013] d..41  1796.003609: bpf_trace_printk: Old task was swapper/13, new task is kworker/u80:0
-sudo-18640        [010] d..41  1796.003613: bpf_trace_printk: Old task was sudo, new task is swapper/10
-<idle>-0          [010] d..41  1796.003617: bpf_trace_printk: Old task was swapper/10, new task is sudo
-[...]
-```
+#[
+  #show raw.where(lang: "console", block: true): set text(size: 10.5pt)
+  ```console
+  $ bpftool prog tracelog
+  kworker/u80:0-11  [013] d..41  1796.003605: bpf_trace_printk: Old task was kworker/u80:0, new task is swapper/13
+  <idle>-0          [013] d..41  1796.003609: bpf_trace_printk: Old task was swapper/13, new task is kworker/u80:0
+  sudo-18640        [010] d..41  1796.003613: bpf_trace_printk: Old task was sudo, new task is swapper/10
+  <idle>-0          [010] d..41  1796.003617: bpf_trace_printk: Old task was swapper/10, new task is sudo
+  [...]
+  ```
+]
 
 === bpftool
 

@@ -46,7 +46,8 @@ int *ptr = NULL;
 - Execution will yield a `Segmentation fault` message in the terminal
 
 ```console
-$ ./program Segmentation fault
+$ ./program
+Segmentation fault
 ```
 
 === Buffer Overflows
@@ -66,7 +67,8 @@ $ ./program Segmentation fault
     always, this depends on the area of memory that is accessed
 
 ```c
-uint32_t *array = malloc(10 * sizeof(*array)); array[10] = 0xDEADBEEF;
+uint32_t *array = malloc(10 * sizeof(*array));
+array[10] = 0xDEADBEEF;
 ```
 
 === Memory Leaks
