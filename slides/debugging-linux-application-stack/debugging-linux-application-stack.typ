@@ -324,7 +324,7 @@ Multiple processes have different user memory spaces
 
 - The scheduler can be invoked for various reasons
 
-  - On a periodic tick caused by interrupt (#kconfig("HZ"))
+  - On a periodic tick caused by interrupt (#kconfig("CONFIG_HZ"))
 
   - On a programmed interrupt on tickless systems
     (#kconfigval("CONFIG_NO_HZ", "y"))
