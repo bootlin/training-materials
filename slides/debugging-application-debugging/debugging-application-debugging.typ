@@ -191,7 +191,7 @@
         };
         if (sigaction(SIGSEGV, &act, NULL))
           exit(EXIT_FAILURE);
-        printf("Calling a faulty function");
+        printf("Calling a faulty function\n");
         caller();
         return 0;
       }
