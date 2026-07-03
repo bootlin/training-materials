@@ -454,7 +454,7 @@ R10: 0000000000000000 R11: 0000000000000246 R12: 00000000ffffffff R13: 000000000
     seems to be in deep trouble
 
     - On embedded: in the console, send a break character
-      (Picocom: press `[Ctrl]` + `a` followed by `[Ctrl]` + ` `), then
+      (Picocom: press `[Ctrl]` + `a` followed by `[Ctrl]` + `\`), then
       press `<character>`
 
     - By echoing `<character>` in `/proc/sysrq-trigger`
