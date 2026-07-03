@@ -121,6 +121,18 @@ $ LD_PRELOAD=./my_lib.so ./exe
   ```
 ]
 
+#setuplabframe([Application tracing], [
+  Analyzing of application
+  interactions
+
+  - Analyze dynamic library calls from an application using _ltrace_.
+
+  - Overriding a library function with `LD_PRELOAD`.
+
+  - Using _strace_ to analyze program syscalls.
+
+])
+
 == uprobes and perf
 <uprobes-and-perf>
 
@@ -230,15 +242,3 @@ echo 'p /bin/bash:0x4245c0' > /sys/kernel/tracing/uprobe_events
   ```C
   $ perf record -e probe_my_app:my_func_L3 -e probe_libc:printf
   ```
-
-#setuplabframe([Application tracing], [
-  Analyzing of application
-  interactions
-
-  - Analyze dynamic library calls from an application using _ltrace_.
-
-  - Overriding a library function with `LD_PRELOAD`.
-
-  - Using _strace_ to analyze program syscalls.
-
-])
