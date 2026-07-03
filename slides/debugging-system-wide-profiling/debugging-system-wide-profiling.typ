@@ -1585,7 +1585,7 @@ b.attach_kprobe(event=b.get_syscall_fnname("clone"), fn_name="hello")
           __u64 *counter;
           char *file;
 
-          char fmt[] = "Old task was %s, new task is %sn";
+          char fmt[] = "Old task was %s, new task is %s\n";
           bpf_trace_printk(fmt, sizeof(fmt), ctx->prev_comm, ctx->next_comm);
 
           counter = bpf_map_lookup_elem(&counter_map, &key);
@@ -1697,7 +1697,7 @@ int sched_tracer(struct sched_switch_args * ctx):
   1: (b7) r1 = 0
 ; __u32 key = 0;
   2: (63) *(u32 *)(r10 -4) = r1
-; char fmt[] = "Old task was %s, new task is %sn";
+; char fmt[] = "Old task was %s, new task is %s\n";
   3: (73) *(u8 *)(r10 -8) = r1
   4: (18) r1 = 0xa7325207369206b
   6: (7b) *(u64 *)(r10 -16) = r1

@@ -169,7 +169,7 @@
     void segfault_handler(int sig) {
       void *array[20];
       size_t size;
-      char msg[]= "Segmentation fault!n";
+      char msg[]= "Segmentation fault!\n";
 
       write(STDERR_FILENO, msg, sizeof(msg));
       size = backtrace(array, 20);
