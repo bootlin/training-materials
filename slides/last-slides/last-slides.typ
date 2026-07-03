@@ -21,7 +21,7 @@
 
     - Rate this training session and provide your feedback:
 
-      #link(sessionurl + "survey.html")[#sessionurl/survey.html]
+      #link(sessionurl + "/survey.html")[#sessionurl/survey.html]
 
       #v(1em)
 
