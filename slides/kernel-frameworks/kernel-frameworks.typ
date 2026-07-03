@@ -770,30 +770,32 @@ struct input_event {
 
 === Driver data allocation strategies
 
+#[ #show raw.where(lang: "c", block: true): set text(size: 10pt)
+
 #table(
   columns: (33%, 33%, 33%),
   stroke: none,
-  gutter: 15pt,
+  gutter: 2pt,
   [
 
     Private data embeds the framework device therefore a single
     allocation allocates both the framework device and the private data.
 
-    ```c
-    struct imx_port {
+```c
+struct imx_port {
         struct uart_port port;
         struct timer_list timer;
         unsigned int old_status;
         int txirq, rxirq, rtsirq;
         [...]
-    };
+};
 
-    sport = devm_kzalloc(&pdev->dev,
-                    sizeof(*sport),
-                    GFP_KERNEL);
-    if (!sport)
+sport = devm_kzalloc(&pdev->dev,
+                 sizeof(*sport),
+                 GFP_KERNEL);
+if (!sport)
         return -ENOMEM;
-    ```
+```
 
   ],
   [
@@ -801,42 +803,44 @@ struct input_event {
     The framework exposes an helper to allocate the framework device,
     with space at the end to put the private data.
 
-    ```c
-    struct da311_data *data;
-    struct iio_dev *idev;
+```c
+struct da311_data *data;
+struct iio_dev *idev;
 
-    idev = devm_iio_device_alloc(
-                    &client->dev,
-                    sizeof(*data));
-    if (!idev)
-      return -ENOMEM;
+idev = devm_iio_device_alloc(
+                 &client->dev,
+                 sizeof(*data));
+if (!idev)
+        return -ENOMEM;
 
-    data = iio_priv(idev); data->client = client;
-    ```
+data = iio_priv(idev);
+data->client = client;
+```
 
   ],
   [
 
     The framework device and private data are allocated separately.
 
-    ```c
-    struct rtc_device *rtc;
-    struct ds1305 *ds1305;
+```c
+struct rtc_device *rtc;
+struct ds1305 *ds1305;
 
-    ds1305 = devm_kzalloc(&spi->dev,
-                    sizeof(*ds1305),
-                    GFP_KERNEL);
-    if (!ds1305)
+ds1305 = devm_kzalloc(&spi->dev,
+                 sizeof(*ds1305),
+                 GFP_KERNEL);
+if (!ds1305)
         return -ENOMEM;
 
-    rtc = devm_rtc_allocate_device(
-                    &spi->dev);
-    if (IS_ERR(rtc))
+rtc = devm_rtc_allocate_device(...);
+if (IS_ERR(rtc))
         return PTR_ERR(rtc);
-    ```
+```
 
   ],
 )
+
+]
 
 === Links between data structures
 
