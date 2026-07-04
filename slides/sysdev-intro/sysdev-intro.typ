@@ -144,7 +144,7 @@
 #align(center, [#image("bike-computer.jpg", height: 80%)])
 #text(
   size: 10pt,
-)[Product from BLOCKS. Permission to use this picture only in this
+)[Product from BLOKS. Permission to use this picture only in this
   document, in updates and in translations.]
 
 === Robots
