@@ -180,7 +180,7 @@ Flip side of the security properties:
 
   - *Identifiability* Can an adversary leak a person's identity?
 
-  - *Non-repudiation* Can an adversary attribute a claim to an
+  - *Non-repudiation* Can an adversary attribute a claim to a
     person?
 
   - *Detectability* Can an adversary detect a person's
