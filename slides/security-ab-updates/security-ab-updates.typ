@@ -113,7 +113,7 @@
   #link("https://github.com/rauc/rauc")[code] –
   #link("https://rauc.readthedocs.io/en/latest/")[doc]
 - Integrated in Buildroot and Yocto
-- Written in python
+- Written in C
 - Uses a configuration and `manifest` in INI format
 - Updates are handled in the form of `bundles`
 
