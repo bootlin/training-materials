@@ -252,12 +252,12 @@
 
   #[
     #show raw.where(lang: "console", block: true): set text(size: 10pt)
-      ```console
-      $ perf script
-      tail   164 [000]  3552.956573: probe:do_sys_openat2: (c02c3750) filename_string="/etc/ld.so.cache"
-      tail   164 [000]  3552.956642: probe:do_sys_openat2: (c02c3750) filename_string="/lib/tls/v7l/neon/vfp/libresolv.so.2"
-      ...
-      ```
+    ```console
+    $ perf script
+    tail   164 [000]  3552.956573: probe:do_sys_openat2: (c02c3750) filename_string="/etc/ld.so.cache"
+    tail   164 [000]  3552.956642: probe:do_sys_openat2: (c02c3750) filename_string="/lib/tls/v7l/neon/vfp/libresolv.so.2"
+    ...
+    ```
   ]
 
   #v(0.5em)
