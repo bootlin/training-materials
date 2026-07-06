@@ -19,9 +19,10 @@ IMAGE_INSTALL += " \
     opensc \
     optee-client \
     optee-os-ta \
+    packagegroup-core-selinux \
     rauc \
     strace \
-    packagegroup-core-selinux \
+    systemd-analyze \
     "
 
 # Make it a bit more user friendly

@@ -542,3 +542,22 @@ training-systemd-test.service: Main process exited, code=killed, status=31/SYS
 training-systemd-test.service: Failed with result 'signal'.
 Failed to start training-systemd-test.service - Security training systemd demo.
 \end{bashinput}
+
+We can use \texttt{systemd-analyze security} to get an evaluation of the service
+exposure and how it could be improved:
+
+\begin{bashinput}
+# systemd-analyze security training-systemd-test
+
+  NAME                                                DESCRIPTION                                          EXPOSURE
++ RemoveIPC=                                          Service user cannot leave SysV IPC objects around
+- RootDirectory=/RootImage=                           Service runs within the host's root directory             0.1
++ User=/DynamicUser=                                  Service runs under a transient non-root user iden...
+- CapabilityBoundingSet=~CAP_SYS_TIME                 Service processes may change the system clock             0.2
++ NoNewPrivileges=                                    Service processes cannot acquire new privileges
+...
+-> Overall exposure level for training-systemd-test.service: 8.3 EXPOSED :-(
+\end{bashinput}
+
+As you can see, there is still more components that should be filtered to limit
+the exposure.
