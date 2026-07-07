@@ -202,15 +202,15 @@ The kernel takes care of both buffer allocation and mapping:
   #include <linux/dma-mapping.h>
 
   void *                       /* Output: buffer address */
-      dma_alloc_coherent(
-           struct device *dev, /* device structure */
-           size_t size,        /* Needed buffer size in bytes */
-           dma_addr_t *handle, /* Output: DMA bus address */
-           gfp_t gfp           /* Standard GFP flags */
+  dma_alloc_coherent(
+          struct device *dev, /* device structure */
+          size_t size,        /* Needed buffer size in bytes */
+          dma_addr_t *handle, /* Output: DMA bus address */
+          gfp_t gfp           /* Standard GFP flags */
   );
 
   void dma_free_coherent(struct device *dev,
-      size_t size, void *cpu_addr, dma_addr_t handle);
+          size_t size, void *cpu_addr, dma_addr_t handle);
   ```]
 
 === `dma-mapping`: Setting up streaming memory mappings (single)
@@ -224,16 +224,16 @@ Works on already allocated buffers:
   #include <linux/dma-mapping.h>
 
   dma_addr_t dma_map_single(
-        struct device *,        /* device structure */
-        void *,                 /* input: buffer to use */
-        size_t,                 /* buffer size */
-        enum dma_data_direction /* Either DMA_BIDIRECTIONAL,
-                                 * DMA_TO_DEVICE or
-                                 * DMA_FROM_DEVICE */
+          struct device *,        /* device structure */
+          void *,                 /* input: buffer to use */
+          size_t,                 /* buffer size */
+          enum dma_data_direction /* Either DMA_BIDIRECTIONAL,
+                                   * DMA_TO_DEVICE or
+                                   * DMA_FROM_DEVICE */
   );
 
   void dma_unmap_single(struct device *dev, dma_addr_t handle,
-      size_t size, enum dma_data_direction dir);
+          size_t size, enum dma_data_direction dir);
   ```]
 
 === `dma-mapping`: Setting up streaming memory mappings (multiples)
@@ -248,11 +248,15 @@ several buffers and link them together
   #include <linux/dma-mapping.h>
   #include <linux/scatterlist.h>
 
-  struct scatterlist sglist[NENTS], *sg; int i, count;
+  struct scatterlist sglist[NENTS], *sg;
+  int i, count;
 
-  sg_init_table(sglist, NENTS); sg_set_buf(&sglist[0], buf0, len0); sg_set_buf(&sglist[1], buf1, len1);
+  sg_init_table(sglist, NENTS);
+  sg_set_buf(&sglist[0], buf0, len0);
+  sg_set_buf(&sglist[1], buf1, len1);
 
-  count = dma_map_sg(dev, sglist, NENTS, DMA_TO_DEVICE); for_each_sg(sglist, sg, count, i) {
+  count = dma_map_sg(dev, sglist, NENTS, DMA_TO_DEVICE);
+  for_each_sg(sglist, sg, count, i) {
           dma_address[i] = sg_dma_address(sg);
           dma_len[i] = sg_dma_len(sg);
   }
@@ -272,17 +276,17 @@ accessed through an IO-MMU:
   #include <linux/dma-mapping.h>
 
   dma_addr_t dma_map_resource(
-        struct device *,         /* device structure */
-        phys_addr_t,             /* input: resource to use */
-        size_t,                  /* buffer size */
-        enum dma_data_direction, /* Either DMA_BIDIRECTIONAL,
-                                  * DMA_TO_DEVICE or
-                                  * DMA_FROM_DEVICE */
-        unsigned long attrs,     /* optional attributes */
+          struct device *,         /* device structure */
+          phys_addr_t,             /* input: resource to use */
+          size_t,                  /* buffer size */
+          enum dma_data_direction, /* Either DMA_BIDIRECTIONAL,
+                                    * DMA_TO_DEVICE or
+                                    * DMA_FROM_DEVICE */
+          unsigned long attrs,     /* optional attributes */
   );
 
   void dma_unmap_resource(struct device *dev, dma_addr_t handle,
-      size_t size, enum dma_data_direction dir, unsigned long attrs);
+          size_t size, enum dma_data_direction dir, unsigned long attrs);
   ```]
 
 === `dma-mapping`: Verifying DMA memory mappings
@@ -414,8 +418,10 @@ ret = dmaengine_slave_config(dma->txchan, &txconf);
 ```c
 dma_cookie_t cookie;
 
-cookie = dmaengine_submit(desc); ret = dma_submit_error(cookie); if (ret)
-   ...
+cookie = dmaengine_submit(desc);
+ret = dma_submit_error(cookie);
+if (ret)
+        ...
 ```
 
 #v(0.5em)
