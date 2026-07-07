@@ -12,7 +12,7 @@
   third-party libraries and applications that one can leverage in its
   product
 
-- There's much more than U-Boot, Linux and Busybox that we can re-use
+- There's much more than U-Boot, Linux and Busybox that we can reuse
   from the open-source world
 
 - Networking, graphics, multimedia, crypto, language interpreters, and
@@ -23,7 +23,7 @@
 
 - Including all their dependencies
 
-  - Which can be quite complex as open-source encourages code re-use
+  - Which can be quite complex as open-source encourages code reuse
 
 === Concept of build system
 

@@ -73,7 +73,7 @@
 
 === Layer 1 - PHY Layer
 
-- Defines how data is sent to a peer trough a *physical medium*
+- Defines how data is sent to a peer through a *physical medium*
 
 - PDU is *symbols* and *bits*
 

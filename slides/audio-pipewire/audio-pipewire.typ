@@ -23,7 +23,7 @@
 
   - Dynamic routing at runtime
 
-  - Implements format negociation & conversion
+  - Implements format negotiation & conversion
 
   - Modular audio processing, spread across Linux processes
 
@@ -182,7 +182,7 @@
     - Some object types also contain *params*. Those might be
       configurable by other clients.
 
-      - They get used for format negociation & conversion, volume control,
+      - They get used for format negotiation & conversion, volume control,
         etc.
 
   ],
@@ -622,7 +622,7 @@ $ pw-config --name custom.conf paths
   logs new objects that join the core object list.
 
 - `pw-cli help` lists all existing commands. It includes arguments
-  (inbetween square brackets when optional) and command aliases.
+  (in between square brackets when optional) and command aliases.
 
 === Tools rundown — `pw-cli` (2)
 
@@ -1012,7 +1012,7 @@ monitor.alsa.rules = [
     using property `pipewire.access = "unrestricted"`.
 
   - Client joining `pipewire-0` must be given permissions by the session
-    manager, i.e. WirePlumber. Propery `pipewire.access` is
+    manager, i.e. WirePlumber. Property `pipewire.access` is
     `"default"`.
 
 - Permissions can be granted on a per-object-basis for each client. Else
@@ -1076,7 +1076,7 @@ node.software-dsp.rules = [
 
 + Start PipeWire and WirePlumber.
 
-  - See demo 1 for explainations.
+  - See demo 1 for explanations.
 
 + Target a specific node.
 
@@ -1313,8 +1313,8 @@ int main(int argc, char **argv) {
     - *Buffering:* a stream can emit more samples than the
       current cycle quantum and those will be buffered.
 
-    - *Format negociation:* the client can expose multiple
-      supported formats and negociation will occur when changing from
+    - *Format negotiation:* the client can expose multiple
+      supported formats and negotiation will occur when changing from
       idle to running.
 
     - *Format conversion:* sample type, planar/interleaved,

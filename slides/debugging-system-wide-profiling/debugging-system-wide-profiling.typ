@@ -457,7 +457,7 @@ Overhead  Shared Object                         Symbol
   - Code disassembly
 
 - Configurable (eg: allows to set paths to find all needed debug
-  informations)
+  information)
 
 === Visualizing data with hotspot (2/2)
 
@@ -639,7 +639,7 @@ stress-n-114       0d.s.  290us : <stack trace>
 - ftrace _hwlat_ tracer will help to find if the hardware generates
   latency.
 
-  - Sytem Management interrupts for instance are non maskable and
+  - System Management interrupts for instance are non maskable and
     directly trigger some firmware support feature, suspending CPU
     execution.
 

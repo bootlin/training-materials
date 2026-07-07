@@ -624,7 +624,7 @@ $ ls tmp-glibc/deploy/images/stm32mp1/
     _make_
 
 - Targeted at building firmware for WiFi routers and other networking
-  equipments
+  equipment
 
 - Unlike Buildroot or Yocto that leave a lot of flexibility to the user
   in defining the system architecture, OpenWrt makes a lot of set in

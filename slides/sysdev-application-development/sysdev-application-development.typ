@@ -33,7 +33,7 @@
 - In terms of application development, developing on embedded Linux is
   exactly the same as developing on a desktop Linux system
 
-- All existing skills can be re-used, without any particular adaptation
+- All existing skills can be reused, without any particular adaptation
 
 - All existing libraries, either third-party or in-house, can be
   integrated into the embedded Linux system

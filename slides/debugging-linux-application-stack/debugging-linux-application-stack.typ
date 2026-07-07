@@ -522,7 +522,7 @@ root          11       2 [rcu_tasks_kthread]          TS
 
 === softirq
 
-- SoftIRQs is a specific kernel mecanism that is executed in software
+- SoftIRQs is a specific kernel mechanism that is executed in software
   interrupt context.
 
 - Allows to execute code that needs to be deferred after interrupt
@@ -545,7 +545,7 @@ root          11       2 [rcu_tasks_kthread]          TS
 
 === Threaded interrupts
 
-- Threaded interrupts are a mecanism that allows to handle the interrupt
+- Threaded interrupts are a mechanism that allows to handle the interrupt
   using a hard IRQ handler and a threaded IRQ handler.
 
   - Created calling #kfunc("request_threaded_irq") instead of

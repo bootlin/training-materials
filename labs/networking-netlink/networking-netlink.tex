@@ -87,7 +87,7 @@ room in its \code{net_device.priv} field, we can pass the size of the private da
  };
  \end{verbatim}
  
- We now need to populate the 3 callback functions that were mentionned : \code{bootlinlan_setup}, \code{bootlinlan_newlink} and \code{bootlinlan_dellink}.
+ We now need to populate the 3 callback functions that were mentioned : \code{bootlinlan_setup}, \code{bootlinlan_newlink} and \code{bootlinlan_dellink}.
  
  Take a look at the \kstruct{rtnl_link_ops} definition to know the signature of these functions.
  
@@ -96,7 +96,7 @@ room in its \code{net_device.priv} field, we can pass the size of the private da
  
  There's 3 steps we need to take care of in the setup function :
  \begin{itemize}
- 	\item Specify the \kstruct{net_device} information about the encapsulation (MTU, header size, etc). In our case, we can simply re-use the ones from a regular ethernet device by calling \kfunc{ether_setup}
+ 	\item Specify the \kstruct{net_device} information about the encapsulation (MTU, header size, etc). In our case, we can simply reuse the ones from a regular ethernet device by calling \kfunc{ether_setup}
  	\item As we are not dealing with a driver for a real device (yet), \code{rtnl_link} will allocate a \kstruct{net_device} for us. Therefore, we can make so that the networking stack also takes care of freeing the \kstruct{net_device} for us when we are done with it. This is done by setting \code{dev->needs_free_netdev} to \code{true}
 	\item Finally, all \kstruct{net_device} objects need some NDOs (netdev ops) to be populated. Create a global variable of type \kstruct{net_device_ops}, and pass its address into \code{dev->netdev_ops}. Populate the only required member of the ops, \code{.ndo_start_xmit()}. You can make a dummy function that does nothing but \code{return NETDEV_TX_OK;}.
  \end{itemize}
@@ -108,7 +108,7 @@ room in its \code{net_device.priv} field, we can pass the size of the private da
 	 \item \code{struct net *src_net} : The network namespace in which the new device is created
 	 \item \code{struct net_device *dev} : The newly created \kstruct{net_device}, that we want to configure
 	 \item \code{struct nlattr *tb[]} : A Netlink Attribute array containing attributes from the \href{https://elixir.bootlin.com/linux/v6.12.32/A/ident/IFLA_LINK}{RTNL Family}
-	 \item \code{struct nlattr *data[]} : A Netlink Attribute array contaning attributes specific to our link type
+	 \item \code{struct nlattr *data[]} : A Netlink Attribute array containing attributes specific to our link type
 	 \item \code{struct netlink_ext_ack *extack} : A Netlink Extended ACK object, for error reporting
  \end{itemize}
 

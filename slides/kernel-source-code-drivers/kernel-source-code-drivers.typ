@@ -145,7 +145,7 @@
 
 - No memory protection
 
-- The kernel doesn't try to recover from attemps to access illegal
+- The kernel doesn't try to recover from attempts to access illegal
   memory locations. It just dumps #emph[oops] messages on the system
   console.
 

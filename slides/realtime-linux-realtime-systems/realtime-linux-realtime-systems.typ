@@ -237,7 +237,7 @@ Time elapsed between an event and the reaction to the event
 
 - This needs to be looked at closely in RT context
 
-- A low-priority task migh hold a lock, blocking a high-priority task
+- A low-priority task might hold a lock, blocking a high-priority task
 
 - *mutex*: Two states (taken, free). The task that has taken the
   mutex is the *owner*
@@ -280,7 +280,7 @@ Time elapsed between an event and the reaction to the event
 === Priority inversion
 
 - Priority inversion arises when strict priority-based scheduling
-  interfers with locking
+  interferes with locking
 
 - It creates a scenario where a critical task is prevented from running
   by a lower priority task

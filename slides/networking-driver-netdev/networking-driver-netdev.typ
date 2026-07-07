@@ -504,11 +504,11 @@ dev->ethtool_ops = &mvneta_eth_tool_ops;
 
 - Both APIs use the same representation : #kstruct("flow_rule")
 
-=== Multi-queue and priorisation
+=== Multi-queue and prioritisation
 
 - Some Ethernet Controllers have multiple `tx` and`rx` queues
 
-- On the *transmit* side, allow shaping and priorizing traffic
+- On the *transmit* side, allow shaping and prioritizing traffic
 
 - On the *receive* side, allow load-balancing and per-queue
   actions

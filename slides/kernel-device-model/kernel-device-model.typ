@@ -184,7 +184,7 @@
 === Device identifiers
 
 - Defines the set of devices that this driver can manage, so that the USB core knows for which devices this driver should be used
-- The #kfunc("MODULE_DEVICE_TABLE") macro allows `depmod` (run by `make modules_install`) to extract the relationship betwee, device identifiers and drivers,
+- The #kfunc("MODULE_DEVICE_TABLE") macro allows `depmod` (run by `make modules_install`) to extract the relationship between, device identifiers and drivers,
   so that drivers can be loaded automatically by `udev`. See \
   `/lib/modules/$(uname -r)/modules.{alias, usbmap}`
 

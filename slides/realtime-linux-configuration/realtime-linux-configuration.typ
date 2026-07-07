@@ -126,7 +126,7 @@
 
 - Synchronisation mechanism that can deferred object reclamation
 
-- Deffered reclamation can be executed on any CPU `RCU callbacks`
+- Deferred reclamation can be executed on any CPU `RCU callbacks`
 
 - We can prevent CPU cores from running RCU callbacks with \
   `rcu_nocbs=<cpus> rcu_nocb_poll`

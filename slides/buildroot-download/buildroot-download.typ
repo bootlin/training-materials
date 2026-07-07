@@ -114,7 +114,7 @@
   - Example:
     `c-capnproto-9053ebe6eeb2ae762655b982e27c341cb568366d-git4.tar.gz`
 
-- This tarball will be re-used for the next builds, and attempts are
+- This tarball will be reused for the next builds, and attempts are
   made to download it from the primary and backup sites.
 
 - Due to this, always use a tag name or a full commit id, and never a

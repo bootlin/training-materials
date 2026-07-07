@@ -165,7 +165,7 @@
 
 === alsa-lib API - controls
 
-- It is possible to set controls programatically.
+- It is possible to set controls programmatically.
 
 - ```c
   snd_ctl_t *handle; int snd_ctl_open (snd_ctl_t **ctl, const char *name, int mode)

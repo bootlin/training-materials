@@ -277,7 +277,7 @@
 
       - By default, `malloc` uses `mmap` for large buffers
 
-      - Once free`d, mmap`d pages won't be re-used
+      - Once free`d, mmap`d pages won't be reused
 
       - `mallopt(M_MMAP_MAX, 0);`
 
@@ -323,7 +323,7 @@
 
 - Ownership allows to handle *Priority Inheritance* (PI)
 
-- PI needs to be explicitely enabled:
+- PI needs to be explicitly enabled:
   `pthread_mutexattr_setprotocol(&mattr, PTHREAD_PRIO_INHERIT);`
 
 === Synchronizing and signaling

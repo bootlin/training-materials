@@ -251,11 +251,11 @@
 - The message contains the original packet content, and one or more ancilllary
   messages
 
-- Mecanism also used for non-error use-cases:
+- Mechanism also used for non-error use-cases:
 
   - *timestamping* of transmitted packets, looped back to the error queue with an associated timestamp
 
-  - *zerocopy* packets, to notify when a buffer can be safely re-used
+  - *zerocopy* packets, to notify when a buffer can be safely reused
 
 === read() and write()
 

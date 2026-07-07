@@ -25,7 +25,7 @@
   - See #link("https://www.gnu.org/philosophy/free-sw.html")
 
 - *Open Source*: term defined by the _Open Source
-  Initiative_, with 10 criterias
+  Initiative_, with 10 criteria
 
   - See #link("https://www.opensource.org/docs/osd")
 

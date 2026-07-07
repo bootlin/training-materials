@@ -277,7 +277,7 @@ struct myconf { int a, b; } *shared_conf; /* initialized */
 unsafe_get(int *cur_a, int *cur_b)
 {
         *cur_a = shared_conf->a;
-        /* What if *shared_conf gets updated now? The assignement is inconsistent! */
+        /* What if *shared_conf gets updated now? The assignment is inconsistent! */
         *cur_b = shared_conf->b;
 };
 

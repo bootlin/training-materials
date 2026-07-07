@@ -309,7 +309,7 @@ Many current features in the Linux Kernel originated from the RT patch:
   ],
 )
 
-=== Uncompatible options
+=== Incompatible options
 
 - Some configuration options don't play well with realtime
 
@@ -405,7 +405,7 @@ Almost all kernel code can be involuntarily preempted at any time.
 
 - Only #ksym("raw_spinlock_t") remains a real spinning lock
 
-- All interrupt handlers are threaded, except for a few that explicitely
+- All interrupt handlers are threaded, except for a few that explicitly
   need hard irq
 
   - This is the case for drivers involved in interrupt dispatching

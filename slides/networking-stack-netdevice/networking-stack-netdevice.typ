@@ -52,7 +52,7 @@
 
 - Variables of that type are usually named `dev`
 
-  - Unfortunately, this is als the usual name of #kstruct("device")
+  - Unfortunately, this is also the usual name of #kstruct("device")
     objects
 
 === `struct net_device` (2)

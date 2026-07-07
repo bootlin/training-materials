@@ -563,7 +563,7 @@
 <cgroup-interfaces-controllers-II>
 
 - Parent cgroups control whether controllers will be present in their
-  childs through the `cgroup.subtree_control` control file:
+  children through the `cgroup.subtree_control` control file:
 
 #text(size: 13pt)[
   ```

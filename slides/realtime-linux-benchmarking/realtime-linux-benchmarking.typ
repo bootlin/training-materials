@@ -148,7 +148,7 @@ performance issues in the kernel.
 
 *\R*\eal*\T*\ime *\L*\inux *\A*\nalysis tool
 
-- Developped by Daniel Bristot de Oliveira
+- Developed by Daniel Bristot de Oliveira
 
 - High-level interface to the `timerlat` and `osnoise` tracers
 
@@ -304,7 +304,7 @@ Very feature-full stressing utility, with more than 260 stressors
 
   - Caches, Memory access, Page-faults
 
-  - Network and Filesytem stacks
+  - Network and Filesystem stacks
 
 - Very useful to accurately simulate known workloads
 

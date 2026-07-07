@@ -100,7 +100,7 @@
 
 === External toolchain backend possibilities
 
-- Allows to re-use existing pre-built toolchains
+- Allows to reuse existing pre-built toolchains
 
 - Great to:
 

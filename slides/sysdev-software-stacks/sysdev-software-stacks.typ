@@ -391,7 +391,7 @@
 
     - Toolkit used as the base for the GNOME desktop environment, the most
       popular desktop environment for Linux desktop distributions, but
-      loosing traction in embedded projects.
+      losing traction in embedded projects.
 
     - Composed of _glib_ (core library), _pango_ (text handling),
       _cairo_ (vector graphics), _gtk_ (widget library)

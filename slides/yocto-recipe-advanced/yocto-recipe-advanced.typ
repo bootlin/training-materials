@@ -136,7 +136,7 @@ do_install:append:beaglebone() {
 
 === Introduction to classes
 
-- Classes provide an abstraction to common code, which can be re-used in
+- Classes provide an abstraction to common code, which can be reused in
   multiple recipes.
 
 - Common tasks do not have to be re-developed!

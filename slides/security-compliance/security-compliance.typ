@@ -148,10 +148,10 @@
   - broken down into a vector along metrics (privilege,
     physical/local/network, user interaction...)
 
-- _EPSS_ is a score trying to predict the likelyhood of the
+- _EPSS_ is a score trying to predict the likelihood of the
   vulnerability being exploited
 
-- _CPE_\s (Common Plaftorm Enumerations) are identifiers for the
+- _CPE_\s (Common Platform Enumerations) are identifiers for the
   target (software or hardware)
 
   - They can be specific e.g. to a version, or a patch level
@@ -195,7 +195,7 @@
     "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX%3A02024R2847-20241120",
   )[law]
 
-- The european comission has an implementation
+- The european commission has an implementation
   #link(
     "https://digital-strategy.ec.europa.eu/en/library/cyber-resilience-act-implementation-frequently-asked-questions",
   )[FAQ]

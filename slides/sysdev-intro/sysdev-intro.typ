@@ -230,7 +230,7 @@ The Linux kernel and most other architecture-dependent components support a wide
 
 - Not necessarily interesting to be too restrictive on the amount of
   RAM/storage: having flexibility at this level allows to increase
-  performance and re-use as many existing components as possible.
+  performance and reuse as many existing components as possible.
 
 === Communication
 

@@ -698,7 +698,7 @@
 - Handles MII reconfiguration, PCS configuration, ethtool
   reconfiguration
 
-- Doesn't superseeds phylib, but complements it for the MAC API
+- Doesn't superseed phylib, but complements it for the MAC API
 
 #align(center, [#image("phylink.pdf", width: 100%)])
 
@@ -713,7 +713,7 @@
 - `.mac_link_up` : Notify that the link with the partner is
   established
 
-  - Negociated speed, duplex and flow control are passed
+  - Negotiated speed, duplex and flow control are passed
 
   - The MAC should re-adjust its settings, if possible without bringing
     the link down
@@ -779,7 +779,7 @@
   - Its content is standardized, indicating the capabilities, vendor,
     model, etc.
 
-  - Some modules also provide Diagnostics and Montoring over i2c :
+  - Some modules also provide Diagnostics and Monitoring over i2c :
     Temperature, Power output, etc.
 
 === SFP

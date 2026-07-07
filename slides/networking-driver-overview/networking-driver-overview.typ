@@ -129,7 +129,7 @@
 
     - The MAC driver may register its own PCS instance(s)
 
-    - Some IPs are re-used across vendors, dedicated drivers are then used
+    - Some IPs are reused across vendors, dedicated drivers are then used
 
   ],
 )

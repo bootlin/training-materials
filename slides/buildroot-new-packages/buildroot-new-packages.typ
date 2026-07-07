@@ -185,7 +185,7 @@
 === Dependency propagation
 
 - A limitation of _kconfig_ is that it doesn't propagate `depends
-  on` dependencies accross `select` dependencies.
+  on` dependencies across `select` dependencies.
 
 - Scenario: if package _A_ has a `depends on FOO`, and package
   _B_ has a `select A`, then package _B_ must replicate the

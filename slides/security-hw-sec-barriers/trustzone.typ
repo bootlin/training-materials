@@ -90,7 +90,7 @@
   - Trusted Firmware A (for the Application profile), or
     #link("https://www.trustedfirmware.org/projects/tf-a")[TF-A]
 
-  - Trusted Firmware M (for the Microcontroler profile)
+  - Trusted Firmware M (for the Microcontroller profile)
     #link("https://www.trustedfirmware.org/projects/tf-m")[TF-M]
 
 - There is now a Rust implementation of TF-A called Rusted Firmware A

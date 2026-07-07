@@ -283,7 +283,7 @@
   }
   ```]
 
-=== Userpace libraries
+=== Userspace libraries
 
 - #link("https://www.netfilter.org/projects/libmnl/index.html")[libmnl]:
   Simple and lightweight library to access netlink

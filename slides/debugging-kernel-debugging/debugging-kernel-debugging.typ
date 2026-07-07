@@ -95,7 +95,7 @@ BUILD_BUG_ON(sizeof(ctx->__reserved) != sizeof(reserved));
 
   - Interactive or post-mortem debugging
 
-- Many of those features need to be explicitely enabled in the kernel
+- Many of those features need to be explicitly enabled in the kernel
   menuconfig, those are grouped in the `Kernel hacking -> Kernel debugging` menuconfig entry.
 
   - #kconfig("CONFIG_DEBUG_KERNEL") should be set to "y" to

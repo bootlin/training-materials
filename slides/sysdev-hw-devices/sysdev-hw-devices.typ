@@ -690,7 +690,7 @@ A class of devices worth mentioning is GPIOs (_General Purpose Input Output_)
     module or by a user-space process, prevents from unloading modules
     that are in-use
 
-  - Dependant modules: modules that depend on us
+  - Dependent modules: modules that depend on us
 
 - Information retrieved through `/proc/modules`
 #[ #set text(size: 15pt)

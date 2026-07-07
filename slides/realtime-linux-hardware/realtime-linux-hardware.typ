@@ -232,7 +232,7 @@ Powertop is a tool to monitor the CPU idle states and frequency usage
 
 - It is designed to optimize the power usage of a system
 
-- Useful to undertstand which C-States and OPP are being used
+- Useful to understand which C-States and OPP are being used
 
 #v(0.5em)
 
