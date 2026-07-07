@@ -138,7 +138,7 @@ The `dma-buf` API:
 
 - Not covered in this training
 
-=== `dma-mapping: Coherent or streaming DMA mappings`
+=== `dma-mapping`: Coherent or streaming DMA mappings
 
 - Coherent mappings
 
@@ -164,7 +164,7 @@ The `dma-buf` API:
   - Mapping set up for each transfer (keeps DMA registers free on the
     hardware)
 
-=== `dma-mapping: memory addressing constraints`
+=== `dma-mapping`: memory addressing constraints
 
 - Any device capable of being master on a bus shall assert its
   addressing capabilities.
@@ -191,7 +191,7 @@ The `dma-buf` API:
 
 ```c int dma_set_mask_and_coherent(struct device *dev, u64 mask) ```
 
-=== `dma-mapping: Allocating coherent memory mappings`
+=== `dma-mapping`: Allocating coherent memory mappings
 
 The kernel takes care of both buffer allocation and mapping:
 
@@ -213,7 +213,7 @@ The kernel takes care of both buffer allocation and mapping:
       size_t size, void *cpu_addr, dma_addr_t handle);
   ```]
 
-=== `dma-mapping: Setting up streaming memory mappings (single)`
+=== `dma-mapping`: Setting up streaming memory mappings (single)
 
 Works on already allocated buffers:
 
@@ -236,7 +236,7 @@ Works on already allocated buffers:
       size_t size, enum dma_data_direction dir);
   ```]
 
-=== `dma-mapping: Setting up streaming memory mappings (multiples)`
+=== `dma-mapping`: Setting up streaming memory mappings (multiples)
 
 A `scatterlist` using the `scatter-gather` library can be used to map
 several buffers and link them together
@@ -260,7 +260,7 @@ several buffers and link them together
   dma_unmap_sg(dev sglist, count, DMA_TO_DEVICE);
   ```]
 
-=== `dma-mapping: Setting up streaming I/O mappings`
+=== `dma-mapping`: Setting up streaming I/O mappings
 
 Physical addresses with MMIO registers might need to be remapped in order to be
 accessed through an IO-MMU:
@@ -285,7 +285,7 @@ accessed through an IO-MMU:
       size_t size, enum dma_data_direction dir, unsigned long attrs);
   ```]
 
-=== `dma-mapping: Verifying DMA memory mappings`
+=== `dma-mapping`: Verifying DMA memory mappings
 
 - All mapping helpers can fail and return errors
 
@@ -297,7 +297,7 @@ accessed through an IO-MMU:
   - May give additional clues if #ksym("CONFIG_DMA_API_DEBUG") is
     enabled.
 
-=== `dma-mapping: Syncing streaming DMA mappings`
+=== `dma-mapping`: Syncing streaming DMA mappings
 
 - In general streaming mappings are:
 
@@ -340,11 +340,11 @@ accessed through an IO-MMU:
 
   + Use Linux `dmaengine` framework, especially its slave API
 
-=== The `dmaengine framework`
+=== The `dmaengine` framework
 
 #align(center, [#image("dmaengine-framework.svg", width: 90%)])
 
-=== `dmaengine: Slave API: Initial configuration`
+=== `dmaengine`: Slave API: Initial configuration
 
 Steps to start a DMA transfer with `dmaengine`:
 
@@ -373,7 +373,7 @@ txconf.dst_addr = fifo_dma_addr;
 ret = dmaengine_slave_config(dma->txchan, &txconf);
 ```
 
-=== `dmaengine: Slave API: Per-transfer configuration (1/2)`
+=== `dmaengine`: Slave API: Per-transfer configuration (1/2)
 
 + Create a descriptor with all the required configuration for the next
   transfer with:
@@ -404,7 +404,7 @@ ret = dmaengine_slave_config(dma->txchan, &txconf);
   desc->callback_param = foo_dev;
   ```]
 
-=== `dmaengine: Slave API: Per-transfer configuration (2/2)`
+=== `dmaengine`: Slave API: Per-transfer configuration (2/2)
 
 #block[
   #set enum(numbering: "1.", start: 2)
