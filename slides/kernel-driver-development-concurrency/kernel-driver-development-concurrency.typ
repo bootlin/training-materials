@@ -148,7 +148,7 @@
 
 - ```c void spin_lock_irqsave(spinlock_t *lock, unsigned long flags); ```
 
-- ```c void spin_unlock_irqrestore(spinlock_t *lock, unsigned longflags); ```
+- ```c void spin_unlock_irqrestore(spinlock_t *lock, unsigned long flags); ```
 
   - Disables/restores IRQs on the local CPU.
 
