@@ -45,8 +45,8 @@
 - Similar to the EL, the CPU keeps track of the security state in a
   register
 
-  - SCR is the _Secure Configuration Register (SCR)_, bit 0 is the
-    _NS_ bit
+  - SCR is the #link("https://developer.arm.com/documentation/ddi0595/2021-06/AArch64-Registers/SCR-EL3--Secure-Configuration-Register")[Secure
+      Configuration Register (SCR)], bit 0 is the _NS_ bit
 
   - SCR can only be accessed in Secure EL1-3
 
