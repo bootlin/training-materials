@@ -57,7 +57,7 @@
 
   - ```c void mutex_init(struct mutex *lock); ```
 
-=== Locking and unlocking mutexes 1/2
+=== Locking and unlocking mutexes
 
 - ```c void mutex_lock(struct mutex *lock); ```
 
@@ -118,7 +118,7 @@
 
   - ```c void spin_unlock(spinlock_t *lock); ```
 
-=== Using spinlocks 1/2
+=== Spinlocks vs. preemption/migration
 
 - Manipulating spinlocks implies some care:
 
@@ -136,7 +136,7 @@
 - Disabling kernel preemption also disables migration to avoid the same
   kind of issue as pictured above from happening.
 
-=== Using spinlocks 2/2
+=== Spinlocks vs. interrupts
 
 - We also need to avoid deadlocks because of interrupts that could want
   to get the same lock:
@@ -155,7 +155,7 @@
   - Typically used when the lock can be accessed in both process and
     interrupt context.
 
-=== Using spinlocks 3/3
+=== Spinlock API
 
 - ```c void spin_lock_bh(spinlock_t *lock); ```
 
