@@ -289,22 +289,14 @@ new \code{arch/arm64/boot/dts/freescale/imx93-11x11-frdm-custom.dts} file contai
 
 &lpi2c4 {
         status = "okay";
-        pinctrl-names = "default";
-        pinctrl-0 = <&pinctrl_lpi2c4>;
-};
-
-&iomuxc {
-        pinctrl_lpi2c4: lpi2c4grp {
-                fsl,pins = <
-                        MX93_PAD_GPIO_IO03__LPI2C4_SCL 0x40000b9e
-                        MX93_PAD_GPIO_IO02__LPI2C4_SDA 0x40000b9e
-                >;
-        };
 };
 \end{verbatim}
 
 As you can see, it's also possible to include \code{dts} files, and not
 only \code{dtsi} ones.
+
+Why the \code{/delete-property/} statement? That's because we want to see what happens when a
+device doesn't have associated pin definitions yet.
 
 Modify the \kfile{arch/arm64/boot/dts/freescale/Makefile} file to add your custom
 Device Tree, and then have it compiled (\code{make dtbs}).
@@ -589,24 +581,13 @@ device in the custom Device Tree for our board. The declaration of the \busname\
 bus will then look as follows:
 
 \begin{verbatim}
-&lpi2c4 {
+&lpi2c1 {
         status = "okay";
         clock-frequency = <100000>;
-        pinctrl-names = "default";
-        pinctrl-0 = <&pinctrl_lpi2c4>;
 
         nunchuk: joystick@52 {
                 compatible = "nintendo,nunchuk";
                 reg = <0x52>;
-        };
-};
-
-&iomuxc {
-        pinctrl_lpi2c4: lpi2c4grp {
-                fsl,pins = <
-                        MX93_PAD_GPIO_IO03__LPI2C4_SCL 0x40000b9e
-                        MX93_PAD_GPIO_IO02__LPI2C4_SDA 0x40000b9e
-                >;
         };
 };
 \end{verbatim}
