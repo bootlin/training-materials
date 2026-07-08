@@ -549,7 +549,7 @@
   - The FIT spec include a `cmdline` property, but it is not implemented
     in U-Boot
 
-  - We can use a U-Boot 'script` to set the `bootargs' environment
+  - We can use a U-Boot script to set the `bootargs` environment
     variable. The script can be added to the FIT image as a script entry
 
 #setuplabframe([Exploring Secure boot later stages], [
