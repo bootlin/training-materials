@@ -381,7 +381,7 @@
 
   - dm-integrity: #kdochtml("admin-guide/device-mapper/dm-integrity")
 
-  - dm-verity: #kdochtml("admin-guide/device-mapper/dm-verity")
+  - dm-verity: #kdochtml("admin-guide/device-mapper/verity")
 
   among others
 
