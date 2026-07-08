@@ -168,7 +168,7 @@ Device Tree output can be better understood with the in-tree `dtx_diff` script
 - Show the origin of each property/node: `scripts/dtc/dtx_diff -T <dts>`
 
 #text(size: 13pt)[
-  ```yaml
+  ```dts
   main_i2c3: i2c@20030000 { /* arch/arm64/boot/dts/ti/k3-am62-main.dtsi:450:26-460:4,
                                arch/arm64/boot/dts/ti/k3-am625-beagleplay.dts:820:12-825:3,
                                arch/arm64/boot/dts/ti/k3-am625-beagleplay-custom.dts:20:12-25:3 */
