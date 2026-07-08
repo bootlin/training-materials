@@ -186,14 +186,10 @@ Recommended resources
   advice to have your changes merged upstream (by Rik van Riel).
 
 - Watch the #emph[Write and Submit your first Linux kernel Patch] talk
-  by Greg. K.H:
-  #link(
-    "https://www.youtube.com/watch?v=LLBrBBImJt4",
-  )[https://www.youtube.com/watch?v=LLBrBBImJt4]
+  by Greg. K.H:\
+  #link("https://www.youtube.com/watch?v=LLBrBBImJt4")
 
 - How to Participate in the Linux Community (by Jonathan Corbet). \
-  A guide to the kernel development process. \
-  #text(size: 16pt)[#link(
-      "https://www.static.linuxfound.org/sites/lfcorp/files/How-Participate-Linux-Community_0.pdf",
-    )[https://www.static.linuxfound.org/sites/lfcorp/files/How-Participate-Linux-Community_0.pdf]
-  ]
+  #link(
+    "https://www.static.linuxfound.org/sites/lfcorp/files/How-Participate-Linux-Community_0.pdf",
+  )[A guide to the kernel development process]
