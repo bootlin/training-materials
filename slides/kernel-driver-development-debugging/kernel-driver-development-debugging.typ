@@ -32,32 +32,29 @@ A virtual filesystem to export debugging information to user space.
 
 - Create a sub-directory for your driver:
 
-  #[
-    #show raw.where(lang: "c", block: true): set text(size: 15pt)
-    ```c
-    struct dentry *debugfs_create_dir(const char *name,
-                                      struct dentry *parent);
-    ```
+```c
+struct dentry *debugfs_create_dir(const char *name,
+                                  struct dentry *parent);
+```
 
-    - Expose an integer as a file in DebugFS. Example:
+- Expose an integer as a file in DebugFS. Example:
 
-      ```c
-      struct dentry *debugfs_create_u8(const char *name, mode_t mode,
-                      struct dentry *parent, u8 *value);
-      ```
+```c
+struct dentry *debugfs_create_u8(const char *name, mode_t mode,
+                                 struct dentry *parent, u8 *value);
+```
 
-      - `u8`, `u16`, `u32`, `u64` for decimal representation
+- `u8`, `u16`, `u32`, `u64` for decimal representation
 
-      - `x8`, `x16`, `x32`, `x64` for hexadecimal representation
+- `x8`, `x16`, `x32`, `x64` for hexadecimal representation
 
-    - Expose a binary blob as a file in DebugFS:
+- Expose a binary blob as a file in DebugFS:
 
-      ```c
-      struct dentry *debugfs_create_blob(const char *name,
-                      mode_t mode, struct dentry *parent,
-                      struct debugfs_blob_wrapper *blob);
-      ```
-  ]
+```c
+struct dentry *debugfs_create_blob(const char *name, mode_t mode,
+                                   struct dentry *parent,
+                                   struct debugfs_blob_wrapper *blob);
+```
 
 - Also possible to support writable DebugFS files or customize the
   output using the more generic #kfunc("debugfs_create_file")
