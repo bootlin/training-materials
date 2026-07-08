@@ -115,7 +115,7 @@ Two types of JTAG dongles
   - For each board, you'll need an OpenOCD configuration file (ask your
     supplier)
 
-#align(center, [#image("jtag.svg", width: 90%)])
+#align(center, [#image("jtag.svg", width: 70%)])
 
 === Early traces
 
