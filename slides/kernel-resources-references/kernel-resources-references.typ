@@ -116,6 +116,10 @@
       - Well attended conference in Europe (Paris), only one track at a
         time, with a format that really allows for discussions.
 
+    - Embedded Recipes: #link("https://embedded-recipes.org/")
+
+      - Same as Kernel Recipes, but focused on embedded topics (Nice).
+
     - linux.conf.au: #link("https://linux.org.au/linux-conf-au/")
 
       - In Australia / New Zealand
