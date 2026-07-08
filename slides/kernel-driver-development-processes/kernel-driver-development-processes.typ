@@ -68,14 +68,16 @@
     - #emph[User space] is the place were applications execute
       (accessible from #emph[Kernel Mode]).
 
-  - #emph[Context] represents the current state of an execution flow.
+  - The #emph[context] determines what operations are allowed (mostly
+    about sleepability)
 
-    - The #emph[process context] can be seen as the content of the
-      registers associated to this process: execution register, stack
-      register...
+    - In #emph[process context], most operations are allowed, it is the
+      most permissive context
 
-    - The #emph[interrupt context] replaces the #emph[process context]
-      when the interrupt handler is executed.
+    - #emph[Atomic context] covers many possible execution
+      environments (Interrupt context, softirq context, NMI context,
+      spinlock protected regions...) where sleeping is not allowed or
+      even not possible at all.
 
 === A thread life
 
