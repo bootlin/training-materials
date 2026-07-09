@@ -311,7 +311,7 @@ at the very least the top-level dependencies of the products
   vulnerabilities
 - VEX expresses e.g. the applicability of those vulnerabilities
 
-=== SPDX3: Example
+=== VEX: Example
 
 #text(size: 14pt)[
   ```json
