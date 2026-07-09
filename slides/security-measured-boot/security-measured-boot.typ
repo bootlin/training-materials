@@ -183,7 +183,7 @@
 
 === Integrity Measurement Architecture Policies
 
-- Policies defines what is measured
+- Policies define what is measured
 - Controlled by the `ima_policy` kernel command line parameter
 - Several policies can be combined
 - IMA comes with predefined policies:
