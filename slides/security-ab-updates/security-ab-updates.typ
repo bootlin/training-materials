@@ -28,7 +28,7 @@
 
 - A/B systems have 2 slots: slot A and slot B
 - They each have dedicated boot locations (usually boot medium partitions)
-- On the running system, the slot booted is the *current* slot
+- On the running system, the booted slot is the *current* slot
 - An OTA should never touch boot locations from the *current* slot
 - Each slot can be marked *bootable*
 - Updates will usually be built independently from the slot they will occupy
