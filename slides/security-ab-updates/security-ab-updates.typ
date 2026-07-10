@@ -192,13 +192,14 @@ filename=barebox.img
 
 === A/B updates using RAUC + U-Boot
 
-#text(size: 12pt)[
+#text(size: 11pt)[
   ```sh
   test -n "${BOOT_ORDER}" || setenv BOOT_ORDER "A B"
   test -n "${BOOT_A_LEFT}" || setenv BOOT_A_LEFT 3
   test -n "${BOOT_B_LEFT}" || setenv BOOT_B_LEFT 3
+  setenv bootargs
 
-  setenv bootargs for BOOT_SLOT in "${BOOT_ORDER}"; do
+  for BOOT_SLOT in "${BOOT_ORDER}"; do
     if test "x${bootargs}" != "x"; then
       # skip remaining slots
     elif test "x${BOOT_SLOT}" = "xA"; then
@@ -222,7 +223,8 @@ filename=barebox.img
     setenv BOOT_A_LEFT 3
     setenv BOOT_B_LEFT 3
     saveenv
-    reset fi
+    reset
+  fi
 
   run load_kernel bootm ${loadaddr_kernel}
   ```]
