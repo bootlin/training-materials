@@ -128,7 +128,7 @@ The `conf/local.conf` configuration file holds local user configuration variable
   [*downloads\/*],
   [Downloaded upstream tarballs of the recipes used in the builds.],
 
-  [*state-cache\/*], [Shared state cache. Used by all builds.],
+  [*sstate-cache\/*], [Shared state cache. Used by all builds.],
   [*tmp\/*], [Holds all the build system outputs.],
 )
 
