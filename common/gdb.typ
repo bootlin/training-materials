@@ -220,7 +220,7 @@ A few useful GDB commands
 
 === Coredumps for post mortem analysis
 
-- It is sometime not possible to have a debugger attached when a crash
+- It is sometimes not possible to have a debugger attached when a crash
   occurs
 
 - Fortunately, Linux can generate a `core` file (a snapshot of the whole
