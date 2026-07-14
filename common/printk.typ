@@ -98,11 +98,11 @@ Here's what you get in the kernel log:
   `printf()` existing ones.
 
   - `%p`: Display the hashed value of pointer by default
-  - `%px`: Always display the adress of a pointer (use carefully on non-sensitive)
+  - `%px`: Always display the address of a pointer (use carefully on non-sensitive)
   - `%pK`: Display hashed pointer value, zeros or the pointer address depending on `kptr_restrict` sysctl value
   - `%pOF`: Device-tree node format specifier
   - `%pr`: Resource structure format specifier
-  - `%pa`: Physical adress display (work on all architectures 32/64 bits)
+  - `%pa`: Physical address display (work on all architectures 32/64 bits)
   - `%pe`: Error pointer (displays the string corresponding to the error number)
 
 - See #kdochtml("core-api/printk-formats") for an exhaustive list of
