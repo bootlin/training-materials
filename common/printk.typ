@@ -10,7 +10,7 @@
 
   - Can specify a log level ranging from `0` (emergency) to `7` (debug)
 
-  - Be careful of the delays introduced when logs are spitted out on a
+  - Be careful of the delays introduced when logs are printed out on a
     serial console at 115200 bauds
 
     - A `*_ratelimited()` version exists to limit the amount of print
