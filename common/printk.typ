@@ -114,7 +114,7 @@ Here's what you get in the kernel log:
 === pr_debug() and dev_dbg()
 
 - When the driver is compiled with `DEBUG` defined, all these messages
-  are compiled and printed at the debug level. `DEBUG` can be defined by
+  are compiled and printed at the debug level. `DEBUG` can be defined
   at the beginning of the driver, or using `ccflags-$(CONFIG_DRIVER) += -DDEBUG` in the `Makefile`
 
 - When the kernel is compiled with
