@@ -104,6 +104,16 @@ On the NXP i.MX93, the boot flow is as follows:
 
 Our setup doesn't use a trusted execution environment such as OP-TEE.
 
+\section{DDR firmwares}
+
+\begin{bashinput}
+$ wget https://www.nxp.com/lgfiles/NMG/MAD/YOCTO/firmware-imx-8.25-27879f8.bin
+$ chmod +x firmware-imx-8.25-27879f8.bin
+$ ./firmware-imx-8.25-27879f8.bin
+\end{bashinput}
+Accept the conditions, it will unpack the needed binaries under
+\code{firmware-imx-8.25-27879f8/firmware/ddr/synopsys/}.
+
 \section{TF-A setup}
 
 Get the mainline TF-A sources:
@@ -116,15 +126,13 @@ $ git checkout v2.15.0
 
 Two configuration parameters have to be passed to the Makefile:
 \begin{itemize}
-\item Specify the cross-compiler prefix (the part before gcc in the
-  cross-compiler executable name), either using the environment
-  variable:\inlinebash{$ export CROSS_COMPILE=aarch64-linux-}, or just
-  by adding it to the \code{make} command line.
-\item And we have to specify the platform \code{PLAT=imx93}
+\item The cross-compiler prefix (the part before gcc in the
+  cross-compiler executable name), set through the \code{CROSS_COMPILE}
+  variable. The same \code{CROSS_COMPILE} variable will be used later by U-Boot,
+  so instead of setting it in the \code{make} command, you can directly export it
+  into your shell environment with \inlinebash{$ export CROSS_COMPILE=aarch64-linux-}
+  \item The used platform: \code{PLAT=imx93}
 \end{itemize}
-
-We can now generate the \code{bl31} needed to build the container with
-U-Boot:
 
 \begin{bashinput}
 $ make PLAT=imx93
@@ -136,7 +144,7 @@ which is our secure monitor.
 
 \section{U-Boot setup}
 
-Download U-Boot:
+Get U-Boot:
 
 \begin{bashinput}
 $ cd ..
@@ -145,44 +153,15 @@ $ cd u-boot
 $ git checkout v2026.07
 \end{bashinput}
 
-Get an understanding of U-Boot's configuration and compilation steps
-by reading the \code{README} file, and specifically the {\em Building
-the Software} section.
-
-Basically, you need to:
-
-\begin{enumerate}
-
-\item Retrieve the previously compiled bl31.bin file and place it in the U-Boot directory:
-\bashcmd{$ cp ../trusted-firmware-a/build/imx93/release/bl31.bin .}
-
-\item Retrieve the NXP firmware required for DDR memory support
-\begin{bashinput}
-$ wget https://www.nxp.com/lgfiles/NMG/MAD/YOCTO/firmware-imx-8.25-27879f8.bin
-$ chmod +x firmware-imx-8.25-27879f8.bin
-$ ./firmware-imx-8.25-27879f8.bin
-\end{bashinput}
-
-Once the conditions are accepted, copy the following files located in
-\code{firmware-imx-8.25-27879f8/firmware/ddr/synopsys/} to the root of
-the U-Boot source tree: \code{lpddr4_dmem_1d_v202201.bin},
-\code{lpddr4_dmem_2d_v202201.bin}, \code{lpddr4_imem_1d_v202201.bin}
-and \code{lpddr4_imem_2d_v202201.bin}.
-
-\item Specify the cross-compiler prefix
-(the part before \code{gcc} in the cross-compiler executable name) and the
-architecture:
-\bashcmd{$ export CROSS_COMPILE=aarch64-linux-}
-
-\item Load the iMX93-FRDM default configuration with
+Load the iMX93-FRDM default configuration with
 \inlinebash{$ make imx93_frdm_defconfig}, it will load the configuration
 described in \code{configs/imx93_frdm_defconfig}
 
-\item Now that you have a valid initial configuration, you can now run
-  \inlinebash{$ make menuconfig} to further edit your bootloader
-  configuration.
+Now that you have a valid initial configuration, you can now run
+\inlinebash{$ make menuconfig} to further edit your bootloader
+configuration.
 
-  \begin{itemize}
+\begin{itemize}
 
   \item In the \code{Environment} submenu, we will configure U-Boot so
     that it stores its environment inside a file called \code{uboot.env}
@@ -228,8 +207,7 @@ described in \code{configs/imx93_frdm_defconfig}
     python3-dev python3-setuptools uuid-dev libgnutls28-dev
   \end{bashinput}
 
-\item Finally, run \bashcmd{make DEVICE_TREE=imx93-11x11-frdm}
-  which will build U-Boot
+Run \bashcmd{make DEVICE_TREE=imx93-11x11-frdm} which will build U-Boot
   \footnote{You can speed up the compiling by using the \code{-jX}
   option with \code{make}, where X is the number of parallel jobs used
   for compiling. Twice the number of CPU cores is a good value.}.  The
@@ -238,7 +216,30 @@ described in \code{configs/imx93_frdm_defconfig}
   our board’s device tree name on Device Tree Control → Default Device
   Tree for DT Control option.
 
-\end{enumerate}
+The build fails at the BINMAN step with following error log:
+\begin{terminaloutput}
+  BINMAN  .binman_stamp
+file './mx93a1-ahab-container.img' does not exist. flash.bin may be not-functional.
+file './bl31.bin' does not exist. flash.bin may be not-functional.
+Image 'u-boot-spl-ddr' is missing external blobs and is non-functional: ddr-1d-imem-fw ddr-1d-dmem-fw ddr-2d-imem-fw ddr-2d-dmem-fw
+\end{terminaloutput}
+
+To build the final \code{flash.bin}, U-Boot needs the BL31 binary (i.e. TF-A)
+and the binaries used during the DDR initialization. The location of these
+binaries is configured in the \code{binman} node of the device tree (see
+\code{arch/arm/dts/imx93-u-boot.dtsi}). The current configuration expects them
+to be in U-Boot's top directory so let's copy them here:
+\begin{bashinput}
+$ cp ../trusted-firmware-a/build/imx93/release/bl31.bin .
+$ cp ../firmware-imx-8.25-27879f8/firmware/ddr/synopsys/lpddr4_dmem_1d_v202201.bin .
+$ cp ../firmware-imx-8.25-27879f8/firmware/ddr/synopsys/lpddr4_imem_1d_v202201.bin .
+$ cp ../firmware-imx-8.25-27879f8/firmware/ddr/synopsys/lpddr4_imem_2d_v202201.bin .
+$ cp ../firmware-imx-8.25-27879f8/firmware/ddr/synopsys/lpddr4_dmem_2d_v202201.bin .
+\end{bashinput}
+
+Now run again \inlinebash{make DEVICE_TREE=imx93-11x11-frdm}, the build should
+end sucessfully. The warning about the missing ./mx93a1-ahab-container.img
+can be ignored as we don't implement secure boot.
 
 The important final result of this build is the \code{flash.bin} file,
 whose layout is as follows:
@@ -249,11 +250,12 @@ whose layout is as follows:
 
 \section{Flashing the bootloaders}
 
-The ROM code of the NXP i.MX93 simply expects to find the contents of
-\code{flash.bin}, raw, at offset 32 KiB in the storage medium. So,
-what we're going to do is create a single partition to store the
-U-Boot environment, but the starting offset of this partition will be
-2 MB to leave enough room for flash.bin.
+The ROM code of the NXP i.MX93 doesn't support any filesystem. It expects
+to find the raw \code{flash.bin}, at offset 32 KiB of the storage medium. Though,
+during the U-Boot configuration, we configured the U-Boot environment to be
+stored in an EXT4 partition. So, we're going to create a single partition to
+store this environment. The starting offset of this partition will be 2 MB to
+leave enough room for \code{flash.bin}.
 
 Overall, this will give us the following SD card layout:
 
