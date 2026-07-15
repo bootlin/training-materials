@@ -120,7 +120,7 @@ with one that works!
 - Desktop or server case:
 
   - Advisable to start with the configuration of your running kernel: \
-    `cp /boot/config-``uname -r`` .config`
+    ```shell cp /boot/config-`uname -r` .config```
 
 - Embedded platform case:
 
