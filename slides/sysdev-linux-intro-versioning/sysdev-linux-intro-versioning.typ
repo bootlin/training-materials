@@ -84,4 +84,4 @@
   Linux Foundation effort to support much longer (at least 10 years)
   selected LTS versions (currently 4.4, 4.19, 5.10 and 6.1) on selected
   architectures. See  \
-  #link("https://wiki.linuxfoundation.org/civilinfrastructureplatform/start").
+  #link("https://cip-project.org/").
