@@ -429,7 +429,7 @@ FILES:${PN}-dbg = "\
 
 === `FILES: the main package`
 
-- The package named just `$PN` is the one that gets installed in the
+- The package named just `${PN}` is the one that gets installed in the
   root filesystem.
 
 - In Poky, defaults to:
