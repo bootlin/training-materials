@@ -69,7 +69,7 @@
 
 === Listing licenses
 
-OpenEmbbedded will generate a manifest of all the licenses of the software present on the target image in
+OpenEmbedded will generate a manifest of all the licenses of the software present on the target image in
 `$BUILDDIR/tmp/deploy/licenses/<image>/license.manifest`
 
 #v(0.5em)
@@ -99,7 +99,7 @@ filesystem:
 
 === Providing sources
 
-OpenEmbbedded provides the `archiver` class to
+OpenEmbedded provides the `archiver` class to
 generate tarballs of the source code, to meet the requirements of some
 licenses:
 
