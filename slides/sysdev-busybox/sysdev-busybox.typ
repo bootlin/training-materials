@@ -138,9 +138,11 @@
 
 === Compiling BusyBox
 
-- Set the cross-compiler prefix in the configuration interface:  \
-  `Settings → Build Options → Cross Compiler prefix`  \
-  Example: `arm-linux-`
+- Set the cross-compiler prefix:
+    - from the menuconfig interface  \
+      `Settings → Build Options → Cross Compiler prefix`  \
+    - or through the `CROSS_COMPILE` environment variable \
+      `export CROSS_COMPILE=arm-linux-` \
 
 - Set the installation directory in the configuration interface:  \
   `Settings → Installation Options → Destination path for 'make install'`
