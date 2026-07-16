@@ -191,35 +191,79 @@ When you're done, you can see your GPIO free:
 # echo %\gpionum% > unexport
 \end{bashinput}
 
-\section{Driving LEDs}
+\section{Customizing the Device Tree}
+
+\subsection{Driving LEDs}
 
 First, make sure your kernel is compiled with
 \kconfigval{CONFIG_LEDS_CLASS}{y}, \kconfigval{CONFIG_LEDS_GPIO}{y}
 and \kconfigval{CONFIG_LEDS_TRIGGER_TIMER}{y}.
 
-Then, go to \code{/sys/class/leds} to see all the LEDs that you are allowed
-to control.
+The \code{/sys/class/leds} folder is empty because no LEDs are known by the
+Linux kernel so far.
 
-Let's control the LED which is called
-\code{:heartbeat}.
+We're going to start customizing our device-tree to drive the LEDs available
+on the FRDM. The FRDM-IMX93 Board User Manual (UM12181) gives details about an
+RGB LED: LED1. It's composed of three coloured LEDs, each of them is driven by
+a GPIO, let's describe them in the device-tree.
 
-Go into the directory for this LED, and check its trigger (what
-routine is used to drive its value):
+We could modify the \kfile{arch/arm64/boot/dts/freescale/imx93-11x11-frdm.dts}
+file for our board, but that's not a very good idea as this file is
+maintained by the kernel developers. The changes that you make could
+collide with future changes made by the maintainers for this file.
+
+A more futureproof idea is to create a new device-tree file which
+includes the standard one, and adds custom definitions. So, create a
+new \code{arch/arm64/boot/dts/freescale/imx93-11x11-frdm-custom.dts} file
+containing:
+
+\begin{verbatim}
+/dts-v1/;
+#include "imx93-11x11-frdm.dts"
+
+/ {
+        leds {
+                compatible = "gpio-leds";
+                red: led-0 {
+                        label = "red";
+                        gpios = <&gpio2 13 GPIO_ACTIVE_HIGH>;
+                        default-state = "off";
+                };
+                green: led-1 {
+                        label = "green";
+                        gpios = <&gpio2 4 GPIO_ACTIVE_HIGH>;
+                        default-state = "off";
+                };
+                blue: led-2 {
+                        label = "blue";
+                        gpios = <&gpio2 12 GPIO_ACTIVE_HIGH>;
+                        default-state = "off";
+                };
+        };
+};
+
+\end{verbatim}
+
+As you can see, it's also possible to include \code{dts} files, and not
+only \code{dtsi} ones.
+
+Modify the \kfile{arch/arm64/boot/dts/freescale/Makefile} file to add your custom
+device-tree, and then have it compiled (\code{make dtbs}).
+
+Reboot your board with the update.
+
+Let's control the blue led. Go into the directory for this LED, and check its
+trigger (what routine is used to drive its value):
 
 \begin{bashinput}
+# cd /sys/class/leds/blue/
 # cat trigger
 \end{bashinput}
 
-As you can see, there are many triggers to choose from, the current
-being \code{heartbeat}.
+As you can see, there are many triggers to choose from, currently none is
+selected.
 
-You can disable all triggers by:
-
-\begin{bashinput}
-# echo none > trigger
-\end{bashinput}
-
-And then directly control the LED:
+You can directly control the LED through the \code{brightness} file:
 
 \begin{bashinput}
 # echo 1 > brightness
@@ -266,7 +310,6 @@ However because this I2C controller is already enabled, we will
 first play with I2C4 (WKUP\_I2C0 in datasheet) and demonstrate
 how to enable it, even if we won't use I2C4 in the rest of the labs.
 
-\subsection{Customizing the Device Tree}
 
 Fortunately, I2C4 (LPI2C4 in datasheet of the soc) is already defined
 in one of the DTS includes used by the Device Tree for our board.
@@ -275,14 +318,6 @@ Look by yourself in this file, and you will find its definition, but with
 \code{status = "disabled";}. This means that this I2C controller is not
 enabled yet, and it's up to boards using it to do so.
 
-We could modify the \kfile{arch/arm64/boot/dts/freescale/imx93-11x11-frdm.dts} file
-for our board, but that's not a very good idea as this file is
-maintained by the kernel developers. The changes that you make could
-collide with future changes made by the maintainers for this file.
-
-A more futureproof idea is to create a new Device Tree file which
-includes the standard one, and adds custom definitions. So, create a
-new \code{arch/arm64/boot/dts/freescale/imx93-11x11-frdm-custom.dts} file containing:
 
 \begin{verbatim}
 /dts-v1/;
@@ -293,16 +328,6 @@ new \code{arch/arm64/boot/dts/freescale/imx93-11x11-frdm-custom.dts} file contai
 };
 \end{verbatim}
 
-As you can see, it's also possible to include \code{dts} files, and not
-only \code{dtsi} ones.
-
-Why the \code{/delete-property/} statement? That's because we want to see what happens when a
-device doesn't have associated pin definitions yet.
-
-Modify the \kfile{arch/arm64/boot/dts/freescale/Makefile} file to add your custom
-Device Tree, and then have it compiled (\code{make dtbs}).
-
-Reboot your board with the update.
 
 Back to the running system, we can now see that there is one more
 I2C bus:
