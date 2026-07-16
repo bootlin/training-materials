@@ -108,7 +108,7 @@ case to \kconfig{CONFIG_GPIO_SYSFS}.
 Also make sure {\em Debugfs} is enabled (\kconfig{CONFIG_DEBUG_FS} and
 \kconfig{CONFIG_DEBUG_FS_ALLOW_ALL}).
 
-After rebooting the new kernel, the first thing to do is to mount
+Once the new kernel is up, the first thing to do is to mount
 the {\em Debugfs} filesystem:
 
 \begin{bashinput}
@@ -134,10 +134,17 @@ Take one of the F-F breadboard wires provided by your instructor and:
   \includegraphics[width=0.5\textwidth]{labs/sysdev-accessing-hardware-imx93-frdm/imx93-frdm-connect-gpio.jpg}
 \end{center}
 
-If you look at the board documentation, you will see that pin 40 is connected to GPIO\_IO21, which belongs to GPIO controller 2. However, GPIO controller 1 is not used, so this GPIO will be referenced under the label gpiochip0 in Linux. Furthermore, we are using GPIO 21 from gpiochip0, which corresponds to gpio-533.
+If you look at the {\em IOMUXC} section (§27.3.1.26) of the IMX93 reference manual
+\footnote{https://www.nxp.com/docs/en/reference-manual/IMX93RM.pdf}, you will
+see that the GPIO\_IO21 PAD is tied to the 21th GPIO of the GPIO2 controller.
+In the same document, in the {\em GPIO} section (§28.7.1.1), you'll find the location
+of this GPIO controller's registers: 0x43810000.
+Then \inlinebash{ls -l /sys/class/gpio} shows the available GPIO controllers and the
+device-tree nodes they're tied to. We see that the GPIO controller linked to the
+0x43810000 address is called gpiochip512, meaning that its 21th GPIO will be
+512 + 21 = 533.
 
-We now have everything we need to drive this GPIO using the legacy
-interface. First, let's enable it:
+So let's enable this GPIO:
 
 \begin{bashinput}
 # cd /sys/class/gpio
@@ -171,14 +178,8 @@ Let's check the value again:
 1
 \end{bashinput}
 
-The value is \code{1} because our pin is connected to a 3.3V level now.
-
-You could use this GPIO to add a button switch to your board, for
-example.
-
-Note that you could also configure the pin as output and set its value
-through the \code{value} file. This way, you could add an external LED
-to your board, for example.
+Note that you could also configure the pin as output and drive it through
+the same \code{value} file.
 
 Before moving on to the next section, you can also check
 \code{/sys/kernel/debug/gpio} again, and see that {\tt gpio-\gpionum} is now
