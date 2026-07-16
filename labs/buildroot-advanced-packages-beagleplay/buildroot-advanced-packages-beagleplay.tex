@@ -1,0 +1,217 @@
+\subchapter
+{Advanced packaging}
+{Objectives:
+  \begin{itemize}
+  \item Package an application with a mandatory dependency and an
+    optional dependency
+  \item Package a library, hosted on GitHub
+  \item Use {\em hooks} to tweak packages
+  \item Add a patch to a package
+  \end{itemize}
+}
+
+\section{Start packaging application {\tt bar}}
+
+For the purpose of this training, we have created a completely stupid
+and useless application called \code{bar}. Its home page is
+\url{https://bootlin.com/~thomas/bar/}, from where you can
+download an archive of the application's source code.
+
+Create an initial package for \code{bar} in \code{package/bar}, with
+the necessary code in \code{package/bar/bar.mk} and
+\code{package/bar/Config.in}. Don't forget
+\code{package/bar/bar.hash}. At this point, your \code{bar.mk} should
+only define the \code{<pkg>_VERSION}, \code{<pkg>_SOURCE} and
+\code{<pkg>_SITE} variables, and a call to a package infrastructure.
+
+Enable the \code{bar} package in your Buildroot configuration, and
+start the build. It should download \code{bar}, extract it, and start
+the configure script. And then it should fail with an error related to
+\code{libfoo}. And indeed, as the \code{README} file available in
+\code{bar}'s source code says, it has a mandatory dependency on
+\code{libfoo}. So let's move on to the next section, and we'll start
+packaging \code{libfoo}.
+
+\section{Packaging {\tt libfoo}: initial packaging}
+
+According to \code{bar}'s \code{README} file, \code{libfoo} is only
+available on {\em GitHub} at
+\url{https://github.com/tpetazzoni/libfoo}.
+
+Create an initial package for \code{libfoo} in \code{package/libfoo},
+with the relevant minimal variables to get \code{libfoo} downloaded
+properly. Since it's hosted on {\em GitHub}, remember to use the
+\code{github} {\em make} function provided by Buildroot to define
+\code{<pkg>_SITE}. To learn more about this function, \code{grep} for
+it in the Buildroot tree, or read the Buildroot reference manual.
+
+Also, notice that there is a version tagged \code{v0.1} in the GitHub
+repository, you should probably use it.
+
+Enable the \code{libfoo} package and start the build. You should get
+an error due to the \code{configure} script being missing. What can
+you do about it? Hint: there is one Buildroot variable for {\em
+autotools} packages to solve this problem.
+
+\code{libfoo} should now build fine. Look in
+\code{output/target/usr/lib}, the dynamic version of the library
+should be installed. However, if you look in \code{output/staging/},
+you will see no sign of \code{libfoo}, neither the library in
+\code{output/staging/usr/lib} or the header file in
+\code{output/staging/usr/include}. This is an issue because the
+compiler will only look in \code{output/staging} for libraries and
+headers, so we must change our package so that it also installs to the
+{\em staging directory}. Adjust your \code{libfoo.mk} file to achieve
+this, restart the build of \code{libfoo}, and make sure that you see
+\code{foo.h} in \code{output/staging/usr/include} and \code{libfoo.*}
+in \code{output/staging/usr/lib}.
+
+Now everything looks good, but there are some more improvements we can
+do.
+
+\section{Improvements to {\tt libfoo} packaging}
+
+If you look in \code{output/target/usr/bin}, you can see a program
+called \code{libfoo-example1}. This is just an example program for
+\code{libfoo}, it is typically not very useful in a real target
+system. So we would like this example program to not be installed. To
+achieve this, add a {\em post-install target hook} that removes
+\code{libfoo-example1}. Rebuild the \code{libfoo} package and verify
+that \code{libfoo-example1} has been properly removed.
+
+Now, if you go in \code{output/build/libfoo-v0.1}, and run
+\code{./configure --help} to see the available options, you should see
+an option named \code{--enable-debug-output}, which enables a
+debugging feature of \code{libfoo}. Add a sub-option in
+\code{package/libfoo/Config.in} to enable the debugging feature, and
+the corresponding code in \code{libfoo.mk} to pass
+\code{--enable-debug-output} or \code{--disable-debug-output} when
+appropriate.
+
+Enable this new option in \code{menuconfig}, and restart the build of
+the package. Verify in the build output that
+\code{--enable-debug-output} was properly passed as argument to the
+\code{configure} script.
+
+Now, the packaging of \code{libfoo} seems to be alright, so let's get
+back to our \code{bar} application.
+
+\section{Finalize the packaging of {\tt bar}}
+
+So, \code{bar} was failing to configure because \code{libfoo} was
+missing. Now that \code{libfoo} is available, modify \code{bar} to add
+\code{libfoo} as a dependency. Remember that this needs to be done in
+two places: \code{Config.in} file and \code{bar.mk} file.
+
+Restart the build, and it should succeed! Now you can run the
+\code{bar} application on your target, and discover how absolutely
+useless it is, except for allowing you to learn about Buildroot
+packaging!
+
+\section{{\tt bar} packaging: {\em libconfig} dependency}
+
+But there's some more things we can do to improve \code{bar}'s
+packaging. If you go to \code{output/build/bar-1.1} and run
+\code{./configure --help}, you will see that it supports a
+\code{--with-libconfig} option. And indeed, \code{bar}'s \code{README}
+file also mentions \code{libconfig} as an optional dependency.
+
+So, change \code{bar.mk} to add {\em libconfig} as an optional
+dependency. No need to add a new \code{Config.in} option for that:
+just make sure that when {\em libconfig} is enabled in the Buildroot
+configuration, \code{--with-libconfig} is passed to \code{bar}'s {\em
+configure} script, and that {\em libconfig} is built before
+\code{bar}. Also, pass \code{--without-libconfig} when {\em libconfig}
+is not enabled.
+
+Enable \code{libconfig} in your Buildroot configuration, and restart
+the build of \code{bar}. What happens?
+
+It fails to build with messages like \code{error: unknown type name
+‘config_t’}. Seems like the author of \code{bar} messed up and forgot
+to include the appropriate header file. Let's try to fix this: go to
+\code{bar}'s source code in \code{output/build/bar-1.1} and edit
+\code{src/main.c}. Right after the \code{#if defined(USE_LIBCONFIG)},
+add a \code{#include <libconfig.h>}. Save, and restart the build of
+\code{bar}. Now it builds fine!
+
+However, try to rebuild \code{bar} from scratch by doing \code{make
+bar-dirclean all}. The build problem happens again. This is because
+doing a change directly in \code{output/build/} might be good for
+doing a quick test, but not for a permanent solution: everything in
+\code{output/} is deleted when doing a \code{make clean}. So instead of
+manually changing the package source code, we need to generate a
+proper patch for it.
+
+There are multiple ways to create patches, but we'll simply use Git to
+do so. As the \code{bar} project home page indicates, a Git repository
+is available on GitHub at \code{https://github.com/tpetazzoni/bar}.
+
+Start by cloning the Git repository:
+
+\begin{bashinput}
+git clone https://github.com/tpetazzoni/bar.git
+\end{bashinput}
+
+Once the cloning is done, go inside the \code{bar} directory, and
+create a new branch named \code{buildroot}, which starts the
+\code{v1.1} tag (which matches the \code{bar-1.1.tar.gz} tarball we're
+using):
+
+\begin{bashinput}
+git branch buildroot v1.1
+\end{bashinput}
+
+Move to this newly created branch\footnote{Yes, we can use \code{git
+checkout -b} to create the branch and move to it in one command}:
+
+\begin{bashinput}
+git checkout buildroot
+\end{bashinput}
+
+Do the \code{#include <libconfig.h>} change to \code{src/main.c}, and
+commit the result:
+
+\begin{bashinput}
+git commit -a -m "Fix missing <libconfig.h> include"
+\end{bashinput}
+
+Generate the patch for the last commit (i.e. the one you just created):
+
+\begin{bashinput}
+git format-patch HEAD^
+\end{bashinput}
+
+and copy the generated \code{0001-*.patch} file to \code{package/bar/}
+in the Buildroot sources.
+
+Now, restart the build with \code{make bar-dirclean all}, it should
+built fully successfully!
+
+You can even check that \code{bar} is linked against
+\code{libconfig.so} by doing:
+
+\begin{bashinput}
+./output/host/bin/aarch64-linux-readelf -d output/target/usr/bin/bar
+\end{bashinput}
+
+On the target, test \code{bar}. Then, create a file called
+\code{bar.cfg} in the current directory, with the following contents:
+
+\begin{fileinput}
+verbose = "yes"
+\end{fileinput}
+
+And run \code{bar} again, and see what difference it makes.
+
+Congratulations, you've finished packaging the most useless application
+in the world!
+
+\section{Preparing for the next lab}
+
+In preparation for the next lab, we need to do a clean full rebuild,
+so simply issue:
+
+\begin{bashinput}
+make clean all 2>&1 | tee build.log
+\end{bashinput}
