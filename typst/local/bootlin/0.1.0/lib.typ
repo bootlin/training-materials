@@ -104,14 +104,18 @@
 
 #let slide-footer(self) = {
   set text(size: 8pt)
-  line(length: 100%, stroke: 0.2pt + black)
-  v(-0.9em)
-  (
-    h(0.5em)
-      + utils.call-or-display(self, self.store.footer)
-      + h(1fr)
-      + utils.call-or-display(self, self.store.footer-right)
-      + h(0.5em)
+
+  place(bottom + left, dy: -15pt, line(length: 100%, stroke: 0.2pt + black))
+  place(
+    bottom + left,
+    dy: -3.5pt,
+    (
+      h(0.5em)
+        + utils.call-or-display(self, self.store.footer)
+        + h(1fr)
+        + utils.call-or-display(self, self.store.footer-right)
+        + h(0.5em)
+    ),
   )
 }
 
