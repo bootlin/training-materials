@@ -80,6 +80,41 @@
 }
 
 /* Touying configuration */
+#let slide-header(self, with_description: true, with_title: true) = {
+  place(top + left, dy: 15mm, line(length: 100%, stroke: 2pt + bootlin-orange))
+  place(top + left, dy: 4mm, dx: 6mm, box(
+    image("logo-penguins.svg"),
+    width: 18mm,
+  ))
+
+  if with_title {
+    place(bottom + left, dx: 26mm, dy: -4mm - 10pt, text(
+      size: 26pt,
+      utils.call-or-display(self, self.store.header),
+    ))
+  }
+
+  if with_description {
+    place(top + right, dy: 15mm - 2pt - 12pt, text(
+      size: 12pt,
+      [Embedded Linux and kernel engineering#h(1em)],
+    ))
+  }
+}
+
+#let slide-footer(self) = {
+  set text(size: 8pt)
+  line(length: 100%, stroke: 0.2pt + black)
+  v(-0.9em)
+  (
+    h(0.5em)
+      + utils.call-or-display(self, self.store.footer)
+      + h(1fr)
+      + utils.call-or-display(self, self.store.footer-right)
+      + h(0.5em)
+  )
+}
+
 #let slide(
   config: (:),
   repeat: auto,
@@ -87,32 +122,12 @@
   composer: auto,
   ..bodies,
 ) = touying-slide-wrapper(self => {
-  let header(self) = {
-    set text(size: 26pt)
-    h(26mm) + utils.call-or-display(self, self.store.header)
-    v(-0.1em)
-    line(length: 100%, stroke: 2pt + bootlin-orange)
-    v(4mm)
-    place(top + left, dx: 6mm, dy: 4mm, box(
-      image("logo-penguins.svg"),
-      width: 18mm,
-    ))
-  }
-  let footer(self) = {
-    set text(size: 8pt)
-    line(length: 100%, stroke: 0.2pt + black)
-    v(-0.9em)
-    (
-      h(0.5em)
-        + utils.call-or-display(self, self.store.footer)
-        + h(1fr)
-        + utils.call-or-display(self, self.store.footer-right)
-        + h(0.5em)
-    )
-  }
   let self = utils.merge-dicts(
     self,
-    config-page(header: header, footer: footer),
+    config-page(
+      header: self => slide-header(self, with_description: false),
+      footer: slide-footer,
+    ),
   )
   let new-setting = body => {
     show: setting
@@ -131,23 +146,12 @@
 })
 
 #let lab-slide(config: (:), body) = touying-slide-wrapper(self => {
-  let header(self) = {
-    set text(size: 26pt)
-    h(26mm) + utils.call-or-display(self, self.store.header)
-    v(-0.8em)
-    line(length: 100%, stroke: 2pt + bootlin-orange)
-    v(4mm)
-    place(top + left, dx: 6mm, dy: 4mm, box(
-      image("logo-penguins.svg"),
-      width: 18mm,
-    ))
-  }
   self = utils.merge-dicts(
     self,
     config,
     config-page(
       margin: (x: 2em, top: 20mm, bottom: 1em),
-      header: header,
+      header: slide-header,
     ),
   )
   let body = {
@@ -163,30 +167,6 @@
   numbered: false,
   body,
 ) = touying-slide-wrapper(self => {
-  let header(self) = {
-    h(26mm) + utils.call-or-display(self, self.store.header)
-    set text(size: 13pt)
-    [#h(1fr) Embedded Linux and kernel engineering #h(1em)]
-    v(0.1em)
-    line(length: 100%, stroke: 2pt + bootlin-orange)
-    v(4mm)
-    place(top + left, dx: 6mm, dy: 4mm, box(
-      image("logo-penguins.svg"),
-      width: 18mm,
-    ))
-  }
-  let footer(self) = {
-    set text(size: 8pt)
-    line(length: 100%, stroke: 0.2pt + black)
-    v(-0.9em)
-    (
-      h(0.5em)
-        + utils.call-or-display(self, self.store.footer)
-        + h(1fr)
-        + utils.call-or-display(self, self.store.footer-right)
-        + h(0.5em)
-    )
-  }
   let slide-body = {
     box(width: 60%, height: 100%, stack(
       spacing: 3em,
@@ -211,8 +191,8 @@
     self,
     config-page(
       margin: (x: 2em, top: 20mm, bottom: 1em),
-      header: header,
-      footer: footer,
+      header: slide-header(self),
+      footer: slide-footer,
     ),
   )
   touying-slide(self: self, config: config, slide-body)
@@ -224,30 +204,6 @@
   numbered: false,
   body,
 ) = touying-slide-wrapper(self => {
-  let header(self) = {
-    [#h(26mm) #utils.display-current-heading(level: 1, numbered: false)]
-    set text(size: 13pt)
-    [#h(1fr) Embedded Linux and kernel engineering #h(1em)]
-    v(0.1em)
-    line(length: 100%, stroke: 2pt + bootlin-orange)
-    v(4mm)
-    place(top + left, dx: 6mm, dy: 4mm, box(
-      image("logo-penguins.svg"),
-      width: 18mm,
-    ))
-  }
-  let footer(self) = {
-    set text(size: 8pt)
-    line(length: 100%, stroke: 0.2pt + black)
-    v(-0.9em)
-    (
-      h(0.5em)
-        + utils.call-or-display(self, self.store.footer)
-        + h(1fr)
-        + utils.call-or-display(self, self.store.footer-right)
-        + h(0.5em)
-    )
-  }
   let slide-body = {
     set align(center)
     stack(
@@ -269,8 +225,11 @@
     self,
     config-page(
       margin: (x: 2em, top: 20mm, bottom: 1em),
-      header: header,
-      footer: footer,
+      header: self => slide-header(
+        self,
+        with_title: false,
+      ),
+      footer: slide-footer,
     ),
   )
   touying-slide(self: self, config: config, slide-body)
