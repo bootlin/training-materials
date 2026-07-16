@@ -157,54 +157,6 @@
   touying-slide(self: self, body)
 })
 
-#let title-slide(config: (:), ..args) = touying-slide-wrapper(self => {
-  let header(self) = {
-    set text(size: 12pt)
-    [#h(1fr) Embedded Linux and kernel engineering #h(1em)]
-    v(-0.8em)
-    line(length: 100%, stroke: 2pt + bootlin-orange)
-    v(4mm)
-    place(top + left, dx: 6mm, dy: 4mm, box(
-      image("logo-penguins.svg"),
-      width: 18mm,
-    ))
-  }
-  self = utils.merge-dicts(
-    self,
-    config,
-    config-common(freeze-slide-counter: true),
-    config-page(
-      margin: (x: 2em, top: 20mm, bottom: 1em),
-      header: header,
-    ),
-  )
-  let info = self.info + args.named()
-  let body = {
-    box(
-      width: 60%,
-      height: 100%,
-      stack(
-        spacing: 3em,
-        if info.title != none { text(size: 40pt, info.title) },
-        if info.author != none {
-          text(size: 28pt, weight: "regular", info.author)
-        },
-        if info.date != none {
-          text(size: 20pt, utils.display-info-date(self))
-        },
-      )
-        + text(
-          size: 8pt,
-          [© Copyright 2004-#datetime.today().display("[year]"), Bootlin. \
-            Creative Commons BY-SA 3.0 license. \
-            Corrections, suggestions, contributions and translations are welcome!],
-        ),
-    )
-    box(width: 40%, height: 100%, image("logo-square.svg"))
-  }
-  touying-slide(self: self, body)
-})
-
 #let new-section-slide(
   config: (:),
   level: 1,
@@ -318,41 +270,6 @@
     config-page(
       margin: (x: 2em, top: 20mm, bottom: 1em),
       header: header,
-      footer: footer,
-    ),
-  )
-  touying-slide(self: self, config: config, slide-body)
-})
-
-#let questions-slide(config: (:)) = touying-slide-wrapper(self => {
-  let slide-body = {
-    set align(center)
-    stack(
-      spacing: 3em,
-      dir: ttb,
-      text(size: 2.3em)[Questions? Suggestions? Comments?],
-      v(4em),
-      text(size: 1.7em, self.info.author),
-      [Slides under CC-BY-SA 3.0],
-    )
-  }
-  let footer(self) = {
-    set text(size: 8pt)
-    v(3pt)
-    line(length: 100%, stroke: 0.2pt + black)
-    v(-0.9em)
-    (
-      h(0.5em)
-        + utils.call-or-display(self, self.store.footer)
-        + h(1fr)
-        + utils.call-or-display(self, self.store.footer-right)
-        + h(0.5em)
-    )
-  }
-  self = utils.merge-dicts(
-    self,
-    config-page(
-      margin: (x: 2em, top: 20mm, bottom: 1em),
       footer: footer,
     ),
   )
