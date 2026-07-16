@@ -409,7 +409,7 @@ Real life example of anonymous function: \
 - For each package a #yoctovar("FILES") variable lists the files to
   include.
 
-- It must be package specific (e.g. with `:${PN}`, `:${PN}-dev`, dots).
+- It must be package specific (e.g. with `:${PN}`, `:${PN}-dev`, ...).
 
 - Defaults from `meta/conf/bitbake.conf`:
 
