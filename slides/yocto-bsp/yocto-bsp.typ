@@ -94,47 +94,52 @@
 
   - The machine feature `keyboard` adds the `keymaps` to the image.
 
-=== `conf/machine/include/cfa10036.inc`
+=== `conf/machine/beaglebone-black.conf`
 
 #text(size: 17pt)[
   ```sh
-  # Common definitions for cfa-10036 boards
-  include conf/machine/include/imx-base.inc
-  include conf/machine/include/tune-arm926ejs.inc
+  #@TYPE: Machine
+  #@NAME: Beaglebone black machine
+  #@DESCRIPTION: Reference machine configuration for the http://beagleboard.org/black board
 
-  SOC_FAMILY = "mxs:mx28:cfa10036"
+  include conf/machine/include/arm/armv7a/tune-cortexa8.inc
 
-  PREFERRED_PROVIDER_virtual/kernel ?= "linux-cfa"
-  PREFERRED_PROVIDER_virtual/bootloader ?= "barebox"
-  IMAGE_BOOTLOADER = "barebox"
-  BAREBOX_BINARY = "barebox"
-  IMAGE_FSTYPES:mxs = "tar.bz2 barebox.mxsboot-sdcard sdcard.gz"
-  IMXBOOTLETS_MACHINE = "cfa10036"
+  IMAGE_FSTYPES = "tar.zst wic.zst wic.bmap"
+  WKS_FILE = "beaglebone-yocto.wks"
+  EXTRA_IMAGEDEPENDS += "virtual/bootloader"
+
+  SERIAL_CONSOLES ?= "115200;ttyS0"
+
+  PREFERRED_PROVIDER_virtual/kernel ?= "linux-yocto"
+  PREFERRED_VERSION_linux-yocto ?= "6.18%"
+  PREFERRED_PROVIDER_virtual/bootloader ?= "u-boot"
 
   KERNEL_IMAGETYPE = "zImage"
-  KERNEL_DEVICETREE = "imx28-cfa10036.dtb"
-  # we need the kernel to be installed in the final image
-  IMAGE_INSTALL:append = " kernel-image kernel-devicetree"
-  SDCARD_ROOTFS ?= "${DEPLOY_DIR_IMAGE}/${IMAGE_NAME}.rootfs.ext3"
-  SERIAL_CONSOLES = "115200;ttyAMA0"
-  MACHINE_FEATURES = "usbgadget usbhost vfat"
-  ```]
+  KERNEL_DEVICETREE = "am335x-boneblack.dtb"
+  ```
+]
 
-=== `conf/machine/cfa10057.conf`
+=== `conf/machine/beaglebone-black.conf` (cont.)
 
-```sh
-#@TYPE: Machine
-#@NAME: Crystalfontz CFA-10057
-#@SOC: i.MX28
-#@DESCRIPTION: Machine configuration for CFA-10057, also called CFA-920
-#@MAINTAINER: Alexandre Belloni <alexandre.belloni@bootlin.com>
+#text(size: 17pt)[
+  ```sh
+  MACHINE_ESSENTIAL_EXTRA_RDEPENDS += "kernel-image kernel-devicetree"
+  MACHINE_EXTRA_RRECOMMENDS = "kernel-modules"
 
-require conf/machine/include/cfa10036.inc
+  SPL_BINARY = "MLO"
+  UBOOT_SUFFIX = "img"
+  UBOOT_MACHINE = "am335x_evm_defconfig"
 
-KERNEL_DEVICETREE += "imx28-cfa10057.dtb"
+  MACHINE_FEATURES = "usbgadget usbhost vfat alsa"
 
-MACHINE_FEATURES += "touchscreen"
-```
+  IMAGE_BOOT_FILES ?= "u-boot.${UBOOT_SUFFIX} ${SPL_BINARY} ${KERNEL_IMAGETYPE} ${KERNEL_DEVICETREE}"
+  ```
+]
+
+- Original file:
+  #link(
+    "https://git.yoctoproject.org/meta-yocto/tree/meta-yocto-bsp/conf/machine/beaglebone-yocto.conf?id=8a8f9ad79e3d50312566620998dadff0aa29c7a7",
+  )[meta-yocto/meta-yocto-bsp/conf/machine/beaglebone-yocto.conf]
 
 == Bootloader
 <bootloader>
