@@ -323,7 +323,7 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=083..."
   task depends on the `do_populate_sysroot` task of recipe-b.
 
 - `RDEPENDS:${PN} = "package-b"`: the local `do_build` task depends
-  on the `do_package_write_<archive-format>` task of recipe b.
+  on the `do_package_write_<archive-format>` task of recipe-b.
 
 === Dependencies 2/2
 
