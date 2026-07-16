@@ -226,19 +226,19 @@ SRC_URI[patch.sha256sum] = "b184acf9eb39df794ffd..."
 - This results in a long list, including:
   #[
     #set list(spacing: 0.2em)
-    - `/.../meta/recipes-core/dropbear/dropbear-2020.81/poky`
-    - `/.../meta/recipes-core/dropbear/dropbear/poky`
-    - `/.../meta/recipes-core/dropbear/files/poky`
-    - `/.../meta/recipes-core/dropbear/files/poky`
-    - `/.../meta/recipes-core/dropbear/dropbear/beaglebone`
-    - `/.../meta/recipes-core/dropbear/files/beaglebone`
-    - `/.../meta/recipes-core/dropbear/dropbear-2020.81/ti33x`
-    - `/.../meta/recipes-core/dropbear/dropbear/ti33x`
-    - `/.../meta/recipes-core/dropbear/files/ti33x`
+    - `/.../meta/recipes-core/dropbear/dropbear-2020.81/poky/`
+    - `/.../meta/recipes-core/dropbear/dropbear/poky/`
+    - `/.../meta/recipes-core/dropbear/files/poky/`
+    - `/.../meta/recipes-core/dropbear/dropbear-2020.81/beaglebone/`
+    - `/.../meta/recipes-core/dropbear/dropbear/beaglebone/`
+    - `/.../meta/recipes-core/dropbear/files/beaglebone/`
+    - `/.../meta/recipes-core/dropbear/dropbear-2020.81/ti33x/`
+    - `/.../meta/recipes-core/dropbear/dropbear/ti33x/`
+    - `/.../meta/recipes-core/dropbear/files/ti33x/`
     - ...
-    - `/.../meta/recipes-core/dropbear/dropbear-2020.81/armv7a`
-    - `/.../meta/recipes-core/dropbear/dropbear/armv7a`
-    - `/.../meta/recipes-core/dropbear/files/armv7a`
+    - `/.../meta/recipes-core/dropbear/dropbear-2020.81/armv7a/`
+    - `/.../meta/recipes-core/dropbear/dropbear/armv7a/`
+    - `/.../meta/recipes-core/dropbear/files/armv7a/`
     - ...
     - `/.../meta/recipes-core/dropbear/dropbear-2020.81/`
     - `/.../meta/recipes-core/dropbear/dropbear/`
