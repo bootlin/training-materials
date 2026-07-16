@@ -15,7 +15,7 @@
 
 - Layers allow to isolate and organize the metadata.
 
-  - A layer is a collection of recipes.
+  - A layer is a collection of recipes, classes, configuration, etc.
 
 - It is a good practice to begin a layer name with the prefix `meta-`.
 
