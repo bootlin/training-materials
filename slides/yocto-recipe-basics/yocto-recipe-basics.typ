@@ -489,7 +489,7 @@ SRC_URI += "file://joystick-support.patch \
 
   - `user`: a shell is launched to resolve manually the conflicts.
 
-- By default, `PATCHRESOLVE = "noop"` in `meta-poky`.
+- By default, `PATCHRESOLVE = "noop"` in `openembedded-core`.
 
 == Example of a recipe
 <example-of-a-recipe>
