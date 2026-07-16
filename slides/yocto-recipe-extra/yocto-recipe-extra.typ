@@ -366,7 +366,7 @@ Real life example of anonymous function: \
 
 === Package splitting
 
-- `do_install` copies _all_ files in the `D` directory
+- `do_install` copies _all_ files into the `D` directory
   (`${WORKDIR}/image`).
 
 - `do_package` splits files in several packages in
