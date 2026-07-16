@@ -350,11 +350,7 @@ SRC_URI += "file://defconfig"
   - Provides a default `do_install` that copies whatever is in
     #yoctovar("S") (useful e.g. when extracting a pre-built RPM/DEB)
 
-- Additionally you probably need:
-
-  - Remember to set the `LICENSE` to `CLOSED` if applicable
-
-  - You probably should also `inherit allarch`
+- Additionally set the `LICENSE` to `CLOSED` if applicable
 
 == BitBake file inclusions
 <bitbake-file-inclusions>
