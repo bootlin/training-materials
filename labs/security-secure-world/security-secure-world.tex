@@ -88,24 +88,36 @@ Using the \code{IMG()} macro, show the Exception Level value.
 
 \section{Writing a small Trusted Application (TA)}
 
-In order to understand how Trusted Applications work, we are going to write one.
+In order to understand how Trusted Applications work, we are going to write and deploy one.
 More specifically, we are going to write a 
 \href{https://optee.readthedocs.io/en/latest/architecture/trusted_applications.html\#user-mode-trusted-applications}{User Mode TA}
 which will be loaded from the \href{https://optee.readthedocs.io/en/latest/architecture/trusted_applications.html\#ree-filesystem-ta}{REE filesystem}.
+The goal of this Trusted Application will be to try to show the current
+Exception Level, just like we've done from OP-TEE.
 
-The requirements for Trusted Application is documented in the
+The requirements for Trusted Applications are documented in the
 \href{https://optee.readthedocs.io/en/latest/building/trusted_applications.html}{build} section of the OP-TEE documentation.
 
 We are going to use OP-TEE's TA-devkit to build the TA, so we need to meet those requirements.
-In the labs data, under \code{board_setup/meta-security-training/recipes-security/test_ta/}, the basic infrastructure for building the TA is provided.
+In the labs data, under \code{board_setup/meta-security-training/recipes-security/test_ta/files},
+the basic infrastructure for building the TA is provided:
 
-You will need to write or edit the following files:
 \begin{itemize}
-  \item \code{board_setup/meta-security-training/recipes-security/test_ta/files/ta/Makefile}
-  \item \code{board_setup/meta-security-training/recipes-security/test_ta/files/ta/include/test-ta.h}
-  \item \code{board_setup/meta-security-training/recipes-security/test_ta/files/ta/test-ta.c}
-  \item \code{board_setup/meta-security-training/recipes-security/test_ta/files/ta/user_ta_header_defines.h}
+  \item The \code{ta/} directory contains the code of the TA.
+  \item The \code{host/} directory contains an app to run on the target to use
+    the TA.
 \end{itemize}
+
+REE FS (Usermode) TAs, contrary to pseudo TAs, are loaded into OP-TEE when the REE attempts to call them.
+Therefore we need a client on the REE side to call our TA.
+It will need to invoke the command implemented in the previous step.
+
+Go over each \code{TODO} comment in the different files and fill in the missing
+pieces.
+
+The host client code is already implemented in
+\code{board_setup/meta-security-training/recipes-security/test_ta/files/host},
+have a look at the code.
 
 Once you are done, you can run
 \begin{bashinput}
@@ -114,16 +126,7 @@ $ . openembedded-core/oe-init-build-env
 $ bitbake test-ta
 \end{bashinput}
 
-\section{Writing the userland client for the TA}
-
-User mode TAs, contrary to pseudo TAs, are loaded into OP-TEE when the REE attempts to call them.
-We now need a client on the REE side to call our TA.
-It will need to invoke the command we just implemented in the previous step.
-
-You will need to write or edit the following files:
-\begin{itemize}
-  \item \code{board_setup/meta-security-training/recipes-security/test_ta/files/host/test_ta_host.c}
-\end{itemize}
+The TA will be deployed in \code{board_setup/build/tmp-glibc/deploy/images/freiheit93/test-ta}.
 
 \section{Deploying the TA}
 
@@ -143,3 +146,5 @@ You can now trigger your TA:
 \begin{bashinput}
 $ ./test_ta_host
 \end{bashinput}
+
+You should get an exception from OP-TEE, can you guess why?
