@@ -202,3 +202,4 @@ static struct i2c_driver nunchuk_driver = {
 module_i2c_driver(nunchuk_driver);
 
 MODULE_LICENSE("GPL");
+MODULE_DESCRIPTION("Wiichuck (i2c Nintendo Wiimote accessory) driver");
