@@ -470,7 +470,7 @@ Before plugging the device, look at the output of \code{lsusb}:
 
 \begin{bashinput}
 # lsusb
-Bus 001 Device 001: ID 1d6b:0002
+Bus 001 Device 001: ID 1d6b:0002 Linux 7.1.3 ehci_hcd EHCI Host Controller
 \end{bashinput}
 
 {\bf Known issue:} if you don't get any output from \code{lsusb},
@@ -483,8 +483,8 @@ additional device:
 
 \begin{bashinput}
 # lsusb
-Bus 001 Device 001: ID 1d6b:0002
-Bus 001 Device 002: ID 1b3f:2008
+Bus 001 Device 001: ID 1d6b:0002 Linux 7.1.3 ehci_hcd EHCI Host Controller
+Bus 001 Device 002: ID 1b3f:2008 GeneralPlus USB Audio Device
 \end{bashinput}
 
 The device of vendor ID \code{1b3f} and product ID \code{2008} has
@@ -493,10 +493,10 @@ that you used.
 
 The device also appears in \code{/sys/bus/usb/devices/}, in a
 directory whose name depends on the topology of the USB bus. When the
-device is plugged in the kernel messages show:
+device was plugged, one of the kernel messages was:
 
 \begin{bashinput}
-usb 1-1: new full-speed USB device number 2 using xhci-hcd
+usb 1-1: new full-speed USB device number 2 using ci_hdrc
 \end{bashinput}
 
 So if we go in \code{/sys/bus/usb/devices/1-1}, we get the {\em
@@ -524,11 +524,11 @@ Go back to the kernel source directory.
 The Linux kernel has a generic driver supporting all USB audio devices
 supporting the standard USB audio class. This driver can be enabled
 using the \kconfig{CONFIG_SND_USB_AUDIO} configuration option. Look
-for this parameter in the kernel configuration, and configure it
-as a module.
+for this parameter in the kernel configuration, you should find
+it already enabled as a module.
 
-So, instead of compiling the corresponding driver as a built-in as
-we did before, that's a good opportunity to practice with kernel modules.
+So, instead of compiling the corresponding driver as a built-in, as
+we did before, we'll take this good opportunity to practice with kernel modules.
 
 So, compile your modules:
 \begin{bashinput}
@@ -540,9 +540,9 @@ root filesystem (\code{$HOME/__SESSION_NAME__-labs/tinysystem/nfsroot}).
 
 Also make sure to update the kernel image (\code{make Image.gz}), and reboot the
 board.  Indeed, due to the changes we have made to the kernel source code,
-the kernel version is now \code{6.14.<x>-dirty}, the {\em dirty}
+the kernel version is now \texttt{\workingkernel.<x>-dirty}, the {\em dirty}
 keyword indicating that the Git working tree has uncommitted changes.
-The modules are therefore installed in \code{/lib/modules/6.14.<x>-dirty/},
+The modules are therefore installed in \texttt{/lib/modules/\workingkernel.<x>-dirty/},
 and the version of the running Linux kernel must match this.
 
 After rebooting, try to load the module that we need:
