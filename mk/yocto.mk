@@ -31,7 +31,7 @@ YOCTO_SLIDES = \
 	yocto-devtool \
 	yocto-devtool-lab \
 	yocto-layer-management \
-	yocto-runtime-package-management \
+	yocto-ota-updates \
 	yocto-resources \
 	last-slides \
 	yocto-extra-slides
