@@ -461,7 +461,7 @@ EXTRA_OEMAKE = "-e"
 
 ```sh
 SRC_URI += "file://joystick-support.patch \
-            file://smp-fixes.diff
+            file://smp-fixes.diff \
            "
 ```
 
