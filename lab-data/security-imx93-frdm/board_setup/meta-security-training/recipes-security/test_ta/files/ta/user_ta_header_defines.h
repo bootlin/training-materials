@@ -1,7 +1,7 @@
 #ifndef USER_TA_HEADER_DEFINES_H
 #define USER_TA_HEADER_DEFINES_H
 
-//TODO: define TA_UUID here
+// TODO: define TA_UUID here
 
 #define TA_FLAGS       (TA_FLAG_EXEC_DDR | \
                         TA_FLAG_SINGLE_INSTANCE | \

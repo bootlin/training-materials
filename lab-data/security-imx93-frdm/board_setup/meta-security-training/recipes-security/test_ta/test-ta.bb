@@ -29,3 +29,10 @@ do_compile:prepend() {
 }
 
 PACKAGE_ARCH = "${MACHINE_ARCH}"
+
+do_deploy() {
+    [ -d "${B}/ta" ] && cp -r ${B}/ta ${DEPLOYDIR}/test-ta
+    [ -d "${B}/host" ] && cp -r ${B}/host ${DEPLOYDIR}/test-ta
+}
+do_deploy[cleandirs] = "${DEPLOYDIR}/test-ta"
+addtask do_deploy after do_compile before do_build
