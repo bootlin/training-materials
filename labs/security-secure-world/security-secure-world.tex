@@ -59,11 +59,32 @@ yourself, or by searching for relevant functionality in the TF-A codebase.
 
 \subsection{Adding logs to OP-TEE}
 
-After reviewing whether that information is accessible from OP-TEE
-\begin{itemize}
-  \item think about the output you expect
-  \item port the code you just used to OP-TEE
-\end{itemize}
+The \href{https://support.arm.com/documentation/ddi0595/2021-06/AArch64-Registers/SCR-EL3--Secure-Configuration-Register}{ARM specification}
+states that accessing the Security State from OP-TEE (in fact any
+exception level apart from EL3) is "UNDEFINED". So here, let's add some logs to
+print the current Exception Level only.
+
+OP-TEE does some serial initialization in
+\code{core/arch/arm/kernel/entry_a64.S}, so add a branch instruction there to
+our own custom C function right after the console is initialized.
+
+This function should be created next to where \code{console_init} is
+defined. Don't forget to also declare this function in the relevant header!
+
+Since OP-TEE does not have a helper for getting the current Exception Level, we
+need to replicate what TF-A is doing. Back in TF-A, have a look at the
+definition of \code{get_current_el()} and the following macro statement in
+\code{include/arch/aarch64/arch_helpers.h}:
+
+\begin{verbatim}
+DEFINE_SYSREG_READ_FUNC(CurrentEl)
+\end{verbatim}
+
+What is this doing? Replicate this in OP-TEE. The
+\href{https://gcc.gnu.org/onlinedocs/gcc/Extended-Asm.html}{Extended ASM GNU
+documentation} may be helpful here.
+
+Using the \code{IMG()} macro, show the Exception Level value.
 
 \section{Writing a small Trusted Application (TA)}
 
