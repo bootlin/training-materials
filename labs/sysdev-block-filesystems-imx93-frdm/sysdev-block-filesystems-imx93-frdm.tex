@@ -24,32 +24,48 @@ directory, which we will progressively adapt to use block filesystems.
 
 \section{Filesystem support in the kernel}
 
-Recompile your kernel with support for SquashFS and ext4\footnote{Basic
-configuration options for these filesystems will be sufficient. No need
-for things like extended attributes.}.
-
-Update your kernel image in the boot partition.
-
 Boot your board with this new kernel and on the NFS filesystem you
 used in this previous lab.
 
 Now, check the contents of \code{/proc/filesystems}. You should see
- that ext4 and SquashFS are now supported.
+that ext4 and SquashFS are supported. If that's not the case, recompile
+your kernel with support for SquashFS and ext4\footnote{Basic configuration
+options for these filesystems will be sufficient. No need for things like
+extended attributes.}.
+You can also check the already existing partitions on your system by looking
+into \code{/proc/partitions}. The several mmcblk0* partitions you'll see are
+the come from the eMMC of the FRDM.
 
 \section{Add partitions to the SD card}
 
 Plug the SD card in your workstation.
 
-Using \code{fdisk /dev/mmcblk0}, add two partitions, starting from the beginning
-of the remaining space, with the following properties:
-
+Let's use \code{parted} to create two new partitions:
 \begin{itemize}
-\item A third primary partition, 100 MB big, for the root filesystem
-\item A fourth primary partition, that fills the rest of the SD card, that will be
+\item A second primary partition, 100 MB big, for the root filesystem
+\item A third primary partition, that fills the rest of the SD card, that will be
   used for the data filesystem
 \end{itemize}
 
-Save and exit when you are done.
+\bashcmd{$ sudo parted /dev/mmcblk0}
+\begin{verbatim}
+(parted) unit mib
+(parted) mkpart rootfs 34 134
+(parted) mkpart data 134 100%
+(parted) print
+Model: Generic MassStorageClass (scsi)
+Disk /dev/mmcblk0: 15.9GB
+Sector size (logical/physical): 512B/512B
+Partition Table: gpt
+Disk Flags:
+
+Number  Start    End       Size      File system  Name    Flags
+ 1      2.00MiB  34.0MiB   32.00MiB  ext4         bootfs
+ 2      34.0MiB  134MiB    100MiB                 rootfs
+ 3      134MiB   15193MiB  15059MiB               data
+
+(parted) quit
+\end{verbatim}
 
 \section{Data partition on the SD card}
 
@@ -70,8 +86,8 @@ Now, mount this new partition and move the contents of the
 it. The goal is to use the data partition of the SD card as the storage
 for the uploaded images.
 
-Insert the SD card in your board and boot. You should see the
-partitions in \code{/proc/partitions}.
+Unmount the SD card, insert it in your board and boot. You should see the
+new partitions in \code{/proc/partitions}.
 
 Mount this data partition on \code{/www/upload/files}.
 
@@ -133,15 +149,15 @@ In order to let the kernel boot on the board autonomously, we can
 copy the kernel image and DTB in the boot partition we created
 previously.
 
-Insert the SD card in your PC, it will get auto-mounted. Copy the
-kernel and device tree to the \code{env} partition.
+Insert the SD card in your PC. Then copy the kernel and device tree into the
+first partition, next to the U-Boot environment.
 
 Insert the SD card back in the board and reset it. You should now be
 able to load the DTB and kernel image from the SD card and boot with:
 
 \begin{ubootinput}
-=> load mmc 1:2 %\zimageboardaddr% Image.gz
-=> load mmc 1:2 %\dtbboardaddr% %\dtname%-custom.dtb
+=> load mmc 1:1 %\zimageboardaddr% Image.gz
+=> load mmc 1:1 %\dtbboardaddr% %\dtname%-custom.dtb
 => booti %\zimageboardaddr% - %\dtbboardaddr%
 \end{ubootinput}
 
