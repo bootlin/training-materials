@@ -29,6 +29,8 @@
 
 - Using the Runtime Package Management is an optional feature.
 
+- Can be useful for local development, but rarely used in production.
+
 - See the #link(<runtime-package-management-annex>)[extra slides] for details on
   how to set it up.
 
