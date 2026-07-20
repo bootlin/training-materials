@@ -285,8 +285,8 @@ Many root filesystem build systems also allow the construction of a cross-compil
   build all toolchain components in the right order, with the specified
   configuration.
 
-- By default the results go in , as defined by the option in _Paths
-  and misc options_
+- By default the results go in `$HOME/x-tools/`, as defined by the
+  option in _Paths and misc options_
 
 === Important toolchain contents
 
