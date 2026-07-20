@@ -204,7 +204,7 @@ Many root filesystem build systems also allow the construction of a cross-compil
 
   ```
   $ cd crosstool-ng
-  $ git checkout crosstool-ng-1.27.0
+  $ git checkout crosstool-ng-1.28.0
   ```
 
 - As we're fetching from Git, the `configure` script needs to be
