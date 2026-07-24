@@ -163,7 +163,7 @@ Number of snapshots: 52
 - Results can be seen using GUI (`heaptrack_gui`) or CLI tool
   (`heaptrack_print`).
 
-- #link("https://github.com/KDE/heaptrack")
+- #link("https://apps.kde.org/heaptrack/")
 #v(0.5em)
 #[
   #show raw.where(lang: "console", block: true): set text(size: 19pt)
