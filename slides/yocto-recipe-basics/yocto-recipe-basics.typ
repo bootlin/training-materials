@@ -57,15 +57,15 @@
   - #yoctovar("PV"): package version, extracted from the recipe file
     name
 
-  - #yoctovar("BP"): defined as `$BPN-${PV}`
+  - #yoctovar("BP"): defined as `${BPN}-${PV}`
 
 - The recipe name and version usually match the upstream ones.
 
 - When using the recipe `bash_5.1.bb`:
 
-  - `$BPN = "bash"`
+  - `${BPN} = "bash"`
 
-  - `$PV = "5.1"`
+  - `${PV} = "5.1"`
 
 == Organization of a recipe
 <organization-of-a-recipe>
