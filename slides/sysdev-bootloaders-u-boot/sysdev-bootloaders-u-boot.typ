@@ -350,15 +350,22 @@ CONFIG_STM32_SPI=y
     ```
     STM32MP> help
     ?         - alias for 'help'
-    adc       - ADC sub-system adtimg    - manipulate dtb/dtbo Android image base      - print or set address offset
+    adc       - ADC sub-system
+    adtimg    - manipulate dtb/dtbo Android image
+    base      - print or set address offset
     [...]
     usb       - USB sub-system
     [...]
 
-    STM32MP> help usb usb - USB sub-system
+    STM32MP> help usb
+    usb - USB sub-system
 
     Usage:
-    usb start - start (scan) USB controller usb reset - reset (rescan) USB controller usb stop [f] - stop USB [f]=force stop usb tree - show USB device tree usb info [dev] - show available USB devices
+    usb start - start (scan) USB controller
+    usb reset - reset (rescan) USB controller
+    usb stop [f] - stop USB [f]=force stop
+    usb tree - show USB device tree
+    usb info [dev] - show available USB devices
     [...]
     ```
   ],
@@ -376,7 +383,8 @@ CONFIG_STM32_SPI=y
 
 
     ```
-    => version U-Boot 2020.04 (May 26 2020 - 16:05:43 +0200)
+    => version
+    U-Boot 2020.04 (May 26 2020 - 16:05:43 +0200)
     arm-linux-gcc (crosstool-NG 1.24.0.105_5659366) 9.2.0
     GNU ld (crosstool-NG 1.24.0.105_5659366) 2.34
     ```
@@ -385,7 +393,8 @@ CONFIG_STM32_SPI=y
 
 
     ```
-    => nand info Device 0: nand0, sector size 128 KiB
+    => nand info
+    Device 0: nand0, sector size 128 KiB
       Page size       2048 b
       OOB size          64 b
       Erase size    131072 b
@@ -398,7 +407,8 @@ CONFIG_STM32_SPI=y
 
 
     ```
-    => mmc info Device: STM32 SD/MMC
+    => mmc info
+    Device: STM32 SD/MMC
     Manufacturer ID: 3
     [...]
     Capacity: 14.8 GiB
@@ -411,14 +421,16 @@ CONFIG_STM32_SPI=y
     Board information: `bdinfo`
 
     ```
-    => bdinfo boot_params = 0x00000000
+    => bdinfo
+    boot_params = 0x00000000
     DRAM bank   = 0x00000000
     -> start    = 0xc0000000
     -> size     = 0x20000000
     flashstart  = 0x00000000
     flashsize   = 0x00000000
     flashoffset = 0x00000000
-    baudrate    = 115200 bps relocaddr   = 0xddb21000
+    baudrate    = 115200 bps
+    relocaddr   = 0xddb21000
     reloc off   = 0x1da21000
     [...]
     fdt_blob    = 0xdbb01950
