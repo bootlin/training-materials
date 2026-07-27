@@ -212,7 +212,7 @@ CONFIG_STM32_SPI=y
 - No U-Boot shell/commands: the behavior is hardcoded in C code
 
 - For some platforms: TPL, _Tertiary Program Loader_, an even more
-  minimal first stage bootloader to do TPL → PL → main U-Boot.
+  minimal first stage bootloader to do TPL → SPL → main U-Boot.
 
 === Device Tree in U-Boot
 
