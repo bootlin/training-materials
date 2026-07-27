@@ -42,7 +42,7 @@ PDFLATEX_ENV = TEXINPUTS=.:$(shell pwd):$(shell pwd)/common: texfot --tee /tmp/f
 PDFLATEX_OPT = -shell-escape -file-line-error -halt-on-error
 
 # Arguments passed to typst
-PDFTYPST_OPT = --root . --package-path ./typst --font-path=typst/fonts
+PDFTYPST_OPT = --root . --package-path ./typst --font-path=typst/fonts --ignore-system-fonts
 TRAINING_OPT = --input training
 
 # Stylesheets
