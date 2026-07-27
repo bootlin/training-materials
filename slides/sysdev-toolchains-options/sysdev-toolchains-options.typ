@@ -67,11 +67,10 @@
 
   - `-mtune` allows to optimize code for a specific CPU
 
-  - For example: `-march=armv7 -mtune=cortex-a8`
+  - `-mcpu` can be used instead, it allows gcc to infer both the the
+    target instruction set and CPU optimizations, eg:
 
-  - `-mcpu=cortex-a8` can be used instead to allow gcc to infer the
-    target instruction set (`-march=armv7`) and cpu optimizations
-    (`-mtune=cortex-a8`)
+    - `-mcpu=cortex-a8` implies `-march=armv7` and `-mtune=cortex-a8`
 
   - #link("https://gcc.gnu.org/onlinedocs/gcc/ARM-Options.html")
 
