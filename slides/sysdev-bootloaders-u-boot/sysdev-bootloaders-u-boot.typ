@@ -19,15 +19,16 @@
 
     - License: GPLv2 (same as Linux)
 
-    - Freely available at #link("https://www.denx.de/wiki/U-Boot")
+    - Freely available at:\
+      #link("https://www.denx.de/wiki/U-Boot")
 
-    - Documentation available at
+    - Documentation available at:\
       #link("https://u-boot.readthedocs.io/en/latest/")
 
-    - The latest development source code is available in a Git repository:
+    - The latest development source code is available in a Git repository:\
       #link("https://gitlab.denx.de/u-boot/u-boot")
 
-    - Development and discussions happen around an open mailing-list
+    - Development and discussions happen around an open mailing-list:\
       #link("https://lists.denx.de/pipermail/u-boot/")
 
     - Follows a regular release schedule. Every 2 or 3 months, a new version
