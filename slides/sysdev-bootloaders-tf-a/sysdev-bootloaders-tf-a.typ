@@ -88,7 +88,8 @@ Build results in `build/stm32mp1/release`. Important files:
 fiptool info
 
 ```
-$ ./tools/fiptool/fiptool info build/stm32mp1/release/fip.bin Secure Payload BL32 (Trusted OS): offset=0x100, size=0x8AEC, cmdline="--tos-fw"
+$ ./tools/fiptool/fiptool info build/stm32mp1/release/fip.bin
+Secure Payload BL32 (Trusted OS): offset=0x100, size=0x8AEC, cmdline="--tos-fw"
 Non-Trusted Firmware BL33: offset=0x8BEC, size=0xECE6C, cmdline="--nt-fw"
 FW_CONFIG: offset=0xF5A58, size=0x226, cmdline="--fw-config"
 HW_CONFIG: offset=0xF5C7E, size=0x16A98, cmdline="--hw-config"
