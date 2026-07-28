@@ -575,7 +575,8 @@ serverip=10.0.0.100
 - Addresses manipulated in U-Boot are directly physical addresses
 
 - Memory display
-  `mw [.b, .w, .l, .q] address [# of objects]`
+  `md [.b, .w, .l, .q] address [# of objects]`
+
 - Memory write  \
   `mw [.b, .w, .l, .q] address value [count]`
 
