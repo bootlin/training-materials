@@ -2049,26 +2049,12 @@ static struct i2c_driver cs42l51_i2c_driver = {
 #[ #set text(size: 12pt)
   ```dts
   pinctrl: pin-controller@50002000 {
-          #address-cells = <1>;
-          #size-cells = <1>;
           compatible = "st,stm32mp157-pinctrl";
-          ...
-          gpioa: gpio@50002000 { ... };
-          gpiob: gpio@50003000 { ... };
-          gpioc: gpio@50004000 { ... };
-          gpiod: gpio@50005000 { ... };
-          gpioe: gpio@50006000 { ... };
-          gpiof: gpio@50007000 { ... };
           ...
   };
 
   pinctrl_z: pin-controller-z@54004000 {
-          #address-cells = <1>;
-          #size-cells = <1>;
           compatible = "st,stm32mp157-z-pinctrl";
-          ranges = <0 0x54004000 0x400>;
-          ...
-          gpioz: gpio@54004000 { .... };
           ...
   };
   ```
