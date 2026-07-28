@@ -581,9 +581,9 @@ SRC_URI[sha256sum] = "731140004fdb6..."
 
 - These can be inspected to understand what is being done by the tasks
 
-=== Debugging variable assignment
+=== Debugging variable assignments
 
-- `bitbake-getvar` can dump the per-recipe variable value using the `-r`
+- (Reminder) `bitbake-getvar` can dump the per-recipe variable value using the `-r`
   option
 
   - `bitbake-getvar -r ncurses SRC_URI`
@@ -591,6 +591,6 @@ SRC_URI[sha256sum] = "731140004fdb6..."
 - Similarly, `bitbake -e` dumps the entire environment, and also the
   task code
 
-  - `bitbake -e`
+  - `bitbake -e` (*global* environment)
 
-  - `bitbake -e ncurses`
+  - `bitbake -e ncurses` (environment of `ncurses`)
