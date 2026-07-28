@@ -799,7 +799,7 @@ A class of devices worth mentioning is GPIOs (_General Purpose Input Output_)
 - Example:
   `echo 0 > /sys/module/usb_storage/parameters/delay_use`
 
-== Describing non-discoverable hardware: Device Tree
+== Describing non-discoverable hardware:\ Device Tree
 <describing-non-discoverable-hardware-device-tree>
 
 === Describing non-discoverable hardware
