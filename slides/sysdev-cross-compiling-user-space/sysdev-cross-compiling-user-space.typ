@@ -90,7 +90,8 @@
 - Common sequence
 
   ```sh
-  $ make CC=arm-linux-gcc CFLAGS=-I/path/to/headers
+  $ make CC=arm-linux-gcc \
+         CFLAGS=-I/path/to/headers \
          LDFLAGS=-L/path/to/libraries
   $ make DESTDIR=/installation/path install
   ```
@@ -101,7 +102,7 @@
 === Example: _uftp_ native compilation
 
 #table(
-  columns: (50%, 50%),
+  columns: (60%, 40%),
   stroke: none,
   gutter: 15pt,
   [
@@ -109,8 +110,8 @@
     #[ #set text(size: 13pt)
       Download and extract
       ```
-      $ wget http://sourceforge.net/projects/uftp-multicast/files/
-             source-tar/uftp-5.0.tar.gz
+      $ wget http://sourceforge.net/projects/uftp-multicast/\
+             files/source-tar/uftp-5.0.tar.gz
       $ tar xf uftp-5.0.tar.gz
       $ cd uftp-5.0
       ```
@@ -119,11 +120,11 @@
     #[ #set text(size: 13pt)
       Build and install
       ```
-      $ make cc  -g -Wall -Wextra [...]  -c server_announce.c
+      $ make
+      cc  -g -Wall -Wextra [...]  -c server_announce.c
       [...]
-      cc  -g -Wall -Wextra -o uftp uftp_common.o encrypt_openssl.o
-         server_announce.o [...] server_main.o
-         -lm -lcrypto  -lpthread
+      cc  -g -Wall -Wextra -o uftp uftp_common.o encrypt_openssl.o [...] \
+         -lm -lcrypto -lpthread
       $ make DESTDIR=/tmp/test install
       ```
     ]
@@ -177,8 +178,7 @@
   $ make CC=arm-none-linux-gnueabihf-gcc NO_ENCRYPTION=1
   arm-none-linux-gnueabihf-gcc  -g -Wall -Wextra [...]  -c server_announce.c
   [...]
-  arm-none-linux-gnueabihf-gcc  -g -Wall -Wextra -o uftp uftp_common.o
-     encrypt_none.o server_announce.o [...] -lm   -lpthread
+  arm-none-linux-gnueabihf-gcc  -g -Wall -Wextra -o uftp uftp_common.o encrypt_none.o [...] -lm -lpthread
   $ make DESTDIR=/tmp/target NO_ENCRYPTION=1 install
   $ file /tmp/target/usr/bin/uftp
   /tmp/target/usr/bin/uftp: ELF 32-bit LSB executable, ARM
@@ -187,7 +187,7 @@
 === Example: _OpenSSL_ cross-compilation
 
 #table(
-  columns: (50%, 50%),
+  columns: (60%, 40%),
   stroke: none,
   gutter: 15pt,
   [
@@ -205,7 +205,7 @@
     #[ #set text(size: 13pt)
       Configuration/build
       ```
-      $ CC=arm-none-linux-gnueabihf-gcc ./Configure --prefix=/usr
+      $ CC=arm-none-linux-gnueabihf-gcc ./Configure --prefix=/usr \
           linux-generic32 no-asm
       $ make
       $ make DESTDIR=/tmp/staging install
@@ -765,7 +765,7 @@ only the C cross-compiler needs to be specified:
 
 === pkg-config example for native compilation
 
-#[ #set text(size: 17pt)
+#[ #set text(size: 0.75em)
   ```
   $ pkg-config --list-all
   openssl                        OpenSSL - Secure Sockets Layer and cryptography libraries and tools
@@ -791,8 +791,8 @@ only the C cross-compiler needs to be specified:
   ```
   $ export PKG_CONFIG_LIBDIR=/tmp/staging/usr/lib/pkgconfig
   $ pkg-config --list-all
-  openssl                        OpenSSL - Secure Sockets Layer and cryptography
-  libraries and tools libssl                         OpenSSL-libssl - Secure Sockets Layer and cryptography
+  openssl                                  OpenSSL - Secure Sockets Layer and cryptography
+  libraries and tools libssl               OpenSSL-libssl - Secure Sockets Layer and cryptography
   libraries libcrypto                      OpenSSL-libcrypto - OpenSSL cryptography library
   $ pkg-config --cflags --libs openssl
   -I/usr/include -L/usr/lib -lssl -lcrypto
