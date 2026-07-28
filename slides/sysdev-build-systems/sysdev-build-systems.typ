@@ -231,7 +231,8 @@ Three main approaches to build your embedded Linux system:
 #[ #set text(size: 13pt)
   ```
   JOSE_VERSION = 11
-  JOSE_SOURCE = jose-$(JOSE_VERSION).tar.xz JOSE_SITE = https://github.com/latchset/jose/releases/download/v$(JOSE_VERSION)
+  JOSE_SOURCE = jose-$(JOSE_VERSION).tar.xz
+  JOSE_SITE = https://github.com/latchset/jose/releases/download/v$(JOSE_VERSION)
   JOSE_LICENSE = Apache-2.0
   JOSE_LICENSE_FILES = COPYING
   JOSE_INSTALL_STAGING = YES
