@@ -270,7 +270,8 @@ The dependency `gtk+-3.0` is searched using `pkg-config`.
     #text(size: 13pt)[
       ```
       $ ./test-gprof
-      $ gprof test-gprof gmon.out Flat profile:
+      $ gprof test-gprof gmon.out
+      Flat profile:
 
       Each sample counts as 0.01 seconds.
         %   cumulative   self              self     total
