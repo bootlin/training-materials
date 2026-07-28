@@ -588,33 +588,33 @@ serverip=10.0.0.100
 U-Boot can manipulate raw storage devices:
 
 #table(
-  columns: (60%, 40%),
+  columns: (55%, 45%),
   stroke: none,
   [
-    - NAND flash
-      - `nand info`
-      - `nand read <addr> <off|partition> <size>`
-      - `nand erase [<off> [<size>]]`
-      - `nand write <addr> <off|partition> <size>`
-      - More: `help nand`
-    - MMC
-      - `mmc info`
-      - `mmc read <addr> <blk#> <cnt>`
-      - `mmc write <addr> <blk#> <cnt>`
-      - `mmc part` to show partition table
-      - `mmc dev` to show/set current MMC device
-      - More: `help mmc`
+    NAND flash
+    - `nand info`
+    - `nand read <addr> <off|partition> <size>`
+    - `nand erase [<off> [<size>]]`
+    - `nand write <addr> <off|partition> <size>`
+    - More: `help nand`
+    MMC
+    - `mmc info`
+    - `mmc read <addr> <blk#> <cnt>`
+    - `mmc write <addr> <blk#> <cnt>`
+    - `mmc part` to show partition table
+    - `mmc dev` to show/set current MMC device
+    - More: `help mmc`
 
   ],
   [
     #align(top, block[
-      - USB storage
-        - `usb info`
-        - `usb read <addr> <blk#> <cnt>`
-        - `usb write <addr> <blk#> <cnt>`
-        - `usb part`
-        - `usb dev`
-        - More: `help usb`
+      USB storage
+      - `usb info`
+      - `usb read <addr> <blk#> <cnt>`
+      - `usb write <addr> <blk#> <cnt>`
+      - `usb part`
+      - `usb dev`
+      - More: `help usb`
     ])
   ],
 )
@@ -624,11 +624,11 @@ Note: `<addr>` are addresses in RAM where data is stored
 === U-Boot commands example
 
 #table(
-  columns: (50%, 50%),
+  columns: (45%, 55%),
   stroke: none,
   gutter: 10pt,
   [
-    #text(size: 16pt)[List partitions on MMC]
+    #text(size: 10pt)[List partitions on MMC]
     ```
     STM32MP> mmc part
     Partition Map for MMC device 0  --   Partition Type: EFI
@@ -656,12 +656,12 @@ Note: `<addr>` are addresses in RAM where data is stored
     ```
   ],
   [
-    #text(size: 16pt)[Read block 0x22 from MMC to RAM 0xc0000000]
+    #text(size: 10pt)[Read block 0x22 from MMC to RAM 0xc0000000]
     ```
     STM32MP> mmc read c0000000 22 1
     MMC read: dev #0, block #34, count 1 ... 1 blocks read: OK
     ```
-    #text(size: 16pt)[Dump memory at 0xc00000000]
+    #text(size: 10pt)[Dump memory at 0xc00000000]
     ```
     STM32MP> md c0000000
     c0000000: 324d5453 00000000 00000000 00000000  STM2............
@@ -707,7 +707,7 @@ Note: `<addr>` are addresses in RAM where data is stored
 === U-Boot filesystem command example
 
 #table(
-  columns: (50%, 50%),
+  columns: (40%, 60%),
   stroke: none,
   gutter: 15pt,
   [
