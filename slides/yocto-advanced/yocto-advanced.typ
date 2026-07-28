@@ -226,10 +226,13 @@
 - `bitbake-getvar` can be used to understand and debug how variables are
   assigned
 
-- `bitbake-getvar <VARIABLE>`
-
 - Lists each configuration file touching the variable, the pre-expansion
   value and the final value
+
+- `bitbake-getvar <VARIABLE>`: dump the variable value in the *global* scope
+
+- `bitbake-getvar -r <recipe> <VARIABLE>`: dump the variable value in the
+  *local* scope of `recipe`
 
 #v(0.5em)
 
