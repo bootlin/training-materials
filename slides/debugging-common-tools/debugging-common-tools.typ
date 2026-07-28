@@ -274,7 +274,7 @@ libncursesw.so.6 => /usr/lib/libncursesw.so.6 (0x00007fa2d288e000)
   - Uses `/proc/<pid>/` directory to obtain process information.
 
   - Almost always present on embedded platforms (provided by
-    _Busybox_).
+    _BusyBox_).
 
 - By default, displays only the current user/current tty processes, but
   output is highly customizable:
@@ -316,7 +316,7 @@ vnstat  987  0.0  0.0   5516  3696 ?   Ss   09:08  0:00 /usr/sbin/vnstatd -n
   and interactive ().
 
   - Also almost always present on embedded platforms (provided by
-    _Busybox_)
+    _BusyBox_)
 #v(0.5em)
 ```console
 $ top

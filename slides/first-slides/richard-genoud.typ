@@ -10,7 +10,7 @@
   integration, application development
 
 - Maintainer of the `atmel_serial` kernel driver, contributor to Linux,
-  U-Boot, mtd-utils, Buildroot, Busybox, dnsmasq, msmtp
+  U-Boot, mtd-utils, Buildroot, BusyBox, dnsmasq, msmtp
 
 - Living in *Villefranche-sur Saône*, north of Lyon in France
 

@@ -12,7 +12,7 @@
   third-party libraries and applications that one can leverage in its
   product
 
-- There's much more than U-Boot, Linux and Busybox that we can reuse
+- There's much more than U-Boot, Linux and BusyBox that we can reuse
   from the open-source world
 
 - Networking, graphics, multimedia, crypto, language interpreters, and

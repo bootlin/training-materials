@@ -47,7 +47,7 @@
 - Modern _init_ system used by almost all Linux desktop/server
   distributions
 
-- Much more complex than _Busybox init_, but also much more
+- Much more complex than _BusyBox init_, but also much more
   powerful
 
 - Only supported with _glibc_, not with _uClibc_ and
@@ -611,7 +611,7 @@
 - Very common in embedded systems to use a Web interface for device
   configuration/monitoring
 
-- Needs a web server: _Busybox httpd_ for very simple needs,
+- Needs a web server: _BusyBox httpd_ for very simple needs,
   _lighttpd_, _nginx_, _apache_ for more complex needs
 
 - Can use PHP, NodeJS or other interpreted languages, or simple CGI

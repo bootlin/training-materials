@@ -666,7 +666,7 @@ $ ls tmp-glibc/deploy/images/stm32mp1/
     Debian derivative targeted at RaspberryPi platforms
 
   - #link("https://www.alpinelinux.org/")[Alpine Linux], a lightweight
-    distribution, based on _musl_ and _Busybox_, ARMv7, ARM64,
+    distribution, based on _musl_ and _BusyBox_, ARMv7, ARM64,
     i386, x86-64, PowerPC64 little-endian
 
 === Binary distributions pitfalls

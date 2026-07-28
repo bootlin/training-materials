@@ -391,7 +391,7 @@ Example C code that uses the usual file API to write data to a serial port
 
 - *mdev*
 
-  - lightweight implementation of _udev_, part of Busybox
+  - lightweight implementation of _udev_, part of BusyBox
 
   - #link("https://wiki.gentoo.org/wiki/Mdev")
 
