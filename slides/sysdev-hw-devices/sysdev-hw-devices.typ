@@ -658,10 +658,13 @@ A class of devices worth mentioning is GPIOs (_General Purpose Input Output_)
 
 - `modinfo /path/to/module.ko`
 
-#[ #set text(size: 15pt)
+#[ #set text(size: 0.75em)
   ```
-  # modinfo usb_storage filename:       /lib/modules/5.18.13-200.fc36.x86_64/kernel/drivers/usb/storage/usb-storage.ko.xz license:        GPL
-  description:    USB Mass Storage driver for Linux author:         Matthew Dharm <mdharm-usb@one-eyed-alien.net>
+  # modinfo usb_storage
+  filename:       /lib/modules/5.18.13-200.fc36.x86_64/kernel/drivers/usb/storage/usb-storage.ko.xz
+  license:        GPL
+  description:    USB Mass Storage driver for Linux
+  author:         Matthew Dharm <mdharm-usb@one-eyed-alien.net>
   alias:          usb:v*p*d*dc*dsc*dp*ic08isc06ip50in*
   alias:          usb:v*p*d*dc*dsc*dp*ic08isc05ip50in*
   alias:          usb:v*p*d*dc*dsc*dp*ic08isc04ip50in*
