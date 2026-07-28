@@ -528,7 +528,97 @@
 
 === Device Tree inheritance example
 
-#align(center, [#image("dt-inheritance.svg", width: 100%)])
+#grid(
+  columns: (0.9fr, auto, 0.8fr, auto, 1fr),
+  column-gutter: 5pt,
+  row-gutter: 10pt,
+  text(size: 0.75em)[
+    *Definition of the AM33xx SoC family*
+    _(am33xx-l4.dtsi)_
+  ],
+  [],
+  text(size: 0.75em)[
+    *Definition of the Bone Black board*
+    _(am335x-boneblack.dts)_
+  ],
+  [],
+  text(size: 0.75em)[
+    *Compiled DTB*
+    _(am335x-boneblack.dtb)_
+  ],
+  [
+    #set text(size: 11pt)
+    ```dts
+    &l4_wkup {
+        target-module@b000 {
+            i2c0: i2c@0 {
+                compatible = "ti,omap4-i2c";
+                reg = <0x0 0x1000>;
+                interrupts = <70>;
+                status = "disabled";
+            };
+        };
+    };
+    ```
+  ],
+  align(horizon)[#align(center)[#text(size: 1.6em)[+]]],
+  [
+    #set text(size: 11pt)
+    ```dts
+    #include "am33xx-l4.dtsi"
+
+    &i2c0 {
+        pinctrl-names = "default";
+        pinctrl-0 = <&i2c0_pins>;
+        status = "okay";
+
+        baseboard_eeprom: eeprom@50 {
+            compatible = "atmel,24c256";
+            reg = <0x50>;
+        };
+    };
+    ```
+  ],
+  align(horizon)[#align(center)[#text(size: 1.6em)[=]]],
+  [
+    #set text(size: 11pt)
+    ```dts
+    &l4_wkup {
+        target-module@b000 {
+            i2c0: i2c@0 {
+                compatible = "ti,omap4-i2c";
+                reg = <0x0 0x1000>;
+                interrupts = <70>;
+                pinctrl-names = "default";
+                pinctrl-0 = <&i2c0_pins>;
+                status = "okay";
+
+                baseboard_eeprom: eeprom@50 {
+                    compatible = "atmel,24c256";
+                    reg = <0x50>;
+                };
+            };
+        };
+    };
+    ```
+  ],
+  // notes row
+  [],
+  [],
+  text(size: 0.5em)[
+    *Note 1*
+
+    The actual Device Trees for this platform are more complicated.
+    This example is highly simplified.
+  ],
+  [],
+  text(size: 0.5em)[
+    *Note 2*
+
+    The real DTB is in binary format.
+    Here we show the text equivalent of the DTB contents.
+  ],
+)
 
 === Inheritance and labels
 
