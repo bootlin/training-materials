@@ -27,25 +27,37 @@ Three main approaches to build your embedded Linux system:
       inset: 6pt,
       [], [*Pros*], [*Cons*],
       [*Building everything manually*],
-      [Full flexibility Learning experience],
-      [Dependency hell Need to understand a lot of details Version
-        compatibility Lack of reproducibility],
+      [Full flexibility\
+        Learning experience],
+      [Dependency hell\
+        Need to understand a lot of details\
+        Version compatibility\
+        Lack of reproducibility],
 
-      [*Binary distribution* Debian, Ubuntu, Fedora, etc.],
-      [Easy to create and extend Extensive set of packages Usually excellent
-        security maintenance],
-      [Hard to customize Hard to optimize (boot time, size) Hard to rebuild
-        the full system from source Large system Uses native compilation
-        (slow) No well-defined mechanism to generate an image Lots of
-        mandatory dependencies Not available for all architectures],
+      [*Binary distribution*\
+        Debian, Ubuntu, Fedora, etc.],
+      [Easy to create and extend\
+        Extensive set of packages\
+        Usually excellent security maintenance],
+      [Hard to customize\
+        Hard to optimize (boot time, size)\
+        Hard to rebuild the full system from source\
+        Large system\
+        Uses native compilation (slow)\
+        No well-defined mechanism to generate an image\
+        Lots of mandatory dependencies\
+        Not available for all architectures],
 
-      [*Embedded Linux Build systems* Buildroot, Yocto, PTXdist,
-        OpenWrt, etc.],
-      [Nearly full flexibility Built from source: customization and
-        optimization are easy Fully reproducible Uses cross-compilation Have
-        embedded specific packages not necessarily in desktop distros Make
-        more features optional],
-      [Not as easy as a binary distribution Build time],
+      [*Embedded Linux Build systems*\
+        Buildroot, Yocto, PTXdist, OpenWrt, etc.],
+      [Nearly full flexibility\
+        Built from source: customization and optimization are easy\
+        Fully reproducible\
+        Uses cross-compilation\
+        Have embedded specific packages not necessarily in desktop distros\
+        Make more features optional],
+      [Not as easy as a binary distribution\
+        Build time],
     )]
 ]
 
