@@ -223,26 +223,22 @@
   GPIO expander on I2C
 
 - Search in the Linux kernel
-#[ #set text(size: 13pt)
-  git grep -i max7313
+#[ #set text(size: 0.8em)
   ```
-  drivers/gpio/gpio-pca953x.c:    { "max7313", 16 | PCA953X_TYPE | PCA_INT, }, drivers/gpio/gpio-pca953x.c:    { .compatible = "maxim,max7313", .data = OF_953X(16, PCA_INT), },
+  $ git grep -i max7313
+  drivers/gpio/gpio-pca953x.c:    { "max7313", 16 | PCA953X_TYPE | PCA_INT, },
+  drivers/gpio/gpio-pca953x.c:    { .compatible = "maxim,max7313", .data = OF_953X(16, PCA_INT), },
   ```
 ]
-- #text(size: 20pt)[#kfile("drivers/gpio/gpio-pca953x.c")] seems to support it
+- #kfile("drivers/gpio/gpio-pca953x.c") seems to support it
 
 - Read #kfile("drivers/gpio/Makefile") to learn which kernel
-  configuration option enables this driver
-#[ #set text(size: 13pt)
-  #kfile("drivers/gpio/Makefile")
-]
-#[ #set text(size: 14pt)
+  configuration option enables this driver:
   ```
   obj-$(CONFIG_GPIO_PCA953X)              += gpio-pca953x.o
   ```
-]
 
-- Conclusion: you need to enable #text(size: 20pt)[#kconfig("CONFIG_GPIO_PCA953X")] in
+- Conclusion: you need to enable #kconfig("CONFIG_GPIO_PCA953X") in
   your kernel configuration
 
 == User-space interfaces to drivers
