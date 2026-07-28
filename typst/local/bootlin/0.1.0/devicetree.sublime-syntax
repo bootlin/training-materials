@@ -57,6 +57,12 @@ contexts:
         3: keyword.operator.unit-address.node.devicetree
         4: constant.numeric.unit-address.node.devicetree
 
+    # Reference/overlay node (e.g. &label { ... })
+    - match: '(&)([A-Za-z0-9_]+)\s*\{'
+      captures:
+        1: keyword.operator.reference.node.devicetree
+        2: variable.parameter.reference.devicetree
+
     # Property definition with value (e.g. compatible = "foo";)
     - match: '([\w,\-]+)\s*='
       captures:
@@ -72,9 +78,27 @@ contexts:
   property-value:
     - match: ';'
       pop: true
+    - include: reference-array
+    - include: phandle
     - include: quote
     - include: numeric
     - include: macro-def
+
+  phandle:
+    - match: '&[A-Za-z0-9_]+'
+      scope: variable.parameter.reference.devicetree
+
+  reference-array:
+    - match: '<'
+      scope: punctuation.definition.reference.begin.devicetree
+      push:
+        - meta_scope: meta.reference.array.devicetree
+        - match: '>'
+          scope: punctuation.definition.reference.end.devicetree
+          pop: true
+        - include: phandle
+        - include: numeric
+        - include: macro-def
 
   numeric:
     - match: '(0x)?[0-9a-fA-F]+'
