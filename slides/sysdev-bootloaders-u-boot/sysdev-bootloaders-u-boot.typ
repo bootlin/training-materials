@@ -832,8 +832,8 @@ Note: `<addr>` are addresses in RAM where data is stored
 
 - Examples
 
-  - `setenv bootcmd tftp 0x21000000 zImage; tftp 0x22000000 dtb; bootz
-    0x21000000 - 0x22000000'`
+  - `setenv bootcmd tftp 0x21000000 zImage; tftp 0x22000000 dtb;
+    bootz 0x21000000 - 0x22000000'`
 
   - `setenv mmc-boot if fatload mmc 0 80000000 boot.ini; then source;
     else if fatload mmc 0 80000000 zImage; then run mmc-do-boot; fi; fi'`
