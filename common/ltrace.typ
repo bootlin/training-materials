@@ -30,8 +30,8 @@
 === ltrace example output
 #text(size: 15pt)[
   ```
-  # ltrace  ffmpeg -f video4linux2 -video_size 544x288 -input_format mjpeg -i /dev
-  /video0 -pix_fmt rgb565le -f fbdev /dev/fb0
+  # ltrace ffmpeg -f video4linux2 -video_size 544x288 -input_format mjpeg -i /dev/video0 \
+       -pix_fmt rgb565le -f fbdev /dev/fb0
   __libc_start_main([ "ffmpeg", "-f", "video4linux2", "-video_size"... ] <unfinished ...>
   setvbuf(0xb6a0ec80, nil, 2, 0)                   = 0
   av_log_set_flags(1, 0, 1, 0)                     = 1
