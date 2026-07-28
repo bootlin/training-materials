@@ -37,7 +37,8 @@
   `/proc/partitions`
 
   ```
-  $ cat /proc/partitions major minor #blocks name
+  $ cat /proc/partitions
+  major   minor    #blocks name
 
    179        0    3866624 mmcblk0
    179        1      73712 mmcblk0p1
