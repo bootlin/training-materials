@@ -15,16 +15,16 @@ encrypted using eCryptFS. OpenEmbedded cannot be used on top of an eCryptFS file
 system due to limitations in file name lengths.
 
 Install the required packages:
-\begin{verbatim}
-sudo apt install gawk wget git diffstat unzip texinfo gcc build-essential \
-  chrpath socat cpio python3 python3-pip python3-pexpect xz-utils debianutils \
-  iputils-ping python3-git python3-jinja2 python3-subunit zstd liblz4-tool \
-  file locales libacl1
-\end{verbatim}
+\begin{bashinput}
+sudo apt install bmaptool build-essential chrpath cpio debianutils diffstat file gawk \
+	gcc git iputils-ping libacl1 libcrypt-dev locales python3 python3-git \
+	python3-jinja2 python3-pexpect python3-pip python3-subunit socat texinfo unzip \
+	wget xz-utils zstd
+\end{bashinput}
 
 \section{Avoiding unprivileged user namespace restrictions}
 
-Ubuntu 24.04 added an apparmor policy preventing usage of unprivileged user
+Ubuntu 26.04 added an apparmor policy preventing usage of unprivileged user
 namespace restrictions to improve security. Unfortunately this prevents
 bitbake from working, because it uses namespaces to forbid untracked
 downloads outside of the \code{do_fetch} task. Ironically, bitbake does
@@ -53,20 +53,21 @@ persistently, see
 
 Go to the \code{$HOME/__SESSION_NAME__-labs/} directory.
 
-Download the \code{scarthgap} version of Poky:
+Download the \code{wrynose} version of base layers:
 \begin{bashinput}
-git clone https://git.yoctoproject.org/git/poky
-cd $HOME/__SESSION_NAME__-labs/poky
-git checkout -b scarthgap-5.0.1 scarthgap-5.0.1
+git clone https://git.openembedded.org/bitbake -b yocto-6.0.2
+git clone https://git.openembedded.org/openembedded-core -b yocto-6.0.2
+git clone https://git.yoctoproject.org/meta-yocto -b yocto-6.0.2
 \end{bashinput}
 
 Return to your project root directory (\code{cd $HOME/__SESSION_NAME__-labs/})
 and download the OpenEmbedded and STM32MP layers:
 \begin{bashinput}
-git clone -b scarthgap https://git.openembedded.org/meta-openembedded
+git clone -b wrynose https://git.openembedded.org/meta-openembedded
 git clone https://github.com/STMicroelectronics/meta-st-stm32mp
 cd meta-st-stm32mp
-git checkout b820cf3a1a855d2bd95969251e6465e281502759
+git checkout 1e9adb7e6dda
+cd ..
 \end{bashinput}
 
 \section{Set up the build environment}
@@ -76,29 +77,43 @@ Check you're using Bash. This is the default shell when using Ubuntu.
 Export all needed variables and set up the build directory:
 \begin{bashinput}
 cd $HOME/__SESSION_NAME__-labs
-source poky/oe-init-build-env
+source openembedded-core/oe-init-build-env
 \end{bashinput}
 
 You must specify which machine is your target. By default it
 is \code{qemu}. We need to build an image for an \code{stm32mp1}.
 Update the \yoctovar{MACHINE} configuration variable accordingly.
 
+You also need to define which distro you are building: we are going to use
+\code{poky}.
+Update the \yoctovar{DISTRO} configuration variable accordingly.
+
+As we want to be able to log as root on the target, we need to make generated
+images insecure. We can use a dedicated configuration fragment for that:
+\begin{bashinput}
+bitbake-config-build enable-fragment core/yocto/root-login-with-empty-password
+\end{bashinput}
+
 Also, if you need to save disk space on your computer you can add \code{INHERIT
 += "rm_work"} in the previous configuration file. This will remove the
 package work directory once a package is built.
 
-Don't forget to make the configuration aware of the OpenEmbedded and
-STM32MP layers. Edit the layer configuration file
-(\code{$BUILDDIR/conf/bblayers.conf}) and append the full path to the
-\code{meta-openembedded/meta-oe}, \code{meta-openembedded/meta-python} and \code{meta-st-stm32mp} directory to the
-\yoctovar{BBLAYERS} variable.
+Don't forget to make the configuration aware of the meta-poky and STM32MP
+layers.
+Edit the layer configuration file (\code{$BUILDDIR/conf/bblayers.conf}) and
+append the full path to the
+\code{meta-yocto/meta-poky},
+\code{meta-openembedded/meta-oe},
+\code{meta-openembedded/meta-python}
+and \code{meta-st-stm32mp}
+directories to the \yoctovar{BBLAYERS} variable.
 
 Finally, if not done already, configure a git username and email as some recipe
 can fail without it:
-\begin{verbatim}
+\begin{bashinput}
 git config --global user.name "Your Name"
 git config --global user.email "your@email.com"
-\end{verbatim}
+\end{bashinput}
 
 \section{Build your first image}
 
