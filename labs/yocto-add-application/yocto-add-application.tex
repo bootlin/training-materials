@@ -58,7 +58,23 @@ If you hang on a problem, check the following points:
      \code{bitbake -c clean ninvaders}
 \end{itemize}
 
-One of the build failures you will face will generate many messages such as
+\subsection{Conflicting types error}
+
+One of the build failures you will face will complain about conflicting
+definitions of \code{doSleep}: the definition having a \code{void(void)}
+prototype, while the definition uses \code{void(int)}.
+
+This is because of a new behaviour with C23. We can revert to an old standard
+version, where \code{void()} prototypes do not impose any restriction on
+provided parameters. This can be done using the \code{-std=gnu17} {\em gcc}
+flag.
+
+To achieve this, make sure to add \code{-std=gnu17} to the \yoctovar{CFLAGS}
+variable.
+
+\subsection{Multiple definition error}
+
+Another build failure you will face will generate many messages such as
 \code{multiple definition of `skill_level'; aliens.o:(.bss+0x674):
   first defined here}.
 
@@ -72,8 +88,7 @@ different route: ask {\em gcc} to behave as it did before {\em gcc 10}
 and accept such redefinitions. This can be done by passing the
 \code{-fcommon} {\em gcc} flag.
 
-To achieve this, make sure to add \code{-fcommon} to the \yoctovar{CFLAGS}
-variable.
+\subsection{Tips}
 
 Tip: BitBake has command line flags to increase its verbosity and activate debug
 outputs. Also, remember that you need to cross-compile nInvaders for ARM! Maybe,
