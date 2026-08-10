@@ -16,10 +16,10 @@ system due to limitations in file name lengths.
 
 Install the required packages:
 \begin{bashinput}
-sudo apt install gawk wget git diffstat unzip texinfo gcc build-essential \
-  chrpath socat cpio python3 python3-pip python3-pexpect xz-utils debianutils \
-  iputils-ping python3-git python3-jinja2 python3-subunit zstd liblz4-tool \
-  file locales libacl1
+sudo apt install bmaptool build-essential chrpath cpio debianutils diffstat file gawk \
+	gcc git iputils-ping libacl1 libcrypt-dev locales python3 python3-git \
+	python3-jinja2 python3-pexpect python3-pip python3-subunit socat texinfo unzip \
+	wget xz-utils zstd
 \end{bashinput}
 
 \section{Avoiding unprivileged user namespace restrictions}
@@ -53,19 +53,23 @@ persistently, see
 
 Go to the \code{$HOME/__SESSION_NAME__-labs/} directory.
 
-Download the \code{scarthgap} version of Poky:
+Download the \code{wrynose} version of base layers:
 \begin{bashinput}
-git clone https://git.yoctoproject.org/git/poky
-cd $HOME/__SESSION_NAME__-labs/poky
-git checkout -b scarthgap-5.0.4 scarthgap-5.0.4
+git clone https://git.openembedded.org/bitbake -b yocto-6.0.2
+git clone https://git.openembedded.org/openembedded-core -b yocto-6.0.2
+git clone https://git.yoctoproject.org/meta-yocto -b yocto-6.0.2
 \end{bashinput}
 
-Return to your project root directory (\code{cd $HOME/__SESSION_NAME__-labs/})
-and download the \code{meta-openembedded}, \code{meta-arm}, and \code{meta-freescale} layers:
+Then download the \code{meta-arm} and \code{meta-freescale} layers:
 \begin{bashinput}
-git clone -b scarthgap https://github.com/openembedded/meta-openembedded.git
-git clone -b scarthgap https://git.yoctoproject.org/git/meta-arm
-git clone -b scarthgap https://github.com/Freescale/meta-freescale.git
+git clone https://git.yoctoproject.org/meta-arm
+cd meta-arm
+git checkout 0979b8042909
+cd ..
+git clone https://github.com/Freescale/meta-freescale.git
+cd meta-freescale
+git checkout ca31f33c5b5e
+cd ..
 \end{bashinput}
 
 \section{Set up the build environment}
@@ -75,25 +79,38 @@ Check you're using Bash. This is the default shell when using Ubuntu.
 Export all needed variables and set up the build directory:
 \begin{bashinput}
 cd $HOME/__SESSION_NAME__-labs
-source poky/oe-init-build-env
+source openembedded-core/oe-init-build-env
 \end{bashinput}
 
 You must specify which machine is your target. By default it
-is \code{qemu}. We need to build an image for an \code{imx93-11x11-lpddr4x-evk}.
+is \code{qemu}. We need to build an image for an \code{imx93-11x11-lpddr4x-frdm}.
 Update the \yoctovar{MACHINE} configuration variable accordingly.
 
 You must also accept the Freescale EULA by adding the following line to the
 \code{local.conf} file: \code{ACCEPT_FSL_EULA = "1"}.
 
+You also need to define which distro you are building: we are going to use
+\code{poky}.
+Update the \yoctovar{DISTRO} configuration variable accordingly.
+
+As we want to be able to log as root on the target, we need to make generated
+images insecure. We can use a dedicated configuration fragment for that:
+\begin{bashinput}
+bitbake-config-build enable-fragment core/yocto/root-login-with-empty-password
+\end{bashinput}
+
 Also, if you need to save disk space on your computer you can add \code{INHERIT
 += "rm_work"} in the previous configuration file. This will remove the
 package work directory once a package is built.
 
-Don't forget to update the configuration to include all the layers you have just added. Edit the
-layer configuration file (\code{$BUILDDIR/conf/bblayers.conf}) and append the
-full path to the \code{meta-freescale},
-\code{meta-arm/meta-arm}, \code{meta-arm/meta-arm-toolchain}, \code{meta-openembedded/meta-python},
-\code{meta-openembedded/meta-oe}, and \code{meta-openembedded/meta-multimedia}
+Don't forget to make the configuration aware of the meta-poky, ARM and
+meta-freescale layers.
+Edit the layer configuration file (\code{$BUILDDIR/conf/bblayers.conf}) and
+append the full path to the
+\code{meta-yocto/meta-poky},
+\code{meta-arm/meta-arm}
+\code{meta-arm/meta-arm-toolchain},
+and \code{meta-freescale}
 directories to the \code{BBLAYERS} variable.
 
 \section{Build your first image}
@@ -103,18 +120,28 @@ Now that you're ready to start the compilation, simply run:
 bitbake core-image-minimal
 \end{bashinput}
 
-Once the build finished, you will find the output images under
-\code{$BUILDDIR/tmp/deploy/images/imx93-11x11-lpddr4x-evk}.
+Once the build finished%
+%
+\footnote{Note: If your PC has less than 16 GB of
+RAM the build may fail while compiling some recipes which need a lot of
+memory, such as \code{rust-llvm-native} or \code{rust-native}. As a
+workaround, you can build the failing recipe individually with all RAM
+available for it (e.g. \code{bitbake rust-llvm-native}). When done, you can
+run \code{bitbake core-image-minimal} again and it will continue from where
+it had stopped.},
+%
+you will find the output images under
+\code{$BUILDDIR/tmp/deploy/images/imx93-11x11-lpddr4x-frdm}.
 
 \section{Set up the SD card}
 
 In this first lab we will use an SD card to store the bootloader, kernel and
 root filesystem files. The SD card image has been generated and is
-named \code{core-image-minimal-imx93-11x11-lpddr4x-evk.rootfs.wic.gz}.
+named \code{core-image-minimal-imx93-11x11-lpddr4x-frdm.rootfs.wic.gz}.
 
 Now flash the image with the following command:
 \begin{bashinput}
-gunzip -c core-image-minimal-imx93-11x11-lpddr4x-evk.rootfs.wic.gz | sudo dd of=/dev/mmcblkX conv=fdatasync bs=1M status=progress
+sudo bmaptool copy --removable-device $BUILDDIR/tmp/deploy/images/imx93-11x11-lpddr4x-frdm/core-image-minimal-imx93-11x11-lpddr4x-frdm.rootfs.wic.gz /dev/mmcblkX
 \end{bashinput}
 
 \section{Setting up serial communication with the board}
@@ -157,7 +184,7 @@ powered up yet.
 \section{Boot}
 Insert the SD card in the dedicated slot on the imx93-frdm. Make sure that switches 1 and 2 in the center of the board are set to ON, and switches 3 and 4 are set to OFF.
 
-Plug in the power USB-C. You should see boot messages on the console.
-
+Plug in the power USB-C.
+You should see boot messages on the console.
 Wait until the login prompt, then enter \code{root} as user.
 Congratulations! The board has booted and you now have a shell.

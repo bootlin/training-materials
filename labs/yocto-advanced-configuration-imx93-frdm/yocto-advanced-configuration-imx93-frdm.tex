@@ -104,8 +104,8 @@ First we need to put the rootfs under the NFS root directory so that it is
 accessible by NFS clients. Simply uncompress the archived output image in the
 previously created \code{/nfs} directory:
 \begin{verbatim}
-sudo tar xpf $BUILDDIR/tmp/deploy/images/imx93-11x11-lpddr4x-evk/\
-  core-image-minimal-imx93-11x11-lpddr4x-evk.rootfs.tar.gz -C /nfs
+sudo tar xpf $BUILDDIR/tmp/deploy/images/imx93-11x11-lpddr4x-frdm/\
+  core-image-minimal-imx93-11x11-lpddr4x-frdm.rootfs.tar.gz -C /nfs
 \end{verbatim}
 
 Then boot the board.
@@ -131,12 +131,12 @@ To see which kernel is used, dry-run BitBake:
 bitbake -vn virtual/kernel
 \end{verbatim}
 
-In our case, we can see the \code{linux-fslc-imx} provides the
+In our case, we can see the \code{linux-imx} provides the
 \code{virtual/kernel} functionality.
 
 We can force Yocto to select another \code{kernel} by explicitly
 defining which one to use in our local configuration. Try switching
-from \code{linux-fslc-imx} to \code{linux-imx} only using the
+from \code{linux-imx} to \code{linux-fslc-imx} only using the
 local configuration.
 
 Then check the previous step worked by dry-running again BitBake.
@@ -184,14 +184,13 @@ directory (specified in \code{/etc/default/tftpd-hpa}) so that they are
 made available by the TFTP server.
 
 Then, in the U-Boot shell, change the \code{bootcmd} variable to load the
-kernel image and the Device Tree over TFTP (replace \code{dtb} by
-the actual Device Tree file for your board):
+kernel image and the Device Tree over TFTP:
 
 \small{
 \begin{verbatim}
 setenv ipaddr 192.168.0.100
 setenv serverip 192.168.0.1
-setenv bootcmd 'tftp ${loadaddr} Image; tftp ${fdt_addr} dtb; booti ${loadaddr} - ${fdt_addr}'
+setenv bootcmd 'tftp ${loadaddr} Image; tftp ${fdt_addr} ${fdtfile}; booti ${loadaddr} - ${fdt_addr}'
 \end{verbatim}
 }
 
