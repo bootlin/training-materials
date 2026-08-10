@@ -17,7 +17,8 @@ Add a new \code{bootlinlabs} machine to the previously created layer, which
 will make the \board\ properly boot.
 
 \if\defstring{\board}{imx93-frdm}
-This machine describes a board using the \code{imx93} SoC and we take the board \code{imx93-evk} as a base. Add the following line to your machine configuration file:
+This machine describes a board using the \code{imx93} SoC and we take the board
+\code{imx93-evk} as a base. Add the following line to your machine configuration file:
 \begin{verbatim}
 require conf/machine/include/imx93-evk.inc
 \end{verbatim}
@@ -84,8 +85,8 @@ DDR_FIRMWARE_NAME = " \
 
   \item We must also specify which kernel recipe to choose, which device tree the kernel must use. We add that we want a rootfs of type tar. We specify the type of kernel image that we want:
 \begin{verbatim}
-KERNEL_DEVICETREE = "freescale/imx93-11x11-evk.dtb"
-PREFERRED_PROVIDER_virtual/kernel = "linux-fslc-imx"
+KERNEL_DEVICETREE = "freescale/imx93-11x11-frdm.dtb"
+PREFERRED_PROVIDER_virtual/kernel = "linux-fslc"
 IMAGE_FSTYPES:append = " tar.gz"
 KERNEL_IMAGETYPE = "Image"
 
@@ -93,8 +94,8 @@ KERNEL_IMAGETYPE = "Image"
 
   \item We must also specify the same elements for U-Boot.
 \begin{verbatim}
-UBOOT_CONFIG_BASENAME = "imx93_11x11_evk"
-UBOOT_DTB_NAME = "imx93-11x11-evk.dtb"
+UBOOT_CONFIG_BASENAME = "imx93_11x11_frdm"
+UBOOT_DTB_NAME = "imx93-11x11-frdm"
 PREFERRED_PROVIDER_virtual/bootloader ?= "u-boot-imx"
 \end{verbatim}
 \end{itemize}
@@ -128,9 +129,9 @@ OPTEEMACHINE = "k3-am62x"
 
 UBOOT_MACHINE = "am62x_beagleplay_a53_defconfig"
 
-PREFERRED_PROVIDER_virtual/kernel = "linux-ti-staging"
-PREFERRED_PROVIDER_virtual/bootloader = "u-boot-ti-staging"
-PREFERRED_PROVIDER_u-boot = "u-boot-ti-staging"
+PREFERRED_PROVIDER_virtual/kernel = "linux-bb.org"
+PREFERRED_PROVIDER_virtual/bootloader = "u-boot-bb.org"
+PREFERRED_PROVIDER_u-boot = "u-boot-bb.org"
 
 KERNEL_DEVICETREE = "ti/k3-am625-beagleplay.dtb"
 \end{verbatim}
@@ -139,6 +140,14 @@ KERNEL_DEVICETREE = "ti/k3-am625-beagleplay.dtb"
 \begin{verbatim}
 require conf/machine/include/extlinux-bb.inc
 \end{verbatim}
+
+  \item We also need to mark this machine as compatible with both the Linux and
+		U-Boot recipes we are using:
+\begin{verbatim}
+COMPATIBLE_MACHINE:append:pn-${PREFERRED_PROVIDER_virtual/kernel} = "|bootlinlabs"
+COMPATIBLE_MACHINE:append:pn-${PREFERRED_PROVIDER_virtual/bootloader} = "|bootlinlabs"
+\end{verbatim}
+
 \end{itemize}
 \fi
 

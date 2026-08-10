@@ -16,10 +16,10 @@ system due to limitations in file name lengths.
 
 Install the required packages:
 \begin{bashinput}
-sudo apt install gawk wget git diffstat unzip texinfo gcc build-essential \
-  chrpath socat cpio python3 python3-pip python3-pexpect xz-utils debianutils \
-  iputils-ping python3-git python3-jinja2 python3-subunit zstd liblz4-tool \
-  file locales libacl1
+sudo apt install bmaptool build-essential chrpath cpio debianutils diffstat file gawk \
+	gcc git iputils-ping libacl1 libcrypt-dev locales python3 python3-git \
+	python3-jinja2 python3-pexpect python3-pip python3-subunit socat texinfo unzip \
+	wget xz-utils zstd
 \end{bashinput}
 
 \section{Avoiding unprivileged user namespace restrictions}
@@ -53,31 +53,24 @@ persistently, see
 
 Go to the \code{$HOME/__SESSION_NAME__-labs/} directory.
 
-Download the \code{scarthgap} version of Poky:
+Download the \code{wrynose} version of base layers:
 \begin{bashinput}
-git clone https://git.yoctoproject.org/git/poky
-cd $HOME/__SESSION_NAME__-labs/poky
-git checkout -b scarthgap-5.0.4 scarthgap-5.0.4
+git clone https://git.openembedded.org/bitbake -b yocto-6.0.2
+git clone https://git.openembedded.org/openembedded-core -b yocto-6.0.2
+git clone https://git.yoctoproject.org/meta-yocto -b yocto-6.0.2
 \end{bashinput}
 
-Return to your project root directory (\code{cd $HOME/__SESSION_NAME__-labs/})
-and download the \code{meta-openembedded}, \code{meta-arm} and \code{meta-ti} layers:
+Then download the \code{meta-arm} and \code{meta-ti} layers:
 \begin{bashinput}
-cd $HOME/__SESSION_NAME__-labs
-git clone -b scarthgap https://git.openembedded.org/meta-openembedded
-git clone https://git.yoctoproject.org/git/meta-arm
+git clone https://git.yoctoproject.org/meta-arm
 cd meta-arm
-git checkout -b yocto-5.0.1 yocto-5.0.1
-\end{bashinput}
-\begin{bashinput}
-cd $HOME/__SESSION_NAME__-labs
-git clone https://git.yoctoproject.org/git/meta-ti
+git checkout 0979b8042909
+cd ..
+git clone -b 12.01.00.05 https://git.yoctoproject.org/meta-ti
 cd meta-ti
-git checkout -b scarthgap-labs 10.01.03
-git am $HOME/__SESSION_NAME__-labs/bootlin-lab-data/0001-Simplify-linux-ti-staging-recipe-for-the-Bootlin-lab.patch \
-  $HOME/__SESSION_NAME__-labs/bootlin-lab-data/0002-Don-t-use-a-custom-deployment-directory.patch \
-  $HOME/__SESSION_NAME__-labs/bootlin-lab-data/0003-Use-extlinux.conf-booting-flow.patch \
-  $HOME/__SESSION_NAME__-labs/bootlin-lab-data/0004-u-boot-enable-saving-the-env-in-fat-partition.patch
+git am $HOME/__SESSION_NAME__-labs/bootlin-lab-data/0001-Don-t-use-a-custom-deployment-directory.patch \
+  $HOME/__SESSION_NAME__-labs/bootlin-lab-data/0002-Use-extlinux.conf-booting-flow.patch \
+  $HOME/__SESSION_NAME__-labs/bootlin-lab-data/0003-u-boot-enable-saving-the-env-in-fat-partition.patch
 \end{bashinput}
 
 \section{Set up the build environment}
@@ -87,7 +80,7 @@ Check you're using Bash. This is the default shell when using Ubuntu.
 Export all needed variables and set up the build directory:
 \begin{bashinput}
 cd $HOME/__SESSION_NAME__-labs
-source poky/oe-init-build-env
+source openembedded-core/oe-init-build-env
 \end{bashinput}
 
 You must specify which machine is your target. By default it
@@ -96,14 +89,29 @@ Update the \yoctovar{MACHINE} configuration variable accordingly. Be
 careful, \code{beagleplay} is different from the \code{beagleboard}
 or the \code{beaglebone} machines!
 
+You also need to define which distro you are building: we are going to use
+\code{poky}.
+Update the \yoctovar{DISTRO} configuration variable accordingly.
+
+As we want to be able to log as root on the target, we need to make generated
+images insecure. We can use a dedicated configuration fragment for that:
+\begin{bashinput}
+bitbake-config-build enable-fragment core/yocto/root-login-with-empty-password
+\end{bashinput}
+
 Also, if you need to save disk space on your computer you can add \code{INHERIT
 += "rm_work"} in the previous configuration file. This will remove the
 package work directory once a package is built.
 
-Don't forget to make the configuration aware of the meta-openembedded, ARM and TI layers. Edit the
-layer configuration file (\code{$BUILDDIR/conf/bblayers.conf}) and append the
-full path to the \code{meta-oe}, \code{meta-arm-toolchain}, \code{meta-arm},
-\code{meta-ti-bsp} directories to the \code{BBLAYERS} variable.
+Don't forget to make the configuration aware of the meta-poky, ARM and TI layers.
+Edit the layer configuration file (\code{$BUILDDIR/conf/bblayers.conf}) and
+append the full path to the
+\code{meta-yocto/meta-poky},
+\code{meta-arm/meta-arm-toolchain},
+\code{meta-arm/meta-arm},
+\code{meta-ti/meta-ti-bsp},
+and \code{meta-ti/meta-beagle}
+directories to the \code{BBLAYERS} variable.
 
 \section{Build your first image}
 
@@ -123,7 +131,7 @@ named \code{core-image-minimal-beagleplay.rootfs.wic.xz}.
 
 Now uncompress and flash the image with the following command:
 \begin{bashinput}
-xz -dc $BUILDDIR/tmp/deploy/images/beagleplay/core-image-minimal-beagleplay.rootfs.wic.xz | sudo dd of=/dev/sdX conv=fdatasync bs=4M status=progress
+sudo bmaptool copy --removable-device $BUILDDIR/tmp/deploy/images/beagleplay/core-image-minimal-beagleplay.rootfs.wic.xz /dev/mmcblkX
 \end{bashinput}
 
 \section{Setting up serial communication with the board}

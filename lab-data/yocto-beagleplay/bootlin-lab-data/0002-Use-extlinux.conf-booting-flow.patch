@@ -1,0 +1,50 @@
+From 3f7835d1265d297a1526ab69b9002298cae5a2ee Mon Sep 17 00:00:00 2001
+From: Antonin Godard <antonin.godard@bootlin.com>
+Date: Tue, 29 Oct 2024 09:13:30 +0100
+Subject: [PATCH 2/3] Use extlinux.conf booting flow
+
+Switch from the default EFI-based boot process to a well-known
+extlinux.conf boot flow.
+
+This change is coherent with our other supported boards and simplifies
+the labs significantly (which are therefore very similar to those for
+the other boards). Moreover, I had trouble establishing a stable
+Ethernet connection through the EFI-based flow.
+
+Signed-off-by: Jeremie Dautheribes <jdautheribes@build3.bootlin.com>
+Signed-off-by: Antonin Godard <antonin.godard@bootlin.com>
+---
+ meta-beagle/conf/machine/beagleplay.conf         | 1 +
+ meta-beagle/conf/machine/include/extlinux-bb.inc | 8 ++++++++
+ 2 files changed, 9 insertions(+)
+ create mode 100644 meta-beagle/conf/machine/include/extlinux-bb.inc
+
+diff --git a/meta-beagle/conf/machine/beagleplay.conf b/meta-beagle/conf/machine/beagleplay.conf
+index 218dcc63fcd6..a0e924454476 100644
+--- a/meta-beagle/conf/machine/beagleplay.conf
++++ b/meta-beagle/conf/machine/beagleplay.conf
+@@ -2,6 +2,7 @@
+ #@NAME: BeaglePlay (A53)
+ #@DESCRIPTION: Machine configuration for the BeaglePlay board (A53 core)
+ 
++require conf/machine/include/extlinux-bb.inc
+ require conf/machine/beagleplay-ti.conf
+ 
+ require conf/machine/include/beagle-bsp.inc
+diff --git a/meta-beagle/conf/machine/include/extlinux-bb.inc b/meta-beagle/conf/machine/include/extlinux-bb.inc
+new file mode 100644
+index 000000000000..21efdd6a8974
+--- /dev/null
++++ b/meta-beagle/conf/machine/include/extlinux-bb.inc
+@@ -0,0 +1,8 @@
++UBOOT_EXTLINUX = "1"
++UBOOT_EXTLINUX_ROOT = "root=/dev/mmcblk1p2"
++UBOOT_EXTLINUX_KERNEL_IMAGE = "../Image"
++UBOOT_EXTLINUX_KERNEL_ARGS = "rootwait"
++UBOOT_EXTLINUX_FDT = "../k3-am625-beagleplay.dtb"
++
++IMAGE_BOOT_FILES:append = " extlinux.conf;extlinux/extlinux.conf k3-am625-beagleplay.dtb"
++MACHINE_ESSENTIAL_EXTRA_RDEPENDS:append = " kernel-modules"
+-- 
+2.43.0
+
