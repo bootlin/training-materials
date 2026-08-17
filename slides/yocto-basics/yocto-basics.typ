@@ -13,7 +13,7 @@
 
 === Environment setup
 
-- All Poky files are left unchanged when building a custom image.
+- All Yocto source files are left unchanged when building a custom image.
 
 - Specific configuration files and build repositories are stored in a
   separate build directory.
@@ -28,7 +28,7 @@
 
 - Adds environment variables, used by the build engine.
 
-- Allows you to use commands provided in Poky.
+- Allows you to use commands provided in openembedded-core.
 
 - `source ./oe-init-build-env [builddir]`
 
