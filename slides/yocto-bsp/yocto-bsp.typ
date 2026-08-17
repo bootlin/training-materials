@@ -147,7 +147,7 @@
 === Default bootloader 1/2
 
 - By default (on ARM) the bootloader used is the mainline version of
-  `U-Boot`, with a fixed version (per Poky release).
+  `U-Boot`, with a fixed version (per Yocto release).
 
 - All the magic is done in `meta/recipes-bsp/u-boot/u-boot.inc`
 
@@ -191,8 +191,8 @@
 
   - By creating a custom kernel recipe, inheriting `kernel.bbclass`
 
-  - By using the `linux-yocto` packages, provided in Poky, for very
-    complex needs
+  - By using the `linux-yocto` packages, provided in openembedded-core, for
+    very complex needs
 
 - The kernel used is selected in the machine file thanks to: \
   #yoctovar("PREFERRED_PROVIDER")`_virtual/kernel`

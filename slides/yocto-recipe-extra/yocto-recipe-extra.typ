@@ -305,12 +305,12 @@ Real life example of anonymous function: \
 
 === Inspecting available `PACKAGECONFIG flags`
 
-- `${POKY_DIR}/scripts/contrib/list-packageconfig-flags.py` shows the
+- `${OECORE_DIR}/scripts/contrib/list-packageconfig-flags.py` shows the
   #yoctovar("PACKAGECONFIG") varflags available for each recipe:
 
   #text(size: 15pt)[
     ```console
-    $ ../poky/scripts/contrib/list-packageconfig-flags.py
+    $ ../openembedded-core/scripts/contrib/list-packageconfig-flags.py
     RECIPE NAME    PACKAGECONFIG FLAGS
     ==================================
     alsa-plugins   aaf jack libav maemo-plugin maemo-resource-manager pulseaudio samplerate speexdsp connman        3g bluez client iptables l2tp nfc nftables openvpn pptp systemd tist vpnc wifi ...
@@ -322,9 +322,9 @@ Real life example of anonymous function: \
 
   #text(size: 14pt)[
     ```console
-    $ ../poky/scripts/contrib/list-packageconfig-flags.py -a
+    $ ../openembedded-core/scripts/contrib/list-packageconfig-flags.py -a
     connman-1.41
-    /home/murray/w/yocto-stm32-labs/poky/meta/recipes-connectivity/connman/connman_1.41.bb
+    /home/murray/w/yocto-stm32-labs/openembedded-core/meta/recipes-connectivity/connman/connman_1.41.bb
     PACKAGECONFIG wispr iptables client                   3g wifi                    bluez
     PACKAGECONFIG[wifi] --enable-wifi, --disable-wifi, wpa-supplicant, wpa-supplicant
     PACKAGECONFIG[bluez] --enable-bluetooth, --disable-bluetooth, bluez5, bluez5
@@ -432,7 +432,7 @@ FILES:${PN}-dbg = "\
 - The package named just `${PN}` is the one that gets installed in the
   root filesystem.
 
-- In Poky, defaults to:
+- In Openembedded-core, defaults to:
 
 #v(0.5em)
 

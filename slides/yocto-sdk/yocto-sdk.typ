@@ -26,8 +26,8 @@
 
 === The Yocto Project SDK
 
-- The Poky reference system is used to generate images, by building many
-  applications and doing a lot of configuration work.
+- OpenEmbedded is used to generate images, by building many applications and
+  doing a lot of configuration work.
 
   - When developing an application, we only care about the application
     itself.
@@ -40,7 +40,7 @@
 - It includes a toolchain, libraries headers and all the needed tools.
 
 - This SDK can be installed on any computer and is self-contained. The
-  presence of Poky is not required for the SDK to fully work.
+  presence of OpenEmbedded is not required for the SDK to fully work.
 
 === Available SDKs
 
@@ -63,7 +63,7 @@
 - The toolchain in the SDKs is self-contained (linked to an SDK embedded
   libc).
 
-- The SDKs generated with Poky are distributed in the form of a shell
+- The SDKs generated with OpenEmbedded are distributed in the form of a shell
   script.
 
 - Executing this script extracts the tools and sets up the environment.

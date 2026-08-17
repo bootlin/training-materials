@@ -19,16 +19,13 @@
 
 - It is a good practice to begin a layer name with the prefix `meta-`.
 
-=== Layers in Poky
+=== Official Yocto layers
 
-#align(center, [#image(
-  "/slides/yocto-overview/yocto-overview-poky.svg",
-  height: 90%,
-)])
+#align(center, [#image("yocto-core-layers.svg", height: 90%)])
 
-=== Layers in Poky
+=== Official Yocto layers
 
-- The Poky _reference system_ is a set of basic common layers:
+- The Yocto project does provide a set of basic common layers:
 
   - meta
 
@@ -38,13 +35,13 @@
 
   - meta-yocto-bsp
 
-- Poky is not a final set of layers. It is the common base.
+- This is not a final set of layers. It is the common base.
 
 - Layers are added when needed.
 
 - When making modifications to the existing recipes or when adding new
-  ones, it is a good practice to avoid modifying Poky. Instead you can
-  create your own layers!
+  ones, it is a good practice to avoid modifying the layers. Instead you can
+  create your own ones!
 
 === Third party layers
 

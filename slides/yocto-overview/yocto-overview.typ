@@ -4,7 +4,7 @@
 
 #show: bootlin-theme
 
-= Yocto Project and Poky reference system overview
+= Yocto Project and core layers overview
 
 == The Yocto Project overview
 <the-yocto-project-overview>
@@ -127,12 +127,13 @@ In Yocto / OpenEmbedded, the _build engine_ is implemented by the `bitbake` prog
 
 - The word _Poky_ has several meanings
 
-- Poky is a git repository that is assembled from other git
-  repositories: bitbake, openembedded-core, yocto-docs and meta-yocto
-
 - poky is the _reference distro_ provided by the Yocto Project
 
 - meta-poky is the layer providing the poky reference distribution
+
+- Up to the Walnascar (5.2) release, Poky was a git repository that was
+  assembled from other git repositories: bitbake, openembedded-core, yocto-docs
+  and meta-yocto
 
 === The Yocto Project lexicon
 
@@ -151,22 +152,23 @@ In Yocto / OpenEmbedded, the _build engine_ is implemented by the `bitbake` prog
 
 - To build images for a BeagleBone Black, we need:
 
-  - The Poky reference system, containing all common recipes and tools.
+  - The Yocto core layers, containing all common recipes and tools.
 
   - The _meta-ti-bsp_ layer, a set of Texas Instruments specific
     recipes.
 
-- All modifications are made in your own layer. Editing Poky or any
-  other third-party layer is a *no-go*!
+- All modifications are made in your own layer. Editing openembedded-core or
+  any other third-party layer is a *no-go*!
 
 - We will set up this environment in the lab.
 
-== The Poky reference system overview
+== The Yocto core layers overview
 <the-poky-reference-system-overview>
 
-=== Getting the Poky reference system
+=== Getting the Poky reference system (up to Walnascar)
 
-- All official projects part of the Yocto Project are available at \
+  All official projects part of the Yocto Project are available at
+  #link("https://git.openembedded.org/") and
   #link("https://git.yoctoproject.org/")
 
 - To download the Poky reference system: \
@@ -181,7 +183,7 @@ In Yocto / OpenEmbedded, the _build engine_ is implemented by the `bitbake` prog
   corresponding to a release number.
 
   - A summary can be found at
-    #link("https://wiki.yoctoproject.org/wiki/Releases")
+    #link("https://www.yoctoproject.org/development/releases/")
 
 === Poky
 
@@ -192,30 +194,78 @@ In Yocto / OpenEmbedded, the _build engine_ is implemented by the `bitbake` prog
 #grid(
   columns: 2,
   inset: (x: 0.5em, y: 0.5em),
-  [*bitbake\/*],
+  [#text(0.8em)[*bitbake\/*]],
   [Holds all scripts used by the `bitbake` command. Usually matches the stable release of the BitBake project.],
 
-  [*documentation\/*],
+  [#text(0.8em)[*documentation\/*]],
   [All documentation sources for the Yocto Project documentation. Can be used to generate nice PDFs.],
 
-  [*meta\/*], [Contains the OpenEmbedded-Core metadata.],
-  [*meta-skeleton\/*],
+  [#text(0.8em)[*meta\/*]], [Contains the OpenEmbedded-Core metadata.],
+  [#text(0.8em)[*meta-skeleton\/*]],
   [Contains template recipes for BSP and kernel development.],
 
-  [*meta-poky\/*],
+  [#text(0.8em)[*meta-poky\/*]],
   [Holds the configuration for the Poky reference distribution.],
 
-  [*meta-yocto-bsp\/*],
+  [#text(0.8em)[*meta-yocto-bsp\/*]],
   [ Configuration for the Yocto Project reference hardware board support package.],
 
-  [*LICENSE*],
+  [#text(0.8em)[*LICENSE*]],
   [ The license under which Poky is distributed (a mix of GPLv2 and MIT).],
 
-  [*oe-init-build-env*],
+  [#text(0.8em)[*oe-init-build-env*]],
   [ Script to set up the OpenEmbedded build environment. It will create the build directory.],
 
-  [*scripts\/*],
+  [#text(0.8em)[*scripts\/*]],
   [ Contains scripts used to set up the environment, development tools, and tools to flash the generated images on the target.],
+)
+
+=== Getting the Yocto reference layers (starting from Whinlatter)
+
+- The assembled poky git repository was deprecated with the Whinlatter (5.3)
+  release.
+
+- All source code is still the same but needs to be assembled from separate
+  gits:
+
+  - Either manually:
+  `git clone https://git.openembedded.org/bitbake -b yocto-6.0` \
+  `git clone https://git.openembedded.org/openembedded-core -b yocto-6.0` \
+  `git clone https://git.yoctoproject.org/meta-yocto -b yocto-6.0` \
+
+  - Or using the new
+    #link("https://docs.yoctoproject.org/bitbake/next/bitbake-user-manual/bitbake-user-manual-environment-setup.html")[bitbake-setup]
+    utility.
+
+- Everything else stays the same.
+
+=== Yocto core layers source tree
+
+#grid(
+  columns: 2,
+  inset: (x: 0.5em, y: 0.5em),
+  [#text(0.8em)[*bitbake\/*]],
+  [Holds all scripts used by the `bitbake` command. Usually matches the stable release of the BitBake project.],
+
+  [#text(0.8em)[*openembedded-core\/meta\/*]], [Contains the OpenEmbedded-Core metadata.],
+
+  [#text(0.8em)[*openembedded-core\/meta-skeleton\/*]],
+  [Contains template recipes for BSP and kernel development.],
+
+  [#text(0.8em)[*openembedded-core\/LICENSE*]],
+  [ The license under which openembedded-core is distributed (a mix of GPLv2 and MIT).],
+
+  [#text(0.8em)[*openembedded-core\/oe-init-build-env*]],
+  [ Script to set up the OpenEmbedded build environment. It will create the build directory.],
+
+  [#text(0.8em)[*openembedded-core\/scripts\/*]],
+  [ Contains scripts used to set up the environment, development tools, and tools to flash the generated images on the target.],
+
+  [#text(0.8em)[*meta-yocto\/meta-poky\/*]],
+  [Holds the configuration for the Poky reference distribution.],
+
+  [#text(0.8em)[*meta-yocto\/meta-yocto-bsp\/*]],
+  [ Configuration for the Yocto Project reference hardware board support package.],
 )
 
 === Documentation
