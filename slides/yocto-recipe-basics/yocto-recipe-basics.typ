@@ -286,9 +286,6 @@ a different `defconfig` can be used for different
   controlled by the #yoctovar("S") variable. If the directory has
   another name, you must explicitly define #yoctovar("S").
 
-- If the scheme is `git`, #yoctovar("S") must be set to
-  `${WORKDIR}`/git
-
 === The source locations: license files
 
 - License files must have their own checksum.
@@ -386,6 +383,8 @@ do_task() {
   variables and internal functions available.
 
   - #yoctovar("WORKDIR"): the recipe's working directory
+
+  - #yoctovar("UNPACKDIR"): The directory where fetched sources are placed
 
   - #yoctovar("S"): The directory where the source code is extracted
 
@@ -506,7 +505,6 @@ SRC_URI += "file://joystick-support.patch \
 
   SRC_URI = "git://git.example.com/hello;protocol=https;branch=master"
   SRCREV = "2d47b4eb66e705458a17622c2e09367300a7b118"
-  S = "${WORKDIR}/git"
   LIC_FILES_CHKSUM = "file://hello.c;beginline=3;endline=21;md5=58e..."
 
   do_compile() {
