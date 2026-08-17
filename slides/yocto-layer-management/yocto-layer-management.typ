@@ -10,7 +10,7 @@
 
 There are multiple tasks that OE/bitbake based projects let you do on your own to ensure build reproducibility:
 
-- Code distribution and project setup.
+- Code distribution and project setup
 
 - Release tagging
 
@@ -21,74 +21,12 @@ A separate tool is needed for that, usual solutions are:
 - git submodules + setup script. Great example in YOE: \
   #link("https://github.com/YoeDistro/yoe-distro")
 
-- repo and `templateconf` or setup script
+- repo and `templateconf` or setup script: pretty popular in the past, before
+  dedicated tools emerged
 
-- kas
+- kas: probably the most popular tool
 
-=== Google repo
-
-- A good way to distribute a distribution (Poky, custom layers, BSP,
-  `.templateconf`…) is to use Google's `repo`.
-
-- `Repo` is used in Android to distribute its source code, which is
-  split into many `git` repositories. It's a wrapper to handle several
-  `git` repositories at once.
-
-- The only requirement is to use `git`.
-
-- The `repo` configuration is stored in a `manifest` file, usually
-  available in its own `git` repository.
-
-- It could also be in a specific branch of your custom layer.
-
-- It only handles fetching code, handling `local.conf` and
-  `bblayers.conf` is done separately
-
-=== Manifest example
-
-#text(size: 17pt)[
-  ```xml
-  <?xml version="1.0" encoding="UTF-8"?>
-  <manifest>
-    <remote name="yocto-project" fetch="git.yoctoproject.org" />
-    <remote name="private" fetch="git.example.net" />
-
-    <default revision="scarthgap" remote="private" />
-
-    <project name="poky" remote="yocto-project" />
-    <project name="meta-ti" remote="yocto-project" />
-    <project name="meta-custom" />
-    <project name="meta-custom-bsp" />
-    <project path="meta-custom-distro" name="distro">
-      <copyfile src="templateconf" dest="poky/.templateconf" />
-    </project>
-  </manifest>
-  ```]
-
-=== Retrieve the project using `repo`
-
-```console
-$ mkdir my-project; cd my-project
-$ repo init -u https://git.example.net/manifest.git
-$ repo sync -j4
-```
-
-- `repo init` uses the `default.xml` manifest in the repository, unless
-  specified otherwise.
-
-- You can see the full `repo` documentation at \
-  #link("https://source.android.com/source/using-repo.html").
-
-=== repo: release
-
-To tag a release, a few steps have to be taken:
-
-- Optionally tag the custom layers
-
-- For each project entry in the manifest, set the revision parameter to
-  either a tag or a commit hash.
-
-- Commit and tag this version of the manifest.
+- bitbake-setup: the newest and official tool
 
 === kas
 
@@ -161,4 +99,75 @@ To tag a release, a few steps have to be taken:
 #text(size: 17pt)[
   ```sh
   $ kas shell /path/to/kas-project.yml -c 'bitbake dosfsutils-native'
+  ```]
+
+=== bitbake-setup
+
+- The official tool, part of bitbake git:
+  #link("https://git.openembedded.org/bitbake/tree/bin/bitbake-setup")
+
+- Will fetch layers and setup the build configuration
+
+- Does not try to mask core tools, users still need to launch builds with bitbake
+
+- Uses a JSON configuration file
+
+=== bitbake-setup configuration
+
+#text(size: 13.5pt)[
+  ```json
+  {
+      "description": "My bitbake setup file.",
+      "sources": {
+          "bitbake": {
+              "git-remote": {
+                  "uri": "https://git.openembedded.org/bitbake",
+                  "rev": "2.18"
+              }
+          },
+          "openembedded-core": {
+              "git-remote": {
+                  "uri": "https://git.openembedded.org/openembedded-core",
+                  "rev": "wrynose"
+              }
+          },
+          "meta-openembedded": {
+              "git-remote": {
+                  "uri": "https://git.openembedded.org/meta-openembedded",
+                  "rev": "wrynose"
+              }
+          },
+          "meta-freescale": {
+              "git-remote": {
+                  "uri": "https://github.com/Freescale/meta-freescale",
+                  "rev": "wrynose"
+              }
+          }
+      },
+      "bitbake-setup": {
+          "configurations": [{
+              "name": "myconfig",
+              "description": "My own configuration",
+              "bb-layers": ["openembedded-core/meta", "meta-openembedded/meta-oe",
+                            "meta-openembedded/meta-python", "meta-freescale"],
+              "oe-fragments": ["machine/mymachine", "distro/mydistro"]
+          }]
+      },
+      "version": "1.0"
+  }
+  ```]
+
+- Then a single command will fetch all layers and setup your configuration:
+
+#text(size: 17pt)[
+  ```sh
+  $ bitbake-setup init mysetup.conf.json
+  ```]
+
+- This will also create an environment file that you can source:
+
+#text(size: 17pt)[
+  ```sh
+  $ . ./mysetup-myconfig/build/init-build-env
+  $ bitbake myimage
   ```]
