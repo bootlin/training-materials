@@ -4,7 +4,7 @@
 
 #show: bootlin-theme
 
-#setuplabframe([Create and use a Poky SDK], [
+#setuplabframe([Create and use a Yocto SDK], [
 
   - Generate an SDK
 

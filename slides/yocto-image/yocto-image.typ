@@ -18,7 +18,7 @@
   capabilities, the `image` is architecture agnostic and defines how the
   root filesystem is built, with what packages.
 
-- By default, several images are provided in Poky:
+- By default, several images are provided in openembedded-core:
 
   - `meta*/recipes*/images/*.bb`
 
