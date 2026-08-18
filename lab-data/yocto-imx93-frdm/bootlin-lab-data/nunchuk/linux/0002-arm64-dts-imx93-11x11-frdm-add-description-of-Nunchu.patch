@@ -1,40 +1,66 @@
-From 36cb5804955ef121c028dd7955292ebd8a4b1700 Mon Sep 17 00:00:00 2001
+From 8da982d0fc690b0b12af4825d14750cf349a380f Mon Sep 17 00:00:00 2001
 From: Joao Marcos Costa <joaomarcos.costa@bootlin.com>
 Date: Fri, 12 Dec 2025 16:24:03 +0000
 Subject: [PATCH 2/2] arm64: dts: imx93-11x11-frdm: add description of Nunchuk
- on lpi2c1
+ on lpi2c4
 
 Upstream-Status: Inappropriate
 Signed-off-by: Joao Marcos Costa <joaomarcos.costa@bootlin.com>
 Signed-off-by: Mathieu Dubois-Briand <mathieu.dubois-briand@bootlin.com>
 ---
- arch/arm64/boot/dts/freescale/imx93-11x11-frdm.dts | 6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+ .../boot/dts/freescale/imx93-11x11-frdm.dts   | 25 +++++++++++++++++++
+ 1 file changed, 25 insertions(+)
 
 diff --git a/arch/arm64/boot/dts/freescale/imx93-11x11-frdm.dts b/arch/arm64/boot/dts/freescale/imx93-11x11-frdm.dts
-index 045bee43dbac..676bbe3c0147 100644
+index 045bee43dbac..28babe2673c7 100644
 --- a/arch/arm64/boot/dts/freescale/imx93-11x11-frdm.dts
 +++ b/arch/arm64/boot/dts/freescale/imx93-11x11-frdm.dts
-@@ -383,7 +383,7 @@ &ldb_phy {
- &lpi2c1 {
- 	#address-cells = <1>;
- 	#size-cells = <0>;
--	clock-frequency = <400000>;
-+	clock-frequency = <100000>;
- 	pinctrl-names = "default", "sleep";
- 	pinctrl-0 = <&pinctrl_lpi2c1>;
- 	pinctrl-1 = <&pinctrl_lpi2c1>;
-@@ -411,6 +411,10 @@ pcal6408: gpio@20 {
- 		status = "okay";
+@@ -138,6 +138,7 @@ reg_vexp_3v3: regulator-vexp-3v3 {
+ 		regulator-max-microvolt = <3300000>;
+ 		enable-active-high;
+ 		vin-supply = <&buck4>;
++		regulator-always-on;
  	};
  
+ 	reg_vexp_5v: regulator-vexp-5v {
+@@ -618,6 +619,23 @@ typec1_dr_sw: endpoint {
+ 	};
+ };
+ 
++&lpi2c4 {
++	#address-cells = <1>;
++	#size-cells = <0>;
++	clock-frequency = <100000>;
++	dmas = <&edma2 10 0 0>, <&edma2 11 0 1>;
++	dma-names = "tx","rx";
++	pinctrl-names = "default", "sleep";
++	pinctrl-0 = <&pinctrl_lpi2c4>;
++	pinctrl-1 = <&pinctrl_lpi2c4>;
++	status = "okay";
++
 +	nunchuk: joystick@52 {
 +	    compatible = "nintendo,nunchuk";
 +	    reg = <0x52>;
 +	};
- };
++};
++
+ &lpspi3 {
+ 	pinctrl-names = "default";
+ 	pinctrl-0 = <&pinctrl_lpspi3>;
+@@ -892,6 +910,13 @@ MX93_PAD_GPIO_IO29__LPI2C3_SCL			0x40000b9e
+ 		>;
+ 	};
  
- &lpi2c2 {
++	pinctrl_lpi2c4: lpi2c4grp {
++		fsl,pins = <
++			MX93_PAD_GPIO_IO03__LPI2C4_SCL			0x40000b9e
++			MX93_PAD_GPIO_IO02__LPI2C4_SDA			0x40000b9e
++		>;
++	};
++
+ 	pinctrl_lpspi3: lpspi3grp {
+ 		fsl,pins = <
+ 			MX93_PAD_GPIO_IO08__GPIO2_IO08      0x39e
 -- 
 2.47.3
 
