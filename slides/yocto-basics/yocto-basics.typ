@@ -88,6 +88,11 @@
       limits.
     ]
 
+  / toolcfg.conf: #block[
+      Similar to `local.conf` but intended to be tools writing configuration
+      files. It should not be modified manually.
+    ]
+
 === Configuring the build
 
 The `conf/local.conf` configuration file holds local user configuration variables:
