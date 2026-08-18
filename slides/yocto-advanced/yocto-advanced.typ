@@ -417,6 +417,44 @@ KERNEL_DEVICETREE:dra7xx-evm = "dra7-evm.dtb"    # This is ignored
   - `PREFERRED_VERSION_nginx = "1.20.1"`
   - `PREFERRED_VERSION_linux-yocto = "5.14%"`
 
+== Configuration fragments
+
+=== Configuration fragments
+
+- Allow to group consistent configuration pieces together
+
+- The idea is to ease the configuration, avoiding users to manually modify configuration files
+
+- The `bitbake-config-build` utility can be used to enable or disable a configuration fragment in `toolcfg.conf`
+
+- Each layer can provide its own configuration fragments
+
+- Example: Adding the `root-login-with-empty-password`:
+
+  - Provided by #link("https://git.openembedded.org/openembedded-core/tree/meta/conf/fragments/yocto/root-login-with-empty-password.conf?h=wrynose")[openembedded-core]
+
+  - Allows to log as root but also to have a root user with an empty password
+
+  ```console
+  bitbake-config-build enable-fragment core/yocto/root-login-with-empty-password`
+  ```
+
+=== Built-in configuration fragments
+
+- Bitbake does support to have fragments that directly map to a variable
+
+  - E.g. enabling fragment `foo/bar` might be equivalent to using `FOO = "bar"`
+
+- The list of built-in configuration fragments is controlled by `OE_FRAGMENTS_BUILTIN`
+
+- Openembedded-core does implement this for `MACHINE` and `DISTRO` variables
+
+  - Using fragments `distro/poky` and `machine/qemux86-64` is equivalent to
+    adding `DISTRO = "poky"` and `MACHINE = "qemux86-64"` in you `local.conf`
+
+- This allows to set basic configurations without having to ever modify a configuration file manually.
+
+
 == Selection of packages to install
 <selection-of-packages-to-install>
 
