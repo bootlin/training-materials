@@ -473,7 +473,7 @@ SRC_URI += "file://joystick-support.patch \
   listed in #yoctovar("SRC_URI") variable with
   #yoctovar("PATCHTOOL").
 
-- By default, `PATCHTOOL = "quilt"` in Poky.
+- By default, `PATCHTOOL = "quilt"` in openembedded-core.
 
 - Possible values: `git`, `patch` and `quilt`.
 
