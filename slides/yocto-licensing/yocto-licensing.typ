@@ -158,12 +158,6 @@ it procures and will probably make it mandatory soon.
 
 === How to create SPDX3 SBoM with OpenEmbedded
 
-- SPDX2.2 and SPDX3.0 are available in Yocto Scarthgap (SPDX2.2 enabled
-  by default)
-
-- To enable SPDX3, you must set `INHERIT += "create-spdx-3.0"` \
-  `INHERIT:remove = "create-spdx"` to your configuration file
-
 - The JSON SPDX file for the image will be generated in \
   `tmp/deploy/images/MACHINE/`
 
@@ -181,6 +175,10 @@ it procures and will probably make it mandatory soon.
   - #yoctovar("SPDX_ARCHIVE_SOURCES"): Add archives of these source
     files themselves (when #yoctovar("SPDX_INCLUDE_SOURCES") is
     set).
+
+- Note: in Yocto Scarthgap, enabling SPDX3 must be done by setting
+  `INHERIT += "create-spdx-3.0"` and `INHERIT:remove = "create-spdx"`
+  in a configuration file
 
 === Example IMAGE-MACHINE.spdx.json output
 
