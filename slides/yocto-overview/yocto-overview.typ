@@ -241,6 +241,29 @@ All official projects part of the Yocto Project are available at
 
 - Everything else stays the same.
 
+// @typstyle off
+#align(center,
+  block(
+    fill: luma(240),
+    inset: 18pt,
+    radius: 8pt,
+  )[
+    #align(left,[
+      #set text(font: "DejaVu Sans Mono", size: 16pt)
+      #text("poky/")#text("bitbake/", fill: orange) #text("               bitbake/", fill: orange)
+
+      #text("poky/")#text("meta/", fill: blue)   #text("                  openembedded-core/")#text("meta/", fill: blue)
+
+      #text("poky/")#text("oe-init-build-env", fill: blue)   #text("  →   openembedded-core/")#text("oe-init-build-env", fill: blue)
+
+      #text("poky/")#text("meta-poky/", fill: purple) #text("             meta-yocto/")#text("meta-poky/", fill: purple)
+
+      #text("poky/")#text("meta-yocto-bsp/", fill: purple) #text("        meta-yocto/")#text("meta-yocto-bsp/", fill: purple)
+    ])
+  ]
+)
+
+
 === Getting the Yocto reference layers (starting from Whinlatter)
 
 #align(center, [#image("../yocto-layer/yocto-core-layers.svg", height: 90%)])
