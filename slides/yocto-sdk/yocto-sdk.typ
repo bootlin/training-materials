@@ -86,7 +86,7 @@
   - `$BUILDDIR/tmp/deploy/sdk`
 
   - Example: \
-    `poky-glibc-x86_64-meta-toolchain-cortexa8hf-neon-toolchain-5.0.sh`
+    `poky-glibc-x86_64-meta-toolchain-cortexa8hf-neon-toolchain-6.0.sh`
 
 - The SDK will be configured to be compatible with the specified
   #yoctovar("MACHINE").
@@ -109,7 +109,7 @@
   - `$BUILDDIR/tmp/deploy/sdk`
 
   - Example:
-    `poky-glibc-x86_64-core-image-minimal-cortexa8hf-neon-toolchain-5.0.sh`
+    `poky-glibc-x86_64-core-image-minimal-cortexa8hf-neon-toolchain-6.0.sh`
 
 - The SDK will be configured to be compatible with the specified
   #yoctovar("MACHINE").
@@ -148,23 +148,23 @@
   - The script asks where to install the SDK. Defaults to
     `/opt/poky/<version>`
 
-  - Example: `/opt/poky/5.0`
+  - Example: `/opt/poky/6.0`
 
 #v(0.5em)
 
 #[ #show raw.where(lang: "console", block: true): set text(size: 14.5pt)
   ```console
-      $ ./poky-glibc-x86_64-meta-toolchain-cortexa8hf-neon-toolchain-5.0.sh
-      Poky (Yocto Project Reference Distro) SDK installer version 5.0
+      $ ./poky-glibc-x86_64-meta-toolchain-cortexa8hf-neon-toolchain-6.0.sh
+      Poky (Yocto Project Reference Distro) SDK installer version 6.0
       ===============================================================
-      Enter target directory for SDK (default: /opt/poky/5.0):
-      You are about to install the SDK to "/opt/poky/5.0". Proceed[Y/n]?
+      Enter target directory for SDK (default: /opt/poky/6.0):
+      You are about to install the SDK to "/opt/poky/6.0". Proceed[Y/n]?
       Extracting SDK.................done
       Setting it up...done
       SDK has been successfully set up and is ready to be used.
       Each time you wish to use the SDK in a new shell session, you need to source
       the environment setup script e.g.
-       $ . /opt/poky/5.0/environment-setup-cortexa8hf-neon-poky-linux-gnueabi
+       $ . /opt/poky/6.0/environment-setup-cortexa8hf-neon-poky-linux-gnueabi
   ```]
 
 === Use the SDK
@@ -172,7 +172,7 @@
 - To use the SDK, a script is available to set up the environment:
 #[ #show raw.where(lang: "console", block: true): set text(size: 14.5pt)
   ```console
-    $ cd /opt/poky/5.0
+    $ cd /opt/poky/6.0
     $ source ./environment-setup-cortexa8hf-neon-poky-linux-gnueabi
   ```]
 
