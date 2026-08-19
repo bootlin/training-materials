@@ -315,7 +315,7 @@ $
 #v(0.5em)
 
 ```sh
-OVERRIDES="arm:armv7a:ti-soc:ti33x:beaglebone:poky"
+OVERRIDES = "arm:armv7a:ti-soc:ti33x:beaglebone:poky"
 
 KERNEL_DEVICETREE:beaglebone = "am335x-bone.dtb" # This is applied
 KERNEL_DEVICETREE:dra7xx-evm = "dra7-evm.dtb"    # This is ignored
