@@ -64,7 +64,7 @@ A separate tool is needed for that, usual solutions are:
 
     openembedded-core:
       url: "https://git.openembedded.org/openembedded-core"
-      branch: scarthgap
+      branch: wrynose
       layers:
         meta:
   ```]
@@ -75,11 +75,11 @@ A separate tool is needed for that, usual solutions are:
   ```yaml
     meta-freescale:
       url: "https://github.com/Freescale/meta-freescale"
-      branch: scarthgap
+      branch: wrynose
 
     meta-openembedded:
      url: https://git.openembedded.org/meta-openembedded
-     branch: scarthgap
+     branch: wrynose
      layers:
        meta-oe:
        meta-python:
