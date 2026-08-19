@@ -241,9 +241,9 @@ $ bitbake-getvar DEPLOY_DIR
 NOTE: Starting bitbake server...
 #
 # $DEPLOY_DIR [2 operations]
-#   set? /home/user/yocto-labs/poky/meta/conf/bitbake.conf:440
+#   set? /home/user/yocto-labs/openembedded-core/meta/conf/bitbake.conf:440
 #     "${TMPDIR}/deploy"
-#   set /home/user/yocto-labs/poky/meta/conf/documentation.conf:137
+#   set /home/user/yocto-labs/openembedded-core/meta/conf/documentation.conf:137
 #     [doc] "Points to the general area that the OpenEmbedded build system uses to place images, [...]"
 # pre-expansion value:
 #   "${TMPDIR}/deploy"
