@@ -241,6 +241,10 @@ All official projects part of the Yocto Project are available at
 
 - Everything else stays the same.
 
+=== Getting the Yocto reference layers (starting from Whinlatter)
+
+#align(center, [#image("../yocto-layer/yocto-core-layers.svg", height: 90%)])
+
 === Yocto core layers source tree
 
 #grid(
