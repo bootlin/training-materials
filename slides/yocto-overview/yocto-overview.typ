@@ -167,9 +167,9 @@ In Yocto / OpenEmbedded, the _build engine_ is implemented by the `bitbake` prog
 
 === Getting the Poky reference system (up to Walnascar)
 
-  All official projects part of the Yocto Project are available at
-  #link("https://git.openembedded.org/") and
-  #link("https://git.yoctoproject.org/")
+All official projects part of the Yocto Project are available at
+#link("https://git.openembedded.org/") and
+#link("https://git.yoctoproject.org/")
 
 - To download the Poky reference system: \
   `git clone -b scarthgap https://git.yoctoproject.org/git/poky`
@@ -234,7 +234,9 @@ In Yocto / OpenEmbedded, the _build engine_ is implemented by the `bitbake` prog
   `git clone https://git.yoctoproject.org/meta-yocto -b yocto-6.0` \
 
   - Or using the new
-    #link("https://docs.yoctoproject.org/bitbake/next/bitbake-user-manual/bitbake-user-manual-environment-setup.html")[bitbake-setup]
+    #link(
+      "https://docs.yoctoproject.org/bitbake/next/bitbake-user-manual/bitbake-user-manual-environment-setup.html",
+    )[bitbake-setup]
     utility.
 
 - Everything else stays the same.
@@ -247,7 +249,8 @@ In Yocto / OpenEmbedded, the _build engine_ is implemented by the `bitbake` prog
   [#text(0.8em)[*bitbake\/*]],
   [Holds all scripts used by the `bitbake` command. Usually matches the stable release of the BitBake project.],
 
-  [#text(0.8em)[*openembedded-core\/meta\/*]], [Contains the OpenEmbedded-Core metadata.],
+  [#text(0.8em)[*openembedded-core\/meta\/*]],
+  [Contains the OpenEmbedded-Core metadata.],
 
   [#text(0.8em)[*openembedded-core\/meta-skeleton\/*]],
   [Contains template recipes for BSP and kernel development.],
