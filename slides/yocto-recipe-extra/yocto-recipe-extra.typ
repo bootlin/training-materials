@@ -593,3 +593,28 @@ FILES:kdump = "${sbindir}/kdump"
 - In `watchdog_5.16.bb`, the line #block[`RRECOMMENDS:${PN} += "kernel-module-softdog"`]
   does nothing if the `softdog` kernel module is not built by the kernel
   (could be builtin)
+
+=== Inspecting dependencies
+
+- Dependencies can be inspected by generating a dot file:
+
+  ```sh
+  $ bitbake -g core-image-minimal
+  ...
+  NOTE: Task dependencies saved to 'task-depends.dot'
+  ```
+
+- The file can be read manually, or `oe-depends-dot` can be used:
+
+  ```sh
+  $ oe-depends-dot --key busybox --why ./task-depends.dot
+  Because: core-image-minimal packagegroup-core-boot
+  core-image-minimal -> packagegroup-core-boot -> busybox
+  $ oe-depends-dot --key busybox --depends ./task-depends.dot
+  Depends: patch-native glibc libxcrypt <...>
+  ```
+
+- Or a graphical tool can be used to explore dependencies or reverse
+  dependencies:
+
+  - `bitbake -g -u taskexp_ncurses core-image-minimal`

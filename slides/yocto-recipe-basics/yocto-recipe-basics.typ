@@ -333,11 +333,6 @@ LIC_FILES_CHKSUM = "file://${COMMON_LICENSE_DIR}/MIT;md5=083..."
 
 - The following operators are supported: `=`, `>`, `<`, `>=` and `<=`.
 
-- A graphical tool can be used to explore dependencies or reverse
-  dependencies:
-
-  - `bitbake -g -u taskexp core-image-minimal`
-
 === Tasks
 
 Default tasks already exist, they are defined in classes:
