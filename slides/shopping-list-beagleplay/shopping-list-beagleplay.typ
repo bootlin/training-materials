@@ -1,7 +1,7 @@
 #let training = sys.inputs.at("training", default: "")
 
 #let beagleplay-nunchuk = (
-  training in ("yocto", "embedded-linux", "linux-kernel")
+  training in ("yocto", "embedded-linux", "linux-kernel", "buildroot")
 )
 
 #let beagleplay-audio = (
