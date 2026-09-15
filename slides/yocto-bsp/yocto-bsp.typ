@@ -51,7 +51,7 @@
 - The file names correspond to the values set in the `MACHINE`
   configuration variable.
 
-  - `meta-ti/meta-ti-bsp/conf/machine/beaglebone.conf`
+  - `meta-ti/meta-beagle/conf/machine/beaglebone.conf`
 
   - `MACHINE = "beaglebone"`
 
