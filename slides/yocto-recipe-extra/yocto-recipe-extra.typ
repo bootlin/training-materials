@@ -381,18 +381,18 @@ Real life example of anonymous function: \
 
 === Built-in configuration fragments
 
-- Bitbake does support to have fragments that directly map to a variable
+- Bitbake support fragments that directly map to a variable
 
   - E.g. enabling fragment `foo/bar` might be equivalent to using `FOO = "bar"`
 
 - The list of built-in configuration fragments is controlled by `OE_FRAGMENTS_BUILTIN`
 
-- Openembedded-core does implement this for `MACHINE` and `DISTRO` variables
+- Openembedded-core implements this for `MACHINE` and `DISTRO` variables
 
   - Using fragments `distro/poky` and `machine/qemux86-64` is equivalent to
-    adding `DISTRO = "poky"` and `MACHINE = "qemux86-64"` in you `local.conf`
+    adding `DISTRO = "poky"` and `MACHINE = "qemux86-64"` in your `local.conf`
 
-- This allows to set basic configurations without having to ever modify a configuration file manually.
+- This allows to set basic configurations without having to ever modify a configuration file manually
 
 == Package splitting
 <package-splitting>
