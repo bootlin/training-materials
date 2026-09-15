@@ -376,7 +376,7 @@ Real life example of anonymous function: \
   - Allows to log as root but also to have a root user with an empty password
 
   ```console
-  bitbake-config-build enable-fragment core/yocto/root-login-with-empty-password`
+  bitbake-config-build enable-fragment core/yocto/root-login-with-empty-password
   ```
 
 === Built-in configuration fragments
