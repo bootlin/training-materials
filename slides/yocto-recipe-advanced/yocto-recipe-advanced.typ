@@ -429,7 +429,7 @@ SRC_URI += "file://defconfig"
 #v(0.5em)
 
 ```sh
-INHERIT += "buildhistory"
+INHERIT:append = " buildhistory"
 ```
 
 #v(0.5em)
