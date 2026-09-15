@@ -225,9 +225,6 @@ do_install:append:beaglebone() {
 
 - Automatically applies patch files listed in `SRC_URI`
 
-- Defines mirrors: `SOURCEFORGE_MIRROR`, `DEBIAN_MIRROR`,
-  `GNU_MIRROR`, `KERNELORG_MIRROR`…
-
 - Defines `oe_runmake`, using #yoctovar("EXTRA_OEMAKE") to use
   custom arguments.
 
