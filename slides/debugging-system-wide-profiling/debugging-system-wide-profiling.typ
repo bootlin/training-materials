@@ -1518,7 +1518,7 @@ from bcc import BPF
 # define BPF program
 prog = '''
 int hello(void *ctx) {
-    bpf_trace_printk("Hello, World!\n");
+    bpf_trace_printk("Hello, World!\\n");
     return 0;
 }
 '''
