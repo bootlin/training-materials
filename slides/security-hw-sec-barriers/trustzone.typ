@@ -246,7 +246,10 @@
 - Because REE FS TAs are loaded from the REE, the TEE needs to
   authenticate them
 
-  - OP-TEE expects REE FS TAs to be #link("TOBEFIXED.com")[signed]
+  - OP-TEE expects REE FS TAs to be
+    #link(
+      "https://optee.readthedocs.io/en/latest/building/trusted_applications.html#tasign",
+    )[signed]
 
   - the OP-TEE core embarks the public part of
     #text(size: 23pt)[#link(
