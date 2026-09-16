@@ -1040,7 +1040,7 @@ int main(int argc, char *argv[])
 ]
 #v(0.5em)
 - You can also use
-  #link("https://eclipse.dev/tracecompass/trace-compass")[trace-compass]
+  #link("https://eclipse.dev/tracecompass/")[trace-compass]
   to display the traces in a GUI
 
 === Remote tracing with LTTng
