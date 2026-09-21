@@ -402,8 +402,8 @@ systems:
   mechanism:
 
 - Example:
-  `mkdir /mnt/test`
-  `mount -t ext4 -o loop rootfs.img /mnt/test`
+  \ `mkdir /mnt/test`
+  \ `mount -t ext4 -o loop rootfs.img /mnt/test`
 
 - In the `/mnt/test` directory, one can access and modify the contents
   of the `rootfs.img` file.
