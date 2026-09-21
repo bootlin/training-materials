@@ -236,7 +236,7 @@ filename=barebox.img
     "https://www.raspberrypi.com/documentation/computers/raspberry-pi.html#boot-sequence",
   )[boot sequence]
 
-- the boot actually stats on the VideoCore, which is the GPU
+- the boot actually starts on the VideoCore, which is the GPU
 - this lets users configure the CPU's bootloader via `.txt` files
 
   - #link(
