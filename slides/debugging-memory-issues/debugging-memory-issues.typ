@@ -214,7 +214,8 @@ $ gdb ./mem_leak
   into GDB.
 
 ```console
-(gdb) continue Continuing.
+(gdb) continue
+Continuing.
 
 Program received signal SIGTRAP, Trace/breakpoint trap.
 0x0000000000109161 in do_actual_jump (p=0x4a52040) at mem_leak.c:5
