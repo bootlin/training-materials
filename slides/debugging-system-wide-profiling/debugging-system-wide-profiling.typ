@@ -757,15 +757,15 @@ $ trace-cmd reset
 - For that purpose, a `listen` command is available and allows sending
   the acquisitions over the network:
 
-  - Run `trace-cmd listen -p 6578` on the remote system that will be
-    collecting the traces
+  - Run `trace-cmd listen -p 6578` on the host that will be
+    storing the traces
 
-  - On the target system, use `trace-cmd record -N <target_ip>:6578`
-    to specify the remote system that will collect the traces
+  - On the remote target, use `trace-cmd record -N <host_ip>:6578`
+    to specify the host that will store the traces
 
 #v(0.5em)
 
-#align(center, [#image("ftrace-remote.svg", height: 20%)])
+#align(center, [#image("ftrace-remote.svg", width: 55%)])
 
 === #kfunc("trace_printk")
 
