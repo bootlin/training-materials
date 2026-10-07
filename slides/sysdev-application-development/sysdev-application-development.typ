@@ -122,7 +122,8 @@ option('demo-debug', type : 'feature', value : 'disabled')
   demo_c_args = []
   if get_option('demo-debug').enabled()
      demo_c_args += '-DDEBUG'
-  endif executable('demo', 'main.c', c_args: demo_c_args)
+  endif
+  executable('demo', 'main.c', c_args: demo_c_args)
   ```
 ]
 
