@@ -20,16 +20,16 @@
     - License: GPLv2 (same as Linux)
 
     - Freely available at:\
-      #link("https://www.denx.de/wiki/U-Boot")
+      #link("https://u-boot-project.org/")
 
     - Documentation available at:\
-      #link("https://u-boot.readthedocs.io/en/latest/")
+      #link("https://docs.u-boot-project.org/")
 
     - The latest development source code is available in a Git repository:\
-      #link("https://gitlab.denx.de/u-boot/u-boot")
+      #link("https://git.u-boot-project.org/u-boot/u-boot.git")
 
     - Development and discussions happen around an open mailing-list:\
-      #link("https://lists.denx.de/pipermail/u-boot/")
+      #link("https://lists.u-boot-project.org/pipermail/u-boot/")
 
     - Follows a regular release schedule. Every 2 or 3 months, a new version
       is released. Versions are named `YYYY.MM`.
@@ -61,7 +61,7 @@
   - Long-term maintenance
 
   - Use directly U-Boot from
-    #link("https://gitlab.denx.de/u-boot/u-boot") Git repository
+    #link("https://git.u-boot-project.org/u-boot/u-boot.git") Git repository
 
 - *Less ideal:* use a *fork* of U-Boot by your silicon
   vendor, system-on-module vendor or board vendor
