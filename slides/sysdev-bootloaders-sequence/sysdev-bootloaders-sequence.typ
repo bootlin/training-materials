@@ -415,7 +415,7 @@
     - We will study it in detail in the next section, and use it in all
       practical labs of this course.
 
-    - #link("https://www.denx.de/wiki/U-Boot")
+    - #link("https://u-boot-project.org/")
 
   ],
   [

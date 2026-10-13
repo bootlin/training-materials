@@ -218,7 +218,7 @@ Install the cross compiling toolchain. The version at the time of our testing wa
 
 Clone the mainline U-boot sources:
 ```
-git clone https://git.denx.de/u-boot
+git clone https://git.u-boot-project.org/u-boot/u-boot.git
 git checkout v2018.05
 export CROSS_COMPILE=arm-linux-gnueabi-
 make am335x_boneblack_defconfig
