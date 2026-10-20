@@ -27,7 +27,8 @@
   - It may only accessible after applying a patch, the *Preempt
     RT Patch*
 
-  - The patch is being included as part of the Linux kernel
+    - For kernels before v6.12, depending on the architecture
+    - It's available without any patch afterwards
 
 === PREEMPT_RT mainlining status
 
@@ -37,9 +38,10 @@
 - The `PREEMPT_RT` option no longer requires applying the "Preempt RT
   patch" on some architectures, starting from v6.12
 
-  - `x86_64`, `arm64` and `RISCV` are supported so far
+  - `x86_64`, `arm64`, `loongarch` and `RISCV` are supported since v6.12
+  - `arm` since v7.0
 
-  - Other architectures still require the patch on v6.12.
+  - Other architectures still require the patch.
 
 - Stable versions of the patch are still maintained for older kernels
 
@@ -69,7 +71,8 @@
 === Getting the patch
 
 - Starting from *v6.12*, applying a patch isn't needed on
-  *x86*, *arm64* and *RiscV*
+  *x86*, *arm64*, *RiscV* and *Loongarch*
+  - It's also not needed on *arm* since v7.0
 
 - For other architectures, or older kernels, the patch is still needed.
 
@@ -337,6 +340,9 @@ The Linux kernel Scheduler has several preemption models available:
 
 - #kconfig("CONFIG_PREEMPT") - Preemptible Kernel (Low-latency
   Desktop)
+
+  - #kconfig("CONFIG_PREEMPT") and #kconfig("CONFIG_PREEMPT_VOLUNTARY") have been
+  merged together recently
 
 - #kconfig("CONFIG_PREEMPT_RT") - Fully Preemptible Kernel
   (Real-Time)
