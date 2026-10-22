@@ -1,4 +1,5 @@
 #import "@local/bootlin:0.1.0": *
+#import "@preview/fletcher:0.5.8" as fletcher: diagram, edge, node
 
 #import "/typst/local/common.typ": *
 
@@ -90,3 +91,125 @@ static int atmel_i2s_probe(struct platform_device *pdev)
   cycle.
 
 - Understandable example in #kfile("sound/soc/atmel/atmel-pcm-pdc.c")
+
+=== ALSA snd_pcm_ops callbacks
+
+#align(center + horizon)[
+  #{
+    set text(size: 14pt)
+    diagram(
+      spacing: (12mm, 12mm),
+      node-stroke: 1pt,
+      node-corner-radius: none,
+      edge-stroke: 1pt + luma(100),
+
+      node(
+        (0, 0),
+        [`.open`\ Allocates runtime memory],
+        fill: rgb("#add8e6"),
+        stroke: rgb("#5cacff"),
+      ),
+      edge("-}>"),
+      node(
+        (0, 1),
+        [`.hw_params`\ Sets stream parameters, allocates DMA buffers],
+        fill: rgb("#add8e6"),
+        stroke: rgb("#5cacff"),
+      ),
+      edge("-}>"),
+      node(
+        (0, 2),
+        [`.prepare`\ Resets hardware & pointers],
+        fill: rgb("#add8e6"),
+        stroke: rgb("#5cacff"),
+        name: <prepare>,
+      ),
+      edge((0, 2), (0.5, 2), (0.5, 0), (1, 0), "-}>"),
+      node(
+        (1, 0),
+        [`.trigger`\ (SNDRV_PCM_TRIGGER_START)\ Starts DMA engine],
+        fill: rgb("#c5e387"),
+        stroke: rgb("#6a8954"),
+      ),
+      edge("-}>", stroke: rgb("#6a8954")),
+      node(
+        (1, 1),
+        [
+          #align(center)[
+            *Active Streaming State*\
+            #v(-2pt)
+            #line(length: 100%, stroke: 0.4pt + rgb("#6a8954"))
+            #v(-2pt)
+          ]
+          #align(left)[
+            `.pointer`: current hw buffer position\
+            `.copy_user`: data transfer (optional)
+          ]
+        ],
+        fill: rgb("#c5e387"),
+        stroke: rgb("#6a8954"),
+        name: <streaming>,
+      ),
+      edge("-}>", stroke: rgb("#cc1f1a")),
+      node(
+        (1, 3),
+        [`.trigger`\ (SNDRV_PCM_TRIGGER_STOP)\ Stops DMA engine],
+        fill: rgb("#ffacac"),
+        stroke: rgb("#cc1f1a"),
+        name: <stop>,
+      ),
+      edge(<stop>, (1.5, 3), (1.5, 0), (2, 0), "-}>"),
+      node(
+        (2, 0),
+        [`.hw_free`\ Releases buffers],
+        fill: rgb("#add8e6"),
+        stroke: rgb("#5cacff"),
+      ),
+      edge("-}>"),
+      node(
+        (2, 1),
+        [`.close`\ Frees runtime structures],
+        fill: rgb("#add8e6"),
+        stroke: rgb("#5cacff"),
+      ),
+
+      node(
+        (2, 2),
+        [
+          #align(center)[
+            *Async Callbacks*\
+            #v(-2pt)
+            #line(length: 100%, stroke: 0.4pt + rgb("#5cacff"))
+            #v(-2pt)
+            #align(left)[
+              `.ioctl`: custom control/queries\
+              `.page / .mmap`: memory mapping
+            ]
+          ]
+        ],
+        fill: rgb("#add8e6"),
+        stroke: rgb("#5cacff"),
+      ),
+
+      edge(
+        <streaming>,
+        <streaming>,
+        "-}>",
+        stroke: rgb("#6a8954"),
+        bend: -120deg,
+        label: text(size: 6.5pt, fill: rgb("#6a8954"))[Continuous Poll / IRQ],
+      ),
+
+      edge(
+        <stop>,
+        <prepare>,
+        "-}>",
+        stroke: rgb("#cc1f1a") + 0.8pt,
+        dash: "dashed",
+        bend: 65deg,
+        label: text(size: 6.5pt, fill: rgb("#cc1f1a"))[XRUN / Restart],
+      ),
+    )
+  }
+]
+
