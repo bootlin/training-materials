@@ -546,6 +546,7 @@
     *Compiled DTB*
     _(am335x-boneblack.dtb)_
   ],
+
   [
     #set text(size: 11pt)
     ```dts
