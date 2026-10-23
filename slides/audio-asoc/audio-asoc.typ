@@ -1,4 +1,5 @@
 #import "@local/bootlin:0.1.0": *
+#import "@preview/fletcher:0.5.8" as fletcher: diagram, edge, node
 
 #import "/typst/local/common.typ": *
 
@@ -426,6 +427,127 @@
   }
   ```
 
+  === Machine driver
+
+  #align(center + horizon)[
+    #{
+      set text(size: 14pt)
+      diagram(
+        spacing: (12mm, 12mm),
+        node-stroke: 1pt,
+        node-corner-radius: none,
+        edge-stroke: 1pt + luma(100),
+
+        node(
+          (1, 0),
+          [
+            #align(center)[
+              `snd_soc_card`\
+              #v(-2pt)
+              #line(length: 100%, stroke: 0.4pt + diag-stroke-blue)
+              #v(-2pt)
+            ]
+            #align(left)[
+              `.dai_link[] ─┬─ .cpus` \
+              `             ├─ .codecs` \
+              `             ├─ .platforms` \
+              `             └─ .dai_fmt` \
+              `.dapm_widgets` \
+              `.dapm_routes`
+            ]
+          ],
+          fill: diag-fill-blue,
+          stroke: diag-stroke-blue,
+          width: 8cm,
+          name: <card>,
+        ),
+        node(
+          (0, 1),
+          [
+            #align(center)[
+              *CPU DAI driver* \
+              #v(-2pt)
+              #line(length: 100%, stroke: 0.4pt + diag-stroke-red)
+              #v(-2pt)
+            ]
+            #align(left)[
+              `snd_soc_component_driver` \
+              `snd_soc_dai_driver` \
+              `    └─ .ops ─┬─ .set_fmt` \
+              `             ├─ .hw_params` \
+              `             ├─ .set_sysclk` \
+              `             ├─ .trigger` \
+            ]
+          ],
+          fill: diag-fill-red,
+          stroke: diag-stroke-red,
+          width: 8cm,
+          name: <soc_drv>,
+        ),
+        edge("-}>"),
+        node(
+          (0, 2),
+          [ *SoC DAI* ],
+          fill: diag-fill-red,
+          stroke: diag-stroke-red,
+          width: 8cm,
+          height: 3em,
+          name: <soc>,
+        ),
+        node(
+          (2, 1),
+          [
+            #align(center)[
+              *Codec driver*\
+              #v(-2pt)
+              #line(length: 100%, stroke: 0.4pt + diag-stroke-green)
+              #v(-2pt)
+            ]
+            #align(left)[
+              `snd_soc_component_driver` \
+              `snd_soc_dai_driver` \
+              `    └─ .ops ─┬─ .set_fmt` \
+              `             ├─ .hw_params` \
+              `             ├─ .set_sysclk` \
+              `             ├─ .trigger` \
+            ]
+          ],
+          fill: diag-fill-green,
+          stroke: diag-stroke-green,
+          width: 8cm,
+          name: <codec_drv>,
+        ),
+        edge("-}>"),
+        node(
+          (2, 2),
+          [ *Codec* ],
+          fill: diag-fill-green,
+          stroke: diag-stroke-green,
+          width: 8cm,
+          height: 3em,
+          name: <codec>,
+        ),
+        edge(<card>, (1, 1), <soc_drv>, "-}>"),
+        edge(
+          <card>,
+          (1, 1),
+          <codec_drv>,
+          "-}>",
+          label: [`.dai_link` binds cpu and codec drivers\ `.dai_fmt` is passed to both `.set_fmt`],
+          label-pos: (1, 0),
+          label-anchor: "north",
+          label-sep: -0.2em,
+        ),
+        edge(
+          <soc>,
+          <codec>,
+          "<{-}>",
+          label: [I2S, TDM, ...\ BCLK/LRCLK/DATA],
+          label-sep: -0.2em,
+        ),
+      )
+    }
+  ]
 
   === Example 1
 

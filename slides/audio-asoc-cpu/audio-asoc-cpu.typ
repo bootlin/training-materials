@@ -155,7 +155,7 @@ static int atmel_i2s_probe(struct platform_device *pdev)
         width: 8cm,
         name: <streaming>,
       ),
-      edge("-}>", stroke: diag-stroke-red),
+      edge("-}>", crossing: true, stroke: diag-stroke-red),
       node(
         (1, 3),
         [`.trigger`\ (SNDRV_PCM_TRIGGER_STOP)\ Stops DMA engine],
@@ -207,10 +207,8 @@ static int atmel_i2s_probe(struct platform_device *pdev)
         stroke: diag-stroke-green,
         bend: -120deg,
         shift: -0.1,
-        label: text(
-          size: 6.5pt,
-          fill: diag-stroke-green,
-        )[Continuous Poll / IRQ],
+        crossing: true,
+        label: text(fill: diag-stroke-green)[Continuous Poll / IRQ],
       ),
 
       edge(
@@ -220,7 +218,7 @@ static int atmel_i2s_probe(struct platform_device *pdev)
         stroke: diag-stroke-red + 0.8pt,
         dash: "dashed",
         bend: 65deg,
-        label: text(size: 6.5pt, fill: diag-stroke-red)[XRUN / Restart],
+        label: text(fill: diag-stroke-red)[XRUN / Restart],
       ),
     )
   }
