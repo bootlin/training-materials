@@ -448,10 +448,12 @@
               #v(-2pt)
             ]
             #align(left)[
-              `.dai_link[] ─┬─ .cpus` \
-              `             ├─ .codecs` \
-              `             ├─ .platforms` \
-              `             └─ .dai_fmt` \
+              #par(leading: 0em)[
+                `.dai_link[] ─┬─ .cpus` \
+                `             ├─ .codecs` \
+                `             ├─ .platforms` \
+                `             └─ .dai_fmt` \
+              ]
               `.dapm_widgets` \
               `.dapm_routes`
             ]
@@ -473,11 +475,12 @@
             #align(left)[
               `snd_soc_component_driver` \
               `snd_soc_dai_driver` \
-              `    └─ .ops ─┬─ .set_fmt` \
-              `             ├─ .hw_params` \
-              `             ├─ .set_sysclk` \
-              `             ├─ .trigger` \
-            ]
+              #par(leading: 0em)[
+                `    └─ .ops ─┬─ .set_fmt` \
+                `             ├─ .hw_params` \
+                `             ├─ .set_sysclk` \
+                `             ├─ .trigger` \
+              ]]
           ],
           fill: diag-fill-red,
           stroke: diag-stroke-red,
@@ -506,11 +509,12 @@
             #align(left)[
               `snd_soc_component_driver` \
               `snd_soc_dai_driver` \
-              `    └─ .ops ─┬─ .set_fmt` \
-              `             ├─ .hw_params` \
-              `             ├─ .set_sysclk` \
-              `             ├─ .trigger` \
-            ]
+              #par(leading: 0em)[
+                `    └─ .ops ─┬─ .set_fmt` \
+                `             ├─ .hw_params` \
+                `             ├─ .set_sysclk` \
+                `             ├─ .trigger` \
+              ]]
           ],
           fill: diag-fill-green,
           stroke: diag-stroke-green,
