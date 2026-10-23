@@ -41,6 +41,27 @@
 #let blcode = rgb("#595959")
 #let blcodebg = rgb("#E6E6E6")
 
+#let diag-stroke-blue = rgb("#5cacff")
+#let diag-fill-blue = rgb("#add8e6")
+
+#let diag-stroke-yellow = rgb("#D9CB2F")
+#let diag-fill-yellow = rgb("#FFF8A8")
+
+#let diag-stroke-grey = rgb("#868686")
+#let diag-fill-grey = rgb("#E5E5E5")
+
+#let diag-stroke-brown = rgb("#A34804")
+#let diag-fill-brown = rgb("#FFD192")
+
+#let diag-stroke-purple = rgb("#2F004A")
+#let diag-fill-purple = rgb("#EFB9FF")
+
+#let diag-stroke-green = rgb("#6A8954")
+#let diag-fill-green = rgb("#C5E387")
+
+#let diag-stroke-red = rgb("#CC1F1A")
+#let diag-fill-red = rgb("#FFACAC")
+
 /* Generic utils/macros */
 #let link(dest, ..body) = {
   if body == none { body = dest }
