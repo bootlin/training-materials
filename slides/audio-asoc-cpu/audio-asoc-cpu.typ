@@ -106,39 +106,43 @@ static int atmel_i2s_probe(struct platform_device *pdev)
       node(
         (0, 0),
         [`.open`\ Allocates runtime memory],
-        fill: rgb("#add8e6"),
-        stroke: rgb("#5cacff"),
+        fill: diag-fill-blue,
+        stroke: diag-stroke-blue,
+        width: 8cm,
       ),
       edge("-}>"),
       node(
         (0, 1),
         [`.hw_params`\ Sets stream parameters, allocates DMA buffers],
-        fill: rgb("#add8e6"),
-        stroke: rgb("#5cacff"),
+        fill: diag-fill-blue,
+        stroke: diag-stroke-blue,
+        width: 8cm,
       ),
       edge("-}>"),
       node(
         (0, 2),
         [`.prepare`\ Resets hardware & pointers],
-        fill: rgb("#add8e6"),
-        stroke: rgb("#5cacff"),
+        fill: diag-fill-blue,
+        stroke: diag-stroke-blue,
+        width: 8cm,
         name: <prepare>,
       ),
       edge((0, 2), (0.5, 2), (0.5, 0), (1, 0), "-}>"),
       node(
         (1, 0),
         [`.trigger`\ (SNDRV_PCM_TRIGGER_START)\ Starts DMA engine],
-        fill: rgb("#c5e387"),
-        stroke: rgb("#6a8954"),
+        fill: diag-fill-blue,
+        stroke: diag-stroke-blue,
+        width: 8cm,
       ),
-      edge("-}>", stroke: rgb("#6a8954")),
+      edge("-}>", stroke: diag-stroke-green),
       node(
         (1, 1),
         [
           #align(center)[
             *Active Streaming State*\
             #v(-2pt)
-            #line(length: 100%, stroke: 0.4pt + rgb("#6a8954"))
+            #line(length: 100%, stroke: 0.4pt + diag-stroke-green)
             #v(-2pt)
           ]
           #align(left)[
@@ -146,31 +150,35 @@ static int atmel_i2s_probe(struct platform_device *pdev)
             `.copy_user`: data transfer (optional)
           ]
         ],
-        fill: rgb("#c5e387"),
-        stroke: rgb("#6a8954"),
+        fill: diag-fill-green,
+        stroke: diag-stroke-green,
+        width: 8cm,
         name: <streaming>,
       ),
-      edge("-}>", stroke: rgb("#cc1f1a")),
+      edge("-}>", stroke: diag-stroke-red),
       node(
         (1, 3),
         [`.trigger`\ (SNDRV_PCM_TRIGGER_STOP)\ Stops DMA engine],
-        fill: rgb("#ffacac"),
-        stroke: rgb("#cc1f1a"),
+        fill: diag-fill-red,
+        stroke: diag-stroke-red,
+        width: 8cm,
         name: <stop>,
       ),
       edge(<stop>, (1.5, 3), (1.5, 0), (2, 0), "-}>"),
       node(
         (2, 0),
         [`.hw_free`\ Releases buffers],
-        fill: rgb("#add8e6"),
-        stroke: rgb("#5cacff"),
+        fill: diag-fill-blue,
+        stroke: diag-stroke-blue,
+        width: 8cm,
       ),
       edge("-}>"),
       node(
         (2, 1),
         [`.close`\ Frees runtime structures],
-        fill: rgb("#add8e6"),
-        stroke: rgb("#5cacff"),
+        fill: diag-fill-blue,
+        stroke: diag-stroke-blue,
+        width: 8cm,
       ),
 
       node(
@@ -179,7 +187,7 @@ static int atmel_i2s_probe(struct platform_device *pdev)
           #align(center)[
             *Async Callbacks*\
             #v(-2pt)
-            #line(length: 100%, stroke: 0.4pt + rgb("#5cacff"))
+            #line(length: 100%, stroke: 0.4pt + diag-stroke-blue)
             #v(-2pt)
             #align(left)[
               `.ioctl`: custom control/queries\
@@ -187,27 +195,32 @@ static int atmel_i2s_probe(struct platform_device *pdev)
             ]
           ]
         ],
-        fill: rgb("#add8e6"),
-        stroke: rgb("#5cacff"),
+        fill: diag-fill-blue,
+        stroke: diag-stroke-blue,
+        width: 8cm,
       ),
 
       edge(
         <streaming>,
         <streaming>,
         "-}>",
-        stroke: rgb("#6a8954"),
+        stroke: diag-stroke-green,
         bend: -120deg,
-        label: text(size: 6.5pt, fill: rgb("#6a8954"))[Continuous Poll / IRQ],
+        shift: -0.1,
+        label: text(
+          size: 6.5pt,
+          fill: diag-stroke-green,
+        )[Continuous Poll / IRQ],
       ),
 
       edge(
         <stop>,
         <prepare>,
         "-}>",
-        stroke: rgb("#cc1f1a") + 0.8pt,
+        stroke: diag-stroke-red + 0.8pt,
         dash: "dashed",
         bend: 65deg,
-        label: text(size: 6.5pt, fill: rgb("#cc1f1a"))[XRUN / Restart],
+        label: text(size: 6.5pt, fill: diag-stroke-red)[XRUN / Restart],
       ),
     )
   }
