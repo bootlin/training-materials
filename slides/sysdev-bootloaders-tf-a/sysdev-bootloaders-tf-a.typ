@@ -110,6 +110,23 @@ TOS_FW_CONFIG: offset=0x10C716, size=0x3CF6, cmdline="--tos-fw-config"
   ],
 )
 
+=== IMX93 partition layout
+
+#table(
+  columns: (50%, 50%),
+  stroke: none,
+  [
+    #align(left, [#image("imx93-tfa.svg", width: 90%)])
+  ],
+  [
+    #align(right, [#image(
+      "../sysdev-bootloaders-sequence/sequence-imx93.svg",
+      width: 90%,
+    )])
+    #align(center, [#text(size: 12pt)[_Reminder: IMX93's boot sequence_]])
+  ],
+)
+
 === AM62x (BeaglePlay) partition layout
 
 #table(
