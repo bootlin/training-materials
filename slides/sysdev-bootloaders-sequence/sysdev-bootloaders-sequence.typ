@@ -723,6 +723,10 @@
 
 #align(center, [#image("sequence-allwinner-64-bit.svg", height: 80%)])
 
+=== IMX93: ARMv8
+
+#align(center, [#image("sequence-imx93.svg", width: 80%)])
+
 === TI AM62x (BeaglePlay): ARMv7 and ARMv8 cores
 
 #align(center, [#image("sequence-am62x.svg", height: 80%)])
