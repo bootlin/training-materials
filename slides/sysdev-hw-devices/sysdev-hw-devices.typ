@@ -1008,7 +1008,8 @@ A class of devices worth mentioning is GPIOs (_General Purpose Input Output_)
 
       - Most common mechanism for the Linux kernel
 
-      - U-Boot: `boot[z,i,m] <kernel-addr> - <dtb-addr>`
+      - U-Boot:\
+        `boot[z,i,m] <kernel-addr> - <dtb-addr>`
 
       - The bootloader can adjust the DTB before passing it to the kernel
 
