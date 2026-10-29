@@ -253,7 +253,8 @@
 
     #[ #set text(size: 12pt)
       ```
-      $ make CC=arm-none-linux-gnueabihf-gcc encryption.h:87:10: fatal error: openssl/rsa.h:
+      $ make CC=arm-none-linux-gnueabihf-gcc
+      encryption.h:87:10: fatal error: openssl/rsa.h:
          No such file or directory
       [...]
       ```
