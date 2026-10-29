@@ -88,7 +88,8 @@
 - When no root filesystem is available, the kernel panics:
 #text(size: 18pt)[
   ```
-  Please append a correct "root=" boot option Kernel panic - not syncing: VFS: Unable to mount root fs on unknown block(0,0)
+  Please append a correct "root=" boot option Kernel panic - not syncing:
+  VFS: Unable to mount root fs on unknown block(0,0)
   ```]
 
 === Location of the root filesystem
