@@ -112,7 +112,7 @@ A separate tool is needed for that, usual solutions are:
 
 - Uses a JSON configuration file
 
-=== bitbake-setup configuration
+=== bitbake-setup configuration file
 
 #text(size: 13.5pt)[
   ```json
@@ -131,18 +131,7 @@ A separate tool is needed for that, usual solutions are:
                   "rev": "wrynose"
               }
           },
-          "meta-openembedded": {
-              "git-remote": {
-                  "uri": "https://git.openembedded.org/meta-openembedded",
-                  "rev": "wrynose"
-              }
-          },
-          "meta-freescale": {
-              "git-remote": {
-                  "uri": "https://github.com/Freescale/meta-freescale",
-                  "rev": "wrynose"
-              }
-          }
+          ...
       },
       "bitbake-setup": {
           "configurations": [{
@@ -155,6 +144,15 @@ A separate tool is needed for that, usual solutions are:
       },
       "version": "1.0"
   }
+  ```]
+
+=== bitbake-setup configuration
+
+- The `bitbake-setup` command can be either used from the bitbake git or installed using `pip`:
+
+#text(size: 17pt)[
+  ```sh
+  $ pip install bitbake-setup
   ```]
 
 - Then a single command will fetch all layers and setup your configuration:
