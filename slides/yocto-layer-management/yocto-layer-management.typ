@@ -28,6 +28,75 @@ A separate tool is needed for that, usual solutions are:
 
 - bitbake-setup: the newest and official tool
 
+=== bitbake-setup
+
+- The official tool, part of bitbake git:
+  #link("https://git.openembedded.org/bitbake/tree/bin/bitbake-setup")
+
+- Will fetch layers and setup the build configuration
+
+- Does not try to mask core tools, users still need to launch builds with bitbake
+
+- Uses a JSON configuration file
+
+=== bitbake-setup configuration file
+
+#text(size: 13.5pt)[
+  ```json
+  {
+      "description": "My bitbake setup file.",
+      "sources": {
+          "bitbake": {
+              "git-remote": {
+                  "uri": "https://git.openembedded.org/bitbake",
+                  "rev": "2.18"
+              }
+          },
+          "openembedded-core": {
+              "git-remote": {
+                  "uri": "https://git.openembedded.org/openembedded-core",
+                  "rev": "wrynose"
+              }
+          },
+          ...
+      },
+      "bitbake-setup": {
+          "configurations": [{
+              "name": "myconfig",
+              "description": "My own configuration",
+              "bb-layers": ["openembedded-core/meta", "meta-openembedded/meta-oe",
+                            "meta-openembedded/meta-python", "meta-freescale"],
+              "oe-fragments": ["machine/mymachine", "distro/mydistro"]
+          }]
+      },
+      "version": "1.0"
+  }
+  ```]
+
+=== bitbake-setup configuration
+
+- The `bitbake-setup` command can be either used from the bitbake git or installed using `pip`:
+
+#text(size: 17pt)[
+  ```sh
+  $ pip install bitbake-setup
+  ```]
+
+- Then a single command will fetch all layers and setup your configuration:
+
+#text(size: 17pt)[
+  ```sh
+  $ bitbake-setup init mysetup.conf.json
+  ```]
+
+- This will also create an environment file that you can source:
+
+#text(size: 17pt)[
+  ```sh
+  $ . ./mysetup-myconfig/build/init-build-env
+  $ bitbake myimage
+  ```]
+
 === kas
 
 - Specific tool developed by Siemens for OpenEmbedded: \
@@ -99,73 +168,4 @@ A separate tool is needed for that, usual solutions are:
 #text(size: 17pt)[
   ```sh
   $ kas shell /path/to/kas-project.yml -c 'bitbake dosfsutils-native'
-  ```]
-
-=== bitbake-setup
-
-- The official tool, part of bitbake git:
-  #link("https://git.openembedded.org/bitbake/tree/bin/bitbake-setup")
-
-- Will fetch layers and setup the build configuration
-
-- Does not try to mask core tools, users still need to launch builds with bitbake
-
-- Uses a JSON configuration file
-
-=== bitbake-setup configuration file
-
-#text(size: 13.5pt)[
-  ```json
-  {
-      "description": "My bitbake setup file.",
-      "sources": {
-          "bitbake": {
-              "git-remote": {
-                  "uri": "https://git.openembedded.org/bitbake",
-                  "rev": "2.18"
-              }
-          },
-          "openembedded-core": {
-              "git-remote": {
-                  "uri": "https://git.openembedded.org/openembedded-core",
-                  "rev": "wrynose"
-              }
-          },
-          ...
-      },
-      "bitbake-setup": {
-          "configurations": [{
-              "name": "myconfig",
-              "description": "My own configuration",
-              "bb-layers": ["openembedded-core/meta", "meta-openembedded/meta-oe",
-                            "meta-openembedded/meta-python", "meta-freescale"],
-              "oe-fragments": ["machine/mymachine", "distro/mydistro"]
-          }]
-      },
-      "version": "1.0"
-  }
-  ```]
-
-=== bitbake-setup configuration
-
-- The `bitbake-setup` command can be either used from the bitbake git or installed using `pip`:
-
-#text(size: 17pt)[
-  ```sh
-  $ pip install bitbake-setup
-  ```]
-
-- Then a single command will fetch all layers and setup your configuration:
-
-#text(size: 17pt)[
-  ```sh
-  $ bitbake-setup init mysetup.conf.json
-  ```]
-
-- This will also create an environment file that you can source:
-
-#text(size: 17pt)[
-  ```sh
-  $ . ./mysetup-myconfig/build/init-build-env
-  $ bitbake myimage
   ```]
