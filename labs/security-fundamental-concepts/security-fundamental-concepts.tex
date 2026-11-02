@@ -1,14 +1,11 @@
 \subchapter{Experiment basic cryptographic tools}{Objective: Learn
-	how to generate and use basic cryptographic elements: keys, certificates and
-	revocation lists}
+	how to generate and use basic cryptographic elements: keys and certificates}
 
 To demonstrate certificate manipulation, we will create our own Certificate Authority (CA)
 and issue two certificates: one for the target device and one for the host computer.
 We will demonstrate how these certificates can be used to authenticate their
 owners and enable encrypted communication.
-We will also look at what happens when a certificate is revoked.
-
-Finally, we will measure asymmetric cryptography performances and compare that
+We will also measure asymmetric cryptography performances and compare them
 with symmetric cryptography.
 
 \section{Setting up OpenSSL configuration}
@@ -373,133 +370,6 @@ And finally, we can decrypt the message:
 \begin{bashinput}
 $ openssl pkeyutl -in host_message.enc -inkey /keys/target.key -decrypt
 Hello target, this is a message from the host computer!
-\end{bashinput}
-
-\section{Send a signed and encrypted message (S/MIME)}
-
-Fine, let's write a reply to this message and send it back to the host computer.
-But now let's use the S/MIME container format.
-
-\begin{bashinput}
-$ echo "Hi host computer, this is my reply message" > target_message
-$ openssl smime -sign -in target_message -signer /keys/target.crt -inkey /keys/target.key -out target_message.sign
-$ openssl smime -encrypt -in target_message.sign -out target_message.sign.enc host.crt
-\end{bashinput}
-
-On the host, you can again transfer the encrypted file back from the target.
-
-\begin{bashinput}
-$ scp root@${BOARD}:target_message.sign.enc .
-\end{bashinput}
-
-And you can now decrypt it and verify file signature.
-
-\begin{bashinput}
-$ openssl smime -decrypt -in target_message.sign.enc -recip host/host.crt -inkey host/hostkey.pem -out target_message.dec -outform smime
-$ openssl smime -verify -in target_message.dec -CAfile ca/cacert.pem
-\end{bashinput}
-
-\section{Revoke a certificate}
-
-Let's generate a Certificate Revocation List (CRL).
-We will start with an empty one.
-
-\begin{bashinput}
-$ cd ca
-$ openssl ca -config openssl.cnf -gencrl -out ca.crl
-\end{bashinput}
-
-You can then verify the CRL content:
-
-\begin{bashinput}
-$ openssl crl -in ca.crl -text -noout
-Certificate Revocation List (CRL):
-        Version 2 (0x1)
-        Signature Algorithm: sha256WithRSAEncryption
-        Issuer: C=FR, L=Oullins, O=Bootlin security training, CN=Training CA
-        Last Update: Feb  5 12:53:56 2026 GMT
-        Next Update: Mar  7 12:53:56 2026 GMT
-        CRL extensions:
-            X509v3 Authority Key Identifier:
-                76:4D:2F:67:12:41:4B:4E:B6:DD:A5:77:71:E0:43:9A:DF:E9:F0:E1
-            X509v3 CRL Number:
-                4096
-No Revoked Certificates.
-    Signature Algorithm: sha256WithRSAEncryption
-    Signature Value:
-        71:b0:ca:fa:ae:a7:1b:96:67:98:0c:93:6d:0a:6a:e4:59:d7:
-        ...
-\end{bashinput}
-
-Now let's pretend the target key was compromised and we want to revoke target
-certificate (serial number 02).
-
-\begin{bashinput}
-$ openssl ca -config openssl.cnf -revoke newcerts/02.pem
-Using configuration from openssl.cnf
-Revoking Certificate 02.
-Database updated
-\end{bashinput}
-
-So far we only revoked this certificate in the PKI internal database
-(index.txt):
-
-\begin{bashinput}
-$ cat index.txt
-V	270205123201Z		01	unknown	/C=FR/O=Bootlin security training/CN=host computer
-R	270205123657Z	260205125936Z	02	unknown	/C=FR/O=Bootlin security training/CN=target computer
-\end{bashinput}
-
-The CRL can then be re-generated with the updated database. We can again show
-it's content to ensure it is correct.
-
-\begin{bashinput}
-$ openssl ca -config openssl.cnf -gencrl -out ca.crl
-Using configuration from openssl.cnf
-$ openssl crl -in ca.crl -text -noout
-Certificate Revocation List (CRL):
-        Version 2 (0x1)
-        Signature Algorithm: sha256WithRSAEncryption
-        Issuer: C=FR, L=Oullins, O=Bootlin security training, CN=Training CA
-        Last Update: Feb  5 13:02:41 2026 GMT
-        Next Update: Mar  7 13:02:41 2026 GMT
-        CRL extensions:
-            X509v3 Authority Key Identifier:
-                76:4D:2F:67:12:41:4B:4E:B6:DD:A5:77:71:E0:43:9A:DF:E9:F0:E1
-            X509v3 CRL Number:
-                4097
-Revoked Certificates:
-    Serial Number: 02
-        Revocation Date: Feb  5 12:59:36 2026 GMT
-    Signature Algorithm: sha256WithRSAEncryption
-    Signature Value:
-        1f:e2:49:bb:19:26:f2:c0:3b:d3:30:3c:0b:97:8e:ec:76:99:
-        ...
-\end{bashinput}
-
-Now let's try again to verify the signature of the message we received from the
-target:
-
-\begin{bashinput}
-$ cd ..
-$ openssl smime -verify -in target_message.dec -CAfile ca/cacert.pem
-Hi host computer, this my reply message
-Verification successful
-\end{bashinput}
-
-The verification succeeded because the certificate itself does not indicate
-revocation.
-To detect revoked certificates, we must explicitly check the Certificate
-Revocation List (CRL).
-One way to distribute the CRL is to concatenate it with the CA certificate
-itself.
-Additionally, we have to ask OpenSSL to use these CRL data.
-
-\begin{bashinput}
-$ cat ca/cacert.pem ca/ca.crl > ca/cacert_crl.pem
-$ openssl smime -verify -in target_message.dec -CAfile ca/cacert_crl.pem -crl_check
-Verification failure
-40E764B4347F0000:error:10800075:PKCS7 routines:PKCS7_verify:certificate verify error:../crypto/pkcs7/pk7_smime.c:301:Verify error: certificate revoked
 \end{bashinput}
 
 \section{Compare performances with symmetric cryptography}

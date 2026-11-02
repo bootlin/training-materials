@@ -991,7 +991,6 @@ Flip side of the security properties:
 
   - Using OpenSSL to generate a key hierarchy
   - Exchange and verify encrypted and signed messages
-  - Experimenting with key revocation
   - Performance comparison of symmetric and asymmetric encryption algorithms
 
 ])
