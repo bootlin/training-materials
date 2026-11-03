@@ -126,205 +126,109 @@
 === Linux capabilities
 <linux-capabilities>
 
-- Capabilities are a per-thread attribute, allowing to gain privileges
-  traditionally associated with superuser
-- Fully integrated since Linux 2.6.24
+#place(right, dx: -70pt, dy: 160pt, [#image("capabilities.pdf", width: 75%)])
+
+#v(-3.5em)
+
+- Some access restrictions cannot be described with file ACLs \
+  e.g. binding to certain network sockets, rebooting the system
+- Traditionally, these are privileges of the *superuser*
+- Capabilities *fragment these privileges* into several independent parts
+- This allows granting some permissions to unprivileged applications without running them as root
+- Fully integrated into the kernel since v2.6.24
+- As of Linux 6.19, 40 capabilities are defined. All of them are documented in
+  the #link("https://manned.org/capabilities.7")[capabilities(7)] manpage
+
+
+=== Linux capability examples: networking
+<linux-capability-examples-networking>
+
+- #link("https://elixir.bootlin.com/linux/v6.19/source/include/uapi/linux/capability.h#L205")[CAP_NET_ADMIN]: Perform various network-related operations
+  - interface configuration, firewalling, routes, TOS, promiscuous mode,multicasting…
+- #link("https://elixir.bootlin.com/linux/v6.19/source/include/uapi/linux/capability.h#L185")[CAP_NET_BIND_SERVICE]: Bind a socket to Internet domain privileged ports (port numbers less than 1024).
+- #link("https://elixir.bootlin.com/linux/v6.19/source/include/uapi/linux/capability.h#L211")[CAP_NET_RAW]: Use RAW and PACKET sockets
+- #link("https://elixir.bootlin.com/linux/v6.19/source/include/uapi/linux/capability.h#L189")[CAP_NET_BROADCAST]: Allow broadcasting and listening to multicast
+
+=== Linux capability examples: system administration
+<linux-capability-examples-sysadmin>
+
+- #link("https://elixir.bootlin.com/linux/v6.19/source/include/uapi/linux/capability.h#L281")[CAP_SYS_ADMIN]: Gives _a lot_ of system administration related powers:
+  - mounts, hostname, privileged log operations, monitoring, tracing…
+- #link("https://elixir.bootlin.com/linux/v6.19/source/include/uapi/linux/capability.h#L285")[CAP_SYS_BOOT]: Use reboot(2) and kexec_load(2)
+- #link("https://elixir.bootlin.com/linux/v6.19/source/include/uapi/linux/capability.h#L224")[CAP_SYS_MODULE]: Load and unload kernel modules
+- #link("https://elixir.bootlin.com/linux/v6.19/source/include/uapi/linux/capability.h#L233")[CAP_SYS_CHROOT]: Change the root filesystem
+- #link("https://elixir.bootlin.com/linux/v6.19/source/include/uapi/linux/capability.h#L237")[CAP_SYS_PTRACE]: Trace any process
+- #link("https://elixir.bootlin.com/linux/v6.19/source/include/uapi/linux/capability.h#L241")[CAP_SYS_PACCT]: Configure process accounting
+- …
+
+=== Linux capability examples: miscellaneous
+<linux-capability-examples-misc>
+
+
+- #link("https://elixir.bootlin.com/linux/v6.19/source/include/uapi/linux/capability.h#L154")[CAP_SETGID], #link("https://elixir.bootlin.com/linux/v6.19/source/include/uapi/linux/capability.h#L159")[CAP_SETUID]: Make arbitrary manipulations of process GIDs/UIDs
+- #link("https://elixir.bootlin.com/linux/v6.19/source/include/uapi/linux/capability.h#L343")[CAP_SETFCAP]: Set arbitrary capabilities on a file.
+- #link("https://elixir.bootlin.com/linux/v6.19/source/include/uapi/linux/capability.h#L148")[CAP_KILL]: Bypass permission checks for sending signals
+- #link("https://elixir.bootlin.com/linux/v6.19/source/include/uapi/linux/capability.h#L364")[CAP_SYSLOG]: Configure kernel log behavior
+- …
+
+=== Linux capabilities
+<linux-capabilities>
+
+#place(right, dx: -160pt, dy: 150pt, [#image(
+  "capabilities-threads.pdf",
+  width: 60%,
+)])
+
 - Capabilities can be independently enabled and disabled
 - Capabilities can be attached to executable files, pre-setting runtime
   capabilities
-- Threads may voluntarily enable or disable a capability they are
-  permitted to use, allowing to only use them in code paths needing it
-- Threads may voluntarily preserve capabilities while executing another
-  executable (`execve()`).
-
-=== Linux capability examples
-<linux-capability-examples>
-
-#[
-  #set list(spacing: 0.5em)
-
-  All capabilities are documented in the
-  #link("https://manned.org/capabilities.7")[capabilities(7)] manpage
-
-  - #link("https://elixir.bootlin.com/linux/v6.19/source/include/uapi/linux/capability.h#L148")[CAP_KILL]:
-    Bypass permission checks for sending signals
-
-  - #link("https://elixir.bootlin.com/linux/v6.19/source/include/uapi/linux/capability.h#L205")[CAP_NET_ADMIN]:
-    Perform various network-related operations
-
-    - interface configuration, firewalling, routes, TOS, promiscuous mode,
-      multicasting…
-
-  - #link("https://elixir.bootlin.com/linux/v6.19/source/include/uapi/linux/capability.h#L185")[CAP_NET_BIND_SERVICE]:
-    Bind a socket to Internet domain privileged ports (port numbers less
-    than 1024).
-
-  - #link("https://elixir.bootlin.com/linux/v6.19/source/include/uapi/linux/capability.h#L211")[CAP_NET_RAW]:
-    Use RAW and PACKET sockets
-
-  - #link("https://elixir.bootlin.com/linux/v6.19/source/include/uapi/linux/capability.h#L154")[CAP_SETGID],
-    #link("https://elixir.bootlin.com/linux/v6.19/source/include/uapi/linux/capability.h#L159")[CAP_SETUID]:
-    Make arbitrary manipulations of process GIDs/UIDs
-
-  - #link("https://elixir.bootlin.com/linux/v6.19/source/include/uapi/linux/capability.h#L343")[CAP_SETFCAP]:
-    Set arbitrary capabilities on a file.
-
-  - #link(
-      "https://elixir.bootlin.com/linux/v6.19/source/include/uapi/linux/capability.h#L281",
-    )[CAP_SYS_ADMIN]
-    Gives _a lot_ of system administration related powers:
-
-    - mounts, hostname, privileged log operations, monitoring, tracing…
-
-  - #link("https://elixir.bootlin.com/linux/v6.19/source/include/uapi/linux/capability.h#L285")[CAP_SYS_BOOT]:
-    Use reboot(2) and kexec_load(2)
-
-  - #link("https://elixir.bootlin.com/linux/v6.19/source/include/uapi/linux/capability.h#L224")[CAP_SYS_MODULE]:
-    Load and unload kernel modules
-
-  - #link("https://elixir.bootlin.com/linux/v6.19/source/include/uapi/linux/capability.h#L296")[CAP_SYS_NICE]:
-    Lower the process nice value and change the nice value for arbitrary
-    processes, set real-time scheduling policies, set CPU affinity…
-
-  - …
-
-]
+- Threads voluntarily en/disable each capability they are permitted to use,
+  to only use them when necessary
+- Threads may voluntarily preserve capabilities while executing a program (`execve()`).
 
 === Thread capability sets
 <thread-capability-sets>
 
-- Each thread has 5 different capability sets:
+For each thread, a capability may be:
 
-  - Controlling capabilities a thread is allowed to use:
+- *Effective*: held by the thread, used for permission checks
+- *Permitted*: can be made effective at any time \
+  - from a threat-modeling perspective, this is essentially equivalent to *effective*
+- *Inheritable*: will be made permitted when running a program which has the capability
+  - special rules apply when running a program with setuid
+  - can be set using prctl() by threads with CAP_SETPCAP
+- *Ambient*: will be preserved when running a program with no capability metadata
+  - requires *permitted* and *inheritable*
+  - used to run unprivileged programs with some capabilities enabled
+  - can be set using prctl() by threads with CAP_SETPCAP
+- *Bounding*: if a capability is not bounding, it can never be acquired by the thread \
+  - no matter what the thread does, it cannot add capabilities to this set \
+  - especially useful for system hardening and sandboxing
 
-    - *Permitted*: limits capabilities that might be in _Effective_
-      and _Inheritable_ sets.
-      Thread can drop but never add capabilities to this set, except
-      while using `execve()` on a file granting capabilities or with the
-      set-uid bit.
+=== Thread capability sets
+<thread-capability-sets-venn>
 
-  - Controlling capabilities effective at the moment:
-
-    - *Effective*: used by the kernel to perform permission checks for the
-      thread
-
-  - Controlling capabilities present while executing a new program:
-
-    - *Inheritable*: capabilities preserved across `execve()` on
-      privileged process
-    - *Ambient*: capabilities that are preserved across an `execve()` of a
-      program that is not privileged.
-      Can be used to add capabilities to an unprivileged program
-    - *Bounding*: capabilities that might be gained on `execve()`. Can be
-      used to limit capabilities that will be acquired from file
-      capability sets
+#align(center, [#image("capabilities-threads-venn.pdf", width: 70%)])
 
 === File capability sets
 <file-capability-sets>
 
-- Files can be associated with capabilities that will impact thread
-  capabilities on `execve()`:
+Files can be associated with capabilities that will impact thread
+capabilities on `execve()`:
 
-  - Permitted: capabilities automatically permitted to the thread,
-    regardless of the thread's inheritable capabilities
-  - Inheritable: capabilities that can be permitted, if they also appear
-    in thread _Inheritable_ set.
-  - Effective: a single bit determining if _Permitted_ set has to
-    be copied into the thread _Effective_ set.
+- *Permitted:* capabilities automatically permitted to the thread,
+  regardless of the thread's inheritable capabilities
+- *Inheritable:* capabilities that will be permitted if they also appear
+  in thread _Inheritable_ set
 
-- When executing a program with the _set-user-ID_ mode bit set,
-  file _Inheritable_ and _Permitted_ sets are ignored and are
-  considered to be all ones.
-
-=== Manipulating file capability sets
-<manipulating-file-capability-sets>
-
-- `getcap` can be used to show file capabilities
-#text(size: 12pt)[
-  ```
-    $ getcap /usr/lib/x86_64-linux-gnu/gstreamer1.0/gstreamer-1.0/gst-ptp-helper
-    /usr/lib/x86_64-linux-gnu/gstreamer1.0/gstreamer-1.0/gst-ptp-helper cap_net_bind_service cap_net_admin,cap_sys_nice=ep
-    $ getcap -r /usr/bin
-    /usr/bin/clockdiff cap_net_raw,cap_sys_nice=ep
-    /usr/bin/dumpcap cap_net_admin,cap_net_raw=eip
-  ```]
-
-- `gst-ptp-helper` has `CAP_NET_BIND_SERVICE`, `CAP_NET_ADMIN` and
-  `CAP_SYS_NICE` in its _Permitted_ and _Effective_ sets but
-  not in its _Inheritable_ set
-
-- `/usr/bin/clockdiff` has `CAP_NET_RAW` and `CAP_SYS_NICE` in its
-  _Permitted_ and _Effective_ sets but not in its
-  _Inheritable_ set
-
-- `/usr/bin/dumpcap` has `CAP_NET_ADMIN` and `CAP_NET_RAW` in all
-  three sets
-
-- `setcap` can be used to set file capabilities
-#text(size: 12pt)[
-  ```
-    # getcap /usr/bin/dumpcap
-    /usr/bin/dumpcap cap_net_admin,cap_net_raw=eip
-    # setcap cap_net_admin=eip /usr/bin/dumpcap
-    # getcap /usr/bin/dumpcap
-    /usr/bin/dumpcap cap_net_admin=eip
-  ```]
-
-- Capabilities syntax is described in
-  #link("https://manned.org/cap_from_text.3")[cap_from_text(3)]
-  manpage.
-
-=== Manipulating thread capabilities I
-<manipulating-thread-capabilities>
-
-- Capabilities can be manipulated through the `cap_t` structure.
-
-- `cap_init()`, `cap_dup()` and `cap_free()` are used to allocate or
-  free a `cap_t` instance.
-
-- `cap_get_proc()` and `cap_set_proc()` allow to retrieve or apply the
-  `cap_t` structure corresponding to the current thread.
-
-- `cap_clear()`, `cap_set_flag()` and `cap_get_flag()` can be used to
-  manipulate `cap_t` structure values.
-
-- Additional functions and full behaviour are described in
-  #link("https://manned.org/cap_get_proc.3")[cap_get_proc(3)] and
-  #link("https://manned.org/cap_clear.3")[cap_clear(3)] manpages.
-
-=== Manipulating thread capabilities II
-
-#text(size: 13pt)[
-  ```
-  ...
-  cap_t caps;
-  const cap_value_t cap_list[2] = {CAP_FOWNER, CAP_SETFCAP};
-
-  if (!CAP_IS_SUPPORTED(CAP_SETFCAP))
-       /* handle error */
-
-  caps = cap_get_proc(); if (caps == NULL)
-       /* handle error */;
-
-  if (cap_set_flag(caps, CAP_EFFECTIVE, 2, cap_list, CAP_SET) == -1)
-       /* handle error */;
-
-  if (cap_set_proc(caps) == -1)
-       /* handle error */;
-
-  if (cap_free(caps) == -1)
-       /* handle error */;
-  ...
-  ```]
-
-#v(0.5em)
-
-#align(center, [
-  Example from
-  #link("https://manned.org/cap_get_proc.3")[cap_get_proc(3)] manpage,
-  adding `CAP_FOWNER` and `CAP_SETFCAP` effective capabilities to the
-  calling thread.
-])
+\
+The *Effective* bit determines if the _Permitted_ set will be copied into the
+thread's _Effective_ set \
+\
+When executing a program with the _setuid_ mode bit set, file
+_Inheritable_ and _Permitted_ sets are ignored and more complex rules apply
+which depend on how the UID was changed or not, and on the capabilities
+currently held by the thread
 
 === setuid and capabilities
 <setuid-and-capabilities>
@@ -357,28 +261,71 @@
   - Four corresponding `_LOCKED_` flags exist, preventing from ever
     removing the base flag
 
-=== Capabilities transformation during execve()
-<capabilities-transformation-during-execve>
+=== Manipulating file capability sets
+<manipulating-file-capability-sets>
 
-- The #link("https://manned.org/capabilities.7")[capabilities(7)]
-  manpage provides a summary of capabilities transformations:
-  #v(0.5em)
-  #text(size: 19pt)[
-    ```
-               P'(ambient)     = (file is privileged) ? 0 : P(ambient)
-               P'(permitted)   = (P(inheritable) & F(inheritable)) |
-                                 (F(permitted) & P(bounding)) | P'(ambient)
-               P'(effective)   = F(effective) ? P'(permitted) : P'(ambient)
-               P'(inheritable) = P(inheritable)    [i.e., unchanged]
-               P'(bounding)    = P(bounding)       [i.e., unchanged]
+`getcap` can be used to show file capabilities
+#text(size: 15pt)[
+  ```
+    $ getcap gst-ptp-helper
+    gst-ptp-helper cap_net_bind_service,cap_net_admin=ep
+    $ getcap /usr/bin/dumpcap
+    /usr/bin/dumpcap cap_dac_override,cap_net_admin,cap_net_raw=eip
+  ```]
 
-           where:
-               P()    denotes the value of a thread capability set before the
-                      execve(2)
-               P'()   denotes the value of a thread capability set after the
-                      execve(2)
-               F()    denotes a file capability set
-    ```]
+- `gst-ptp-helper` has `CAP_NET_BIND_SERVICE`, `CAP_NET_ADMIN` and
+  `CAP_SYS_NICE` in its _Permitted_ set but not in its _Inheritable_ set, and
+  it has the _Effective_ bit set
+
+- `/usr/bin/dumpcap` has `CAP_NET_ADMIN` and `CAP_NET_RAW` in its _Permitted_
+  and _Inheritable_ sets, and has the _Effective_ bit set
+
+`setcap` can be used to set file capabilities
+#text(size: 15pt)[
+  ```
+    # getcap /usr/bin/dumpcap
+    /usr/bin/dumpcap cap_net_admin,cap_net_raw=eip
+    # setcap cap_net_admin=eip /usr/bin/dumpcap
+    # getcap /usr/bin/dumpcap
+    /usr/bin/dumpcap cap_net_admin=eip
+  ```]
+
+Capabilities syntax is described in
+#link("https://manned.org/cap_from_text.3")[cap_from_text(3)]
+manpage.
+
+=== Manipulating thread capability sets
+<manipulating-thread-capability-sets>
+
+`getpcaps` can be used to show thread capabilities
+#text(size: 15pt)[
+  ```
+    $ getpcaps $(pgrep NetworkManager)
+    1982: cap_dac_override,cap_kill,cap_setgid,cap_setuid,cap_net_bind_service,...=ep
+    $ getpcaps --iab $(pgrep -f systemd-timesyncd)
+    1526: "cap_sys_time=eip" [!cap_chown, ... ,^cap_sys_time, ...]
+  ```]
+
+- The main NetworkManager thread has `CAP_DAC_OVERRIDE`, `CAP_KILL`, `CAP_SETGID`, `CAP_SETUID`, `CAP_NET_BIND_SERVICE`, ... in its _Effective_, _Permitted_ and _Bounding_ sets
+- Timesyncd has `CAP_SYS_TIME`, in its _Effective_, _Permitted_, _Inheritable_, _Bounding_ and _Ambient_ sets
+- With the `--iab` option, the _Ambient_ and _Bounding_ sets can be viewed:
+  - capabilities prefixed with '!' are outside of the _Bounding_ set
+  - capabilities prefixed with '^' are in the _Ambient_ set
+  - capabilities prefixed with nothing or with '%' are in the _Inheritable_ set
+
+=== Linux capabilities: key takeaways
+<linux-capabilities-key-takeaways>
+
+- Linux superuser privileges are fragmented into several independent capabilities
+- Threads should:
+  - only hold the capabilities that they absolutely require
+  - only make them effective for the duration they are needed
+- Threads can gain capabilities by running:
+  - programs with capability metadata
+  - programs without capability metadata, using the ambient set
+- Files with setuid/setgid have more complex capability acquisition rules
+- System administrators can ensure a thread and its children never gain a
+  capability by removing it from the bounding set.
 
 == Process isolation: namespaces
 <process-isolation-namespaces>
