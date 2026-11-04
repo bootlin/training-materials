@@ -38,6 +38,7 @@
       - Plenty of peripherals: I2C, SPI, UART, USB...
     - 2 USB-C cable for the power supply and the serial console
     - RJ45 cable for networking
+    - MicroSD card
     #if imx93-frdm-gpio [
       - #text(
           size: 18pt,
