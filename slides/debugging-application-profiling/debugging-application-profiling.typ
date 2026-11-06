@@ -285,54 +285,56 @@ Histogram for block sizes:
 - `perf stat` allows to profile an application by gathering performance
   counters.
 
+  - performance counters are special-purpose registers use to count
+    specific hardware events: CPU cycles, retired instructions, cache
+    misses, branch prediction misses, etc
+
   - Using performance counters might require _root_ permissions.
     This can be modified using \
     `# echo -1 > /proc/sys/kernel/perf_event_paranoid`
 
 - The number of performance counters that are present on the hardware
-  are often limited.
+  are often limited (eg: 4 performance counters per core on ARM Cortex A7)
 
-- Requesting more events than possible will result in multiplexing and
-  perf will scale the results.
-
-- Collected performance counters are then approximate.
-
-  - To acquire more precise numbers, reduce the number of events
-    observed and run `perf` multiple times changing the events set to
-    observe all the expected events.
-
-  - See #link("https://perfwiki.github.io/main/")[perf wiki] for more
+  - See
+    #link("https://perfwiki.github.io/main/tutorial/#counting-with-perf-stat")[perf wiki] for more
     information.
 
 === perf stat example (1/2)
 
-```console
-$ perf stat convert foo.png foo.jpg
+#text(size: 14pt)[
+  ```console
+  $ perf stat convert foo.png foo.jpg
 
-Performance counter stats for 'convert foo.png foo.jpg':
+  Performance counter stats for 'convert foo.png foo.jpg':
 
-           45,52 msec task-clock                #    1,333 CPUs utilized
-               4      context-switches          #   87,874 /sec
-               0      cpu-migrations            #    0,000 /sec
-           1 672      page-faults               #   36,731 K/sec
-     146 154 800      cycles                    #    3,211 GHz                      (81,16%)
-       6 984 741      stalled-cycles-frontend   #    4,78% frontend cycles idle     (91,21%)
-      81 002 469      stalled-cycles-backend    #   55,42% backend cycles idle      (91,36%)
-     222 687 505      instructions              #    1,52  insn per cycle
-                                                #    0,36  stalled cycles per insn  (91,21%)
-      37 776 174      branches                  #  829,884 M/sec                    (74,51%)
-         567 408      branch-misses             #    1,50% of all branches          (70,62%)
+             45,52 msec task-clock                #    1,333 CPUs utilized
+                 4      context-switches          #   87,874 /sec
+                 0      cpu-migrations            #    0,000 /sec
+             1 672      page-faults               #   36,731 K/sec
+       146 154 800      cycles                    #    3,211 GHz                      (81,16%)
+         6 984 741      stalled-cycles-frontend   #    4,78% frontend cycles idle     (91,21%)
+        81 002 469      stalled-cycles-backend    #   55,42% backend cycles idle      (91,36%)
+       222 687 505      instructions              #    1,52  insn per cycle
+                                                  #    0,36  stalled cycles per insn  (91,21%)
+        37 776 174      branches                  #  829,884 M/sec                    (74,51%)
+           567 408      branch-misses             #    1,50% of all branches          (70,62%)
 
-     0,034156819 seconds time elapsed
+       0,034156819 seconds time elapsed
 
-     0,041509000 seconds user
-     0,004612000 seconds sys
-```
+       0,041509000 seconds user
+       0,004612000 seconds sys
+  ```
 
-#v(0.5em)
+  #v(0.5em)
 
-- _NOTE: the percentage displayed at the end denotes the time
-  during which the kernel measured the event due to multiplexing_
+  _NOTE: the percentage displayed at the end denotes the actual amount of
+  time during which the kernel measured the event. It means that we have
+  requested more events than available performance counters, so the result is
+  actually a scaled approximation (due to multiplexing). To fix the measure
+  imprecision, reduce the number of observed events / run multiple `perf stat`
+  records to collect all the expected events._
+]
 
 === perf stat example (2/2)
 
