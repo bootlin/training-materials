@@ -719,10 +719,6 @@
 
 ]
 
-=== Allwinner ARMv8 cores
-
-#align(center, [#image("sequence-allwinner-64-bit.svg", height: 80%)])
-
 === IMX93: ARMv8
 
 #align(center, [#image("sequence-imx93.svg", width: 80%)])
