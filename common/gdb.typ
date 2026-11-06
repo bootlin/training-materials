@@ -89,29 +89,29 @@ A few useful GDB commands
 - `finish`   \
   Execute up to function return
 
-- `backtrace` (`bt`)   \
-  Display the program stack
-
 #if sys.inputs.training == "debugging" {
   [
 
     === GDB advanced commands (1/3)
 
+    - `backtrace` (`bt`)   \
+      Display the program stack
+
+    - `frame <n>` (`f <n>`) \
+      Select a specific frame from the backtrace, the number being the one
+      displayed when using `backtrace` at the beginning of each line
+
     - `info threads` (`i threads`) \
       Display the list of threads that are available
+
+    - `thread <n>` (`t <n>`) \
+      Select thread number <n>
 
     - `info breakpoints` (`i b`) \
       Display the list of breakpoints/watchpoints
 
     - `delete <n>` (`d <n>`) \
       Delete breakpoint <n>
-
-    - `thread <n>` (`t <n>`) \
-      Select thread number <n>
-
-    - `frame <n>` (`f <n>`) \
-      Select a specific frame from the backtrace, the number being the one
-      displayed when using `backtrace` at the beginning of each line
 
     === GDB advanced commands (2/3)
 
