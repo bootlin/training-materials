@@ -131,11 +131,11 @@
   - The kernel already contains events and tracepoints that can be used.
     The list is given using `perf list`.
 
-  - Syscall tracepoints should be enabled in kernel configuration using
-    #kconfig("CONFIG_FTRACE_SYSCALLS").
+    - Syscall tracepoints must be explicitly enabled in kernel
+      configuration using #kconfig("CONFIG_FTRACE_SYSCALLS").
 
-  - New tracepoint can be created dynamically on all symbols and registers
-    when debug info are not present.
+  - New probes can be created dynamically on any symbols and registers when
+    debug info are not present.
 
   - Tracing functions, recording variables and parameters content using
     their names will require a kernel compiled with
