@@ -233,6 +233,13 @@ Segmentation fault!
 - Set a specific variable as `volatile` to prevent the compiler from
   optimizing it out.
 
+- having frame pointers enabled (`-fno-omit-frame-pointer`) may help
+  GDB reconstruct stack frames
+
+- having debug info for your main binary dependencies as well allows you to
+  navigate in them
+
+
 == The ptrace system call
 <the-ptrace-system-call>
 
@@ -355,40 +362,6 @@ Temporary breakpoint 2 at 0x5555555587da
 Temporary breakpoint 3 at 0x5555555587da
 ---> File bar opened with fd 0
 ```
-
-=== Common debugging issues
-
-- You will likely encounter some issues while debugging, like poor
-  address->symbols conversion, "optimized out" values or functions,
-  empty backtraces...
-
-- A quick checklist before starting debugging can spare you some
-  troubles:
-
-  - Make sure your host binary has
-    #link("https://gcc.gnu.org/onlinedocs/gcc/Debugging-Options.html")[debug symbols]:
-    with gcc, ensure `-g` is provided, and use non-stripped version with
-    host gdb
-
-  - Disable
-    #link(
-      "https://gcc.gnu.org/onlinedocs/gcc-4.9.2/gcc/Optimize-Options.html",
-    )[optimizations]
-    on final binary (`-O0`) if possible, or at least use a less
-    intrusive level (`-Og`)
-
-    - Static functions can for example be folded into caller depending
-      on the optimization level, so they would be missing from
-      backtraces
-
-  - Prevent code optimization from reusing frame pointer register: with
-    GCC, make sure the `-fno-omit-frame-pointer` option is set
-
-    - Not only true for debugging: any profiling/tracing tool relying on
-      backtraces will benefit from it
-
-- Your application is probably composed of multiple libraries: you will
-  need to apply those configurations on all used components!
 
 #setuplabframe([Solving an application crash], [
 
