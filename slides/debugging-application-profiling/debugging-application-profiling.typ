@@ -112,7 +112,7 @@
 - `@`: Detailed snapshot (count can be adjusted thanks to
   `--detailed-freq`)
 
-=== Massif report
+=== Massif report (1/2)
 
 ```console
     KB
@@ -141,6 +141,36 @@
 
 Number of snapshots: 52
  Detailed snapshots: [9, 19, 22 (peak), 32, 42]
+```
+
+=== Massif report (2/2)
+
+```console
+--------------------------------------------------------------------------------
+  n        time(B)         total(B)   useful-heap(B) extra-heap(B)    stacks(B)
+--------------------------------------------------------------------------------
+  0              0                0                0             0            0
+  1              8                8                0             8            0
+  2         10,016           10,016           10,000            16            0
+  3         30,024           30,024           30,000            24            0
+  4         60,032           60,032           60,000            32            0
+  5        100,040          100,040          100,000            40            0
+  6        150,048          150,048          150,000            48            0
+  7        210,056          210,056          210,000            56            0
+  8        280,064          280,064          280,000            64            0
+  9        360,072          360,072          360,000            72            0
+99.98% (360,000B) (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+->99.98% (360,000B) 0x1088BF: allocate_large (heap_profile.c:46)
+  ->99.98% (360,000B) 0x108947: allocate (heap_profile.c:53)
+    ->99.98% (360,000B) 0x108973: main (heap_profile.c:61)
+
+--------------------------------------------------------------------------------
+  n        time(B)         total(B)   useful-heap(B) extra-heap(B)    stacks(B)
+--------------------------------------------------------------------------------
+ 10        450,080          450,080          450,000            80            0
+ 11        460,088          460,088          460,000            88            0
+ 12        470,096          470,096          470,000            96            0
+[...]
 ```
 
 === `massif-visualizer` - Visualizing massif profiling data
