@@ -94,8 +94,7 @@
   communication program, like _HyperTerminal_ in Windows.
 - There are multiple options available in Linux: _Minicom_,
   _Picocom_, _Gtkterm_, _Putty_, _screen_,
-  _tmux_ and the new _tio_
-  (#link("https://github.com/tio/tio")).
+  _tmux_, _tio_, etc.
 - In this training session, we recommend using the simplest of them:
   _Picocom_
   - Installation with `sudo apt install picocom`
