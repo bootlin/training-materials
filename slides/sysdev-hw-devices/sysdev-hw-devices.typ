@@ -246,7 +246,7 @@
 
 === User-space interfaces for hardware devices
 
-For a high-level perspective: three main interfaces to access hardware
+From a high-level perspective: three main interfaces to access hardware
 devices exposed by the Linux kernel
 
 - Device nodes in `/dev`
