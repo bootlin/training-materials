@@ -359,7 +359,7 @@ As legitimate operation, the application does:
     Note, this is mostly used for demonstration.
     The added entropy is based on current system time: this is not a
     particularly good entropy source and should not be used in real systems.
-  \item Runs \texttt{ping -N}.
+  \item Opens a raw network socket
     This is again an option requiring the \texttt{CAP\_NET\_RAW} capability.
 \end{itemize}
 
@@ -393,18 +393,13 @@ Adding entropy count
 Writing data to "/var/cache/security_training_systemd"
 Setting hostname to "changed-hostname"
 hostname: changed-hostname
-Executing ping command
-PING google.com (172.217.22.206) 56(84) bytes of data.
-64 bytes from muc11s01-in-f14.1e100.net (172.217.22.206): icmp_seq=1 ttl=111 time=14.1 ms
---- google.com ping statistics ---
-1 packets transmitted, 1 received, 0% packet loss, time 0ms
-rtt min/avg/max/mdev = 14.112/14.112/14.112/0.000 ms
+Opening raw socket
 training-systemd-test.service: Deactivated successfully.
 Finished training-systemd-test.service - Security training systemd demo.
 \end{bashinput}
 
-Looking at the log, we have some good and bad news: adding entropy and running
-ping did succeed.
+Looking at the log, we have some good and bad news: adding entropy and opening
+the raw socket did succeed.
 But so did changing the hostname and writing data to
 \texttt{/var/cache/security\_training\_systemd}.
 We can verify this:
@@ -471,11 +466,9 @@ Failed to add entropy: Operation not permitted
 Setting hostname to "changed-hostname"
 Failed to set hostname: Operation not permitted
 hostname: myboard
-Executing ping command
-ping: socktype: SOCK_RAW
-ping: socket: Operation not permitted
-ping: => missing cap_net_raw+p capability or setuid?
-training-systemd-test.service: Main process exited, code=exited, status=2/INVALIDARGUMENT
+Opening raw socket
+Failed to open raw socket, err 1
+training-systemd-test.service: Main process exited, code=exited, status=1/FAILURE
 training-systemd-test.service: Failed with result 'exit-code'.
 Failed to start training-systemd-test.service - Security training systemd demo.
 \end{bashinput}
@@ -485,7 +478,7 @@ So now, the application can happily write to
 You can verify that this file was not really created on your system, but on some
 tmpfs.
 We can also see the hostname was not changed.
-However, we now have two issues: adding entropy failed, and ping
+However, we now have two issues: adding entropy failed, and opening the raw socket
 complains: \texttt{WARNING: failed to set mark: 42: Operation not permitted}.
 Both issues come from missing capabilities, as we are no longer running as
 root.
@@ -504,17 +497,12 @@ Writing data to "/var/cache/security_training_systemd"
 Adding entropy count
 Setting hostname to "changed-hostname"
 hostname: changed-hostname
-Executing ping command
-PING google.com (172.217.22.78) 56(84) bytes of data.
-64 bytes from tzpara-am-in-f14.1e100.net (172.217.22.78): icmp_seq=1 ttl=112 time=14.1 ms
---- google.com ping statistics ---
-1 packets transmitted, 1 received, 0% packet loss, time 0ms
-rtt min/avg/max/mdev = 14.122/14.122/14.122/0.000 ms
+Opening raw socket
 training-systemd-test.service: Deactivated successfully.
 Finished training-systemd-test.service - Security training systemd demo.
 \end{bashinput}
 
-With the added capabilities, both the ping and entropy adding operation succeed,
+With the added capabilities, both the raw socket and entropy adding operation succeed,
 but we also granted the possibility to change the hostname.
 One solution is to use the \texttt{ProtectHostname=} option to forbid this.
 
@@ -531,12 +519,7 @@ Adding entropy count
 Setting hostname to "changed-hostname"
 Failed to set hostname: Operation not permitted
 hostname: myboard
-Executing ping command
-PING google.com (172.217.22.78) 56(84) bytes of data.
-64 bytes from tzpara-am-in-f14.1e100.net (172.217.22.78): icmp_seq=1 ttl=112 time=13.8 ms
---- google.com ping statistics ---
-1 packets transmitted, 1 received, 0% packet loss, time 0ms
-rtt min/avg/max/mdev = 13.830/13.830/13.830/0.000 ms
+Opening raw socket
 training-systemd-test.service: Deactivated successfully.
 Finished training-systemd-test.service - Security training systemd demo.
 \end{bashinput}
@@ -548,8 +531,7 @@ Systemd \texttt{SystemCallFilter=} configuration allows to do so easily.
 SystemCallFilter=~sethostname
 \end{verbatim}
 
-An interesting difference is the process is killed, except if we also use
-\texttt{SystemCallErrorNumber=}.
+An interesting difference is the process is killed:
 
 \begin{bashinput}
 root@freiheit93:~# systemctl restart training-systemd-test --no-block

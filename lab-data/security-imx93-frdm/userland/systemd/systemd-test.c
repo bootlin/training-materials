@@ -11,6 +11,9 @@
 #include <sys/prctl.h>
 #include <time.h>
 #include <unistd.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <errno.h>
 
 #define WRITE_FILE "/var/cache/security_training_systemd"
 #define WRITE_STRING "Hello!\n"
@@ -106,10 +109,17 @@ int main()
 #endif
 
 	/* Execute ping */
-	fprintf(stderr, "Executing ping command\n");
+	fprintf(stderr, "Opening raw socket\n");
+	errno = 0;
+       	int raw_socket = socket(AF_INET, SOCK_RAW, 4);
+       	if (errno) {
+		fprintf(stderr, "Failed to open raw socket, err %d\n", errno);
+		return errno;
+	}
+
 	fflush(NULL);
 
-	execlp("ping", "ping", "-c", "1", "-N", "name", "google.com", NULL);
+	close(raw_socket);
 
 	return 0;
 }
