@@ -93,6 +93,50 @@ and check several files (for example):
 Don't hesitate to spend more time exploring \code{/sys} on your system
 and asking questions to your instructor.
 
+\section{Custom Device Tree}
+During this lab, we'll need to tweak the Device Tree.
+\if\defstring{\board}{stm32mp1}
+We could modify the \kfile{arch/arm/boot/dts/st/stm32mp157a-dk1.dts} file
+\fi
+\if\defstring{\board}{stm32mp2}
+We could modify the \kfile{arch/arm64/boot/dts/st/stm32mp257f-dk.dts} file
+\fi
+for our board, but that's not a very good idea as this file is
+maintained by the kernel developers. The changes that you make could
+collide with future changes made by the maintainers for this file.
+
+A more futureproof idea is to create a new Device Tree file which
+includes the standard one, and adds custom definitions. So, create a
+new
+\if\defstring{\board}{stm32mp1}
+\code{arch/arm/boot/dts/st/stm32mp157a-dk1-custom.dts} file containing:
+\begin{verbatim}
+/dts-v1/;
+#include "stm32mp157a-dk1.dts"
+\end{verbatim}
+\fi
+\if\defstring{\board}{stm32mp2}
+\code{arch/arm64/boot/dts/st/stm32mp257f-dk-custom.dts} file containing:
+\begin{verbatim}
+/dts-v1/;
+#include "stm32mp257f-dk.dts"
+\end{verbatim}
+\fi
+
+As you can see, it's also possible to include \code{dts} files, and not
+only \code{dtsi} ones.
+
+\if\defstring{\board}{stm32mp1}
+Modify the \kfile{arch/arm/boot/dts/st/Makefile} file to add your custom
+Device Tree, and then have it compiled (\code{make dtbs}).
+\fi
+\if\defstring{\board}{stm32mp2}
+Modify the \kfile{arch/arm64/boot/dts/st/Makefile} file to add your custom
+Device Tree, and then have it compiled (\code{make dtbs}).
+\fi
+
+Reboot your board and update U-Boot's environment to use this new Device Tree.
+
 \section{Driving GPIOs}
 
 At this stage, we can only explore GPIOs through the legacy interface
@@ -500,7 +544,7 @@ we can find what is the base address of the registers for the
 \code{I2C8} controller: it is \code{0x46040000}.
 \fi
 
-\subsection{Customizing the Device Tree}
+\subsection{Enable a Device Tree node}
 
 To enable \busname on our system, we need to assign set \code{status =
 "okay";} in the corresponding Device Tree node.
@@ -516,28 +560,11 @@ used by the Device Tree for our board. In our case, that's in
 Look by yourself in this
 file, and you will find its definition, but with \code{status =
 "disabled";}. This means that this I2C controller is not enabled yet,
-and it's up to boards using it to do so.
+and it's up to boards using it to do so. Add following node to your custom Device
+Tree to enable the I2C controller.
 
 \if\defstring{\board}{stm32mp1}
-We could modify the \kfile{arch/arm/boot/dts/st/stm32mp157a-dk1.dts} file
-\fi
-\if\defstring{\board}{stm32mp2}
-We could modify the \kfile{arch/arm64/boot/dts/st/stm32mp257f-dk.dts} file
-\fi
-for our board, but that's not a very good idea as this file is
-maintained by the kernel developers. The changes that you make could
-collide with future changes made by the maintainers for this file.
-
-A more futureproof idea is to create a new Device Tree file which
-includes the standard one, and adds custom definitions. So, create a
-new
-
-\if\defstring{\board}{stm32mp1}
-\code{arch/arm/boot/dts/st/stm32mp157a-dk1-custom.dts} file containing:
 \begin{verbatim}
-/dts-v1/;
-#include "stm32mp157a-dk1.dts"
-
 &i2c5 {
         status = "okay";
         /delete-property/ pinctrl-names;
@@ -545,20 +572,13 @@ new
 \end{verbatim}
 \fi
 \if\defstring{\board}{stm32mp2}
-\code{arch/arm64/boot/dts/st/stm32mp257f-dk-custom.dts} file containing:
 \begin{verbatim}
-/dts-v1/;
-#include "stm32mp257f-dk.dts"
-
 &i2c8 {
         status = "okay";
         /delete-property/ pinctrl-names;
 };
 \end{verbatim}
 \fi
-
-As you can see, it's also possible to include \code{dts} files, and not
-only \code{dtsi} ones.
 
 Why the \code{/delete-property/} statement? That's because we want
 to see what happens when a device doesn't have associated pin
@@ -573,18 +593,12 @@ In our case, we don't see such definitions, but they are actually
 found in the \kfile{arch/arm/boot/dts/st/stm32mp15xx-dkx.dtsi}
 file, shared between multiple stm32mp15 DK boards, which is included
 by the toplevel Device Tree for our board.
-
-Modify the \kfile{arch/arm/boot/dts/st/Makefile} file to add your custom
-Device Tree, and then have it compiled (\code{make dtbs}).
 \fi
 \if\defstring{\board}{stm32mp2}
 In our case, we don't see such definitions, but they are actually
 found in the \kfile{arch/arm64/boot/dts/st/stm32mp251.dtsi}
 file, shared between multiple stm32mp25 boards, which is included
 by the toplevel Device Tree for our board.
-
-Modify the \kfile{arch/arm64/boot/dts/st/Makefile} file to add your custom
-Device Tree, and then have it compiled (\code{make dtbs}).
 \fi
 
 Reboot your board with the update.

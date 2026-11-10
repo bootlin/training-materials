@@ -89,6 +89,30 @@ and check several files (for example):
 Don't hesitate to spend more time exploring \code{/sys} on your system
 and asking questions to your instructor.
 
+\section{Custom Device Tree}
+During this lab, we'll need to tweak the Device Tree. We could modify the
+\kfile{arch/arm64/boot/dts/ti/k3-am625-beagleplay.dts} file for our board,
+but that's not a very good idea as this file is maintained by the kernel
+developers. The changes that you make could collide with future changes made by
+the maintainers for this file.
+
+A more futureproof idea is to create a new Device Tree file which
+includes the standard one, and adds custom definitions. So, create a
+new \code{arch/arm64/boot/dts/ti/k3-am625-beagleplay-custom.dts} file containing:
+
+\begin{verbatim}
+/dts-v1/;
+#include "k3-am625-beagleplay.dts"
+\end{verbatim}
+
+As you can see, it's also possible to include \code{dts} files, and not
+only \code{dtsi} ones.
+
+Modify the \kfile{arch/arm64/boot/dts/ti/Makefile} file to add your custom
+Device Tree, and then have it compiled (\code{make dtbs}).
+
+Reboot your board and update U-Boot's environment to use this new Device Tree.
+
 \section{Driving GPIOs}
 
 At this stage, we can only explore GPIOs through the legacy interface
@@ -450,42 +474,25 @@ However because this I2C controller is already enabled, we will
 first play with I2C4 (WKUP\_I2C0 in datasheet) and demonstrate
 how to enable it, even if we won't use I2C4 in the rest of the labs.
 
-\subsection{Customizing the Device Tree}
+\subsection{Enable a Device Tree node}
 
 Fortunately, I2C4 (WKUP\_I2C0 in datasheet) is already defined
 in one of the DTS includes used by the Device Tree for our board.
 In our case, that's in \kfile{arch/arm64/boot/dts/ti/k3-am62-wakeup.dtsi}.
 Look by yourself in this file, and you will find its definition, but with
 \code{status = "disabled";}. This means that this I2C controller is not
-enabled yet, and it's up to boards using it to do so.
-
-We could modify the \kfile{arch/arm64/boot/dts/ti/k3-am625-beagleplay.dts} file
-for our board, but that's not a very good idea as this file is
-maintained by the kernel developers. The changes that you make could
-collide with future changes made by the maintainers for this file.
-
-A more futureproof idea is to create a new Device Tree file which
-includes the standard one, and adds custom definitions. So, create a
-new \code{arch/arm64/boot/dts/ti/k3-am625-beagleplay-custom.dts} file containing:
+enabled yet, and it's up to boards using it to do so. Add following node to your
+custom Device Tree to enable the I2C controller.
 
 \begin{verbatim}
-/dts-v1/;
-#include "k3-am625-beagleplay.dts"
-
 &wkup_i2c0 {
         status = "okay";
         /delete-property/ pinctrl-0;
 };
 \end{verbatim}
 
-As you can see, it's also possible to include \code{dts} files, and not
-only \code{dtsi} ones.
-
 Why the \code{/delete-property/} statement? That's because we want to see what happens when a
 device doesn't have associated pin definitions yet.
-
-Modify the \kfile{arch/arm64/boot/dts/ti/Makefile} file to add your custom
-Device Tree, and then have it compiled (\code{make dtbs}).
 
 Reboot your board with the update.
 
