@@ -12,25 +12,38 @@ Systemd.
 \section{Preventing a simple application from executing shellcode using SECCOMP}
 
 The \code{$HOME/__SESSION_NAME__-labs/userland/seccomp} folder contains the
-code of a sample application.
-This application does two things: it prints the content of some existing file,
-then launches a shell.
+code of a sample application. This application does two things:
+\begin{itemize}
+  \item Prints the contents of a file
+  \item Launches a shell
+\end{itemize}
+
 Of course, launching the shell is an expected behavior here, but we are
 actually trying to mimic a faulty application, where an attacker exploits a
 breach to launch a shell.
 To avoid that, we will demonstrate how \emph{seccomp} can be used to restrict
 accessible syscalls.
 
-First, you can have a look at the source code and compile the application.
-Then, launch it and observe the current behaviour.
+First, you can have a look at the source code and compile the application:
 
 \begin{bashinput}
 $ cd $HOME/__SESSION_NAME__-labs/userland/seccomp
 $ . $HOME/__SESSION_NAME__-labs/sdk/environment-setup-cortexa55-oe-linux
 $ make
+\end{bashinput}
+
+Then, deploy it to the target:
+
+\begin{bashinput}
 $ ssh root@${BOARD} mkdir -p /usr/local/bin
 $ scp seccomp-test root@${BOARD}:/usr/local/bin
-$ ssh -t root@${BOARD} /usr/local/bin/seccomp-test
+\end{bashinput}
+
+Finally, launch it and observe its behavior:
+
+\begin{bashinput}
+$ ssh root@${BOARD}
+root@freiheit93:~# /usr/local/bin/seccomp-test
 Showing content of "/proc/cmdline":
 console=ttyLP0,115200 root=/dev/mmcblk1p2 rootwait rw selinux=1 enforcing=0
 Running "/bin/bash":
@@ -44,17 +57,13 @@ Remember, this will only allow processes to use very basic syscalls, such as
 \texttt{read()} or \texttt{write()}.
 Modify the \texttt{seccomp-test.c} source file, and uncomment the call to
 \texttt{enable\_seccomp()}.
-Rebuild, and relaunch.
+Rebuild, and relaunch:
 
 \begin{bashinput}
 $ make
 $ scp seccomp-test root@${BOARD}:/usr/local/bin
-\end{bashinput}
-
-We do not get much output with SSH, so you should run it directly on the target:
-
-\begin{bashinput}
-$ ssh root@${BOARD} /usr/local/bin/seccomp-test
+$ ssh root@${BOARD}
+root@freiheit93:~# /usr/local/bin/seccomp-test
 Killed
 \end{bashinput}
 
@@ -66,12 +75,12 @@ this new behaviour.
 On the board, you can run:
 
 \begin{bashinput}
-$ strace seccomp-test
+root@freiheit93:~# $ strace /usr/local/bin/seccomp-test
 ...
 seccomp(SECCOMP_SET_MODE_STRICT, 0, NULL) = 0
 fstat(1,  <unfinished ...>)             = ?
 +++ killed by SIGKILL +++
-[1]    1202806 killed     strace seccomp-test
+[1]    1202806 killed     strace /usr/local/bin/seccomp-test
 \end{bashinput}
 
 As you can see, \texttt{printf()} did call \texttt{fstat()}.
@@ -93,7 +102,7 @@ content, but cannot execute the shell.
 After having added all needed filters, you should have the following behaviour:
 
 \begin{bashinput}
-$ seccomp-test
+root@freiheit93:~# /usr/local/bin/seccomp-test
 Showing content of "/proc/cmdline":
 console=ttyLP0,115200 root=/dev/mmcblk1p2 rootwait rw selinux=1 enforcing=0
 Running "/bin/bash":
@@ -111,9 +120,9 @@ This TFTP server has been misconfigured: instead of serving the content of
 We can create two files on the board, to demonstrate this behaviour.
 
 \begin{bashinput}
-# echo "Public data" > /srv/tftp/public
-# echo "Very secret data" > /root/secret
-# chmod 777 /root
+root@freiheit93:~# echo "Public data" > /srv/tftp/public
+root@freiheit93:~# echo "Very secret data" > /root/secret
+root@freiheit93:~# chmod 777 /root
 \end{bashinput}
 
 On the host computer, use a tftp client to download these files.
@@ -135,17 +144,17 @@ $ cat secret
 Very secred data
 \end{bashinput}
 
-If downloads are failing, you might need to have a look at the tftp server logs:
+If downloads are failing, you might need to have a look at the tftp server logs on the target:
 
 \begin{bashinput}
-# journalctl -u atftpd -f
+root@freiheit93:~# journalctl -u atftpd -f
 \end{bashinput}
 
 Before we can use SELinux, we need to relabel the filesystem. Run the
 command
 
 \begin{bashinput}
-$ fixfiles relabel
+root@freiheit93:~# fixfiles relabel
 \end{bashinput}
 
 Then reboot the board.
@@ -157,13 +166,13 @@ blocking anything.
 The first step is then to enable SELinux until the next reboot:
 
 \begin{bashinput}
-# setenforce 1
+root@freiheit93:~# setenforce 1
 \end{bashinput}
 
 SELinux status can be shown with the \texttt{sestatus} command:
 
 \begin{bashinput}
-# sestatus
+root@freiheit93:~# sestatus
 SELinux status:                 enabled
 SELinuxfs mount:                /sys/fs/selinux
 SELinux root directory:         /etc/selinux
@@ -180,7 +189,7 @@ Let's manipulate a bit SELinux: first we will look for SELinux users.
 You can both the list of users and the mapping between Linux and SELinux users.
 
 \begin{bashinput}
-# seinfo -u
+root@freiheit93:~# seinfo -u
 
 Users: 7
    root
@@ -190,7 +199,7 @@ Users: 7
    unconfined_u
    user_u
    xdm
-# semanage login -l
+root@freiheit93:~# semanage login -l
 
 Login Name                SELinux User
 
@@ -206,7 +215,7 @@ all others are mapped to \emph{user\_u}.
 Similarly, we can show the corresponding roles:
 
 \begin{bashinput}
-# seinfo -u -x
+root@freiheit93:~# seinfo -u -x
 
 Users: 7
    user root roles { staff_r sysadm_r system_r };
@@ -226,19 +235,19 @@ We can list which types can be accessed by \emph{staff\_r}, \emph{sysadm\_r} or
 \emph{system\_r} roles.
 
 \begin{bashinput}
-# seinfo -rstaff_r -x
+root@freiheit93:~# seinfo -rstaff_r -x
 
 Roles: 1
    role staff_r types { auditadm_screen_t bluetooth_helper_t cdrecord_t chfn_t chkpwd_t chromium_naclhelper_t chromium_renderer_t chromium_sandbox_t chromium_t consoletype_t container_engine_t container_t crio_t cronjob_t crontab_t ddclient_t dhcpc_t dirmngr_t 
    ...
 
-# seinfo -rsysadm_r -x
+root@freiheit93:~# seinfo -rsysadm_r -x
 
 Roles: 1
    role sysadm_r types { acngtool_t acpi_t admin_crontab_t aide_t amanda_recover_t apt_t auditadm_screen_t auditctl_t backup_t bacula_admin_t bluetooth_helper_t bootloader_t calamaris_t cdrecord_t certbot_t certwatch_t cgclear_t checkpc_t checkpolicy_t chfn_t
    ...
 
-# seinfo -rsystem_r -x
+root@freiheit93:~# seinfo -rsystem_r -x
 
 Roles: 1
    role system_r types { NetworkManager_t abrt_dump_oops_t abrt_handle_event_t abrt_helper_t abrt_retrace_coredump_t abrt_retrace_worker_t abrt_t abrt_upload_watch_t abrt_watch_log_t accountsd_t acct_t acngtool_t acpi_t acpid_t afs_bosserver_t afs_fsserver_t
@@ -248,7 +257,7 @@ Roles: 1
 We can also observe the context of running processes, with \texttt{ps -Z}:
 
 \begin{bashinput}
-# ps -Z
+root@freiheit93:~# ps -Z
   PID CONTEXT                          STAT COMMAND
     1 system_u:system_r:init_t         S    {systemd} /sbin/init
     2 system_u:system_r:kernel_t       SW   [kthreadd]
@@ -268,7 +277,7 @@ We now want to compare the SELinux context of the two files we created earlier.
 This can be shown with \texttt{ls -Z}.
 
 \begin{bashinput}
-# ls -lZ /srv/tftp/public /root/secret
+root@freiheit93:~# ls -lZ /srv/tftp/public /root/secret
 -rw-r--r--. 1 root root root:object_r:user_home_t 17 Mar 17 09:27 /root/secret
 -rw-r--r--. 1 root root root:object_r:var_t       12 Mar 17 09:31 /srv/tftp/public
 \end{bashinput}
@@ -276,7 +285,7 @@ This can be shown with \texttt{ls -Z}.
 As you can see, the two files were automatically labelled differently, based on
 the folder they were created in.
 As SELinux is now enabled, we can again try to download them using tftp.
-You can run the same commands as previously on the host
+You can run the same commands as previously on the host:
 
 \begin{bashinput}
 $ rm -f public secret
@@ -301,8 +310,8 @@ For demonstration purpose, we can try this later solution, changing the context
 of \texttt{/root/secret} to be the same as \texttt{/srv/tftp/public}.
 
 \begin{bashinput}
-# chcon root:object_r:var_t /root/secret
-# ls -lZ /root/secret
+root@freiheit93:~# chcon root:object_r:var_t /root/secret
+root@freiheit93:~# ls -lZ /root/secret
 -rw-r--r--. 1 root root root:object_r:var_t 17 Mar 17 09:27 /root/secret
 \end{bashinput}
 
@@ -318,7 +327,7 @@ Received 18 bytes in 0.0 seconds [4580 bit/s]
 The \texttt{restorecon} command can then be used to revert to a sane context:
 
 \begin{bashinput}
-# restorecon /root/secret
+root@freiheit93:~# restorecon /root/secret
 root@freiheit93:~# ls -lZ /root/secret
 -rw-r--r--. 1 root root root:object_r:user_home_t 17 Mar 17 09:27 /root/secret
 \end{bashinput}
@@ -365,9 +374,9 @@ $ scp training-systemd-test.service root@${BOARD}:/etc/systemd/system/
 Now, start the service and monitor the log output.
 
 \begin{bashinput}
-# systemctl daemon-reload
-# systemctl restart training-systemd-test --no-block
-# journalctl -u training-systemd-test -f -n 50
+root@freiheit93:~# systemctl daemon-reload
+root@freiheit93:~# systemctl restart training-systemd-test --no-block
+root@freiheit93:~# journalctl -u training-systemd-test -f -n 50
 Starting training-systemd-test.service - Security training systemd demo...
 Adding entropy count
 Writing data to "/var/cache/security_training_systemd"
@@ -390,17 +399,17 @@ But so did changing the hostname and writing data to
 We can verify this:
 
 \begin{bashinput}
-# cat /var/cache/security_training_systemd
+root@freiheit93:~# cat /var/cache/security_training_systemd
 Hello!
-# cat /proc/sys/kernel/hostname
+root@freiheit93:~# cat /proc/sys/kernel/hostname
 changed-hostname
 \end{bashinput}
 
 Let's revert these changes:
 
 \begin{bashinput}
-# rm /var/cache/security_training_systemd
-# echo "myboard" > /proc/sys/kernel/hostname
+root@freiheit93:~# rm /var/cache/security_training_systemd
+root@freiheit93:~# echo "myboard" > /proc/sys/kernel/hostname
 \end{bashinput}
 
 To prevent these changes, we can limit the permissions of the process launched
@@ -419,8 +428,8 @@ DynamicUser=true
 \end{verbatim}
 
 \begin{bashinput}
-# systemctl restart training-systemd-test --no-block
-# journalctl -u training-systemd-test -f -n 50
+root@freiheit93:~# systemctl restart training-systemd-test --no-block
+root@freiheit93:~# journalctl -u training-systemd-test -f -n 50
 Starting training-systemd-test.service - Security training systemd demo...
 Writing data to "/var/cache/security_training_systemd"
 Failed to open "/var/cache/security_training_systemd": Read-only file system
@@ -442,8 +451,8 @@ TemporaryFileSystem=/var/cache:mode=0777
 Then restart the application, and look for logs.
 
 \begin{bashinput}
-# systemctl restart training-systemd-test --no-block
-# journalctl -u training-systemd-test -f -n 50
+root@freiheit93:~# systemctl restart training-systemd-test --no-block
+root@freiheit93:~# journalctl -u training-systemd-test -f -n 50
 Starting training-systemd-test.service - Security training systemd demo...
 Writing data to "/var/cache/security_training_systemd"
 Adding entropy count
@@ -477,8 +486,8 @@ AmbientCapabilities=CAP_NET_RAW CAP_SYS_ADMIN
 \end{verbatim}
 
 \begin{bashinput}
-# systemctl restart training-systemd-test --no-block
-# journalctl -u training-systemd-test -f -n 50
+root@freiheit93:~# systemctl restart training-systemd-test --no-block
+root@freiheit93:~# journalctl -u training-systemd-test -f -n 50
 Starting training-systemd-test.service - Security training systemd demo...
 Writing data to "/var/cache/security_training_systemd"
 Adding entropy count
@@ -503,8 +512,8 @@ ProtectHostname=on
 \end{verbatim}
 
 \begin{bashinput}
-# systemctl restart training-systemd-test --no-block
-# journalctl -u training-systemd-test -f -n 50
+root@freiheit93:~# systemctl restart training-systemd-test --no-block
+root@freiheit93:~# journalctl -u training-systemd-test -f -n 50
 Starting training-systemd-test.service - Security training systemd demo...
 Writing data to "/var/cache/security_training_systemd"
 Adding entropy count
@@ -532,8 +541,8 @@ An interesting difference is the process is killed, except if we also use
 \texttt{SystemCallErrorNumber=}.
 
 \begin{bashinput}
-# systemctl restart training-systemd-test --no-block
-# journalctl -u training-systemd-test -f -n 50
+root@freiheit93:~# systemctl restart training-systemd-test --no-block
+root@freiheit93:~# journalctl -u training-systemd-test -f -n 50
 Starting training-systemd-test.service - Security training systemd demo...
 Writing data to "/var/cache/security_training_systemd"
 Adding entropy count
@@ -547,7 +556,7 @@ We can use \texttt{systemd-analyze security} to get an evaluation of the service
 exposure and how it could be improved:
 
 \begin{bashinput}
-# systemd-analyze security training-systemd-test
+root@freiheit93:~# systemd-analyze security training-systemd-test
 
   NAME                                                DESCRIPTION                                          EXPOSURE
 + RemoveIPC=                                          Service user cannot leave SysV IPC objects around
