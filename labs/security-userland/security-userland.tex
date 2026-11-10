@@ -35,6 +35,7 @@ $ make
 Then, deploy it to the target:
 
 \begin{bashinput}
+$ ssh root@${BOARD} mount -o remount,rw /
 $ ssh root@${BOARD} mkdir -p /usr/local/bin
 $ scp seccomp-test root@${BOARD}:/usr/local/bin
 \end{bashinput}
@@ -80,7 +81,7 @@ root@freiheit93:~# $ strace /usr/local/bin/seccomp-test
 seccomp(SECCOMP_SET_MODE_STRICT, 0, NULL) = 0
 fstat(1,  <unfinished ...>)             = ?
 +++ killed by SIGKILL +++
-[1]    1202806 killed     strace /usr/local/bin/seccomp-test
+Killed
 \end{bashinput}
 
 As you can see, \texttt{printf()} did call \texttt{fstat()}.
@@ -90,9 +91,9 @@ But we are later calling \texttt{close()}, which is also denied by seccomp.
 
 As an alternative, we will use libseccomp to add our own custom filters.
 
-Modify again the source code, defining the \texttt{USE\_SECCOMP\_FILTERS} macro:
-the \texttt{enable\_seccomp()} will now use libseccomp to define our custom
-filters.
+In the source code of seccomp-test, uncomment the line which defines the
+\texttt{USE\_SECCOMP\_FILTERS} macro: the \texttt{enable\_seccomp()} will now
+use libseccomp to define our custom filters.
 Some filters were already added by the example code, but you will have to
 complete this list.
 Again, you can use \texttt{strace} to identify the correct syscalls.
@@ -151,24 +152,18 @@ root@freiheit93:~# journalctl -u atftpd -f
 \end{bashinput}
 
 Before we can use SELinux, we need to relabel the filesystem. Run the
-command
+commands:
 
 \begin{bashinput}
+root@freiheit93:~# mount -o remount,rw /
 root@freiheit93:~# fixfiles relabel
 \end{bashinput}
+
+If asked to clean out the /tmp directory, answer "n".
 
 Then reboot the board.
 
 Once we have this working setup, we can start experimenting with SELinux.
-SELinux enforcement is disabled by default, thanks to the kernel command line.
-This is a specific setup, made so we can run other labs without having SELinux
-blocking anything.
-The first step is then to enable SELinux until the next reboot:
-
-\begin{bashinput}
-root@freiheit93:~# setenforce 1
-\end{bashinput}
-
 SELinux status can be shown with the \texttt{sestatus} command:
 
 \begin{bashinput}
@@ -177,7 +172,7 @@ SELinux status:                 enabled
 SELinuxfs mount:                /sys/fs/selinux
 SELinux root directory:         /etc/selinux
 Loaded policy name:             standard
-Current mode:                   enforcing
+Current mode:                   permissive
 Mode from config file:          enforcing
 Policy MLS status:              disabled
 Policy deny_unknown status:     allowed
@@ -276,15 +271,31 @@ root@freiheit93:~# ps -Z
 We now want to compare the SELinux context of the two files we created earlier.
 This can be shown with \texttt{ls -Z}.
 
+Note: Due to a bug in the lab setup, the /srv/tftp/public file isn't persisted
+and is incorrectly labeled. As a temporary workaround, we will re-create it and
+set its security context manually.
+
 \begin{bashinput}
+root@freiheit93:~# echo "Public data" > /srv/tftp/public
+root@freiheit93:~# chcon system_u:object_r:lib_t /srv/tftp/public
 root@freiheit93:~# ls -lZ /srv/tftp/public /root/secret
 -rw-r--r--. 1 root root root:object_r:user_home_t 17 Mar 17 09:27 /root/secret
--rw-r--r--. 1 root root root:object_r:var_t       12 Mar 17 09:31 /srv/tftp/public
+-rw-r--r--. 1 root root system_u:object_r:lib_t       12 Mar 17 09:31 /srv/tftp/public
 \end{bashinput}
 
 As you can see, the two files were automatically labelled differently, based on
 the folder they were created in.
-As SELinux is now enabled, we can again try to download them using tftp.
+
+SELinux enforcement is disabled by default, thanks to the kernel command line.
+This is a specific setup, made so we can run other labs without having SELinux
+blocking anything.
+The first step is then to enable SELinux until the next reboot:
+
+\begin{bashinput}
+root@freiheit93:~# setenforce 1
+\end{bashinput}
+
+As SELinux is now enabled, we can again try to download the files using tftp.
 You can run the same commands as previously on the host:
 
 \begin{bashinput}
@@ -310,9 +321,9 @@ For demonstration purpose, we can try this later solution, changing the context
 of \texttt{/root/secret} to be the same as \texttt{/srv/tftp/public}.
 
 \begin{bashinput}
-root@freiheit93:~# chcon root:object_r:var_t /root/secret
+root@freiheit93:~# chcon root:object_r:lib_t /root/secret
 root@freiheit93:~# ls -lZ /root/secret
--rw-r--r--. 1 root root root:object_r:var_t 17 Mar 17 09:27 /root/secret
+-rw-r--r--. 1 root root root:object_r:lib_t 17 Mar 17 09:27 /root/secret
 \end{bashinput}
 
 And then try again to download the file:
