@@ -89,6 +89,32 @@ and check several files (for example):
 Don't hesitate to spend more time exploring \code{/sys} on your system
 and asking questions to your instructor.
 
+\section{Custom Device Tree}
+
+During this lab, we'll need to tweak the Device Tree. We could modify the
+\kfile{arch/arm64/boot/dts/freescale/imx93-11x11-frdm.dts} file for our board,
+but that's not a very good idea as this file is maintained by the kernel
+developers. The changes that you make could collide with future changes made by
+the maintainers for this file.
+
+A more futureproof idea is to create a new device-tree file which
+includes the standard one, and adds custom definitions. So, create a
+new \code{arch/arm64/boot/dts/freescale/imx93-11x11-frdm-custom.dts} file
+containing:
+
+\begin{verbatim}
+/dts-v1/;
+#include "imx93-11x11-frdm.dts"
+\end{verbatim}
+
+As you can see, it's also possible to include \code{dts} files, and not
+only \code{dtsi} ones.
+
+Modify the \kfile{arch/arm64/boot/dts/freescale/Makefile} file to add your custom
+device-tree, and then have it compiled (\code{make dtbs}).
+
+Reboot your board and update U-Boot's environment to use this new Device Tree.
+
 \section{Driving GPIOs}
 
 At this stage, we can only explore GPIOs through the legacy interface
@@ -191,9 +217,7 @@ When you're done, you can see your GPIO free:
 # echo %\gpionum% > unexport
 \end{bashinput}
 
-\section{Customizing the Device Tree}
-
-\subsection{Driving LEDs}
+\section{Driving LEDs}
 
 First, make sure your kernel is compiled with
 \kconfigval{CONFIG_LEDS_CLASS}{y}, \kconfigval{CONFIG_LEDS_GPIO}{y}
@@ -205,22 +229,9 @@ Linux kernel so far.
 We're going to start customizing our device-tree to drive the LEDs available
 on the FRDM. The FRDM-IMX93 Board User Manual (UM12181) gives details about an
 RGB LED: LED1. It's composed of three coloured LEDs, each of them is driven by
-a GPIO, let's describe them in the device-tree.
-
-We could modify the \kfile{arch/arm64/boot/dts/freescale/imx93-11x11-frdm.dts}
-file for our board, but that's not a very good idea as this file is
-maintained by the kernel developers. The changes that you make could
-collide with future changes made by the maintainers for this file.
-
-A more futureproof idea is to create a new device-tree file which
-includes the standard one, and adds custom definitions. So, create a
-new \code{arch/arm64/boot/dts/freescale/imx93-11x11-frdm-custom.dts} file
-containing:
+a GPIO, let's describe them in the device-tree:
 
 \begin{verbatim}
-/dts-v1/;
-#include "imx93-11x11-frdm.dts"
-
 / {
         leds {
                 compatible = "gpio-leds";
@@ -243,12 +254,6 @@ containing:
 };
 
 \end{verbatim}
-
-As you can see, it's also possible to include \code{dts} files, and not
-only \code{dtsi} ones.
-
-Modify the \kfile{arch/arm64/boot/dts/freescale/Makefile} file to add your custom
-device-tree, and then have it compiled (\code{make dtbs}).
 
 Reboot your board with the update.
 
