@@ -279,6 +279,126 @@ with specified time on and time off:
 # echo 200 > delay_off
 \end{bashinput}
 
+\section{In-tree kernel modules}
+\subsection{Plugging a USB audio headset}
+
+In the next labs, we are going to play audio using a USB audio headset.
+Let's see whether our kernel supports such hardware by plugging the
+headset provided by your instructor.
+
+Before plugging the device, look at the output of \code{lsusb}:
+
+\begin{bashinput}
+# lsusb
+Bus 001 Device 001: ID 1d6b:0002 Linux 7.1.3 ehci_hcd EHCI Host Controller
+\end{bashinput}
+
+{\bf Known issue:} if you don't get any output from \code{lsusb},
+you may need to remove the power supply and power on the board
+again.
+
+Now, when you plug the USB headset, a number of messages should appear
+on the console, and running \code{lsusb} again should show an
+additional device:
+
+\begin{bashinput}
+# lsusb
+Bus 001 Device 001: ID 1d6b:0002 Linux 7.1.3 ehci_hcd EHCI Host Controller
+Bus 001 Device 002: ID 1b3f:2008 GeneralPlus USB Audio Device
+\end{bashinput}
+
+The device of vendor ID \code{1b3f} and product ID \code{2008} has
+appeared. Of course, this depends on the actual USB audio device
+that you used.
+
+The device also appears in \code{/sys/bus/usb/devices/}, in a
+directory whose name depends on the topology of the USB bus. When the
+device was plugged, one of the kernel messages was:
+
+\begin{bashinput}
+usb 1-1: new full-speed USB device number 2 using ci_hdrc
+\end{bashinput}
+
+So if we go in \code{/sys/bus/usb/devices/1-1}, we get the {\em
+sysfs} representation of this USB device:
+
+\begin{bashinput}
+# cd /sys/bus/usb/devices/1-1
+# cat idVendor
+1b3f
+# cat idProduct
+2008
+# cat manufacturer
+GeneralPlus
+# cat product
+USB Audio Device
+\end{bashinput}
+
+However, while the USB device is detected, we currently do not have
+any driver for this device, so no actual sound card is detected.
+
+\subsection{Compiling and installing an in-tree kernel module}
+Go back to the kernel source directory.
+
+The Linux kernel has a generic driver supporting all USB audio devices
+supporting the standard USB audio class. This driver can be enabled
+using the \kconfig{CONFIG_SND_USB_AUDIO} configuration option. Look
+for this parameter in the kernel configuration, you should find
+it already enabled as a module.
+
+So, instead of compiling the corresponding driver as a built-in, as
+we did before, we'll take this good opportunity to practice with kernel modules.
+
+So, compile your modules:
+\begin{bashinput}
+make modules
+\end{bashinput}
+
+Then, following details given in the lectures, install the modules in our NFS
+root filesystem (\code{$HOME/__SESSION_NAME__-labs/tinysystem/nfsroot}).
+
+Also make sure to update the kernel image (\code{make Image.gz}), and reboot the
+board.  Indeed, due to the changes we have made to the kernel source code,
+the kernel version is now \texttt{\workingkernel.<x>-dirty}, the {\em dirty}
+keyword indicating that the Git working tree has uncommitted changes.
+The modules are therefore installed in \texttt{/lib/modules/\workingkernel.<x>-dirty/},
+and the version of the running Linux kernel must match this.
+
+After rebooting, try to load the module that we need:
+
+\begin{bashinput}
+modprobe snd-usb-audio
+\end{bashinput}
+
+By running \code{lsmod}, see all the module dependencies that
+were loaded too.
+
+You can also see that a new USB device driver in
+\code{/sys/bus/usb/drivers/snd-usb-audio}. This directory shows which
+USB devices are bound to this driver.
+
+You can check that \code{/proc/asound} now exists (thanks to loading
+modules for ALSA, the Linux sound subsystem), and that one sound
+card is available:
+
+\begin{bashinput}
+# cat /proc/asound/cards
+ 0 [Device         ]: USB-Audio - USB Audio Device
+                      GeneralPlus USB Audio Device at usb-xhci-hcd.3.auto-1, full speed
+\end{bashinput}
+
+Check also the \code{/dev/snd} directory, which should now contain
+some character device files. These will be used by the user-space
+libraries and applications to access the audio devices.
+
+Modify your startup scripts so that the \code{snd-usb-audio} module
+is always loaded at startup.
+
+We cannot test the sound card yet, as we will need to build some
+software first. Be patient, this is coming soon.
+
+\section{Out-of-tree kernel module}
+
 \subsection{Managing the I2C buses and devices}
 
 The next thing we want to do is connect an Nunchuk joystick
@@ -423,8 +543,6 @@ Continue? [y/N] y
 No device are detected which makes sense as we haven't yet pluged anything on
 that I2C bus.
 
-\subsection{Adding and enabling an I2C device}
-
 Let's connect the Nunchuk provided by your instructor
 to the \busname\ bus on the board, using breadboard wires:
 
@@ -458,127 +576,7 @@ Continue? [y/N] y
 70: -- -- -- -- -- -- -- --
 \end{verbatim}
 
-We will later compile an out-of-tree kernel module to support this device.
-
-\section{Plugging a USB audio headset}
-
-In the next labs, we are going to play audio using a USB audio headset.
-Let's see whether our kernel supports such hardware by plugging the
-headset provided by your instructor.
-
-Before plugging the device, look at the output of \code{lsusb}:
-
-\begin{bashinput}
-# lsusb
-Bus 001 Device 001: ID 1d6b:0002 Linux 7.1.3 ehci_hcd EHCI Host Controller
-\end{bashinput}
-
-{\bf Known issue:} if you don't get any output from \code{lsusb},
-you may need to remove the power supply and power on the board
-again.
-
-Now, when you plug the USB headset, a number of messages should appear
-on the console, and running \code{lsusb} again should show an
-additional device:
-
-\begin{bashinput}
-# lsusb
-Bus 001 Device 001: ID 1d6b:0002 Linux 7.1.3 ehci_hcd EHCI Host Controller
-Bus 001 Device 002: ID 1b3f:2008 GeneralPlus USB Audio Device
-\end{bashinput}
-
-The device of vendor ID \code{1b3f} and product ID \code{2008} has
-appeared. Of course, this depends on the actual USB audio device
-that you used.
-
-The device also appears in \code{/sys/bus/usb/devices/}, in a
-directory whose name depends on the topology of the USB bus. When the
-device was plugged, one of the kernel messages was:
-
-\begin{bashinput}
-usb 1-1: new full-speed USB device number 2 using ci_hdrc
-\end{bashinput}
-
-So if we go in \code{/sys/bus/usb/devices/1-1}, we get the {\em
-sysfs} representation of this USB device:
-
-\begin{bashinput}
-# cd /sys/bus/usb/devices/1-1
-# cat idVendor
-1b3f
-# cat idProduct
-2008
-# cat manufacturer
-GeneralPlus
-# cat product
-USB Audio Device
-\end{bashinput}
-
-However, while the USB device is detected, we currently do not have
-any driver for this device, so no actual sound card is detected.
-
-\section{Enabling, installing and using in-tree kernel modules}
-
-Go back to the kernel source directory.
-
-The Linux kernel has a generic driver supporting all USB audio devices
-supporting the standard USB audio class. This driver can be enabled
-using the \kconfig{CONFIG_SND_USB_AUDIO} configuration option. Look
-for this parameter in the kernel configuration, you should find
-it already enabled as a module.
-
-So, instead of compiling the corresponding driver as a built-in, as
-we did before, we'll take this good opportunity to practice with kernel modules.
-
-So, compile your modules:
-\begin{bashinput}
-make modules
-\end{bashinput}
-
-Then, following details given in the lectures, install the modules in our NFS
-root filesystem (\code{$HOME/__SESSION_NAME__-labs/tinysystem/nfsroot}).
-
-Also make sure to update the kernel image (\code{make Image.gz}), and reboot the
-board.  Indeed, due to the changes we have made to the kernel source code,
-the kernel version is now \texttt{\workingkernel.<x>-dirty}, the {\em dirty}
-keyword indicating that the Git working tree has uncommitted changes.
-The modules are therefore installed in \texttt{/lib/modules/\workingkernel.<x>-dirty/},
-and the version of the running Linux kernel must match this.
-
-After rebooting, try to load the module that we need:
-
-\begin{bashinput}
-modprobe snd-usb-audio
-\end{bashinput}
-
-By running \code{lsmod}, see all the module dependencies that
-were loaded too.
-
-You can also see that a new USB device driver in
-\code{/sys/bus/usb/drivers/snd-usb-audio}. This directory shows which
-USB devices are bound to this driver.
-
-You can check that \code{/proc/asound} now exists (thanks to loading
-modules for ALSA, the Linux sound subsystem), and that one sound
-card is available:
-
-\begin{bashinput}
-# cat /proc/asound/cards
- 0 [Device         ]: USB-Audio - USB Audio Device
-                      GeneralPlus USB Audio Device at usb-xhci-hcd.3.auto-1, full speed
-\end{bashinput}
-
-Check also the \code{/dev/snd} directory, which should now contain
-some character device files. These will be used by the user-space
-libraries and applications to access the audio devices.
-
-Modify your startup scripts so that the \code{snd-usb-audio} module
-is always loaded at startup.
-
-We cannot test the sound card yet, as we will need to build some
-software first. Be patient, this is coming soon.
-
-\section{Compiling and installing an out-of-tree kernel module}
+\subsection{Compiling and installing an out-of-tree kernel module}
 
 The next device we want to support is the I2C Nunchuk. There is a driver
 in the kernel to support it when connected to a Wiimote controller, but
@@ -648,7 +646,7 @@ In \code{drivers}, there should be a \code{nunchuk} subdirectory,
 but no symbolic link to a device yet. In \code{devices} you should
 see some devices, but not the Nunchuk one yet.
 
-\section{Declaring an I2C device}
+\subsection{Describing an I2C device}
 
 To allow the kernel to manage our Nunchuk device, let's declare the
 device in the custom Device Tree for our board. The declaration of the \busname\
@@ -777,5 +775,3 @@ To save space for the next lab, remove the old directory under
 \code{lib/modules} containing the "dirty" modules.
 
 Don't forget to update the kernel your board boots.
-
-That's all for now!
