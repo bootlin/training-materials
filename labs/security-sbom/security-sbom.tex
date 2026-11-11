@@ -2,14 +2,6 @@
 	Generate and analyze the image's SBoM.
 }
 
-\section{Prerequisites}
-
-We are going to use \code{sbom-cve-check} to analyze our SBoM.
-
-\begin{bashinput}
-(.venv) $ pip install sbom-cve-check[extra]
-\end{bashinput}
-
 \section{The default SPDX2.2 SBoM}
 
 Yocto is able to generate SPDX SBoMs, but the version we are currently using (Scarthgap)
@@ -74,7 +66,12 @@ In this section, we are going to use \href{https://sbom-cve-check.readthedocs.io
 to analyze the SBoM generated and determine which CVEs affect our target's rootFS.
 
 \begin{bashinput}
-$ sbom-cve-check --sbom-type spdx3 -S build/tmp-glibc/deploy/images/freiheit93/security-training-image-freiheit93.rootfs.spdx.json -f summary -o cve_summary_novex
+$ cd board_setup
+$ python3 -m venv .venv
+$ . .venv/bin/activate
+(.venv) $ pip install sbom-cve-check[extra]
+(.venv) $ sbom-cve-check --sbom-type spdx3 -S build/tmp-glibc/deploy/images/freiheit93/security-training-image-freiheit93.rootfs.spdx.json -f summary -o cve_summary_novex
+(.venv) $ deactivate
 \end{bashinput}
 
 We can now generate the VEX, by again modifying
@@ -96,10 +93,13 @@ This should have created the VEX manifest in \code{build/tmp-glibc/deploy/images
 which we can now use to add context to \code{sbom-cve-check}:
 
 \begin{bashinput}
-$ sbom-cve-check --sbom-type spdx3 \
+$ cd board_setup
+$ . .venv/bin/activate
+(.venv) $ sbom-cve-check --sbom-type spdx3 \
 	-S build/tmp-glibc/deploy/images/freiheit93/security-training-image-freiheit93.rootfs.spdx.json \
 	--yocto-vex-manifest build/tmp-glibc/deploy/images/freiheit93/security-training-image-freiheit93.rootfs.json \
 	-f summary -o cve_summary_vex
+(.venv) $ deactivate
 \end{bashinput}
 
 Compare both outputs to find out the impact of the annotations built into Yocto.
