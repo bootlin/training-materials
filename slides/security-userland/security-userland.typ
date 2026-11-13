@@ -93,10 +93,12 @@
   looks for a corresponding rule
 - Objects can be accessed only if an existing rule allows this access
 - Allows to enforce better rules, but more complex to maintain than DAC
-- Three main implementations for Linux:
+- Five implementations for Linux:
   - SELinux
   - AppArmor
   - TOMOYO Linux
+  - Smack
+  - IPE
 
 == Linux capabilities: usage and examples
 <linux-capabilities-usage-and-examples>
