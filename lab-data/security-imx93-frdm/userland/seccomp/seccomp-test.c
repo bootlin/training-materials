@@ -52,7 +52,7 @@ int main()
 
 	printf("Showing content of \"" READ_FILE "\":\n");
 	while ((len = read(fd, buf, sizeof(buf) - 1)) > 0) {
-		buf[len - 1] = '\0';
+		buf[len] = '\0';
 		printf("%s", buf);
 	}
 	close(fd);
