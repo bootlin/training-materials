@@ -13,7 +13,8 @@ SECURITY_SLIDES = \
 	security-measured-boot \
 	security-compliance \
 	security-ab-updates \
-	last-slides
+	last-slides \
+	security-extra-slides
 
 SECURITY_IMX93_FRDM_LABS = \
 	setup \
