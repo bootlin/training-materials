@@ -561,6 +561,4 @@
 
   - Configuring U-Boot to enforce signature verification
 
-  - Optionally, configuring SPL to also enforce signature verification
-
 ])
