@@ -3,6 +3,7 @@ BUILDROOT_SLIDES = \
 	about-us \
 	course-information-title \
 	shopping-list-beaglebone \
+	shopping-list-beagleplay \
 	shopping-list-stm32mp157 \
 	course-information \
 	setup-lab \
@@ -42,3 +43,12 @@ BUILDROOT_STM32MP1_LABS = \
 	buildroot-advanced-packages \
 	buildroot-advanced \
 	buildroot-appdev
+
+BUILDROOT_BEAGLEPLAY_LABS = \
+	setup \
+	buildroot-basic-beagleplay \
+	buildroot-rootfs-beagleplay \
+	buildroot-new-packages-beagleplay \
+	buildroot-advanced-packages-beagleplay \
+	buildroot-advanced-beagleplay \
+	buildroot-appdev-beagleplay
