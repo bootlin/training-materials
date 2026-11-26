@@ -53,7 +53,13 @@
 
 === Protection rings
 
-#align(center, [#image("rings.svg", width: 50%)])
+#grid(
+  columns: (auto, auto),
+  rows: auto,
+  gutter: 3pt,
+  figure(image("rings.svg", width: 70%), caption: [The theory]),
+  figure(image("rings_reality.svg", width: 70%), caption: [Reality]),
+)
 
 === System Calls (1/2)
 <system-calls-12>
