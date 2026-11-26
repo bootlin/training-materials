@@ -315,9 +315,25 @@ Error code 1: File not found
 Thanks to the SELinux policies, the tftp server no longer has access to the
 content of \texttt{/root}.
 
+We can use \textit{audit2why} to show the reason the access was denied:
+\begin{bashinput}
+$ audit2why -a | grep -A 5 tftp
+
+type=AVC msg=audit(1750929247.944:82): avc:  denied  { read } for  pid=227 comm="atftpd" name="secret" dev="mmcblk1p3" ino=9082 scontext=system_u:system_r:tftpd_t tcontext=root:object_r:user_home_t tclass=file permissive=0
+        Was caused by:
+        The boolean tftp_enable_homedir was set incorrectly.
+        Description:
+        Allow tftp to enable homedir
+
+        Allow access by executing:
+        # setsebool -P tftp_enable_homedir 1
+
+\end{bashinput}
+
+
 Let's pretend this access is legitimate.
 We could either modify SELinux rules or the file context.
-For demonstration purpose, we can try this later solution, changing the context
+For demonstration purpose, we can try this latter solution, changing the context
 of \texttt{/root/secret} to be the same as \texttt{/srv/tftp/public}.
 
 \begin{bashinput}
@@ -341,6 +357,29 @@ The \texttt{restorecon} command can then be used to revert to a sane context:
 root@freiheit93:~# restorecon /root/secret
 root@freiheit93:~# ls -lZ /root/secret
 -rw-r--r--. 1 root root root:object_r:user_home_t 17 Mar 17 09:27 /root/secret
+\end{bashinput}
+
+Looking at the logs from  \textit{audit2why}, they suggest the following
+fix:
+
+\begin{bashinput}
+$ setsebool -P tftp_enable_homedir 1
+\end{bashinput}
+
+We can use \textit{sesearch} to find out why that works:
+
+\begin{bashinput}
+$ sesearch -A -t user_home_t -b tftp_enable_homedir -v
+Attempting to locate current running policy.
+Opening SELinux policy "/sys/fs/selinux/policy"
+Successfully opened SELinux policy "/sys/fs/selinux/policy"
+Generating TE rule results from /sys/fs/selinux/policy
+allow tftpd_t user_home_t:dir { add_name create getattr ioctl link lock open read remove_name rename reparent rmdir search setattr unlink write }; [ tftp_enable_homedir ]:True
+allow tftpd_t user_home_t:dir { add_name getattr ioctl lock open read remove_name search write }; [ tftp_enable_homedir ]:True
+allow tftpd_t user_home_t:dir { add_name getattr ioctl lock open read remove_name search write }; [ tftp_enable_homedir ]:True
+allow tftpd_t user_home_t:dir { add_name getattr ioctl lock open read remove_name search write }; [ tftp_enable_homedir ]:True
+allow tftpd_t user_home_t:file { append create getattr ioctl link lock open read rename setattr unlink write }; [ tftp_enable_homedir ]:True
+allow tftpd_t user_home_t:lnk_file { append create getattr ioctl link lock read rename setattr unlink write }; [ tftp_enable_homedir ]:True
 \end{bashinput}
 
 Finally, since SELinux could interfere with the next part of the lab, make sure
