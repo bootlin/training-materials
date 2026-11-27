@@ -251,7 +251,7 @@
       "https://optee.readthedocs.io/en/latest/building/trusted_applications.html#tasign",
     )[signed]
 
-  - the OP-TEE core embarks the public part of
+  - the OP-TEE core embeds the public part of
     #text(size: 23pt)[#link(
       "https://elixir.bootlin.com/op-tee/4.9.0/source/keys/default_ta.pem",
     )[`default_ta.pem`]]
