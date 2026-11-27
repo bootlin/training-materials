@@ -238,14 +238,20 @@ at the very least the top-level dependencies of the products
   )[Standard]
   published by ECMA (ECMA-424 as of December 2025)
 
+- Version 2.0 is in the works, expected to be out very soon.
+
 - Supports the following serialization formats:
   - JSON (JavaScript Object Notation)
   - XML (eXtensible Markup Language)
   - Protocol buffers
 
-- Tends to be supported by commercial tools
+- Extended to #link("https://cyclonedx.org/capabilities/hbom/")[hardware]
+
+- Tends to be better supported by commercial tools
   - SBoM Studio (Cybeats)
   - SBoM Manager (Keysight)
+
+- Buildroot's format of choice
 
 === #link("https://spdx.dev/")[SPDX]
 
@@ -255,7 +261,7 @@ at the very least the top-level dependencies of the products
 - Two versions coexist:
   - 2.3 is widely supported, and the current ISO standard
   - 3.0 tooling is trailing a bit, and the next ISO standard (draft)
-- Tends to be supported by open-source tools
+- Yocto and sbom-cve-check's format of choice
 
 === SPDX3: Example
 
@@ -399,6 +405,23 @@ at the very least the top-level dependencies of the products
 === VulnScout
 
 #image("vulnscout.png", height: 90%)
+
+
+=== #link("https://dependencytrack.org/")[Dependency Track]
+
+- Open Source tool from OWASP
+- #link("https://github.com/DependencyTrack/dependency-track")[code] -
+  #link("https://dependencytrack.github.io/docs/next/")[documentation]
+
+- Written in Java
+- Split into an API server and a front-end, which can be run in containers
+- "Cyclone DX native", no SPDX support
+- Aims to be a single-stop analysis platform
+- Designed for scale and enterprise needs
+
+=== #link("https://dependencytrack.org/")[Dependency Track]
+
+#image("DependencyTrack.png", height: 90%)
 
 === sbom-cve-check
 
