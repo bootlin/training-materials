@@ -532,8 +532,11 @@
 
 === Setup at kernel init
 
-- The kernel supports boot arguments to create mapped devices:
-  `dm-mod.create`
+- The kernel supports creating mapped devices via #kdochtml("admin-guide/device-mapper/dm-init")
+
+- Specified through boot arguments:
+  - `dm-mod.create` to pass the devices specs
+  - `dm-mod.waitfor` to indicate which block devices are necessary
 
 - This must be enabled using #kconfig("CONFIG_DM_INIT")
 
