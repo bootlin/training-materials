@@ -91,7 +91,7 @@ Download U-Boot:
 \begin{bashinput}
 $ git clone https://git.u-boot-project.org/u-boot/u-boot.git
 $ cd u-boot
-$ git checkout v2026.04
+$ git checkout v2026.10
 \end{bashinput}
 
 Get an understanding of U-Boot's configuration and compilation steps
@@ -136,6 +136,11 @@ Basically, you need to:
       environment} should be \code{/uboot.env}, which indicates the
       filename inside which the U-Boot environment will be stored
     \end{itemize}
+  \item If you are using OpenSSL $\ge 4.0$, you also need to disable two options.
+  In the \code{Tools options} submenu, disable \code{Enable kwbimage support in host tools}
+  and \code{Use OpenSSL's libcrypto library for host tools}.
+  There is an incompatibility between some of U-Boot's internal tools and OpenSSL 4.0,
+  which has not been fixed yet.
   \end{itemize}
 
 Install the following packages which should be needed to compile U-Boot for
@@ -350,20 +355,20 @@ You can verify this by checking the build dates:
 \begin{verbatim}
 NOTICE:  CPU: STM32MP157DAC Rev.Z
 NOTICE:  Model: STMicroelectronics STM32MP157A-DK1 Discovery Board (SP_MIN)
-NOTICE:  Board: MB1272 Var3.0 Rev.C-02
+NOTICE:  Board: MB1272 Var3.0 Rev.C-03
 NOTICE:  BL2: v2.14.0(release):sandbox/v2.14
-NOTICE:  BL2: Built : 10:24:41, Jun 10 2026
+NOTICE:  BL2: Built : 15:35:09, Nov 27 2026
 NOTICE:  BL2: Booting BL32
 NOTICE:  SP_MIN: v2.14.0(release):sandbox/v2.14
-NOTICE:  SP_MIN: Built : 10:24:36, Jun 10 2026
+NOTICE:  SP_MIN: Built : 15:35:04, Nov 27 2026
 
 
-U-Boot 2026.04 (Jun 10 2026 - 14:23:29 +0200)
+U-Boot 2026.10 (Nov 27 2026 - 17:34:31 +0100)
 
 CPU: STM32MP157DAC Rev.Z
 Model: STMicroelectronics STM32MP157A-DK1 Discovery Board
 Board: stm32mp1 in trusted mode (st,stm32mp157a-dk1)
-Board: MB1272 Var3.0 Rev.C-02
+Board: MB1272 Var3.0 Rev.C-03
 DRAM:  512 MiB
 Clocks:
 - MPU : 650 MHz
@@ -371,11 +376,11 @@ Clocks:
 - AXI : 266.500 MHz
 - PER : 24 MHz
 - DDR : 533 MHz
-Core:  343 devices, 37 uclasses, devicetree: board
+Core:  354 devices, 37 uclasses, devicetree: board
 WDT:   Started watchdog@5a002000 with servicing every 1000ms (32s timeout)
 NAND:  0 MiB
 MMC:   STM32 SD/MMC: 0
-Loading Environment from EXT4... ** File not found /uboot.env **
+** File not found /uboot.env **.
 
 ** Unable to read "/uboot.env" from mmc0:4 **
 In:    serial
@@ -383,13 +388,14 @@ Out:   serial
 Err:   serial
 Previous ADC measurements was not the one expected, retry in 20ms
 ****************************************************
-*        WARNING 500mA power supply detected       *
+*       WARNING 1.5A power supply detected        *
 *     Current too low, use a 3A power supply!      *
 ****************************************************
 
 Net:   eth0: ethernet@5800a000
 
 Hit any key to stop autoboot: 0
+STM32MP>
 \end{verbatim}
 
 In U-Boot, type the \code{help} command, and explore the few commands
